@@ -1,0 +1,22 @@
+{
+    "name": "Absensi MANSABA",
+    "short_name": "Simpoa",
+    "description": "Sistem Informasi Absensi Online Akurat",
+    "start_url": "/dashboard",
+    "display": "standalone",
+    "background_color": "#16213e",
+    "theme_color": "#0f3460",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "https://ppdb-mansaba.s3.ap-southeast-1.amazonaws.com/logo_madrasah_transparan.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "https://ppdb-mansaba.s3.ap-southeast-1.amazonaws.com/logo_madrasah_transparan.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
