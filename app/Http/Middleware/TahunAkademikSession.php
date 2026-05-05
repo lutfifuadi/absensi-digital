@@ -22,10 +22,14 @@ class TahunAkademikSession
         }
 
         if (!session()->has('tahun_akademik_id')) {
-            $aktif = TahunAkademik::where('is_aktif', true)->first();
-            if ($aktif) {
-                // Set default session to the active academic year
-                session(['tahun_akademik_id' => $aktif->id]);
+            try {
+                $aktif = TahunAkademik::where('is_aktif', true)->first();
+                if ($aktif) {
+                    // Set default session to the active academic year
+                    session(['tahun_akademik_id' => $aktif->id]);
+                }
+            } catch (\Exception $e) {
+                // Database not ready or connection failed, skip session setting
             }
         }
 
