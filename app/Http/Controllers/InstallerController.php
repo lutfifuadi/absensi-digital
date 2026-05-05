@@ -240,6 +240,9 @@ class InstallerController extends Controller
                 'status' => 'active',
             ]);
 
+            // Bind ke container agar trait HasTenant bisa mendeteksi school_id otomatis
+            app()->instance('current_school', $school);
+
             // 3. Seed data pengaturan default
             $pengaturanDefaults = [
                 'master_db_sync_enabled' => 'Ya',
