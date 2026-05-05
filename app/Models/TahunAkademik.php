@@ -11,6 +11,14 @@ class TahunAkademik extends Model
 
     protected $table = 'tahun_akademik';
 
+    protected $fillable = [
+        'nama',
+        'semester',
+        'tanggal_mulai',
+        'tanggal_selesai',
+        'is_aktif',
+    ];
+
     public function siswa()
     {
         return $this->hasMany(Siswa::class, 'tahun_akademik_id');
