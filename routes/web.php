@@ -441,6 +441,17 @@ Route::middleware([
           ->name('admin.pengaturan.update')
           ->middleware('role:super_admin,admin_sekolah');
 
+      // Update Sistem
+      Route::get('update', [\App\Http\Controllers\Admin\UpdateController::class, 'index'])
+          ->name('admin.update.index')
+          ->middleware('role:super_admin');
+      Route::post('update/check', [\App\Http\Controllers\Admin\UpdateController::class, 'check'])
+          ->name('admin.update.check')
+          ->middleware('role:super_admin');
+      Route::post('update/run', [\App\Http\Controllers\Admin\UpdateController::class, 'update'])
+          ->name('admin.update.run')
+          ->middleware('role:super_admin');
+
       // PWA Settings
       Route::get('pwa', [\App\Http\Controllers\Admin\PwaSettingsController::class, 'index'])
           ->name('admin.pwa.index')
