@@ -51,10 +51,12 @@ class ApiSourceSettingsController extends Controller
             $settingsToSave['master_db_api_key'] = $validated['master_db_api_key'];
         }
 
+        $schoolId = app()->has('current_school') ? app('current_school')->id : \App\Models\School::first()->id;
+
         foreach ($settingsToSave as $key => $value) {
             Pengaturan::updateOrCreate(
                 ['key' => $key],
-                ['value' => $value, 'group' => 'api_source']
+                ['value' => $value, 'group' => 'api_source', 'school_id' => $schoolId]
             );
         }
 

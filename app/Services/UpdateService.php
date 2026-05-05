@@ -46,7 +46,7 @@ class UpdateService
                 $request->withToken($token);
             }
 
-            $response = $request->get($url);
+            $response = $request->timeout(60)->get($url);
 
             if ($response->status() === 404) {
                 return [
@@ -128,6 +128,10 @@ class UpdateService
 
     public function runUpdate(): array
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+
         $info = $this->getCachedUpdateInfo();
         if (!$info) {
             return ['status' => false, 'message' => 'Informasi update tidak ditemukan. Silakan periksa update terlebih dahulu.'];
@@ -148,7 +152,7 @@ class UpdateService
                 $request->withToken($token);
             }
 
-            $response = $request->get($info['package_url']);
+            $response = $request->timeout(300)->get($info['package_url']);
             
             if ($response->failed()) {
                 throw new \Exception('Gagal mengunduh paket dari GitHub (Status: ' . $response->status() . ').');
