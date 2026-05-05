@@ -11,4 +11,3 @@ class AbsensiStaff extends Model
 
     protected $table = 'absensi_staff';
 }
-}

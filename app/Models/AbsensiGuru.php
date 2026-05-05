@@ -11,4 +11,3 @@ class AbsensiGuru extends Model
 
     protected $table = 'absensi_guru';
 }
-}

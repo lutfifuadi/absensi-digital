@@ -11,4 +11,3 @@ class StaffTataUsaha extends Model
 
     protected $table = 'staff_tata_usaha';
 }
-}

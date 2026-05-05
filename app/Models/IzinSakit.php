@@ -10,7 +10,6 @@ class IzinSakit extends Model
     use HasFactory;
 
     protected $table = 'izin_sakit';
-}
 
     public function guru()
     {
