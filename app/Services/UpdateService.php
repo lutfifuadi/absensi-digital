@@ -197,6 +197,13 @@ class UpdateService
 
             $this->updateEnvVersion($info['latest_version']);
             
+            // UPDATE DATABASE VERSION JUGA
+            $schoolId = app()->has('current_school') ? app('current_school')->id : \App\Models\School::first()->id;
+            Pengaturan::updateOrCreate(
+                ['key' => 'app_version'],
+                ['value' => $info['latest_version'], 'group' => 'update', 'school_id' => $schoolId]
+            );
+            
             Artisan::call('migrate', ['--force' => true]);
             Artisan::call('cache:clear');
             Artisan::call('config:clear');
