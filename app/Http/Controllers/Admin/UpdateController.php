@@ -57,4 +57,41 @@ class UpdateController extends Controller
             'message' => $result['message']
         ], 500);
     }
+
+    public function buildAssets()
+    {
+        $output = [];
+        $exitCode = 0;
+
+        exec('node -v 2>&1', $nodeCheck, $nodeExit);
+        if ($nodeExit !== 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Node.js tidak ditemukan di server. Pastikan Node.js sudah terinstall.'
+            ], 422);
+        }
+
+        $basePath = base_path();
+
+        exec("cd " . escapeshellarg($basePath) . " && npm install 2>&1", $installOut, $installCode);
+        if ($installCode !== 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'npm install gagal: ' . implode("\n", array_slice($installOut, -5))
+            ], 500);
+        }
+
+        exec("cd " . escapeshellarg($basePath) . " && npm run build 2>&1", $buildOut, $buildCode);
+        if ($buildCode !== 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'npm run build gagal: ' . implode("\n", array_slice($buildOut, -5))
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Assets berhasil di-build! Halaman akan di-refresh.'
+        ]);
+    }
 }

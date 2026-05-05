@@ -442,6 +442,9 @@ Route::middleware([
       Route::post('update/run', [\App\Http\Controllers\Admin\UpdateController::class, 'update'])
           ->name('admin.update.run')
           ->middleware('role:super_admin');
+      Route::post('update/build-assets', [\App\Http\Controllers\Admin\UpdateController::class, 'buildAssets'])
+          ->name('admin.update.build-assets')
+          ->middleware('role:super_admin');
 
       // PWA Settings
       Route::get('pwa', [\App\Http\Controllers\Admin\PwaSettingsController::class, 'index'])

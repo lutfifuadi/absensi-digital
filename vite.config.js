@@ -84,6 +84,7 @@ export default defineConfig({
     stringify: true // Helps with JSON import compatibility
   },
   build: {
+    modulePreload: false,
     commonjsOptions: {
       include: [/node_modules/] // Helps with importing CommonJS modules
     }
