@@ -40,7 +40,7 @@ class UpdateService
                 'X-GitHub-Api-Version' => '2022-11-28',
             ];
 
-            $request = Http::withHeaders($headers);
+            $request = Http::withoutVerifying()->withHeaders($headers);
 
             if (!empty($token)) {
                 $request->withToken($token);
@@ -95,16 +95,20 @@ class UpdateService
 
     private function saveUpdateInfo(array $data): void
     {
-        Pengaturan::updateOrCreate(['key' => 'update_available_version'], ['value' => $data['latest_version'], 'group' => 'update']);
-        Pengaturan::updateOrCreate(['key' => 'update_changelog'], ['value' => $data['changelog'], 'group' => 'update']);
-        Pengaturan::updateOrCreate(['key' => 'update_package_url'], ['value' => $data['package_url'], 'group' => 'update']);
-        Pengaturan::updateOrCreate(['key' => 'update_last_check'], ['value' => now()->toDateTimeString(), 'group' => 'update']);
+        $schoolId = app()->has('current_school') ? app('current_school')->id : \App\Models\School::first()->id;
+
+        Pengaturan::updateOrCreate(['key' => 'update_available_version'], ['value' => $data['latest_version'], 'group' => 'update', 'school_id' => $schoolId]);
+        Pengaturan::updateOrCreate(['key' => 'update_changelog'], ['value' => $data['changelog'], 'group' => 'update', 'school_id' => $schoolId]);
+        Pengaturan::updateOrCreate(['key' => 'update_package_url'], ['value' => $data['package_url'], 'group' => 'update', 'school_id' => $schoolId]);
+        Pengaturan::updateOrCreate(['key' => 'update_last_check'], ['value' => now()->toDateTimeString(), 'group' => 'update', 'school_id' => $schoolId]);
     }
 
     private function clearUpdateInfo(): void
     {
+        $schoolId = app()->has('current_school') ? app('current_school')->id : \App\Models\School::first()->id;
+        
         Pengaturan::where('group', 'update')->delete();
-        Pengaturan::updateOrCreate(['key' => 'update_last_check'], ['value' => now()->toDateTimeString(), 'group' => 'update']);
+        Pengaturan::updateOrCreate(['key' => 'update_last_check'], ['value' => now()->toDateTimeString(), 'group' => 'update', 'school_id' => $schoolId]);
     }
 
     public function getCachedUpdateInfo(): ?array
@@ -133,7 +137,7 @@ class UpdateService
             Log::info('Memulai pengunduhan update: ' . $info['package_url']);
 
             // 1. Download Paket
-            $request = Http::withHeaders([
+            $request = Http::withoutVerifying()->withHeaders([
                 'Accept' => 'application/vnd.github+json',
                 'X-GitHub-Api-Version' => '2022-11-28',
             ]);
