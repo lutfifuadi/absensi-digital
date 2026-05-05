@@ -335,7 +335,7 @@ class InstallerController extends Controller
         // 3. Kelas
         $kelasX = Kelas::create([
             'nama' => 'X-MIPA-1',
-            'tingkat' => '10',
+            'tingkat' => 'X',
             'jurusan' => 'MIPA',
             'wali_kelas_id' => $guru->id,
             'tahun_akademik_id' => $ta->id,
@@ -345,7 +345,7 @@ class InstallerController extends Controller
 
         $kelasXI = Kelas::create([
             'nama' => 'XI-MIPA-2',
-            'tingkat' => '11',
+            'tingkat' => 'XI',
             'jurusan' => 'MIPA',
             'tahun_akademik_id' => $ta->id,
             'is_aktif_absensi' => true,
