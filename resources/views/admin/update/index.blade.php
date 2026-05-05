@@ -392,30 +392,6 @@
       </div>
     @endif
   </div>
-
-  {{-- Build Assets Card --}}
-  <div class="col-12 mt-4">
-    <div class="update-card card">
-      <div class="card-body p-4">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <div class="d-flex align-items-center gap-3">
-            <div style="width:48px;height:48px;font-size:1.25rem;background:rgba(0,207,232,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#00cfe8;flex-shrink:0;">
-              <i class="ti tabler-package"></i>
-            </div>
-            <div>
-              <h5 class="mb-1" style="color:white;">Refresh Cache Assets</h5>
-              <p class="text-muted mb-0" style="font-size:0.85rem;">Assets CSS &amp; JS sudah di-build otomatis via GitHub Actions. Klik untuk membersihkan cache setelah update.</p>
-            </div>
-          </div>
-          <button type="button" id="btn-build-assets" class="btn update-btn" style="background:linear-gradient(135deg,#00cfe8,#1ce7ff);color:#fff;border:none;">
-            <i class="ti tabler-refresh"></i>
-            Refresh Cache
-          </button>
-        </div>
-        <div id="build-assets-log" class="mt-3 p-3 rounded d-none" style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);font-family:monospace;font-size:0.82rem;color:rgba(255,255,255,0.7);max-height:120px;overflow-y:auto;"></div>
-      </div>
-    </div>
-  </div>
 </div>
 
 {{-- Modal Progress Update --}}
@@ -692,69 +668,8 @@ document.addEventListener('DOMContentLoaded', function() {
     };
   }
 
-  // Build Assets
-  const btnBuildAssets = document.getElementById('btn-build-assets');
-  const buildLog = document.getElementById('build-assets-log');
-
-  if (btnBuildAssets) {
-    btnBuildAssets.addEventListener('click', function () {
-      showCustomModal({
-        type: 'confirm',
-        title: 'Refresh Cache?',
-        message: 'Proses ini akan membersihkan cache Laravel (view, config, route). Assets sudah tersedia dari paket update GitHub Actions.',
-        icon: 'ti tabler-refresh',
-        color: 'info',
-        confirmText: 'Ya, Refresh Sekarang!',
-        cancelText: 'Batal',
-        onConfirm: startBuildProcess
-      });
-    });
-  }
-
-  function startBuildProcess() {
-    btnBuildAssets.disabled = true;
-    btnBuildAssets.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sedang Refresh...';
-    buildLog.classList.remove('d-none');
-    buildLog.textContent = '> Membersihkan cache...\n';
-
-    fetch("{{ route('admin.update.build-assets') }}", {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-        'Accept': 'application/json'
-      }
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) {
-        buildLog.textContent += '> Selesai!\n';
-        showCustomModal({
-          title: 'Cache Berhasil Direfresh!',
-          message: data.message,
-          icon: 'ti tabler-check',
-          color: 'success',
-          onConfirm: () => window.location.reload()
-        });
-      } else {
-        buildLog.textContent += '> Error: ' + data.message + '\n';
-        throw new Error(data.message);
-      }
-    })
-    .catch(err => {
-      showCustomModal({
-        title: 'Refresh Gagal',
-        message: err.message,
-        icon: 'ti tabler-alert-circle',
-        color: 'danger'
-      });
-    })
-    .finally(() => {
-      btnBuildAssets.disabled = false;
-      btnBuildAssets.innerHTML = '<i class="ti tabler-refresh me-1"></i> Refresh Cache';
-    });
-  }
-
-  function startUpdateProcess() {    modalProgress.show();
+  function startUpdateProcess() {
+    modalProgress.show();
     updateSteps(1);
 
     let progress = 0;

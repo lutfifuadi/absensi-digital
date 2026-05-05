@@ -25,25 +25,13 @@ class CheckAuthorizedDevice
         $deviceUuid = $request->cookie('device_uuid');
 
         if (!$deviceUuid) {
-            // Tidak ada cookie device_uuid → perangkat tidak dikenal
-            // Daftarkan sebagai pending dengan UUID baru, lalu redirect ke halaman unauthorized
+            // If no cookie, we let the page load so JS can generate and set the cookie, 
+            // but the subsequent AJAX/Form submissions will be caught.
+            // Or we check if it's an AJAX request.
             if ($request->ajax()) {
                 return response()->json(['success' => false, 'message' => 'Perangkat tidak dikenal. Silakan muat ulang halaman.'], 403);
             }
-
-            // Generate UUID baru untuk device ini agar bisa di-track admin
-            $newUuid = \Illuminate\Support\Str::uuid()->toString();
-
-            AuthorizedDevice::create([
-                'device_uuid'   => $newUuid,
-                'device_name'   => 'Perangkat baru (' . $request->ip() . ')',
-                'user_agent'    => $request->header('User-Agent'),
-                'ip_address'    => $request->ip(),
-                'is_authorized' => false,
-            ]);
-
-            return redirect()->route('public.device-unauthorized')
-                ->cookie('device_uuid', $newUuid, 60 * 24 * 365, '/', null, false, false);
+            return $next($request);
         }
 
         $device = AuthorizedDevice::where('device_uuid', $deviceUuid)->first();
