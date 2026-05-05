@@ -101,7 +101,6 @@ class PengaturanController extends Controller
         // GitHub Update Settings
         'github_repo_owner' => '',
         'github_repo_name' => '',
-        'github_access_token' => '',
         'app_version' => '1.3.0',
     ];
 

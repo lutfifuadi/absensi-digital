@@ -38,7 +38,7 @@ class UpdateController extends Controller
         return response()->json([
             'success' => false,
             'message' => $result['message']
-        ], 500);
+        ], 422);
     }
 
     public function update()
@@ -56,22 +56,5 @@ class UpdateController extends Controller
             'success' => false,
             'message' => $result['message']
         ], 500);
-    }
-
-    public function getUpdateData()
-    {
-        $data = $this->updateService->getUpdateDataForModal();
-        
-        if (!$data) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Tidak ada data update tersedia.'
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => $data
-        ]);
     }
 }

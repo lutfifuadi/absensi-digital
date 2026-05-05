@@ -863,12 +863,12 @@
 
             <div class="set-section-label">Konfigurasi Repositori</div>
 
-            <div class="alert alert-warning mb-4" role="alert" style="background: rgba(255, 159, 67, 0.08); border: 1px solid rgba(255, 159, 67, 0.2); border-radius: 12px; color: #ff9f43;">
+            <div class="alert alert-info mb-4" role="alert" style="background: rgba(0, 207, 232, 0.08); border: 1px solid rgba(0, 207, 232, 0.2); border-radius: 12px; color: #00cfe8;">
               <div class="d-flex align-items-center gap-2">
-                <i class="ti tabler-alert-triangle fs-4"></i>
-                <strong>Perhatian:</strong>
+                <i class="ti tabler-info-circle fs-4"></i>
+                <strong>Repositori Publik</strong>
               </div>
-              <p class="mt-2 mb-0 small">Pastikan Personal Access Token (PAT) memiliki izin <code>repo</code> untuk mengakses repositori privat. Token ini akan digunakan sistem untuk mengecek dan mengunduh paket pembaruan.</p>
+              <p class="mt-2 mb-0 small">Sistem menggunakan repositori GitHub publik. Tidak diperlukan token untuk memeriksa dan mengunduh pembaruan.</p>
             </div>
             <div class="set-form-grid">
               <div class="set-field">
@@ -888,19 +888,6 @@
                     value="{{ old('github_repo_name', $settings['github_repo_name'] ?? '') }}"
                     placeholder="Contoh: absensi-klien">
                 </div>
-              </div>
-              <div class="set-field set-field--full">
-                <label class="set-label">GitHub Personal Access Token (PAT)</label>
-                <div class="set-input-group set-password-toggle">
-                  <span class="set-input-prefix"><i class="ti tabler-key"></i></span>
-                  <input type="password" class="set-input" name="github_access_token"
-                    value="{{ old('github_access_token', $settings['github_access_token'] ?? '') }}"
-                    placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
-                  <button type="button" class="set-input-eye">
-                    <i class="ti tabler-eye-off"></i>
-                  </button>
-                </div>
-                <div class="set-field-hint --info"><i class="ti tabler-info-circle"></i> Token ini digunakan untuk mengunduh update dari repositori privat secara aman.</div>
               </div>
               <div class="set-field set-field--full">
                 <label class="set-label">Versi Aplikasi Saat Ini</label>
