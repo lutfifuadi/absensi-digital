@@ -1,4 +1,4 @@
-﻿@extends('layouts/layoutMaster')
+@extends('layouts/layoutMaster')
 
 @section('title', 'Dashboard Utama — ' . ($pengaturanArr['nama_sekolah'] ?? 'Sistem Absensi'))
 
@@ -31,7 +31,7 @@
             <span class="pulse-dot"></span>
             Sistem Administrasi Sekolah
           </div>
-          <h4 class="das-hero__school text-gradient-gold">{{ $pengaturanArr['nama_sekolah'] ?? 'Madrasah Aliyah' }}</h4>
+          <h4 class="das-hero__school text-gradient-gold">{{ $pengaturanArr['nama_sekolah'] ?? $pengaturanArr['nama_lembaga'] ?? 'Sistem Absensi' }}</h4>
           <p class="das-hero__welcome">Selamat datang kembali, <strong>{{ $user->name }}</strong> 👋</p>
         </div>
       </div>

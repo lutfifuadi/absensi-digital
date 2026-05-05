@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Live Attendance Monitor — {{ $pengaturanArr['nama_sekolah'] ?? 'Sistem Absensi' }}</title>
+  <title>Live Attendance Monitor — {{ $pengaturanArr['nama_sekolah'] ?? $pengaturanArr['nama_lembaga'] ?? 'Sistem Absensi' }}</title>
   <link rel="stylesheet" href="{{ asset('assets/css/local-fonts.css') }}">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -156,7 +156,7 @@
       <div class="logo-icon">🏫</div>
     @endif
     <div>
-      <h1>{{ $pengaturanArr['nama_sekolah'] ?? 'Madrasah Aliyah' }}</h1>
+      <h1>{{ $pengaturanArr['nama_sekolah'] ?? $pengaturanArr['nama_lembaga'] ?? 'Sistem Absensi' }}</h1>
       <p>Papan Absensi Live · Akses Publik</p>
     </div>
   </div>
@@ -177,7 +177,7 @@
 </header>
 
 <div class="announce-bar">
-  <marquee scrollamount="4">📢 &nbsp; Selamat datang di {{ $pengaturanArr['nama_sekolah'] ?? 'Madrasah Aliyah' }}. Silahkan tunjukkan kartu identitas QR Anda ke kamera scanner untuk mencatat kehadiran. Jam masuk dimulai pukul {{ $pengaturanArr['jam_masuk'] ?? '07:00' }}. Waktu keterlambatan maksimal {{ $pengaturanArr['toleransi_terlambat'] ?? '15' }} menit.</marquee>
+  <marquee scrollamount="4">📢 &nbsp; Selamat datang di {{ $pengaturanArr['nama_sekolah'] ?? $pengaturanArr['nama_lembaga'] ?? 'Sistem Absensi' }}. Silahkan tunjukkan kartu identitas QR Anda ke kamera scanner untuk mencatat kehadiran. Jam masuk dimulai pukul {{ $pengaturanArr['jam_masuk'] ?? '07:00' }}. Waktu keterlambatan maksimal {{ $pengaturanArr['toleransi_terlambat'] ?? '15' }} menit.</marquee>
 </div>
 
 <div class="main">

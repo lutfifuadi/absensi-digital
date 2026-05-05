@@ -13,7 +13,8 @@ class PengaturanController extends Controller
     private array $defaults = [
         // Tab: Lembaga
         'nama_yayasan_dinas' => 'Kementerian Agama Republik Indonesia',
-        'nama_lembaga' => 'MAN 1 Kota Bandung',
+        'nama_lembaga' => 'Sistem Absensi',
+        'nama_sekolah' => 'Sistem Absensi',
         'status_akreditasi' => 'Akreditasi A',
         'jumlah_tahun_sekolah' => '3',
         'website_lembaga' => 'man1kotabandung.sch.id',

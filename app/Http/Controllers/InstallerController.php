@@ -239,6 +239,7 @@ class InstallerController extends Controller
                 'master_db_sync_enabled' => 'Ya',
                 'zona_waktu'             => 'Asia/Jakarta',
                 'nama_lembaga'           => session('install_school_name'),
+                'nama_sekolah'           => session('install_school_name'), // Added for compatibility
                 'slogan_lembaga'         => session('install_school_slogan') ?? 'Sistem Absensi Digital Modern',
                 'alamat_lembaga'         => session('install_school_address'),
                 'telepon_lembaga'        => session('install_school_phone'),
