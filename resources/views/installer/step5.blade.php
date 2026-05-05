@@ -58,6 +58,18 @@
                 </div>
             </div>
         </div>
+
+        <div class="mt-20" style="background: var(--surface-2); padding: 16px; border-radius: 12px; border: 1px dashed var(--surface-3);">
+            <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                <input type="checkbox" name="include_dummy_data" value="1" style="margin-top: 4px; width: 18px; height: 18px; accent-color: var(--primary);">
+                <div style="flex: 1;">
+                    <span style="display: block; font-weight: 600; color: var(--text); font-size: 0.9375rem;">Sertakan Data Sampel (Dummy Data)</span>
+                    <span style="display: block; font-size: 0.8125rem; color: var(--text-muted); margin-top: 2px;">
+                        Centang ini untuk menambahkan data contoh seperti Tahun Akademik, Kelas, Siswa, dan Guru secara otomatis. Sangat disarankan untuk uji coba sistem.
+                    </span>
+                </div>
+            </label>
+        </div>
     </div>
 
     <!-- Loading Overlay -->
@@ -121,13 +133,19 @@
                         
                         // Smart Progress Simulation
                         let progress = 5;
+                        const includeDummy = $('input[name="include_dummy_data"]').is(':checked');
                         const statusSteps = [
                             { p: 12, t: 'Menghubungkan ke database...', s: 'Memastikan koneksi aman dan stabil.' },
                             { p: 30, t: 'Migrasi Struktur...', s: 'Membangun tabel dan relasi sistem utama.' },
-                            { p: 55, t: 'Konfigurasi Sekolah...', s: 'Menyimpan profil, alamat, dan kontak lembaga.' },
-                            { p: 75, t: 'Membuat Akun Admin...', s: 'Mendaftarkan akses administrator utama Anda.' },
-                            { p: 92, t: 'Finalisasi...', s: 'Membersihkan cache dan mengaktifkan sistem.' }
+                            { p: 50, t: 'Konfigurasi Sekolah...', s: 'Menyimpan profil, alamat, dan kontak lembaga.' },
+                            { p: 70, t: 'Membuat Akun Admin...', s: 'Mendaftarkan akses administrator utama Anda.' },
                         ];
+
+                        if (includeDummy) {
+                            statusSteps.push({ p: 85, t: 'Menyuntikkan Data Sampel...', s: 'Menyiapkan kelas, siswa, dan guru contoh untuk Anda.' });
+                        }
+
+                        statusSteps.push({ p: 94, t: 'Finalisasi...', s: 'Membersihkan cache dan mengaktifkan sistem.' });
 
                         let stepIdx = 0;
                         // Use a faster interval (400ms) for smoother animation

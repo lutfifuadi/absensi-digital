@@ -8,6 +8,12 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use App\Models\School;
 use App\Models\User;
+use App\Models\TahunAkademik;
+use App\Models\Kelas;
+use App\Models\Siswa;
+use App\Models\Guru;
+use App\Models\JadwalPelajaran;
+use App\Models\AbsensiSiswa;
 
 class InstallerController extends Controller
 {
@@ -261,8 +267,14 @@ class InstallerController extends Controller
                 'username' => $request->admin_username,
                 'password' => Hash::make($request->admin_password),
                 'role' => 'super_admin',
+                'roles' => ['super_admin'],
                 'school_id' => $school->id,
             ]);
+
+            // 5. Seed Dummy Data (Optional)
+            if ($request->has('include_dummy_data')) {
+                $this->seedDummyData($school->id);
+            }
 
             // Create storage/installed
             file_put_contents(storage_path('installed'), 'installed on ' . date('Y-m-d H:i:s'));
@@ -280,6 +292,143 @@ class InstallerController extends Controller
                 'success' => false,
                 'message' => 'Gagal memproses instalasi: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    private function seedDummyData($schoolId)
+    {
+        // 1. Tahun Akademik
+        $ta = TahunAkademik::create([
+            'nama' => '2024/2025',
+            'semester' => 'Ganjil',
+            'tanggal_mulai' => '2024-07-15',
+            'tanggal_selesai' => '2024-12-20',
+            'is_aktif' => true,
+            'school_id' => $schoolId,
+        ]);
+
+        // 2. Guru (Wali Kelas)
+        $userGuru = User::create([
+            'name' => 'Budi Santoso, S.Pd',
+            'email' => 'budi@sekolah.com',
+            'username' => 'guru_budi',
+            'password' => Hash::make('password123'),
+            'role' => 'guru',
+            'roles' => ['guru', 'wali_kelas'],
+            'school_id' => $schoolId,
+        ]);
+
+        $guru = Guru::create([
+            'user_id' => $userGuru->id,
+            'nip' => '198501012010011001',
+            'nama_lengkap' => 'Budi Santoso, S.Pd',
+            'jenis_kelamin' => 'L',
+            'mata_pelajaran' => 'Matematika',
+            'jabatan' => 'Guru Tetap',
+            'status' => 'aktif',
+            'school_id' => $schoolId,
+        ]);
+
+        // 3. Kelas
+        $kelasX = Kelas::create([
+            'nama' => 'X-MIPA-1',
+            'tingkat' => '10',
+            'jurusan' => 'MIPA',
+            'wali_kelas_id' => $guru->id,
+            'tahun_akademik_id' => $ta->id,
+            'is_aktif_absensi' => true,
+            'school_id' => $schoolId,
+        ]);
+
+        $kelasXI = Kelas::create([
+            'nama' => 'XI-MIPA-2',
+            'tingkat' => '11',
+            'jurusan' => 'MIPA',
+            'tahun_akademik_id' => $ta->id,
+            'is_aktif_absensi' => true,
+            'school_id' => $schoolId,
+        ]);
+
+        // 4. Siswa
+        $siswaData = [
+            ['nama' => 'Ahmad Fauzi', 'nis' => '10001', 'jk' => 'L', 'kelas' => $kelasX->id],
+            ['nama' => 'Siti Aminah', 'nis' => '10002', 'jk' => 'P', 'kelas' => $kelasX->id],
+            ['nama' => 'Bambang Heru', 'nis' => '11001', 'jk' => 'L', 'kelas' => $kelasXI->id],
+            ['nama' => 'Dewi Lestari', 'nis' => '11002', 'jk' => 'P', 'kelas' => $kelasXI->id],
+        ];
+
+        foreach ($siswaData as $data) {
+            $userSiswa = User::create([
+                'name' => $data['nama'],
+                'email' => strtolower(str_replace(' ', '', $data['nama'])) . '@siswa.com',
+                'username' => $data['nis'],
+                'password' => Hash::make($data['nis']),
+                'role' => 'siswa',
+                'roles' => ['siswa'],
+                'school_id' => $schoolId,
+            ]);
+
+            Siswa::create([
+                'user_id' => $userSiswa->id,
+                'nis' => $data['nis'],
+                'nama_lengkap' => $data['nama'],
+                'jenis_kelamin' => $data['jk'],
+                'kelas_id' => $data['kelas'],
+                'tahun_akademik_id' => $ta->id,
+                'status' => 'aktif',
+                'school_id' => $schoolId,
+            ]);
+        }
+
+        // 5. Jadwal Pelajaran (Contoh)
+        $hariSchedules = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        foreach ($hariSchedules as $hari) {
+            JadwalPelajaran::create([
+                'kelas_id' => $kelasX->id,
+                'guru_id' => $guru->id,
+                'mata_pelajaran' => 'Matematika',
+                'hari' => $hari,
+                'jam_mulai' => '07:30:00',
+                'jam_selesai' => '09:00:00',
+                'school_id' => $schoolId,
+            ]);
+        }
+
+        // 6. Data Presensi (Sampel 3 hari terakhir)
+        $siswas = Siswa::where('school_id', $schoolId)->get();
+        for ($i = 0; $i < 3; $i++) {
+            $date = now()->subDays($i);
+            // Skip weekend
+            if ($date->isWeekend()) continue;
+
+            foreach ($siswas as $siswa) {
+                // Random status: Hadir (80%), Sakit (10%), Izin (10%)
+                $rand = rand(1, 100);
+                $status = 'Hadir';
+                $jamMasuk = '07:15:00';
+                $jamPulang = '14:00:00';
+
+                if ($rand > 80 && $rand <= 90) {
+                    $status = 'Sakit';
+                    $jamMasuk = null;
+                    $jamPulang = null;
+                } elseif ($rand > 90) {
+                    $status = 'Izin';
+                    $jamMasuk = null;
+                    $jamPulang = null;
+                }
+
+                AbsensiSiswa::create([
+                    'siswa_id' => $siswa->id,
+                    'kelas_id' => $siswa->kelas_id,
+                    'tanggal' => $date->format('Y-m-d'),
+                    'jam_masuk' => $jamMasuk,
+                    'jam_pulang' => $jamPulang,
+                    'status' => $status,
+                    'metode' => 'QR Code',
+                    'school_id' => $schoolId,
+                ]);
+            }
         }
     }
 
