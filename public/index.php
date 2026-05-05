@@ -61,7 +61,23 @@ if ($needsUpdate) {
     }
 }
 
-// 4. Cek apakah perlu redirect ke installer (misal jika database belum disetting)
+// 4. Pastikan direktori penting ada (bootstrap/cache & storage)
+$requiredDirs = [
+    __DIR__.'/../bootstrap/cache',
+    __DIR__.'/../storage/app/public',
+    __DIR__.'/../storage/framework/cache',
+    __DIR__.'/../storage/framework/sessions',
+    __DIR__.'/../storage/framework/views',
+    __DIR__.'/../storage/logs',
+];
+
+foreach ($requiredDirs as $dir) {
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0775, true);
+    }
+}
+
+// 5. Cek apakah perlu redirect ke installer (misal jika database belum disetting)
 $isInstalled = file_exists(__DIR__.'/../storage/installed');
 if (!$isInstalled && strpos($_SERVER['REQUEST_URI'] ?? '', '/install') === false) {
     header('Location: /install');
