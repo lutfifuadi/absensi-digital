@@ -13,8 +13,34 @@ if (!file_exists($envPath)) {
     }
 }
 
-// 2. Generate APP_KEY jika kosong
+// 2. Deteksi URL dan Set Produksi Otomatis
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || ($_SERVER['SERVER_PORT'] ?? 0) == 443) ? "https://" : "http://";
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$currentUrl = rtrim($protocol . $host, '/');
+$isLocal = in_array($host, ['localhost', '127.0.0.1', '::1']) || strpos($host, '192.168.') === 0;
+
 $envContent = file_get_contents($envPath);
+$needsUpdate = false;
+
+// Set APP_URL otomatis jika masih localhost atau kosong
+if (preg_match('/^APP_URL=(http:\/\/localhost|https:\/\/localhost|)$/m', $envContent)) {
+    $envContent = preg_replace('/^APP_URL=.*$/m', "APP_URL=$currentUrl", $envContent);
+    $needsUpdate = true;
+}
+
+// Set ke production jika diakses dari domain asli
+if (!$isLocal) {
+    if (preg_match('/^APP_ENV=local$/m', $envContent)) {
+        $envContent = preg_replace('/^APP_ENV=local$/m', "APP_ENV=production", $envContent);
+        $needsUpdate = true;
+    }
+    if (preg_match('/^APP_DEBUG=true$/m', $envContent)) {
+        $envContent = preg_replace('/^APP_DEBUG=true$/m', "APP_DEBUG=false", $envContent);
+        $needsUpdate = true;
+    }
+}
+
+// 3. Generate APP_KEY jika kosong
 if (!preg_match('/^APP_KEY=base64:./m', $envContent)) {
     $newKey = 'base64:'.base64_encode(random_bytes(32));
     if (strpos($envContent, 'APP_KEY=') !== false) {
@@ -22,14 +48,20 @@ if (!preg_match('/^APP_KEY=base64:./m', $envContent)) {
     } else {
         $envContent .= "\nAPP_KEY=$newKey";
     }
-    file_put_contents($envPath, $envContent);
-    
-    // Pastikan key tersedia di environment saat ini agar Laravel bisa langsung boot
-    $_ENV['APP_KEY'] = $newKey;
-    putenv("APP_KEY=$newKey");
+    $needsUpdate = true;
 }
 
-// 3. Cek apakah perlu redirect ke installer (misal jika database belum disetting)
+if ($needsUpdate) {
+    file_put_contents($envPath, $envContent);
+    
+    // Reload env if key was just generated or updated
+    if (preg_match('/^APP_KEY=(.+)$/m', $envContent, $matches)) {
+        $_ENV['APP_KEY'] = trim($matches[1]);
+        putenv("APP_KEY=" . trim($matches[1]));
+    }
+}
+
+// 4. Cek apakah perlu redirect ke installer (misal jika database belum disetting)
 $isInstalled = file_exists(__DIR__.'/../storage/installed');
 if (!$isInstalled && strpos($_SERVER['REQUEST_URI'] ?? '', '/install') === false) {
     header('Location: /install');
