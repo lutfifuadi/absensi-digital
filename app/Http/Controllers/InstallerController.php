@@ -133,6 +133,19 @@ class InstallerController extends Controller
                 );
             }
             $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+
+            // 2. DETEKSI TABEL EKSISTING (Untuk fitur Fresh Install)
+            if ($request->db_connection === 'sqlite') {
+                $stmt = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+            } else {
+                $stmt = $pdo->query("SHOW TABLES");
+            }
+            $tables = $stmt->fetchAll();
+
+            if (count($tables) > 0 && !$request->has('confirm_wipe')) {
+                return back()->withInput()->with('db_warning', 'Database tidak kosong! Terdeteksi ' . count($tables) . ' tabel. Jika dilanjutkan, data lama akan dihapus.');
+            }
+
         } catch (\Exception $e) {
             return back()->withInput()->with('error', 'Koneksi Database Gagal: ' . $e->getMessage());
         }

@@ -1,5 +1,10 @@
 /.phpunit.cache
 /node_modules
+/check_count.php
+/list_templates.php
+/orange_search.html
+/out.txt
+/changelog*
 /public/
 /storage/*.key
 /storage/pail
