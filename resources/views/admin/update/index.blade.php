@@ -445,6 +445,58 @@
     </div>
   </div>
 </div>
+
+{{-- Custom Alert/Confirm Modal --}}
+<div class="modal fade" id="modalCustomAlert" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+    <div class="modal-content" style="background: linear-gradient(145deg, #0f1729 0%, #1a2545 60%, #1e2d50 100%); border: 1px solid rgba(115,103,240,0.25); border-radius: 20px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.5);">
+
+      {{-- Decorative top accent bar --}}
+      <div id="custom-alert-accent-bar" style="height: 4px; width: 100%; background: linear-gradient(90deg, #7367f0, #9e95f5);"></div>
+
+      <div class="modal-body p-0">
+        <div class="text-center p-5 pb-4">
+
+          {{-- Icon circle --}}
+          <div id="custom-alert-icon-container" style="
+            width: 80px; height: 80px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+            background: rgba(115,103,240,0.15);
+            border: 2px solid rgba(115,103,240,0.3);
+            transition: all 0.3s ease;
+          ">
+            <i id="custom-alert-icon" class="ti tabler-info-circle" style="font-size: 2.2rem; color: #7367f0;"></i>
+          </div>
+
+          {{-- Title --}}
+          <h4 id="custom-alert-title" class="fw-bold mb-2" style="color: #fff; font-size: 1.3rem;">Informasi</h4>
+
+          {{-- Message --}}
+          <div id="custom-alert-message" class="mb-0" style="color: rgba(255,255,255,0.65); font-size: 0.925rem; line-height: 1.6;"></div>
+
+        </div>
+
+        {{-- Divider --}}
+        <div style="height: 1px; background: rgba(255,255,255,0.07); margin: 0 1.5rem;"></div>
+
+        {{-- Actions --}}
+        <div class="d-flex gap-2 p-4 pt-3">
+          <button type="button" id="custom-alert-cancel"
+            style="display:none; flex:1; padding: 10px 0; border-radius: 10px; font-weight: 600; font-size: 0.9rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.7); transition: all 0.2s;"
+            onmouseover="this.style.background='rgba(255,255,255,0.1)'"
+            onmouseout="this.style.background='rgba(255,255,255,0.06)'"
+            data-bs-dismiss="modal">Batal</button>
+          <button type="button" id="custom-alert-confirm"
+            style="flex:1; padding: 10px 0; border-radius: 10px; font-weight: 600; font-size: 0.9rem; background: linear-gradient(135deg,#7367f0,#9e95f5); border: none; color: #fff; box-shadow: 0 4px 15px rgba(115,103,240,0.35); transition: all 0.2s;"
+            onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 20px rgba(115,103,240,0.5)'"
+            onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(115,103,240,0.35)'">OK</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 @endsection
 
 @section('page-script')
@@ -455,6 +507,72 @@ document.addEventListener('DOMContentLoaded', function() {
   const modalProgress = new bootstrap.Modal(document.getElementById('modalProgressUpdate'));
   const progressBar = document.getElementById('update-progress');
   const progressSteps = document.querySelectorAll('.progress-step');
+
+  // Initialize Custom Modal
+  const customModalEl = document.getElementById('modalCustomAlert');
+  const customModal = customModalEl ? new bootstrap.Modal(customModalEl) : null;
+  
+  function showCustomModal(options) {
+    if (!customModal) return;
+
+    document.getElementById('custom-alert-title').innerHTML = options.title || 'Informasi';
+    document.getElementById('custom-alert-message').innerHTML = options.message || '';
+    
+    const iconContainer = document.getElementById('custom-alert-icon-container');
+    const icon = document.getElementById('custom-alert-icon');
+    const accentBar = document.getElementById('custom-alert-accent-bar');
+    const btnConfirm = document.getElementById('custom-alert-confirm');
+    const btnCancel = document.getElementById('custom-alert-cancel');
+
+    // Color themes per type
+    const themes = {
+      success: { gradient: 'linear-gradient(90deg,#28c76f,#48da89)', iconColor: '#28c76f', iconBg: 'rgba(40,199,111,0.15)', iconBorder: 'rgba(40,199,111,0.3)', btnGradient: 'linear-gradient(135deg,#28c76f,#48da89)', btnShadow: 'rgba(40,199,111,0.35)' },
+      info:    { gradient: 'linear-gradient(90deg,#00cfe8,#1ce7ff)', iconColor: '#00cfe8', iconBg: 'rgba(0,207,232,0.15)', iconBorder: 'rgba(0,207,232,0.3)', btnGradient: 'linear-gradient(135deg,#00cfe8,#1ce7ff)', btnShadow: 'rgba(0,207,232,0.35)' },
+      danger:  { gradient: 'linear-gradient(90deg,#ea5455,#f08182)', iconColor: '#ea5455', iconBg: 'rgba(234,84,85,0.15)', iconBorder: 'rgba(234,84,85,0.3)', btnGradient: 'linear-gradient(135deg,#ea5455,#f08182)', btnShadow: 'rgba(234,84,85,0.35)' },
+      warning: { gradient: 'linear-gradient(90deg,#ff9f43,#ffb976)', iconColor: '#ff9f43', iconBg: 'rgba(255,159,67,0.15)', iconBorder: 'rgba(255,159,67,0.3)', btnGradient: 'linear-gradient(135deg,#7367f0,#9e95f5)', btnShadow: 'rgba(115,103,240,0.35)' },
+      primary: { gradient: 'linear-gradient(90deg,#7367f0,#9e95f5)', iconColor: '#7367f0', iconBg: 'rgba(115,103,240,0.15)', iconBorder: 'rgba(115,103,240,0.3)', btnGradient: 'linear-gradient(135deg,#7367f0,#9e95f5)', btnShadow: 'rgba(115,103,240,0.35)' },
+    };
+    const theme = themes[options.color] || themes.primary;
+
+    // Apply accent bar
+    if (accentBar) accentBar.style.background = theme.gradient;
+
+    // Apply icon
+    iconContainer.style.background = theme.iconBg;
+    iconContainer.style.borderColor = theme.iconBorder;
+    icon.className = options.icon || 'ti tabler-info-circle';
+    icon.style.fontSize = '2.2rem';
+    icon.style.color = theme.iconColor;
+
+    // Apply confirm button
+    btnConfirm.innerHTML = options.confirmText || 'OK';
+    btnConfirm.style.background = theme.btnGradient;
+    btnConfirm.style.boxShadow = `0 4px 15px ${theme.btnShadow}`;
+
+    // Cancel button
+    if (options.type === 'confirm') {
+      btnCancel.style.display = 'flex';
+      btnCancel.innerHTML = options.cancelText || 'Batal';
+    } else {
+      btnCancel.style.display = 'none';
+    }
+
+    // Clone to unbind stale events
+    const newBtnConfirm = btnConfirm.cloneNode(true);
+    btnConfirm.parentNode.replaceChild(newBtnConfirm, btnConfirm);
+    // Re-attach hover styles
+    newBtnConfirm.style.background = theme.btnGradient;
+    newBtnConfirm.style.boxShadow = `0 4px 15px ${theme.btnShadow}`;
+    newBtnConfirm.onmouseover = function() { this.style.transform='translateY(-1px)'; this.style.boxShadow=`0 6px 20px ${theme.btnShadow.replace('0.35','0.55')}`; };
+    newBtnConfirm.onmouseout  = function() { this.style.transform='translateY(0)'; this.style.boxShadow=`0 4px 15px ${theme.btnShadow}`; };
+    
+    newBtnConfirm.onclick = function() {
+      customModal.hide();
+      if (options.onConfirm) options.onConfirm();
+    };
+
+    customModal.show();
+  }
 
   function updateSteps(step) {
     progressSteps.forEach((el, index) => {
@@ -493,13 +611,13 @@ document.addEventListener('DOMContentLoaded', function() {
       .then(data => {
         console.log('[Update] Response data:', data);
         if (data.success) {
-          Swal.fire({
+          showCustomModal({
             title: data.update_available ? 'Update Tersedia!' : 'Sudah Terbaru',
-            text: data.update_available ? `Versi ${data.data.latest_version} ditemukan, halaman akan di-refresh.` : 'Sistem Anda sudah menggunakan versi terbaru.',
-            icon: data.update_available ? 'info' : 'success',
-            confirmButtonText: 'OK'
-          }).then(() => {
-            window.location.reload();
+            message: data.update_available ? `Versi ${data.data.latest_version} ditemukan, halaman akan di-refresh.` : 'Sistem Anda sudah menggunakan versi terbaru.',
+            iconBg: data.update_available ? 'bg-label-info' : 'bg-label-success',
+            icon: data.update_available ? 'ti tabler-info-circle' : 'ti tabler-check',
+            color: data.update_available ? 'info' : 'success',
+            onConfirm: () => window.location.reload()
           });
         } else {
           throw new Error(data.message || 'Gagal memeriksa update');
@@ -509,7 +627,15 @@ document.addEventListener('DOMContentLoaded', function() {
         clearTimeout(timeoutId);
         console.error('[Update] Error:', error.message);
         const msg = error.name === 'AbortError' ? 'Koneksi timeout (90 detik). Periksa koneksi internet Anda.' : error.message;
-        Swal.fire('Error', msg, 'error');
+        
+        showCustomModal({
+          title: 'Error',
+          message: msg,
+          iconBg: 'bg-label-danger',
+          icon: 'ti tabler-alert-circle',
+          color: 'danger'
+        });
+        
         btnCheckUpdate.disabled = false;
         btnCheckUpdate.innerHTML = '<i class="ti tabler-refresh me-2"></i> Periksa Pembaruan';
       });
@@ -520,34 +646,24 @@ document.addEventListener('DOMContentLoaded', function() {
     btnRunUpdate.onclick = function() {
       console.log('Tombol Install diklik');
       
-      if (typeof Swal === 'undefined') {
-        if (confirm('Konfirmasi Pembaruan: Sistem akan diperbarui ke versi terbaru. Lanjutkan?')) {
-          startUpdateProcess();
-        }
-        return;
-      }
-
-      Swal.fire({
+      showCustomModal({
+        type: 'confirm',
         title: 'Konfirmasi Pembaruan',
-        html: `
+        message: `
           <div class="text-start">
-            <p class="mb-2">Sistem akan diperbarui ke versi terbaru.</p>
-            <div class="alert alert-warning mb-0">
-              <i class="ti tabler-alert-triangle me-2"></i>
-              Pastikan Anda telah melakukan backup database sebelum melanjutkan.
+            <p class="mb-3 text-white" style="font-size: 0.95rem;">Sistem akan diperbarui ke versi terbaru.</p>
+            <div class="d-flex align-items-center gap-3 p-3 rounded" style="background: rgba(255, 159, 67, 0.15); border: 1px solid rgba(255, 159, 67, 0.3);">
+              <i class="ti tabler-alert-triangle text-warning fs-3"></i>
+              <span class="text-warning mb-0" style="font-size: 0.85rem; line-height: 1.4;">Pastikan Anda telah melakukan backup database sebelum melanjutkan.</span>
             </div>
           </div>
         `,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#7367f0',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Ya, Perbarui!',
-        cancelButtonText: 'Batal'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          startUpdateProcess();
-        }
+        iconBg: 'bg-label-warning',
+        icon: 'ti tabler-alert-triangle',
+        color: 'warning',
+        confirmText: 'Ya, Perbarui!',
+        cancelText: 'Batal',
+        onConfirm: startUpdateProcess
       });
     };
   }
@@ -587,13 +703,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if (data.success) {
         setTimeout(() => {
-          Swal.fire({
+          modalProgress.hide();
+          showCustomModal({
             title: 'Berhasil!',
-            text: data.message,
-            icon: 'success',
-            confirmButtonText: 'Selesai'
-          }).then(() => {
-            window.location.href = "{{ route('admin.update.index') }}";
+            message: data.message,
+            iconBg: 'bg-label-success',
+            icon: 'ti tabler-check',
+            color: 'success',
+            onConfirm: () => window.location.href = "{{ route('admin.update.index') }}"
           });
         }, 1500);
       } else {
@@ -603,7 +720,13 @@ document.addEventListener('DOMContentLoaded', function() {
     .catch(error => {
       clearInterval(interval);
       modalProgress.hide();
-      Swal.fire('Gagal', error.message, 'error');
+      showCustomModal({
+        title: 'Gagal',
+        message: error.message,
+        iconBg: 'bg-label-danger',
+        icon: 'ti tabler-alert-circle',
+        color: 'danger'
+      });
     });
   }
 });
