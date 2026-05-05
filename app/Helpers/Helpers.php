@@ -283,8 +283,6 @@ class Helpers
   {
     if (!$color) return '';
 
-    // Check if the color actually came from a cookie or explicit configuration
-    // Don't generate CSS if there's no specific need for a custom color
     $configColor = config('custom.custom.primaryColor', null);
     $isFromCookie = isset($_COOKIE['admin-primaryColor']) || isset($_COOKIE['front-primaryColor']);
 
@@ -294,7 +292,6 @@ class Helpers
     $g = hexdec(substr($color, 3, 2));
     $b = hexdec(substr($color, 5, 2));
 
-    // Calculate contrast color based on YIQ formula
     $yiq = (($r * 299) + ($g * 587) + ($b * 114)) / 1000;
     $contrastColor = ($yiq >= 150) ? '#000' : '#fff';
 
@@ -307,5 +304,53 @@ class Helpers
   --bs-primary-contrast: {$contrastColor};
 }
 CSS;
+  }
+
+  public static function writeLog(string $message, string $filename = 'app.log'): void
+  {
+    $maxLines = 20;
+    $logPath = storage_path('logs/' . $filename);
+    $newLine = date('Y-m-d H:i:s') . ' | ' . $message . PHP_EOL;
+
+    if (file_exists($logPath)) {
+      $lines = file($logPath, FILE_IGNORE_NEW_LINES);
+      $lines[] = trim($newLine);
+      if (count($lines) > $maxLines) {
+        $lines = array_slice($lines, -$maxLines);
+      }
+      file_put_contents($logPath, implode(PHP_EOL, $lines) . PHP_EOL);
+    } else {
+      file_put_contents($logPath, $newLine);
+    }
+  }
+
+  public static function trimLaravelLog(int $maxLines = 20): void
+  {
+    $logPath = storage_path('logs/laravel.log');
+    if (!file_exists($logPath)) return;
+
+    $lines = file($logPath, FILE_IGNORE_NEW_LINES);
+    if (count($lines) > $maxLines) {
+      $lines = array_slice($lines, -$maxLines);
+      file_put_contents($logPath, implode(PHP_EOL, $lines) . PHP_EOL);
+    }
+  }
+
+  public static function laravelLog(string $level, string $message): void
+  {
+    $maxLines = 20;
+    $logPath = storage_path('logs/laravel.log');
+    $newLine = '[' . date('Y-m-d H:i:s') . '] local.' . strtoupper($level) . ': ' . $message . PHP_EOL;
+
+    if (file_exists($logPath)) {
+      $lines = file($logPath, FILE_IGNORE_NEW_LINES);
+      $lines[] = trim($newLine);
+      if (count($lines) > $maxLines) {
+        $lines = array_slice($lines, -$maxLines);
+      }
+      file_put_contents($logPath, implode(PHP_EOL, $lines) . PHP_EOL);
+    } else {
+      file_put_contents($logPath, $newLine);
+    }
   }
 }
