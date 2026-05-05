@@ -472,19 +472,30 @@ document.addEventListener('DOMContentLoaded', function() {
       btnCheckUpdate.disabled = true;
       btnCheckUpdate.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Memeriksa...';
 
+      console.log('[Update] Memulai pengecekan update...');
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 detik
+
       fetch("{{ route('admin.update.check') }}", {
         method: 'POST',
         headers: {
           'X-CSRF-TOKEN': '{{ csrf_token() }}',
           'Accept': 'application/json'
-        }
+        },
+        signal: controller.signal
       })
-      .then(response => response.json())
+      .then(response => {
+        clearTimeout(timeoutId);
+        console.log('[Update] HTTP Status:', response.status);
+        return response.json();
+      })
       .then(data => {
+        console.log('[Update] Response data:', data);
         if (data.success) {
           Swal.fire({
             title: data.update_available ? 'Update Tersedia!' : 'Sudah Terbaru',
-            text: data.update_available ? 'Versi baru ditemukan, halaman akan di-refresh.' : 'Sistem Anda sudah menggunakan versi terbaru.',
+            text: data.update_available ? `Versi ${data.data.latest_version} ditemukan, halaman akan di-refresh.` : 'Sistem Anda sudah menggunakan versi terbaru.',
             icon: data.update_available ? 'info' : 'success',
             confirmButtonText: 'OK'
           }).then(() => {
@@ -495,7 +506,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       })
       .catch(error => {
-        Swal.fire('Error', error.message, 'error');
+        clearTimeout(timeoutId);
+        console.error('[Update] Error:', error.message);
+        const msg = error.name === 'AbortError' ? 'Koneksi timeout (90 detik). Periksa koneksi internet Anda.' : error.message;
+        Swal.fire('Error', msg, 'error');
         btnCheckUpdate.disabled = false;
         btnCheckUpdate.innerHTML = '<i class="ti tabler-refresh me-2"></i> Periksa Pembaruan';
       });
