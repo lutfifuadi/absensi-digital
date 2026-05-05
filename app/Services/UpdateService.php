@@ -107,7 +107,9 @@ class UpdateService
     {
         $schoolId = app()->has('current_school') ? app('current_school')->id : \App\Models\School::first()->id;
         
-        Pengaturan::where('group', 'update')->delete();
+        // Hanya hapus data hasil update, jangan hapus KONFIGURASI repositori
+        Pengaturan::whereIn('key', ['update_available_version', 'update_changelog', 'update_package_url'])->delete();
+        
         Pengaturan::updateOrCreate(['key' => 'update_last_check'], ['value' => now()->toDateTimeString(), 'group' => 'update', 'school_id' => $schoolId]);
     }
 
