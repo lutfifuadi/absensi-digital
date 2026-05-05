@@ -3208,11 +3208,6 @@
     "file": "assets/fa-v4compatibility-C9RhG_FT.woff2",
     "src": "resources/assets/vendor/fonts/fontawesome/fa-v4compatibility.woff2"
   },
-  "resources/assets/vendor/fonts/iconify/iconify.css": {
-    "file": "assets/iconify-B8r8kbVE.css",
-    "src": "resources/assets/vendor/fonts/iconify/iconify.css",
-    "isEntry": true
-  },
   "resources/assets/vendor/js/bootstrap.js": {
     "file": "assets/bootstrap-D6PdghTj.js",
     "name": "bootstrap",
