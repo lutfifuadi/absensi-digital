@@ -33,11 +33,20 @@ class UpdateService
 
         try {
             $url = "https://api.github.com/repos/{$owner}/{$repo}/releases/latest";
-            
-            $request = Http::withoutVerifying()->withHeaders([
-                'Accept' => 'application/vnd.github+json',
+
+            // Ambil token dari DB atau fallback ke .env
+            $token = Pengaturan::where('key', 'github_token')->value('value')
+                ?: env('GITHUB_TOKEN');
+
+            $headers = [
+                'Accept'               => 'application/vnd.github+json',
                 'X-GitHub-Api-Version' => '2022-11-28',
-            ]);
+            ];
+            if (!empty($token)) {
+                $headers['Authorization'] = 'Bearer ' . $token;
+            }
+
+            $request = Http::withoutVerifying()->withHeaders($headers);
 
             $response = $request->timeout(60)->get($url);
 
@@ -132,10 +141,16 @@ class UpdateService
             Log::info('Memulai pengunduhan update: ' . $info['package_url']);
 
             // 1. Download Paket
-            $response = Http::withoutVerifying()->withHeaders([
-                'Accept' => 'application/vnd.github+json',
+            $dlToken = Pengaturan::where('key', 'github_token')->value('value')
+                ?: env('GITHUB_TOKEN');
+            $dlHeaders = [
+                'Accept'               => 'application/vnd.github+json',
                 'X-GitHub-Api-Version' => '2022-11-28',
-            ])->timeout(300)->get($info['package_url']);
+            ];
+            if (!empty($dlToken)) {
+                $dlHeaders['Authorization'] = 'Bearer ' . $dlToken;
+            }
+            $response = Http::withoutVerifying()->withHeaders($dlHeaders)->timeout(300)->get($info['package_url']);
             
             if ($response->failed()) {
                 throw new \Exception('Gagal mengunduh paket dari GitHub (Status: ' . $response->status() . ').');
