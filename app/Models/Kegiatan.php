@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Kegiatan extends Model
 {
-    use \App\Traits\HasTenant;
 
     use HasFactory;
 

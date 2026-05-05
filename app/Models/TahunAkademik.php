@@ -10,7 +10,6 @@ class TahunAkademik extends Model
     use HasFactory;
 
     protected $table = 'tahun_akademik';
-}
 
     public function siswa()
     {

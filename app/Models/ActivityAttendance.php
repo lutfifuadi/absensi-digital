@@ -10,7 +10,6 @@ class ActivityAttendance extends Model
     use HasFactory;
 
     protected $table = 'activity_attendance';
-}
 
     public function siswa()
     {
