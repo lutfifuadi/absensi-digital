@@ -5,7 +5,7 @@
 /orange_search.html
 /out.txt
 /changelog*
-/public/
+# /public/
 /storage/*.key
 /storage/pail
 /vendor/
