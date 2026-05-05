@@ -95,22 +95,18 @@ class UpdateService
 
     private function saveUpdateInfo(array $data): void
     {
-        $schoolId = app()->has('current_school') ? app('current_school')->id : \App\Models\School::first()->id;
-
-        Pengaturan::updateOrCreate(['key' => 'update_available_version'], ['value' => $data['latest_version'], 'group' => 'update', 'school_id' => $schoolId]);
-        Pengaturan::updateOrCreate(['key' => 'update_changelog'], ['value' => $data['changelog'], 'group' => 'update', 'school_id' => $schoolId]);
-        Pengaturan::updateOrCreate(['key' => 'update_package_url'], ['value' => $data['package_url'], 'group' => 'update', 'school_id' => $schoolId]);
-        Pengaturan::updateOrCreate(['key' => 'update_last_check'], ['value' => now()->toDateTimeString(), 'group' => 'update', 'school_id' => $schoolId]);
+        Pengaturan::updateOrCreate(['key' => 'update_available_version'], ['value' => $data['latest_version'], 'group' => 'update']);
+        Pengaturan::updateOrCreate(['key' => 'update_changelog'], ['value' => $data['changelog'], 'group' => 'update']);
+        Pengaturan::updateOrCreate(['key' => 'update_package_url'], ['value' => $data['package_url'], 'group' => 'update']);
+        Pengaturan::updateOrCreate(['key' => 'update_last_check'], ['value' => now()->toDateTimeString(), 'group' => 'update']);
     }
 
     private function clearUpdateInfo(): void
     {
-        $schoolId = app()->has('current_school') ? app('current_school')->id : \App\Models\School::first()->id;
-        
         // Hanya hapus data hasil update, jangan hapus KONFIGURASI repositori
         Pengaturan::whereIn('key', ['update_available_version', 'update_changelog', 'update_package_url'])->delete();
         
-        Pengaturan::updateOrCreate(['key' => 'update_last_check'], ['value' => now()->toDateTimeString(), 'group' => 'update', 'school_id' => $schoolId]);
+        Pengaturan::updateOrCreate(['key' => 'update_last_check'], ['value' => now()->toDateTimeString(), 'group' => 'update']);
     }
 
     public function getCachedUpdateInfo(): ?array
@@ -204,10 +200,9 @@ class UpdateService
             $this->updateEnvVersion($info['latest_version']);
             
             // UPDATE DATABASE VERSION JUGA
-            $schoolId = app()->has('current_school') ? app('current_school')->id : \App\Models\School::first()->id;
             Pengaturan::updateOrCreate(
                 ['key' => 'app_version'],
-                ['value' => $info['latest_version'], 'group' => 'update', 'school_id' => $schoolId]
+                ['value' => $info['latest_version'], 'group' => 'update']
             );
             
             Artisan::call('migrate', ['--force' => true]);

@@ -11,6 +11,7 @@ trait HasTenant
      */
     protected static function bootHasTenant()
     {
+        /*
         static::addGlobalScope(new TenantScope);
 
         static::creating(function ($model) {
@@ -18,6 +19,7 @@ trait HasTenant
                 $model->school_id = app('current_school')->id;
             }
         });
+        */
     }
 
     /**

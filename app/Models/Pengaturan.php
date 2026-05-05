@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pengaturan extends Model
 {
-    use \App\Traits\HasTenant;
-
     use HasFactory;
 
     protected $table = 'pengaturan';
@@ -17,6 +15,5 @@ class Pengaturan extends Model
         'key',
         'value',
         'group',
-        'school_id',
     ];
 }

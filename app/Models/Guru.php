@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Guru extends Model
 {
-    use \App\Traits\HasTenant;
-
     use HasFactory;
 
     protected $table = 'guru';

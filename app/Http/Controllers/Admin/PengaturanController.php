@@ -176,24 +176,9 @@ class PengaturanController extends Controller
                     }
                 }
 
-                // Ambil school_id dari user jika current_school tidak ada
-                $schoolId = null;
-                if (app()->has('current_school')) {
-                    $schoolId = app('current_school')->id;
-                } elseif (auth()->user()->school_id) {
-                    $schoolId = auth()->user()->school_id;
-                } elseif (auth()->user()->role === 'super_admin') {
-                    // Super admin perlu punya school_id,ambil dari DB jika masih null
-                    $schoolId = \App\Models\School::where('status', 'active')->first()?->id;
-                }
-
-                if (!$schoolId) {
-                    continue; // Skip jika tetap tidak ada school_id
-                }
-
                 Pengaturan::updateOrCreate(
-                    ['key' => $key, 'school_id' => $schoolId],
-                    ['value' => $value, 'group' => $group, 'school_id' => $schoolId]
+                    ['key' => $key],
+                    ['value' => $value, 'group' => $group]
                 );
             }
         }

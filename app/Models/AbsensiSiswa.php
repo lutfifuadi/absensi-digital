@@ -10,8 +10,6 @@ use App\Observers\AbsensiSiswaObserver;
 #[ObservedBy(AbsensiSiswaObserver::class)]
 class AbsensiSiswa extends Model
 {
-    use \App\Traits\HasTenant;
-
     use HasFactory;
 
     protected $table = 'absensi_siswa';

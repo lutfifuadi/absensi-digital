@@ -10,8 +10,6 @@ use App\Models\Siswa;
 
 class Kelas extends Model
 {
-    use \App\Traits\HasTenant;
-
     use HasFactory;
 
     protected $table = 'kelas';

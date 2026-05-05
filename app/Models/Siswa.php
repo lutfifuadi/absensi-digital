@@ -10,8 +10,6 @@ use App\Models\IzinSakit;
 
 class Siswa extends Model
 {
-    use \App\Traits\HasTenant;
-
     use HasFactory;
 
     protected $table = 'siswa';

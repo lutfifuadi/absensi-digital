@@ -14,8 +14,6 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use \App\Traits\HasTenant;
-
     use HasApiTokens;
 
     /** @use HasFactory<UserFactory> */
@@ -46,7 +44,6 @@ class User extends Authenticatable
         'password',
         'role',
         'roles',
-        'school_id',
     ];
 
     /**
