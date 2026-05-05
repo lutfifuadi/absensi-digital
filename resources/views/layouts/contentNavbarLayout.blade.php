@@ -64,6 +64,27 @@
               <div class="{{ $container }} flex-grow-1 container-p-y">
           @endif
 
+          {{-- Global Update Notification --}}
+          @if(auth()->check() && auth()->user()->role === 'super_admin')
+            @php
+              $updateVersion = \App\Models\Pengaturan::where('key', 'update_available_version')->value('value');
+            @endphp
+            @if($updateVersion)
+              <div class="alert alert-primary alert-dismissible d-flex align-items-center mb-4" role="alert">
+                <span class="alert-icon text-primary me-2">
+                  <i class="ti tabler-cloud-download ti-xs"></i>
+                </span>
+                <div class="d-flex flex-stack flex-grow-1">
+                  <div class="fw-semibold">
+                    Versi Baru Tersedia ({{ $updateVersion }})! 
+                    <a href="{{ route('admin.update.index') }}" class="alert-link ms-2 text-decoration-underline">Klik di sini untuk melihat detail dan perbarui.</a>
+                  </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            @endif
+          @endif
+
           @yield('content')
 
         </div>
