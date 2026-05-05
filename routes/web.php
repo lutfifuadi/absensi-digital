@@ -439,9 +439,12 @@ Route::middleware([
       Route::post('update/check', [\App\Http\Controllers\Admin\UpdateController::class, 'check'])
           ->name('admin.update.check')
           ->middleware('role:super_admin');
-      Route::post('update/run', [\App\Http\Controllers\Admin\UpdateController::class, 'update'])
-          ->name('admin.update.run')
-          ->middleware('role:super_admin');
+Route::post('update/run', [\App\Http\Controllers\Admin\UpdateController::class, 'update'])
+            ->name('admin.update.run')
+            ->middleware('role:super_admin');
+        Route::get('update/data', [\App\Http\Controllers\Admin\UpdateController::class, 'getUpdateData'])
+            ->name('admin.update.data')
+            ->middleware('role:super_admin');
 
       // PWA Settings
       Route::get('pwa', [\App\Http\Controllers\Admin\PwaSettingsController::class, 'index'])

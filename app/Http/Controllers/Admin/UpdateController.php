@@ -57,4 +57,21 @@ class UpdateController extends Controller
             'message' => $result['message']
         ], 500);
     }
+
+    public function getUpdateData()
+    {
+        $data = $this->updateService->getUpdateDataForModal();
+        
+        if (!$data) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada data update tersedia.'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $data
+        ]);
+    }
 }

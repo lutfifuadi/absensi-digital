@@ -122,6 +122,66 @@ class UpdateService
         ];
     }
 
+    public function getChangelogHistory(): array
+    {
+        $history = Pengaturan::where('key', 'update_changelog_history')->first();
+        if (!$history) return [];
+
+        return json_decode($history->value, true) ?? [];
+    }
+
+    public function saveCurrentChangelogToHistory(): void
+    {
+        $currentVersion = $this->getCurrentVersion();
+        // Ambil changelog yang baru saja diinstall (yang tersimpan di update_changelog)
+        $currentChangelog = Pengaturan::where('key', 'update_changelog')->value('value');
+
+        if ($currentChangelog) {
+            $history = $this->getChangelogHistory();
+            
+            // Cek apakah versi ini sudah ada di history
+            $exists = false;
+            foreach ($history as $item) {
+                if ($item['version'] === $currentVersion) {
+                    $exists = true;
+                    break;
+                }
+            }
+
+            if (!$exists) {
+                $history[] = [
+                    'version' => $currentVersion,
+                    'changelog' => $currentChangelog,
+                    'date' => now()->toDateTimeString(),
+                ];
+
+                // Simpan max 10 history saja agar DB tidak bengkak
+                if (count($history) > 10) {
+                    array_shift($history);
+                }
+
+                Pengaturan::updateOrCreate(
+                    ['key' => 'update_changelog_history'],
+                    ['value' => json_encode($history), 'group' => 'update']
+                );
+            }
+        }
+    }
+
+    public function getUpdateDataForModal(): ?array
+    {
+        $currentInfo = $this->getCachedUpdateInfo();
+        if (!$currentInfo) return null;
+
+        return [
+            'latest_version' => $currentInfo['latest_version'],
+            'current_version' => $this->getCurrentVersion(),
+            'changelog' => $currentInfo['changelog'],
+            'changelog_history' => $this->getChangelogHistory(),
+            'release_date' => $currentInfo['last_check'],
+        ];
+    }
+
     public function runUpdate(): array
     {
         // Set time limit before ANY operation
@@ -132,13 +192,16 @@ class UpdateService
 
         $info = $this->getCachedUpdateInfo();
         if (!$info) {
+            Log::warning('Agen Aulia: Percobaan update tanpa data cache.');
             return ['status' => false, 'message' => 'Informasi update tidak ditemukan. Silakan periksa update terlebih dahulu.'];
         }
+
+        Log::info('Agen Aulia: Memulai proses update sistem ke versi ' . $info['latest_version']);
 
         $token = Pengaturan::where('key', 'github_access_token')->value('value');
 
         try {
-            Log::info('Memulai pengunduhan update: ' . $info['package_url']);
+            Log::info('Langkah 1: Mengunduh paket dari ' . $info['package_url']);
 
             // 1. Download Paket
             $request = Http::withoutVerifying()->withHeaders([
@@ -153,7 +216,7 @@ class UpdateService
             $response = $request->timeout(300)->get($info['package_url']);
             
             if ($response->failed()) {
-                throw new \Exception('Gagal mengunduh paket dari GitHub (Status: ' . $response->status() . ').');
+                throw new \Exception('Gagal mengunduh paket dari GitHub (Status: ' . $response->status() . '). Pastikan koneksi internet dan token valid.');
             }
 
             $tempPath = storage_path('app/updates');
@@ -163,6 +226,8 @@ class UpdateService
 
             $zipFile = $tempPath . '/update.zip';
             File::put($zipFile, $response->body());
+
+            Log::info('Langkah 2: Mengekstrak paket update.');
 
             // 2. Ekstrak Paket
             $zip = new \ZipArchive();
@@ -175,36 +240,42 @@ class UpdateService
                 $zip->extractTo($extractPath);
                 $zip->close();
             } else {
-                throw new \Exception('Gagal membuka file paket update (ZIP).');
+                throw new \Exception('Gagal membuka file paket update (ZIP). File mungkin korup.');
             }
 
             // 3. Pindahkan File (Overwriting)
             $folders = File::directories($extractPath);
             if (count($folders) > 0) {
-                $sourcePath = $folders[0]; // Folder root di dalam zip GitHub (owner-repo-hash)
+                $sourcePath = $folders[0]; 
+                
+                Log::info('Langkah 3: Menyalin file update ke root direktori.');
                 
                 $this->recursiveCopy($sourcePath, base_path(), [
                     base_path('.env'),
                     base_path('storage'),
                     base_path('public/storage'),
-                    base_path('database/database.sqlite'), // Jika menggunakan sqlite di root
+                    base_path('database/database.sqlite'),
                 ]);
             } else {
-                throw new \Exception('Struktur paket update tidak valid (folder root tidak ditemukan).');
+                throw new \Exception('Struktur paket update tidak valid (folder root tidak ditemukan di dalam ZIP).');
             }
 
             // 4. Cleanup & Finalisasi
+            Log::info('Langkah 4: Finalisasi dan pembersihan.');
             File::delete($zipFile);
             File::deleteDirectory($extractPath);
 
             $this->updateEnvVersion($info['latest_version']);
             
-            // UPDATE DATABASE VERSION JUGA
             Pengaturan::updateOrCreate(
                 ['key' => 'app_version'],
                 ['value' => $info['latest_version'], 'group' => 'update']
             );
+
+            // Simpan ke history
+            $this->saveCurrentChangelogToHistory();
             
+            Log::info('Langkah 5: Menjalankan migrasi dan pembersihan cache.');
             Artisan::call('migrate', ['--force' => true]);
             Artisan::call('cache:clear');
             Artisan::call('config:clear');
@@ -212,12 +283,12 @@ class UpdateService
 
             $this->clearUpdateInfo();
 
-            Log::info('Update ke versi ' . $info['latest_version'] . ' berhasil diselesaikan.');
+            Log::info('Agen Aulia: Update ke versi ' . $info['latest_version'] . ' berhasil diselesaikan.');
 
             return ['status' => true, 'message' => 'Sistem berhasil diperbarui ke versi ' . $info['latest_version']];
 
         } catch (\Exception $e) {
-            Log::error('Update error: ' . $e->getMessage());
+            Log::error('Agen Aulia: Terjadi kesalahan saat update: ' . $e->getMessage());
             return ['status' => false, 'message' => 'Gagal memperbarui: ' . $e->getMessage()];
         }
     }
@@ -227,27 +298,40 @@ class UpdateService
      */
     private function recursiveCopy($src, $dst, $excluded = [])
     {
+        if (!File::exists($src)) return;
+
         $dir = opendir($src);
         if (!File::exists($dst)) {
             File::makeDirectory($dst, 0755, true);
         }
 
+        // Normalize excluded paths for comparison
+        $normalizedExcluded = array_map(function($path) {
+            return str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
+        }, $excluded);
+
         while (false !== ($file = readdir($dir))) {
             if (($file != '.') && ($file != '..')) {
                 $srcFile = $src . '/' . $file;
                 $dstFile = $dst . '/' . $file;
+                
+                $normalizedDstFile = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $dstFile);
 
                 // Cek apakah file/folder ini dikecualikan
-                foreach ($excluded as $ex) {
-                    if (realpath($dstFile) === realpath($ex) || str_starts_with(realpath($dstFile), realpath($ex) . DIRECTORY_SEPARATOR)) {
-                        continue 2;
+                $isExcluded = false;
+                foreach ($normalizedExcluded as $ex) {
+                    if ($normalizedDstFile === $ex || str_starts_with($normalizedDstFile, $ex . DIRECTORY_SEPARATOR)) {
+                        $isExcluded = true;
+                        break;
                     }
                 }
+
+                if ($isExcluded) continue;
 
                 if (is_dir($srcFile)) {
                     $this->recursiveCopy($srcFile, $dstFile, $excluded);
                 } else {
-                    copy($srcFile, $dstFile);
+                    File::copy($srcFile, $dstFile);
                 }
             }
         }
