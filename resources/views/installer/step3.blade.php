@@ -15,6 +15,25 @@
         <span>Lisensi aktif! Sekarang silakan hubungkan database Anda.</span>
     </div>
 
+    @if(session('db_warning'))
+    <div class="notice notice-warn" style="margin-bottom: 22px; border-left: 4px solid var(--warning); background: rgba(255, 171, 0, 0.08); padding: 16px; border-radius: 8px;">
+        <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffab00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <div>
+                <strong style="color: #ffab00; display: block; margin-bottom: 4px;">Peringatan Data Eksis</strong>
+                <span style="font-size: 0.875rem; color: var(--text-2);">{{ session('db_warning') }}</span>
+                
+                <label style="display: flex; align-items: center; gap: 10px; margin-top: 15px; cursor: pointer; padding: 10px; background: rgba(255,171,0,0.12); border-radius: 6px; border: 1px dashed #ffab00;">
+                    <input type="checkbox" name="confirm_wipe" value="1" style="width: 18px; height: 18px; accent-color: #ffab00;">
+                    <span style="font-size: 0.8125rem; font-weight: 600; color: #ffab00;">Ya, hapus data lama dan lakukan instalasi bersih</span>
+                </label>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <div class="field">
         <label class="lbl">Tipe Database</label>
         <select name="db_connection" id="db_connection" class="select2">
