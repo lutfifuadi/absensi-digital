@@ -215,7 +215,7 @@ class InstallerController extends Controller
         $request->validate([
             'admin_name'    => 'required',
             'admin_email'   => 'required|email',
-            'admin_username' => 'required|min:4|unique:users,username',
+            'admin_username' => 'required|min:4',
             'admin_password' => 'required|min:6',
         ]);
 
