@@ -45,12 +45,34 @@
   </div>
 @endif
 
+@if (session('sync_success'))
+  <div class="set-toast mb-4" style="background: rgba(0, 207, 232, 0.12); border-color: rgba(0, 207, 232, 0.25);">
+    <div class="set-toast__icon" style="color: #00cfe8;"><i class="ti tabler-refresh"></i></div>
+    <div class="set-toast__msg" style="color: #b4f5ff;">{{ session('sync_success') }}</div>
+    <button type="button" class="set-toast__close" data-bs-dismiss="alert">
+      <i class="ti tabler-x"></i>
+    </button>
+  </div>
+@endif
+
+@if (session('sync_error'))
+  <div class="set-toast mb-4" style="background: rgba(234, 84, 85, 0.12); border-color: rgba(234, 84, 85, 0.25);">
+    <div class="set-toast__icon" style="color: #ea5455;"><i class="ti tabler-alert-triangle"></i></div>
+    <div class="set-toast__msg" style="color: #fecaca;">{{ session('sync_error') }}</div>
+    <button type="button" class="set-toast__close" data-bs-dismiss="alert">
+      <i class="ti tabler-x"></i>
+    </button>
+  </div>
+@endif
+
+@if(auth()->user()->isSuperAdmin())
 <div class="mb-4 d-flex justify-content-end">
   <a href="{{ route('admin.pengaturan.api-source.index') }}" class="btn btn-outline-info">
     <i class="ti tabler-api me-1"></i>
     Buka Pengaturan API Sumber Data
   </a>
 </div>
+@endif
 
 {{-- ── MAIN LAYOUT ── --}}
 <form action="{{ route('admin.pengaturan.update') }}" method="POST" enctype="multipart/form-data" id="formPengaturan">
@@ -69,6 +91,10 @@
           ['id' => 'branding',   'icon' => 'tabler-photo',           'label' => 'Logo & Branding'],
           ['id' => 'notifikasi', 'icon' => 'tabler-bell-ringing',    'label' => 'Integrasi & Notifikasi'],
         ];
+
+        if (auth()->user()->isSuperAdmin()) {
+          $navItems[] = ['id' => 'update', 'icon' => 'tabler-cloud-download', 'label' => 'Pembaruan GitHub'];
+        }
       @endphp
       @foreach ($navItems as $i => $nav)
         <button type="button"
@@ -96,6 +122,12 @@
               <div>
                 <div class="set-panel__title">Identitas Lembaga</div>
                 <div class="set-panel__sub">Informasi dasar mengenai lembaga pendidikan Anda.</div>
+              </div>
+              <div class="ms-auto">
+                <button type="button" class="set-btn set-btn--primary btn-sm" id="syncPusatBtn" onclick="triggerSyncPusat()">
+                  <i class="ti tabler-refresh"></i>
+                  <span>Sinkron dari Pusat</span>
+                </button>
               </div>
             </div>
           </div>
@@ -781,6 +813,111 @@
         </div>
       </div>
 
+      {{-- ══ TAB 6: PEMBARUAN GITHUB ══ --}}
+      @if(auth()->user()->isSuperAdmin())
+      <div class="set-tab" id="tab-update">
+        <div class="set-panel">
+          <div class="set-panel__head">
+            <div class="set-panel__title-wrap">
+              <div class="set-panel__icon --primary"><i class="ti tabler-cloud-download"></i></div>
+              <div>
+                <div class="set-panel__title">Pembaruan GitHub</div>
+                <div class="set-panel__sub">Konfigurasi repositori GitHub untuk sinkronisasi update sistem.</div>
+              </div>
+            </div>
+          </div>
+          <div class="set-panel__body">
+            {{-- Status Pembaruan Card --}}
+            <div class="mb-4" style="background: rgba(115, 103, 240, 0.05); border: 1px solid rgba(115, 103, 240, 0.15); border-radius: 12px; padding: 1.5rem;">
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="update-status-icon" style="width: 50px; height: 50px; background: rgba(115, 103, 240, 0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #7367f0;">
+                    <i class="ti tabler-versions fs-2"></i>
+                  </div>
+                  <div>
+                    <h6 class="mb-1" style="color: #fff;">Status Sistem</h6>
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="badge bg-label-primary">Versi {{ $currentVersion }}</span>
+                      @if($updateInfo && isset($updateInfo['latest_version']))
+                        <span class="badge bg-label-warning">
+                          <i class="ti tabler-arrow-up-circle me-1"></i>
+                          v{{ $updateInfo['latest_version'] }} Tersedia
+                        </span>
+                      @else
+                        <span class="badge bg-label-success">
+                          <i class="ti tabler-check me-1"></i>
+                          Terbaru
+                        </span>
+                      @endif
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <a href="{{ route('admin.update.index') }}" class="set-btn set-btn--primary">
+                    <i class="ti tabler-external-link"></i>
+                    <span>Buka Halaman Pembaruan</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div class="set-section-label">Konfigurasi Repositori</div>
+
+            <div class="alert alert-warning mb-4" role="alert" style="background: rgba(255, 159, 67, 0.08); border: 1px solid rgba(255, 159, 67, 0.2); border-radius: 12px; color: #ff9f43;">
+              <div class="d-flex align-items-center gap-2">
+                <i class="ti tabler-alert-triangle fs-4"></i>
+                <strong>Perhatian:</strong>
+              </div>
+              <p class="mt-2 mb-0 small">Pastikan Personal Access Token (PAT) memiliki izin <code>repo</code> untuk mengakses repositori privat. Token ini akan digunakan sistem untuk mengecek dan mengunduh paket pembaruan.</p>
+            </div>
+            <div class="set-form-grid">
+              <div class="set-field">
+                <label class="set-label">GitHub Username / Owner</label>
+                <div class="set-input-group">
+                  <span class="set-input-prefix"><i class="ti tabler-user"></i></span>
+                  <input type="text" class="set-input" name="github_repo_owner"
+                    value="{{ old('github_repo_owner', $settings['github_repo_owner'] ?? '') }}"
+                    placeholder="Contoh: lutfifuadi">
+                </div>
+              </div>
+              <div class="set-field">
+                <label class="set-label">GitHub Repository Name</label>
+                <div class="set-input-group">
+                  <span class="set-input-prefix"><i class="ti tabler-brand-github"></i></span>
+                  <input type="text" class="set-input" name="github_repo_name"
+                    value="{{ old('github_repo_name', $settings['github_repo_name'] ?? '') }}"
+                    placeholder="Contoh: absensi-klien">
+                </div>
+              </div>
+              <div class="set-field set-field--full">
+                <label class="set-label">GitHub Personal Access Token (PAT)</label>
+                <div class="set-input-group set-password-toggle">
+                  <span class="set-input-prefix"><i class="ti tabler-key"></i></span>
+                  <input type="password" class="set-input" name="github_access_token"
+                    value="{{ old('github_access_token', $settings['github_access_token'] ?? '') }}"
+                    placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                  <button type="button" class="set-input-eye">
+                    <i class="ti tabler-eye-off"></i>
+                  </button>
+                </div>
+                <div class="set-field-hint --info"><i class="ti tabler-info-circle"></i> Token ini digunakan untuk mengunduh update dari repositori privat secara aman.</div>
+              </div>
+              <div class="set-field set-field--full">
+                <label class="set-label">Versi Aplikasi Saat Ini</label>
+                <div class="set-input-group">
+                  <span class="set-input-prefix"><i class="ti tabler-hash"></i></span>
+                  <input type="text" class="set-input font-monospace" name="app_version"
+                    value="{{ old('app_version', $settings['app_version'] ?? '1.3.0') }}"
+                    placeholder="Contoh: 1.3.0">
+                </div>
+                <div class="set-field-hint --info"><i class="ti tabler-info-circle"></i> Versi ini akan digunakan untuk membandingkan dengan rilisan terbaru di GitHub.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      @endif
+
       {{-- Bottom Save Button --}}
       <div class="set-footer-save">
         <button type="submit" class="set-save-btn" id="footerSaveBtn">
@@ -1450,6 +1587,15 @@ select.set-input { padding-right: 0.5rem; cursor: pointer; }
   .set-tab-btn { min-width: 54px; padding: 0.45rem 0.5rem; }
   .set-tab-btn__icon { font-size: 0.95rem; }
 }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spin {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
 </style>
 @endsection
 
@@ -1562,5 +1708,28 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
 });
+
+function triggerSyncPusat() {
+  if (confirm('Apakah Anda yakin ingin menyinkronkan data identitas lembaga dari server pusat?')) {
+    const btn = document.getElementById('syncPusatBtn');
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti tabler-loader-2 spin"></i> <span>Menyinkronkan...</span>';
+
+    // Create a hidden form to submit the sync request
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ route("admin.pengaturan.api-source.sync-now") }}';
+    
+    const csrf = document.createElement('input');
+    csrf.type = 'hidden';
+    csrf.name = '_token';
+    csrf.value = '{{ csrf_token() }}';
+    
+    form.appendChild(csrf);
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
 </script>
 @endsection

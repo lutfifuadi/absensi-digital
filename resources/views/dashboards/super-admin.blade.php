@@ -426,6 +426,12 @@
                       'route' => route('admin.pengaturan.index'),
                       'color' => 'info',
                   ],
+                  [
+                      'icon' => 'tabler-cloud-download',
+                      'title' => 'Update',
+                      'route' => route('admin.update.index'),
+                      'color' => 'primary',
+                  ],
               ];
             @endphp
             @foreach ($quickLinks as $link)
@@ -438,6 +444,23 @@
           </div>
         </div>
       </div>
+
+      {{-- ALERT UPDATE SYSTEM --}}
+      @php
+          $updateInfo = app(\App\Services\UpdateService::class)->getCachedUpdateInfo();
+      @endphp
+      @if ($updateInfo)
+        <div class="das-alert-card das-alert-card--info mb-4 bounce-in">
+          <div class="das-alert-card__icon pulse-info">
+            <i class="ti tabler-cloud-download"></i>
+          </div>
+          <div class="das-alert-card__body">
+            <div class="das-alert-card__title">Update Tersedia: v{{ $updateInfo['latest_version'] }}</div>
+            <div class="das-alert-card__count">Klik untuk melihat catatan rilis</div>
+          </div>
+          <a href="{{ route('admin.update.index') }}" class="das-btn das-btn--info">Update</a>
+        </div>
+      @endif
 
       {{-- ALERT IZIN PENDING --}}
       @if ($totalIzinPending > 0)
@@ -1570,6 +1593,15 @@
       color: #aaa;
     }
 
+    .das-alert-card--info {
+      background: var(--das-info-soft);
+      border-color: rgba(0, 207, 232, 0.25);
+    }
+
+    .das-alert-card--info .das-alert-card__icon {
+      color: var(--das-info);
+    }
+
     /* ═══════════════════════════════════════════════════════
      ATTENDANCE MINI (Guru & Staff)
   ═══════════════════════════════════════════════════════ */
@@ -1734,6 +1766,17 @@
       background: var(--das-danger);
       color: white;
       border-color: var(--das-danger);
+    }
+
+    .das-btn--info {
+      background: var(--das-info);
+      color: white;
+      border-color: var(--das-info);
+    }
+
+    .das-btn--info:hover {
+      background: #00b8d4;
+      color: white;
     }
     /* =============================================================================
      RESPONSIVE

@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Support\QrScanLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 
@@ -347,27 +348,35 @@ return response()->json([
         return back()->with('error', 'Tidak dapat menghapus hari libur nasional.');
     }
 
-    private function superAdminData(): array
+private function superAdminData(): array
     {
         $today = Carbon::today();
 
-        // ── Summary counts ───────────────────────────────────────────────────
+        // ── Summary counts dengan cache query ───────────────────────────────
         $tahunId = session('tahun_akademik_id');
-        $totalSiswa = Siswa::where('tahun_akademik_id', $tahunId)->count();
-        $totalSiswaWajibAbsen = Siswa::where('tahun_akademik_id', $tahunId)
-            ->whereHas('kelas', function($q) {
-                $q->where('is_aktif_absensi', true);
-            })->count();
-        $totalGuru  = Guru::count();
-        $totalStaff = StaffTataUsaha::count();
-        $totalKelas = Kelas::where('tahun_akademik_id', $tahunId)->count();
+        $totalSiswa = Cache::remember('superadmin_total_siswa_'.$tahunId, 60, function() use ($tahunId) {
+            return Siswa::where('tahun_akademik_id', $tahunId)->count();
+        });
+        $totalSiswaWajibAbsen = Cache::remember('superadmin_total_siswa_absen_'.$tahunId, 60, function() use ($tahunId) {
+            return Siswa::where('tahun_akademik_id', $tahunId)
+                ->whereHas('kelas', fn($q) => $q->where('is_aktif_absensi', true))
+                ->count();
+        });
+        $totalGuru  = Cache::remember('superadmin_total_guru', 60, fn() => Guru::count());
+        $totalStaff = Cache::remember('superadmin_total_staff', 60, fn() => StaffTataUsaha::count());
+        $totalKelas = Cache::remember('superadmin_total_kelas_'.$tahunId, 60, function() use ($tahunId) {
+            return Kelas::where('tahun_akademik_id', $tahunId)->count();
+        });
 
-        $totalAbsensiHariIni = AbsensiSiswa::whereDate('tanggal', $today)->count();
-        $totalIzinPending    = IzinSakit::where('status', 'pending')->count();
+        $totalAbsensiHariIni = Cache::remember('superadmin_absensi_hari_ini', 30, function() use ($today) {
+            return AbsensiSiswa::whereDate('tanggal', $today)->count();
+        });
+        $totalIzinPending = Cache::remember('superadmin_izin_pending', 30, fn() => IzinSakit::where('status', 'pending')->count());
 
         // ── Donut chart: status distribution today ────────────────────────
         $statusHariIni = AbsensiSiswa::whereDate('tanggal', $today)
-            ->selectRaw('status, COUNT(*) as total')
+            ->select('status')
+            ->selectRaw('COUNT(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status')
             ->toArray();
@@ -379,51 +388,54 @@ return response()->json([
         $terlambatCount = $statusHariIni['terlambat'] ?? 0;
         $belumAbsen    = max(0, $totalSiswaWajibAbsen - $totalAbsensiHariIni);
 
-        // ── Bar chart: 7-day multi-series ────────────────────────────────
+        // ── Bar chart: 7-day multi-series (optimasi: single query) ────────────────
         $chartDays   = [];
         $chartHadir  = [];
         $chartSakit  = [];
         $chartIzin   = [];
         $chartAlpha  = [];
 
+        $startDate = $today->copy()->subDays(6);
+        $allStats = AbsensiSiswa::whereBetween('tanggal', [$startDate, $today])
+            ->select('tanggal', 'status')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('tanggal', 'status')
+            ->get()
+            ->groupBy('tanggal');
+
         for ($i = 6; $i >= 0; $i--) {
-            $date  = $today->copy()->subDays($i);
+            $date = $today->copy()->subDays($i);
             $chartDays[] = $date->translatedFormat('D d/m');
 
-            $dayStats = AbsensiSiswa::whereDate('tanggal', $date)
-                ->selectRaw('status, COUNT(*) as total')
-                ->groupBy('status')
-                ->pluck('total', 'status')
-                ->toArray();
-
-            $chartHadir[] = $dayStats['hadir']  ?? 0;
-            $chartSakit[] = $dayStats['sakit']  ?? 0;
-            $chartIzin[]  = $dayStats['izin']   ?? 0;
-            $chartAlpha[] = $dayStats['alpha']  ?? 0;
+            $dayData = $allStats[$date->toDateString()] ?? collect();
+            $chartHadir[] = $dayData->firstWhere('status', 'hadir')?->total ?? 0;
+            $chartSakit[] = $dayData->firstWhere('status', 'sakit')?->total ?? 0;
+            $chartIzin[]  = $dayData->firstWhere('status', 'izin')?->total ?? 0;
+            $chartAlpha[] = $dayData->firstWhere('status', 'alpha')?->total ?? 0;
         }
 
-        // ── Absensi Guru & Staff hari ini ────────────────────────────────
+        // ── Absensi Guru & Staff hari ini ─────────────────────────────
         $absensiGuruHariIni  = AbsensiGuru::whereDate('tanggal', $today)->count();
         $absensiStaffHariIni = AbsensiStaff::whereDate('tanggal', $today)->count();
 
-        // ── Leaderboards ─────────────────────────────────────────────────────
+        // ── Leaderboards (limit, select spesifik) ────────────────────────────
         $palingAwal = AbsensiSiswa::whereDate('tanggal', $today)
             ->whereNotNull('jam_masuk')
             ->where('status', 'hadir')
             ->orderBy('jam_masuk', 'asc')
             ->limit(10)
-            ->with('siswa.kelas')
+            ->with(['siswa' => fn($q) => $q->select('id', 'nama_lengkap', 'kelas_id')->with(['kelas' => fn($q2) => $q2->select('id', 'nama')])])
             ->get();
 
         $palingAkhir = AbsensiSiswa::whereDate('tanggal', $today)
             ->whereNotNull('jam_masuk')
             ->orderBy('jam_masuk', 'desc')
             ->limit(10)
-            ->with('siswa.kelas')
+            ->with(['siswa' => fn($q) => $q->select('id', 'nama_lengkap', 'kelas_id')->with(['kelas' => fn($q2) => $q2->select('id', 'nama')])])
             ->get();
 
-        // ── Pengaturan & Info ────────────────────────────────────────────────
-        $pengaturanArr = Pengaturan::pluck('value', 'key')->toArray();
+        // ── Pengaturan & Info ─────────────────────────────────────────────
+        $pengaturanArr = Cache::remember('superadmin_pengaturan', 300, fn() => Pengaturan::pluck('value', 'key')->toArray());
 
         return compact(
             'totalSiswa', 'totalGuru', 'totalStaff', 'totalKelas',

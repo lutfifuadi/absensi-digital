@@ -13,7 +13,9 @@ class AbsensiSiswaController extends Controller
 {
     public function index()
     {
-        $absensi = AbsensiSiswa::with(['siswa', 'kelas', 'guru'])->orderByDesc('tanggal')->get();
+        $absensi = AbsensiSiswa::with(['siswa:id,nama_lengkap,kelas_id', 'kelas:id,nama', 'guru:id,nama_lengkap'])
+            ->orderByDesc('tanggal')
+            ->paginate(50);
 
         return view('admin.absensi-siswa.index', compact('absensi'));
     }
@@ -199,11 +201,12 @@ class AbsensiSiswaController extends Controller
     {
         $kelasOptions = Kelas::orderBy('nama')->get();
         $selectedKelasId = $request->query('kelas_id');
-        $siswa = [];
+        $siswa = collect();
         if ($selectedKelasId) {
             $siswa = Siswa::where('kelas_id', $selectedKelasId)
                 ->where('status', 'aktif')
                 ->orderBy('nama_lengkap')
+                ->limit(200)
                 ->get();
         }
 

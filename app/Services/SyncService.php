@@ -258,4 +258,43 @@ class SyncService
             throw $e;
         }
     }
+    /**
+     * Sinkronisasi Pengaturan Sekolah (Identitas Lembaga)
+     */
+    public function syncSchoolSettings(array $data)
+    {
+        try {
+            $mapping = [
+                'nama' => 'nama_lembaga',
+                'nama_sekolah' => 'nama_lembaga',
+                'nama_lembaga' => 'nama_lembaga',
+                'alamat' => 'alamat_lembaga',
+                'alamat_lembaga' => 'alamat_lembaga',
+                'telp' => 'no_telp_lembaga',
+                'no_telp' => 'no_telp_lembaga',
+                'kontak' => 'kontak_lembaga',
+                'email' => 'email_lembaga',
+                'kepala_sekolah' => 'nama_kepala_lembaga',
+                'nama_kepala' => 'nama_kepala_lembaga',
+                'nip_kepala' => 'nip_kepala_lembaga',
+                'website' => 'website_lembaga',
+                'akreditasi' => 'status_akreditasi',
+            ];
+
+            foreach ($mapping as $sourceKey => $dbKey) {
+                if (isset($data[$sourceKey])) {
+                    \App\Models\Pengaturan::updateOrCreate(
+                        ['key' => $dbKey],
+                        ['value' => $data[$sourceKey], 'group' => 'umum']
+                    );
+                }
+            }
+
+            Log::info('SyncService: Pengaturan sekolah berhasil disinkronisasi dari pusat.');
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Gagal sync pengaturan sekolah: ' . $e->getMessage(), ['payload' => $data]);
+            throw $e;
+        }
+    }
 }

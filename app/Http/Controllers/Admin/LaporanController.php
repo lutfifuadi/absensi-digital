@@ -31,37 +31,43 @@ class LaporanController extends Controller
             'tahun'    => (int) $request->input('tahun', now()->year),
         ];
 
-        // Rekap bulanan siswa (pivot)
         $kelas = $filters['kelas_id'] ? Kelas::find($filters['kelas_id']) : null;
-        $siswaList = $filters['kelas_id']
-            ? Siswa::where('kelas_id', $filters['kelas_id'])->orderBy('nama_lengkap')->get()
-            : collect();
-
-        $daysInMonth = Carbon::createFromDate($filters['tahun'], $filters['bulan'], 1)->daysInMonth;
-        $dates = [];
-        for ($d = 1; $d <= $daysInMonth; $d++) {
-            $dates[] = Carbon::createFromDate($filters['tahun'], $filters['bulan'], $d)->format('Y-m-d');
-        }
-
-        // Pivot data: siswa_id => [tanggal => status]
+        $siswaList = collect();
         $absensiPivot = [];
-        if ($siswaList->isNotEmpty()) {
-            $absensiRows = AbsensiSiswa::whereIn('siswa_id', $siswaList->pluck('id'))
-                ->whereYear('tanggal', $filters['tahun'])
-                ->whereMonth('tanggal', $filters['bulan'])
-                ->get()
-                ->groupBy('siswa_id');
 
-            foreach ($siswaList as $s) {
-                $absensiPivot[$s->id] = [];
-                $rows = $absensiRows->get($s->id, collect())->keyBy(fn ($r) => $r->tanggal->format('Y-m-d'));
-                foreach ($dates as $date) {
-                    $absensiPivot[$s->id][$date] = $rows->get($date)?->status ?? null;
+        if ($filters['kelas_id']) {
+            $siswaList = Siswa::where('kelas_id', $filters['kelas_id'])
+                ->orderBy('nama_lengkap')
+                ->limit(100)
+                ->get();
+
+            if ($siswaList->isNotEmpty()) {
+                $daysInMonth = Carbon::createFromDate($filters['tahun'], $filters['bulan'], 1)->daysInMonth;
+                $startDate = Carbon::createFromDate($filters['tahun'], $filters['bulan'], 1)->toDateString();
+                $endDate = Carbon::createFromDate($filters['tahun'], $filters['bulan'], $daysInMonth)->toDateString();
+
+                $absensiRows = AbsensiSiswa::whereIn('siswa_id', $siswaList->pluck('id'))
+                    ->whereBetween('tanggal', [$startDate, $endDate])
+                    ->select('siswa_id', 'tanggal', 'status')
+                    ->get()
+                    ->groupBy('siswa_id');
+
+                $dates = [];
+                for ($d = 1; $d <= $daysInMonth; $d++) {
+                    $dates[] = Carbon::createFromDate($filters['tahun'], $filters['bulan'], $d)->format('Y-m-d');
+                }
+
+                foreach ($siswaList as $s) {
+                    $rows = $absensiRows->get($s->id, collect())->keyBy(fn ($r) => $r->tanggal->format('Y-m-d'));
+                    foreach ($dates as $date) {
+                        $absensiPivot[$s->id][$date] = $rows->get($date)?->status ?? null;
+                    }
                 }
             }
         }
 
-        $summary = AbsensiSiswa::when($filters['kelas_id'], fn ($q) => $q->where('kelas_id', $filters['kelas_id']))
+        $dates = $dates ?? [];
+        $summary = $filters['kelas_id'] ? AbsensiSiswa::where('kelas_id', $filters['kelas_id'])
             ->whereYear('tanggal', $filters['tahun'])
             ->whereMonth('tanggal', $filters['bulan'])
             ->selectRaw("COUNT(*) as total,
@@ -70,7 +76,7 @@ class LaporanController extends Controller
                 SUM(CASE WHEN status='sakit' THEN 1 ELSE 0 END) as sakit,
                 SUM(CASE WHEN status='alpha' THEN 1 ELSE 0 END) as alpha,
                 SUM(CASE WHEN status='terlambat' THEN 1 ELSE 0 END) as terlambat")
-            ->first();
+            ->first() : null;
 
         return view('admin.laporan.index', compact('kelasOptions', 'filters', 'summary', 'siswaList', 'dates', 'absensiPivot', 'kelas'));
     }
@@ -137,30 +143,30 @@ class LaporanController extends Controller
         $tanggal = $request->input('tanggal', now()->toDateString());
         $kelasId = $request->input('kelas_id');
 
-        $absensiSiswa = AbsensiSiswa::with(['siswa', 'kelas', 'guru'])
+        $absensiSiswa = AbsensiSiswa::with(['siswa:id,nama_lengkap,kelas_id', 'kelas:id,nama', 'guru:id,nama_lengkap'])
             ->whereDate('tanggal', $tanggal)
             ->when($kelasId, fn ($q) => $q->where('kelas_id', $kelasId))
             ->orderBy('siswa_id')
-            ->get();
+            ->paginate(100);
 
-        $absensiGuru = AbsensiGuru::with('guru')
+        $absensiGuru = AbsensiGuru::with('guru:id,nama_lengkap')
             ->whereDate('tanggal', $tanggal)
             ->orderBy('guru_id')
-            ->get();
+            ->paginate(100);
 
-        $absensiStaff = AbsensiStaff::with('staff')
+        $absensiStaff = AbsensiStaff::with('staff:id,nama_lengkap')
             ->whereDate('tanggal', $tanggal)
             ->orderBy('staff_id')
-            ->get();
+            ->paginate(100);
 
         $summaryHarian = [
-            'siswa_hadir'    => $absensiSiswa->where('status', 'hadir')->count(),
-            'siswa_sakit'    => $absensiSiswa->where('status', 'sakit')->count(),
-            'siswa_izin'     => $absensiSiswa->where('status', 'izin')->count(),
-            'siswa_alpha'    => $absensiSiswa->where('status', 'alpha')->count(),
-            'siswa_terlambat'=> $absensiSiswa->where('status', 'terlambat')->count(),
-            'guru_hadir'     => $absensiGuru->where('status', 'hadir')->count(),
-            'staff_hadir'    => $absensiStaff->where('status', 'hadir')->count(),
+            'siswa_hadir'    => AbsensiSiswa::whereDate('tanggal', $tanggal)->when($kelasId, fn ($q) => $q->where('kelas_id', $kelasId))->where('status', 'hadir')->count(),
+            'siswa_sakit'   => AbsensiSiswa::whereDate('tanggal', $tanggal)->when($kelasId, fn ($q) => $q->where('kelas_id', $kelasId))->where('status', 'sakit')->count(),
+            'siswa_izin'    => AbsensiSiswa::whereDate('tanggal', $tanggal)->when($kelasId, fn ($q) => $q->where('kelas_id', $kelasId))->where('status', 'izin')->count(),
+            'siswa_alpha'   => AbsensiSiswa::whereDate('tanggal', $tanggal)->when($kelasId, fn ($q) => $q->where('kelas_id', $kelasId))->where('status', 'alpha')->count(),
+            'siswa_terlambat'=> AbsensiSiswa::whereDate('tanggal', $tanggal)->when($kelasId, fn ($q) => $q->where('kelas_id', $kelasId))->where('status', 'terlambat')->count(),
+            'guru_hadir'    => AbsensiGuru::whereDate('tanggal', $tanggal)->where('status', 'hadir')->count(),
+            'staff_hadir'   => AbsensiStaff::whereDate('tanggal', $tanggal)->where('status', 'hadir')->count(),
         ];
 
         return view('admin.laporan.rekap-harian', compact(

@@ -97,7 +97,20 @@ class PengaturanController extends Controller
         'jam_akhir_pulang'     => '17:00',
         'jam_mulai_pulang'     => '14:00',
         'toleransi_terlambat'  => '15',
+
+        // GitHub Update Settings
+        'github_repo_owner' => '',
+        'github_repo_name' => '',
+        'github_access_token' => '',
+        'app_version' => '1.3.0',
     ];
+
+    protected \App\Services\UpdateService $updateService;
+
+    public function __construct(\App\Services\UpdateService $updateService)
+    {
+        $this->updateService = $updateService;
+    }
 
     public function index()
     {
@@ -116,7 +129,10 @@ class PengaturanController extends Controller
         $settings['scan_qr_password_set'] = !empty($settings['password_unlock_scan_qr']);
         $settings['password_unlock_scan_qr'] = '';
 
-        return view('admin.pengaturan.index', compact('settings'));
+        $currentVersion = $this->updateService->getCurrentVersion();
+        $updateInfo = $this->updateService->getCachedUpdateInfo();
+
+        return view('admin.pengaturan.index', compact('settings', 'currentVersion', 'updateInfo'));
     }
 
     public function update(Request $request)
@@ -151,9 +167,18 @@ class PengaturanController extends Controller
 
         foreach ($data as $key => $value) {
             if (array_key_exists($key, $this->defaults)) {
+                $group = $this->groupFor($key);
+
+                // Proteksi: Hanya super_admin yang boleh update grup 'update' atau setting API Master
+                if ($group === 'update' || str_starts_with($key, 'master_db_')) {
+                    if (!auth()->user()->isSuperAdmin()) {
+                        continue;
+                    }
+                }
+
                 Pengaturan::updateOrCreate(
                     ['key' => $key],
-                    ['value' => $value, 'group' => $this->groupFor($key)]
+                    ['value' => $value, 'group' => $group]
                 );
             }
         }
@@ -163,6 +188,9 @@ class PengaturanController extends Controller
 
     private function groupFor(string $key): string
     {
+        if (str_starts_with($key, 'github_') || $key === 'app_version') {
+            return 'update';
+        }
         return 'umum';
     }
 }

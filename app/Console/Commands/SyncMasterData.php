@@ -77,6 +77,33 @@ class SyncMasterData extends Command
             $payload = $response->json();
             $listSiswa = [];
 
+            if (is_array($payload) && array_key_exists('school', $payload)) {
+                $this->info('Menyinkronkan data identitas sekolah dari pusat...');
+                $this->syncService->syncSchoolSettings($payload['school']);
+            }
+
+            if (is_array($payload) && array_key_exists('guru', $payload)) {
+                $this->info('Menyinkronkan data guru dari pusat...');
+                foreach ($payload['guru'] as $dataGuru) {
+                    try {
+                        $this->syncService->syncGuru($dataGuru);
+                    } catch (\Exception $e) {
+                        $this->error('Gagal sync guru: ' . ($dataGuru['nip'] ?? 'unknown') . ' - ' . $e->getMessage());
+                    }
+                }
+            }
+
+            if (is_array($payload) && array_key_exists('staff', $payload)) {
+                $this->info('Menyinkronkan data staff dari pusat...');
+                foreach ($payload['staff'] as $dataStaff) {
+                    try {
+                        $this->syncService->syncStaff($dataStaff);
+                    } catch (\Exception $e) {
+                        $this->error('Gagal sync staff: ' . ($dataStaff['nip'] ?? 'unknown') . ' - ' . $e->getMessage());
+                    }
+                }
+            }
+
             if (is_array($payload) && array_key_exists('data', $payload)) {
                 $listSiswa = $payload['data'];
             } elseif (is_array($payload)) {

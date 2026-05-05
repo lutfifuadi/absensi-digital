@@ -7,6 +7,16 @@
       "url": "/dashboard"
     },
     {
+      "menuHeader": "Sistem & Pembaruan"
+    },
+    {
+      "url": "/admin/update",
+      "name": "Update Sistem",
+      "icon": "menu-icon ti tabler-cloud-download",
+      "slug": "admin.update.index",
+      "roles": ["super_admin"]
+    },
+    {
       "menuHeader": "Multi-Tenant (SaaS)"
     },
     {
@@ -53,13 +63,6 @@
       "name": "Keamanan Perangkat",
       "icon": "menu-icon ti tabler-shield-lock",
       "slug": "admin.devices.index"
-    },
-    {
-      "url": "/admin/update",
-      "name": "Update Sistem",
-      "icon": "menu-icon ti tabler-cloud-download",
-      "slug": "admin.update.index",
-      "roles": ["super_admin"]
     },
     {
       "url": "/admin/users",
