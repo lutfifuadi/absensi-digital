@@ -1,1 +1,0 @@
-{"success":true,"data":{"id":320,"nisn":"0106313396"},"message":"Data siswa berhasil diterima dan disinkronisasi."}
