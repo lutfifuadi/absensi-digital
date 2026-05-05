@@ -8,7 +8,6 @@
 # /public/
 /storage/*.key
 /storage/pail
-/vendor/
 /bootstrap/cache/*.php
 
 # Environment files
