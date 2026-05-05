@@ -283,9 +283,10 @@ class SyncService
 
             foreach ($mapping as $sourceKey => $dbKey) {
                 if (isset($data[$sourceKey])) {
+                    $schoolId = app()->has('current_school') ? app('current_school')->id : \App\Models\School::first()?->id;
                     \App\Models\Pengaturan::updateOrCreate(
-                        ['key' => $dbKey],
-                        ['value' => $data[$sourceKey], 'group' => 'umum']
+                        ['key' => $dbKey, 'school_id' => $schoolId],
+                        ['value' => $data[$sourceKey], 'group' => 'umum', 'school_id' => $schoolId]
                     );
                 }
             }

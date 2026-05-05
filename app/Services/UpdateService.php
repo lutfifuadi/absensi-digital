@@ -128,9 +128,11 @@ class UpdateService
 
     public function runUpdate(): array
     {
+        // Set time limit before ANY operation
         if (function_exists('set_time_limit')) {
-            @set_time_limit(0);
+            @set_time_limit(600); // 10 minutes max for the whole operation
         }
+        ini_set('max_execution_time', 600);
 
         $info = $this->getCachedUpdateInfo();
         if (!$info) {

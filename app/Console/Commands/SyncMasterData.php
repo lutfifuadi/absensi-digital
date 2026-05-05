@@ -64,7 +64,8 @@ class SyncMasterData extends Command
                 'X-API-KEY' => $apiKey,
                 'Accept'    => 'application/json',
             ])
-                ->timeout(30)
+                ->withoutVerifying()
+                ->timeout(60)
                 ->retry(3, 1000)
                 ->get($endpoint);
 
