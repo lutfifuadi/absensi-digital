@@ -1,0 +1,25 @@
+{
+  "menu": [
+    {
+      "name": "Dashboard",
+      "icon": "menu-icon icon-base ti tabler-smart-home",
+      "slug": "dashboard",
+      "url": "/dashboard"
+    },
+    {
+      "menuHeader": "Portal Staff"
+    },
+    {
+      "url": "/admin/absensi-staff",
+      "name": "Absensi Saya",
+      "icon": "menu-icon ti tabler-user-check",
+      "slug": "admin.absensi-staff.index"
+    },
+    {
+      "url": "/admin/izin-sakit",
+      "name": "Pengajuan Izin",
+      "icon": "menu-icon ti tabler-stethoscope",
+      "slug": "admin.izin-sakit.index"
+    }
+  ]
+}

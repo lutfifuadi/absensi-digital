@@ -1,0 +1,129 @@
+{
+  "menu": [
+    {
+      "name": "Dashboard",
+      "icon": "menu-icon icon-base ti tabler-smart-home",
+      "slug": "dashboard",
+      "url": "/dashboard"
+    },
+    {
+      "menuHeader": "Portal Operator"
+    },
+    {
+      "name": "Data Sekolah",
+      "icon": "menu-icon ti tabler-school",
+      "slug": "admin.data-sekolah",
+      "submenu": [
+        {
+          "url": "/admin/tahun-akademik",
+          "name": "Tahun Akademik",
+          "slug": "admin.tahun-akademik.index"
+        },
+        {
+          "url": "/admin/kelas",
+          "name": "Data Kelas",
+          "slug": "admin.kelas.index"
+        },
+        {
+          "url": "/admin/jadwal",
+          "name": "Jadwal Pelajaran",
+          "slug": "admin.jadwal.index"
+        }
+      ]
+    },
+    {
+      "name": "Data Pengguna",
+      "icon": "menu-icon ti tabler-users",
+      "slug": "admin.users-data",
+      "submenu": [
+        {
+          "url": "/admin/siswa",
+          "name": "Data Siswa",
+          "slug": "admin.siswa.index"
+        },
+        {
+          "url": "/admin/guru",
+          "name": "Data Guru",
+          "slug": "admin.guru.index"
+        },
+        {
+          "url": "/admin/wali-kelas",
+          "name": "Data Wali Kelas",
+          "slug": "admin.wali-kelas.index"
+        },
+        {
+          "url": "/admin/staff-tata-usaha",
+          "name": "Data Staff TU",
+          "slug": "admin.staff-tata-usaha.index"
+        }
+      ]
+    },
+    {
+      "name": "Monitoring Absensi",
+      "icon": "menu-icon ti tabler-clipboard-check",
+      "slug": "admin.absensi",
+      "submenu": [
+        {
+          "url": "/admin/absensi-siswa",
+          "name": "Absensi Siswa",
+          "slug": "admin.absensi-siswa.index"
+        },
+        {
+          "url": "/admin/absensi-guru",
+          "name": "Absensi Guru",
+          "slug": "admin.absensi-guru.index"
+        },
+        {
+          "url": "/admin/absensi-staff",
+          "name": "Absensi Staff",
+          "slug": "admin.absensi-staff.index"
+        }
+      ]
+    },
+    {
+      "name": "Kegiatan Khusus",
+      "icon": "menu-icon ti tabler-calendar-event",
+      "slug": "admin.kegiatan",
+      "submenu": [
+        {
+          "url": "/admin/kegiatan",
+          "name": "Master Kegiatan",
+          "slug": "admin.kegiatan.index"
+        },
+        {
+          "url": "/admin/absensi-kegiatan/scan",
+          "name": "Scan Kegiatan",
+          "slug": "admin.absensi-kegiatan.scan"
+        },
+        {
+          "url": "/admin/absensi-kegiatan/rekap",
+          "name": "Rekap Kegiatan",
+          "slug": "admin.absensi-kegiatan.rekap"
+        },
+        {
+          "url": "/admin/kegiatans/absensi",
+          "name": "Absensi Inovasi",
+          "slug": "admin.kegiatans.absensi"
+        }
+      ]
+    },
+    {
+      "url": "/admin/izin-sakit",
+      "name": "Verifikasi Izin",
+      "icon": "menu-icon ti tabler-stethoscope",
+      "slug": "admin.izin-sakit.index"
+    },
+    {
+      "url": "/admin/laporan",
+      "name": "Laporan & Arsip",
+      "icon": "menu-icon ti tabler-report",
+      "slug": "admin.laporan.index"
+    },
+    {
+      "url": "/admin/id-card-templates",
+      "name": "Designer ID Card",
+      "icon": "menu-icon ti tabler-id-badge-2",
+      "slug": "admin.id-card-templates"
+    }
+  ]
+}

@@ -1,0 +1,516 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Imports\SiswaImport;
+use App\Models\ActivityLog;
+use App\Models\Kelas;
+use App\Models\Pengaturan;
+use App\Models\Siswa;
+use App\Models\TahunAkademik;
+use App\Models\User;
+use App\Services\SiswaService;
+use App\Support\QrCodeGenerator;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Validators\ValidationException as ExcelValidationException;
+
+class SiswaController extends Controller
+{
+    public function __construct(protected SiswaService $siswaService) {}
+
+    public function index(Request $request)
+    {
+        $search = $request->query('search');
+        $perPage = (int) $request->query('per_page', 10);
+
+        $siswa = Siswa::with(['kelas', 'tahunAkademik'])
+            ->where('tahun_akademik_id', session('tahun_akademik_id'))
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('nama_lengkap', 'like', "%{$search}%")
+                      ->orWhere('nis', 'like', "%{$search}%")
+                      ->orWhere('nisn', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('nama_lengkap')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        if ($request->ajax()) {
+            return view('admin.siswa.table', compact('siswa'))->render();
+        }
+
+        return view('admin.siswa.index', compact('siswa'));
+    }
+
+    public function create()
+    {
+        $kelasOptions = Kelas::orderBy('nama')->get();
+        $tahunAkademikOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
+
+        return view('admin.siswa.form', compact('kelasOptions', 'tahunAkademikOptions'));
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'nis' => 'required|string|max:50|unique:siswa,nis',
+            'nisn' => 'required|string|max:50|unique:siswa,nisn',
+            'nama_lengkap' => 'required|string|max:255',
+            'jenis_kelamin' => 'required|in:L,P',
+            'tempat_lahir' => 'required|string|max:255',
+            'tanggal_lahir' => 'required|date',
+            'alamat' => 'nullable|string',
+            'no_hp' => 'nullable|string|max:50',
+            'no_hp_ortu' => 'required|string|max:50',
+            'kelas_id' => 'required|exists:kelas,id',
+            'tahun_akademik_id' => 'required|exists:tahun_akademik,id',
+            'status' => 'required|in:aktif,nonaktif,alumni',
+        ]);
+
+        $domainEmail = Pengaturan::where('key', 'website_lembaga')->value('value') ?? 'madrasah.sch.id';
+        $identifier = strtolower(trim($data['nisn'] ?? $data['nis']));
+        $email = $identifier . '@' . $domainEmail;
+        $username = $data['nisn'];
+
+        $user = User::firstOrCreate(
+            ['username' => $username],
+            [
+                'name' => $data['nama_lengkap'],
+                'email' => $email,
+                'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+                'role' => User::ROLE_SISWA,
+            ]
+        );
+
+        // Auto-create parent user
+        $emailOrtu = 'ortu.' . $identifier . '@' . $domainEmail;
+        $usernameOrtu = 'ortu.' . $identifier;
+        $userOrtu = User::firstOrCreate(
+            ['username' => $usernameOrtu],
+            [
+                'name' => 'Wali Murid ' . $data['nama_lengkap'],
+                'email' => $emailOrtu,
+                'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+                'role' => User::ROLE_ORANG_TUA,
+            ]
+        );
+
+        $siswa = Siswa::create(array_merge($data, [
+            'qr_code' => $data['nisn'],
+            'user_id' => $user->id,
+            'ortu_user_id' => $userOrtu->id,
+        ]));
+
+        ActivityLog::record('create', 'siswa', "Tambah siswa: {$siswa->nama_lengkap} (NIS: {$siswa->nis})", null, $siswa->toArray());
+
+        return redirect()->route('admin.siswa.index')->with('success', 'Siswa berhasil ditambahkan.');
+    }
+
+    public function import()
+    {
+        return redirect()->route('admin.siswa.index');
+    }
+
+    public function importStore(Request $request)
+    {
+        $request->validate([
+            'import_file' => 'required|file|mimes:xlsx,xls,csv',
+        ]);
+
+        try {
+            Excel::import(new SiswaImport(), $request->file('import_file'));
+
+            return redirect()->route('admin.siswa.index')->with('success', 'Data siswa berhasil diimpor dari Excel.');
+        } catch (ExcelValidationException $exception) {
+            $failures = $exception->failures();
+
+            $messages = collect($failures)->map(function ($failure) {
+                $row = $failure->row();
+                $attribute = $failure->attribute();
+                $errors = implode(', ', $failure->errors());
+
+                return "Baris {$row}: {$attribute} - {$errors}";
+            })->implode(' | ');
+
+            return redirect()->back()->with('error', 'Import gagal: ' . $messages);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Import gagal: ' . $th->getMessage());
+        }
+    }
+
+    public function downloadSample()
+    {
+        $headers = [
+            'nis',
+            'nisn',
+            'nama_lengkap',
+            'jenis_kelamin',
+            'tempat_lahir',
+            'tanggal_lahir',
+            'alamat',
+            'no_hp',
+            'no_hp_ortu',
+            'kelas',
+            'tahun_akademik',
+            'status'
+        ];
+
+        $callback = function () use ($headers) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $headers);
+            
+            // Add a sample row
+            fputcsv($file, [
+                '12345',
+                '0012345678',
+                'Ahmad Siswa Sampel',
+                'L',
+                'Jakarta',
+                '2010-01-01',
+                'Jl. Merdeka No. 1',
+                '08123456789', // no_hp (siswa)
+                '08123456780', // no_hp_ortu
+                'X-IPA-1',
+                '2023/2024 Genap',
+                'aktif'
+            ]);
+            
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=sampel_import_siswa.csv",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ]);
+    }
+
+    public function edit(Siswa $siswa)
+    {
+        $kelasOptions = Kelas::orderBy('nama')->get();
+        $tahunAkademikOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
+
+        return view('admin.siswa.form', compact('siswa', 'kelasOptions', 'tahunAkademikOptions'));
+    }
+
+    public function update(Request $request, Siswa $siswa)
+    {
+        $data = $request->validate([
+            'nis' => 'required|string|max:50|unique:siswa,nis,' . $siswa->id,
+            'nisn' => 'required|string|max:50|unique:siswa,nisn,' . $siswa->id,
+            'nama_lengkap' => 'required|string|max:255',
+            'jenis_kelamin' => 'required|in:L,P',
+            'tempat_lahir' => 'required|string|max:255',
+            'tanggal_lahir' => 'required|date',
+            'alamat' => 'nullable|string',
+            'no_hp' => 'nullable|string|max:50',
+            'no_hp_ortu' => 'required|string|max:50',
+            'kelas_id' => 'required|exists:kelas,id',
+            'tahun_akademik_id' => 'required|exists:tahun_akademik,id',
+            'status' => 'required|in:aktif,nonaktif,alumni',
+        ]);
+
+        $domainEmail = Pengaturan::where('key', 'website_lembaga')->value('value') ?? 'madrasah.sch.id';
+        $identifier = strtolower(trim($data['nisn']));
+        $email = $identifier . '@' . $domainEmail;
+        $username = $data['nisn'];
+
+        $old = $siswa->toArray();
+        $siswa->update(array_merge($data, [
+            'qr_code' => $data['nisn'],
+        ]));
+
+        if ($siswa->user) {
+            $siswa->user->update([
+                'name' => $data['nama_lengkap'],
+                'username' => $username,
+                'email' => $email,
+            ]);
+        }
+
+        if ($siswa->ortu) {
+            $siswa->ortu->update([
+                'name' => 'Wali Murid ' . $data['nama_lengkap'],
+                'username' => 'ortu.' . $identifier,
+                'email' => 'ortu.' . $identifier . '@' . $domainEmail,
+            ]);
+        } elseif (!$siswa->ortu_user_id) {
+            $emailOrtu = 'ortu.' . $identifier . '@' . $domainEmail;
+            $usernameOrtu = 'ortu.' . $identifier;
+            $userOrtu = User::firstOrCreate(
+                ['username' => $usernameOrtu],
+                [
+                    'name' => 'Wali Murid ' . $data['nama_lengkap'],
+                    'email' => $emailOrtu,
+                    'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+                    'role' => User::ROLE_ORANG_TUA,
+                ]
+            );
+            $siswa->update(['ortu_user_id' => $userOrtu->id]);
+        }
+
+        ActivityLog::record('update', 'siswa', "Update siswa: {$siswa->nama_lengkap} (NIS: {$siswa->nis})", $old, $siswa->fresh()->toArray());
+
+        return redirect()->route('admin.siswa.index')->with('success', 'Siswa berhasil diperbarui.');
+    }
+
+    public function destroyAll()
+    {
+        ActivityLog::record('delete', 'siswa', 'Hapus semua siswa dan data terkait', null, null);
+
+        Siswa::with('user')->chunkById(100, function ($siswaBatch) {
+            foreach ($siswaBatch as $siswa) {
+                $user = $siswa->user;
+                $siswa->delete();
+
+                if ($user) {
+                    $user->delete();
+                }
+            }
+        });
+
+        // Hapus akun user siswa yang mungkin sudah tidak punya entitas Siswa terkait
+        User::where('role', User::ROLE_SISWA)
+            ->whereDoesntHave('siswa')
+            ->chunkById(100, function ($users) {
+                foreach ($users as $user) {
+                    $user->delete();
+                }
+            });
+
+        // Reset auto increment tabel siswa kembali ke 1 setelah semua data dihapus
+        DB::statement('ALTER TABLE siswa AUTO_INCREMENT = 1');
+
+        return redirect()->route('admin.siswa.index')->with('success', 'Semua data siswa berhasil dihapus dan auto increment siswa di-reset ke 1.');
+    }
+
+    public function destroy(Siswa $siswa)
+    {
+        $user = $siswa->user;
+
+        ActivityLog::record('delete', 'siswa', "Hapus siswa: {$siswa->nama_lengkap} (NIS: {$siswa->nis})", $siswa->toArray(), null);
+        $siswa->delete();
+
+        if ($user) {
+            $user->delete();
+        }
+
+        return redirect()->route('admin.siswa.index')->with('success', 'Siswa berhasil dihapus.');
+    }
+
+    public function profilSaya()
+    {
+        $user = Auth::user();
+        $siswa = $user->siswa;
+        
+        if (!$siswa) abort(404, 'Profil siswa Anda tidak ditemukan.');
+
+        return $this->profil($siswa);
+    }
+
+
+    public function cetakQrKelas(Request $request)
+    {
+        $kelasId = $request->input('kelas_id');
+        $kelasOptions = Kelas::orderBy('nama')->get();
+
+        if (! $kelasId) {
+            return view('admin.siswa.cetak-qr-pilih', compact('kelasOptions'));
+        }
+
+        if ($kelasId === 'semua') {
+            $siswaList = Siswa::with('kelas')
+                ->where('status', 'aktif')
+                ->orderBy('nama_lengkap')
+                ->get();
+            $namaKelas = 'Semua Kelas';
+        } else {
+            $kelas = Kelas::findOrFail($kelasId);
+            $siswaList = Siswa::where('kelas_id', $kelasId)
+                ->where('status', 'aktif')
+                ->orderBy('nama_lengkap')
+                ->get();
+            $namaKelas = $kelas->nama;
+        }
+
+        $template = \App\Models\IdCardTemplate::where('type', 'siswa')->active()->first();
+
+        if (!$template) {
+            // Fallback to legacy if no active template
+            $qrImages = $siswaList->mapWithKeys(function (Siswa $s) {
+                $this->ensureQrCode($s);
+
+                return [
+                    $s->id => QrCodeGenerator::renderDataUri($s->qr_code, 160),
+                ];
+            });
+            $namaSekolah = Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
+            return Pdf::loadView('admin.siswa.kartu-qr-pdf', compact('siswaList', 'namaSekolah', 'namaKelas', 'qrImages'))
+                      ->setPaper('a4', 'portrait')
+                      ->download("kartu-qr-siswa-{$namaKelas}.pdf");
+        }
+
+        $config = $template->config;
+        $entities = $siswaList;
+
+        return Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'entities'))
+                  ->setPaper([0, 0, $config['canvas']['width'], $config['canvas']['height']])
+                  ->download("kartu-pelajar-{$namaKelas}.pdf");
+    }
+
+
+    /**
+     * Generate & download kartu QR untuk satu siswa.
+     */
+    public function generateQrSatu(Siswa $siswa)
+    {
+        $this->ensureQrCode($siswa);
+
+        $template = \App\Models\IdCardTemplate::where('type', 'siswa')->active()->first();
+
+        if (!$template) {
+            $namaSekolah = Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
+            $qrImage = QrCodeGenerator::renderDataUri($siswa->qr_code, 200);
+            return Pdf::loadView('admin.siswa.kartu-qr-satu-pdf', compact('siswa', 'namaSekolah', 'qrImage'))
+                      ->setPaper([0, 0, 226.77, 283.46])
+                      ->download("kartu-pelajar-{$siswa->nisn}.pdf");
+        }
+
+        $config = $template->config;
+        $entities = collect([$siswa]);
+
+        return Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'entities'))
+                  ->setPaper([0, 0, $config['canvas']['width'], $config['canvas']['height']])
+                  ->download("kartu-pelajar-{$siswa->nisn}.pdf");
+    }
+
+    private function ensureQrCode(Siswa $siswa): void
+    {
+        if ($siswa->qr_code) {
+            return;
+        }
+
+        $fallback = $siswa->nisn ?: QrCodeGenerator::generate('SISWA');
+        $siswa->update(['qr_code' => $fallback]);
+        $siswa->refresh();
+
+        logger()->warning('Missing qr_code detected for siswa; generated fallback.', [
+            'siswa_id' => $siswa->id,
+            'nisn' => $siswa->nisn,
+            'new_qr_code' => $fallback,
+        ]);
+    }
+
+    /**
+     * Pindah kelas siswa dalam tahun ajaran yang sama.
+     */
+    public function pindahKelas(Request $request, Siswa $siswa)
+    {
+        $request->validate([
+            'kelas_id' => 'required|integer|exists:kelas,id',
+        ], [
+            'kelas_id.required' => 'Kelas tujuan wajib dipilih.',
+            'kelas_id.exists'   => 'Kelas tujuan tidak ditemukan.',
+        ]);
+
+        try {
+            $this->siswaService->pindahKelas($siswa, (int) $request->kelas_id);
+            return back()->with('success', "Siswa {$siswa->nama_lengkap} berhasil dipindahkan ke kelas tujuan.");
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Naik kelas siswa ke tahun ajaran baru.
+     */
+    public function naikKelas(Request $request, Siswa $siswa)
+    {
+        $request->validate([
+            'kelas_id'           => 'required|integer|exists:kelas,id',
+            'tahun_akademik_id'  => 'required|integer|exists:tahun_akademik,id',
+        ], [
+            'kelas_id.required'          => 'Kelas tujuan wajib dipilih.',
+            'kelas_id.exists'            => 'Kelas tujuan tidak ditemukan.',
+            'tahun_akademik_id.required' => 'Tahun akademik tujuan wajib dipilih.',
+            'tahun_akademik_id.exists'   => 'Tahun akademik tujuan tidak ditemukan.',
+        ]);
+
+        try {
+            $this->siswaService->naikKelas(
+                $siswa,
+                (int) $request->kelas_id,
+                (int) $request->tahun_akademik_id
+            );
+            return back()->with('success', "Siswa {$siswa->nama_lengkap} berhasil dinaikkan kelas.");
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Halaman profil detail siswa (Stats & History).
+     */
+    public function profil(Siswa $siswa)
+    {
+        $user = auth()->user();
+
+        // Security check: if student, can only see own profile
+        if ($user && $user->role === 'siswa') {
+            if ($siswa->user_id !== $user->id) {
+                abort(403, 'Anda tidak memiliki akses ke profil siswa lain.');
+            }
+        }
+
+        $siswa->load(['kelas.waliKelas', 'tahunAkademik']);
+
+        // Riwayat absensi paginated
+        $absensi = \App\Models\AbsensiSiswa::where('siswa_id', $siswa->id)
+            ->orderByDesc('tanggal')
+            ->paginate(15);
+
+        // Riwayat izin/sakit
+        $izinSakit = \App\Models\IzinSakit::where('tipe', 'siswa')
+            ->where('reference_id', $siswa->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        // Statistik ringkasan
+        $statsRaw = \App\Models\AbsensiSiswa::where('siswa_id', $siswa->id)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->toArray();
+
+        $stats = [
+            'hadir'    => $statsRaw['hadir'] ?? 0,
+            'sakit'    => $statsRaw['sakit'] ?? 0,
+            'izin'     => $statsRaw['izin'] ?? 0,
+            'alpha'    => $statsRaw['alpha'] ?? 0,
+            'terlambat'=> $statsRaw['terlambat'] ?? 0,
+            'total'    => array_sum($statsRaw) ?: 1 // avoid div zero
+        ];
+
+        // QR Code for display
+        $this->ensureQrCode($siswa);
+        $qrImage = QrCodeGenerator::renderDataUri($siswa->qr_code, 150);
+
+        // Data untuk modal Pindah Kelas & Naik Kelas
+        $kelasOptions       = Kelas::with('tahunAkademik')->orderBy('nama')->get();
+        $tahunAkademikOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
+
+        return view('admin.siswa.profil', compact(
+            'siswa', 'absensi', 'izinSakit', 'stats', 'qrImage',
+            'kelasOptions', 'tahunAkademikOptions'
+        ));
+    }
+
+}

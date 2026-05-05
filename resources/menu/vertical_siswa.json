@@ -1,0 +1,32 @@
+{
+  "menu": [
+    {
+      "name": "Dashboard",
+      "icon": "menu-icon icon-base ti tabler-smart-home",
+      "slug": "dashboard",
+      "url": "/dashboard"
+    },
+    {
+      "menuHeader": "Portal Siswa"
+    },
+    {
+      "url": "/siswa/profile",
+      "name": "Profil Saya",
+      "icon": "menu-icon ti tabler-user-circle",
+      "slug": "siswa.profile"
+    },
+    {
+      "url": "/siswa/izin-sakit",
+      "name": "Izin & Sakit",
+      "icon": "menu-icon ti tabler-stethoscope",
+      "slug": "siswa.izin-sakit.index"
+    },
+    {
+      "url": "/siswa/download-kartu",
+      "name": "Kartu Pelajar",
+      "icon": "menu-icon ti tabler-id-badge-2",
+      "slug": "siswa.download-kartu",
+      "target": "_blank"
+    }
+  ]
+}

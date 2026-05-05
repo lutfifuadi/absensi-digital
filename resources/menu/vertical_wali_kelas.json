@@ -1,0 +1,75 @@
+{
+  "menu": [
+    {
+      "name": "Dashboard",
+      "icon": "menu-icon icon-base ti tabler-smart-home",
+      "slug": "dashboard",
+      "url": "/dashboard"
+    },
+    {
+      "menuHeader": "Management Kelas Saya"
+    },
+    {
+      "url": "/wali-kelas/siswa",
+      "name": "Data Siswa Kelas",
+      "icon": "menu-icon ti tabler-users",
+      "slug": "wali-kelas.siswa.index"
+    },
+    {
+      "url": "/wali-kelas/absensi-siswa",
+      "name": "Absensi Harian Kelas",
+      "icon": "menu-icon ti tabler-calendar-stats",
+      "slug": "wali-kelas.absensi-siswa.index"
+    },
+    {
+      "url": "/wali-kelas/rekap-harian",
+      "name": "Laporan Rekap",
+      "icon": "menu-icon ti tabler-presentation",
+      "slug": "wali-kelas.rekap-harian"
+    },
+    {
+      "menuHeader": "Tugas Piket & Monitor"
+    },
+    {
+      "url": "/scan-qr",
+      "name": "Scanner QR Piket",
+      "icon": "menu-icon ti tabler-qrcode",
+      "slug": "public.scan-qr.index",
+      "target": "_blank"
+    },
+    {
+      "url": "/admin/absensi-kegiatan/scan",
+      "name": "Scan Kegiatan Khusus",
+      "icon": "menu-icon ti tabler-calendar-event",
+      "slug": "admin.absensi-kegiatan.scan"
+    },
+    {
+      "url": "/admin/kegiatans/absensi",
+      "name": "Absensi Kegiatan",
+      "icon": "menu-icon ti tabler-calendar-check",
+      "slug": "admin.kegiatans.absensi"
+    },
+    {
+      "url": "/live-board",
+      "name": "Live Board Monitor",
+      "icon": "menu-icon ti tabler-screen-share",
+      "slug": "public.live-board",
+      "target": "_blank"
+    },
+    {
+      "menuHeader": "Portal Pendidik"
+    },
+    {
+      "url": "/guru/absensi/scan",
+      "name": "Absensi Saya",
+      "icon": "menu-icon ti tabler-user-check",
+      "slug": "guru.absensi.scan"
+    },
+    {
+      "url": "/guru/izin-sakit",
+      "name": "Pengajuan Izin",
+      "icon": "menu-icon ti tabler-stethoscope",
+      "slug": "guru.izin-sakit.index"
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "menu": [
+    {
+      "name": "Dashboard Utama",
+      "icon": "menu-icon icon-base ti tabler-smart-home",
+      "slug": "dashboard",
+      "url": "/dashboard"
+    },
+    {
+      "menuHeader": "Multi-Tenant (SaaS)"
+    },
+    {
+      "url": "/admin/schools",
+      "name": "Manajemen Sekolah",
+      "icon": "menu-icon ti tabler-building",
+      "slug": "admin.schools.index"
+    },
+    {
+      "menuHeader": "Kebijakan & Sistem"
+    },
+    {
+      "url": "/admin/pengaturan",
+      "name": "Konfigurasi Sekolah",
+      "icon": "menu-icon ti tabler-settings",
+      "slug": "admin.pengaturan.index"
+    },
+    {
+      "url": "/admin/pwa",
+      "name": "Pengaturan PWA",
+      "icon": "menu-icon ti tabler-device-mobile",
+      "slug": "admin.pwa.index"
+    },
+    {
+      "url": "/admin/pengaturan/api-source",
+      "name": "Pengaturan API Source",
+      "icon": "menu-icon ti tabler-api",
+      "slug": "admin.pengaturan.api-source.index"
+    },
+    {
+      "url": "/admin/wa-gateway",
+      "name": "API WAGateway",
+      "icon": "menu-icon ti tabler-brand-whatsapp",
+      "slug": "admin.wa-gateway.index"
+    },
+    {
+      "url": "/admin/notification-templates",
+      "name": "Redaksi Notifikasi",
+      "icon": "menu-icon ti tabler-bell",
+      "slug": "admin.notification-templates.index"
+    },
+    {
+      "url": "/admin/devices",
+      "name": "Keamanan Perangkat",
+      "icon": "menu-icon ti tabler-shield-lock",
+      "slug": "admin.devices.index"
+    },
+    {
+      "url": "/admin/users",
+      "name": "Manajemen Pengguna",
+      "icon": "menu-icon ti tabler-users",
+      "slug": "admin.users.index"
+    },
+    {
+      "menuHeader": "Master Data"
+    },
+    {
+      "url": "/admin/kelas",
+      "name": "Kelas",
+      "icon": "menu-icon ti tabler-door",
+      "slug": ["admin.kelas.index", "admin.kelas.show"]
+    },
+    {
+      "menuHeader": "Monitoring & Kalender"
+    },
+    {
+      "url": "/admin/laporan",
+      "name": "Statistik Eksekutif",
+      "icon": "menu-icon ti tabler-report",
+      "slug": "admin.laporan.index"
+    },
+    {
+      "url": "/admin/scan-qr",
+      "name": "Scan Absensi",
+      "icon": "menu-icon ti tabler-qrcode",
+      "slug": "admin.scan-qr.index"
+    },
+    {
+      "url": "/admin/kegiatans/absensi",
+      "name": "Absensi Kegiatan",
+      "icon": "menu-icon ti tabler-calendar-check",
+      "slug": "admin.kegiatans.absensi"
+    },
+    {
+      "url": "/admin/kalender-absensi",
+      "name": "Kalender Absensi",
+      "icon": "menu-icon ti tabler-calendar-stats",
+      "slug": "admin.kalender-absensi"
+    },
+    {
+      "url": "/admin/holidays",
+      "name": "Kelola Libur",
+      "icon": "menu-icon ti tabler-calendar-plus",
+      "slug": "admin.holidays"
+    }
+  ]
+}

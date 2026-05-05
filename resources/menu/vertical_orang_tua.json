@@ -1,0 +1,31 @@
+{
+  "menu": [
+    {
+      "name": "Dashboard",
+      "icon": "menu-icon icon-base ti tabler-smart-home",
+      "slug": "dashboard",
+      "url": "/dashboard"
+    },
+    {
+      "menuHeader": "Portal Orang Tua"
+    },
+    {
+      "url": "/ortu/anak",
+      "name": "Data Anak",
+      "icon": "menu-icon ti tabler-users",
+      "slug": "ortu.anak"
+    },
+    {
+      "url": "/ortu/izin-sakit",
+      "name": "Izin & Sakit",
+      "icon": "menu-icon ti tabler-stethoscope",
+      "slug": "ortu.izin-sakit"
+    },
+    {
+      "url": "/ortu/izin-sakit/create",
+      "name": "Ajukan Izin/Sakit",
+      "icon": "menu-icon ti tabler-file-plus",
+      "slug": "ortu.izin-sakit.create"
+    }
+  ]
+}
