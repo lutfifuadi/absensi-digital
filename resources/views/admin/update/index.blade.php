@@ -4,29 +4,87 @@
 
 @section('page-style')
   <style>
-    .update-hero {
+    :root {
+      --das-primary: #7367f0;
+      --das-primary-soft: rgba(115, 103, 240, 0.12);
+      --das-success: #28c76f;
+      --das-success-soft: rgba(40, 199, 111, 0.12);
+      --das-info: #00cfe8;
+      --das-info-soft: rgba(0, 207, 232, 0.12);
+      --das-warning: #ff9f43;
+      --das-warning-soft: rgba(255, 159, 67, 0.12);
+      --das-danger: #ea5455;
+      --das-danger-soft: rgba(234, 84, 85, 0.12);
+      --das-dark: #4b4b4b;
+      --das-secondary: #a8aaae;
+      --das-surface: rgba(15, 23, 42, 0.4);
+      --das-surface-hover: rgba(30, 41, 59, 0.6);
+      --das-border: rgba(255, 255, 255, 0.06);
+      --das-border-hover: rgba(255, 255, 255, 0.12);
+      --das-radius: 5px;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.03) !important;
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      border-radius: var(--das-radius);
+    }
+
+    .das-hero {
       position: relative;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      border-radius: 16px;
-      padding: 40px;
+      border-radius: var(--das-radius);
       overflow: hidden;
-      margin-bottom: 24px;
+      margin-bottom: 2rem;
     }
 
-    .update-hero::before {
-      content: '';
+    .das-hero__bg {
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-      opacity: 0.5;
+      inset: 0;
+      background: linear-gradient(135deg, #1e1b4b 0%, #312d89 40%, #4338ca 100%);
+      z-index: 0;
     }
 
-    .update-hero .hero-content {
-      position: relative;
+    .das-hero__glass {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(115, 103, 240, 0.15), transparent 40%);
       z-index: 1;
+    }
+
+    .das-hero__grid-lines {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      z-index: 1;
+    }
+
+    .das-hero__inner {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2.5rem;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .das-hero__title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: white;
+      margin: 0 0 4px;
+    }
+
+    .das-hero__welcome {
+      margin: 0;
+      font-size: 0.88rem;
+      color: rgba(255, 255, 255, 0.6);
     }
 
     .version-badge {
@@ -57,10 +115,11 @@
     }
 
     .update-card {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 16px;
-      backdrop-filter: blur(10px);
+      background: var(--das-surface);
+      border: 1px solid var(--das-border);
+      border-radius: var(--das-radius);
+      overflow: hidden;
+      backdrop-filter: blur(6px);
       transition: all 0.3s ease;
     }
 
@@ -70,9 +129,9 @@
     }
 
     .changelog-card {
-      background: linear-gradient(135deg, rgba(115, 103, 240, 0.08) 0%, rgba(16, 185, 129, 0.05) 100%);
+      background: rgba(115, 103, 240, 0.08);
       border: 1px solid rgba(115, 103, 240, 0.15);
-      border-radius: 12px;
+      border-radius: var(--das-radius);
       padding: 20px;
     }
 
@@ -81,7 +140,7 @@
       align-items: flex-start;
       gap: 12px;
       padding: 12px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid var(--das-border);
     }
 
     .changelog-item:last-child {
@@ -101,27 +160,22 @@
     }
 
     .update-btn {
-      position: relative;
-      overflow: hidden;
-      padding: 14px 32px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.75rem;
       font-weight: 600;
-      letter-spacing: 0.5px;
-      transition: all 0.3s ease;
+      padding: 0.5rem 1rem;
+      border-radius: var(--das-radius);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      text-decoration: none;
+      white-space: nowrap;
     }
 
-    .update-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: left 0.5s ease;
-    }
-
-    .update-btn:hover::before {
-      left: 100%;
+    .update-btn:hover {
+      transform: translateY(-2px);
     }
 
     .info-row {
@@ -130,10 +184,6 @@
       gap: 8px;
       font-size: 0.85rem;
       color: rgba(255, 255, 255, 0.5);
-    }
-
-    .info-row i {
-      font-size: 1rem;
     }
 
     .success-state {
@@ -227,11 +277,14 @@
 <div class="row">
   <div class="col-12">
     {{-- Hero Section --}}
-    <div class="update-hero">
-      <div class="hero-content d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div class="das-hero">
+      <div class="das-hero__bg"></div>
+      <div class="das-hero__glass"></div>
+      <div class="das-hero__grid-lines"></div>
+      <div class="das-hero__inner">
         <div>
-          <h3 class="text-white mb-2" style="font-weight: 700;">Pembaruan Sistem</h3>
-          <p class="text-white-50 mb-0">Periksa dan install versi terbaru aplikasi</p>
+          <h3 class="das-hero__title" style="font-weight: 700;">Pembaruan Sistem</h3>
+          <p class="das-hero__welcome">Periksa dan install versi terbaru aplikasi</p>
         </div>
         <div class="version-badge">
           <span class="dot"></span>
@@ -248,11 +301,11 @@
           <div class="update-card card">
             <div class="card-body p-4">
               <div class="d-flex align-items-center gap-3 mb-4">
-                <div class="avatar avatar-lg bg-label-warning rounded-3">
-                  <i class="ti tabler-cloud-download fs-2"></i>
+                <div class="das-avatar-circle" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                  <i class="ti tabler-cloud-download"></i>
                 </div>
                 <div>
-                  <h5 class="mb-1">Update Tersedia!</h5>
+                  <h5 class="mb-1" style="color: white;">Update Tersedia!</h5>
                   <p class="text-muted mb-0">Versi {{ $updateInfo['latest_version'] }} siap untuk diinstall</p>
                 </div>
               </div>
@@ -263,7 +316,7 @@
               </div>
 
               <div class="changelog-card mt-4">
-                <h6 class="mb-3 d-flex align-items-center gap-2">
+                <h6 class="mb-3 d-flex align-items-center gap-2" style="color: #ccc;">
                   <i class="ti tabler-list-details text-primary"></i>
                   Changelog
                 </h6>
@@ -273,8 +326,8 @@
               </div>
 
               <div class="mt-4">
-                <button type="button" id="btn-run-update" class="btn btn-primary update-btn">
-                  <i class="ti tabler-download me-2"></i>
+                <button type="button" id="btn-run-update" class="btn btn-primary update-btn das-btn das-btn--primary">
+                  <i class="ti tabler-download"></i>
                   Install Pembaruan
                 </button>
               </div>
@@ -290,14 +343,14 @@
         <div class="col-lg-4">
           <div class="update-card card h-100">
             <div class="card-body p-4">
-              <h6 class="mb-3 d-flex align-items-center gap-2">
+              <h6 class="mb-3 d-flex align-items-center gap-2" style="color: #ccc;">
                 <i class="ti tabler-info-circle text-info"></i>
                 Info Sistem
               </h6>
               <div class="d-flex flex-column gap-3">
                 <div class="d-flex justify-content-between">
                   <span class="text-muted">Versi Saat Ini</span>
-                  <span class="fw-semibold">{{ $currentVersion }}</span>
+                  <span class="fw-semibold" style="color: #ccc;">{{ $currentVersion }}</span>
                 </div>
                 <div class="d-flex justify-content-between">
                   <span class="text-muted">Versi Terbaru</span>
@@ -305,12 +358,12 @@
                 </div>
                 <div class="d-flex justify-content-between">
                   <span class="text-muted">Terakhir Dicek</span>
-                  <span class="">{{ $updateInfo['last_check'] ?? '-' }}</span>
+                  <span style="color: #ccc;">{{ $updateInfo['last_check'] ?? '-' }}</span>
                 </div>
               </div>
               <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
-              <button type="button" id="btn-check-update" class="btn btn-outline-primary w-100">
-                <i class="ti tabler-refresh me-2"></i>
+              <button type="button" id="btn-check-update" class="btn btn-outline-primary w-100 update-btn das-btn das-btn--ghost">
+                <i class="ti tabler-refresh"></i>
                 Periksa Pembaruan Manual
               </button>
             </div>
@@ -330,8 +383,8 @@
               <i class="ti tabler-clock"></i>
               <span>Terakhir diperiksa: {{ $updateInfo['last_check'] ?? 'Baru saja' }}</span>
             </div>
-            <button type="button" id="btn-check-update" class="btn btn-outline-primary update-btn">
-              <i class="ti tabler-refresh me-2"></i>
+            <button type="button" id="btn-check-update" class="btn btn-outline-primary update-btn das-btn das-btn--ghost">
+              <i class="ti tabler-refresh"></i>
               Periksa Pembaruan
             </button>
           </div>
