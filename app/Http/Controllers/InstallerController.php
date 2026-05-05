@@ -324,7 +324,6 @@ class InstallerController extends Controller
             'wali_kelas_id' => $guru->id,
             'tahun_akademik_id' => $ta->id,
             'is_aktif_absensi' => true,
-            'school_id' => $schoolId,
         ]);
 
         $kelasXI = Kelas::create([
@@ -333,7 +332,6 @@ class InstallerController extends Controller
             'jurusan' => 'MIPA',
             'tahun_akademik_id' => $ta->id,
             'is_aktif_absensi' => true,
-            'school_id' => $schoolId,
         ]);
 
         // 4. Siswa
@@ -352,7 +350,6 @@ class InstallerController extends Controller
                 'password' => Hash::make($data['nis']),
                 'role' => 'siswa',
                 'roles' => ['siswa'],
-                'school_id' => $schoolId,
             ]);
 
             Siswa::create([
@@ -366,7 +363,6 @@ class InstallerController extends Controller
                 'kelas_id' => $data['kelas'],
                 'tahun_akademik_id' => $ta->id,
                 'status' => 'aktif',
-                'school_id' => $schoolId,
             ]);
         }
 
@@ -380,12 +376,11 @@ class InstallerController extends Controller
                 'hari' => $hari,
                 'jam_mulai' => '07:30:00',
                 'jam_selesai' => '09:00:00',
-                'school_id' => $schoolId,
             ]);
         }
 
         // 6. Data Presensi (Sampel 3 hari terakhir)
-        $siswas = Siswa::where('school_id', $schoolId)->get();
+        $siswas = Siswa::all();
         for ($i = 0; $i < 3; $i++) {
             $date = now()->subDays($i);
             // Skip weekend
@@ -416,7 +411,6 @@ class InstallerController extends Controller
                     'jam_pulang' => $jamPulang,
                     'status' => $status,
                     'metode' => 'QR Code',
-                    'school_id' => $schoolId,
                 ]);
             }
         }
