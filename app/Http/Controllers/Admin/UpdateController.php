@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Services\UpdateService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 
 class UpdateController extends Controller
 {
@@ -60,67 +61,22 @@ class UpdateController extends Controller
 
     public function buildAssets()
     {
-        if (function_exists('set_time_limit')) {
-            @set_time_limit(600);
-        }
-        ini_set('max_execution_time', 600);
+        // Assets sudah di-build otomatis via GitHub Actions setiap push ke main.
+        // Paket update dari GitHub sudah menyertakan public/build/ yang siap pakai.
+        // Di sini cukup bersihkan cache Laravel agar perubahan aktif.
+        try {
+            Artisan::call('optimize:clear');
+            Artisan::call('view:clear');
 
-        if (!function_exists('exec')) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Cache berhasil dibersihkan. Assets sudah tersedia (di-build via GitHub Actions).'
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Fungsi exec() dinonaktifkan di server ini. Build harus dijalankan manual via SSH.'
-            ], 422);
-        }
-
-        $basePath = base_path();
-
-        // Cari path npm secara eksplisit (diperlukan di environment web server)
-        $npmPath = 'npm';
-        $candidates = ['/usr/bin/npm', '/usr/local/bin/npm', '/opt/homebrew/bin/npm'];
-        foreach ($candidates as $candidate) {
-            if (file_exists($candidate)) {
-                $npmPath = $candidate;
-                break;
-            }
-        }
-
-        // Verifikasi Node.js
-        $nodeCmd = str_replace('npm', 'node', $npmPath);
-        exec($nodeCmd . ' -v 2>&1', $nodeCheck, $nodeExit);
-        if ($nodeExit !== 0) {
-            // Coba cari node secara terpisah
-            exec('node -v 2>&1', $nodeCheck2, $nodeExit2);
-            if ($nodeExit2 !== 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Node.js tidak ditemukan di server. Pastikan Node.js sudah terinstall.'
-                ], 422);
-            }
-        }
-
-        // Jalankan npm install
-        $installCmd = "cd " . escapeshellarg($basePath) . " && " . $npmPath . " install --legacy-peer-deps 2>&1";
-        exec($installCmd, $installOut, $installCode);
-        if ($installCode !== 0) {
-            return response()->json([
-                'success' => false,
-                'message' => 'npm install gagal: ' . implode("\n", array_slice($installOut, -10))
+                'message' => 'Gagal membersihkan cache: ' . $e->getMessage()
             ], 500);
         }
-
-        // Jalankan npm run build
-        $buildCmd = "cd " . escapeshellarg($basePath) . " && " . $npmPath . " run build 2>&1";
-        exec($buildCmd, $buildOut, $buildCode);
-        if ($buildCode !== 0) {
-            return response()->json([
-                'success' => false,
-                'message' => 'npm run build gagal: ' . implode("\n", array_slice($buildOut, -10))
-            ], 500);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Assets berhasil di-build! Halaman akan di-refresh.'
-        ]);
     }
 }

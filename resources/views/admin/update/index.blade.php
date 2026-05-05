@@ -403,13 +403,13 @@
               <i class="ti tabler-package"></i>
             </div>
             <div>
-              <h5 class="mb-1" style="color:white;">Build Frontend Assets</h5>
-              <p class="text-muted mb-0" style="font-size:0.85rem;">Kompilasi ulang CSS &amp; JS setelah update atau perubahan konfigurasi.</p>
+              <h5 class="mb-1" style="color:white;">Refresh Cache Assets</h5>
+              <p class="text-muted mb-0" style="font-size:0.85rem;">Assets CSS &amp; JS sudah di-build otomatis via GitHub Actions. Klik untuk membersihkan cache setelah update.</p>
             </div>
           </div>
           <button type="button" id="btn-build-assets" class="btn update-btn" style="background:linear-gradient(135deg,#00cfe8,#1ce7ff);color:#fff;border:none;">
-            <i class="ti tabler-player-play"></i>
-            Jalankan Build
+            <i class="ti tabler-refresh"></i>
+            Refresh Cache
           </button>
         </div>
         <div id="build-assets-log" class="mt-3 p-3 rounded d-none" style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);font-family:monospace;font-size:0.82rem;color:rgba(255,255,255,0.7);max-height:120px;overflow-y:auto;"></div>
@@ -700,11 +700,11 @@ document.addEventListener('DOMContentLoaded', function() {
     btnBuildAssets.addEventListener('click', function () {
       showCustomModal({
         type: 'confirm',
-        title: 'Build Frontend Assets?',
-        message: 'Proses ini akan menjalankan <code>npm install</code> dan <code>npm run build</code> di server. Pastikan Node.js sudah terinstall. Proses bisa memakan waktu 1–3 menit.',
-        icon: 'ti tabler-package',
+        title: 'Refresh Cache?',
+        message: 'Proses ini akan membersihkan cache Laravel (view, config, route). Assets sudah tersedia dari paket update GitHub Actions.',
+        icon: 'ti tabler-refresh',
         color: 'info',
-        confirmText: 'Ya, Build Sekarang!',
+        confirmText: 'Ya, Refresh Sekarang!',
         cancelText: 'Batal',
         onConfirm: startBuildProcess
       });
@@ -713,9 +713,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function startBuildProcess() {
     btnBuildAssets.disabled = true;
-    btnBuildAssets.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sedang Build...';
+    btnBuildAssets.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sedang Refresh...';
     buildLog.classList.remove('d-none');
-    buildLog.textContent = '> Memulai proses build...\n';
+    buildLog.textContent = '> Membersihkan cache...\n';
 
     fetch("{{ route('admin.update.build-assets') }}", {
       method: 'POST',
@@ -729,7 +729,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (data.success) {
         buildLog.textContent += '> Selesai!\n';
         showCustomModal({
-          title: 'Build Berhasil!',
+          title: 'Cache Berhasil Direfresh!',
           message: data.message,
           icon: 'ti tabler-check',
           color: 'success',
@@ -742,7 +742,7 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .catch(err => {
       showCustomModal({
-        title: 'Build Gagal',
+        title: 'Refresh Gagal',
         message: err.message,
         icon: 'ti tabler-alert-circle',
         color: 'danger'
@@ -750,7 +750,7 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .finally(() => {
       btnBuildAssets.disabled = false;
-      btnBuildAssets.innerHTML = '<i class="ti tabler-player-play me-1"></i> Jalankan Build';
+      btnBuildAssets.innerHTML = '<i class="ti tabler-refresh me-1"></i> Refresh Cache';
     });
   }
 
