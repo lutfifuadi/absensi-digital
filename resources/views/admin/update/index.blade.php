@@ -450,7 +450,16 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   if (btnRunUpdate) {
-    btnRunUpdate.addEventListener('click', function() {
+    btnRunUpdate.onclick = function() {
+      console.log('Tombol Install diklik');
+      
+      if (typeof Swal === 'undefined') {
+        if (confirm('Konfirmasi Pembaruan: Sistem akan diperbarui ke versi terbaru. Lanjutkan?')) {
+          startUpdateProcess();
+        }
+        return;
+      }
+
       Swal.fire({
         title: 'Konfirmasi Pembaruan',
         html: `
@@ -473,7 +482,7 @@ document.addEventListener('DOMContentLoaded', function() {
           startUpdateProcess();
         }
       });
-    });
+    };
   }
 
   function startUpdateProcess() {
