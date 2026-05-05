@@ -86,7 +86,6 @@ Route::middleware([
   'auth:sanctum',
   config('jetstream.auth_session'),
   'verified',
-  'tenant',
 ])->group(function () {
   Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
   Route::post('/dashboard/scan-qr', [DashboardController::class, 'scanQrAjax'])->name('admin.dashboard.scan-qr')->middleware('role:super_admin,admin_sekolah');
@@ -189,14 +188,6 @@ Route::middleware([
       Route::get('/master-data', function () {
           return view('admin.master-data');
       })->middleware('role:super_admin,admin_sekolah,operator')->name('admin.master-data');
-
-      // ── MODUL SEKOLAH (SUPER ADMIN) ─────────────────────────────────────────
-      Route::resource('schools', \App\Http\Controllers\Admin\SchoolController::class)
-          ->names('admin.schools')
-          ->middleware('role:super_admin');
-      Route::post('schools/{school}/toggle-status', [\App\Http\Controllers\Admin\SchoolController::class, 'toggleStatus'])
-          ->name('admin.schools.toggle-status')
-          ->middleware('role:super_admin');
 
       // ── MODUL KEGIATAN KHUSUS ──────────────────────────────────────────────
       Route::resource('kegiatan', KegiatanController::class)

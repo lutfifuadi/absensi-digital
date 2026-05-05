@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class NotificationTemplate extends Model
 {
-    use \App\Traits\HasTenant;
-
     use HasFactory;
 
     protected $table = 'notification_templates';

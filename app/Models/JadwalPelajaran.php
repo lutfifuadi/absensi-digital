@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class JadwalPelajaran extends Model
 {
-    use \App\Traits\HasTenant;
-
     use HasFactory;
 
     protected $table = 'jadwal_pelajaran';

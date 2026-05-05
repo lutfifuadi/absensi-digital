@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class ReminderSettings extends Model
 {
-    use \App\Traits\HasTenant;
-
     use HasFactory;
 
     protected $table = 'reminder_settings';

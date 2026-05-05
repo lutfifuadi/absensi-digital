@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
-use App\Models\School;
 use App\Models\User;
 use App\Models\TahunAkademik;
 use App\Models\Kelas;
@@ -233,37 +232,26 @@ class InstallerController extends Controller
             // 1. Jalankan migrasi
             Artisan::call('migrate:fresh', ['--force' => true]);
             
-            // 2. Buat Sekolah Pertama
-            $school = School::create([
-                'name' => session('install_school_name'),
-                'subdomain' => 'standalone',
-                'status' => 'active',
-            ]);
-
-            // Bind ke container agar trait HasTenant bisa mendeteksi school_id otomatis
-            app()->instance('current_school', $school);
-
-            // 3. Seed data pengaturan default
+            // 2. Seed data pengaturan default
             $pengaturanDefaults = [
                 'master_db_sync_enabled' => 'Ya',
                 'zona_waktu'             => 'Asia/Jakarta',
                 'nama_lembaga'           => session('install_school_name'),
-                'nama_sekolah'           => session('install_school_name'), // Added for compatibility
+                'nama_sekolah'           => session('install_school_name'),
                 'slogan_lembaga'         => session('install_school_slogan') ?? 'Sistem Absensi Digital Modern',
                 'alamat_lembaga'         => session('install_school_address'),
                 'telepon_lembaga'        => session('install_school_phone'),
-                'email_lembaga'          => session('install_school_email'),
-                'tampilkan_beranda'      => session('install_enable_website'),
+                'email_lembaga'         => session('install_school_email'),
+                'tampilkan_beranda'     => session('install_enable_website'),
             ];
             foreach ($pengaturanDefaults as $key => $value) {
                 \App\Models\Pengaturan::create([
                     'key' => $key, 
                     'value' => $value,
-                    'school_id' => $school->id
                 ]);
             }
 
-            // 4. Buat User Admin
+            // 3. Buat User Admin
             User::create([
                 'name' => $request->admin_name,
                 'email' => $request->admin_email,
@@ -271,19 +259,18 @@ class InstallerController extends Controller
                 'password' => Hash::make($request->admin_password),
                 'role' => 'super_admin',
                 'roles' => ['super_admin'],
-                'school_id' => $school->id,
             ]);
 
-            // 5. Seed Dummy Data (Optional)
+            // 4. Seed Dummy Data (Optional)
             if ($request->has('include_dummy_data')) {
-                $this->seedDummyData($school->id);
+                $this->seedDummyData();
             }
 
             // Create storage/installed
             file_put_contents(storage_path('installed'), 'installed on ' . date('Y-m-d H:i:s'));
 
             // Clear session data
-            session()->forget(['install_school_name', 'install_school_slogan', 'install_enable_website']);
+            session()->forget(['install_school_name', 'install_school_slogan', 'install_school_address', 'install_school_phone', 'install_school_email', 'install_enable_website']);
 
             return response()->json([
                 'success' => true,
@@ -298,7 +285,7 @@ class InstallerController extends Controller
         }
     }
 
-    private function seedDummyData($schoolId)
+    private function seedDummyData()
     {
         // 1. Tahun Akademik
         $ta = TahunAkademik::create([
@@ -307,7 +294,6 @@ class InstallerController extends Controller
             'tanggal_mulai' => '2024-07-15',
             'tanggal_selesai' => '2024-12-20',
             'is_aktif' => true,
-            'school_id' => $schoolId,
         ]);
 
         // 2. Guru (Wali Kelas)
@@ -318,7 +304,6 @@ class InstallerController extends Controller
             'password' => Hash::make('password123'),
             'role' => 'guru',
             'roles' => ['guru', 'wali_kelas'],
-            'school_id' => $schoolId,
         ]);
 
         $guru = Guru::create([
@@ -329,7 +314,6 @@ class InstallerController extends Controller
             'mata_pelajaran' => 'Matematika',
             'jabatan' => 'Guru Tetap',
             'status' => 'aktif',
-            'school_id' => $schoolId,
         ]);
 
         // 3. Kelas

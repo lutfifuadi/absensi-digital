@@ -7,24 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class ActivityAttendance extends Model
 {
-    use \App\Traits\HasTenant;
-
     use HasFactory;
 
     protected $table = 'activity_attendance';
-
-    protected $fillable = [
-        'kegiatan_id',
-        'siswa_id',
-        'status',
-        'keterangan',
-        'recorded_by',
-    ];
-
-    public function kegiatan()
-    {
-        return $this->belongsTo(Kegiatan::class);
-    }
+}
 
     public function siswa()
     {

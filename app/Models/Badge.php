@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Badge extends Model
 {
-    use \App\Traits\HasTenant;
-
     use HasFactory;
 
     protected $table = 'badges';

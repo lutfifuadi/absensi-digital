@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class AuthorizedDevice extends Model
 {
-    use \App\Traits\HasTenant;
-
     use HasFactory;
 
     protected $fillable = [
