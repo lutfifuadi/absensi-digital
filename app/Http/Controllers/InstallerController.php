@@ -303,7 +303,7 @@ class InstallerController extends Controller
         // 1. Tahun Akademik
         $ta = TahunAkademik::create([
             'nama' => '2024/2025',
-            'semester' => 'Ganjil',
+            'semester' => 'ganjil',
             'tanggal_mulai' => '2024-07-15',
             'tanggal_selesai' => '2024-12-20',
             'is_aktif' => true,
@@ -374,8 +374,11 @@ class InstallerController extends Controller
             Siswa::create([
                 'user_id' => $userSiswa->id,
                 'nis' => $data['nis'],
+                'nisn' => '00' . $data['nis'] . rand(100, 999),
                 'nama_lengkap' => $data['nama'],
                 'jenis_kelamin' => $data['jk'],
+                'tempat_lahir' => 'Jakarta',
+                'tanggal_lahir' => '2008-01-01',
                 'kelas_id' => $data['kelas'],
                 'tahun_akademik_id' => $ta->id,
                 'status' => 'aktif',
@@ -405,18 +408,18 @@ class InstallerController extends Controller
             if ($date->isWeekend()) continue;
 
             foreach ($siswas as $siswa) {
-                // Random status: Hadir (80%), Sakit (10%), Izin (10%)
+                // Random status: hadir (80%), sakit (10%), izin (10%)
                 $rand = rand(1, 100);
-                $status = 'Hadir';
+                $status = 'hadir';
                 $jamMasuk = '07:15:00';
                 $jamPulang = '14:00:00';
 
                 if ($rand > 80 && $rand <= 90) {
-                    $status = 'Sakit';
+                    $status = 'sakit';
                     $jamMasuk = null;
                     $jamPulang = null;
                 } elseif ($rand > 90) {
-                    $status = 'Izin';
+                    $status = 'izin';
                     $jamMasuk = null;
                     $jamPulang = null;
                 }
