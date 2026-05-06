@@ -3,15 +3,15 @@
 # ============================================================
 # Script Setup Queue Worker - Laravel Presensi
 # Server: aaPanel
-# Path: /www/wwwroot/presensi.man1kotabandung.sch.id
 # ============================================================
 
-APP_PATH="/www/wwwroot/presensi.man1kotabandung.sch.id"
-LOG_PATH="/www/wwwroot/presensi.man1kotabandung.sch.id/storage/logs"
+APP_PATH="$(cd "$(dirname "$0")" && pwd)"
+LOG_PATH="$APP_PATH/storage/logs"
 USER="www"
 
 echo "=========================================="
 echo "Setup Queue Worker - Laravel Presensi"
+echo "  Path terdeteksi: $APP_PATH"
 echo "=========================================="
 
 # 1. Ganti ke path aplikasi
