@@ -254,7 +254,6 @@ class InstallerController extends Controller
 
         try {
             // 0. Reconfigure DB connection at runtime using session values
-            //    (needed because PHP may have booted with old config before .env was updated)
             $dbConnection = session('install_db_connection', config('database.default'));
             $dbHost       = session('install_db_host', '127.0.0.1');
             $dbPort       = session('install_db_port', '3306');
@@ -262,8 +261,13 @@ class InstallerController extends Controller
             $dbUser       = session('install_db_user', '');
             $dbPass       = session('install_db_pass', '');
 
+            // Fallback: Use 'mysql' driver for 'mariadb' if needed, or vice-versa
+            // Some environments are more stable with 'mysql' driver name
+            $driver = $dbConnection === 'mariadb' ? 'mariadb' : ($dbConnection === 'sqlite' ? 'sqlite' : 'mysql');
+
             config([
                 'database.default' => $dbConnection,
+                "database.connections.{$dbConnection}.driver"   => $driver,
                 "database.connections.{$dbConnection}.host"     => $dbHost,
                 "database.connections.{$dbConnection}.port"     => $dbPort,
                 "database.connections.{$dbConnection}.database" => $dbName,
@@ -271,8 +275,15 @@ class InstallerController extends Controller
                 "database.connections.{$dbConnection}.password" => $dbPass,
             ]);
 
+            // Clear configuration cache to ensure fresh settings are used
+            Artisan::call('config:clear');
+            Artisan::call('cache:clear');
+
             \Illuminate\Support\Facades\DB::purge($dbConnection);
             \Illuminate\Support\Facades\DB::reconnect($dbConnection);
+
+            // Log for debugging
+            \Illuminate\Support\Facades\Log::info('Installer: Starting migration', ['connection' => $dbConnection, 'db' => $dbName]);
 
             // 1. Jalankan migrasi
             Artisan::call('migrate:fresh', ['--force' => true]);
@@ -314,6 +325,10 @@ class InstallerController extends Controller
             // Create storage/installed
             file_put_contents(storage_path('installed'), 'installed on ' . date('Y-m-d H:i:s'));
 
+            // Final check for Vite assets (Warn but don't fail)
+            $manifestPath = public_path('build/manifest.json');
+            $assetWarning = !file_exists($manifestPath) ? ' Peringatan: Asset Vite belum di-build (npm run build).' : '';
+
             // Clear session data
             $sessionKeys = [
                 'install_license_key', 'install_registered_domain',
@@ -325,13 +340,14 @@ class InstallerController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Instalasi Berhasil!',
+                'message' => 'Instalasi Berhasil!' . $assetWarning,
                 'redirect' => url('/')
             ]);
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Installer Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memproses instalasi: ' . $e->getMessage()
+                'message' => 'Gagal memproses instalasi: ' . $e->getMessage() . '. Cek laravel.log untuk detail.'
             ], 500);
         }
     }
@@ -505,6 +521,13 @@ class InstallerController extends Controller
             }
         }
 
-        file_put_contents($path, $env);
+        try {
+            if (!file_put_contents($path, $env)) {
+                throw new \Exception('Gagal menulis ke file .env. Pastikan file memiliki izin tulis (writable).');
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Installer setEnv Error: ' . $e->getMessage());
+            throw $e;
+        }
     }
 }
