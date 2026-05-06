@@ -48,17 +48,30 @@
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background-color: var(--bg);
             color: var(--text);
-            overflow-x: hidden;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 32px 16px;
+            padding: 24px 16px;
             -webkit-font-smoothing: antialiased;
             background-image:
                 radial-gradient(ellipse 70% 50% at 15% 5%,  rgba(124,108,245,0.07) 0%, transparent 60%),
                 radial-gradient(ellipse 55% 40% at 85% 95%, rgba(34,197,94,0.04) 0%,  transparent 55%),
                 radial-gradient(ellipse 90% 70% at 50% 50%, rgba(124,108,245,0.02) 0%, transparent 70%);
+        }
+
+        /* Prevent body scroll on PC */
+        @media (min-width: 768px) {
+            html, body { 
+                height: 100vh;
+                overflow: hidden; 
+            }
+            .page-wrapper {
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
         }
 
         /* ── Wrapper ── */
@@ -67,34 +80,39 @@
             max-width: 600px;
         }
 
-        /* ── Brand ── */
-        .brand {
+        /* ── Brand (Inside Card) ── */
+        .card-brand {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            text-align: center;
-            margin-bottom: 24px;
-            animation: slide-down 0.4s ease both;
+            gap: 14px;
+            padding: 20px 22px;
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid var(--border);
         }
         .brand-mark {
-            width: 44px; height: 44px;
+            width: 38px; height: 38px;
             border-radius: var(--r);
             background: linear-gradient(145deg, var(--primary) 0%, #a78bfa 100%);
             display: flex; align-items: center; justify-content: center;
-            margin-bottom: 12px;
-            box-shadow: 0 0 0 1px rgba(124,108,245,0.3), 0 8px 24px rgba(124,108,245,0.25);
+            box-shadow: 0 0 0 1px rgba(124,108,245,0.3), 0 4px 12px rgba(124,108,245,0.2);
+            flex-shrink: 0;
+        }
+        .brand-text {
+            display: flex;
+            flex-direction: column;
         }
         .brand-name {
-            font-size: 0.9375rem;
+            font-size: 0.875rem;
             font-weight: 700;
             color: var(--text);
             letter-spacing: -0.01em;
+            line-height: 1.2;
         }
         .brand-tag {
-            font-size: 0.75rem;
+            font-size: 0.6875rem;
             color: var(--text-muted);
             font-weight: 400;
-            margin-top: 3px;
+            margin-top: 1px;
         }
 
         /* ── Global Error ── */
@@ -126,6 +144,14 @@
                 0 20px 48px -8px rgba(0,0,0,0.6);
             overflow: hidden;
             animation: slide-up 0.45s ease 0.08s both;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 768px) {
+            .card {
+                max-height: 520px; /* Force a proportional fixed height for better PC experience */
+            }
         }
 
         /* ── Card Header ── */
@@ -198,7 +224,17 @@
         }
 
         /* ── Card Body ── */
-        .card-body { padding: 22px; }
+        .card-body { 
+            padding: 22px; 
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Custom Scrollbar for Card Body */
+        .card-body::-webkit-scrollbar { width: 6px; }
+        .card-body::-webkit-scrollbar-track { background: transparent; }
+        .card-body::-webkit-scrollbar-thumb { background: var(--border-3); border-radius: 10px; }
+        .card-body::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
         /* ── Card Footer ── */
         .card-foot {
@@ -491,19 +527,6 @@
 
 <div class="page-wrapper">
 
-    <!-- Brand -->
-    <div class="brand">
-        <div class="brand-mark">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" stroke="#fff" stroke-width="1.75" stroke-linecap="round"/>
-                <rect x="9" y="3" width="6" height="4" rx="1" stroke="#fff" stroke-width="1.75"/>
-                <path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        </div>
-        <div class="brand-name">Sistem Absensi Digital</div>
-        <div class="brand-tag">Web Installer · Setup Wizard</div>
-    </div>
-
     <!-- Global Error -->
     @if(session('error'))
     <div class="global-error">
@@ -516,6 +539,20 @@
 
     <!-- Card -->
     <div class="card">
+        <!-- Brand Integration -->
+        <div class="card-brand">
+            <div class="brand-mark">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" stroke="#fff" stroke-width="1.75" stroke-linecap="round"/>
+                    <rect x="9" y="3" width="6" height="4" rx="1" stroke="#fff" stroke-width="1.75"/>
+                    <path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="brand-text">
+                <div class="brand-name">Sistem Absensi Digital</div>
+                <div class="brand-tag">Web Installer · Setup Wizard</div>
+            </div>
+        </div>
 
         <!-- Header -->
         <div class="card-head">
@@ -531,7 +568,7 @@
         </div>
 
         <!-- Body + Form -->
-        <form action="@yield('form-action','#')" method="POST" id="installer-form" autocomplete="off">
+        <form action="@yield('form-action','#')" method="POST" id="installer-form" autocomplete="off" style="display: flex; flex-direction: column; overflow: hidden; flex: 1;">
             @csrf
             <div class="card-body">@yield('content')</div>
             <div class="card-foot">
