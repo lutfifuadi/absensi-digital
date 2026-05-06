@@ -1,5 +1,6 @@
 /.phpunit.cache
 /node_modules
+/vendor
 /check_count.php
 /list_templates.php
 /orange_search.html
