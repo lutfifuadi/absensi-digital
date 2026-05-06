@@ -30,6 +30,13 @@ use App\Http\Controllers\AbsensiMandiriController;
 use App\Http\Controllers\PortalSiswaController;
 use App\Http\Controllers\Admin\AbsensiActivityController;
 
+use App\Http\Controllers\LicenseController;
+
+// ── License Activation (exempt from license check via middleware) ─────────────
+Route::get('/license-warning', [LicenseController::class, 'showWarning'])->name('license.warning');
+Route::post('/license-warning', [LicenseController::class, 'activate'])->name('license.activate');
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Main Page Route
 Route::get('/', [HomePage::class, 'index'])->name('pages-home');
 Route::get('/page-2', [Page2::class, 'index'])->name('pages-page-2');

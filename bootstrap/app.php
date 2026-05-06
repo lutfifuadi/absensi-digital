@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->web([
             \App\Http\Middleware\CheckInstallation::class,
+            \App\Http\Middleware\CheckLicense::class,
             LocaleMiddleware::class,
             \App\Http\Middleware\TahunAkademikSession::class,
         ]);
