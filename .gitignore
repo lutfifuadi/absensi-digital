@@ -22,7 +22,6 @@
 docker-compose.override.yml
 /doc
 /docs/
-/.github/
 
 Homestead.json
 Homestead.yaml

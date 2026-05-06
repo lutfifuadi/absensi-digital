@@ -21,8 +21,10 @@ class UpdateService
 
     public function checkForUpdates(): array
     {
-        $owner = Pengaturan::where('key', 'github_repo_owner')->value('value');
-        $repo = Pengaturan::where('key', 'github_repo_name')->value('value');
+        $owner = Pengaturan::where('key', 'github_repo_owner')->value('value')
+               ?: env('GITHUB_REPO_OWNER');
+        $repo = Pengaturan::where('key', 'github_repo_name')->value('value')
+              ?: env('GITHUB_REPO_NAME');
 
         if (empty($owner) || empty($repo)) {
             return [

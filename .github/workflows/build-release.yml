@@ -1,0 +1,45 @@
+name: Build & Release Assets
+
+on:
+  push:
+    tags:
+      - 'v*'   # Trigger hanya saat push tag seperti v1.0.0, v1.2.3
+
+jobs:
+  build:
+    name: Build Frontend & Upload Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout kode
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build assets (Vite)
+        run: npm run build
+
+      - name: Buat arsip public/build
+        run: |
+          cd public
+          tar -czf /tmp/build.tar.gz build/
+          echo "Ukuran arsip: $(du -sh /tmp/build.tar.gz | cut -f1)"
+
+      - name: Upload ke GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: /tmp/build.tar.gz
+          body: |
+            ## Release ${{ github.ref_name }}
+            
+            Asset frontend telah di-build otomatis via GitHub Actions.
+            File `build.tar.gz` berisi folder `public/build/` siap deploy ke VPS.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
