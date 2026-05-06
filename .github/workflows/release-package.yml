@@ -91,7 +91,7 @@ jobs:
             Automated build for production.
             - Includes `public/build` (Frontend Assets)
             - Includes `vendor` (PHP Dependencies)
-            - Date: ${{ github.event.head_commit.timestamp || now }}
+            - Date: ${{ github.event.head_commit.timestamp }}
           files: absensi-siap-pakai.zip
           draft: false
           prerelease: false
