@@ -46,6 +46,7 @@ Route::prefix('install')->name('installer.')->group(function () {
     Route::get('/step5', [\App\Http\Controllers\InstallerController::class, 'step5'])->name('step5');
     Route::post('/process', [\App\Http\Controllers\InstallerController::class, 'process'])->name('process');
     Route::post('/save-progress', [\App\Http\Controllers\InstallerController::class, 'saveProgress'])->name('saveProgress');
+    Route::post('/publish-assets', [\App\Http\Controllers\InstallerController::class, 'publishAssets'])->name('publishAssets');
 });
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -442,6 +443,9 @@ Route::middleware([
           ->middleware('role:super_admin');
       Route::post('update/run', [\App\Http\Controllers\Admin\UpdateController::class, 'update'])
           ->name('admin.update.run')
+          ->middleware('role:super_admin');
+      Route::post('update/publish-assets', [\App\Http\Controllers\Admin\UpdateController::class, 'publishAssets'])
+          ->name('admin.update.publish-assets')
           ->middleware('role:super_admin');
 
       // PWA Settings

@@ -239,6 +239,20 @@ class InstallerController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function publishAssets()
+    {
+        try {
+            try {
+                Artisan::call('livewire:publish', ['--assets' => true, '--force' => true]);
+            } catch (\Throwable $e) {
+                Artisan::call('vendor:publish', ['--tag' => 'livewire:assets', '--force' => true]);
+            }
+            return response()->json(['success' => true, 'message' => 'Livewire assets berhasil dipublish.']);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Gagal: ' . $e->getMessage()], 500);
+        }
+    }
+
     public function process(Request $request)
     {
         $request->validate([
@@ -322,8 +336,17 @@ class InstallerController extends Controller
                 $this->seedDummyData();
             }
 
-            // 5. Publish Livewire assets
-            Artisan::call('livewire:publish', ['--assets' => true, '--force' => true]);
+            // 5. Publish Livewire assets (opsional, tidak batalkan instalasi jika gagal)
+            try {
+                Artisan::call('livewire:publish', ['--assets' => true, '--force' => true]);
+            } catch (\Throwable $e) {
+                // Coba fallback via vendor:publish
+                try {
+                    Artisan::call('vendor:publish', ['--tag' => 'livewire:assets', '--force' => true]);
+                } catch (\Throwable $e2) {
+                    Log::warning('Livewire assets publish gagal (tidak kritis): ' . $e2->getMessage());
+                }
+            }
 
             // Create storage/installed
             file_put_contents(storage_path('installed'), 'installed on ' . date('Y-m-d H:i:s'));

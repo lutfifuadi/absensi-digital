@@ -366,6 +366,10 @@
                 <i class="ti tabler-refresh"></i>
                 Periksa Pembaruan Manual
               </button>
+              <button type="button" id="btn-publish-assets" class="btn btn-outline-warning w-100 update-btn das-btn mt-2">
+                <i class="ti tabler-package"></i>
+                Publish Livewire Assets
+              </button>
             </div>
           </div>
         </div>
@@ -386,6 +390,10 @@
             <button type="button" id="btn-check-update" class="btn btn-outline-primary update-btn das-btn das-btn--ghost">
               <i class="ti tabler-refresh"></i>
               Periksa Pembaruan
+            </button>
+            <button type="button" id="btn-publish-assets" class="btn btn-outline-warning update-btn das-btn ms-2">
+              <i class="ti tabler-package"></i>
+              Publish Livewire Assets
             </button>
           </div>
         </div>
@@ -504,6 +512,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   const btnCheckUpdate = document.getElementById('btn-check-update');
   const btnRunUpdate = document.getElementById('btn-run-update');
+  const btnPublishAssets = document.getElementById('btn-publish-assets');
   const modalProgress = new bootstrap.Modal(document.getElementById('modalProgressUpdate'));
   const progressBar = document.getElementById('update-progress');
   const progressSteps = document.querySelectorAll('.progress-step');
@@ -639,6 +648,51 @@ document.addEventListener('DOMContentLoaded', function() {
         btnCheckUpdate.disabled = false;
         btnCheckUpdate.innerHTML = '<i class="ti tabler-refresh me-2"></i> Periksa Pembaruan';
       });
+    });
+  }
+
+  if (btnPublishAssets) {
+    document.querySelectorAll('#btn-publish-assets').forEach(btn => {
+      btn.addEventListener('click', function() {
+        showCustomModal({
+          type: 'confirm',
+          title: 'Publish Livewire Assets',
+          message: 'Jalankan <code>livewire:publish --assets</code> untuk memperbaiki tampilan komponen Livewire?',
+          icon: 'ti tabler-package',
+          color: 'warning',
+          confirmText: 'Ya, Jalankan',
+          cancelText: 'Batal',
+          onConfirm: runPublishAssets
+        });
+      });
+    });
+  }
+
+  function runPublishAssets() {
+    const btns = document.querySelectorAll('#btn-publish-assets');
+    btns.forEach(b => { b.disabled = true; b.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Memproses...'; });
+
+    fetch("{{ route('admin.update.publish-assets') }}", {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+        'Accept': 'application/json'
+      }
+    })
+    .then(r => r.json())
+    .then(data => {
+      showCustomModal({
+        title: data.success ? 'Berhasil!' : 'Gagal',
+        message: data.message,
+        icon: data.success ? 'ti tabler-check' : 'ti tabler-alert-circle',
+        color: data.success ? 'success' : 'danger',
+      });
+    })
+    .catch(err => {
+      showCustomModal({ title: 'Error', message: err.message, icon: 'ti tabler-alert-circle', color: 'danger' });
+    })
+    .finally(() => {
+      btns.forEach(b => { b.disabled = false; b.innerHTML = '<i class="ti tabler-package me-1"></i> Publish Livewire Assets'; });
     });
   }
 

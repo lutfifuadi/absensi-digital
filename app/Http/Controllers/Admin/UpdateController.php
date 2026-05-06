@@ -57,4 +57,28 @@ class UpdateController extends Controller
             'message' => $result['message']
         ], 500);
     }
+
+    public function publishAssets()
+    {
+        try {
+            $output = '';
+            try {
+                \Illuminate\Support\Facades\Artisan::call('livewire:publish', ['--assets' => true, '--force' => true]);
+                $output = \Illuminate\Support\Facades\Artisan::output();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Artisan::call('vendor:publish', ['--tag' => 'livewire:assets', '--force' => true]);
+                $output = \Illuminate\Support\Facades\Artisan::output();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Livewire assets berhasil dipublish ke public/vendor/livewire/.',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal publish assets: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

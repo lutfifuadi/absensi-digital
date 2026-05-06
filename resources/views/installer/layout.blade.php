@@ -597,6 +597,28 @@ $(document).ready(function() {
 </script>
 <script>
 $(document).ready(function() {
+    // Publish Livewire Assets button (step 3, 4, 5)
+    $(document).on('click', '.btn-publish-assets', function() {
+        var $btn = $(this);
+        $btn.prop('disabled', true).html('<span class="spin"></span> Memproses...');
+        $.ajax({
+            url: '{{ route("installer.publishAssets") }}',
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            success: function(data) {
+                alert(data.success ? '✓ ' + data.message : '✗ ' + data.message);
+            },
+            error: function(xhr) {
+                var msg = xhr.responseJSON ? xhr.responseJSON.message : 'Gagal menghubungi server.';
+                alert('✗ ' + msg);
+            },
+            complete: function() {
+                $btn.prop('disabled', false).html('<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg> Livewire Assets');
+            }
+        });
+    });
+});
+$(document).ready(function() {
     var $form = $('#installer-form');
     var $btn = $('#btn-submit');
 
