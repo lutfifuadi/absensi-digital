@@ -6,13 +6,15 @@
 # Jalankan: bash deploy.sh
 # ============================================================
 
-APP_PATH="/www/wwwroot/presensi.man1kotabandung.sch.id"
+APP_PATH="$(cd "$(dirname "$0")" && pwd)"
 WEB_USER="www"
 GITHUB_OWNER="lutfifuadi"
 GITHUB_REPO="absensi-digtal"
 
 echo "=========================================="
 echo "  Deploy Laravel Absensi - VPS"
+echo "=========================================="
+echo "  Path terdeteksi: $APP_PATH"
 echo "=========================================="
 
 # Pastikan dijalankan dari direktori aplikasi
