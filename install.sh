@@ -115,7 +115,8 @@ fi
 # ----------------------------------------------------------
 echo ""
 echo "[7/7] Set permission & setup queue worker..."
-chown -R "$WEB_USER":"$WEB_USER" storage bootstrap/cache public/vendor
+chown -R "$WEB_USER":"$WEB_USER" "$APP_PATH"
+chmod -R 755 "$APP_PATH"
 chmod -R 775 storage bootstrap/cache
 
 # Setup queue worker jika Supervisor tersedia
