@@ -253,6 +253,27 @@ class InstallerController extends Controller
         ini_set('memory_limit', '512M');
 
         try {
+            // 0. Reconfigure DB connection at runtime using session values
+            //    (needed because PHP may have booted with old config before .env was updated)
+            $dbConnection = session('install_db_connection', config('database.default'));
+            $dbHost       = session('install_db_host', '127.0.0.1');
+            $dbPort       = session('install_db_port', '3306');
+            $dbName       = session('install_db_name', '');
+            $dbUser       = session('install_db_user', '');
+            $dbPass       = session('install_db_pass', '');
+
+            config([
+                'database.default' => $dbConnection,
+                "database.connections.{$dbConnection}.host"     => $dbHost,
+                "database.connections.{$dbConnection}.port"     => $dbPort,
+                "database.connections.{$dbConnection}.database" => $dbName,
+                "database.connections.{$dbConnection}.username" => $dbUser,
+                "database.connections.{$dbConnection}.password" => $dbPass,
+            ]);
+
+            \Illuminate\Support\Facades\DB::purge($dbConnection);
+            \Illuminate\Support\Facades\DB::reconnect($dbConnection);
+
             // 1. Jalankan migrasi
             Artisan::call('migrate:fresh', ['--force' => true]);
             
@@ -464,10 +485,20 @@ class InstallerController extends Controller
         }
 
         foreach ($data as $key => $value) {
+            // Quote value if it contains spaces or special shell characters
+            $envValue = (preg_match('/[\s"\'#]/', (string) $value))
+                ? '"' . addcslashes((string) $value, '"\\') . '"'
+                : (string) $value;
+
             if (strpos($env, $key . '=') !== false) {
-                $env = preg_replace("/^{$key}=.*/m", "{$key}={$value}", $env);
+                // Use preg_replace_callback to avoid replacement string metachar issues (e.g. $ in passwords)
+                $env = preg_replace_callback(
+                    "/^{$key}=.*$/m",
+                    fn() => "{$key}={$envValue}",
+                    $env
+                );
             } else {
-                $env .= "\n{$key}={$value}";
+                $env .= "\n{$key}={$envValue}";
             }
         }
 
