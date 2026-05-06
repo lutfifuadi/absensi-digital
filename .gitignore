@@ -35,14 +35,6 @@ yarn-error.log
 /.vscode
 /.zed
 
-
-/resources/assets/vendor/fonts/flags/**
-/resources/assets/vendor/fonts/fontawesome/**
-/resources/assets/vendor/fonts/iconify/**
-
-/resources/assets/vendor/fonts/flags/**
-/resources/assets/vendor/fonts/fontawesome/**
-
 # Except for 'template-customizer.js' inside 'resources/assets/vendor/js/'
 
 /storage/installed
