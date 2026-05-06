@@ -43,17 +43,16 @@ echo ""
 echo "[3/8] Download public/build dari GitHub Release..."
 LATEST_URL=$(curl -s "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" \
     | grep "browser_download_url" \
-    | grep "build.tar.gz" \
+    | grep "absensi-siap-pakai.zip" \
     | cut -d '"' -f 4)
 
 if [ -n "$LATEST_URL" ]; then
     echo "[INFO] Mengunduh: $LATEST_URL"
-    wget -q -O /tmp/build.tar.gz "$LATEST_URL"
+    wget -q -O /tmp/absensi-siap-pakai.zip "$LATEST_URL"
     if [ $? -eq 0 ]; then
         rm -rf public/build
-        mkdir -p public/build
-        tar -xzf /tmp/build.tar.gz -C public/build --strip-components=1
-        rm /tmp/build.tar.gz
+        unzip -o /tmp/absensi-siap-pakai.zip 'public/build/*' -d "$APP_PATH" > /dev/null
+        rm /tmp/absensi-siap-pakai.zip
         echo "[OK] public/build berhasil diperbarui."
     else
         echo "[WARN] Gagal mengunduh build asset. public/build tetap menggunakan versi sebelumnya."
