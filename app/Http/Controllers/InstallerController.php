@@ -322,6 +322,9 @@ class InstallerController extends Controller
                 $this->seedDummyData();
             }
 
+            // 5. Publish Livewire assets
+            Artisan::call('livewire:publish', ['--assets' => true, '--force' => true]);
+
             // Create storage/installed
             file_put_contents(storage_path('installed'), 'installed on ' . date('Y-m-d H:i:s'));
 

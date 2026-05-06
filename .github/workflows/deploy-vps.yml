@@ -1,0 +1,141 @@
+name: Deploy ke VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Bisa trigger manual dari GitHub
+
+jobs:
+  # ============================================================
+  # JOB 1: Build semua aset di GitHub Actions (CPU gratis)
+  # VPS tidak perlu menjalankan npm sama sekali
+  # ============================================================
+  build:
+    name: Build Aset (di GitHub Actions)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # --- Build Frontend (Vite/npm) ---
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Buat .env untuk proses build
+        run: cp .env.example .env
+
+      - name: Install NPM & Build aset frontend
+        run: |
+          npm install --legacy-peer-deps
+          npm run build
+
+      # --- Install Composer (tanpa dev) ---
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, dom, fileinfo, gd, zip
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+
+      # --- Upload artifact: kode + vendor + public/build ---
+      - name: Upload artifact hasil build
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          # Hanya upload file yang dibutuhkan VPS
+          path: |
+            .
+            !.git
+            !.github
+            !node_modules
+            !tests
+            !.env
+            !storage/logs
+            !storage/framework/sessions
+            !storage/framework/views
+            !storage/framework/cache
+          retention-days: 1
+
+  # ============================================================
+  # JOB 2: Deploy ke VPS - hanya kirim file, tanpa npm/composer
+  # ============================================================
+  deploy:
+    name: Deploy ke VPS (tanpa npm)
+    runs-on: ubuntu-latest
+    needs: build # Tunggu job build selesai dulu
+
+    steps:
+      - name: Download artifact hasil build
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: ./release
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ secrets.VPS_PORT || '22' }} -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      # Kirim file ke VPS via rsync (hanya file yang berubah, hemat bandwidth)
+      - name: Rsync file ke VPS
+        run: |
+          rsync -az --delete \
+            --exclude '.env' \
+            --exclude 'storage/logs/' \
+            --exclude 'storage/framework/sessions/' \
+            --exclude 'storage/framework/views/' \
+            --exclude 'storage/framework/cache/data/' \
+            -e "ssh -p ${{ secrets.VPS_PORT || 22 }} -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
+            ./release/ \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/www/wwwroot/presensi.man1kotabandung.sch.id/
+
+      # Jalankan hanya perintah ringan di VPS (tidak ada npm/composer)
+      - name: Finalisasi di VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            set -e
+            APP_PATH="/www/wwwroot/presensi.man1kotabandung.sch.id"
+            cd $APP_PATH
+
+            echo "=== Salin .env jika belum ada ==="
+            if [ ! -f ".env" ]; then
+              cp .env.example .env
+              php artisan key:generate
+              echo "[INFO] .env dibuat. Harap sesuaikan konfigurasi database!"
+            fi
+
+            echo "=== Migrasi database ==="
+            php artisan migrate --force
+
+            echo "=== Clear & cache ulang config ==="
+            php artisan config:clear
+            php artisan route:clear
+            php artisan view:clear
+            php artisan cache:clear
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            echo "=== Set permission ==="
+            chown -R www:www storage bootstrap/cache
+            chmod -R 775 storage bootstrap/cache
+
+            echo "=== Restart queue worker ==="
+            php artisan queue:restart
+
+            echo "=== Deploy selesai! VPS tidak menjalankan npm ===""
