@@ -1,0 +1,99 @@
+name: Create Ready-to-Use Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*' # Trigger on version tags (e.g., v1.0.0)
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  build-and-release:
+    name: Build & Package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install NPM dependencies & Build
+        run: |
+          npm install --legacy-peer-deps
+          npm run build
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, dom, fileinfo, gd, zip
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: |
+          composer install --no-dev --optimize-autoloader --no-interaction
+
+      - name: Create Ready-to-Use ZIP
+        run: |
+          # Create a temporary directory for the package
+          mkdir -p release_package
+          
+          # Sync all files except excluded ones
+          rsync -rr . release_package/ \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'node_modules' \
+            --exclude '.env' \
+            --exclude '.env.example' \
+            --exclude 'storage/logs/*' \
+            --exclude 'storage/framework/sessions/*' \
+            --exclude 'storage/framework/views/*' \
+            --exclude 'storage/framework/cache/data/*' \
+            --exclude 'tests' \
+            --exclude '.editorconfig' \
+            --exclude '.eslintrc.json' \
+            --exclude '.prettierrc.json' \
+            --exclude 'package-lock.json' \
+            --exclude 'package.json' \
+            --exclude 'vite.config.js' \
+            --exclude 'phpunit.xml' \
+            --exclude 'composer.json' \
+            --exclude 'composer.lock'
+            
+          # Zip the package
+          cd release_package
+          zip -r ../absensi-siap-pakai.zip .
+          cd ..
+
+      - name: Generate Release Tag Name
+        id: tag_name
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=latest-build" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create/Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag_name.outputs.tag }}
+          name: Release ${{ steps.tag_name.outputs.tag }}
+          body: |
+            Automated build for production.
+            - Includes `public/build` (Frontend Assets)
+            - Includes `vendor` (PHP Dependencies)
+            - Date: ${{ github.event.head_commit.timestamp || now }}
+          files: absensi-siap-pakai.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
