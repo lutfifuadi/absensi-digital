@@ -23,7 +23,7 @@
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                 </svg>
             </span>
-            <input type="text" name="license_key" value="{{ old('license_key') }}" placeholder="Contoh: LIC-XXXX-XXXX" required autofocus>
+            <input type="text" name="license_key" value="{{ old('license_key', session('install_license_key')) }}" placeholder="Contoh: LIC-XXXX-XXXX" required autofocus>
         </div>
     </div>
 
@@ -35,7 +35,7 @@
                     <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
                 </svg>
             </span>
-            <input type="text" name="registered_domain" value="{{ old('registered_domain', request()->getHost()) }}" placeholder="domain.com" required>
+            <input type="text" name="registered_domain" value="{{ old('registered_domain', session('install_registered_domain', request()->getHost())) }}" placeholder="domain.com" required>
         </div>
         <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">
             Pastikan domain sesuai dengan yang terdaftar di sistem pusat.

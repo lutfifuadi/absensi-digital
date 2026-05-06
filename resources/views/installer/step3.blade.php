@@ -37,9 +37,9 @@
     <div class="field">
         <label class="lbl">Tipe Database</label>
         <select name="db_connection" id="db_connection" class="select2">
-            <option value="mysql" {{ old('db_connection', 'mysql') == 'mysql' ? 'selected' : '' }}>MySQL</option>
-            <option value="mariadb" {{ old('db_connection') == 'mariadb' ? 'selected' : '' }}>MariaDB</option>
-            <option value="sqlite" {{ old('db_connection') == 'sqlite' ? 'selected' : '' }}>SQLite (Lokal)</option>
+            <option value="mysql" {{ old('db_connection', session('install_db_connection', 'mysql')) == 'mysql' ? 'selected' : '' }}>MySQL</option>
+            <option value="mariadb" {{ old('db_connection', session('install_db_connection')) == 'mariadb' ? 'selected' : '' }}>MariaDB</option>
+            <option value="sqlite" {{ old('db_connection', session('install_db_connection')) == 'sqlite' ? 'selected' : '' }}>SQLite (Lokal)</option>
         </select>
     </div>
 
@@ -51,7 +51,7 @@
                     <span class="inp-icon">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                     </span>
-                    <input type="text" name="db_host" value="{{ old('db_host','127.0.0.1') }}" placeholder="127.0.0.1">
+                    <input type="text" name="db_host" value="{{ old('db_host', session('install_db_host', '127.0.0.1')) }}" placeholder="127.0.0.1">
                 </div>
             </div>
             <div class="field">
@@ -60,7 +60,7 @@
                     <span class="inp-icon">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                     </span>
-                    <input type="text" name="db_port" value="{{ old('db_port','3306') }}" placeholder="3306">
+                    <input type="text" name="db_port" value="{{ old('db_port', session('install_db_port', '3306')) }}" placeholder="3306">
                 </div>
             </div>
             <div class="field">
@@ -69,7 +69,7 @@
                     <span class="inp-icon">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     </span>
-                    <input type="text" name="db_user" value="{{ old('db_user','root') }}" placeholder="root">
+                    <input type="text" name="db_user" value="{{ old('db_user', session('install_db_user', 'root')) }}" placeholder="root">
                 </div>
             </div>
             <div class="field">
@@ -78,7 +78,7 @@
                     <span class="inp-icon">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                     </span>
-                    <input type="password" name="db_pass" placeholder="Password db">
+                    <input type="password" name="db_pass" value="{{ old('db_pass', session('install_db_pass')) }}" placeholder="Password db">
                 </div>
             </div>
         </div>
@@ -90,7 +90,7 @@
             <span class="inp-icon">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
             </span>
-            <input type="text" name="db_name" value="{{ old('db_name') }}" placeholder="absensi_db" required>
+            <input type="text" name="db_name" value="{{ old('db_name', session('install_db_name')) }}" placeholder="absensi_db" required>
         </div>
     </div>
 

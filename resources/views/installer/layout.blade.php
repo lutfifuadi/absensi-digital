@@ -596,18 +596,43 @@ $(document).ready(function() {
 });
 </script>
 <script>
-(function () {
-    const form = document.getElementById('installer-form');
-    const btn  = document.getElementById('btn-submit');
-    if (!form || !btn) return;
-    form.addEventListener('submit', function () {
-        btn.disabled = true;
-        const label = btn.querySelector('[data-label]');
-        const icon  = btn.querySelector('[data-icon]');
-        if (label) label.textContent = btn.dataset.loading || 'Memproses...';
-        if (icon)  icon.innerHTML = '<span class="spin"></span>';
+$(document).ready(function() {
+    var $form = $('#installer-form');
+    var $btn = $('#btn-submit');
+
+    // 1. Submit Listener (Loading State)
+    $form.on('submit', function() {
+        if ($form.attr('id') === 'installer-form') { // Standard form submit
+            $btn.prop('disabled', true);
+            var label = $btn.find('[data-label]');
+            var icon = $btn.find('[data-icon]');
+            if (label.length) label.text($btn.data('loading') || 'Memproses...');
+            if (icon.length) icon.html('<span class="spin"></span>');
+        }
     });
-})();
+
+    // 2. Back Button Listener (Save Progress)
+    $('.btn-ghost').on('click', function(e) {
+        var $this = $(this);
+        
+        if ($form.length && $this.attr('href')) {
+            e.preventDefault();
+            var targetUrl = $this.attr('href');
+            
+            $this.addClass('disabled').css('pointer-events', 'none');
+            
+            $.ajax({
+                url: '{{ route("installer.saveProgress") }}',
+                method: 'POST',
+                data: $form.serialize(),
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                complete: function() {
+                    window.location.href = targetUrl;
+                }
+            });
+        }
+    });
+});
 </script>
 </body>
 </html>

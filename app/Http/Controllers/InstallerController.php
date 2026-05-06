@@ -101,6 +101,11 @@ class InstallerController extends Controller
             'REGISTERED_DOMAIN' => $domain,
         ]);
 
+        session([
+            'install_license_key' => $license,
+            'install_registered_domain' => $domain,
+        ]);
+
         return redirect()->route('installer.step3');
     }
 
@@ -173,6 +178,16 @@ class InstallerController extends Controller
             }
 
             $this->setEnv($envData);
+            
+            session([
+                'install_db_connection' => $request->db_connection,
+                'install_db_host'       => $request->db_host,
+                'install_db_port'       => $request->db_port,
+                'install_db_name'       => $request->db_name,
+                'install_db_user'       => $request->db_user,
+                'install_db_pass'       => $request->db_pass,
+            ]);
+
             Artisan::call('config:clear');
 
             return redirect()->route('installer.step4');
@@ -213,6 +228,15 @@ class InstallerController extends Controller
     public function step5()
     {
         return view('installer.step5');
+    }
+
+    public function saveProgress(Request $request)
+    {
+        $data = $request->except(['_token']);
+        foreach ($data as $key => $value) {
+            session(['install_' . $key => $value]);
+        }
+        return response()->json(['success' => true]);
     }
 
     public function process(Request $request)
@@ -270,7 +294,13 @@ class InstallerController extends Controller
             file_put_contents(storage_path('installed'), 'installed on ' . date('Y-m-d H:i:s'));
 
             // Clear session data
-            session()->forget(['install_school_name', 'install_school_slogan', 'install_school_address', 'install_school_phone', 'install_school_email', 'install_enable_website']);
+            $sessionKeys = [
+                'install_license_key', 'install_registered_domain',
+                'install_db_connection', 'install_db_host', 'install_db_port', 'install_db_name', 'install_db_user', 'install_db_pass',
+                'install_school_name', 'install_school_slogan', 'install_school_address', 'install_school_phone', 'install_school_email', 'install_enable_website',
+                'install_admin_name', 'install_admin_email', 'install_admin_username'
+            ];
+            session()->forget($sessionKeys);
 
             return response()->json([
                 'success' => true,

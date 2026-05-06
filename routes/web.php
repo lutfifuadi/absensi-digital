@@ -45,6 +45,7 @@ Route::prefix('install')->name('installer.')->group(function () {
     Route::post('/step4', [\App\Http\Controllers\InstallerController::class, 'step4Submit'])->name('step4Submit');
     Route::get('/step5', [\App\Http\Controllers\InstallerController::class, 'step5'])->name('step5');
     Route::post('/process', [\App\Http\Controllers\InstallerController::class, 'process'])->name('process');
+    Route::post('/save-progress', [\App\Http\Controllers\InstallerController::class, 'saveProgress'])->name('saveProgress');
 });
 // ─────────────────────────────────────────────────────────────────────────
 
