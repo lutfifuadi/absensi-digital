@@ -42,6 +42,8 @@ jobs:
 
       - name: Install Composer dependencies
         run: |
+          mkdir -p bootstrap/cache storage/framework/{sessions,views,cache/data} storage/logs
+          chmod -R 775 bootstrap/cache storage
           composer install --no-dev --optimize-autoloader --no-interaction
 
       - name: Create Ready-to-Use ZIP
