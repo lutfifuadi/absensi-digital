@@ -25,6 +25,9 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Create .env file for build
+        run: cp .env.example .env
+
       - name: Install NPM dependencies & Build
         run: |
           npm install --legacy-peer-deps
@@ -47,12 +50,12 @@ jobs:
           mkdir -p release_package
           
           # Sync all files except excluded ones
-          rsync -rr . release_package/ \
+          rsync -a . release_package/ \
             --exclude '.git' \
             --exclude '.github' \
             --exclude 'node_modules' \
+            --exclude 'release_package' \
             --exclude '.env' \
-            --exclude '.env.example' \
             --exclude 'storage/logs/*' \
             --exclude 'storage/framework/sessions/*' \
             --exclude 'storage/framework/views/*' \
@@ -73,6 +76,10 @@ jobs:
           zip -r ../absensi-siap-pakai.zip .
           cd ..
 
+      - name: Get Build Date
+        id: build_date
+        run: echo "date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+
       - name: Generate Release Tag Name
         id: tag_name
         run: |
@@ -91,7 +98,7 @@ jobs:
             Automated build for production.
             - Includes `public/build` (Frontend Assets)
             - Includes `vendor` (PHP Dependencies)
-            - Date: ${{ github.event.head_commit.timestamp }}
+            - Date: ${{ steps.build_date.outputs.date }}
           files: absensi-siap-pakai.zip
           draft: false
           prerelease: false
