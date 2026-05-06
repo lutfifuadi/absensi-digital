@@ -48,4 +48,5 @@ yarn-error.log
 /storage/installed
 /absensi-vps.zip
 /source-absensi.zip
-/scratch//public/hot
+/scratch/
+/public/hot

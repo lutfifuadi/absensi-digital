@@ -490,10 +490,13 @@ class InstallerController extends Controller
                 ? '"' . addcslashes((string) $value, '"\\') . '"'
                 : (string) $value;
 
-            if (strpos($env, $key . '=') !== false) {
-                // Use preg_replace_callback to avoid replacement string metachar issues (e.g. $ in passwords)
+            // Match both active and commented-out lines (e.g. "DB_HOST=..." or "# DB_HOST=...")
+            $pattern = "/^#?\s*{$key}=.*$/m";
+
+            if (preg_match($pattern, $env)) {
+                // Replace (including commented-out lines) with the active key=value
                 $env = preg_replace_callback(
-                    "/^{$key}=.*$/m",
+                    $pattern,
                     fn() => "{$key}={$envValue}",
                     $env
                 );
