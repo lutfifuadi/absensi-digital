@@ -21,17 +21,26 @@ echo "=========================================="
 cd "$APP_PATH" || { echo "[ERROR] Path tidak ditemukan: $APP_PATH"; exit 1; }
 
 # ----------------------------------------------------------
-# 1. Install Composer dependencies
+# 1. Persiapan folder wajib Laravel
 # ----------------------------------------------------------
 echo ""
-echo "[1/6] Install Composer dependencies..."
+echo "[1/6] Persiapan folder & permission..."
+mkdir -p bootstrap/cache storage/framework/{sessions,views,cache/data} storage/logs
+chmod -R 775 bootstrap/cache storage
+echo "[OK] Folder siap."
+
+# ----------------------------------------------------------
+# 2. Install Composer dependencies
+# ----------------------------------------------------------
+echo ""
+echo "[2/6] Install Composer dependencies..."
 composer install --no-dev --optimize-autoloader --no-interaction
 
 # ----------------------------------------------------------
 # 2. Setup file .env
 # ----------------------------------------------------------
 echo ""
-echo "[2/6] Setup file .env..."
+echo "[3/7] Setup file .env..."
 if [ ! -f ".env" ]; then
     cp .env.example .env
     echo "[OK] File .env dibuat dari .env.example."
@@ -57,7 +66,7 @@ echo "[OK] GITHUB_REPO_OWNER=$GITHUB_OWNER, GITHUB_REPO_NAME=$GITHUB_REPO dituli
 # 3. Download public/build dari GitHub Release terbaru
 # ----------------------------------------------------------
 echo ""
-echo "[3/6] Download public/build dari GitHub Release..."
+echo "[4/7] Download public/build dari GitHub Release..."
 LATEST_URL=$(curl -s "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" \
     | grep "browser_download_url" \
     | grep "absensi-siap-pakai.zip" \
@@ -83,7 +92,7 @@ fi
 # 4. Publish Livewire assets
 # ----------------------------------------------------------
 echo ""
-echo "[4/6] Publish Livewire assets..."
+echo "[5/7] Publish Livewire assets..."
 php artisan livewire:publish --assets --force
 echo "[OK] Livewire assets dipublish ke public/vendor/livewire/"
 
@@ -91,7 +100,7 @@ echo "[OK] Livewire assets dipublish ke public/vendor/livewire/"
 # 5. Buat symlink storage
 # ----------------------------------------------------------
 echo ""
-echo "[5/6] Buat symlink storage..."
+echo "[6/7] Buat symlink storage..."
 if [ ! -L "public/storage" ]; then
     php artisan storage:link
     echo "[OK] Symlink public/storage dibuat."
@@ -103,7 +112,7 @@ fi
 # 6. Set permission & setup queue worker
 # ----------------------------------------------------------
 echo ""
-echo "[6/6] Set permission & setup queue worker..."
+echo "[7/7] Set permission & setup queue worker..."
 chown -R "$WEB_USER":"$WEB_USER" storage bootstrap/cache public/vendor
 chmod -R 775 storage bootstrap/cache
 
