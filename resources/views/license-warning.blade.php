@@ -557,6 +557,30 @@
                 <div class="field-hint">Domain harus sesuai dengan yang terdaftar di sistem pusat lisensi.</div>
             </div>
 
+            {{-- School Name Field --}}
+            <div class="field">
+                <label class="lbl" for="school_name">Nama Sekolah</label>
+                <div class="inp-wrap has-icon">
+                    <span class="inp-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                    </span>
+                    <input
+                        type="text"
+                        id="school_name"
+                        name="school_name"
+                        value="{{ old('school_name', \App\Models\Pengaturan::where('key', 'nama_sekolah')->value('value')) }}"
+                        placeholder="Contoh: SMA Negeri 1 Jakarta"
+                        required
+                        autocomplete="off"
+                        spellcheck="false"
+                        class="{{ $errors->has('school_name') ? 'is-warning' : '' }}"
+                    >
+                </div>
+                <div class="field-hint">Pastikan nama sekolah sesuai dengan data terdaftar di pusat.</div>
+            </div>
+
             {{-- Submit Button --}}
             <button type="submit" class="btn-activate" id="btn-submit">
                 <div class="spinner" id="spinner"></div>

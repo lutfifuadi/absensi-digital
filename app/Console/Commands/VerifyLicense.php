@@ -68,7 +68,9 @@ class VerifyLicense extends Command
             return 0;
         }
 
-        $this->info("Verifying license: {$licenseKey} for domain: {$domain}");
+        $schoolName = \App\Models\Pengaturan::where('key', 'nama_sekolah')->value('value') ?: 'Unknown School';
+
+        $this->info("Verifying license: {$licenseKey} for domain: {$domain} (School: {$schoolName})");
 
         try {
             $response = Http::asForm()
@@ -77,6 +79,7 @@ class VerifyLicense extends Command
                 ->post(self::LICENSE_API_URL, [
                     'license_key' => $licenseKey,
                     'domain'      => $domain,
+                    'school_name' => $schoolName,
                 ]);
 
             $result = $response->json();

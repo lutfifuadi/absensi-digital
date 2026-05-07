@@ -33,10 +33,12 @@ class LicenseController extends Controller
         $request->validate([
             'license_key'       => 'required|string|min:5',
             'registered_domain' => 'required|string|min:3',
+            'school_name'       => 'required|string|min:3',
         ]);
 
         $license = trim($request->license_key);
         $domain  = trim($request->registered_domain);
+        $school  = trim($request->school_name);
 
         // Development bypass
         if ($license === 'DEV-MASTER-KEY') {
@@ -51,6 +53,7 @@ class LicenseController extends Controller
                 ->post(self::LICENSE_API_URL, [
                     'license_key' => $license,
                     'domain'      => $domain,
+                    'school_name' => $school,
                 ]);
 
             $result = $response->json();
