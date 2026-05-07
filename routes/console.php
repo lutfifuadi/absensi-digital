@@ -16,6 +16,9 @@ Artisan::command('inspire', function () {
 // Jadwal: setiap hari jam 08.00 tandai alpha bagi yang belum absen
 Schedule::command(AutoMarkAlphaCommand::class)->dailyAt('08:00');
 
+// Jadwal: setiap menit cek lisensi ke server untuk antisipasi lisensi ilegal
+Schedule::command(\App\Console\Commands\VerifyLicense::class)->everyMinute();
+
 if (file_exists(storage_path('installed'))) {
     try {
         $syncEnabled = Pengaturan::where('key', 'master_db_sync_enabled')->value('value') ?? 'Ya';
