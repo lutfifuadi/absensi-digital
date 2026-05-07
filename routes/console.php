@@ -17,7 +17,7 @@ Artisan::command('inspire', function () {
 Schedule::command(AutoMarkAlphaCommand::class)->dailyAt('08:00');
 
 // Jadwal: setiap menit cek lisensi ke server untuk antisipasi lisensi ilegal
-Schedule::command(\App\Console\Commands\VerifyLicense::class)->everyMinute();
+Schedule::command(\App\Console\Commands\VerifyLicense::class)->everyMinute()->withoutOverlapping();
 
 if (file_exists(storage_path('installed'))) {
     try {
