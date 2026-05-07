@@ -29,23 +29,7 @@ class VerifyLicense extends Command
      */
     public function handle()
     {
-        // We will run the check 6 times with 10 seconds interval to achieve "every 10 seconds"
-        // as the Laravel scheduler minimum is 1 minute.
-        for ($i = 0; $i < 6; $i++) {
-            $status = $this->performVerification();
-            
-            // If license is invalid and cleared (status 1), stop immediately
-            // Status 1 means the server rejected the license.
-            if ($status === 1) {
-                break;
-            }
-
-            if ($i < 5) {
-                $this->info("Waiting 10 seconds for next check...");
-                sleep(10);
-            }
-        }
-
+        $this->performVerification();
         return 0;
     }
 
@@ -59,6 +43,12 @@ class VerifyLicense extends Command
 
         if (empty($licenseKey)) {
             $this->info('No license key found. Skipping verification.');
+            return 0;
+        }
+
+        // Skip verification for localhost/127.0.0.1
+        if (str_contains($domain, 'localhost') || str_contains($domain, '127.0.0.1')) {
+            $this->info('Localhost detected. Skipping verification.');
             return 0;
         }
 

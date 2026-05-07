@@ -60,6 +60,12 @@ class CheckLicense
 
     private function triggerLazyCron(): void
     {
+        // Skip for localhost/127.0.0.1
+        $host = request()->getHost();
+        if ($host === 'localhost' || $host === '127.0.0.1') {
+            return;
+        }
+
         try {
             $lastRun = \Illuminate\Support\Facades\Cache::get('lazy_cron_last_run');
             
