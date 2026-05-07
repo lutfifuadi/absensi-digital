@@ -62,7 +62,7 @@ class DownloadController extends Controller
     private function getLatestReleaseUrl(): ?string
     {
         $owner = env('GITHUB_REPO_OWNER', 'lutfifuadi');
-        $repo  = env('GITHUB_REPO_NAME', 'absensi-digtal');
+        $repo  = env('GITHUB_REPO_NAME', 'absensi-digital');
         $token = env('GITHUB_TOKEN');
 
         try {

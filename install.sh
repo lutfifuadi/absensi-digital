@@ -11,7 +11,7 @@
 APP_PATH="$(cd "$(dirname "$0")" && pwd)"
 WEB_USER="www"
 GITHUB_OWNER="lutfifuadi"
-GITHUB_REPO="absensi-digtal"
+GITHUB_REPO="absensi-digital"
 
 echo "=========================================="
 echo "  Instalasi Laravel Absensi - VPS"
