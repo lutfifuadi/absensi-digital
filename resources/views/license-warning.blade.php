@@ -141,7 +141,7 @@
         }
 
         .header-bottom {
-            padding: 32px 32px 42px;
+            padding: 28px 32px 32px;
             text-align: center;
             position: relative;
         }
@@ -153,21 +153,6 @@
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 0 0 1px rgba(124,108,245,0.3), 0 8px 20px rgba(124,108,245,0.25);
             flex-shrink: 0;
-        }
-
-        .warn-icon-wrap {
-            width: 76px; height: 76px;
-            border-radius: 50%;
-            background: rgba(245,158,11,0.12);
-            border: 2px solid rgba(245,158,11,0.3);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 24px;
-            color: var(--warning);
-            animation: pulse-ring 2.2s ease-in-out infinite;
-            position: relative;
-            z-index: 1;
         }
 
         .warn-title {
@@ -466,16 +451,8 @@
                 </div>
             </div>
 
-            {{-- Centered Icon & Tags below columns --}}
+            {{-- Centered Tags below columns --}}
             <div class="header-bottom">
-                <div class="warn-icon-wrap">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                        <line x1="12" y1="8" x2="12" y2="12"/>
-                        <line x1="12" y1="16" x2="12.01" y2="16"/>
-                    </svg>
-                </div>
-
                 <div class="features-strip">
                     <span class="feat-tag">
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
