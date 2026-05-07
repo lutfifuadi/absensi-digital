@@ -105,7 +105,7 @@
         /* ── Header Inside Card ── */
         .warn-header {
             background: linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(245,158,11,0.04) 100%);
-            border-bottom: 1px solid rgba(245,158,11,0.15);
+            border-bottom: 1px solid var(--border);
             position: relative;
             overflow: hidden;
         }
@@ -118,60 +118,64 @@
             opacity: 0.8;
         }
 
-        .brand-row-inside {
-            display: flex;
-            align-items: center;
-            gap: 16px; /* More gap */
-            padding: 24px 32px; /* More padding */
+        .header-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr; /* Adjust column ratios */
             border-bottom: 1px solid var(--border);
             background: rgba(0,0,0,0.25);
         }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 28px 32px;
+            border-right: 1px solid var(--border);
+        }
+        .header-right {
+            padding: 28px 32px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: left;
+        }
+
+        .header-bottom {
+            padding: 32px 32px 42px;
+            text-align: center;
+            position: relative;
+        }
+
         .brand-mark {
-            width: 44px; height: 44px; /* Slightly bigger */
-            border-radius: 10px;
+            width: 48px; height: 48px;
+            border-radius: 12px;
             background: linear-gradient(145deg, var(--primary) 0%, #a78bfa 100%);
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 0 1px rgba(124,108,245,0.3), 0 6px 16px rgba(124,108,245,0.25);
+            box-shadow: 0 0 0 1px rgba(124,108,245,0.3), 0 8px 20px rgba(124,108,245,0.25);
             flex-shrink: 0;
         }
         .brand-name {
-            font-size: 1.05rem; /* Bigger font */
-            font-weight: 800;
+            font-size: 1.1rem;
+            font-weight: 850;
             color: var(--text);
             letter-spacing: -0.01em;
-            line-height: 1.2;
+            line-height: 1.1;
         }
         .brand-tag {
             font-size: 0.75rem;
             color: var(--text-muted);
-            margin-top: 3px;
-        }
-
-        .warn-banner-content {
-            padding: 42px 32px 36px; /* Increased top/side padding */
-            text-align: center;
-            position: relative;
-        }
-        .warn-banner-content::after {
-            content: '';
-            position: absolute;
-            top: -60px; left: 50%;
-            transform: translateX(-50%);
-            width: 200px; height: 200px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(245,158,11,0.08) 0%, transparent 70%);
-            pointer-events: none;
+            margin-top: 4px;
         }
 
         .warn-icon-wrap {
-            width: 76px; height: 76px; /* Bigger icon wrap */
+            width: 76px; height: 76px;
             border-radius: 50%;
             background: rgba(245,158,11,0.12);
             border: 2px solid rgba(245,158,11,0.3);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 24px; /* More margin */
+            margin-bottom: 24px;
             color: var(--warning);
             animation: pulse-ring 2.2s ease-in-out infinite;
             position: relative;
@@ -179,22 +183,17 @@
         }
 
         .warn-title {
-            font-size: 1.5rem; /* Bigger title */
+            font-size: 1.1rem;
             font-weight: 850;
             color: var(--text);
-            letter-spacing: -0.03em;
-            margin-bottom: 12px;
-            position: relative;
-            z-index: 1;
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
         }
         .warn-subtitle {
-            font-size: 0.9375rem;
+            font-size: 0.85rem;
             color: var(--text-sub);
-            line-height: 1.6;
-            max-width: 420px; /* Wider subtitle */
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
+            line-height: 1.5;
+            max-width: 320px;
         }
 
         /* ── Status Pill ── */
@@ -205,16 +204,17 @@
             background: rgba(245,158,11,0.1);
             border: 1px solid rgba(245,158,11,0.22);
             border-radius: 99px;
-            padding: 6px 16px;
-            font-size: 0.725rem;
-            font-weight: 750;
+            padding: 5px 12px;
+            font-size: 0.65rem;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.08em;
             color: var(--warning);
-            margin-bottom: 24px; /* Increased margin */
+            margin-bottom: 10px;
+            width: fit-content;
         }
         .status-dot {
-            width: 7px; height: 7px;
+            width: 6px; height: 6px;
             border-radius: 50%;
             background: var(--warning);
             box-shadow: 0 0 0 3px rgba(245,158,11,0.25);
@@ -429,10 +429,19 @@
 
         /* ── Responsive ── */
         @media (max-width: 540px) {
-            .warn-banner { padding: 22px 18px 18px; }
-            .form-section { padding: 18px 18px 22px; }
-            .info-footer { padding: 12px 18px; }
-            .warn-title { font-size: 1rem; }
+            .header-grid {
+                grid-template-columns: 1fr;
+            }
+            .header-left {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                padding: 22px 24px;
+            }
+            .header-right {
+                padding: 22px 24px;
+            }
+            .form-section { padding: 24px 24px 28px; }
+            .info-footer { padding: 18px 24px; }
         }
     </style>
 </head>
@@ -442,40 +451,46 @@
 
     <div class="card">
 
-        {{-- Integrated Header & Warning Banner --}}
+        {{-- Integrated 2-Column Header --}}
         <div class="warn-header">
-            <div class="brand-row-inside">
-                <div class="brand-mark">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                    </svg>
+            <div class="header-grid">
+                {{-- Left Column: Brand --}}
+                <div class="header-left">
+                    <div class="brand-mark">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </div>
+                    <div class="brand-info">
+                        <div class="brand-name">Sistem Absensi Digital</div>
+                        <div class="brand-tag">Platform Manajemen Kehadiran Sekolah</div>
+                    </div>
                 </div>
-                <div class="brand-info">
-                    <div class="brand-name">Sistem Absensi Digital</div>
-                    <div class="brand-tag">Platform Manajemen Kehadiran Sekolah</div>
+
+                {{-- Right Column: Warning Info --}}
+                <div class="header-right">
+                    <div class="status-pill">
+                        <div class="status-dot"></div>
+                        Lisensi Diperlukan
+                    </div>
+
+                    <div class="warn-title">Aktivasi Lisensi Diperlukan</div>
+                    <p class="warn-subtitle">
+                        Sistem tidak dapat diakses karena lisensi belum diaktifkan.
+                    </p>
                 </div>
             </div>
 
-            <div class="warn-banner-content">
-                <div class="status-pill">
-                    <div class="status-dot"></div>
-                    Lisensi Diperlukan
-                </div>
-
+            {{-- Centered Icon & Tags below columns --}}
+            <div class="header-bottom">
                 <div class="warn-icon-wrap">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                         <line x1="12" y1="8" x2="12" y2="12"/>
                         <line x1="12" y1="16" x2="12.01" y2="16"/>
                     </svg>
                 </div>
-
-                <h1 class="warn-title">Aktivasi Lisensi Diperlukan</h1>
-                <p class="warn-subtitle">
-                    Sistem tidak dapat diakses karena lisensi belum diaktifkan.
-                    Masukkan kode lisensi Anda untuk melanjutkan penggunaan aplikasi.
-                </p>
 
                 <div class="features-strip">
                     <span class="feat-tag">
