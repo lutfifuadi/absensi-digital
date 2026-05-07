@@ -29,8 +29,7 @@ class VerifyLicense extends Command
      */
     public function handle()
     {
-        $this->performVerification();
-        return 0;
+        return $this->performVerification() === 1 ? 1 : 0;
     }
 
     /**
@@ -43,12 +42,6 @@ class VerifyLicense extends Command
 
         if (empty($licenseKey)) {
             $this->info('No license key found. Skipping verification.');
-            return 0;
-        }
-
-        // Skip verification for localhost/127.0.0.1
-        if (str_contains($domain, 'localhost') || str_contains($domain, '127.0.0.1')) {
-            $this->info('Localhost detected. Skipping verification.');
             return 0;
         }
 

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 
 class SetupScheduler extends Command
 {
-    protected $signature = 'license:install-scheduler';
+    protected $signature = 'license:install-scheduler {--force : Force re-install even if already exists}';
     protected $description = 'Automatically register the Laravel scheduler in the system (Windows Task Scheduler or Linux Cron)';
 
     public function handle()
@@ -54,8 +54,10 @@ class SetupScheduler extends Command
         $cronJob = "* * * * * {$phpBinary} {$artisanPath} schedule:run >> /dev/null 2>&1";
 
         // Check if already exists to avoid duplicates
-        $currentCron = shell_exec('crontab -l 2>/dev/null');
-        
+        $cronOutput = [];
+        exec('crontab -l 2>/dev/null', $cronOutput);
+        $currentCron = implode("\n", $cronOutput);
+
         if (str_contains($currentCron, $artisanPath)) {
             $this->info('Scheduler already exists in crontab.');
             return 0;

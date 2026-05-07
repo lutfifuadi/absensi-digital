@@ -16,8 +16,8 @@ Artisan::command('inspire', function () {
 // Jadwal: setiap hari jam 08.00 tandai alpha bagi yang belum absen
 Schedule::command(AutoMarkAlphaCommand::class)->dailyAt('08:00');
 
-// Jadwal: setiap 30 menit cek lisensi ke server untuk antisipasi lisensi ilegal
-Schedule::command(\App\Console\Commands\VerifyLicense::class)->everyThirtyMinutes()->withoutOverlapping();
+// Jadwal: setiap menit cek lisensi ke server untuk antisipasi lisensi ilegal
+Schedule::command(\App\Console\Commands\VerifyLicense::class)->everyMinute()->withoutOverlapping();
 
 if (file_exists(storage_path('installed'))) {
     try {
