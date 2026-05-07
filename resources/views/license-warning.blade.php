@@ -14,58 +14,34 @@
             --bg:           #08080e;
             --surface:      #0f0f19;
             --surface-2:    #141420;
-            --surface-3:    #1a1a2a;
-            --border:       rgba(255,255,255,0.06);
-            --border-2:     rgba(255,255,255,0.10);
-            --border-3:     rgba(255,255,255,0.16);
-
-            --primary:      #7c6cf5;
-            --primary-h:    #6b5ce7;
-            --primary-dim:  rgba(124,108,245,0.12);
-            --primary-glow: rgba(124,108,245,0.35);
-
-            --warning:      #f59e0b;
-            --warning-dim:  rgba(245,158,11,0.10);
-            --warning-glow: rgba(245,158,11,0.25);
-
-            --success:      #22c55e;
-            --success-dim:  rgba(34,197,94,0.10);
-
+            --border:       rgba(255,255,255,0.07);
+            --text:         #e8e8f0;
+            --text-muted:   #8888a8;
+            --accent:       #7c6cf5;
+            --accent-light: #9d90ff;
             --danger:       #ef4444;
-            --danger-dim:   rgba(239,68,68,0.10);
-
-            --info-dim:     rgba(129,140,248,0.08);
-
-            --text:         #f0f4ff;
-            --text-2:       #c4cde0;
-            --text-muted:   #5f6b82;
-            --text-sub:     #8898aa;
-
-            --r:  5px;
-            --r-sm: 3px;
-            --r-lg: 10px;
+            --success:      #22c55e;
+            --warning:      #f59e0b;
         }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg);
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
             color: var(--text);
-            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 24px 16px;
-            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            padding: 1.5rem;
             background-image:
                 radial-gradient(ellipse 80% 55% at 10% 0%,   rgba(245,158,11,0.06) 0%, transparent 60%),
                 radial-gradient(ellipse 60% 50% at 90% 100%, rgba(124,108,245,0.07) 0%, transparent 55%),
                 radial-gradient(ellipse 100% 80% at 50% 50%, rgba(124,108,245,0.02) 0%, transparent 70%);
         }
 
-        /* ── Wrapper ── */
         .page-wrapper {
             width: 100%;
-            max-width: 560px; /* Slightly wider for more space */
+            max-width: 560px;
             animation: slide-up 0.5s cubic-bezier(0.22,1,0.36,1) both;
         }
 
@@ -73,387 +49,234 @@
             from { opacity: 0; transform: translateY(28px); }
             to   { opacity: 1; transform: translateY(0); }
         }
+
         @keyframes pulse-ring {
-            0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245,158,11,0.5); }
-            70%  { transform: scale(1);    box-shadow: 0 0 0 14px rgba(245,158,11,0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245,158,11,0); }
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%  { transform: translateX(-6px); }
-            40%  { transform: translateX(6px); }
-            60%  { transform: translateX(-4px); }
-            80%  { transform: translateX(4px); }
+            0%   { transform: scale(1);   opacity: 0.6; }
+            100% { transform: scale(1.6); opacity: 0; }
         }
 
         /* ── Card ── */
         .card {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 16px; /* Smoother radius */
-            box-shadow:
-                0 1px 0 rgba(255,255,255,0.04) inset,
-                0 -1px 0 rgba(0,0,0,0.3) inset,
-                0 4px 6px -1px rgba(0,0,0,0.35),
-                0 32px 80px -12px rgba(0,0,0,0.8);
+            border-radius: 20px;
             overflow: hidden;
+            box-shadow: 0 32px 64px rgba(0,0,0,0.5);
         }
 
-        /* ── Header Inside Card ── */
-        .warn-header {
-            background: linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(245,158,11,0.04) 100%);
+        /* ── Hero ── */
+        .hero {
+            padding: 2.5rem 2.5rem 2rem;
             border-bottom: 1px solid var(--border);
-            position: relative;
-            overflow: hidden;
-        }
-        .warn-header::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent 0%, var(--warning) 50%, transparent 100%);
-            opacity: 0.8;
-        }
-
-        .header-grid {
-            display: grid;
-            grid-template-columns: 80px 1fr; /* Even narrower */
-            border-bottom: 1px solid var(--border);
-            background: rgba(0,0,0,0.25);
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 14px;
-            border-right: 1px solid var(--border);
-        }
-        .header-right {
-            padding: 14px 20px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            text-align: left;
-        }
-
-        .header-bottom {
-            padding: 12px 20px 16px;
+            align-items: center;
             text-align: center;
+            gap: 1rem;
+            background: linear-gradient(135deg, rgba(124,108,245,0.04) 0%, transparent 60%);
+        }
+
+        .icon-wrap {
             position: relative;
-        }
-
-        .brand-mark {
-            width: 40px; height: 40px;
-            border-radius: 10px;
-            background: linear-gradient(145deg, var(--primary) 0%, #a78bfa 100%);
+            width: 72px; height: 72px;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 0 1px rgba(124,108,245,0.3), 0 4px 12px rgba(124,108,245,0.2);
-            flex-shrink: 0;
         }
 
-        .warn-title {
-            font-size: 1rem;
-            font-weight: 850;
-            color: var(--text);
-            letter-spacing: -0.02em;
-            margin-bottom: 4px;
-        }
-        .warn-subtitle {
-            font-size: 0.8125rem;
-            color: var(--text-sub);
-            line-height: 1.4;
-            max-width: 320px;
+        .icon-wrap::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: rgba(245,158,11,0.15);
+            animation: pulse-ring 1.8s ease-out infinite;
         }
 
-        /* ── Status Pill ── */
-        .status-pill {
+        .icon-circle {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: rgba(245,158,11,0.1);
+            border: 1.5px solid rgba(245,158,11,0.3);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1;
+        }
+
+        .icon-circle svg { color: #f59e0b; }
+
+        .hero-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .hero-sub {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            max-width: 380px;
+            line-height: 1.6;
+        }
+
+        .feat-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .feat-tag {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            background: rgba(245,158,11,0.1);
-            border: 1px solid rgba(245,158,11,0.22);
-            border-radius: 99px;
+            gap: 5px;
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: var(--surface-2);
+            border: 1px solid var(--border);
             padding: 4px 10px;
-            font-size: 0.6rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--warning);
-            margin-bottom: 6px;
-            width: fit-content;
+            border-radius: 999px;
         }
-        .status-dot {
-            width: 5px; height: 5px;
-            border-radius: 50%;
-            background: var(--warning);
-            box-shadow: 0 0 0 2px rgba(245,158,11,0.25);
-            animation: pulse-ring 1.5s ease-in-out infinite;
-        }
+
+        .feat-tag svg { color: var(--success); flex-shrink: 0; }
 
         /* ── Form Section ── */
         .form-section {
-            padding: 18px 24px 24px;
+            padding: 2rem 2.5rem 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
         }
 
         .section-label {
-            font-size: 0.65rem;
-            font-weight: 800;
+            font-size: 0.78rem;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.08em;
             color: var(--text-muted);
-            margin-bottom: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .section-label::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--border-2);
+            margin-bottom: -0.25rem;
         }
 
-        /* Alert flash messages */
-        .alert {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 12px 14px;
-            border-radius: 8px;
-            font-size: 0.8125rem;
-            line-height: 1.55;
-            border: 1px solid;
-            margin-bottom: 20px;
-        }
-        .alert svg { flex-shrink: 0; margin-top: 1px; }
-        .alert-error   { background: var(--danger-dim);  border-color: rgba(239,68,68,0.18);  color: #fca5a5; animation: shake 0.45s ease; }
-        .alert-success { background: var(--success-dim); border-color: rgba(34,197,94,0.18);  color: #86efac; }
+        .field-group { display: flex; flex-direction: column; gap: 0.4rem; }
 
-        /* ── Fields ── */
-        .field { display: flex; flex-direction: column; gap: 4px; }
-        .field + .field { margin-top: 12px; }
-        .field-group { display: grid; gap: 12px; }
-
-        label.lbl {
-            font-size: 0.65rem;
-            font-weight: 750;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 4px;
+        .field-label {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text);
         }
 
-        .inp-wrap { position: relative; }
-        .inp-icon {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            display: flex;
-            pointer-events: none;
-            transition: color 0.2s;
-        }
-
-        input[type="text"] {
-            display: block;
-            width: 100%;
+        .field-input {
             background: var(--surface-2);
-            border: 1px solid var(--border-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.7rem 1rem;
+            font-size: 0.9rem;
             color: var(--text);
             font-family: inherit;
-            font-size: 0.875rem;
-            font-weight: 500;
-            padding: 10px 12px;
-            border-radius: 8px;
+            transition: border-color 0.2s, box-shadow 0.2s;
             outline: none;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            -webkit-appearance: none;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-        }
-        .has-icon input[type="text"] { padding-left: 38px; }
-        input::placeholder { color: var(--text-muted); font-weight: 400; opacity: 0.6; }
-        
-        input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-dim), 0 4px 10px rgba(0,0,0,0.2);
-            background: var(--surface-3);
-        }
-        input:focus + .inp-icon, 
-        .inp-wrap:focus-within .inp-icon {
-            color: var(--primary);
+            width: 100%;
         }
 
-        input.is-warning:focus {
-            border-color: var(--warning);
-            box-shadow: 0 0 0 3px var(--warning-dim);
+        .field-input::placeholder { color: var(--text-muted); }
+
+        .field-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(124,108,245,0.15);
         }
 
         .field-hint {
-            font-size: 0.7rem;
+            font-size: 0.76rem;
             color: var(--text-muted);
-            line-height: 1.4;
-            margin-top: 1px;
         }
 
-        /* ── Submit Button ── */
+        /* ── Alerts ── */
+        .alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.65rem;
+            padding: 0.85rem 1rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .alert-error {
+            background: rgba(239,68,68,0.08);
+            border: 1px solid rgba(239,68,68,0.2);
+            color: #fca5a5;
+        }
+
+        .alert-success {
+            background: rgba(34,197,94,0.08);
+            border: 1px solid rgba(34,197,94,0.2);
+            color: #86efac;
+        }
+
+        /* ── Button ── */
         .btn-activate {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            width: 100%;
-            padding: 10px 16px;
-            margin-top: 8px;
-            border-radius: 8px;
-            border: none;
-            background: linear-gradient(135deg, var(--primary) 0%, #9d8df8 100%);
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--accent) 0%, #6457e8 100%);
             color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 0.8rem 1.5rem;
+            font-size: 0.92rem;
+            font-weight: 600;
             font-family: inherit;
-            font-size: 0.8125rem;
-            font-weight: 700;
-            letter-spacing: -0.01em;
             cursor: pointer;
-            box-shadow:
-                0 1px 0 rgba(255,255,255,0.12) inset,
-                0 2px 4px rgba(0,0,0,0.3),
-                0 4px 14px rgba(124,108,245,0.25);
-            transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
-            position: relative;
-            overflow: hidden;
-        }
-        .btn-activate::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.08) 100%);
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        .btn-activate:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow:
-                0 1px 0 rgba(255,255,255,0.12) inset,
-                0 4px 8px rgba(0,0,0,0.4),
-                0 10px 28px rgba(124,108,245,0.45);
-        }
-        .btn-activate:hover::before { opacity: 1; }
-        .btn-activate:active:not(:disabled) { transform: translateY(0); }
-        .btn-activate:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-        /* Loading spinner */
-        .spinner {
-            width: 16px; height: 16px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-            display: none;
-            flex-shrink: 0;
+            transition: opacity 0.2s, transform 0.15s;
+            width: 100%;
+            margin-top: 0.25rem;
         }
 
-        /* ── Info Footer ── */
-        .info-footer {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            padding: 24px 32px; /* Much more padding */
+        .btn-activate:hover  { opacity: 0.9; transform: translateY(-1px); }
+        .btn-activate:active { transform: translateY(0); }
+
+        .btn-activate:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        /* ── Footer ── */
+        .card-footer {
+            padding: 1rem 2.5rem;
             border-top: 1px solid var(--border);
-            background: rgba(0,0,0,0.2);
-            font-size: 0.8125rem;
+            font-size: 0.78rem;
             color: var(--text-muted);
+            text-align: center;
+            background: rgba(255,255,255,0.01);
         }
-        .info-footer a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .info-footer a:hover { text-decoration: underline; }
-        .dot-sep { opacity: 0.4; }
- 
-        /* ── Features strip ── */
-        .features-strip {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px; /* Much more compact */
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .feat-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 6px 12px;
-            font-size: 0.725rem;
-            font-weight: 600;
-            color: var(--text-sub);
-        }
-        .feat-tag svg { color: var(--primary); }
 
-        /* ── Responsive ── */
-        @media (max-width: 540px) {
-            .header-grid {
-                grid-template-columns: 1fr;
-            }
-            .header-left {
-                border-right: none;
-                border-bottom: 1px solid var(--border);
-                padding: 22px 24px;
-            }
-            .header-right {
-                padding: 22px 24px;
-            }
-            .form-section { padding: 24px 24px 28px; }
-            .info-footer { padding: 18px 24px; }
+        @media (max-width: 600px) {
+            body { padding: 1rem; }
+            .hero, .form-section { padding-left: 1.5rem; padding-right: 1.5rem; }
+            .card-footer { padding-left: 1.5rem; padding-right: 1.5rem; }
         }
     </style>
 </head>
 <body>
+    <div class="page-wrapper">
+        <div class="card">
 
-<div class="page-wrapper">
-
-    <div class="card">
-
-        {{-- Integrated 2-Column Header --}}
-        <div class="warn-header">
-            <div class="header-grid">
-                {{-- Left Column: Brand Icon --}}
-                <div class="header-left">
-                    <div class="brand-mark">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            {{-- Hero Section --}}
+            <div class="hero">
+                <div class="icon-wrap">
+                    <div class="icon-circle">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                         </svg>
                     </div>
                 </div>
 
-                {{-- Right Column: Warning Info --}}
-                <div class="header-right">
-                    <div class="status-pill">
-                        <div class="status-dot"></div>
-                        Lisensi Diperlukan
-                    </div>
-
-                    <div class="warn-title">Aktivasi Lisensi Diperlukan</div>
-                    <p class="warn-subtitle">
-                        Sistem tidak dapat diakses karena lisensi belum diaktifkan.
-                    </p>
+                <div>
+                    <h1 class="hero-title">Aktivasi Lisensi Diperlukan</h1>
                 </div>
-            </div>
 
-            {{-- Centered Tags below columns --}}
-            <div class="header-bottom">
-                <div class="features-strip">
+                <p class="hero-sub">
+                    Lisensi aplikasi belum diaktifkan atau telah dicabut.
+                    Masukkan kunci lisensi dan domain yang terdaftar untuk melanjutkan.
+                </p>
+
+                <div class="feat-tags">
                     <span class="feat-tag">
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                         Data Aman
@@ -468,164 +291,116 @@
                     </span>
                 </div>
             </div>
-        </div>
 
-        {{-- Form Section --}}
-        <form class="form-section" method="POST" action="{{ route('license.activate') }}" id="license-form" autocomplete="off">
-            @csrf
+            {{-- Form Section --}}
+            <form class="form-section" method="POST" action="{{ route('license.activate') }}" id="license-form" autocomplete="off">
+                @csrf
 
-            <div class="section-label">Masukkan Detail Lisensi</div>
+                <div class="section-label">Masukkan Detail Lisensi</div>
 
-            {{-- Error alert --}}
-            @if(session('error'))
-                <div class="alert alert-error" id="alert-err">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                    </svg>
-                    <span>{{ session('error') }}</span>
-                </div>
-            @endif
-
-            {{-- Success alert --}}
-            @if(session('success'))
-                <div class="alert alert-success">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                    <span>{{ session('success') }}</span>
-                </div>
-            @endif
-
-            {{-- Validation errors --}}
-            @if($errors->any())
-                <div class="alert alert-error">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                    </svg>
-                    <span>{{ $errors->first() }}</span>
-                </div>
-            @endif
-
-            {{-- License Key Field --}}
-            <div class="field">
-                <label class="lbl" for="license_key">Kode Lisensi</label>
-                <div class="inp-wrap has-icon">
-                    <span class="inp-icon">
+                {{-- Error alert --}}
+                @if(session('error'))
+                    <div class="alert alert-error" id="alert-err">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                         </svg>
-                    </span>
+                        <span>{{ session('error') }}</span>
+                    </div>
+                @endif
+
+                {{-- Success alert --}}
+                @if(session('success'))
+                    <div class="alert alert-success">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        <span>{{ session('success') }}</span>
+                    </div>
+                @endif
+
+                {{-- License Key --}}
+                <div class="field-group">
+                    <label class="field-label" for="license_key">Kunci Lisensi</label>
                     <input
                         type="text"
                         id="license_key"
                         name="license_key"
+                        class="field-input"
+                        placeholder="XXXX-XXXX-XXXX-XXXX"
                         value="{{ old('license_key') }}"
-                        placeholder="LIC-XXXX-XXXX-XXXX"
                         required
-                        autofocus
+                        minlength="5"
                         autocomplete="off"
                         spellcheck="false"
-                        class="{{ $errors->has('license_key') ? 'is-warning' : '' }}"
-                        oninput="this.value = this.value.toUpperCase()"
                     >
+                    @error('license_key')
+                        <span class="field-hint" style="color:#fca5a5;">{{ $message }}</span>
+                    @enderror
                 </div>
-                <div class="field-hint">Kode lisensi diberikan saat pembelian produk. Pastikan diisi dengan tepat.</div>
-            </div>
 
-            {{-- Domain Field --}}
-            <div class="field">
-                <label class="lbl" for="registered_domain">Domain Terdaftar</label>
-                <div class="inp-wrap has-icon">
-                    <span class="inp-icon">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
-                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                        </svg>
-                    </span>
+                {{-- Registered Domain --}}
+                <div class="field-group">
+                    <label class="field-label" for="registered_domain">Domain Terdaftar</label>
                     <input
                         type="text"
                         id="registered_domain"
                         name="registered_domain"
+                        class="field-input"
+                        placeholder="contoh.sekolah.sch.id"
                         value="{{ old('registered_domain', request()->getHost()) }}"
-                        placeholder="contoh.com"
                         required
+                        minlength="3"
                         autocomplete="off"
                         spellcheck="false"
-                        class="{{ $errors->has('registered_domain') ? 'is-warning' : '' }}"
                     >
+                    <span class="field-hint">Domain yang didaftarkan saat pembelian lisensi.</span>
+                    @error('registered_domain')
+                        <span class="field-hint" style="color:#fca5a5;">{{ $message }}</span>
+                    @enderror
                 </div>
-                <div class="field-hint">Domain harus sesuai dengan yang terdaftar di sistem pusat lisensi.</div>
-            </div>
 
-            {{-- School Name Field --}}
-            <div class="field">
-                <label class="lbl" for="school_name">Nama Sekolah</label>
-                <div class="inp-wrap has-icon">
-                    <span class="inp-icon">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-                        </svg>
-                    </span>
+                {{-- School Name --}}
+                <div class="field-group">
+                    <label class="field-label" for="school_name">Nama Sekolah</label>
                     <input
                         type="text"
                         id="school_name"
                         name="school_name"
-                        value="{{ old('school_name', \App\Models\Pengaturan::where('key', 'nama_sekolah')->value('value')) }}"
-                        placeholder="Contoh: SMA Negeri 1 Jakarta"
+                        class="field-input"
+                        placeholder="SMP / SMA / SMK Nama Sekolah"
+                        value="{{ old('school_name', \App\Models\Pengaturan::where('key','nama_sekolah')->value('value')) }}"
                         required
+                        minlength="3"
                         autocomplete="off"
-                        spellcheck="false"
-                        class="{{ $errors->has('school_name') ? 'is-warning' : '' }}"
                     >
+                    @error('school_name')
+                        <span class="field-hint" style="color:#fca5a5;">{{ $message }}</span>
+                    @enderror
                 </div>
-                <div class="field-hint">Pastikan nama sekolah sesuai dengan data terdaftar di pusat.</div>
+
+                <button type="submit" class="btn-activate" id="btn-submit">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    Aktifkan Lisensi
+                </button>
+            </form>
+
+            <div class="card-footer">
+                Butuh bantuan? Hubungi tim support kami.
+                &nbsp;·&nbsp; Sistem Absensi Digital &copy; {{ date('Y') }}
             </div>
-
-            {{-- Submit Button --}}
-            <button type="submit" class="btn-activate" id="btn-submit">
-                <div class="spinner" id="spinner"></div>
-                <svg id="btn-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
-                <span id="btn-text">Aktivasi &amp; Buka Akses</span>
-            </button>
-        </form>
-
-        {{-- Footer --}}
-        <div class="info-footer">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            Butuh bantuan?
-            <a href="mailto:support@lutfifuadi.my.id">Hubungi Support</a>
-            <span class="dot-sep">·</span>
-            <a href="https://saas-presensi.lutfifuadi.my.id" target="_blank" rel="noopener">Portal Lisensi</a>
         </div>
     </div>
 
-</div>
-
-<script>
-    (function () {
-        const form    = document.getElementById('license-form');
-        const btn     = document.getElementById('btn-submit');
-        const spinner = document.getElementById('spinner');
-        const icon    = document.getElementById('btn-icon');
-        const text    = document.getElementById('btn-text');
-
-        form.addEventListener('submit', function (e) {
-            const licenseVal = document.getElementById('license_key').value.trim();
-            const domainVal  = document.getElementById('registered_domain').value.trim();
-
-            if (!licenseVal || !domainVal) return;
-
-            btn.disabled     = true;
-            spinner.style.display = 'block';
-            icon.style.display    = 'none';
-            text.textContent      = 'Memverifikasi lisensi…';
+    <script>
+        document.getElementById('license-form').addEventListener('submit', function() {
+            var btn = document.getElementById('btn-submit');
+            btn.disabled = true;
+            btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> Memverifikasi...';
         });
-    })();
-</script>
 
+        document.head.insertAdjacentHTML('beforeend', '<style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>');
+    </script>
 </body>
 </html>

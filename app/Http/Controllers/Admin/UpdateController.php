@@ -60,14 +60,62 @@ class UpdateController extends Controller
 
     public function publishAssets()
     {
+        // 1. Validasi Lisensi via API Pusat sebelum update assets
+        $licenseKey = env('LICENSE_KEY');
+        $domain = env('REGISTERED_DOMAIN');
+
+        if (empty($licenseKey) || empty($domain)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lisensi atau Domain belum dikonfigurasi. Silakan aktifkan lisensi terlebih dahulu.',
+            ], 403);
+        }
+
+        // Bypass for development
+        if ($licenseKey === 'DEV-MASTER-KEY') {
+            return $this->executePublishAssets();
+        }
+
         try {
-            $output = '';
+            $response = \Illuminate\Support\Facades\Http::asForm()->timeout(20)->post('https://saas-presensi.lutfifuadi.my.id/api/license/verify', [
+                'license_key' => $licenseKey,
+                'domain' => $domain,
+            ]);
+
+            $result = $response->json();
+
+            if (!$response->successful() || empty($result['success'])) {
+                $errorMsg = 'Lisensi tidak valid. Proses update assets dibatalkan.';
+                if (isset($result['message'])) {
+                    $errorMsg .= ' Detail: ' . $result['message'];
+                }
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMsg,
+                ], 403);
+            }
+
+            return $this->executePublishAssets();
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('License Check Error during Asset Update: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal verifikasi lisensi (Server Error). Pastikan server terhubung ke internet.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Internal method to execute the actual asset publishing.
+     */
+    private function executePublishAssets()
+    {
+        try {
             try {
                 \Illuminate\Support\Facades\Artisan::call('livewire:publish', ['--assets' => true, '--force' => true]);
-                $output = \Illuminate\Support\Facades\Artisan::output();
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Artisan::call('vendor:publish', ['--tag' => 'livewire:assets', '--force' => true]);
-                $output = \Illuminate\Support\Facades\Artisan::output();
             }
 
             return response()->json([

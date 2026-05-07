@@ -3,11 +3,25 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
 
 class LicenseController extends Controller
 {
     private const LICENSE_API_URL = 'https://saas-presensi.lutfifuadi.my.id/api/license/verify';
+
+    /**
+     * Show the license dashboard for admin.
+     */
+    public function index()
+    {
+        $licenseKey = config('license.key');
+        $domain     = config('license.domain');
+        $status     = \App\Models\Pengaturan::where('key', 'license_status')->value('value') ?? 'inactive';
+        $schoolName = \App\Models\Pengaturan::where('key', 'nama_sekolah')->value('value') ?? '-';
+        
+        return view('admin.license.index', compact('licenseKey', 'domain', 'status', 'schoolName'));
+    }
 
     /**
      * Show the license warning / activation page.
@@ -16,7 +30,7 @@ class LicenseController extends Controller
     {
         // If license is already set and active in DB, redirect to home
         $licenseKey = config('license.key');
-        $dbStatus = \App\Models\Pengaturan::where('key', 'license_status')->value('value');
+        $dbStatus   = \App\Models\Pengaturan::where('key', 'license_status')->value('value');
 
         if (!empty($licenseKey) && $dbStatus === 'active') {
             return redirect('/');
@@ -36,9 +50,10 @@ class LicenseController extends Controller
             'school_name'       => 'required|string|min:3',
         ]);
 
-        $license = trim($request->license_key);
-        $domain  = trim($request->registered_domain);
-        $school  = trim($request->school_name);
+        // Sanitize inputs to prevent .env injection (strip newlines and unsafe chars)
+        $license = preg_replace('/[^A-Za-z0-9\-_]/', '', trim($request->license_key));
+        $domain  = preg_replace('/[\r\n\0]/', '', trim($request->registered_domain));
+        $school  = strip_tags(trim($request->school_name));
 
         // Development bypass
         if ($license === 'DEV-MASTER-KEY') {
@@ -48,7 +63,6 @@ class LicenseController extends Controller
 
         try {
             $response = Http::asForm()
-                ->withoutVerifying()
                 ->timeout(30)
                 ->post(self::LICENSE_API_URL, [
                     'license_key' => $license,
@@ -59,21 +73,29 @@ class LicenseController extends Controller
             $result = $response->json();
 
             if (!$response->successful() || empty($result['success'])) {
-                $errorMsg = 'Lisensi tidak valid untuk domain: ' . $domain;
+                $errorMsg = 'Lisensi tidak valid untuk domain: ' . htmlspecialchars($domain, ENT_QUOTES, 'UTF-8');
 
                 if (isset($result['message'])) {
-                    $errorMsg .= ' — ' . $result['message'];
+                    $errorMsg .= ' — ' . strip_tags($result['message']);
                 }
 
                 return back()->withInput()->with('error', $errorMsg);
             }
+
+            // Write keys to .env
+            $this->writeEnv($license, $domain);
+
+            // Set DB status to active
+            \App\Models\Pengaturan::updateOrCreate(
+                ['key' => 'license_status'],
+                ['value' => 'active', 'group' => 'license']
+            );
+
+            return redirect('/')->with('success', 'Lisensi berhasil diaktifkan.');
+
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'Gagal menghubungi server verifikasi: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Gagal menghubungi server lisensi. Coba lagi nanti.');
         }
-
-        $this->writeEnv($license, $domain);
-
-        return redirect('/')->with('success', 'Lisensi berhasil diaktifkan! Selamat datang.');
     }
 
     /**
@@ -89,42 +111,27 @@ class LicenseController extends Controller
 
         $content = file_get_contents($envPath);
 
-        $keys = [
-            'LICENSE_KEY'       => $licenseKey,
-            'REGISTERED_DOMAIN' => $domain,
-        ];
+        // Update or append LICENSE_KEY
+        if (str_contains($content, 'LICENSE_KEY=')) {
+            $content = preg_replace('/^LICENSE_KEY=.*/m', 'LICENSE_KEY=' . $licenseKey, $content);
+        } else {
+            $content .= "\nLICENSE_KEY=" . $licenseKey;
+        }
 
-        foreach ($keys as $key => $value) {
-            $escapedValue = preg_match('/\s/', $value) ? '"' . $value . '"' : $value;
-
-            if (preg_match("/^{$key}=/m", $content)) {
-                $content = preg_replace(
-                    "/^{$key}=.*/m",
-                    "{$key}={$escapedValue}",
-                    $content
-                );
-            } else {
-                $content .= "\n{$key}={$escapedValue}";
-            }
+        // Update or append REGISTERED_DOMAIN
+        if (str_contains($content, 'REGISTERED_DOMAIN=')) {
+            $content = preg_replace('/^REGISTERED_DOMAIN=.*/m', 'REGISTERED_DOMAIN=' . $domain, $content);
+        } else {
+            $content .= "\nREGISTERED_DOMAIN=" . $domain;
         }
 
         file_put_contents($envPath, $content);
 
-        // Also update database status as the primary truth
+        // Clear config cache so new values take effect immediately
         try {
-            \App\Models\Pengaturan::updateOrCreate(
-                ['key' => 'license_status'],
-                ['value' => 'active', 'group' => 'license']
-            );
+            Artisan::call('config:clear');
         } catch (\Exception $e) {
-            // Silently fail database update
-        }
-
-        // Clear config cache so new values are picked up immediately
-        try {
-            \Illuminate\Support\Facades\Artisan::call('config:clear');
-        } catch (\Exception $e) {
-            // Non-fatal – continue
+            // Silently fail
         }
     }
 }

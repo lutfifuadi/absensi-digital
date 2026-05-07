@@ -30,16 +30,16 @@ use App\Http\Controllers\AbsensiMandiriController;
 use App\Http\Controllers\PortalSiswaController;
 use App\Http\Controllers\Admin\AbsensiActivityController;
 
-use App\Http\Controllers\LicenseController;
 
-// ── License Activation (exempt from license check via middleware) ─────────────
-Route::get('/license-warning', [LicenseController::class, 'showWarning'])->name('license.warning');
-Route::post('/license-warning', [LicenseController::class, 'activate'])->name('license.activate');
-// ─────────────────────────────────────────────────────────────────────────────
 
 // Main Page Route
 Route::get('/', [HomePage::class, 'index'])->name('pages-home');
 Route::get('/page-2', [Page2::class, 'index'])->name('pages-page-2');
+
+// ── License Routes ────────────────────────────────────────────────────────
+Route::get('/license-warning', [\App\Http\Controllers\LicenseController::class, 'showWarning'])->name('license.warning');
+Route::post('/license-warning/activate', [\App\Http\Controllers\LicenseController::class, 'activate'])->name('license.activate');
+// ─────────────────────────────────────────────────────────────────────────
 
 // ── Web Installer Routes ──────────────────────────────────────────────────
 Route::prefix('install')->name('installer.')->group(function () {
@@ -455,6 +455,11 @@ Route::middleware([
           ->name('admin.update.publish-assets')
           ->middleware('role:super_admin');
 
+      // Manajemen Lisensi
+      Route::get('license', [\App\Http\Controllers\LicenseController::class, 'index'])
+          ->name('admin.license.index')
+          ->middleware('role:super_admin');
+
       // PWA Settings
       Route::get('pwa', [\App\Http\Controllers\Admin\PwaSettingsController::class, 'index'])
           ->name('admin.pwa.index')
@@ -543,5 +548,28 @@ Route::resource('id-card-templates', \App\Http\Controllers\Admin\IdCardTemplateC
       Route::get('kegiatans/absensi', [AbsensiActivityController::class, 'index'])
           ->name('admin.kegiatans.absensi')
           ->middleware('role:super_admin,admin_sekolah,guru');
+
+      // ── Pembelian & Distribusi Lisensi ────────────────────────────────────
+      Route::prefix('pembelian-lisensi')->name('admin.pembelian-lisensi.')->middleware('role:super_admin')->group(function () {
+          Route::get('/', [\App\Http\Controllers\Admin\PembelianLisensiController::class, 'index'])->name('index');
+          Route::get('/create', [\App\Http\Controllers\Admin\PembelianLisensiController::class, 'create'])->name('create');
+          Route::post('/', [\App\Http\Controllers\Admin\PembelianLisensiController::class, 'store'])->name('store');
+          Route::get('/{pembelianLisensi}', [\App\Http\Controllers\Admin\PembelianLisensiController::class, 'show'])->name('show');
+          Route::get('/{pembelianLisensi}/edit', [\App\Http\Controllers\Admin\PembelianLisensiController::class, 'edit'])->name('edit');
+          Route::put('/{pembelianLisensi}', [\App\Http\Controllers\Admin\PembelianLisensiController::class, 'update'])->name('update');
+          Route::delete('/{pembelianLisensi}', [\App\Http\Controllers\Admin\PembelianLisensiController::class, 'destroy'])->name('destroy');
+          Route::post('/{pembelianLisensi}/konfirmasi-pembayaran', [\App\Http\Controllers\Admin\PembelianLisensiController::class, 'konfirmasiPembayaran'])->name('konfirmasi-pembayaran');
+          Route::post('/{pembelianLisensi}/kirim-ulang-email', [\App\Http\Controllers\Admin\PembelianLisensiController::class, 'kirimUlangEmail'])->name('kirim-ulang-email');
+          Route::post('/{pembelianLisensi}/revoke', [\App\Http\Controllers\Admin\PembelianLisensiController::class, 'revokeLisensi'])->name('revoke');
+      });
+      // ─────────────────────────────────────────────────────────────────────
   });
 });
+
+// ── Download Aplikasi (Signed URL) ────────────────────────────────────────────
+Route::get('/download/app/{token}', [\App\Http\Controllers\DownloadController::class, 'downloadApp'])
+    ->name('download.app')
+    ->middleware('signed');
+Route::get('/download/manual', [\App\Http\Controllers\DownloadController::class, 'manualDownload'])
+    ->name('download.manual');
+// ─────────────────────────────────────────────────────────────────────────────

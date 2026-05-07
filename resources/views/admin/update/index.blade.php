@@ -657,7 +657,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showCustomModal({
           type: 'confirm',
           title: 'Publish Livewire Assets',
-          message: 'Jalankan <code>livewire:publish --assets</code> untuk memperbaiki tampilan komponen Livewire?',
+          message: 'Jalankan <code>livewire:publish --assets</code> untuk memperbaiki tampilan komponen Livewire? <br><small class="text-muted">Sistem akan memvalidasi lisensi Anda sebelum proses dimulai.</small>',
           icon: 'ti tabler-package',
           color: 'warning',
           confirmText: 'Ya, Jalankan',

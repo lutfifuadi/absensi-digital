@@ -57,7 +57,6 @@ class VerifyLicense extends Command
 
         try {
             $response = Http::asForm()
-                ->withoutVerifying()
                 ->timeout(30)
                 ->post(self::LICENSE_API_URL, [
                     'license_key' => $licenseKey,
@@ -78,18 +77,18 @@ class VerifyLicense extends Command
 
                 // Clear license from .env to trigger reactivation
                 $this->clearLicense();
-                
+
                 return 1;
             }
 
             $this->info('License verified successfully.');
-            
+
             // Set database status to active
             \App\Models\Pengaturan::updateOrCreate(
                 ['key' => 'license_status'],
                 ['value' => 'active', 'group' => 'license']
             );
-            
+
         } catch (\Exception $e) {
             $this->error('Failed to contact verification server: ' . $e->getMessage());
             Log::error('License verification error: ' . $e->getMessage());
@@ -101,7 +100,8 @@ class VerifyLicense extends Command
     }
 
     /**
-     * Remove LICENSE_KEY and REGISTERED_DOMAIN from .env file.
+     * Remove LICENSE_KEY and REGISTERED_DOMAIN from .env file
+     * and mark license as inactive in the database.
      */
     private function clearLicense(): void
     {
@@ -113,32 +113,20 @@ class VerifyLicense extends Command
 
         $content = file_get_contents($envPath);
 
-        $keys = ['LICENSE_KEY', 'REGISTERED_DOMAIN'];
-
-        foreach ($keys as $key) {
-            if (preg_match("/^{$key}=/m", $content)) {
-                $content = preg_replace("/^{$key}=.*/m", "{$key}=", $content);
-            }
-        }
+        // Clear the license values in .env (keep keys, blank the values)
+        $content = preg_replace('/^LICENSE_KEY=.*/m', 'LICENSE_KEY=', $content);
+        $content = preg_replace('/^REGISTERED_DOMAIN=.*/m', 'REGISTERED_DOMAIN=', $content);
 
         file_put_contents($envPath, $content);
 
-        // Clear config cache forcefully
+        // Clear config cache so the cleared values take effect
         try {
-            $configCachePath = base_path('bootstrap/cache/config.php');
-            if (file_exists($configCachePath)) {
-                @unlink($configCachePath);
-            }
-            
             \Illuminate\Support\Facades\Artisan::call('config:clear');
-            \Illuminate\Support\Facades\Artisan::call('cache:clear');
-            
-            $this->info('Configuration and cache cleared forcefully.');
         } catch (\Exception $e) {
-            $this->error('Failed to clear config cache: ' . $e->getMessage());
+            // Silently fail
         }
 
-        // Also update database status as a double-check
+        // Mark license as inactive in DB
         try {
             \App\Models\Pengaturan::updateOrCreate(
                 ['key' => 'license_status'],

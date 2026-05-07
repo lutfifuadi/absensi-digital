@@ -7,6 +7,12 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+// ── License Verification (dipanggil oleh installer klien) ─────────────────────
+Route::post('/license/verify', [\App\Http\Controllers\Api\LicenseVerifyController::class, 'verify'])
+    ->middleware('throttle:30,1')
+    ->name('api.license.verify');
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Jalur Sinkronisasi (Dilindungi oleh token Sanctum)
 Route::prefix('v1/sync')->middleware(['auth:sanctum', 'tenant'])->group(function () {
     Route::post('/siswa', [\App\Http\Controllers\Api\V1\SiswaSyncController::class, 'sync']);

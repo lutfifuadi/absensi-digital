@@ -16,8 +16,47 @@ use App\Models\AbsensiSiswa;
 
 class InstallerController extends Controller
 {
+    private function logInstaller($message, $level = 'info')
+    {
+        $logPath = storage_path('logs/installer.log');
+        $timestamp = date('Y-m-d H:i:s');
+        $logMessage = "[{$timestamp}] [{$level}] {$message}" . PHP_EOL;
+        file_put_contents($logPath, $logMessage, FILE_APPEND);
+        
+        // Also log to laravel.log
+        if ($level === 'error') {
+            \Illuminate\Support\Facades\Log::error("Installer: " . $message);
+        } else {
+            \Illuminate\Support\Facades\Log::info("Installer: " . $message);
+        }
+    }
+
+    public function checkUpdate()
+    {
+        $currentVersion = env('APP_VERSION', '1.0.0');
+        $licenseKey = env('LICENSE_KEY');
+        $domain = env('REGISTERED_DOMAIN');
+
+        try {
+            $response = Http::timeout(10)->post('https://saas-presensi.lutfifuadi.my.id/api/version/check', [
+                'current_version' => $currentVersion,
+                'license_key' => $licenseKey,
+                'domain' => $domain,
+            ]);
+
+            if ($response->successful()) {
+                return response()->json($response->json());
+            }
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Gagal terhubung ke server update.']);
+    }
+
     public function step1()
     {
+        $this->logInstaller('Memulai instalasi Step 1: Pengecekan Requirement');
         // 0. Inisialisasi Environment (Buat .env & APP_KEY jika belum ada)
         $this->setEnv([]);
 
@@ -57,17 +96,28 @@ class InstallerController extends Controller
         $domain = trim($request->registered_domain);
         $license = trim($request->license_key);
 
+        $this->logInstaller('Memproses Step 2: Verifikasi Lisensi');
+
         // --- DEVELOPMENT BYPASS ---
         if ($license === 'DEV-MASTER-KEY') {
+            $this->logInstaller('Menggunakan Master Key (Development Bypass)');
+            $devSchoolName = 'Development School';
             $this->setEnv([
-                'LICENSE_KEY' => $license,
-                'REGISTERED_DOMAIN' => $domain
+                'LICENSE_KEY'       => $license,
+                'REGISTERED_DOMAIN' => $domain,
+                'SCHOOL_NAME'       => $devSchoolName,
             ]);
-            return redirect()->route('installer.step3');
+            session([
+                'install_license_key'       => $license,
+                'install_registered_domain' => $domain,
+                'install_school_name'       => $devSchoolName,
+            ]);
+            return redirect()->route('installer.step2')->with('license_verified', true);
         }
 
         try {
-            $response = Http::asForm()->withoutVerifying()->timeout(30)->post($licenseApiUrl, [
+            $this->logInstaller("Menghubungi server lisensi untuk domain: {$domain}");
+            $response = Http::asForm()->timeout(30)->post($licenseApiUrl, [
                 'license_key' => $license,
                 'domain' => $domain,
             ]);
@@ -96,17 +146,24 @@ class InstallerController extends Controller
             return back()->withInput()->with('error', 'Gagal Verifikasi Lisensi: ' . $e->getMessage());
         }
 
+        $this->logInstaller('Lisensi berhasil diverifikasi. Menyimpan ke .env dan session.');
+
+        $schoolName = isset($result['school_name']) ? trim($result['school_name']) : '';
+        $this->logInstaller('Nama sekolah terdaftar: ' . ($schoolName ?: '(tidak tersedia)'));
+
         $this->setEnv([
-            'LICENSE_KEY' => $license,
+            'LICENSE_KEY'       => $license,
             'REGISTERED_DOMAIN' => $domain,
+            'SCHOOL_NAME'       => $schoolName,
         ]);
 
         session([
-            'install_license_key' => $license,
+            'install_license_key'       => $license,
             'install_registered_domain' => $domain,
+            'install_school_name'       => $schoolName,
         ]);
 
-        return redirect()->route('installer.step3');
+        return redirect()->route('installer.step2')->with('license_verified', true);
     }
 
     public function step3()
@@ -116,6 +173,7 @@ class InstallerController extends Controller
 
     public function step3Submit(Request $request)
     {
+        $this->logInstaller('Memproses Step 3: Konfigurasi Database');
         $request->validate([
             'db_connection' => 'required|in:mysql,mariadb,sqlite',
             'db_host'       => 'required_if:db_connection,mysql,mariadb',
@@ -143,6 +201,7 @@ class InstallerController extends Controller
                 );
             }
             $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            $this->logInstaller("Koneksi database berhasil ke: {$request->db_name}");
 
             // 2. DETEKSI TABEL EKSISTING (Untuk fitur Fresh Install)
             if ($request->db_connection === 'sqlite') {
@@ -203,6 +262,7 @@ class InstallerController extends Controller
 
     public function step4Submit(Request $request)
     {
+        $this->logInstaller('Memproses Step 4: Konfigurasi Sekolah');
         $request->validate([
             'school_name'    => 'required',
             'school_slogan'  => 'nullable|string|max:255',
@@ -255,6 +315,7 @@ class InstallerController extends Controller
 
     public function process(Request $request)
     {
+        $this->logInstaller('Memulai Proses Akhir Instalasi (Migrasi & Seeding)');
         $request->validate([
             'admin_name'    => 'required',
             'admin_email'   => 'required|email',
@@ -297,6 +358,7 @@ class InstallerController extends Controller
             \Illuminate\Support\Facades\DB::reconnect($dbConnection);
 
             // Log for debugging
+            $this->logInstaller('Memulai migrasi database...');
             \Illuminate\Support\Facades\Log::info('Installer: Starting migration', ['connection' => $dbConnection, 'db' => $dbName]);
 
             // 1. Jalankan migrasi
@@ -313,6 +375,11 @@ class InstallerController extends Controller
                 'telepon_lembaga'        => session('install_school_phone'),
                 'email_lembaga'         => session('install_school_email'),
                 'tampilkan_beranda'     => session('install_enable_website'),
+                'license_key'           => env('LICENSE_KEY'),
+                'github_repo_owner'     => env('GITHUB_REPO_OWNER'),
+                'github_repo_name'      => env('GITHUB_REPO_NAME'),
+                'github_token'          => env('GITHUB_TOKEN'),
+                'app_version'           => env('APP_VERSION', '1.0.0'),
             ];
             foreach ($pengaturanDefaults as $key => $value) {
                 \App\Models\Pengaturan::create([
@@ -348,6 +415,7 @@ class InstallerController extends Controller
                 }
             }
 
+            $this->logInstaller('Instalasi Selesai dengan Sukses.');
             // Create storage/installed
             file_put_contents(storage_path('installed'), 'installed on ' . date('Y-m-d H:i:s'));
 

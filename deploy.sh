@@ -20,14 +20,30 @@ echo "=========================================="
 # Pastikan dijalankan dari direktori aplikasi
 cd "$APP_PATH" || { echo "[ERROR] Path tidak ditemukan: $APP_PATH"; exit 1; }
 
+# Muat variabel dari .env
+if [ -f ".env" ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
 # ----------------------------------------------------------
 # 1. Pull kode terbaru dari Git
 # ----------------------------------------------------------
 echo ""
 echo "[1/8] Pull kode terbaru dari Git..."
+
+if [ -n "$GITHUB_TOKEN" ]; then
+    echo "[INFO] Menggunakan GITHUB_TOKEN untuk autentikasi Git..."
+    # Update remote URL agar menggunakan token (jika menggunakan HTTPS)
+    REMOTE_URL=$(git remote get-url origin)
+    if [[ $REMOTE_URL == https://github.com* ]]; then
+        NEW_URL="https://$GITHUB_TOKEN@${REMOTE_URL#https://}"
+        git remote set-url origin "$NEW_URL"
+    fi
+fi
+
 git pull origin main
 if [ $? -ne 0 ]; then
-    echo "[ERROR] Git pull gagal. Periksa koneksi atau konflik."
+    echo "[ERROR] Git pull gagal. Periksa koneksi, token, atau konflik."
     exit 1
 fi
 
@@ -43,14 +59,37 @@ composer install --no-dev --optimize-autoloader --no-interaction
 # ----------------------------------------------------------
 echo ""
 echo "[3/8] Download public/build dari GitHub Release..."
-LATEST_URL=$(curl -s "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" \
+
+AUTH_HEADER=""
+WGET_HEADER=""
+if [ -n "$GITHUB_TOKEN" ]; then
+    AUTH_HEADER="-H \"Authorization: token $GITHUB_TOKEN\""
+    WGET_HEADER="--header=\"Authorization: token $GITHUB_TOKEN\""
+    echo "[INFO] Menggunakan GITHUB_TOKEN untuk autentikasi API."
+fi
+
+LATEST_URL=$(curl -s $AUTH_HEADER "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" \
     | grep "browser_download_url" \
     | grep "absensi-siap-pakai.zip" \
     | cut -d '"' -f 4)
 
 if [ -n "$LATEST_URL" ]; then
     echo "[INFO] Mengunduh: $LATEST_URL"
-    wget -q -O /tmp/absensi-siap-pakai.zip "$LATEST_URL"
+    if [ -n "$GITHUB_TOKEN" ]; then
+        ASSET_ID=$(curl -s $AUTH_HEADER "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" \
+            | grep -B 1 "absensi-siap-pakai.zip" \
+            | grep "\"id\":" \
+            | head -n 1 \
+            | cut -d ':' -f 2 \
+            | tr -d ' ,')
+        
+        wget -q $WGET_HEADER --header="Accept: application/octet-stream" \
+            -O /tmp/absensi-siap-pakai.zip \
+            "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/assets/$ASSET_ID"
+    else
+        wget -q -O /tmp/absensi-siap-pakai.zip "$LATEST_URL"
+    fi
+
     if [ $? -eq 0 ]; then
         rm -rf public/build
         unzip -o /tmp/absensi-siap-pakai.zip 'public/build/*' -d "$APP_PATH" > /dev/null

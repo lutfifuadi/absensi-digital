@@ -17,6 +17,20 @@
       "roles": ["super_admin"]
     },
     {
+      "url": "/admin/license",
+      "name": "Manajemen Lisensi",
+      "icon": "menu-icon ti tabler-key",
+      "slug": "admin.license.index",
+      "roles": ["super_admin"]
+    },
+    {
+      "url": "/admin/pembelian-lisensi",
+      "name": "Pembelian & Distribusi",
+      "icon": "menu-icon ti tabler-shopping-cart",
+      "slug": "admin.pembelian-lisensi.index",
+      "roles": ["super_admin"]
+    },
+    {
       "menuHeader": "Multi-Tenant (SaaS)"
     },
     {

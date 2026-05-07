@@ -39,10 +39,10 @@ echo "[2/6] Install Composer dependencies..."
 composer install --no-dev --optimize-autoloader --no-interaction
 
 # ----------------------------------------------------------
-# 2. Setup file .env
+# 3. Setup file .env
 # ----------------------------------------------------------
 echo ""
-echo "[3/7] Setup file .env..."
+echo "[3/6] Setup file .env..."
 if [ ! -f ".env" ]; then
     cp .env.example .env
     echo "[OK] File .env dibuat dari .env.example."
@@ -50,7 +50,12 @@ else
     echo "[OK] File .env sudah ada, dilewati."
 fi
 
-# Tulis GITHUB_REPO_OWNER & GITHUB_REPO_NAME ke .env
+# Muat variabel dari .env (terutama GITHUB_TOKEN jika sudah ada)
+if [ -f ".env" ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
+# Tulis GITHUB_REPO_OWNER & GITHUB_REPO_NAME ke .env jika belum ada atau berbeda
 if grep -q "^GITHUB_REPO_OWNER=" .env; then
     sed -i "s|^GITHUB_REPO_OWNER=.*|GITHUB_REPO_OWNER=$GITHUB_OWNER|" .env
 else
@@ -65,18 +70,43 @@ fi
 echo "[OK] GITHUB_REPO_OWNER=$GITHUB_OWNER, GITHUB_REPO_NAME=$GITHUB_REPO ditulis ke .env"
 
 # ----------------------------------------------------------
-# 3. Download public/build dari GitHub Release terbaru
+# 4. Download public/build dari GitHub Release terbaru
 # ----------------------------------------------------------
 echo ""
-echo "[4/7] Download public/build dari GitHub Release..."
-LATEST_URL=$(curl -s "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" \
+echo "[4/6] Download public/build dari GitHub Release..."
+
+AUTH_HEADER=""
+WGET_HEADER=""
+if [ -n "$GITHUB_TOKEN" ]; then
+    AUTH_HEADER="-H \"Authorization: token $GITHUB_TOKEN\""
+    WGET_HEADER="--header=\"Authorization: token $GITHUB_TOKEN\""
+    echo "[INFO] Menggunakan GITHUB_TOKEN untuk autentikasi."
+fi
+
+LATEST_URL=$(curl -s $AUTH_HEADER "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" \
     | grep "browser_download_url" \
     | grep "absensi-siap-pakai.zip" \
     | cut -d '"' -f 4)
 
 if [ -n "$LATEST_URL" ]; then
     echo "[INFO] Mengunduh: $LATEST_URL"
-    wget -q -O /tmp/absensi-siap-pakai.zip "$LATEST_URL"
+    if [ -n "$GITHUB_TOKEN" ]; then
+        # Jika private repo, asset download juga butuh header Authorization: token ...
+        # Dan URL asset biasanya berbeda (api.github.com) untuk download file
+        ASSET_ID=$(curl -s $AUTH_HEADER "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" \
+            | grep -B 1 "absensi-siap-pakai.zip" \
+            | grep "\"id\":" \
+            | head -n 1 \
+            | cut -d ':' -f 2 \
+            | tr -d ' ,')
+        
+        wget -q $WGET_HEADER --header="Accept: application/octet-stream" \
+            -O /tmp/absensi-siap-pakai.zip \
+            "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/assets/$ASSET_ID"
+    else
+        wget -q -O /tmp/absensi-siap-pakai.zip "$LATEST_URL"
+    fi
+
     if [ $? -eq 0 ]; then
         rm -rf public/build
         unzip -o /tmp/absensi-siap-pakai.zip 'public/build/*' -d "$APP_PATH" > /dev/null
@@ -91,18 +121,10 @@ else
 fi
 
 # ----------------------------------------------------------
-# 4. Publish Livewire assets
-# ----------------------------------------------------------
-echo ""
-echo "[5/7] Publish Livewire assets..."
-php artisan livewire:publish --assets --force
-echo "[OK] Livewire assets dipublish ke public/vendor/livewire/"
-
-# ----------------------------------------------------------
 # 5. Buat symlink storage
 # ----------------------------------------------------------
 echo ""
-echo "[6/7] Buat symlink storage..."
+echo "[5/6] Buat symlink storage..."
 if [ ! -L "public/storage" ]; then
     php artisan storage:link
     echo "[OK] Symlink public/storage dibuat."
@@ -114,7 +136,7 @@ fi
 # 6. Set permission & setup queue worker
 # ----------------------------------------------------------
 echo ""
-echo "[7/7] Set permission & setup queue worker..."
+echo "[6/6] Set permission & setup queue worker..."
 chown -R "$WEB_USER":"$WEB_USER" "$APP_PATH"
 chmod -R 755 "$APP_PATH"
 chmod -R 775 storage bootstrap/cache
@@ -143,7 +165,7 @@ echo "=========================================="
 echo ""
 echo "Langkah selanjutnya:"
 echo "  Buka browser dan akses wizard instalasi:"
-echo "  http://DOMAIN_KLIEN/install"
+echo "  $APP_PATH/install"
 echo ""
 echo "  Wizard akan memandu:"
 echo "  - Konfigurasi database"
