@@ -120,7 +120,7 @@
 
         .header-grid {
             display: grid;
-            grid-template-columns: 1.1fr 0.9fr; /* Adjust column ratios */
+            grid-template-columns: 110px 1fr; /* Narrow left for icon only */
             border-bottom: 1px solid var(--border);
             background: rgba(0,0,0,0.25);
         }
@@ -128,8 +128,8 @@
         .header-left {
             display: flex;
             align-items: center;
-            gap: 16px;
-            padding: 28px 32px;
+            justify-content: center; /* Center the icon */
+            padding: 28px;
             border-right: 1px solid var(--border);
         }
         .header-right {
@@ -153,18 +153,6 @@
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 0 0 1px rgba(124,108,245,0.3), 0 8px 20px rgba(124,108,245,0.25);
             flex-shrink: 0;
-        }
-        .brand-name {
-            font-size: 1.1rem;
-            font-weight: 850;
-            color: var(--text);
-            letter-spacing: -0.01em;
-            line-height: 1.1;
-        }
-        .brand-tag {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 4px;
         }
 
         .warn-icon-wrap {
@@ -454,17 +442,13 @@
         {{-- Integrated 2-Column Header --}}
         <div class="warn-header">
             <div class="header-grid">
-                {{-- Left Column: Brand --}}
+                {{-- Left Column: Brand Icon --}}
                 <div class="header-left">
                     <div class="brand-mark">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                             <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                         </svg>
-                    </div>
-                    <div class="brand-info">
-                        <div class="brand-name">Sistem Absensi Digital</div>
-                        <div class="brand-tag">Platform Manajemen Kehadiran Sekolah</div>
                     </div>
                 </div>
 
