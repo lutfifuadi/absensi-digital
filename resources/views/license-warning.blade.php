@@ -129,11 +129,11 @@
             display: flex;
             align-items: center;
             justify-content: center; /* Center the icon */
-            padding: 28px;
+            padding: 20px;
             border-right: 1px solid var(--border);
         }
         .header-right {
-            padding: 28px 32px;
+            padding: 18px 24px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -141,7 +141,7 @@
         }
 
         .header-bottom {
-            padding: 28px 32px 32px;
+            padding: 16px 28px 24px; /* More compact */
             text-align: center;
             position: relative;
         }
@@ -196,19 +196,19 @@
 
         /* ── Form Section ── */
         .form-section {
-            padding: 36px 42px 42px; /* Much more spacious */
+            padding: 24px 28px 28px;
         }
 
         .section-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.12em;
+            letter-spacing: 0.1em;
             color: var(--text-muted);
-            margin-bottom: 24px;
+            margin-bottom: 18px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
         .section-label::after {
             content: '';
@@ -221,32 +221,32 @@
         .alert {
             display: flex;
             align-items: flex-start;
-            gap: 12px;
-            padding: 16px 18px;
-            border-radius: 10px;
-            font-size: 0.875rem;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 0.8125rem;
             line-height: 1.55;
             border: 1px solid;
-            margin-bottom: 28px;
+            margin-bottom: 20px;
         }
         .alert svg { flex-shrink: 0; margin-top: 1px; }
         .alert-error   { background: var(--danger-dim);  border-color: rgba(239,68,68,0.18);  color: #fca5a5; animation: shake 0.45s ease; }
         .alert-success { background: var(--success-dim); border-color: rgba(34,197,94,0.18);  color: #86efac; }
 
         /* ── Fields ── */
-        .field { display: flex; flex-direction: column; gap: 10px; }
-        .field + .field { margin-top: 28px; }
-        .field-group { display: grid; gap: 24px; }
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        .field + .field { margin-top: 18px; }
+        .field-group { display: grid; gap: 18px; }
 
         label.lbl {
-            font-size: 0.8125rem;
+            font-size: 0.7rem;
             font-weight: 750;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: var(--text-2);
+            color: var(--text-muted);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .inp-wrap { position: relative; }
@@ -268,16 +268,16 @@
             border: 1px solid var(--border-2);
             color: var(--text);
             font-family: inherit;
-            font-size: 1rem;
+            font-size: 0.9375rem;
             font-weight: 500;
-            padding: 14px 18px;
-            border-radius: 12px;
+            padding: 12px 14px;
+            border-radius: 10px;
             outline: none;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             -webkit-appearance: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
-        .has-icon input[type="text"] { padding-left: 48px; }
+        .has-icon input[type="text"] { padding-left: 42px; }
         input::placeholder { color: var(--text-muted); font-weight: 400; opacity: 0.6; }
         
         input:focus {
@@ -309,14 +309,14 @@
             justify-content: center;
             gap: 8px;
             width: 100%;
-            padding: 12px 20px;
-            margin-top: 22px;
-            border-radius: var(--r);
+            padding: 11px 18px;
+            margin-top: 12px;
+            border-radius: 10px;
             border: none;
             background: linear-gradient(135deg, var(--primary) 0%, #9d8df8 100%);
             color: #fff;
             font-family: inherit;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
             font-weight: 700;
             letter-spacing: -0.01em;
             cursor: pointer;
@@ -381,8 +381,8 @@
         /* ── Features strip ── */
         .features-strip {
             display: flex;
-            gap: 10px;
-            margin-top: 28px; /* More margin */
+            gap: 8px;
+            margin-top: 12px; /* Much more compact */
             flex-wrap: wrap;
             justify-content: center;
         }
