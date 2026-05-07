@@ -196,6 +196,7 @@ class UpdateService
             Artisan::call('cache:clear');
             Artisan::call('config:clear');
             Artisan::call('view:clear');
+            Artisan::call('license:install-scheduler');
 
             $this->clearUpdateInfo();
 
