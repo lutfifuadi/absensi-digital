@@ -123,14 +123,22 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const { data: { workflow_runs } } = await github.rest.actions.listWorkflowRuns({
+            const { data } = await github.rest.actions.listWorkflowRuns({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'release-package.yml',
               per_page: 100,
             });
 
-            const runsToDelete = workflow_runs.slice(5);
+            // Sort descending by created_at (newest first)
+            const allRuns = data.workflow_runs.sort(
+              (a, b) => new Date(b.created_at) - new Date(a.created_at)
+            );
+
+            // Exclude current run, keep 4 most recent others (total 5 incl. current)
+            const otherRuns = allRuns.filter(run => run.id !== context.runId);
+            const runsToDelete = otherRuns.slice(4);
+
             for (const run of runsToDelete) {
               await github.rest.actions.deleteWorkflowRun({
                 owner: context.repo.owner,
@@ -139,4 +147,4 @@ jobs:
               });
               console.log(`Deleted run: ${run.id} (${run.display_title})`);
             }
-            console.log(`Kept: ${Math.min(5, workflow_runs.length)} runs, Deleted: ${runsToDelete.length} runs`);
+            console.log(`Kept: ${Math.min(4, otherRuns.length) + 1} runs, Deleted: ${runsToDelete.length} runs`);
