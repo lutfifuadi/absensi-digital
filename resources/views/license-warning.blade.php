@@ -89,34 +89,6 @@
             80%  { transform: translateX(4px); }
         }
 
-        /* ── Brand Row ── */
-        .brand-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 18px;
-            padding: 0 2px;
-        }
-        .brand-mark {
-            width: 36px; height: 36px;
-            border-radius: var(--r);
-            background: linear-gradient(145deg, var(--primary) 0%, #a78bfa 100%);
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 0 1px rgba(124,108,245,0.3), 0 4px 12px rgba(124,108,245,0.2);
-            flex-shrink: 0;
-        }
-        .brand-name {
-            font-size: 0.875rem;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: -0.01em;
-        }
-        .brand-tag {
-            font-size: 0.6875rem;
-            color: var(--text-muted);
-            margin-top: 1px;
-        }
-
         /* ── Card ── */
         .card {
             background: var(--surface);
@@ -130,16 +102,14 @@
             overflow: hidden;
         }
 
-        /* ── Warning Banner ── */
-        .warn-banner {
+        /* ── Header Inside Card ── */
+        .warn-header {
             background: linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(245,158,11,0.04) 100%);
             border-bottom: 1px solid rgba(245,158,11,0.15);
-            padding: 28px 28px 24px;
             position: relative;
             overflow: hidden;
-            text-align: center;
         }
-        .warn-banner::before {
+        .warn-header::before {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0;
@@ -147,7 +117,42 @@
             background: linear-gradient(90deg, transparent 0%, var(--warning) 50%, transparent 100%);
             opacity: 0.8;
         }
-        .warn-banner::after {
+
+        .brand-row-inside {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 28px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(0,0,0,0.2);
+        }
+        .brand-mark {
+            width: 38px; height: 38px;
+            border-radius: var(--r);
+            background: linear-gradient(145deg, var(--primary) 0%, #a78bfa 100%);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 0 1px rgba(124,108,245,0.3), 0 4px 12px rgba(124,108,245,0.2);
+            flex-shrink: 0;
+        }
+        .brand-name {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+        }
+        .brand-tag {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .warn-banner-content {
+            padding: 28px 28px 24px;
+            text-align: center;
+            position: relative;
+        }
+        .warn-banner-content::after {
             content: '';
             position: absolute;
             top: -60px; left: 50%;
@@ -174,7 +179,7 @@
         }
 
         .warn-title {
-            font-size: 1.125rem;
+            font-size: 1.25rem;
             font-weight: 800;
             color: var(--text);
             letter-spacing: -0.03em;
@@ -183,10 +188,10 @@
             z-index: 1;
         }
         .warn-subtitle {
-            font-size: 0.8375rem;
+            font-size: 0.875rem;
             color: var(--text-sub);
             line-height: 1.6;
-            max-width: 360px;
+            max-width: 380px;
             margin: 0 auto;
             position: relative;
             z-index: 1;
@@ -200,13 +205,13 @@
             background: rgba(245,158,11,0.1);
             border: 1px solid rgba(245,158,11,0.22);
             border-radius: 99px;
-            padding: 4px 12px;
-            font-size: 0.6875rem;
+            padding: 5px 14px;
+            font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.08em;
             color: var(--warning);
-            margin-bottom: 14px;
+            margin-bottom: 18px;
         }
         .status-dot {
             width: 6px; height: 6px;
@@ -256,53 +261,65 @@
         .alert-success { background: var(--success-dim); border-color: rgba(34,197,94,0.18);  color: #86efac; }
 
         /* ── Fields ── */
-        .field { display: flex; flex-direction: column; gap: 5px; }
-        .field + .field { margin-top: 14px; }
+        .field { display: flex; flex-direction: column; gap: 8px; }
+        .field + .field { margin-top: 20px; }
+        .field-group { display: grid; gap: 20px; }
 
         label.lbl {
-            font-size: 0.6875rem;
-            font-weight: 600;
+            font-size: 0.75rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.07em;
-            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            color: var(--text-2);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .inp-wrap { position: relative; }
         .inp-icon {
             position: absolute;
-            left: 11px;
+            left: 14px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-muted);
             display: flex;
             pointer-events: none;
+            transition: color 0.2s;
         }
 
         input[type="text"] {
             display: block;
             width: 100%;
-            background: var(--surface-3);
+            background: var(--surface-2);
             border: 1px solid var(--border-2);
             color: var(--text);
             font-family: inherit;
-            font-size: 0.875rem;
+            font-size: 0.9375rem;
             font-weight: 500;
-            padding: 10px 13px;
+            padding: 12px 14px;
             border-radius: var(--r);
             outline: none;
-            transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             -webkit-appearance: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .has-icon input[type="text"] { padding-left: 36px; }
-        input::placeholder { color: var(--text-muted); font-weight: 400; }
+        .has-icon input[type="text"] { padding-left: 42px; }
+        input::placeholder { color: var(--text-muted); font-weight: 400; opacity: 0.6; }
+        
         input:focus {
-            border-color: rgba(124,108,245,0.5);
-            box-shadow: 0 0 0 3px rgba(124,108,245,0.12);
-            background: rgba(26,26,42,0.95);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-dim), 0 4px 12px rgba(0,0,0,0.2);
+            background: var(--surface-3);
         }
+        input:focus + .inp-icon, 
+        .inp-wrap:focus-within .inp-icon {
+            color: var(--primary);
+        }
+
         input.is-warning:focus {
-            border-color: rgba(245,158,11,0.5);
-            box-shadow: 0 0 0 3px rgba(245,158,11,0.10);
+            border-color: var(--warning);
+            box-shadow: 0 0 0 4px var(--warning-dim);
         }
 
         .field-hint {
@@ -422,58 +439,57 @@
 
 <div class="page-wrapper">
 
-    {{-- Brand Row --}}
-    <div class="brand-row">
-        <div class="brand-mark">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-        </div>
-        <div>
-            <div class="brand-name">Sistem Absensi Digital</div>
-            <div class="brand-tag">Platform Manajemen Kehadiran Sekolah</div>
-        </div>
-    </div>
-
     <div class="card">
 
-        {{-- Warning Banner --}}
-        <div class="warn-banner">
-            <div>
+        {{-- Integrated Header & Warning Banner --}}
+        <div class="warn-header">
+            <div class="brand-row-inside">
+                <div class="brand-mark">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                </div>
+                <div class="brand-info">
+                    <div class="brand-name">Sistem Absensi Digital</div>
+                    <div class="brand-tag">Platform Manajemen Kehadiran Sekolah</div>
+                </div>
+            </div>
+
+            <div class="warn-banner-content">
                 <div class="status-pill">
                     <div class="status-dot"></div>
                     Lisensi Diperlukan
                 </div>
-            </div>
 
-            <div class="warn-icon-wrap">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                    <line x1="12" y1="8" x2="12" y2="12"/>
-                    <line x1="12" y1="16" x2="12.01" y2="16"/>
-                </svg>
-            </div>
+                <div class="warn-icon-wrap">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                </div>
 
-            <h1 class="warn-title">Aktivasi Lisensi Diperlukan</h1>
-            <p class="warn-subtitle">
-                Sistem tidak dapat diakses karena lisensi belum diaktifkan.
-                Masukkan kode lisensi Anda untuk melanjutkan penggunaan aplikasi.
-            </p>
+                <h1 class="warn-title">Aktivasi Lisensi Diperlukan</h1>
+                <p class="warn-subtitle">
+                    Sistem tidak dapat diakses karena lisensi belum diaktifkan.
+                    Masukkan kode lisensi Anda untuk melanjutkan penggunaan aplikasi.
+                </p>
 
-            <div class="features-strip" style="justify-content: center; margin-top: 18px;">
-                <span class="feat-tag">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                    Data Aman
-                </span>
-                <span class="feat-tag">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                    Verifikasi Instan
-                </span>
-                <span class="feat-tag">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                    Aktivasi Sekali
-                </span>
+                <div class="features-strip">
+                    <span class="feat-tag">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        Data Aman
+                    </span>
+                    <span class="feat-tag">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        Verifikasi Instan
+                    </span>
+                    <span class="feat-tag">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        Aktivasi Sekali
+                    </span>
+                </div>
             </div>
         </div>
 
