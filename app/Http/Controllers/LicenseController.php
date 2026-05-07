@@ -14,8 +14,11 @@ class LicenseController extends Controller
      */
     public function showWarning()
     {
-        // If license is already set, redirect to home
-        if (!empty(env('LICENSE_KEY'))) {
+        // If license is already set and active in DB, redirect to home
+        $licenseKey = config('license.key');
+        $dbStatus = \App\Models\Pengaturan::where('key', 'license_status')->value('value');
+
+        if (!empty($licenseKey) && $dbStatus === 'active') {
             return redirect('/');
         }
 
@@ -103,6 +106,16 @@ class LicenseController extends Controller
         }
 
         file_put_contents($envPath, $content);
+
+        // Also update database status as the primary truth
+        try {
+            \App\Models\Pengaturan::updateOrCreate(
+                ['key' => 'license_status'],
+                ['value' => 'active', 'group' => 'license']
+            );
+        } catch (\Exception $e) {
+            // Silently fail database update
+        }
 
         // Clear config cache so new values are picked up immediately
         try {

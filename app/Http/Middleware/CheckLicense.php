@@ -33,13 +33,17 @@ class CheckLicense
         }
 
         $licenseKey = config('license.key');
+        
+        // Double-check with database to bypass config caching issues
+        $dbStatus = \App\Models\Pengaturan::where('key', 'license_status')->value('value');
 
-        if (empty($licenseKey)) {
-            \Illuminate\Support\Facades\Log::info('License check: EMPTY KEY detected for ' . $request->fullUrl());
+        if (empty($licenseKey) || $dbStatus === 'inactive') {
+            \Illuminate\Support\Facades\Log::info('License check: UNAUTHORIZED detected for ' . $request->fullUrl() . ' (Key: ' . ($licenseKey ? 'Exists' : 'Empty') . ', DB Status: ' . ($dbStatus ?: 'Not Set') . ')');
+            
             // AJAX / JSON requests get a 403 JSON response
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Lisensi belum diaktifkan. Silakan aktifkan lisensi terlebih dahulu.',
+                    'message' => 'Lisensi belum diaktifkan atau telah dicabut. Silakan aktifkan lisensi kembali.',
                     'redirect' => route('license.warning'),
                 ], 403);
             }

@@ -97,7 +97,12 @@ class VerifyLicense extends Command
             }
 
             $this->info('License verified successfully.');
-            // Log success removed to prevent log bloating since it runs every minute
+            
+            // Set database status to active
+            \App\Models\Pengaturan::updateOrCreate(
+                ['key' => 'license_status'],
+                ['value' => 'active', 'group' => 'license']
+            );
             
         } catch (\Exception $e) {
             $this->error('Failed to contact verification server: ' . $e->getMessage());
@@ -132,12 +137,29 @@ class VerifyLicense extends Command
 
         file_put_contents($envPath, $content);
 
-        // Clear config cache
+        // Clear config cache forcefully
         try {
+            $configCachePath = base_path('bootstrap/cache/config.php');
+            if (file_exists($configCachePath)) {
+                @unlink($configCachePath);
+            }
+            
             \Illuminate\Support\Facades\Artisan::call('config:clear');
-            $this->info('Configuration cache cleared.');
+            \Illuminate\Support\Facades\Artisan::call('cache:clear');
+            
+            $this->info('Configuration and cache cleared forcefully.');
         } catch (\Exception $e) {
             $this->error('Failed to clear config cache: ' . $e->getMessage());
+        }
+
+        // Also update database status as a double-check
+        try {
+            \App\Models\Pengaturan::updateOrCreate(
+                ['key' => 'license_status'],
+                ['value' => 'inactive', 'group' => 'license']
+            );
+        } catch (\Exception $e) {
+            // Log if database update fails
         }
     }
 }
