@@ -35,6 +35,10 @@ yarn-error.log
 /.vscode
 /.zed
 
+# GitHub Copilot / agent customization (keep workflows)
+.github/agents/
+.github/instructions/
+
 # Except for 'template-customizer.js' inside 'resources/assets/vendor/js/'
 
 /storage/installed
