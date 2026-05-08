@@ -5,7 +5,7 @@ Prioritas: TINGGI
 ============================================================
 
 ## 📌 Deskripsi Tugas
-/github/agents/* jangan dipublish ke github
+/docs/* , .github/instructions/* jangan dipublish ke github
 
 ## 🗂️ Modul / Halaman yang Terdampak
 
