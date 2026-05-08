@@ -30,7 +30,7 @@
         @else
           <span class="app-brand-logo demo">@include('_partials.macros')</span>
         @endif
-        <span class="app-brand-text demo menu-text fw-bold ms-3">{{ $namaSekolah }}</span>
+        <span class="app-brand-text demo menu-text fw-bold ms-3">E-Absensi</span>
       </a>
 
       <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">

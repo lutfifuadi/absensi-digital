@@ -70,17 +70,39 @@
               $updateVersion = \App\Models\Pengaturan::where('key', 'update_available_version')->value('value');
             @endphp
             @if($updateVersion)
-              <div class="alert alert-primary alert-dismissible d-flex align-items-center mb-4" role="alert">
-                <span class="alert-icon text-primary me-2">
-                  <i class="ti tabler-cloud-download ti-xs"></i>
+              <div class="alert alert-warning alert-dismissible d-flex align-items-center mb-3 border-0 shadow-sm overflow-hidden py-1 px-3" role="alert" 
+                   style="background: linear-gradient(135deg, #ff9f43 0%, #ff6b00 100%); position: relative; min-height: 42px;">
+                {{-- Subtle pattern background --}}
+                <div style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.1) 1px, transparent 0); background-size: 10px 10px; pointer-events: none;"></div>
+                
+                <span class="alert-icon me-2 bg-white bg-opacity-25 p-1 rounded-circle d-flex align-items-center justify-content-center shadow-sm pulse-update-animation" style="width: 26px; height: 26px;">
+                  <i class="ti tabler-cloud-download text-white" style="font-size: 0.85rem;"></i>
                 </span>
-                <div class="d-flex flex-stack flex-grow-1">
-                  <div class="fw-semibold">
-                    Versi Baru Tersedia ({{ $updateVersion }})! 
-                    <a href="{{ route('admin.update.index') }}" class="alert-link ms-2 text-decoration-underline">Klik di sini untuk melihat detail dan perbarui.</a>
+                
+                <div class="d-flex flex-column flex-md-row align-items-md-center flex-grow-1">
+                  <div class="text-white">
+                    <span class="fw-bold d-block d-md-inline mb-0 mb-md-0" style="font-size: 0.85rem;">Versi Baru Tersedia ({{ $updateVersion }})!</span> 
+                    <span class="opacity-75 ms-md-1" style="font-size: 0.75rem;">Perbarui sistem Anda untuk fitur terbaru.</span>
+                  </div>
+                  <div class="ms-md-auto mt-1 mt-md-0">
+                    <a href="{{ route('admin.update.index') }}" class="btn btn-white btn-sm fw-bold px-2 py-0" style="background: #fff; color: #ff6b00; border-radius: 4px; border: none; box-shadow: 0 2px 4px 0 rgba(0,0,0,0.1); font-size: 0.7rem; line-height: 1.5;">
+                      <i class="ti tabler-rocket me-1" style="font-size: 0.75rem;"></i> Perbarui
+                    </a>
                   </div>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                
+                <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="alert" aria-label="Close" style="position: relative; top: 0; right: 0; padding: 0.5rem; transform: scale(0.6);"></button>
+                
+                <style>
+                  @keyframes pulse-white-update {
+                    0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+                    70% { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+                  }
+                  .pulse-update-animation {
+                    animation: pulse-white-update 2s infinite;
+                  }
+                </style>
               </div>
             @endif
           @endif
