@@ -624,8 +624,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 3.5rem 2.5rem 5rem;
-      /* Increased top padding from 2.25rem to 3.5rem */
+      padding: 3.5rem 2.5rem 5.5rem;
+      /* Increased bottom padding */
       gap: 1.5rem;
       flex-wrap: wrap;
     }
@@ -1778,9 +1778,11 @@
       background: #00b8d4;
       color: white;
     }
-    /* =============================================================================
-     RESPONSIVE
-     ============================================================================= */
+    /* ═══════════════════════════════════════════════════════
+       RESPONSIVE BREAKPOINTS
+       ═══════════════════════════════════════════════════════ */
+
+    /* Large Tablets / Small Desktops */
     @media (max-width: 1199px) {
       .das-main-grid {
         grid-template-columns: 1fr;
@@ -1789,33 +1791,54 @@
       .das-col-right {
         order: -1;
       }
-    }
-
-    @media (max-width: 767px) {
-      .das-stats-row {
-        grid-template-columns: 1fr 1fr;
-        gap: 0.6rem;
-        bottom: -90px;
-      }
-
-      .das-hero {
-        margin-bottom: 12rem;
-      }
 
       .das-hero__inner {
-        padding: 2rem 1.25rem 3rem;
+        padding: 3rem 2rem 5rem;
+      }
+    }
+
+    /* Tablets / Phablets */
+    @media (max-width: 991px) {
+      .das-hero__inner {
         flex-direction: column;
         align-items: flex-start;
+        gap: 2rem;
+        padding: 2.5rem 1.5rem 15rem; /* Increased from 12rem */
       }
 
       .das-hero__clock {
-        width: 100%;
         text-align: left;
+        width: 100%;
         min-width: unset;
+        margin-bottom: 7rem; /* Drastically increased from 5rem */
       }
 
       .das-hero__time {
         justify-content: flex-start;
+      }
+
+      .das-stats-row {
+        grid-template-columns: 1fr 1fr !important;
+        bottom: -60px;
+      }
+
+      .das-hero {
+        margin-bottom: 9rem;
+      }
+    }
+
+    /* Mobile (Landscape) */
+    @media (max-width: 767px) {
+      .das-stats-row {
+        grid-template-columns: 1fr 1fr !important; /* Force 2 columns */
+        bottom: -90px;
+        left: 1rem;
+        right: 1rem;
+        gap: 0.75rem;
+      }
+
+      .das-hero {
+        margin-bottom: 28rem; /* Increased from 22rem */
       }
 
       .das-today-grid {
@@ -1832,103 +1855,112 @@
       }
 
       .das-stat-card__val {
+        font-size: 1.3rem;
+      }
+
+      .das-hero__school {
         font-size: 1.35rem;
       }
     }
 
+    /* Mobile (Portrait) */
     @media (max-width: 575px) {
-      .das-stats-row {
-        position: absolute;
-        bottom: -105px;
-        left: 0.75rem;
-        right: 0.75rem;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.5rem;
-      }
-
-      .das-hero {
-        margin-bottom: 14rem;
-      }
-
-      .das-stat-card {
-        padding: 0.8rem 0.75rem;
-        gap: 0.6rem;
-        flex-wrap: nowrap;
-      }
-
-      .das-stat-card__icon {
-        width: 38px;
-        height: 38px;
-        font-size: 1.1rem;
-        flex-shrink: 0;
-      }
-
-      .das-stat-card__val {
-        font-size: 1.2rem;
-        font-weight: 800;
-      }
-
-      .das-stat-card__label {
-        font-size: 0.6rem;
-        letter-spacing: 0.3px;
-      }
-
-      .das-stat-card__side-info {
-        display: none;
-      }
-
       .das-hero__inner {
-        padding: 1.5rem 1rem 2.5rem;
+        padding: 2rem 1rem 18rem; /* Increased from 14rem */
       }
 
       .das-hero__school {
         font-size: 1.2rem;
       }
 
-      #live-clock {
-        font-size: 1.4rem;
+      .das-hero__welcome {
+        font-size: 0.8rem;
       }
 
       .das-hero__logo,
       .das-hero__logo-placeholder {
-        width: 56px;
-        height: 56px;
+        width: 60px;
+        height: 60px;
       }
 
-      .das-hero__logo-placeholder {
-        font-size: 1.5rem;
+      .das-stats-row {
+        grid-template-columns: 1fr 1fr !important;
+        bottom: -120px;
+        left: 0.75rem;
+        right: 0.75rem;
+        gap: 0.5rem;
+      }
+
+      .das-hero {
+        margin-bottom: 32rem; /* Increased from 25rem */
+      }
+
+      .das-stat-card {
+        padding: 0.8rem 0.7rem;
+      }
+
+      .das-stat-card__icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+      }
+
+      .das-stat-card__val {
+        font-size: 1.15rem;
+      }
+
+      .das-stat-card__label {
+        font-size: 0.58rem;
+      }
+
+      .das-status-grid {
+        gap: 0.5rem;
+      }
+
+      .das-status-item {
+        padding: 0.6rem 0.75rem;
+        gap: 0.6rem;
+      }
+
+      .das-quick-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
     }
 
+    /* Small Mobile */
     @media (max-width: 400px) {
+      .das-hero__inner {
+        padding: 1.5rem 0.75rem 22rem; /* Increased from 16rem */
+      }
+
       .das-stats-row {
-        bottom: -115px;
+        grid-template-columns: 1fr 1fr !important;
+        bottom: -140px;
         left: 0.5rem;
         right: 0.5rem;
         gap: 0.4rem;
       }
 
       .das-hero {
-        margin-bottom: 15rem;
-      }
-
-      .das-stat-card {
-        padding: 0.65rem 0.6rem;
-        gap: 0.45rem;
+        margin-bottom: 40rem; /* Increased from 28rem */
       }
 
       .das-stat-card__icon {
         width: 32px;
         height: 32px;
-        font-size: 0.95rem;
+        font-size: 1rem;
       }
 
       .das-stat-card__val {
-        font-size: 1.05rem;
+        font-size: 1rem;
       }
 
-      .das-stat-card__label {
-        font-size: 0.55rem;
+      .das-hero__school {
+        font-size: 1.1rem;
+      }
+
+      #live-clock {
+        font-size: 1.25rem;
       }
     }
 
@@ -2089,63 +2121,6 @@
     }
 
 
-    /* ═══════════════════════════════════════════════════════
-     RESPONSIVE
-  ═══════════════════════════════════════════════════════ */
-    @media (max-width: 1199px) {
-      .das-main-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .das-col-right {
-        order: -1;
-      }
-    }
-
-    @media (max-width: 767px) {
-      .das-stats-row {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .das-hero {
-        margin-bottom: 14rem;
-      }
-
-      .das-hero__inner {
-        padding: 2.5rem 1.25rem 3.5rem;
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .das-hero__clock {
-        width: 100%;
-        text-align: left;
-      }
-
-      .das-hero__time {
-        justify-content: flex-start;
-      }
-
-      .das-today-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .das-status-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .das-stats-row {
-        grid-template-columns: 1fr 1fr;
-        left: 0.5rem;
-        right: 0.5rem;
-      }
-
-      .das-hero {
-        margin-bottom: 22rem;
-      }
-    }
   </style>
 @endsection
 
