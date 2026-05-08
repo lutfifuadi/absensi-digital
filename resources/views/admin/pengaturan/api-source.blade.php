@@ -249,7 +249,10 @@
     </div>
     <div class="sync-confirm-modal__actions">
       <button type="button" class="sync-confirm-modal__cancel-btn" onclick="closeSyncConfirmModal()">Batal</button>
-      <button type="submit" class="sync-confirm-modal__confirm-btn" form="syncNowForm" id="syncConfirmButton">Konfirmasi</button>
+      <button type="button" class="sync-confirm-modal__confirm-btn" id="syncConfirmButton" onclick="submitSyncNow()">
+        <span id="syncBtnText">Konfirmasi</span>
+        <span id="syncBtnSpinner" style="display:none;"><i class="ti tabler-loader-2 animate-spin"></i></span>
+      </button>
     </div>
   </div>
 </div>
@@ -613,6 +616,71 @@ function closeSyncConfirmModal() {
   }
 }
 
+async function submitSyncNow() {
+  const form = document.getElementById('syncNowForm');
+  const btn = document.getElementById('syncConfirmButton');
+  const btnText = document.getElementById('syncBtnText');
+  const btnSpinner = document.getElementById('syncBtnSpinner');
+  const url = form.action;
+
+  // Loading state
+  btn.disabled = true;
+  btnText.style.display = 'none';
+  btnSpinner.style.display = 'inline-block';
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({})
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      showDynamicToast('success', result.message);
+      closeSyncConfirmModal();
+    } else {
+      showDynamicToast('danger', result.message || 'Terjadi kesalahan saat sinkronisasi.');
+    }
+  } catch (error) {
+    console.error('Sync error:', error);
+    showDynamicToast('danger', 'Gagal menghubungi server. Silakan coba lagi.');
+  } finally {
+    // Reset state
+    btn.disabled = false;
+    btnText.style.display = 'inline-block';
+    btnSpinner.style.display = 'none';
+  }
+}
+
+function showDynamicToast(type, message) {
+  // Check if toast container exists, if not create one or use existing
+  // We can use the existing toast structures if they are present in the DOM
+  // Or create a simple one. Let's try to find an existing one first.
+  
+  const toastId = type === 'success' ? 'syncSuccessToast' : 'syncErrorToast';
+  let toast = document.getElementById(toastId);
+  
+  if (toast) {
+    const msgEl = toast.querySelector('.set-toast__msg');
+    if (msgEl) msgEl.textContent = message;
+    toast.style.display = 'flex';
+    
+    // Auto hide after 5s
+    setTimeout(() => {
+      toast.style.display = 'none';
+    }, 5000);
+  } else {
+    // Fallback alert if toast not found in DOM
+    alert(message);
+  }
+}
+
 window.addEventListener('keydown', function (event) {
   const modal = document.getElementById('syncConfirmModal');
   if (!modal || modal.hidden) {
@@ -623,5 +691,16 @@ window.addEventListener('keydown', function (event) {
   }
 });
 </script>
+
+<style>
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+</style>
 
 @endsection

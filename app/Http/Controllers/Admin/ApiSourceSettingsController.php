@@ -61,16 +61,22 @@ class ApiSourceSettingsController extends Controller
         return back()->with('success', 'Pengaturan API sumber data berhasil disimpan.');
     }
 
-    public function syncNow()
+    public function syncNow(Request $request)
     {
         $apiUrl = Pengaturan::where('key', 'master_db_api_url')->value('value');
         $apiKey = Pengaturan::where('key', 'master_db_api_key')->value('value');
 
         if (empty($apiUrl)) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Sinkronisasi gagal: URL API belum dikonfigurasi.'], 422);
+            }
             return back()->with('sync_error', 'Sinkronisasi gagal: URL API belum dikonfigurasi.');
         }
 
         if (empty($apiKey)) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Sinkronisasi gagal: API Key belum dikonfigurasi.'], 422);
+            }
             return back()->with('sync_error', 'Sinkronisasi gagal: API Key belum dikonfigurasi.');
         }
 
@@ -82,10 +88,23 @@ class ApiSourceSettingsController extends Controller
             SyncMasterDataJob::dispatch();
 
             Log::info('Sinkronisasi manual telah dijadwalkan oleh admin.');
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Sinkronisasi data master telah dijadwalkan dan akan diproses di latar belakang.'
+                ]);
+            }
+
             return back()->with('sync_success', 'Sinkronisasi data master telah dijadwalkan dan akan diproses di latar belakang.');
 
         } catch (\Exception $e) {
             Log::error('Sinkronisasi manual gagal dijadwalkan.', ['error' => $e->getMessage()]);
+
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Sinkronisasi gagal dijadwalkan.'], 500);
+            }
+
             return back()->with('sync_error', 'Sinkronisasi gagal. Silakan periksa log sistem untuk detail lebih lanjut.');
         }
     }
