@@ -62,7 +62,8 @@ class LicenseController extends Controller
         }
 
         try {
-            $response = Http::asForm()
+            $response = Http::withoutVerifying()
+                ->asForm()
                 ->timeout(30)
                 ->post(self::LICENSE_API_URL, [
                     'license_key' => $license,

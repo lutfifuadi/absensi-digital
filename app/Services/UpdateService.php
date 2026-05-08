@@ -36,10 +36,16 @@ class UpdateService
         try {
             $url = "https://api.github.com/repos/{$owner}/{$repo}/releases/latest";
             
+            $token = config('services.github.token');
+            
             $request = Http::withoutVerifying()->withHeaders([
                 'Accept' => 'application/vnd.github+json',
                 'X-GitHub-Api-Version' => '2022-11-28',
             ]);
+
+            if (!empty($token)) {
+                $request->withToken($token);
+            }
 
             $response = $request->timeout(60)->get($url);
 
@@ -133,11 +139,19 @@ class UpdateService
         try {
             Log::info('Memulai pengunduhan update: ' . $info['package_url']);
 
+            $token = config('services.github.token');
+
             // 1. Download Paket
-            $response = Http::withoutVerifying()->withHeaders([
+            $request = Http::withoutVerifying()->withHeaders([
                 'Accept' => 'application/vnd.github+json',
                 'X-GitHub-Api-Version' => '2022-11-28',
-            ])->timeout(300)->get($info['package_url']);
+            ])->timeout(300);
+
+            if (!empty($token)) {
+                $request->withToken($token);
+            }
+
+            $response = $request->get($info['package_url']);
             
             if ($response->failed()) {
                 throw new \Exception('Gagal mengunduh paket dari GitHub (Status: ' . $response->status() . ').');

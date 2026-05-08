@@ -38,7 +38,7 @@ class InstallerController extends Controller
         $domain = env('REGISTERED_DOMAIN');
 
         try {
-            $response = Http::timeout(10)->post('https://saas-presensi.lutfifuadi.my.id/api/version/check', [
+            $response = Http::withoutVerifying()->timeout(10)->post('https://saas-presensi.lutfifuadi.my.id/api/version/check', [
                 'current_version' => $currentVersion,
                 'license_key' => $licenseKey,
                 'domain' => $domain,
@@ -89,35 +89,36 @@ class InstallerController extends Controller
         $request->validate([
             'license_key' => 'required|string',
             'registered_domain' => 'required|string',
+            'school_name' => 'required|string|max:255',
         ]);
 
         // 1. Validasi Lisensi via API Pusat
         $licenseApiUrl = 'https://saas-presensi.lutfifuadi.my.id/api/license/verify';
         $domain = trim($request->registered_domain);
         $license = trim($request->license_key);
+        $inputSchoolName = trim($request->school_name);
 
         $this->logInstaller('Memproses Step 2: Verifikasi Lisensi');
 
         // --- DEVELOPMENT BYPASS ---
         if ($license === 'DEV-MASTER-KEY') {
             $this->logInstaller('Menggunakan Master Key (Development Bypass)');
-            $devSchoolName = 'Development School';
             $this->setEnv([
                 'LICENSE_KEY'       => $license,
                 'REGISTERED_DOMAIN' => $domain,
-                'SCHOOL_NAME'       => $devSchoolName,
+                'SCHOOL_NAME'       => $inputSchoolName,
             ]);
             session([
                 'install_license_key'       => $license,
                 'install_registered_domain' => $domain,
-                'install_school_name'       => $devSchoolName,
+                'install_school_name'       => $inputSchoolName,
             ]);
             return redirect()->route('installer.step2')->with('license_verified', true);
         }
 
         try {
             $this->logInstaller("Menghubungi server lisensi untuk domain: {$domain}");
-            $response = Http::asForm()->timeout(30)->post($licenseApiUrl, [
+            $response = Http::withoutVerifying()->asForm()->timeout(30)->post($licenseApiUrl, [
                 'license_key' => $license,
                 'domain' => $domain,
             ]);
@@ -148,7 +149,10 @@ class InstallerController extends Controller
 
         $this->logInstaller('Lisensi berhasil diverifikasi. Menyimpan ke .env dan session.');
 
-        $schoolName = isset($result['school_name']) ? trim($result['school_name']) : '';
+        // Gunakan nama sekolah dari input jika dari API kosong
+        $apiSchoolName = isset($result['school_name']) ? trim($result['school_name']) : '';
+        $schoolName = $apiSchoolName ?: $inputSchoolName;
+
         $this->logInstaller('Nama sekolah terdaftar: ' . ($schoolName ?: '(tidak tersedia)'));
 
         $this->setEnv([
@@ -378,7 +382,6 @@ class InstallerController extends Controller
                 'license_key'           => env('LICENSE_KEY'),
                 'github_repo_owner'     => env('GITHUB_REPO_OWNER'),
                 'github_repo_name'      => env('GITHUB_REPO_NAME'),
-                'github_token'          => env('GITHUB_TOKEN'),
                 'app_version'           => env('APP_VERSION', '1.0.0'),
             ];
             foreach ($pengaturanDefaults as $key => $value) {

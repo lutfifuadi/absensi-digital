@@ -63,7 +63,7 @@ class DownloadController extends Controller
     {
         $owner = env('GITHUB_REPO_OWNER', 'lutfifuadi');
         $repo  = env('GITHUB_REPO_NAME', 'absensi-digital');
-        $token = env('GITHUB_TOKEN');
+        $token = config('services.github.token');
 
         try {
             $headers = ['Accept' => 'application/vnd.github+json'];

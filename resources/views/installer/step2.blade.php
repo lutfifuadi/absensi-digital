@@ -26,7 +26,7 @@
                 </svg>
             </span>
             <input type="text" value="{{ session('install_license_key') }}" readonly
-                style="background: var(--bg-2, #f8f9fa); color: var(--text-2); cursor: not-allowed; opacity: 0.85;">
+                style="background: var(--bg-2, #f8f9fa); color: #334155; cursor: not-allowed; font-weight: 600;">
         </div>
     </div>
 
@@ -39,7 +39,7 @@
                 </svg>
             </span>
             <input type="text" value="{{ session('install_registered_domain') }}" readonly
-                style="background: var(--bg-2, #f8f9fa); color: var(--text-2); cursor: not-allowed; opacity: 0.85;">
+                style="background: var(--bg-2, #f8f9fa); color: #334155; cursor: not-allowed; font-weight: 600;">
         </div>
     </div>
 
@@ -52,7 +52,7 @@
                 </svg>
             </span>
             <input type="text" value="{{ session('install_school_name') }}" readonly
-                style="background: var(--bg-2, #f8f9fa); color: var(--text-2); cursor: not-allowed; opacity: 0.85;">
+                style="background: var(--bg-2, #f8f9fa); color: #334155; cursor: not-allowed; font-weight: 600;">
         </div>
         <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">
             Nama ini diambil dari database pusat. Akan otomatis terisi di langkah pengisian data lembaga.
@@ -92,6 +92,21 @@
         </div>
         <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">
             Pastikan domain sesuai dengan yang terdaftar di sistem pusat.
+        </div>
+    </div>
+
+    <div class="field mt-12">
+        <label class="lbl">Nama Sekolah/Lembaga</label>
+        <div class="inp-wrap has-icon">
+            <span class="inp-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+            </span>
+            <input type="text" name="school_name" value="{{ old('school_name', session('install_school_name')) }}" placeholder="Contoh: SMA Negeri 1 Bandung" required>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">
+            Masukkan nama resmi instansi Anda.
         </div>
     </div>
 @endif

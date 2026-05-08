@@ -865,10 +865,10 @@
 
             <div class="alert alert-info mb-4" role="alert" style="background: rgba(0, 207, 232, 0.08); border: 1px solid rgba(0, 207, 232, 0.2); border-radius: 12px; color: #00cfe8;">
               <div class="d-flex align-items-center gap-2">
-                <i class="ti tabler-info-circle fs-4"></i>
-                <strong>Repositori Publik</strong>
+                <i class="ti tabler-shield-check fs-4"></i>
+                <strong>Konfigurasi GitHub</strong>
               </div>
-              <p class="mt-2 mb-0 small">Sistem menggunakan repositori GitHub publik. Tidak diperlukan token untuk memeriksa dan mengunduh pembaruan.</p>
+              <p class="mt-2 mb-0 small">Sistem mendukung repositori publik dan privat. Untuk repositori privat, pastikan <code>GITHUB_TOKEN</code> sudah dikonfigurasi di file lingkungan (.env) server Anda untuk keamanan maksimal.</p>
             </div>
             <div class="set-form-grid">
               <div class="set-field">

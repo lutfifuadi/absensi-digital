@@ -77,7 +77,7 @@ class UpdateController extends Controller
         }
 
         try {
-            $response = \Illuminate\Support\Facades\Http::asForm()->timeout(20)->post('https://saas-presensi.lutfifuadi.my.id/api/license/verify', [
+            $response = \Illuminate\Support\Facades\Http::withoutVerifying()->asForm()->timeout(20)->post('https://saas-presensi.lutfifuadi.my.id/api/license/verify', [
                 'license_key' => $licenseKey,
                 'domain' => $domain,
             ]);

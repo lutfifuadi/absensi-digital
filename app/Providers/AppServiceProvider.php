@@ -24,14 +24,20 @@ class AppServiceProvider extends ServiceProvider
             return;
         }
         try {
-            // Deteksi Zona Waktu dari pengaturan database jika tabel sudah ada (mencegah error migrate)
+            // Deteksi Zona Waktu & Nama Sekolah dari pengaturan database jika tabel sudah ada
             if (\Illuminate\Support\Facades\Schema::hasTable('pengaturan')) {
-                $zonaWaktu = \App\Models\Pengaturan::where('key', 'zona_waktu')->value('value');
+                $pengaturan = \App\Models\Pengaturan::whereIn('key', ['zona_waktu', 'nama_sekolah'])->get()->pluck('value', 'key');
+                
+                $zonaWaktu = $pengaturan->get('zona_waktu');
                 if ($zonaWaktu) {
-                    // Extract timezone format (e.g. "Asia/Jakarta (WIB)" -> "Asia/Jakarta")
                     $validTz = explode(' ', trim($zonaWaktu))[0];
                     date_default_timezone_set($validTz);
                     config(['app.timezone' => $validTz]);
+                }
+
+                $namaSekolah = $pengaturan->get('nama_sekolah');
+                if ($namaSekolah) {
+                    config(['variables.templateName' => $namaSekolah]);
                 }
             }
         } catch (\Exception $e) {

@@ -4,195 +4,261 @@
 
 @section('page-style')
 <style>
-    .badge-status-pending   { background: #ff9f43; color: #fff; }
-    .badge-status-active    { background: #28c76f; color: #fff; }
-    .badge-status-expired   { background: #82868b; color: #fff; }
-    .badge-status-revoked   { background: #ea5455; color: #fff; }
-    .badge-payment-menunggu { background: #ff9f43; color: #fff; }
-    .badge-payment-lunas    { background: #28c76f; color: #fff; }
-    .action-btn { min-width: 36px; }
+    .license-row-hover {
+        transition: background 0.15s ease;
+    }
+
+    .license-row-hover:hover {
+        background: rgba(255, 255, 255, 0.04) !important;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        border: none;
+        background: rgba(255, 255, 255, 0.05);
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+    }
+
+    /* SEARCH INPUT */
+    #searchInput::placeholder { color: rgba(255,255,255,0.4); }
+    #searchInput:focus {
+        outline: none;
+        box-shadow: none;
+        background: rgba(255,255,255,0.08) !important;
+        border-color: rgba(115,103,240,0.5) !important;
+    }
 </style>
 @endsection
 
 @section('content')
-<div class="container-xxl flex-grow-1 container-p-y">
-    <h4 class="fw-bold py-3 mb-4">
-        <span class="text-muted fw-light">Admin /</span> Pembelian & Distribusi Lisensi
-    </h4>
 
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-    @if(session('info'))
-        <div class="alert alert-info alert-dismissible fade show" role="alert">
-            {{ session('info') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
+  {{-- ═══════════════════════════════════════════════════════
+       SECTION 1: HERO HEADER
+  ═══════════════════════════════════════════════════════ --}}
+  <div class="das-hero mb-4">
+    <div class="das-hero__bg"></div>
+    <div class="das-hero__glass"></div>
+    <div class="das-hero__grid-lines"></div>
 
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0">Daftar Pembelian Lisensi</h5>
-            <a href="{{ route('admin.pembelian-lisensi.create') }}" class="btn btn-primary btn-sm">
-                <i class="ti ti-plus me-1"></i> Tambah Pembelian
-            </a>
+    <div class="das-hero__inner">
+      <div class="das-hero__identity">
+        <div class="das-hero__logo-wrapper">
+          <div class="das-hero__logo-placeholder" style="width: 64px; height: 64px; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1);">
+            <i class="ti tabler-license text-info" style="font-size: 2rem;"></i>
+          </div>
+          <div class="das-hero__logo-glow"></div>
         </div>
 
-        {{-- Filter --}}
-        <div class="card-body border-bottom py-3">
-            <form method="GET" class="row g-2 align-items-end">
-                <div class="col-md-5">
-                    <input type="text" name="search" class="form-control form-control-sm"
-                           placeholder="Cari nama, email, domain, license key..."
-                           value="{{ request('search') }}">
-                </div>
-                <div class="col-md-2">
-                    <select name="status" class="form-select form-select-sm">
-                        <option value="">Semua Status</option>
-                        <option value="pending"  {{ request('status') == 'pending'  ? 'selected' : '' }}>Pending</option>
-                        <option value="active"   {{ request('status') == 'active'   ? 'selected' : '' }}>Aktif</option>
-                        <option value="expired"  {{ request('status') == 'expired'  ? 'selected' : '' }}>Expired</option>
-                        <option value="revoked"  {{ request('status') == 'revoked'  ? 'selected' : '' }}>Dicabut</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select name="payment_status" class="form-select form-select-sm">
-                        <option value="">Semua Pembayaran</option>
-                        <option value="menunggu" {{ request('payment_status') == 'menunggu' ? 'selected' : '' }}>Menunggu</option>
-                        <option value="lunas"    {{ request('payment_status') == 'lunas'    ? 'selected' : '' }}>Lunas</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-secondary btn-sm w-100">
-                        <i class="ti ti-search me-1"></i> Filter
-                    </button>
-                </div>
-                @if(request()->hasAny(['search','status','payment_status']))
-                <div class="col-md-1">
-                    <a href="{{ route('admin.pembelian-lisensi.index') }}" class="btn btn-outline-secondary btn-sm w-100">
-                        <i class="ti ti-x"></i>
-                    </a>
-                </div>
-                @endif
-            </form>
+        <div class="das-hero__meta">
+          <div class="das-hero__badge">
+            <span class="pulse-dot"></span>
+            <span class="text-white text-decoration-none">Sistem</span> / Lisensi
+          </div>
+          <h4 class="das-hero__title text-gradient-gold">Pembelian & Distribusi</h4>
+          <p class="das-hero__subtitle">Kelola lisensi klien, konfirmasi pembayaran, dan pantau masa aktif.</p>
         </div>
+      </div>
 
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>#</th>
-                        <th>Klien</th>
-                        <th>Domain</th>
-                        <th>License Key</th>
-                        <th>Pembayaran</th>
-                        <th>Status Lisensi</th>
-                        <th>Berlaku</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($pembelian as $item)
-                    <tr>
-                        <td>{{ $loop->iteration + ($pembelian->currentPage() - 1) * $pembelian->perPage() }}</td>
-                        <td>
-                            <div class="fw-semibold">{{ $item->nama_klien }}</div>
-                            <small class="text-muted">{{ $item->email_klien }}</small>
-                        </td>
-                        <td>
-                            @if($item->domain)
-                                <code class="small">{{ $item->domain }}</code>
-                            @else
-                                <span class="text-muted fst-italic small">belum diset</span>
-                            @endif
-                        </td>
-                        <td>
-                            @if($item->license_key)
-                                <code class="small user-select-all">{{ $item->license_key }}</code>
-                            @else
-                                <span class="text-muted fst-italic small">belum digenerate</span>
-                            @endif
-                        </td>
-                        <td>
-                            <span class="badge rounded-pill badge-payment-{{ $item->payment_status }}">
-                                {{ ucfirst($item->payment_status) }}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="badge rounded-pill badge-status-{{ $item->status }}">
-                                {{ ucfirst($item->status) }}
-                            </span>
-                        </td>
-                        <td class="small">
-                            @if($item->expires_at)
-                                {{ $item->expires_at->format('d M Y') }}
-                            @else
-                                <span class="text-success">Seumur Hidup</span>
-                            @endif
-                        </td>
-                        <td>
-                            <div class="d-flex gap-1 flex-wrap">
-                                <a href="{{ route('admin.pembelian-lisensi.show', $item) }}"
-                                   class="btn btn-sm btn-outline-info action-btn" title="Detail">
-                                    <i class="ti ti-eye"></i>
-                                </a>
-                                <a href="{{ route('admin.pembelian-lisensi.edit', $item) }}"
-                                   class="btn btn-sm btn-outline-warning action-btn" title="Edit">
-                                    <i class="ti ti-edit"></i>
-                                </a>
-                                @if($item->payment_status !== 'lunas' || empty($item->license_key))
-                                <form method="POST" action="{{ route('admin.pembelian-lisensi.konfirmasi-pembayaran', $item) }}"
-                                      onsubmit="return confirm('Konfirmasi pembayaran lunas dan kirim email lisensi ke {{ $item->email_klien }}?')">
-                                    @csrf
-                                    <button type="submit" class="btn btn-sm btn-success action-btn" title="Konfirmasi Lunas & Kirim Lisensi">
-                                        <i class="ti ti-check"></i>
-                                    </button>
-                                </form>
-                                @else
-                                <form method="POST" action="{{ route('admin.pembelian-lisensi.kirim-ulang-email', $item) }}">
-                                    @csrf
-                                    <button type="submit" class="btn btn-sm btn-outline-primary action-btn" title="Kirim Ulang Email">
-                                        <i class="ti ti-mail"></i>
-                                    </button>
-                                </form>
-                                @endif
-                                @if($item->status === 'active')
-                                <form method="POST" action="{{ route('admin.pembelian-lisensi.revoke', $item) }}"
-                                      onsubmit="return confirm('Cabut lisensi ini? Klien tidak akan bisa menggunakannya lagi.')">
-                                    @csrf
-                                    <button type="submit" class="btn btn-sm btn-outline-danger action-btn" title="Cabut Lisensi">
-                                        <i class="ti ti-ban"></i>
-                                    </button>
-                                </form>
-                                @endif
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="8" class="text-center text-muted py-4">
-                            Belum ada data pembelian lisensi.
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        @if($pembelian->hasPages())
-        <div class="card-footer">
-            {{ $pembelian->links() }}
-        </div>
-        @endif
+      <div class="das-hero__actions">
+        <a href="{{ route('admin.pembelian-lisensi.create') }}" class="btn das-btn --primary">
+          <i class="ti tabler-plus me-1"></i> Tambah Pembelian
+        </a>
+      </div>
     </div>
-</div>
+  </div>
+
+  {{-- FLASH MESSAGES --}}
+  @if (session('success'))
+    <div class="alert alert-success alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm"
+      role="alert" style="border-radius:8px;">
+      <i class="ti tabler-circle-check fs-5"></i>
+      <span>{{ session('success') }}</span>
+      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+  @endif
+
+  @if (session('error'))
+    <div class="alert alert-danger alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm"
+      role="alert" style="border-radius:8px;">
+      <i class="ti tabler-alert-circle fs-5"></i>
+      <span>{{ session('error') }}</span>
+      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+  @endif
+
+  {{-- TABLE CARD --}}
+  <div class="das-panel">
+    <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3"
+      style="border-color:rgba(255,255,255,0.08) !important;">
+      <h6 class="das-panel__title mb-0 d-flex align-items-center gap-2">
+        <i class="ti tabler-list text-info"></i> Daftar Pembelian Lisensi
+      </h6>
+      <form action="{{ route('admin.pembelian-lisensi.index') }}" method="GET" class="d-flex align-items-center gap-2">
+        <div class="position-relative" style="max-width:250px;">
+          <i class="ti tabler-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size:0.85rem; pointer-events:none;"></i>
+          <input type="text" name="search" id="searchInput" class="form-control border-0 text-white" 
+                 placeholder="Cari klien..." style="background: rgba(255,255,255,0.05); height:38px; padding-left:2.2rem; font-size:0.85rem;"
+                 value="{{ request('search') }}">
+        </div>
+        
+        <select name="status" class="form-select border-0 text-white w-auto" style="background: rgba(255,255,255,0.05); height:38px; font-size:0.85rem; cursor:pointer;">
+            <option value="">Semua Status</option>
+            <option value="pending"  {{ request('status') == 'pending'  ? 'selected' : '' }}>Pending</option>
+            <option value="active"   {{ request('status') == 'active'   ? 'selected' : '' }}>Aktif</option>
+            <option value="expired"  {{ request('status') == 'expired'  ? 'selected' : '' }}>Expired</option>
+            <option value="revoked"  {{ request('status') == 'revoked'  ? 'selected' : '' }}>Dicabut</option>
+        </select>
+
+        <button type="submit" class="btn das-btn --secondary" style="height: 38px;">
+            <i class="ti tabler-filter"></i>
+        </button>
+
+        @if(request()->hasAny(['search','status']))
+            <a href="{{ route('admin.pembelian-lisensi.index') }}" class="btn das-btn --danger" style="height: 38px;">
+                <i class="ti tabler-x"></i>
+            </a>
+        @endif
+      </form>
+    </div>
+    
+    <div class="das-panel__body p-0">
+      <div class="table-responsive">
+        <table class="das-table">
+          <thead>
+            <tr>
+              <th class="text-center" style="width: 50px;">#</th>
+              <th>Klien</th>
+              <th>Domain</th>
+              <th>License Key</th>
+              <th class="text-center">Pembayaran</th>
+              <th class="text-center">Status</th>
+              <th>Masa Aktif</th>
+              <th class="text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse($pembelian as $item)
+            <tr class="license-row-hover">
+              <td class="text-center text-muted small">{{ $loop->iteration + ($pembelian->currentPage() - 1) * $pembelian->perPage() }}</td>
+              <td>
+                <div class="fw-bold text-white">{{ $item->nama_klien }}</div>
+                <div class="small text-muted">{{ $item->email_klien }}</div>
+              </td>
+              <td>
+                @if($item->domain)
+                  <code class="text-info small">{{ $item->domain }}</code>
+                @else
+                  <span class="text-muted fst-italic small">N/A</span>
+                @endif
+              </td>
+              <td>
+                @if($item->license_key)
+                  <div class="d-flex align-items-center gap-2">
+                    <code class="text-warning small user-select-all">{{ substr($item->license_key, 0, 8) }}...</code>
+                    <button class="btn p-0 text-muted" onclick="navigator.clipboard.writeText('{{ $item->license_key }}')" title="Copy Key">
+                        <i class="ti tabler-copy fs-6"></i>
+                    </button>
+                  </div>
+                @else
+                  <span class="text-muted fst-italic small">Belum ada</span>
+                @endif
+              </td>
+              <td class="text-center">
+                @if($item->payment_status === 'lunas')
+                  <span class="das-chip --success">Lunas</span>
+                @else
+                  <span class="das-chip --warning">Menunggu</span>
+                @endif
+              </td>
+              <td class="text-center">
+                @php
+                  $statusClass = match($item->status) {
+                    'active' => '--success',
+                    'pending' => '--warning',
+                    'expired' => '--secondary',
+                    'revoked' => '--danger',
+                    default => '--info'
+                  };
+                @endphp
+                <span class="das-chip {{ $statusClass }}">{{ ucfirst($item->status) }}</span>
+              </td>
+              <td class="small">
+                @if($item->expires_at)
+                  <div class="text-white">{{ $item->expires_at->format('d M Y') }}</div>
+                  <div class="text-muted" style="font-size: 0.7rem;">{{ $item->expires_at->diffForHumans() }}</div>
+                @else
+                  <span class="text-info fw-bold">Lifetime</span>
+                @endif
+              </td>
+              <td class="text-center">
+                <div class="d-flex justify-content-center gap-2">
+                  <a href="{{ route('admin.pembelian-lisensi.show', $item) }}" class="action-btn text-info" title="Detail">
+                    <i class="ti tabler-eye"></i>
+                  </a>
+                  <a href="{{ route('admin.pembelian-lisensi.edit', $item) }}" class="action-btn text-warning" title="Edit">
+                    <i class="ti tabler-edit"></i>
+                  </a>
+                  
+                  @if($item->payment_status !== 'lunas' || empty($item->license_key))
+                    <form method="POST" action="{{ route('admin.pembelian-lisensi.konfirmasi-pembayaran', $item) }}"
+                          onsubmit="return confirm('Konfirmasi pembayaran lunas dan kirim email lisensi?')">
+                      @csrf
+                      <button type="submit" class="action-btn text-success" title="Konfirmasi Lunas">
+                        <i class="ti tabler-check"></i>
+                      </button>
+                    </form>
+                  @else
+                    <form method="POST" action="{{ route('admin.pembelian-lisensi.kirim-ulang-email', $item) }}">
+                      @csrf
+                      <button type="submit" class="action-btn text-primary" title="Kirim Ulang Email">
+                        <i class="ti tabler-mail"></i>
+                      </button>
+                    </form>
+                  @endif
+
+                  @if($item->status === 'active')
+                    <form method="POST" action="{{ route('admin.pembelian-lisensi.revoke', $item) }}"
+                          onsubmit="return confirm('Cabut lisensi ini?')">
+                      @csrf
+                      <button type="submit" class="action-btn text-danger" title="Cabut Lisensi">
+                        <i class="ti tabler-ban"></i>
+                      </button>
+                    </form>
+                  @endif
+                </div>
+              </td>
+            </tr>
+            @empty
+            <tr>
+              <td colspan="8" class="text-center text-muted py-5">
+                <i class="ti tabler-database-off d-block fs-1 mb-2 opacity-25"></i>
+                Belum ada data pembelian lisensi.
+              </td>
+            </tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    @if($pembelian->hasPages())
+    <div class="das-panel__footer p-3 border-top" style="border-color:rgba(255,255,255,0.08) !important;">
+        {{ $pembelian->links() }}
+    </div>
+    @endif
+  </div>
+
 @endsection

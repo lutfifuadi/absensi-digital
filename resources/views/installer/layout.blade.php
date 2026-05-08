@@ -150,7 +150,7 @@
 
         @media (min-width: 768px) {
             .card {
-                max-height: 520px; /* Force a proportional fixed height for better PC experience */
+                max-height: 600px; /* Force a proportional fixed height for better PC experience */
             }
         }
 
@@ -228,6 +228,7 @@
             padding: 22px; 
             overflow-y: auto;
             flex: 1;
+            min-height: 280px;
         }
 
         /* Custom Scrollbar for Card Body */
@@ -403,6 +404,16 @@
             background: rgba(124,108,245,0.04);
         }
         input:hover:not(:focus) { border-color: var(--border-3); }
+        
+        /* ── Autofill Override ── */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active  {
+            -webkit-text-fill-color: var(--text) !important;
+            -webkit-box-shadow: 0 0 0 30px var(--surface-3) inset !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
 
         /* ── Section Label ── */
         .section-label {
@@ -656,5 +667,6 @@ $(document).ready(function() {
     });
 });
 </script>
+    @yield('scripts')
 </body>
 </html>
