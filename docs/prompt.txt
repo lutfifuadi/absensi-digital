@@ -5,7 +5,7 @@ Prioritas: TINGGI
 ============================================================
 
 ## 📌 Deskripsi Tugas
-kirim perubahan lokal ke github.
+/github/agents/* jangan dipublish ke github
 
 ## 🗂️ Modul / Halaman yang Terdampak
 
