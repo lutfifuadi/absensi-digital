@@ -400,6 +400,26 @@
       border-left: none !important;
       color: rgba(255,255,255,0.35) !important;
       border-radius: 0 8px 8px 0 !important;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    /* Fix alignment & seamless connection for password toggle */
+    .form-password-toggle .input-group .form-control {
+      border-top-right-radius: 0 !important;
+      border-bottom-right-radius: 0 !important;
+      border-right: none !important;
+    }
+    .form-password-toggle .input-group .input-group-text {
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .form-password-toggle .input-group .input-group-text:hover {
+      color: #818cf8 !important;
+      background: rgba(99,102,241,0.08) !important;
+    }
+    .form-password-toggle .input-group .form-control:focus + .input-group-text {
+      border-color: rgba(99,102,241,0.55) !important;
+      box-shadow: 0 3px 12px rgba(99,102,241,0.08) !important;
+      color: #818cf8 !important;
     }
     .form-check-input {
       background-color: rgba(255,255,255,0.06) !important;

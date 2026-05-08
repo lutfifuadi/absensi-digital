@@ -63,7 +63,7 @@ Route::get('/pages/misc-error', [MiscError::class, 'index'])->name('pages-misc-e
 
 // authentication
 Route::get('/auth/login-basic', [LoginBasic::class, 'index'])->name('auth-login-basic');
-Route::get('/auth/register-basic', [RegisterBasic::class, 'index'])->name('auth-register-basic');
+// Route::get('/auth/register-basic', [RegisterBasic::class, 'index'])->name('auth-register-basic');
 
 // ── Halaman Scan QR Publik (Guru Piket — tanpa login) ─────────────────────────
 Route::prefix('scan-qr')->name('public.scan-qr.')->group(function () {
