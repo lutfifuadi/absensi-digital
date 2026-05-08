@@ -681,7 +681,7 @@
     "isEntry": true
   },
   "resources/assets/js/form-validation.js": {
-    "file": "assets/form-validation-ZyVCd9_y.js",
+    "file": "assets/form-validation-iPnVOkIr.js",
     "name": "form-validation",
     "src": "resources/assets/js/form-validation.js",
     "isEntry": true
@@ -699,7 +699,7 @@
     "isEntry": true
   },
   "resources/assets/js/form-wizard-validation.js": {
-    "file": "assets/form-wizard-validation-DOzcpSiH.js",
+    "file": "assets/form-wizard-validation-2Gx7AMwc.js",
     "name": "form-wizard-validation",
     "src": "resources/assets/js/form-wizard-validation.js",
     "isEntry": true
@@ -891,7 +891,7 @@
     "isEntry": true
   },
   "resources/assets/js/pages-auth-multisteps.js": {
-    "file": "assets/pages-auth-multisteps-CRBj8eZP.js",
+    "file": "assets/pages-auth-multisteps-CKh_h36c.js",
     "name": "pages-auth-multisteps",
     "src": "resources/assets/js/pages-auth-multisteps.js",
     "isEntry": true
@@ -903,7 +903,7 @@
     "isEntry": true
   },
   "resources/assets/js/pages-auth.js": {
-    "file": "assets/pages-auth-D0KVgRoL.js",
+    "file": "assets/pages-auth-Bi5UmfBZ.js",
     "name": "pages-auth",
     "src": "resources/assets/js/pages-auth.js",
     "isEntry": true
@@ -3208,6 +3208,11 @@
     "file": "assets/fa-v4compatibility-C9RhG_FT.woff2",
     "src": "resources/assets/vendor/fonts/fontawesome/fa-v4compatibility.woff2"
   },
+  "resources/assets/vendor/fonts/iconify/iconify.css": {
+    "file": "assets/iconify-B8r8kbVE.css",
+    "src": "resources/assets/vendor/fonts/iconify/iconify.css",
+    "isEntry": true
+  },
   "resources/assets/vendor/js/bootstrap.js": {
     "file": "assets/bootstrap-D6PdghTj.js",
     "name": "bootstrap",
@@ -4037,10 +4042,13 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-T1DpEqax.js",
+    "file": "assets/app-DUqrYkmw.js",
     "name": "app",
     "src": "resources/js/app.js",
-    "isEntry": true
+    "isEntry": true,
+    "css": [
+      "assets/app-BaVkx4tQ.css"
+    ]
   },
   "resources/js/laravel-user-management.js": {
     "file": "assets/laravel-user-management-Cxu_LAn_.js",
