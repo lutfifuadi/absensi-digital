@@ -257,6 +257,26 @@
   </div>
 </div>
 
+{{-- MODAL SUKSES SINKRONISASI --}}
+<div id="syncSuccessModal" class="sync-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="syncSuccessTitle" aria-describedby="syncSuccessDescription" hidden>
+  <div class="sync-confirm-modal__backdrop" onclick="closeSyncSuccessModal()" tabindex="-1"></div>
+  <div class="sync-confirm-modal__content sync-confirm-modal__content--success" role="document">
+    <div class="sync-confirm-modal__header text-center">
+      <div class="sync-success-icon-wrap mb-3">
+        <div class="sync-success-icon-ring"></div>
+        <div class="sync-success-icon"><i class="ti tabler-circle-check"></i></div>
+      </div>
+      <h2 id="syncSuccessTitle" class="text-gradient-success">Berhasil Dijadwalkan!</h2>
+      <p id="syncSuccessDescription" class="mt-2">Sinkronisasi data master telah dijadwalkan dan akan diproses di latar belakang. Anda dapat menutup halaman ini atau melanjutkan aktifitas lainnya.</p>
+    </div>
+    <div class="sync-confirm-modal__actions justify-content-center">
+      <button type="button" class="sync-confirm-modal__confirm-btn sync-confirm-modal__confirm-btn--success" onclick="closeSyncSuccessModal()">
+        Selesai
+      </button>
+    </div>
+  </div>
+</div>
+
 <style>
 /* CSS di bawah ini disalin dari index.blade.php agar konsisten */
 :root {
@@ -566,6 +586,57 @@ select.set-input { padding-right: 0.5rem; }
 }
 .sync-confirm-modal__confirm-btn:hover { background: #f0920a; }
 
+/* SUCCESS MODAL SPECIFIC */
+.sync-confirm-modal__content--success {
+  border-color: rgba(40, 199, 111, 0.3);
+  background: linear-gradient(180deg, var(--das-surface) 0%, rgba(40, 199, 111, 0.05) 100%);
+}
+.sync-success-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+.sync-success-icon-ring {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 2px solid rgba(40, 199, 111, 0.2);
+  animation: ringPulse 2s infinite;
+}
+@keyframes ringPulse {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+.sync-success-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--das-success);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  box-shadow: 0 0 20px rgba(40, 199, 111, 0.4);
+}
+.text-gradient-success {
+  background: linear-gradient(to right, #fff, #28c76f);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.sync-confirm-modal__confirm-btn--success {
+  background: var(--das-success);
+  color: #fff;
+  width: 100%;
+}
+.sync-confirm-modal__confirm-btn--success:hover {
+  background: #23ad60;
+  box-shadow: 0 8px 20px rgba(40, 199, 111, 0.3);
+}
+
 @media (max-width: 991px) {
   .set-layout { grid-template-columns: 1fr; }
   .set-sidebar { position: static; margin-bottom: 1rem; }
@@ -616,6 +687,22 @@ function closeSyncConfirmModal() {
   }
 }
 
+function openSyncSuccessModal() {
+  const modal = document.getElementById('syncSuccessModal');
+  if (modal) {
+    modal.hidden = false;
+    modal.style.pointerEvents = 'auto';
+  }
+}
+
+function closeSyncSuccessModal() {
+  const modal = document.getElementById('syncSuccessModal');
+  if (modal) {
+    modal.hidden = true;
+    modal.style.pointerEvents = 'none';
+  }
+}
+
 async function submitSyncNow() {
   const form = document.getElementById('syncNowForm');
   const btn = document.getElementById('syncConfirmButton');
@@ -642,8 +729,10 @@ async function submitSyncNow() {
     const result = await response.json();
 
     if (result.success) {
-      showDynamicToast('success', result.message);
       closeSyncConfirmModal();
+      setTimeout(() => {
+        openSyncSuccessModal();
+      }, 300);
     } else {
       showDynamicToast('danger', result.message || 'Terjadi kesalahan saat sinkronisasi.');
     }
@@ -682,12 +771,16 @@ function showDynamicToast(type, message) {
 }
 
 window.addEventListener('keydown', function (event) {
-  const modal = document.getElementById('syncConfirmModal');
-  if (!modal || modal.hidden) {
-    return;
-  }
+  const confirmModal = document.getElementById('syncConfirmModal');
+  const successModal = document.getElementById('syncSuccessModal');
+  
   if (event.key === 'Escape') {
-    closeSyncConfirmModal();
+    if (confirmModal && !confirmModal.hidden) {
+      closeSyncConfirmModal();
+    }
+    if (successModal && !successModal.hidden) {
+      closeSyncSuccessModal();
+    }
   }
 });
 </script>
