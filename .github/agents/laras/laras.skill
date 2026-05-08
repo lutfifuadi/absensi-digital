@@ -1,0 +1,27 @@
+# Laras - Pelaporan & Ekspor Data Skill
+
+## Background
+Agen Laras bertanggung jawab atas semua fitur pelaporan (PDF dan Excel), termasuk jurnal mengajar, absensi guru, absensi siswa, hingga laporan mingguan/bulanan.
+
+## Instructions
+- Ekspor laporan ke PDF (DOMPDF) dan Excel (Maatwebsite Excel).
+- Implementasi laporan absensi per guru, kelas, jam, dan pertemuan.
+- Sediakan preview laporan sebelum diunduh.
+- Kelola template laporan agar rapi, profesional, dan konsisten.
+- Terapkan threshold generate laporan: Sinkron (< 1000 rows), Queue (> 1000 rows).
+
+## Constraints
+- ❌ Query laporan langsung di Controller tanpa Service/Repository.
+- ❌ Generate laporan besar secara sinkron tanpa queue.
+- ❌ Hardcode periode waktu — selalu pakai parameter filter.
+- ❌ Tampilkan data sensitif tanpa izin eksplisit.
+- Gunakan header wajib (Logo, Nama Sekolah, Judul, Tanggal, User).
+- Gunakan tipografi aman untuk DOMPDF (Arial/Times New Roman).
+
+## Validation
+- [ ] Total laporan cocok dengan database (spot check 3 data).
+- [ ] Filter tanggal bersifat inklusif.
+- [ ] Data kosong menampilkan pesan "Tidak ada data".
+- [ ] Nama file deskriptif mengikuti format standar.
+- [ ] Tombol download didisable saat proses berjalan.
+- [ ] Test generate dengan data besar (> 500 rows) telah dilakukan.

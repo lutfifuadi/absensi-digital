@@ -1,0 +1,25 @@
+# Hendra - Mobile/PWA & Geolocation Engineer Skill
+
+## Background
+Agen Hendra bertanggung jawab atas semua fitur berbasis lokasi GPS, permission browser, notifikasi push, dan pengalaman PWA. Keamanan dan privasi data lokasi adalah prioritas utama.
+
+## Instructions
+- Implementasi GPS check-in & check-out berbasis browser Geolocation API.
+- Validasi lokasi terhadap radius sekolah (geofencing sederhana).
+- Kelola permission browser: `geolocation` dan `notifications`.
+- Tangani semua kasus permission ditolak dengan panduan yang jelas.
+- Pastikan pengalaman mobile-friendly dan PWA (manifest, service worker).
+
+## Constraints
+- ❌ Tracking lokasi kontinyu di background — hanya saat aksi check-in/out.
+- ❌ Simpan history koordinat detail lebih dari yang diperlukan.
+- ❌ Asumsikan GPS selalu akurat — selalu handle error dan timeout.
+- HTTPS wajib — Geolocation API tidak bekerja di HTTP.
+- Jangan simpan koordinat di localStorage (rentan XSS).
+
+## Validation
+- [ ] Alur Permission Standar diikuti (Penjelasan -> Minta Izin -> Handle Respons).
+- [ ] Error Handling GPS Wajib diimplementasikan (1, 2, 3).
+- [ ] Koordinat latitude, longitude, dan timestamp tersimpan dengan benar.
+- [ ] Service Worker Notification berfungsi untuk reminder checkout.
+- [ ] UI fallback tampil jika perangkat tidak mendukung GPS.

@@ -1,0 +1,147 @@
+============================================================
+  PETUNJUK INSTALASI - Sistem Absensi Digital
+  Repo : https://github.com/lutfifuadi/absensi-digital
+============================================================
+
+PRASYARAT SERVER
+----------------
+- PHP >= 8.2
+- Composer
+- Git
+- MySQL / MariaDB
+- Supervisor (untuk notifikasi WhatsApp)
+- curl & wget tersedia di server
+
+
+============================================================
+  ALUR DISTRIBUSI LISENSI (UNTUK KLIEN BARU)
+============================================================
+
+Mulai versi terbaru, distribusi menggunakan sistem lisensi:
+
+1. PEMBAYARAN & PERSIAPAN
+--------------------------
+  a. Klien melakukan pembayaran ke admin/penyedia layanan.
+  b. Admin konfirmasi pembayaran di panel Admin > Pembelian & Distribusi Lisensi.
+  c. Sistem otomatis:
+     - Generate license key unik (format: PRE-XXXX-XXXX-XXXX-XXXX)
+     - Kirim email ke klien berisi:
+       * License Key
+       * Link download ZIP aplikasi (berlaku 7 hari)
+       * Panduan instalasi
+
+2. DOWNLOAD APLIKASI
+---------------------
+  a. Buka email dari sistem, klik tombol "Unduh Aplikasi Absensi".
+  b. Simpan file ZIP ke komputer.
+  c. Upload ke server VPS di direktori web root:
+     cd /www/wwwroot/
+     mkdir presensi.sekolah.sch.id
+     # Upload ZIP via SFTP atau wget dari link download
+     unzip absensi-*.zip -d presensi.sekolah.sch.id/
+     cd presensi.sekolah.sch.id/
+
+3. JALANKAN SCRIPT INSTALASI
+-----------------------------
+  bash install.sh
+
+
+         Migrasi dilakukan via wizard browser pada langkah berikutnya.
+
+
+4. SELESAIKAN INSTALASI VIA BROWSER
+-------------------------------------
+Buka browser dan akses:
+  http://DOMAIN_KLIEN/install
+
+Ikuti wizard instalasi:
+  Step 1 → Cek requirements server
+  Step 2 → Aktivasi Lisensi & Nama Sekolah/Lembaga
+  Step 3 → Konfigurasi database (isi DB_HOST, DB_NAME, DB_USER, DB_PASS)
+  Step 4 → Profil Sekolah (Konfirmasi & detail tambahan)
+  Step 5 → Buat akun admin pertama
+          (Sistem otomatis memasukkan data lisensi & GitHub dari .env ke database)
+          → Selesai ✓
+
+Setelah wizard selesai, aplikasi siap digunakan.
+
+
+============================================================
+  SETUP QUEUE WORKER (JIKA BELUM OTOMATIS)
+============================================================
+
+Jika Supervisor tidak terdeteksi saat install.sh, jalankan manual:
+
+  bash setup-queue-worker.sh
+
+Wajib dilakukan agar fitur berikut berjalan:
+  - Notifikasi WhatsApp otomatis
+  - Sync master data background
+
+
+============================================================
+  UPDATE APLIKASI (KLIEN EXISTING)
+============================================================
+
+Jalankan script deploy untuk update rutin:
+
+  cd /www/wwwroot/NAMA_FOLDER
+  bash deploy.sh
+
+Script deploy.sh akan otomatis:
+  [1] Git pull kode terbaru dari branch main
+  [2] Composer install/update
+  [3] Download public/build versi terbaru dari GitHub Release
+  [4] Publish ulang Livewire assets
+  [5] Cek & buat storage symlink jika belum ada
+  [6] Jalankan migrasi database terbaru
+  [7] Clear & rebuild cache Laravel
+  [8] Set permission folder
+
+
+============================================================
+  ALUR DEVELOPER (RILIS VERSI BARU)
+============================================================
+
+Setiap ingin rilis versi baru ke semua klien:
+
+  1. Selesaikan coding & push ke branch main
+  2. Buat tag versi baru:
+       git tag v1.x.x
+       git push origin v1.x.x
+  3. GitHub Actions otomatis:
+       - Build frontend (npm run build)
+       - Paket lengkap dikemas sebagai absensi-siap-pakai.zip ke GitHub Release
+  4. Klien menjalankan: bash deploy.sh
+     (akan otomatis download absensi-siap-pakai.zip & ekstrak public/build/)
+
+
+============================================================
+  TROUBLESHOOTING
+============================================================
+
+Tampilan rusak / CSS tidak muncul
+  → Cek apakah public/build/ sudah ada
+  → Pastikan sudah ada release di GitHub dengan asset absensi-siap-pakai.zip
+  → Jalankan: bash deploy.sh
+
+Livewire tidak berjalan
+  → Jalankan: php artisan livewire:publish --assets --force
+
+File upload tidak bisa diakses
+  → Jalankan: php artisan storage:link
+
+Notifikasi WhatsApp tidak terkirim
+  → Cek status supervisor: supervisorctl status
+  → Jika belum setup: bash setup-queue-worker.sh
+
+Error 500 setelah update
+  → Jalankan: php artisan config:clear && php artisan cache:clear
+  → Cek log: tail -f storage/logs/laravel.log
+
+============================================================
+
+
+4. Troubleshooting Instalasi
+---------------------------
+Jika Anda mengalami kendala saat proses instalasi, cek log detail di: storage/logs/installer.log

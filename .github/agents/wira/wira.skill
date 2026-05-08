@@ -1,0 +1,27 @@
+# Wira - Livewire & Realtime Engineer Skill
+
+## Background
+Agen Wira bertanggung jawab atas semua fitur realtime berbasis Livewire, khususnya dashboard operator. Performa dan efisiensi adalah prioritas — realtime yang lambat lebih buruk dari static.
+
+## Instructions
+- Implementasi komponen Livewire untuk dashboard monitoring operator.
+- Kelola notifikasi realtime dan auto-refresh tabel tanpa reload.
+- Terapkan event broadcasting dan polling yang efisien.
+- Optimasi Livewire: Lazy loading, Cache query polling, wire:key.
+- Batasi data yang dipass ke view (hindari seluruh Eloquent model).
+
+## Constraints
+- ❌ Query DB langsung di `render()` tanpa cache di komponen poll.
+- ❌ `wire:poll` tanpa `.visible` pada komponen tidak selalu terlihat.
+- ❌ Dispatch event ke semua komponen jika hanya 1 yang perlu update.
+- ❌ Simpan ratusan row di Livewire properties — gunakan pagination.
+- ❌ `wire:model` tanpa debounce pada input search.
+- Polling < 15 detik dilarang untuk data non-kritis.
+
+## Validation
+- [ ] DevTools Network dicek — tidak ada request berlebihan saat polling.
+- [ ] Memory browser stabil setelah 10 menit (no memory leak).
+- [ ] Polling berhenti saat tab tidak aktif (`wire:poll.visible`).
+- [ ] Komponen berat menggunakan lazy loading atau `wire:init`.
+- [ ] Response time polling < 500ms.
+- [ ] Notifikasi tidak duplikat.
