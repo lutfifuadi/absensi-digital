@@ -863,30 +863,24 @@
 
             <div class="set-section-label">Konfigurasi Repositori</div>
 
-            <div class="alert alert-info mb-4" role="alert" style="background: rgba(0, 207, 232, 0.08); border: 1px solid rgba(0, 207, 232, 0.2); border-radius: 12px; color: #00cfe8;">
-              <div class="d-flex align-items-center gap-2">
-                <i class="ti tabler-shield-check fs-4"></i>
-                <strong>Konfigurasi GitHub</strong>
-              </div>
-              <p class="mt-2 mb-0 small">Sistem mendukung repositori publik dan privat. Untuk repositori privat, pastikan <code>GITHUB_TOKEN</code> sudah dikonfigurasi di file lingkungan (.env) server Anda untuk keamanan maksimal.</p>
-            </div>
+
             <div class="set-form-grid">
               <div class="set-field">
                 <label class="set-label">GitHub Username / Owner</label>
                 <div class="set-input-group">
                   <span class="set-input-prefix"><i class="ti tabler-user"></i></span>
-                  <input type="text" class="set-input" name="github_repo_owner"
+                  <input type="password" class="set-input" name="github_repo_owner"
                     value="{{ old('github_repo_owner', $settings['github_repo_owner'] ?? '') }}"
-                    placeholder="Contoh: lutfifuadi">
+                    placeholder="Contoh: lutfifuadi" disabled>
                 </div>
               </div>
               <div class="set-field">
                 <label class="set-label">GitHub Repository Name</label>
                 <div class="set-input-group">
                   <span class="set-input-prefix"><i class="ti tabler-brand-github"></i></span>
-                  <input type="text" class="set-input" name="github_repo_name"
+                  <input type="password" class="set-input" name="github_repo_name"
                     value="{{ old('github_repo_name', $settings['github_repo_name'] ?? '') }}"
-                    placeholder="Contoh: absensi-klien">
+                    placeholder="Contoh: absensi-klien" disabled>
                 </div>
               </div>
               <div class="set-field set-field--full">
@@ -895,7 +889,7 @@
                   <span class="set-input-prefix"><i class="ti tabler-hash"></i></span>
                   <input type="text" class="set-input font-monospace" name="app_version"
                     value="{{ old('app_version', $settings['app_version'] ?? '1.3.0') }}"
-                    placeholder="Contoh: 1.3.0">
+                    placeholder="Contoh: 1.3.0" disabled>
                 </div>
                 <div class="set-field-hint --info"><i class="ti tabler-info-circle"></i> Versi ini akan digunakan untuk membandingkan dengan rilisan terbaru di GitHub.</div>
               </div>
