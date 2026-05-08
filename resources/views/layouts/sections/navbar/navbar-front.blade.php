@@ -142,6 +142,14 @@ $namaSekolah = \App\Models\Pengaturan::where('key', 'nama_lembaga')->value('valu
             </ul>
           </div>
         @else
+          @php
+            $ijinkanRegister = \App\Models\Pengaturan::where('key', 'ijinkan_pembuatan_akun_mandiri')->value('value') === 'Ya';
+          @endphp
+          @if (\Illuminate\Support\Facades\Route::has('register') && $ijinkanRegister)
+            <a href="{{ route('register') }}" class="btn btn-sm btn-outline-primary rounded-pill fw-bold px-4 me-lg-2">
+              <i class="ti tabler-user-plus me-1"></i> Daftar
+            </a>
+          @endif
           <a href="{{ route('login') }}" class="btn btn-sm btn-primary rounded-pill fw-bold px-4 shadow-lg">
             <i class="ti tabler-login me-2"></i> Masuk
           </a>

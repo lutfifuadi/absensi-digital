@@ -57,9 +57,11 @@ class UpdateService
             }
 
             if ($response->failed()) {
+                $msg = 'Gagal terhubung ke GitHub: ' . ($response->json()['message'] ?? $response->body());
+                $this->saveSyncStatus(false, $msg);
                 return [
                     'status' => false, 
-                    'message' => 'Gagal terhubung ke GitHub: ' . ($response->json()['message'] ?? $response->body())
+                    'message' => $msg
                 ];
             }
 
@@ -83,6 +85,8 @@ class UpdateService
                 $this->clearUpdateInfo();
             }
 
+            $this->saveSyncStatus(true, 'Terhubung ke GitHub Release');
+
             return array_merge([
                 'status' => true,
                 'update_available' => $isUpdateAvailable,
@@ -90,8 +94,21 @@ class UpdateService
 
         } catch (\Exception $e) {
             Log::error('Update check error: ' . $e->getMessage());
+            $this->saveSyncStatus(false, 'Terjadi kesalahan: ' . $e->getMessage());
             return ['status' => false, 'message' => 'Terjadi kesalahan saat memeriksa update: ' . $e->getMessage()];
         }
+    }
+
+    private function saveSyncStatus(bool $status, ?string $message = null): void
+    {
+        Pengaturan::updateOrCreate(
+            ['key' => 'update_sync_status'],
+            ['value' => $status ? '1' : '0', 'group' => 'update']
+        );
+        Pengaturan::updateOrCreate(
+            ['key' => 'update_sync_message'],
+            ['value' => $message ?? ($status ? 'Sinkronisasi berhasil' : 'Sinkronisasi gagal'), 'group' => 'update']
+        );
     }
 
     private function saveUpdateInfo(array $data): void
@@ -110,16 +127,17 @@ class UpdateService
         Pengaturan::updateOrCreate(['key' => 'update_last_check'], ['value' => now()->toDateTimeString(), 'group' => 'update']);
     }
 
-    public function getCachedUpdateInfo(): ?array
+    public function getCachedUpdateInfo(): array
     {
-        $version = Pengaturan::where('key', 'update_available_version')->first();
-        if (!$version) return null;
-
+        $version = Pengaturan::where('key', 'update_available_version')->value('value');
+        
         return [
-            'latest_version' => $version->value,
+            'latest_version' => $version,
             'changelog' => Pengaturan::where('key', 'update_changelog')->value('value'),
             'package_url' => Pengaturan::where('key', 'update_package_url')->value('value'),
             'last_check' => Pengaturan::where('key', 'update_last_check')->value('value'),
+            'sync_status' => (bool) Pengaturan::where('key', 'update_sync_status')->value('value'),
+            'sync_message' => Pengaturan::where('key', 'update_sync_message')->value('value'),
         ];
     }
 

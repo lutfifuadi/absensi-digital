@@ -387,6 +387,7 @@
                   ['name'=>'izinkan_lokasi_absensi_mandiri', 'label'=>'Validasi Lokasi Siswa', 'sub'=>'Kunci absensi dalam radius sekolah', 'color'=>'primary', 'icon' => 'tabler-map-pin'],
                   ['name'=>'deteksi_fake_gps',               'label'=>'Anti Fake GPS',         'sub'=>'Deteksi & cegah mock-location',    'color'=>'danger', 'icon' => 'tabler-shield-x'],
                   ['name'=>'izinkan_lokasi_scan_qr',         'label'=>'Scanner Publik Lokasi',  'sub'=>'Minta GPS di laman QR publik',     'color'=>'success', 'icon' => 'tabler-qrcode'],
+                  ['name'=>'ijinkan_pembuatan_akun_mandiri', 'label'=>'Pendaftaran Akun Mandiri', 'sub'=>'Izinkan pengguna daftar akun sendiri di landing page', 'color'=>'info', 'icon' => 'tabler-user-plus'],
                   ['name'=>'izinkan_rfid',                   'label'=>'Perangkat RFID',         'sub'=>'Enable sensor tap card external',  'color'=>'info', 'icon' => 'tabler-wifi'],
                 ];
               @endphp

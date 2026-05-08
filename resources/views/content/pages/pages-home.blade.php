@@ -1008,9 +1008,14 @@
               <i class="ti tabler-layout-dashboard me-2"></i> Buka Dashboard Saya
             </a>
           @else
-            <a href="{{ route('register') }}" class="btn-primary-live">
-              Daftar Gratis Sekarang <i class="ti tabler-arrow-right ms-1"></i>
-            </a>
+            @php
+              $ijinkanRegister = \App\Models\Pengaturan::where('key', 'ijinkan_pembuatan_akun_mandiri')->value('value') === 'Ya';
+            @endphp
+            @if (\Illuminate\Support\Facades\Route::has('register') && $ijinkanRegister)
+              <a href="{{ route('register') }}" class="btn-primary-live">
+                Daftar Gratis Sekarang <i class="ti tabler-arrow-right ms-1"></i>
+              </a>
+            @endif
           @endif
           <a href="{{ route('public.live-board') }}" target="_blank" class="btn-ghost-live">
             <i class="ti tabler-device-tv"></i> Lihat Live Demo

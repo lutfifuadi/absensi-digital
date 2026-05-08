@@ -360,6 +360,22 @@
                   <span class="text-muted">Terakhir Dicek</span>
                   <span style="color: #ccc;">{{ $updateInfo['last_check'] ?? '-' }}</span>
                 </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="text-muted">Status Sinkronisasi</span>
+                  @if($updateInfo && isset($updateInfo['sync_status']))
+                    @if($updateInfo['sync_status'])
+                      <span class="badge bg-label-success d-flex align-items-center gap-1">
+                        <i class="ti tabler-circle-check fs-6"></i> Terhubung
+                      </span>
+                    @else
+                      <span class="badge bg-label-danger d-flex align-items-center gap-1" data-bs-toggle="tooltip" title="{{ $updateInfo['sync_message'] }}">
+                        <i class="ti tabler-circle-x fs-6"></i> Terputus
+                      </span>
+                    @endif
+                  @else
+                    <span class="text-muted">-</span>
+                  @endif
+                </div>
               </div>
               <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
               <button type="button" id="btn-check-update" class="btn btn-outline-primary w-100 update-btn das-btn das-btn--ghost">
@@ -386,6 +402,12 @@
             <div class="info-row justify-content-center mb-4">
               <i class="ti tabler-clock"></i>
               <span>Terakhir diperiksa: {{ $updateInfo['last_check'] ?? 'Baru saja' }}</span>
+              @if($updateInfo && isset($updateInfo['sync_status']))
+                <span class="ms-2 d-flex align-items-center gap-1 {{ $updateInfo['sync_status'] ? 'text-success' : 'text-danger' }}">
+                  <i class="ti {{ $updateInfo['sync_status'] ? 'tabler-circle-check' : 'tabler-circle-x' }} fs-6"></i>
+                  {{ $updateInfo['sync_status'] ? 'GitHub Sinkron' : 'Gagal Sinkron' }}
+                </span>
+              @endif
             </div>
             <button type="button" id="btn-check-update" class="btn btn-outline-primary update-btn das-btn das-btn--ghost">
               <i class="ti tabler-refresh"></i>
