@@ -126,9 +126,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
                 message: 'Please enter username'
               },
               stringLength: {
-                min: 6,
                 max: 30,
-                message: 'The name must be more than 6 and less than 30 characters long'
+                message: 'The name must be less than 30 characters long'
               },
               regexp: {
                 regexp: /^[a-zA-Z0-9 ]+$/,

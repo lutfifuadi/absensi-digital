@@ -1,4 +1,5 @@
 import './bootstrap';
+import 'animate.css';
 /*
   Add custom scripts here
 */

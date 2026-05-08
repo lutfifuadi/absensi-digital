@@ -15,10 +15,6 @@ document.addEventListener('DOMContentLoaded', function () {
             validators: {
               notEmpty: {
                 message: 'Please enter username'
-              },
-              stringLength: {
-                min: 6,
-                message: 'Username must be more than 6 characters'
               }
             }
           },
@@ -36,10 +32,6 @@ document.addEventListener('DOMContentLoaded', function () {
             validators: {
               notEmpty: {
                 message: 'Please enter email / username'
-              },
-              stringLength: {
-                min: 6,
-                message: 'Username must be more than 6 characters'
               }
             }
           },
