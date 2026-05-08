@@ -107,7 +107,47 @@
     }
     #perPageSelect option { background: #1a1a2e; color: #ccc; }
     #perPageSelect:focus { outline: none; box-shadow: none; }
+
+    /* SWEETALERT2 CUSTOM PREMIUM */
+    .das-swal-popup {
+      background: rgba(26, 26, 46, 0.95) !important;
+      backdrop-filter: blur(16px) saturate(180%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-radius: 20px !important;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    }
+    .das-swal-title {
+      color: #fff !important;
+      font-weight: 700 !important;
+      font-size: 1.5rem !important;
+    }
+    .das-swal-html {
+      color: rgba(255, 255, 255, 0.7) !important;
+      font-size: 0.95rem !important;
+    }
+    .das-swal-confirm {
+      padding: 10px 24px !important;
+      font-weight: 600 !important;
+      border-radius: 10px !important;
+      font-size: 0.875rem !important;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 12px rgba(234, 84, 85, 0.3) !important;
+    }
+    .das-swal-cancel {
+      padding: 10px 24px !important;
+      font-weight: 600 !important;
+      border-radius: 10px !important;
+      font-size: 0.875rem !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+      color: #fff !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    .das-swal-icon {
+      border-color: rgba(255,255,255,0.1) !important;
+    }
   </style>
+  @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
 @endsection
 
 @section('content')
@@ -226,15 +266,21 @@
           <h5 class="das-modal-title"><i class="ti tabler-trash me-2 text-danger"></i> Hapus Semua Siswa</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <form action="{{ route('admin.siswa.destroy-all') }}" method="POST">
+        <form id="deleteAllForm" action="{{ route('admin.siswa.destroy-all') }}" method="POST">
           @csrf
           @method('DELETE')
           <div class="das-modal-body">
             <p class="mb-3">Semua data siswa akan dihapus, termasuk data absensi siswa, absensi kegiatan, dan izin sakit. Tindakan ini tidak dapat dibatalkan.</p>
+            <div id="deleteAllProgress" class="d-none">
+              <div class="progress" style="height:8px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width:100%"></div>
+              </div>
+              <small class="text-white-50 mt-2 d-block">Menghapus data...</small>
+            </div>
           </div>
           <div class="d-flex justify-content-end gap-2 p-4 pt-0">
-            <button type="button" class="btn das-btn --secondary" data-bs-dismiss="modal">Batal</button>
-            <button type="submit" class="btn das-btn --danger">Hapus Semua</button>
+            <button type="button" class="btn das-btn --secondary" data-bs-dismiss="modal" id="deleteAllCancelBtn">Batal</button>
+            <button type="button" class="btn das-btn --danger" id="deleteAllSubmitBtn">Hapus Semua</button>
           </div>
         </form>
       </div>
@@ -283,6 +329,10 @@
     </div>
   </div>
 
+@endsection
+
+@section('vendor-script')
+  @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.js'])
 @endsection
 
 @section('page-script')
@@ -340,6 +390,216 @@
           fetchData(page);
         }
       });
+
+      // Individual delete AJAX handler (delegated, works after fetchData re-render)
+      container.addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn-hapus-siswa');
+        if (!btn) return;
+
+        const url = btn.dataset.url;
+        const nama = btn.dataset.nama || 'siswa ini';
+
+        Swal.fire({
+          title: 'Hapus Siswa?',
+          html: `<div class="mt-2">Data <b class="text-danger">"${nama}"</b> akan dihapus secara permanen beserta data absensinya.</div>`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, Hapus Data',
+          cancelButtonText: 'Batalkan',
+          customClass: {
+            popup: 'das-swal-popup',
+            title: 'das-swal-title',
+            htmlContainer: 'das-swal-html',
+            confirmButton: 'btn btn-danger das-swal-confirm me-2',
+            cancelButton: 'btn das-swal-cancel',
+            icon: 'das-swal-icon'
+          },
+          buttonsStyling: false,
+          showClass: { popup: 'animate__animated animate__fadeInUp animate__faster' },
+          hideClass: { popup: 'animate__animated animate__fadeOutDown animate__faster' },
+          background: 'transparent',
+          backdrop: `rgba(0,0,10,0.4)`,
+        }).then((result) => {
+          if (!result.isConfirmed) return;
+
+          btn.disabled = true;
+
+          fetch(url, {
+            method: 'DELETE',
+            headers: {
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json',
+            }
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: data.message || 'Siswa berhasil dihapus.',
+                customClass: {
+                  popup: 'das-swal-popup',
+                  title: 'das-swal-title',
+                  htmlContainer: 'das-swal-html',
+                  confirmButton: 'btn btn-success das-swal-confirm'
+                },
+                timer: 2000,
+                showConfirmButton: false,
+                background: 'transparent',
+              });
+              fetchData(1);
+            } else {
+              btn.disabled = false;
+              Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: data.message || 'Terjadi kesalahan.',
+                customClass: {
+                  popup: 'das-swal-popup',
+                  title: 'das-swal-title',
+                  htmlContainer: 'das-swal-html',
+                  confirmButton: 'btn btn-primary das-swal-confirm'
+                },
+                showClass: { popup: 'animate__animated animate__shakeX animate__faster' },
+                hideClass: { popup: 'animate__animated animate__fadeOut animate__faster' },
+                background: 'transparent',
+                buttonsStyling: false
+              });
+            }
+          })
+          .catch(err => {
+            btn.disabled = false;
+            console.error('Delete siswa error:', err);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: 'Terjadi kesalahan koneksi.',
+              customClass: {
+                popup: 'das-swal-popup',
+                title: 'das-swal-title',
+                htmlContainer: 'das-swal-html',
+                confirmButton: 'btn btn-primary das-swal-confirm'
+              },
+              showClass: { popup: 'animate__animated animate__shakeX animate__faster' },
+              hideClass: { popup: 'animate__animated animate__fadeOut animate__faster' },
+              background: 'transparent',
+              buttonsStyling: false
+            });
+          });
+        });
+      });
+
+
+      const deleteAllSubmitBtn = document.getElementById('deleteAllSubmitBtn');
+      const deleteAllCancelBtn = document.getElementById('deleteAllCancelBtn');
+      const deleteAllProgress = document.getElementById('deleteAllProgress');
+      const deleteAllForm = document.getElementById('deleteAllForm');
+
+      if (deleteAllSubmitBtn && deleteAllForm) {
+        deleteAllSubmitBtn.addEventListener('click', function() {
+          deleteAllSubmitBtn.disabled = true;
+          if (deleteAllCancelBtn) deleteAllCancelBtn.disabled = true;
+          if (deleteAllProgress) deleteAllProgress.classList.remove('d-none');
+
+          const formData = new FormData(deleteAllForm);
+
+          fetch(deleteAllForm.action, {
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json',
+            },
+            body: formData
+          })
+          .then(res => res.json())
+          .then(data => {
+            const modalEl = document.getElementById('deleteAllModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            if (data.success) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: data.message || 'Data siswa telah dihapus.',
+                customClass: {
+                  popup: 'das-swal-popup',
+                  title: 'das-swal-title',
+                  htmlContainer: 'das-swal-html',
+                  confirmButton: 'btn btn-success das-swal-confirm'
+                },
+                showClass: { popup: 'animate__animated animate__zoomIn animate__faster' },
+                hideClass: { popup: 'animate__animated animate__zoomOut animate__faster' },
+                background: 'transparent',
+                buttonsStyling: false
+              });
+              fetchData(1);
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: data.message || 'Terjadi kesalahan.',
+                customClass: {
+                  popup: 'das-swal-popup',
+                  title: 'das-swal-title',
+                  htmlContainer: 'das-swal-html',
+                  confirmButton: 'btn btn-primary das-swal-confirm'
+                },
+                showClass: { popup: 'animate__animated animate__shakeX animate__faster' },
+                hideClass: { popup: 'animate__animated animate__fadeOut animate__faster' },
+                background: 'transparent',
+                buttonsStyling: false
+              });
+            }
+          })
+          .catch(err => {
+            console.error('Delete all error:', err);
+            const modalEl = document.getElementById('deleteAllModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: 'Terjadi kesalahan koneksi.',
+              customClass: {
+                popup: 'das-swal-popup',
+                title: 'das-swal-title',
+                htmlContainer: 'das-swal-html',
+                confirmButton: 'btn btn-primary das-swal-confirm'
+              },
+              showClass: { popup: 'animate__animated animate__shakeX animate__faster' },
+              hideClass: { popup: 'animate__animated animate__fadeOut animate__faster' },
+              background: 'transparent',
+              buttonsStyling: false
+            });
+          })
+          .finally(() => {
+            deleteAllSubmitBtn.disabled = false;
+            if (deleteAllCancelBtn) deleteAllCancelBtn.disabled = false;
+            if (deleteAllProgress) deleteAllProgress.classList.add('d-none');
+          });
+        });
+      }
+
+      // Toast helper (deprecated in favor of Swal, but keeping for compatibility)
+      function showToast(type, message) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          icon: type === 'success' ? 'success' : 'error',
+          title: message,
+          customClass: {
+            popup: 'das-swal-popup border-0 shadow-lg',
+            title: 'das-swal-title fs-6',
+          },
+          background: 'rgba(26, 26, 46, 0.9)',
+        });
+      }
 
       // initial tooltips
       const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));

@@ -60,12 +60,14 @@
               <a href="{{ route('admin.siswa.edit', $item) }}" class="action-btn text-warning" title="Ubah" data-bs-toggle="tooltip">
                 <i class="ti tabler-pencil fs-5"></i>
               </a>
-              <form action="{{ route('admin.siswa.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus siswa ini?');">
-                @csrf @method('DELETE')
-                <button type="submit" class="action-btn text-danger" title="Hapus" data-bs-toggle="tooltip">
-                  <i class="ti tabler-trash fs-5"></i>
-                </button>
-              </form>
+              <button type="button"
+                class="action-btn text-danger btn-hapus-siswa"
+                title="Hapus"
+                data-bs-toggle="tooltip"
+                data-url="{{ route('admin.siswa.destroy', $item) }}"
+                data-nama="{{ $item->nama_lengkap }}">
+                <i class="ti tabler-trash fs-5"></i>
+              </button>
             </div>
           </td>
         </tr>

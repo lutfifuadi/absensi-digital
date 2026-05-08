@@ -262,45 +262,89 @@ class SiswaController extends Controller
         return redirect()->route('admin.siswa.index')->with('success', 'Siswa berhasil diperbarui.');
     }
 
-    public function destroyAll()
+    public function destroyAll(Request $request)
     {
-        ActivityLog::record('delete', 'siswa', 'Hapus semua siswa dan data terkait', null, null);
+        try {
+            $deletedCount = 0;
+            $deletedUserIds = [];
+            $tahunAkademikId = session('tahun_akademik_id');
 
-        Siswa::with('user')->chunkById(100, function ($siswaBatch) {
-            foreach ($siswaBatch as $siswa) {
-                $user = $siswa->user;
-                $siswa->delete();
-
-                if ($user) {
-                    $user->delete();
-                }
+            $query = Siswa::with('user');
+            if ($tahunAkademikId) {
+                $query->where('tahun_akademik_id', $tahunAkademikId);
             }
-        });
 
-        // Hapus akun user siswa yang mungkin sudah tidak punya entitas Siswa terkait
-        User::where('role', User::ROLE_SISWA)
-            ->whereDoesntHave('siswa')
-            ->chunkById(100, function ($users) {
-                foreach ($users as $user) {
-                    $user->delete();
+            $query->chunkById(100, function ($siswaBatch) use (&$deletedCount, &$deletedUserIds) {
+                foreach ($siswaBatch as $siswa) {
+                    $user = $siswa->user;
+                    $siswa->delete(); // This triggers Siswa model observers (absensi, etc.)
+                    $deletedCount++;
+
+                    if ($user) {
+                        $deletedUserIds[] = $user->id;
+                        $user->delete();
+                    }
                 }
             });
 
-        // Reset auto increment tabel siswa kembali ke 1 setelah semua data dihapus
-        DB::statement('ALTER TABLE siswa AUTO_INCREMENT = 1');
+            // Optional: Hapus akun user siswa yang mungkin sudah tidak punya entitas Siswa terkait
+            // Hanya lakukan jika tidak memfilter per tahun akademik, atau sesuaikan logikanya
+            if (!$tahunAkademikId) {
+                User::where('role', User::ROLE_SISWA)
+                    ->whereDoesntHave('siswa')
+                    ->chunkById(100, function ($users) {
+                        foreach ($users as $user) {
+                            $user->delete();
+                        }
+                    });
+                
+                // Reset auto increment hanya jika benar-benar menghapus SEMUA (tanpa filter)
+                DB::statement('ALTER TABLE siswa AUTO_INCREMENT = 1');
+            }
 
-        return redirect()->route('admin.siswa.index')->with('success', 'Semua data siswa berhasil dihapus dan auto increment siswa di-reset ke 1.');
+            $userCount = count($deletedUserIds);
+            ActivityLog::record('delete', 'siswa', "Hapus semua siswa ({$deletedCount} siswa, {$userCount} user)", null, ['count' => $deletedCount]);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Berhasil menghapus {$deletedCount} siswa.",
+                ]);
+            }
+
+            return redirect()->route('admin.siswa.index')->with('success', "Berhasil menghapus {$deletedCount} siswa.");
+        } catch (\Throwable $e) {
+            \Log::error('Error di destroyAll siswa: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 
-    public function destroy(Siswa $siswa)
+    public function destroy(Request $request, Siswa $siswa)
     {
         $user = $siswa->user;
+        $nama = $siswa->nama_lengkap;
+        $nis = $siswa->nis;
 
-        ActivityLog::record('delete', 'siswa', "Hapus siswa: {$siswa->nama_lengkap} (NIS: {$siswa->nis})", $siswa->toArray(), null);
+        ActivityLog::record('delete', 'siswa', "Hapus siswa: {$nama} (NIS: {$nis})", $siswa->toArray(), null);
         $siswa->delete();
 
         if ($user) {
             $user->delete();
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Siswa {$nama} berhasil dihapus.",
+            ]);
         }
 
         return redirect()->route('admin.siswa.index')->with('success', 'Siswa berhasil dihapus.');

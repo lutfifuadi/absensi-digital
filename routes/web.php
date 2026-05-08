@@ -301,13 +301,13 @@ Route::middleware([
           ->except(['show'])
           ->middleware('role:super_admin,admin_sekolah,operator');
 
+      Route::delete('siswa-destroy-all', [SiswaController::class, 'destroyAll'])
+          ->name('admin.siswa.destroy-all')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+
       Route::resource('siswa', SiswaController::class)
           ->names('admin.siswa')
           ->except(['show'])
-          ->middleware('role:super_admin,admin_sekolah,operator');
-
-      Route::delete('siswa/delete-all', [SiswaController::class, 'destroyAll'])
-          ->name('admin.siswa.destroy-all')
           ->middleware('role:super_admin,admin_sekolah,operator');
 
       Route::get('siswa/import', [SiswaController::class, 'import'])
