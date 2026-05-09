@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.7] - 2026-05-09
+### Added
+- **Fungsi Export Siswa**: Menambahkan fitur untuk mengunduh data siswa ke dalam format **Excel (.xlsx)** dan **CSV (.csv)** langsung dari halaman daftar siswa.
+- **Filter Pintar pada Export**: Sistem export secara otomatis menyesuaikan data yang diunduh dengan filter pencarian dan periode Tahun Ajaran yang sedang aktif di layar pengguna.
+- **Antarmuka Premium**: Penambahan tombol dropdown Export yang elegan dengan desain glassmorphism, memberikan pengalaman pengguna yang lebih premium dan fungsional.
+
+### Fixed
+- Optimasi struktur export menggunakan library `maatwebsite/excel` untuk memastikan performa yang cepat dan penggunaan memori yang efisien saat menangani data dalam jumlah besar.
+
 ## [1.0.6] - 2026-05-09
 ### 🌟 Peningkatan Pengalaman Pengguna
 - **Penyelarasan Istilah**: Kami telah mengubah sebutan "Tahun Akademik" menjadi **"Tahun Ajaran"** di seluruh bagian aplikasi agar lebih familiar dan sesuai dengan kebiasaan di lingkungan sekolah.

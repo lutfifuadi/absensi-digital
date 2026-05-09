@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\SiswaExport;
 use App\Http\Controllers\Controller;
 use App\Imports\SiswaImport;
 use App\Models\ActivityLog;
@@ -144,6 +145,21 @@ class SiswaController extends Controller
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Import gagal: ' . $th->getMessage());
         }
+    }
+
+    public function export(Request $request)
+    {
+        $search = $request->query('search');
+        $tahunAjaranId = session('tahun_ajaran_id');
+        $format = $request->query('format', 'xlsx');
+
+        $filename = 'data_siswa_' . now()->format('Y-m-d_H-i-s');
+
+        if ($format === 'csv') {
+            return Excel::download(new SiswaExport($search, $tahunAjaranId), $filename . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        }
+
+        return Excel::download(new SiswaExport($search, $tahunAjaranId), $filename . '.xlsx');
     }
 
     public function downloadSample()

@@ -196,6 +196,25 @@
         <button type="button" class="btn das-btn --secondary" data-bs-toggle="modal" data-bs-target="#importModal">
           <i class="ti tabler-file-import me-1"></i> Import
         </button>
+        <div class="btn-group">
+          <button type="button" class="btn das-btn --success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="ti tabler-download me-1"></i> Export
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end das-modal border-0 shadow-lg" style="min-width: 200px;">
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 text-white-50 hover-bg-primary-light" href="javascript:void(0)" id="exportExcelBtn">
+                <i class="ti tabler-file-spreadsheet text-success fs-4"></i>
+                <span>Export Excel (.xlsx)</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 text-white-50 hover-bg-primary-light" href="javascript:void(0)" id="exportCsvBtn">
+                <i class="ti tabler-file-type-csv text-info fs-4"></i>
+                <span>Export CSV (.csv)</span>
+              </a>
+            </li>
+          </ul>
+        </div>
         <a href="{{ route('admin.siswa.cetak-qr') }}" class="btn das-btn --info">
           <i class="ti tabler-qrcode me-1"></i> Cetak QR
         </a>
@@ -625,6 +644,23 @@
             if (deleteAllProgress) deleteAllProgress.classList.add('d-none');
           });
         });
+      }
+
+      // Export handlers
+      const exportExcelBtn = document.getElementById('exportExcelBtn');
+      const exportCsvBtn = document.getElementById('exportCsvBtn');
+
+      function handleExport(format) {
+        const search = encodeURIComponent(searchInput.value || '');
+        const url = `{{ route('admin.siswa.export') }}?format=${format}&search=${search}`;
+        window.location.href = url;
+      }
+
+      if (exportExcelBtn) {
+        exportExcelBtn.addEventListener('click', () => handleExport('xlsx'));
+      }
+      if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', () => handleExport('csv'));
       }
 
       // initial tooltips

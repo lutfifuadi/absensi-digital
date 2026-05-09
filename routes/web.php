@@ -305,6 +305,10 @@ Route::middleware([
           ->name('admin.siswa.destroy-all')
           ->middleware('role:super_admin,admin_sekolah,operator');
 
+      Route::get('siswa/export', [SiswaController::class, 'export'])
+          ->name('admin.siswa.export')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+
       Route::resource('siswa', SiswaController::class)
           ->names('admin.siswa')
           ->except(['show'])
