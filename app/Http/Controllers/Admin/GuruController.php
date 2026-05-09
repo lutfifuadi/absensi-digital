@@ -10,6 +10,10 @@ use App\Support\QrCodeGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use App\Exports\GuruExport;
+use App\Imports\GuruImport;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Validators\ValidationException as ExcelValidationException;
 use Illuminate\Validation\Rule;
 
 class GuruController extends Controller
@@ -210,5 +214,78 @@ class GuruController extends Controller
         return \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'entities'))
                   ->setPaper([0, 0, $config['canvas']['width'], $config['canvas']['height']])
                   ->download("kartu-identitas-{$guru->nip}.pdf");
+    }
+    public function importStore(Request $request)
+    {
+        $request->validate([
+            'import_file' => 'required|file|mimes:xlsx,xls,csv',
+        ]);
+
+        try {
+            Excel::import(new GuruImport(), $request->file('import_file'));
+
+            return redirect()->route('admin.guru.index')->with('success', 'Data guru berhasil diimpor dari Excel.');
+        } catch (ExcelValidationException $exception) {
+            $failures = $exception->failures();
+
+            $messages = collect($failures)->map(function ($failure) {
+                $row = $failure->row();
+                $attribute = $failure->attribute();
+                $errors = implode(', ', $failure->errors());
+
+                return "Baris {$row}: {$attribute} - {$errors}";
+            })->implode(' | ');
+
+            return redirect()->back()->with('error', 'Import gagal: ' . $messages);
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Import gagal: ' . $th->getMessage());
+        }
+    }
+
+    public function export(Request $request)
+    {
+        $search = $request->query('search');
+        $filename = 'data_guru_' . now()->format('Y-m-d_H-i-s');
+
+        return Excel::download(new GuruExport($search), $filename . '.xlsx');
+    }
+
+    public function downloadSample()
+    {
+        $headers = [
+            'nip',
+            'nama_lengkap',
+            'jenis_kelamin',
+            'mata_pelajaran',
+            'jabatan',
+            'no_hp',
+            'status'
+        ];
+
+        $callback = function () use ($headers) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $headers);
+            
+            // Add a sample row
+            fputcsv($file, [
+                '197001012000011001',
+                'Ahmad Guru Sampel, S.Pd',
+                'L',
+                'Matematika',
+                'Guru Madya',
+                '08123456789',
+                'aktif'
+            ]);
+            
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=sampel_import_guru.csv",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ]);
     }
 }

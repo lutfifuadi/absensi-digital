@@ -62,6 +62,22 @@
       </div>
 
       <div class="das-hero__actions">
+        <button type="button" class="btn das-btn --secondary" data-bs-toggle="modal" data-bs-target="#importModal">
+          <i class="ti tabler-file-import me-1"></i> Import
+        </button>
+        <div class="btn-group">
+          <button type="button" class="btn das-btn --success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="ti tabler-download me-1"></i> Export
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end das-modal border-0 shadow-lg" style="min-width: 200px;">
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 py-2 px-3 text-white-50 hover-bg-primary-light" href="{{ route('admin.guru.export') }}">
+                <i class="ti tabler-file-spreadsheet text-success fs-4"></i>
+                <span>Export Excel (.xlsx)</span>
+              </a>
+            </li>
+          </ul>
+        </div>
         <a href="{{ route('admin.guru.cetak-qr') }}" class="btn das-btn --info">
           <i class="ti tabler-qrcode me-1"></i> Cetak QR Massal
         </a>
@@ -83,13 +99,19 @@
   @endif
 
   {{-- TABLE CARD --}}
-  <div class="das-panel">
-    <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between"
+    <div class="das-panel">
+    <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3"
       style="border-color:rgba(255,255,255,0.08) !important;">
       <h6 class="das-panel__title mb-0 d-flex align-items-center gap-2">
         <i class="ti tabler-list text-info"></i> Daftar Guru
       </h6>
-      <span class="das-chip --info">{{ count($guruUsers) }} Guru</span>
+      <div class="d-flex align-items-center gap-3">
+        <div class="position-relative" style="max-width:300px;">
+          <i class="ti tabler-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size:0.85rem; pointer-events:none;"></i>
+          <input type="text" id="searchInput" class="form-control border-0 text-white" placeholder="Cari nama, NIP, atau mapel..." style="background: rgba(255,255,255,0.05); height:38px; padding-left:2.2rem; font-size:0.85rem;">
+        </div>
+        <span class="das-chip --info">{{ count($guruUsers) }} Guru</span>
+      </div>
     </div>
     <div class="das-panel__body p-0">
       <div class="table-responsive">
@@ -210,15 +232,72 @@
     </div>
   </div>
 
+  <!-- Modal Import -->
+  <div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content das-modal shadow-lg">
+        <div class="das-modal-head d-flex align-items-center justify-content-between">
+          <h5 class="das-modal-title"><i class="ti tabler-file-import me-2 text-info"></i>Import Data Guru</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{{ route('admin.guru.import.store') }}" method="POST" enctype="multipart/form-data">
+          @csrf
+          <div class="das-modal-body">
+            <div class="mb-4">
+              <label class="form-label text-white-50" for="import_file">Pilih File Excel / CSV</label>
+              <input id="import_file" name="import_file" type="file" class="form-control bg-dark border-secondary text-white" accept=".xlsx,.xls,.csv" required>
+              <div class="form-text text-white-50 small mt-2">Gunakan format file Excel (.xlsx) atau CSV yang sesuai.</div>
+            </div>
+            
+            <div class="alert alert-info border-0 shadow-sm" style="background: rgba(0, 207, 232, 0.1); border-radius: 8px;">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <p class="mb-0 fw-bold text-info small"><i class="ti tabler-info-circle me-1"></i>Format Kolom:</p>
+                <a href="{{ route('admin.guru.download-sample') }}" class="btn btn-sm btn-label-info py-0 px-2" style="font-size: 0.65rem;">
+                   <i class="ti tabler-download me-1"></i> Download Sampel
+                </a>
+              </div>
+              <div class="d-flex flex-wrap gap-2">
+                @foreach (['nip', 'nama_lengkap', 'jenis_kelamin', 'mata_pelajaran', 'jabatan', 'no_hp', 'status'] as $col)
+                  <span class="badge bg-label-info" style="font-size: 0.65rem;">{{ $col }}</span>
+                @endforeach
+              </div>
+            </div>
+          </div>
+          <div class="px-4 pb-4 pt-2 d-flex gap-2">
+            <button type="button" class="btn btn-label-secondary w-100" data-bs-dismiss="modal">Batal</button>
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="ti tabler-upload me-1"></i> Mulai Import
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
 @endsection
 
 @section('page-script')
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      // Tooltips
       const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
       tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
       });
+
+      // Simple Search Filter
+      const searchInput = document.getElementById('searchInput');
+      const tableRows = document.querySelectorAll('.guru-row-hover');
+
+      if (searchInput) {
+        searchInput.addEventListener('input', function() {
+          const query = this.value.toLowerCase();
+          tableRows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+          });
+        });
+      }
     });
   </script>
 @endsection

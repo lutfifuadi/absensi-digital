@@ -265,6 +265,18 @@ Route::middleware([
           ->name('admin.guru.generate-qr')
           ->middleware('role:super_admin,admin_sekolah,operator');
 
+      Route::get('guru/export', [GuruController::class, 'export'])
+          ->name('admin.guru.export')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+
+      Route::post('guru/import', [GuruController::class, 'importStore'])
+          ->name('admin.guru.import.store')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+
+      Route::get('guru/download-sample', [GuruController::class, 'downloadSample'])
+          ->name('admin.guru.download-sample')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+
       Route::resource('guru', GuruController::class)
           ->names('admin.guru')
           ->except(['show'])
