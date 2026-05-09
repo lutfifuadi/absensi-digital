@@ -56,6 +56,9 @@
                 <button id="start-cam-btn" type="button" class="btn btn-primary fw-semibold">
                   <i class="ti tabler-camera me-1"></i> Aktifkan Kamera
                 </button>
+                <button id="switch-cam-btn" type="button" class="btn btn-label-primary fw-semibold d-none">
+                  <i class="ti tabler-camera-rotate me-1"></i> Ganti Kamera
+                </button>
               </div>
             </div>
           </div>
@@ -146,6 +149,7 @@
     let stream = null;
     let animFrame = null;
     let submitted = false;
+    let currentFacingMode = 'environment';
     const DEBOUNCE = 3000;
     let lastQR = '',
       lastQRTime = 0;
@@ -171,6 +175,61 @@
       if (animFrame) {
         cancelAnimationFrame(animFrame);
         animFrame = null;
+      }
+    }
+
+    // ── Camera logic ──────────────────────────────────────────────
+    async function startCamera(facingMode = 'environment') {
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+      }
+
+      try {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: {
+                ideal: facingMode
+              },
+              width: {
+                ideal: 1280
+              },
+              height: {
+                ideal: 720
+              }
+            }
+          });
+        } catch (_) {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true
+          });
+        }
+
+        video.srcObject = stream;
+        await video.play();
+
+        const btn = document.getElementById('start-cam-btn');
+        btn.innerHTML = '<i class="ti tabler-camera me-1"></i> Kamera Aktif';
+        document.getElementById('switch-cam-btn').classList.remove('d-none');
+        readerEl.style.display = 'block';
+        statusEl.textContent = 'Mendeteksi QR code...';
+        
+        if (!animFrame) animFrame = requestAnimationFrame(tick);
+        return true;
+
+      } catch (err) {
+        let msg = 'Tidak dapat memulai kamera. ';
+        if (['NotAllowedError', 'PermissionDeniedError'].includes(err.name)) {
+          msg += 'Izin kamera ditolak. Buka pengaturan browser dan izinkan akses kamera.';
+        } else if (['NotFoundError', 'DevicesNotFoundError'].includes(err.name)) {
+          msg += 'Kamera tidak ditemukan di perangkat ini.';
+        } else if (err.name === 'NotReadableError') {
+          msg += 'Kamera sedang dipakai aplikasi lain. Tutup aplikasi lain dan coba lagi.';
+        } else {
+          msg += err.message;
+        }
+        showError(msg);
+        return false;
       }
     }
 
@@ -202,55 +261,25 @@
       animFrame = requestAnimationFrame(tick);
     }
 
-    // ── Aktifkan kamera ───────────────────────────────────────────
+    // ── Event listeners ───────────────────────────────────────────
     document.getElementById('start-cam-btn').addEventListener('click', async function() {
       this.disabled = true;
       this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Memulai...';
       alertEl.classList.add('d-none');
+      await startCamera(currentFacingMode);
+    });
 
-      try {
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-              facingMode: {
-                ideal: 'environment'
-              },
-              width: {
-                ideal: 1280
-              },
-              height: {
-                ideal: 720
-              }
-            }
-          });
-        } catch (_) {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: true
-          });
-        }
+    document.getElementById('switch-cam-btn').addEventListener('click', async function() {
+      currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+      const btn = this;
+      const icon = btn.querySelector('i');
+      icon.className = 'ti tabler-refresh spin me-1';
+      btn.disabled = true;
 
-        video.srcObject = stream;
-        await video.play();
+      await startCamera(currentFacingMode);
 
-        const btn = document.getElementById('start-cam-btn');
-        btn.innerHTML = '<i class="ti tabler-camera me-1"></i> Kamera Aktif';
-        readerEl.style.display = 'block';
-        statusEl.textContent = 'Mendeteksi QR code...';
-        animFrame = requestAnimationFrame(tick);
-
-      } catch (err) {
-        let msg = 'Tidak dapat memulai kamera. ';
-        if (['NotAllowedError', 'PermissionDeniedError'].includes(err.name)) {
-          msg += 'Izin kamera ditolak. Buka pengaturan browser dan izinkan akses kamera.';
-        } else if (['NotFoundError', 'DevicesNotFoundError'].includes(err.name)) {
-          msg += 'Kamera tidak ditemukan di perangkat ini.';
-        } else if (err.name === 'NotReadableError') {
-          msg += 'Kamera sedang dipakai aplikasi lain. Tutup aplikasi lain dan coba lagi.';
-        } else {
-          msg += err.message;
-        }
-        showError(msg);
-      }
+      icon.className = 'ti tabler-camera-rotate me-1';
+      btn.disabled = false;
     });
 
     // ── Pause saat tab tersembunyi ────────────────────────────────

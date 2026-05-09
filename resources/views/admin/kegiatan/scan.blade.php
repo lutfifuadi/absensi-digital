@@ -104,7 +104,12 @@
           <h6 class="das-panel__title mb-0 d-flex align-items-center gap-2">
             <i class="ti tabler-camera text-info"></i> Kamera Scanner
           </h6>
-          <span class="das-chip --primary">Live Mode</span>
+          <div class="d-flex align-items-center gap-2">
+            <button id="switch-cam-btn" class="das-chip --secondary d-none border-0 cursor-pointer" title="Ganti Kamera">
+              <i class="ti tabler-camera-rotate"></i>
+            </button>
+            <span class="das-chip --primary">Live Mode</span>
+          </div>
         </div>
         <div class="das-panel__body p-4 text-center">
           <div id="reader" class="mb-3 d-none rounded border border-info border-opacity-25 overflow-hidden shadow"></div>
@@ -156,12 +161,13 @@
 @section('page-script')
 <script>
     let html5QrCode;
-    const kegiatanSelect = document.getElementById('kegiatan_id');
     const readerDiv = document.getElementById('reader');
     const placeholder = document.getElementById('scanner-placeholder');
     const errorMsg = document.getElementById('kegiatan-error');
+    const switchBtn = document.getElementById('switch-cam-btn');
     
     let isProcessing = false;
+    let currentFacingMode = "environment";
 
     kegiatanSelect.addEventListener('change', function() {
         if (this.value) {
@@ -175,6 +181,7 @@
     function startScanner() {
         readerDiv.classList.remove('d-none');
         placeholder.classList.add('d-none');
+        switchBtn.classList.remove('d-none');
         
         if (!html5QrCode) {
             html5QrCode = new Html5Qrcode("reader");
@@ -182,7 +189,7 @@
 
         const config = { fps: 15, qrbox: { width: 280, height: 280 } };
         
-        html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+        html5QrCode.start({ facingMode: currentFacingMode }, config, onScanSuccess)
             .catch(err => {
                 console.error("Gagal start scanner:", err);
                 Swal.fire({
@@ -196,6 +203,15 @@
         
         readerDiv.classList.add('scanner-active');
     }
+
+    switchBtn.addEventListener('click', function() {
+        currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+        if (html5QrCode && html5QrCode.isScanning) {
+            html5QrCode.stop().then(() => {
+                startScanner();
+            });
+        }
+    });
 
     function stopScanner() {
         if (html5QrCode && html5QrCode.isScanning) {

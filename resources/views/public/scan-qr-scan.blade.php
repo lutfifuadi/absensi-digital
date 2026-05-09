@@ -189,6 +189,28 @@
     .btn-start:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 15px 35px rgba(115, 103, 240, 0.5); }
     .btn-start:active { transform: translateY(0) scale(0.98); }
 
+    .btn-switch {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--das-border-color);
+      color: white;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      cursor: pointer;
+      z-index: 40;
+      transition: all 0.2s;
+    }
+    .btn-switch:hover { background: var(--das-primary); border-color: var(--das-primary); }
+    .btn-switch.active { display: flex; }
+
     /* Result Toast */
     .result-toast {
       position: absolute;
@@ -308,6 +330,10 @@
   <div class="camera-panel">
     <video id="video" playsinline muted autoplay></video>
     <canvas id="canvas-hidden" style="display:none;"></canvas>
+
+    <button class="btn-switch" id="switch-btn" title="Ganti Kamera">
+      <i class="ti tabler-camera-rotate"></i>
+    </button>
 
     <!-- Scan crosshair (shown when cam active) -->
     <div class="scan-crosshair" id="scan-crosshair">
@@ -614,23 +640,26 @@
   // ── Camera vars ──
   let stream = null, animFrame = null, isProcessing = false;
   let lastQR = '', lastQRTime = 0;
+  let currentFacingMode = 'environment';
 
   const video       = document.getElementById('video');
   const canvas      = document.getElementById('canvas-hidden');
   const ctx         = canvas.getContext('2d', { willReadFrequently: true });
   const idleScreen  = document.getElementById('idle-screen');
   const startBtn    = document.getElementById('start-btn');
+  const switchBtn   = document.getElementById('switch-btn');
   const crosshair   = document.getElementById('scan-crosshair');
   const errorBox    = document.getElementById('error-box');
 
-  startBtn.addEventListener('click', async () => {
-    startBtn.disabled = true;
-    startBtn.innerHTML = '⏳ Memulai...';
-    errorBox.style.display = 'none';
+  async function startCamera(facingMode = 'environment') {
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+    }
+    
     try {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+          video: { facingMode: { ideal: facingMode }, width: { ideal: 1280 }, height: { ideal: 720 } }
         });
       } catch(_) {
         stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -642,19 +671,44 @@
       idleScreen.style.display = 'none';
       video.style.display = 'block';
       crosshair.classList.add('active');
-      animFrame = requestAnimationFrame(tick);
-
+      switchBtn.classList.add('active');
+      
+      if (!animFrame) animFrame = requestAnimationFrame(tick);
+      return true;
     } catch(err) {
-      startBtn.disabled = false;
-      startBtn.innerHTML = '📷 Coba Lagi';
       let msg = 'Tidak dapat memulai kamera. ';
       if (['NotAllowedError','PermissionDeniedError'].includes(err.name)) msg += 'Izin kamera ditolak. Izinkan di pengaturan browser.';
       else if (['NotFoundError','DevicesNotFoundError'].includes(err.name)) msg += 'Kamera tidak ditemukan di perangkat ini.';
       else if (err.name === 'NotReadableError') msg += 'Kamera sedang dipakai aplikasi lain.';
       else msg += err.message;
+      
       errorBox.textContent = msg;
       errorBox.style.display = 'block';
+      return false;
     }
+  }
+
+  startBtn.addEventListener('click', async () => {
+    startBtn.disabled = true;
+    startBtn.innerHTML = '⏳ Memulai...';
+    errorBox.style.display = 'none';
+    
+    const success = await startCamera(currentFacingMode);
+    if (!success) {
+      startBtn.disabled = false;
+      startBtn.innerHTML = '📷 Coba Lagi';
+    }
+  });
+
+  switchBtn.addEventListener('click', async () => {
+    currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+    switchBtn.disabled = true;
+    switchBtn.innerHTML = '<i class="ti tabler-refresh spin"></i>';
+    
+    await startCamera(currentFacingMode);
+    
+    switchBtn.disabled = false;
+    switchBtn.innerHTML = '<i class="ti tabler-camera-rotate"></i>';
   });
 
   // ── Scan tick ──

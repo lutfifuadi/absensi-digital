@@ -84,9 +84,14 @@
             <div id="start-cam-overlay"
               class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-dark"
               style="z-index: 10; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;">
-              <button id="start-cam-btn" class="btn das-btn --primary btn-lg px-5 shadow">
-                <i class="ti ti-camera me-1"></i> Aktifkan Kamera
-              </button>
+              <div class="d-flex gap-2">
+                <button id="start-cam-btn" class="btn das-btn --primary btn-lg px-5 shadow">
+                  <i class="ti ti-camera me-1"></i> Aktifkan Kamera
+                </button>
+                <button id="switch-cam-btn" class="btn das-btn --secondary btn-lg d-none">
+                  <i class="ti ti-camera-rotate"></i>
+                </button>
+              </div>
               <p class="text-white-50 mt-3 smaller">Gunakan kamera depan atau belakang</p>
             </div>
             <div id="reader" style="width: 100%;"></div>
@@ -197,6 +202,36 @@
     let isProcessing = false;
     let lastCode = '';
     let lastTime = 0;
+    let currentFacingMode = 'environment';
+
+    async function startCamera(facingMode = 'environment') {
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+      }
+      try {
+        overlay.classList.add('d-none');
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: facingMode
+          }
+        });
+        video.srcObject = stream;
+        await video.play();
+        statusEl.textContent = 'Scanning...';
+        statusEl.className = 'das-chip --primary';
+        document.getElementById('switch-cam-btn').classList.remove('d-none');
+        
+        if (!animFrame) animFrame = requestAnimationFrame(scanLoop);
+
+        // Warm up audio
+        audioCtx.resume();
+        return true;
+      } catch (err) {
+        alert('Gagal mengakses kamera: ' + err.message);
+        overlay.classList.remove('d-none');
+        return false;
+      }
+    }
 
     function addLog(name, message, type) {
       const time = new Date().toLocaleTimeString('id-ID', {
@@ -310,25 +345,20 @@
     }
 
     startBtn.addEventListener('click', async () => {
-      try {
-        overlay.classList.add('d-none');
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: 'environment'
-          }
-        });
-        video.srcObject = stream;
-        await video.play();
-        statusEl.textContent = 'Scanning...';
-        statusEl.className = 'das-chip --primary';
-        requestAnimationFrame(scanLoop);
+      await startCamera(currentFacingMode);
+    });
 
-        // Warm up audio
-        audioCtx.resume();
-      } catch (err) {
-        alert('Gagal mengakses kamera: ' + err.message);
-        overlay.classList.remove('d-none');
-      }
+    document.getElementById('switch-cam-btn').addEventListener('click', async function() {
+      currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+      const btn = this;
+      const icon = btn.querySelector('i');
+      icon.className = 'ti tabler-refresh spin';
+      btn.disabled = true;
+
+      await startCamera(currentFacingMode);
+
+      icon.className = 'ti ti-camera-rotate';
+      btn.disabled = false;
     });
   </script>
 @endsection
