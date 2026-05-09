@@ -154,6 +154,14 @@ class UpdateService
             return ['status' => false, 'message' => 'Informasi update tidak ditemukan. Silakan periksa update terlebih dahulu.'];
         }
 
+        // Cek Izin Tulis (Permission Check) - Contoh pada satu file krusial
+        if (!is_writable(base_path('resources/menu/vertical_admin.json'))) {
+            return [
+                'status' => false, 
+                'message' => 'Gagal: Server tidak memiliki izin untuk menulis file (Permission Denied). Silakan jalankan "chown -R www:www" di terminal server atau hubungi admin.'
+            ];
+        }
+
         try {
             Log::info('Memulai pengunduhan update: ' . $info['package_url']);
 

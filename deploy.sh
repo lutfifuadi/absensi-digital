@@ -22,7 +22,10 @@ cd "$APP_PATH" || { echo "[ERROR] Path tidak ditemukan: $APP_PATH"; exit 1; }
 
 # Muat variabel dari .env
 if [ -f ".env" ]; then
-    export $(grep -v '^#' .env | xargs)
+    # Cara lebih aman membaca .env untuk menghindari error valid identifier
+    set -a
+    [ -f .env ] && . ./.env
+    set +a
 fi
 
 # ----------------------------------------------------------
@@ -160,11 +163,12 @@ php artisan route:cache
 php artisan view:cache
 
 # ----------------------------------------------------------
-# 7. Perbaiki permission folder
+# 7. Perbaiki permission folder (Full Project for Dashboard Update)
 # ----------------------------------------------------------
 echo ""
-echo "[8/8] Set permission folder storage & bootstrap..."
-chown -R "$WEB_USER":"$WEB_USER" storage bootstrap/cache public/vendor
+echo "[8/8] Set permission folder & ownership..."
+# Pastikan seluruh folder dimiliki oleh user web agar Dashboard bisa update file
+chown -R "$WEB_USER":"$WEB_USER" "$APP_PATH"
 chmod -R 775 storage bootstrap/cache
 
 # ----------------------------------------------------------
