@@ -201,9 +201,9 @@
                 <td>
                   <div class="d-flex align-items-center gap-1 text-white-50 small">
                     <i class="ti tabler-calendar me-1"></i>
-                    {{ $item->tanggal_mulai->format('d M Y') }}
+                    {{ \Carbon\Carbon::parse($item->tanggal_mulai)->format('d M Y') }}
                     <i class="ti tabler-arrow-right mx-1" style="font-size:0.7rem;"></i>
-                    {{ $item->tanggal_selesai->format('d M Y') }}
+                    {{ \Carbon\Carbon::parse($item->tanggal_selesai)->format('d M Y') }}
                   </div>
                 </td>
                 <td class="text-center">
@@ -221,8 +221,8 @@
                       id: {{ $item->id }},
                       nama: '{{ addslashes($item->nama) }}',
                       semester: '{{ $item->semester }}',
-                      tanggal_mulai: '{{ $item->tanggal_mulai->format('Y-m-d') }}',
-                      tanggal_selesai: '{{ $item->tanggal_selesai->format('Y-m-d') }}',
+                      tanggal_mulai: '{{ \Carbon\Carbon::parse($item->tanggal_mulai)->format('Y-m-d') }}',
+                      tanggal_selesai: '{{ \Carbon\Carbon::parse($item->tanggal_selesai)->format('Y-m-d') }}',
                       is_aktif: {{ $item->is_aktif ? 'true' : 'false' }}
                     })">
                     <i class="ti tabler-pencil"></i> Ubah

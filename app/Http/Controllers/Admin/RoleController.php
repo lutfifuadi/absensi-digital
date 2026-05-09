@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Str;
 use Illuminate\Validation\Rule;
@@ -12,10 +13,15 @@ class RoleController extends Controller
 {
     public function index()
     {
-        $roles = Role::withCount('users')
-            ->with('users')
-            ->orderBy('name')
-            ->get();
+        $roles = Role::orderBy('name')->get()->map(function ($role) {
+            $users = User::where('role', $role->slug)
+                ->orWhereJsonContains('roles', $role->slug)
+                ->get();
+            
+            $role->users_count = $users->count();
+            $role->setRelation('users', $users);
+            return $role;
+        });
 
         return view('admin.role.index', compact('roles'));
     }

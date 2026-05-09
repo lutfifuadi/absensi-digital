@@ -75,6 +75,7 @@
                       "name" => $role->name,
                       "slug" => $role->slug,
                       "description" => $role->description,
+                      "users" => $role->users->map(fn($u) => ["name" => $u->name, "email" => $u->email]),
                     ]);
                   @endphp
                   <button type="button" class="das-btn das-btn--ghost btn-role-detail"

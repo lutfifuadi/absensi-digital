@@ -19,6 +19,12 @@ class TahunAkademik extends Model
         'is_aktif',
     ];
 
+    protected $casts = [
+        'tanggal_mulai' => 'date',
+        'tanggal_selesai' => 'date',
+        'is_aktif' => 'boolean',
+    ];
+
     public function siswa()
     {
         return $this->hasMany(Siswa::class, 'tahun_akademik_id');
