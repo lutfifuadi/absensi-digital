@@ -91,16 +91,30 @@ jobs:
             echo "tag=latest-build" >> $GITHUB_OUTPUT
           fi
 
+      - name: Extract Changelog for Current Version
+        id: extract_changelog
+        run: |
+          TAG="${{ steps.tag_name.outputs.tag }}"
+          VERSION="${TAG#v}"
+          # Extract content between the current version header and the next version header
+          # Using awk to handle the range more reliably
+          awk "/## \[$VERSION\]/{flag=1; print; next} /## \[/{flag=0} flag" docs/changelog.md > release_notes.md
+          
+          # If file is empty (tag doesn't match changelog), provide fallback
+          if [ ! -s release_notes.md ]; then
+            echo "Automated build for production." > release_notes.md
+            echo "- Includes \`public/build\` (Frontend Assets)" >> release_notes.md
+            echo "- Includes \`vendor\` (PHP Dependencies)" >> release_notes.md
+          fi
+          
+          echo "Date: ${{ steps.build_date.outputs.date }}" >> release_notes.md
+
       - name: Create/Update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag_name.outputs.tag }}
           name: Release ${{ steps.tag_name.outputs.tag }}
-          body: |
-            Automated build for production.
-            - Includes `public/build` (Frontend Assets)
-            - Includes `vendor` (PHP Dependencies)
-            - Date: ${{ steps.build_date.outputs.date }}
+          body_path: release_notes.md
           files: absensi-siap-pakai.zip
           draft: false
           prerelease: false
