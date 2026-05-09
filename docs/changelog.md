@@ -4,6 +4,9 @@
 ### Added
 - **Menu Tahun Akademik**: Menambahkan menu "Tahun Akademik" ke dalam menu vertikal (sidebar) admin tepat di atas menu "Kelas" untuk memudahkan akses manajemen periode akademik.
 
+### Changed
+- **Posisi Menu Sistem & Pembaruan**: Memindahkan blok menu "Sistem & Pembaruan" (termasuk Update Sistem, Manajemen Lisensi, dan Pembelian & Distribusi) ke posisi paling bawah pada sidebar admin untuk memberikan prioritas visual pada fitur operasional sekolah.
+
 ### Fixed
 - **Error 500 Tahun Akademik**: Memperbaiki error `Call to a member function format() on string` pada halaman `/admin/tahun-akademik`. Perbaikan dilakukan dengan melakukan parsing Carbon secara eksplisit pada view untuk memastikan kompatibilitas format tanggal.
 - **Sinkronisasi Data Role**: Memperbaiki ketidaksinkronan jumlah user pada halaman Manajemen Role. Penghitungan kini mencakup user yang memiliki role di kolom utama `role` maupun di kolom JSON `roles` (multiple roles). Serta memastikan semua role sistem terdaftar di database.
