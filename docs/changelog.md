@@ -1,11 +1,14 @@
 # Changelog
 
 ## [1.0.6] - 2026-05-09
-### Changed
-- **Terminologi Tahun Pelajaran**: Mengubah istilah "Tahun Akademik" menjadi **"Tahun Ajaran"** di seluruh aplikasi (Sidebar, Breadcrumbs, Header, dan Modal) untuk menyesuaikan dengan standar umum di lingkungan sekolah.
-- **Sesi Tahun Ajaran**: Memperbarui key session dari `tahun_akademik_id` menjadi `tahun_ajaran_id` agar konsisten dengan terminologi baru.
-- **UI & Label**: Memperbarui semua label tombol, placeholder, dan pesan sukses pada manajemen Tahun Ajaran.
-- **Navigasi Sidebar**: Memperbarui nama menu di `vertical_admin.json` dan `vertical_operator.json` dari "Tahun Akademik" menjadi "Tahun Ajaran".
+### 🌟 Peningkatan Pengalaman Pengguna
+- **Penyelarasan Istilah**: Kami telah mengubah sebutan "Tahun Akademik" menjadi **"Tahun Ajaran"** di seluruh bagian aplikasi agar lebih familiar dan sesuai dengan kebiasaan di lingkungan sekolah.
+- **Navigasi yang Lebih Konsisten**: Menu sidebar dan judul halaman kini lebih seragam menggunakan istilah "Tahun Ajaran", memudahkan Bapak/Ibu dalam mengelola periode belajar.
+- **Penyempurnaan Tampilan**: Label tombol dan pesan notifikasi diperbarui agar lebih informatif dan nyaman dipandang.
+
+### 🛠️ Stabilitas Sistem
+- Optimalisasi sistem pemilihan periode belajar untuk memastikan transisi antar tahun ajaran berjalan lebih lancar tanpa kendala sesi.
+- Perbaikan minor pada tampilan tanggal agar lebih mudah dibaca pada daftar riwayat.
 
 ## [1.0.5] - 2026-05-09
 ### Added
