@@ -28,8 +28,9 @@ class SiswaController extends Controller
         $search = $request->query('search');
         $perPage = (int) $request->query('per_page', 10);
 
+        $tahunAjaranId = session('tahun_ajaran_id');
         $siswa = Siswa::with(['kelas', 'tahunAkademik'])
-            ->where('tahun_akademik_id', session('tahun_akademik_id'))
+            ->where('tahun_akademik_id', $tahunAjaranId)
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('nama_lengkap', 'like', "%{$search}%")
@@ -45,7 +46,8 @@ class SiswaController extends Controller
             return view('admin.siswa.table', compact('siswa'))->render();
         }
 
-        return view('admin.siswa.index', compact('siswa'));
+        $tahunAjaranOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
+        return view('admin.siswa.index', compact('siswa', 'tahunAjaranOptions'));
     }
 
     public function create()
@@ -267,11 +269,11 @@ class SiswaController extends Controller
         try {
             $deletedCount = 0;
             $deletedUserIds = [];
-            $tahunAkademikId = session('tahun_akademik_id');
+            $tahunAjaranId = session('tahun_ajaran_id');
 
             $query = Siswa::with('user');
-            if ($tahunAkademikId) {
-                $query->where('tahun_akademik_id', $tahunAkademikId);
+            if ($tahunAjaranId) {
+                $query->where('tahun_akademik_id', $tahunAjaranId);
             }
 
             $query->chunkById(100, function ($siswaBatch) use (&$deletedCount, &$deletedUserIds) {
@@ -288,8 +290,8 @@ class SiswaController extends Controller
             });
 
             // Optional: Hapus akun user siswa yang mungkin sudah tidak punya entitas Siswa terkait
-            // Hanya lakukan jika tidak memfilter per tahun akademik, atau sesuaikan logikanya
-            if (!$tahunAkademikId) {
+            // Hanya lakukan jika tidak memfilter per tahun ajaran, atau sesuaikan logikanya
+            if (!$tahunAjaranId) {
                 User::where('role', User::ROLE_SISWA)
                     ->whereDoesntHave('siswa')
                     ->chunkById(100, function ($users) {

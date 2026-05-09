@@ -16,7 +16,7 @@
       "submenu": [
         {
           "url": "/admin/tahun-akademik",
-          "name": "Tahun Akademik",
+          "name": "Tahun Ajaran",
           "slug": "admin.tahun-akademik.index"
         },
         {

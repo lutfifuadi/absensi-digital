@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.6] - 2026-05-09
+### Changed
+- **Terminologi Tahun Pelajaran**: Mengubah istilah "Tahun Akademik" menjadi **"Tahun Ajaran"** di seluruh aplikasi (Sidebar, Breadcrumbs, Header, dan Modal) untuk menyesuaikan dengan standar umum di lingkungan sekolah.
+- **Sesi Tahun Ajaran**: Memperbarui key session dari `tahun_akademik_id` menjadi `tahun_ajaran_id` agar konsisten dengan terminologi baru.
+- **UI & Label**: Memperbarui semua label tombol, placeholder, dan pesan sukses pada manajemen Tahun Ajaran.
+- **Navigasi Sidebar**: Memperbarui nama menu di `vertical_admin.json` dan `vertical_operator.json` dari "Tahun Akademik" menjadi "Tahun Ajaran".
+
 ## [1.0.5] - 2026-05-09
 ### Added
 - **Menu Tahun Akademik**: Menambahkan menu "Tahun Akademik" ke dalam menu vertikal (sidebar) admin tepat di atas menu "Kelas" untuk memudahkan akses manajemen periode akademik.
@@ -10,11 +17,6 @@
 ### Fixed
 - **Error 500 Tahun Akademik**: Memperbaiki error `Call to a member function format() on string` pada halaman `/admin/tahun-akademik`. Perbaikan dilakukan dengan melakukan parsing Carbon secara eksplisit pada view untuk memastikan kompatibilitas format tanggal.
 - **Sinkronisasi Data Role**: Memperbaiki ketidaksinkronan jumlah user pada halaman Manajemen Role. Penghitungan kini mencakup user yang memiliki role di kolom utama `role` maupun di kolom JSON `roles` (multiple roles). Serta memastikan semua role sistem terdaftar di database.
-
-## [1.0.2] - 2026-05-08
-### Added
-- **GitHub Release Integration**: Berhasil melakukan pengetesan sinkronisasi update dengan GitHub Release v1.0.2.
-- **Update Connection**: Memastikan sistem dapat mendeteksi versi terbaru dari repositori `lutfifuadi/absensi-digital`.
 
 ## [1.0.4] - 2026-05-08
 ### Added
@@ -60,6 +62,11 @@
 - **Show/Hide Password di Step 5 Installer**: Menambahkan fitur toggle icon mata pada field password administrator utama.
   - Memastikan pengguna tidak salah mengetik password admin saat proses finalisasi instalasi.
   - Optimasi pemuatan script dengan memindahkan logic ke `@section('scripts')` mengikuti standar layout terbaru.
+
+## [1.0.2] - 2026-05-08
+### Added
+- **GitHub Release Integration**: Berhasil melakukan pengetesan sinkronisasi update dengan GitHub Release v1.0.2.
+- **Update Connection**: Memastikan sistem dapat mendeteksi versi terbaru dari repositori `lutfifuadi/absensi-digital`.
 
 ## [Unreleased] - 2026-05-07
 ### Added

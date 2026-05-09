@@ -146,6 +146,19 @@
     .das-swal-icon {
       border-color: rgba(255,255,255,0.1) !important;
     }
+
+    .hover-bg-primary-light:hover {
+      background: rgba(115, 103, 240, 0.1) !important;
+      border-color: rgba(115, 103, 240, 0.4) !important;
+    }
+    input[type="radio"]:checked + .hover-bg-primary-light {
+      background: rgba(115, 103, 240, 0.15) !important;
+      border-color: #7367f0 !important;
+    }
+    input[type=\"radio\"]:checked + .hover-bg-primary-light .radio-indicator i {
+      color: #7367f0 !important;
+    }
+    .extra-small { font-size: 0.7rem; }
   </style>
   @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
 @endsection
@@ -175,7 +188,7 @@
             <a href="{{ route('admin.master-data') }}" class="text-white text-decoration-none">Master Data</a> / Siswa
           </div>
           <h4 class="das-hero__title text-gradient-gold">Data Siswa</h4>
-          <p class="das-hero__subtitle">Kelola seluruh data peserta didik, cetak kartu QR, dan riwayat profil.</p>
+          <p class="das-hero__subtitle">Kelola seluruh data peserta didik pada <span class="text-info fw-bold">{{ session('tahun_ajaran_id') ? ($tahunAjaranOptions->firstWhere('id', session('tahun_ajaran_id'))->nama ?? 'Tahun Ajaran') : 'Pilih Tahun Ajaran' }}</span>.</p>
         </div>
       </div>
 
@@ -206,28 +219,6 @@
     </div>
   @endif
 
-  @if (session('error'))
-    <div class="alert alert-danger alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm"
-      role="alert" style="border-radius:8px;">
-      <i class="ti tabler-alert-circle fs-5"></i>
-      <span>{{ session('error') }}</span>
-      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
-    </div>
-  @endif
-
-  @if ($errors->any())
-    <div class="alert alert-danger alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm"
-      role="alert" style="border-radius:8px;">
-      <i class="ti tabler-alert-circle fs-5"></i>
-      <ul class="mb-0">
-        @foreach ($errors->all() as $error)
-          <li>{{ $error }}</li>
-        @endforeach
-      </ul>
-      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
-    </div>
-  @endif
-
   {{-- TABLE CARD --}}
   <div class="das-panel">
     <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3"
@@ -254,6 +245,54 @@
     <div class="das-panel__body p-0">
       <div id="siswaTableContainer">
         @include('admin.siswa.table')
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Gateway Tahun Ajaran -->
+  <div class="modal fade" id="gatewayModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content das-modal shadow-lg border-primary">
+        <div class="das-modal-head text-center">
+          <div class="avatar avatar-lg mx-auto mb-3" style="width: 64px; height: 64px;">
+            <span class="avatar-initial rounded-circle bg-label-primary shadow-sm">
+              <i class="ti tabler-calendar-stats fs-1"></i>
+            </span>
+          </div>
+          <h5 class="das-modal-title fs-4">Pilih Tahun Ajaran</h5>
+          <p class="text-white-50 small mb-0">Silakan pilih Tahun Ajaran aktif untuk melihat data siswa.</p>
+        </div>
+        <form action="{{ route('admin.set-tahun-akademik') }}" method="POST">
+          @csrf
+          <div class="das-modal-body py-4">
+            <div class="row g-3">
+              @forelse($tahunAjaranOptions as $thn)
+                <div class="col-12">
+                  <label class="w-100 cursor-pointer">
+                    <input type="radio" name="tahun_akademik_id" value="{{ $thn->id }}" class="d-none peer" {{ session('tahun_ajaran_id') == $thn->id ? 'checked' : '' }} required onchange="this.form.submit()">
+                    <div class="p-3 rounded-3 border border-2 transition-all d-flex align-items-center justify-content-between hover-bg-primary-light" 
+                         style="border-color: rgba(255,255,255,0.08) !important; background: rgba(255,255,255,0.03);">
+                      <div>
+                        <div class="fw-bold text-white">{{ $thn->nama }}</div>
+                        <div class="text-white-50 small">{{ ucfirst($thn->semester) }}</div>
+                      </div>
+                      <div class="radio-indicator">
+                        <i class="ti tabler-circle text-white-50"></i>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              @empty
+                <div class="col-12 text-center py-3">
+                  <p class="text-warning mb-0">Belum ada data Tahun Ajaran. <br> <a href="{{ route('admin.tahun-akademik.index') }}" class="text-info">Tambah Sekarang</a></p>
+                </div>
+              @endforelse
+            </div>
+          </div>
+          <div class="p-4 pt-0 text-center">
+            <p class="text-muted extra-small">Gerbang ini memastikan data yang Anda kelola akurat sesuai periode akademik.</p>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -312,7 +351,7 @@
                 </a>
               </div>
               <div class="d-flex flex-wrap gap-2">
-                @foreach (['nis', 'nisn', 'nama_lengkap', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 'alamat', 'no_hp', 'no_hp_ortu', 'kelas', 'tahun_akademik', 'status'] as $col)
+                @foreach (['nis', 'nisn', 'nama_lengkap', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 'alamat', 'no_hp', 'no_hp_ortu', 'kelas', 'tahun_ajaran', 'status'] as $col)
                   <span class="badge bg-label-info" style="font-size: 0.65rem;">{{ $col }}</span>
                 @endforeach
               </div>
@@ -338,6 +377,11 @@
 @section('page-script')
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      @if(!session('tahun_ajaran_id'))
+        const gatewayModal = new bootstrap.Modal(document.getElementById('gatewayModal'));
+        gatewayModal.show();
+      @endif
+
       const container = document.getElementById('siswaTableContainer');
       const searchInput = document.getElementById('searchInput');
       const perPageSelect = document.getElementById('perPageSelect');
@@ -401,7 +445,7 @@
 
         Swal.fire({
           title: 'Hapus Siswa?',
-          html: `<div class="mt-2">Data <b class="text-danger">"${nama}"</b> akan dihapus secara permanen beserta data absensinya.</div>`,
+          html: `<div class=\"mt-2\">Data <b class=\"text-danger\">"${nama}"</b> akan dihapus secara permanen beserta data absensinya.</div>`,
           icon: 'warning',
           showCancelButton: true,
           confirmButtonText: 'Ya, Hapus Data',
@@ -580,24 +624,6 @@
             if (deleteAllCancelBtn) deleteAllCancelBtn.disabled = false;
             if (deleteAllProgress) deleteAllProgress.classList.add('d-none');
           });
-        });
-      }
-
-      // Toast helper (deprecated in favor of Swal, but keeping for compatibility)
-      function showToast(type, message) {
-        Swal.fire({
-          toast: true,
-          position: 'top-end',
-          showConfirmButton: false,
-          timer: 3000,
-          timerProgressBar: true,
-          icon: type === 'success' ? 'success' : 'error',
-          title: message,
-          customClass: {
-            popup: 'das-swal-popup border-0 shadow-lg',
-            title: 'das-swal-title fs-6',
-          },
-          background: 'rgba(26, 26, 46, 0.9)',
         });
       }
 

@@ -74,9 +74,9 @@
     @auth
       @php
         $allTahun = \App\Models\TahunAkademik::orderByDesc('tanggal_mulai')->get();
-        $currentTahunId = session('tahun_akademik_id');
+        $currentTahunId = session('tahun_ajaran_id');
         $currentTahunLabel = $allTahun->firstWhere('id', $currentTahunId);
-        $currentTahunNama = $currentTahunLabel ? $currentTahunLabel->nama . ' (' . ucfirst($currentTahunLabel->semester) . ')' : 'Tidak Ada Aktif';
+        $currentTahunNama = $currentTahunLabel ? $currentTahunLabel->nama . ' (' . ucfirst($currentTahunLabel->semester) . ')' : 'Pilih Tahun Ajaran';
       @endphp
       <li class="nav-item dropdown me-2 me-xl-1">
         <a class="nav-link dropdown-toggle hide-arrow p-2 rounded" href="javascript:void(0);" data-bs-toggle="dropdown" aria-expanded="false" style="background: rgba(var(--bs-primary-rgb), 0.1);">
@@ -85,7 +85,7 @@
         </a>
         <ul class="dropdown-menu dropdown-menu-end py-2">
           <li>
-            <h6 class="dropdown-header text-uppercase fw-bold"><i class="ti tabler-calendar me-2"></i>Tahun Pelajaran</h6>
+            <h6 class="dropdown-header text-uppercase fw-bold"><i class="ti tabler-calendar me-2"></i>Tahun Ajaran</h6>
           </li>
           @foreach($allTahun as $thn)
             <li>

@@ -38,7 +38,7 @@ class TahunAkademikController extends Controller
 
         TahunAkademik::create($data);
 
-        return redirect()->route('admin.tahun-akademik.index')->with('success', 'Tahun akademik berhasil ditambahkan.');
+        return redirect()->route('admin.tahun-akademik.index')->with('success', 'Tahun ajaran berhasil ditambahkan.');
     }
 
     public function edit(TahunAkademik $tahunAkademik)
@@ -64,14 +64,14 @@ class TahunAkademikController extends Controller
 
         $tahunAkademik->update($data);
 
-        return redirect()->route('admin.tahun-akademik.index')->with('success', 'Tahun akademik berhasil diperbarui.');
+        return redirect()->route('admin.tahun-akademik.index')->with('success', 'Tahun ajaran berhasil diperbarui.');
     }
 
     public function destroy(TahunAkademik $tahunAkademik)
     {
         $tahunAkademik->delete();
 
-        return redirect()->route('admin.tahun-akademik.index')->with('success', 'Tahun akademik berhasil dihapus.');
+        return redirect()->route('admin.tahun-akademik.index')->with('success', 'Tahun ajaran berhasil dihapus.');
     }
 
     public function setSession(Request $request)
@@ -80,8 +80,8 @@ class TahunAkademikController extends Controller
             'tahun_akademik_id' => 'required|exists:tahun_akademik,id',
         ]);
 
-        session(['tahun_akademik_id' => $request->tahun_akademik_id]);
+        session(['tahun_ajaran_id' => $request->tahun_akademik_id]);
 
-        return redirect()->back()->with('success', 'Berhasil mengubah sesi Tahun Akademik aktif.');
+        return redirect()->back()->with('success', 'Berhasil mengubah sesi Tahun Ajaran aktif.');
     }
 }

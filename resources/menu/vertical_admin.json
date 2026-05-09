@@ -11,7 +11,7 @@
     },
     {
       "url": "/admin/tahun-akademik",
-      "name": "Tahun Akademik",
+      "name": "Tahun Ajaran",
       "icon": "menu-icon ti tabler-calendar-stats",
       "slug": "admin.tahun-akademik.index"
     },
@@ -20,6 +20,36 @@
       "name": "Kelas",
       "icon": "menu-icon ti tabler-door",
       "slug": ["admin.kelas.index", "admin.kelas.show"]
+    },
+    {
+      "url": "/admin/siswa",
+      "name": "Siswa",
+      "icon": "menu-icon ti tabler-users",
+      "slug": "admin.siswa.index"
+    },
+    {
+      "url": "/admin/guru",
+      "name": "Guru",
+      "icon": "menu-icon ti tabler-chalkboard-teacher",
+      "slug": "admin.guru.index"
+    },
+    {
+      "url": "/admin/jadwal",
+      "name": "Mata Pelajaran",
+      "icon": "menu-icon ti tabler-book",
+      "slug": "admin.jadwal.index"
+    },
+    {
+      "url": "/admin/jadwal",
+      "name": "Jam Pelajaran",
+      "icon": "menu-icon ti tabler-clock",
+      "slug": "admin.jadwal.index"
+    },
+    {
+      "url": "/admin/staff-tata-usaha",
+      "name": "Staff TU",
+      "icon": "menu-icon ti tabler-briefcase",
+      "slug": "admin.staff-tata-usaha.index"
     },
     {
       "menuHeader": "Multi-Tenant (SaaS)"

@@ -1,6 +1,6 @@
 @extends('layouts/layoutMaster')
 
-@section('title', 'Tahun Akademik')
+@section('title', 'Tahun Ajaran')
 
 @section('page-style')
   <style>
@@ -129,16 +129,16 @@
         <div class="das-hero__meta">
           <div class="das-hero__badge">
             <span class="pulse-dot"></span>
-            <a href="{{ route('admin.master-data') }}" class="text-white text-decoration-none">Master Data</a> / Tahun Akademik
+            <a href="{{ route('admin.master-data') }}" class="text-white text-decoration-none">Master Data</a> / Tahun Ajaran
           </div>
-          <h4 class="das-hero__title text-gradient-gold">Data Tahun Akademik</h4>
-          <p class="das-hero__subtitle">Kelola tahun akademik beserta status aktifnya.</p>
+          <h4 class="das-hero__title text-gradient-gold">Data Tahun Ajaran</h4>
+          <p class="das-hero__subtitle">Kelola tahun ajaran beserta status aktifnya.</p>
         </div>
       </div>
 
       <div class="das-hero__actions">
         <button type="button" class="btn das-btn --warning" onclick="openTambahModal()">
-          <i class="ti tabler-plus me-1"></i> Tambah Tahun Akademik
+          <i class="ti tabler-plus me-1"></i> Tambah Tahun Ajaran
         </button>
       </div>
     </div>
@@ -159,7 +159,7 @@
     <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between"
       style="border-color:rgba(255,255,255,0.08) !important;">
       <h6 class="das-panel__title mb-0 d-flex align-items-center gap-2">
-        <i class="ti tabler-list text-warning"></i> Daftar Tahun Akademik
+        <i class="ti tabler-list text-warning"></i> Daftar Tahun Ajaran
       </h6>
       <span class="das-chip --warning">{{ count($tahunAkademik) }} Data</span>
     </div>
@@ -238,7 +238,7 @@
                 <td colspan="6" class="text-center py-5">
                   <div class="d-flex flex-column align-items-center gap-2 opacity-50">
                     <i class="ti tabler-calendar-off" style="font-size:2.5rem;"></i>
-                    <span class="small">Belum ada data tahun akademik.</span>
+                    <span class="small">Belum ada data tahun ajaran.</span>
                     <button type="button" class="btn btn-sm btn-label-warning mt-1" onclick="openTambahModal()">
                       <i class="ti tabler-plus me-1"></i> Tambah Sekarang
                     </button>
@@ -266,7 +266,7 @@
               <i id="modalIcon" class="ti tabler-plus text-warning fs-5"></i>
             </div>
             <div>
-              <h5 id="modalTitle" class="modal-title mb-0 text-white fw-bold">Tambah Tahun Akademik</h5>
+              <h5 id="modalTitle" class="modal-title mb-0 text-white fw-bold">Tambah Tahun Ajaran</h5>
               <small id="modalSubtitle" class="text-white-50">Isi form di bawah untuk menambah data baru.</small>
             </div>
           </div>
@@ -297,7 +297,7 @@
             {{-- Nama --}}
             <div class="mb-3">
               <label class="form-label fw-semibold small" for="modal_nama">
-                <i class="ti tabler-tag me-1 text-warning"></i> Nama Tahun Akademik
+                <i class="ti tabler-tag me-1 text-warning"></i> Nama Tahun Ajaran
               </label>
               <input id="modal_nama" name="nama" type="text"
                 class="form-control @error('nama') is-invalid @enderror" placeholder="Contoh: 2025/2026"
@@ -354,12 +354,12 @@
               <div class="form-check form-switch mb-0">
                 <input class="form-check-input" type="checkbox" name="is_aktif" id="modal_is_aktif" value="1">
                 <label class="form-check-label fw-semibold small" for="modal_is_aktif">
-                  Tetapkan sebagai tahun akademik aktif
+                  Tetapkan sebagai tahun ajaran aktif
                 </label>
               </div>
               <div class="text-white-50 mt-1 ms-4 ps-1" style="font-size:0.75rem;">
                 <i class="ti tabler-info-circle me-1"></i>
-                Hanya satu tahun akademik yang dapat aktif pada satu waktu.
+                Hanya satu tahun ajaran yang dapat aktif pada satu waktu.
               </div>
             </div>
 
@@ -401,7 +401,7 @@
           <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body text-center py-4">
-          <p class="mb-1">Yakin ingin menghapus tahun akademik:</p>
+          <p class="mb-1">Yakin ingin menghapus tahun ajaran:</p>
           <p class="fw-bold text-warning fs-6 mb-0" id="hapusNama">—</p>
         </div>
         <div class="modal-footer gap-2 justify-content-center">
@@ -442,7 +442,7 @@
       document.getElementById('modal_is_aktif').checked = false;
 
       // UI text
-      document.getElementById('modalTitle').textContent = 'Tambah Tahun Akademik';
+      document.getElementById('modalTitle').textContent = 'Tambah Tahun Ajaran';
       document.getElementById('modalSubtitle').textContent = 'Isi form di bawah untuk menambah data baru.';
       document.getElementById('modalIcon').className = 'ti tabler-plus text-warning fs-5';
       document.getElementById('submitText').textContent = 'Simpan';
@@ -466,7 +466,7 @@
       document.getElementById('modal_is_aktif').checked = data.is_aktif;
 
       // UI text
-      document.getElementById('modalTitle').textContent = 'Ubah Tahun Akademik';
+      document.getElementById('modalTitle').textContent = 'Ubah Tahun Ajaran';
       document.getElementById('modalSubtitle').textContent = 'Perbarui data yang ingin diubah.';
       document.getElementById('modalIcon').className = 'ti tabler-pencil text-warning fs-5';
       document.getElementById('submitText').textContent = 'Perbarui';

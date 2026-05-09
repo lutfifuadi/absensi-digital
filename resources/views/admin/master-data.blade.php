@@ -100,7 +100,7 @@
   <div class="row g-4 mb-5">
     @php
       $akademik = [
-        ['title' => 'Tahun Akademik', 'desc' => 'Kelola tahun ajaran dan status aktif.', 'icon' => 'tabler-calendar-stats', 'color' => 'warning', 'route' => route('admin.tahun-akademik.index')],
+        ['title' => 'Tahun Ajaran', 'desc' => 'Kelola tahun ajaran dan status aktif.', 'icon' => 'tabler-calendar-stats', 'color' => 'warning', 'route' => route('admin.tahun-akademik.index')],
         ['title' => 'Kelas', 'desc' => 'Kelola rombongan belajar dan wali kelas.', 'icon' => 'tabler-door', 'color' => 'info', 'route' => route('admin.kelas.index')],
         ['title' => 'Jadwal Pelajaran', 'desc' => 'Atur jadwal pelajaran per kelas dan guru.', 'icon' => 'tabler-calendar-time', 'color' => 'primary', 'route' => route('admin.jadwal.index')],
         ['title' => 'Data Kegiatan Khusus', 'desc' => 'Kelola kegiatan khusus, ujian, dan ekstrakurikuler.', 'icon' => 'tabler-calendar-event', 'color' => 'secondary', 'route' => route('admin.kegiatan.index')],
