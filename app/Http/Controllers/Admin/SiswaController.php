@@ -31,7 +31,7 @@ class SiswaController extends Controller
         $search = $request->query('search');
         $perPage = (int) $request->query('per_page', 10);
 
-        $tahunAjaranId = session('tahun_ajaran_id');
+        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
         $siswa = Siswa::with(['kelas', 'tahunAkademik'])
             ->where('tahun_akademik_id', $tahunAjaranId)
             ->when($search, function ($query, $search) {
@@ -114,6 +114,8 @@ class SiswaController extends Controller
 
         ActivityLog::record('create', 'siswa', "Tambah siswa: {$siswa->nama_lengkap} (NIS: {$siswa->nis})", null, $siswa->toArray());
 
+        session(['tahun_ajaran_id' => $siswa->tahun_akademik_id, 'tahun_akademik_id' => $siswa->tahun_akademik_id]);
+
         return redirect()->route('admin.siswa.index')->with('success', 'Siswa berhasil ditambahkan.');
     }
 
@@ -152,7 +154,7 @@ class SiswaController extends Controller
     public function export(Request $request)
     {
         $search = $request->query('search');
-        $tahunAjaranId = session('tahun_ajaran_id');
+        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
         $format = $request->query('format', 'xlsx');
 
         $filename = 'data_siswa_' . now()->format('Y-m-d_H-i-s');
@@ -287,7 +289,7 @@ class SiswaController extends Controller
         try {
             $deletedCount = 0;
             $deletedUserIds = [];
-            $tahunAjaranId = session('tahun_ajaran_id');
+            $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
 
             $query = Siswa::with('user');
             if ($tahunAjaranId) {
