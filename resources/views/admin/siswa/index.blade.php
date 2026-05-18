@@ -250,6 +250,19 @@
     </div>
   @endif
 
+  {{-- Notifikasi data siswa tanpa tahun akademik --}}
+  @if (!empty($siswaNullTahun) && $siswaNullTahun > 0)
+    <div class="alert alert-warning alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm"
+      role="alert" style="border-radius:8px; background: rgba(255,159,67,0.12); border-left: 3px solid #ff9f43 !important;">
+      <i class="ti tabler-alert-circle fs-5 text-warning flex-shrink-0"></i>
+      <span>
+        <strong>{{ $siswaNullTahun }} siswa</strong> tidak memiliki Tahun Akademik — data ini tetap ditampilkan namun perlu diperbaiki.
+        Pastikan konfigurasi <strong>Google Sheet</strong> atau <strong>Import</strong> menyertakan kolom <code>tahun_ajaran</code>.
+      </span>
+      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+  @endif
+
   {{-- TABLE CARD --}}
   <div class="das-panel">
     <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3"
@@ -381,11 +394,22 @@
                    <i class="ti tabler-download me-1"></i> Download Sampel
                 </a>
               </div>
-              <div class="d-flex flex-wrap gap-2">
+              <div class="d-flex flex-wrap gap-2 mb-3">
                 @foreach (['nis', 'nisn', 'nama_lengkap', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 'alamat', 'no_hp', 'no_hp_ortu', 'kelas', 'tahun_ajaran', 'status'] as $col)
                   <span class="badge bg-label-info" style="font-size: 0.65rem;">{{ $col }}</span>
                 @endforeach
               </div>
+              <ul class="mb-0 ps-3" style="font-size: 0.72rem; color: rgba(255,255,255,0.6);">
+                <li><code>tanggal_lahir</code>: format <strong>dd/mm/yyyy</strong> (cth: <code>01/06/2010</code>)</li>
+                <li><code>jenis_kelamin</code>: isi <strong>L</strong> atau <strong>P</strong></li>
+                <li><code>tahun_ajaran</code>: Nama + Semester, cth:
+                  @foreach(\App\Models\TahunAkademik::orderBy('tanggal_mulai','desc')->take(3)->get() as $ta)
+                    <code>{{ $ta->nama }} {{ ucfirst($ta->semester) }}</code>{{ !$loop->last ? ',' : '' }}
+                  @endforeach
+                </li>
+                <li><code>status</code>: <strong>aktif</strong>, nonaktif, atau alumni</li>
+                <li>Jika siswa sudah ada (NISN sama), data akan <strong>diperbarui</strong> (tidak duplikat).</li>
+              </ul>
             </div>
           </div>
           <div class="px-4 pb-4 pt-2 d-flex gap-2">
@@ -401,22 +425,37 @@
 
   {{-- SYNC GOOGLE SHEET PROGRESS MODAL --}}
   <div class="modal fade" id="syncProgressModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="das-modal border-0 shadow-lg" style="background:#1e1e2e;border-radius:12px;">
-        <div class="das-modal-head d-flex align-items-center justify-content-between">
-          <h5 class="das-modal-title"><i class="ti tabler-refresh me-2 text-warning"></i>Sync Google Sheet</h5>
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
+      <div class="modal-content das-modal border-0 shadow-lg" style="background: #1e1e2e; border-radius: 16px; overflow: hidden;">
+        <div class="das-modal-head d-flex align-items-center gap-2 px-4 py-3">
+          <i class="ti tabler-refresh text-warning fs-5"></i>
+          <h5 class="das-modal-title mb-0 fs-6 fw-bold">Sync Google Sheet</h5>
         </div>
-        <div class="das-modal-body text-center py-4">
-          <div class="mb-3">
-            <div class="spinner-border text-warning" role="status" style="width:3rem;height:3rem;">
-              <span class="visually-hidden">Loading...</span>
+        <div class="modal-body px-4 pt-3 pb-4 text-center">
+          {{-- Spinner --}}
+          <div class="d-flex justify-content-center mb-3">
+            <div class="sync-spinner-wrapper" style="width:64px;height:64px;position:relative;display:flex;align-items:center;justify-content:center;">
+              <div class="spinner-border text-warning" role="status" style="width:64px;height:64px;border-width:4px;position:absolute;top:0;left:0;">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <i class="ti tabler-cloud-upload text-warning" style="font-size:1.4rem;z-index:1;"></i>
             </div>
           </div>
-          <h6 class="text-white mb-2" id="syncProgressMessage">Memulai sinkronisasi...</h6>
-          <div class="progress" style="height:8px;background:rgba(255,255,255,0.08);border-radius:8px;overflow:hidden;">
-            <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" id="syncProgressBar" role="progressbar" style="width:0%"></div>
+
+          {{-- Status Message --}}
+          <h6 class="text-white fw-semibold mb-1" id="syncProgressMessage" style="font-size:0.95rem;">Memulai sinkronisasi...</h6>
+          <p class="text-white-50 small mb-3" id="syncProgressCount" style="min-height:1.2em;"></p>
+
+          {{-- Progress Bar --}}
+          <div class="progress w-100" style="height:10px;background:rgba(255,255,255,0.08);border-radius:50px;overflow:hidden;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning"
+                 id="syncProgressBar"
+                 role="progressbar"
+                 style="width:5%;border-radius:50px;transition:width 0.5s ease;"
+                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+            </div>
           </div>
-          <p class="text-muted small mt-2 mb-0" id="syncProgressCount"></p>
+          <p class="text-white-50 extra-small mt-2 mb-0">Harap tunggu, jangan tutup halaman ini.</p>
         </div>
       </div>
     </div>

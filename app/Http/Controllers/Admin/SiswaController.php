@@ -32,8 +32,16 @@ class SiswaController extends Controller
         $perPage = (int) $request->query('per_page', 10);
 
         $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
+
         $siswa = Siswa::with(['kelas', 'tahunAkademik'])
-            ->where('tahun_akademik_id', $tahunAjaranId)
+            ->where(function ($q) use ($tahunAjaranId) {
+                if ($tahunAjaranId) {
+                    // Tampilkan siswa yang sesuai tahun ajaran ATAU yang tahun_akademik_id-nya NULL
+                    // (karena kemungkinan di-sync/import sebelum fitur ini ada)
+                    $q->where('tahun_akademik_id', $tahunAjaranId)
+                      ->orWhereNull('tahun_akademik_id');
+                }
+            })
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('nama_lengkap', 'like', "%{$search}%")
@@ -45,12 +53,17 @@ class SiswaController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
+        // Deteksi siswa dengan tahun_akademik_id NULL untuk notifikasi admin
+        $siswaNullTahun = $tahunAjaranId
+            ? Siswa::whereNull('tahun_akademik_id')->count()
+            : 0;
+
         if ($request->ajax()) {
             return view('admin.siswa.table', compact('siswa'))->render();
         }
 
         $tahunAjaranOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
-        return view('admin.siswa.index', compact('siswa', 'tahunAjaranOptions'));
+        return view('admin.siswa.index', compact('siswa', 'tahunAjaranOptions', 'siswaNullTahun'));
     }
 
     public function create()
@@ -168,6 +181,14 @@ class SiswaController extends Controller
 
     public function downloadSample()
     {
+        // Ambil data aktual dari DB untuk contoh yang akurat
+        $namaKelasContoh      = \App\Models\Kelas::orderBy('nama')->value('nama') ?? 'X.E-1';
+        $tahunAkademikContoh  = \App\Models\TahunAkademik::where('is_aktif', true)->first()
+            ?? \App\Models\TahunAkademik::orderBy('tanggal_mulai', 'desc')->first();
+        $tahunContoh = $tahunAkademikContoh
+            ? $tahunAkademikContoh->nama . ' ' . ucfirst($tahunAkademikContoh->semester)
+            : '2025-2026 Genap';
+
         $headers = [
             'nis',
             'nisn',
@@ -179,39 +200,57 @@ class SiswaController extends Controller
             'no_hp',
             'no_hp_ortu',
             'kelas',
-            'tahun_akademik',
+            'tahun_ajaran',   // format: "2025-2026 Genap" atau "2025-2026 Ganjil"
             'status'
         ];
 
-        $callback = function () use ($headers) {
+        $callback = function () use ($headers, $namaKelasContoh, $tahunContoh) {
             $file = fopen('php://output', 'w');
+
+            // Header row
             fputcsv($file, $headers);
-            
-            // Add a sample row
+
+            // Baris contoh 1 (laki-laki)
             fputcsv($file, [
                 '12345',
                 '0012345678',
                 'Ahmad Siswa Sampel',
                 'L',
                 'Jakarta',
-                '2010-01-01',
+                '01/01/2010',        // format: dd/mm/yyyy
                 'Jl. Merdeka No. 1',
-                '08123456789', // no_hp (siswa)
-                '08123456780', // no_hp_ortu
-                'X-IPA-1',
-                '2023/2024 Genap',
+                '08123456789',       // no_hp siswa (boleh kosong)
+                '08123456780',       // no_hp_ortu (wajib)
+                $namaKelasContoh,
+                $tahunContoh,
                 'aktif'
             ]);
-            
+
+            // Baris contoh 2 (perempuan)
+            fputcsv($file, [
+                '12346',
+                '0012345679',
+                'Siti Siswi Sampel',
+                'P',
+                'Bandung',
+                '15/06/2010',
+                'Jl. Sudirman No. 5',
+                '',                  // no_hp boleh kosong
+                '08198765432',
+                $namaKelasContoh,
+                $tahunContoh,
+                'aktif'
+            ]);
+
             fclose($file);
         };
 
         return response()->stream($callback, 200, [
-            "Content-type"        => "text/csv",
-            "Content-Disposition" => "attachment; filename=sampel_import_siswa.csv",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
+            'Content-type'        => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=sampel_import_siswa.csv',
+            'Pragma'              => 'no-cache',
+            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires'             => '0',
         ]);
     }
 

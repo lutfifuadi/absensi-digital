@@ -112,6 +112,11 @@ class SyncService
                     $tahunAkademikId = $ta->id;
                 }
             }
+            // Fallback: gunakan tahun akademik aktif atau terbaru jika masih null
+            if (empty($tahunAkademikId)) {
+                $tahunAkademikId = TahunAkademik::where('is_aktif', true)->value('id')
+                    ?? TahunAkademik::orderBy('tanggal_mulai', 'desc')->value('id');
+            }
 
             $qrCode = $data['qr_code'] ?? $data['nisn'] ?? QrCodeGenerator::generate('SISWA');
 
