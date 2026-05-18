@@ -577,17 +577,24 @@ class SiswaController extends Controller
         ));
     }
 
-    public function syncGoogleSheet()
+    public function syncGoogleSheet(Request $request)
     {
         $setting = GoogleSheetSetting::first();
 
         if (!$setting || !$setting->is_active) {
-            return back()->with('sync_error', 'Konfigurasi Google Sheets belum diatur atau tidak aktif.');
+            return response()->json(['success' => false, 'message' => 'Konfigurasi Google Sheets belum diatur atau tidak aktif.']);
         }
 
         if (empty($setting->column_mapping)) {
-            return back()->with('sync_error', 'Mapping kolom Google Sheets belum dikonfigurasi. Silakan atur di halaman Pengaturan Google Sheets.');
+            return response()->json(['success' => false, 'message' => 'Mapping kolom Google Sheets belum dikonfigurasi.']);
         }
+
+        $setting->update([
+            'last_sync_status' => 'in_progress',
+            'last_sync_message' => 'Memulai sinkronisasi...',
+            'sync_total_rows' => 0,
+            'sync_processed_rows' => 0,
+        ]);
 
         try {
             $service = new GoogleSheetsService();
@@ -596,30 +603,52 @@ class SiswaController extends Controller
                 'sheet_range' => $setting->sheet_range,
                 'credentials_json' => $setting->credentials_json,
                 'column_mapping' => $setting->column_mapping ?? [],
-            ]);
+            ], $setting->id);
 
+            $setting->refresh();
             $setting->update([
                 'last_sync_at' => now(),
                 'last_sync_status' => $result['success'] ? 'success' : 'failed',
                 'last_sync_message' => $result['success']
                     ? 'Sinkronisasi berhasil. Imported: ' . $result['imported'] . ', Gagal: ' . $result['failed']
                     : 'Sinkronisasi gagal: ' . implode('; ', $result['errors']),
+                'sync_total_rows' => 0,
+                'sync_processed_rows' => 0,
             ]);
 
-            if ($result['success']) {
-                return back()->with('success', 'Sinkronisasi berhasil! ' . $result['imported'] . ' data siswa diimpor, ' . $result['failed'] . ' gagal.');
-            }
-
-            $errorMsg = !empty($result['errors']) ? ' ' . implode(' ', array_slice($result['errors'], 0, 5)) : '';
-            return back()->with('sync_error', 'Sinkronisasi selesai dengan ' . $result['failed'] . ' kegagalan.' . $errorMsg);
+            return response()->json([
+                'success' => $result['success'],
+                'message' => $result['success']
+                    ? 'Sinkronisasi berhasil! ' . $result['imported'] . ' data siswa diimpor.'
+                    : 'Sinkronisasi selesai dengan ' . $result['failed'] . ' kegagalan.',
+                'imported' => $result['imported'],
+                'failed' => $result['failed'],
+            ]);
         } catch (\Exception $e) {
             $setting->update([
                 'last_sync_at' => now(),
                 'last_sync_status' => 'failed',
                 'last_sync_message' => 'Error: ' . $e->getMessage(),
+                'sync_total_rows' => 0,
+                'sync_processed_rows' => 0,
             ]);
 
-            return back()->with('sync_error', 'Gagal sinkronisasi: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Gagal sinkronisasi: ' . $e->getMessage()]);
         }
+    }
+
+    public function syncProgress()
+    {
+        $setting = GoogleSheetSetting::first();
+        if (!$setting) {
+            return response()->json(['status' => 'idle', 'total' => 0, 'processed' => 0, 'message' => '']);
+        }
+
+        return response()->json([
+            'status' => $setting->last_sync_status,
+            'total' => $setting->sync_total_rows ?? 0,
+            'processed' => $setting->sync_processed_rows ?? 0,
+            'message' => $setting->last_sync_message ?? '',
+        ]);
     }
 }

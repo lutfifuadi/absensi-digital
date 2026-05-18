@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\GoogleSheetSetting;
 use Google\Client;
 use Google\Service\Sheets;
 use Illuminate\Support\Facades\Log;
@@ -90,7 +91,7 @@ class GoogleSheetsService
         }
     }
 
-    public function syncSiswa(array $config): array
+    public function syncSiswa(array $config, ?int $settingId = null): array
     {
         $syncService = new SyncService();
         $columnMapping = $config['column_mapping'] ?? [];
@@ -109,6 +110,17 @@ class GoogleSheetsService
             if (count($rows) > 500) {
                 Log::channel('daily')->warning('GoogleSheetsService: Data melebihi batas 500 baris, hanya 500 baris pertama yang diproses', ['total' => count($rows)]);
                 $rows = array_slice($rows, 0, 500);
+            }
+
+            $totalRows = count($rows);
+
+            if ($settingId) {
+                GoogleSheetSetting::where('id', $settingId)->update([
+                    'sync_total_rows' => $totalRows,
+                    'sync_processed_rows' => 0,
+                    'last_sync_status' => 'in_progress',
+                    'last_sync_message' => '0/' . $totalRows . ' - Sedang memproses...',
+                ]);
             }
 
             if (empty($rows)) {
@@ -130,6 +142,13 @@ class GoogleSheetsService
                     Log::channel('daily')->warning('GoogleSheetsService: Gagal sync siswa baris ' . ($index + 2), [
                         'error' => $e->getMessage(),
                         'row' => $row,
+                    ]);
+                }
+
+                if ($settingId) {
+                    GoogleSheetSetting::where('id', $settingId)->update([
+                        'sync_processed_rows' => $imported + $failed,
+                        'last_sync_message' => ($imported + $failed) . '/' . $totalRows . ' - Berhasil: ' . $imported . ', Gagal: ' . $failed,
                     ]);
                 }
 

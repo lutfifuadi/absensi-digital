@@ -22,9 +22,11 @@ class KelasController extends Controller
         $search = $request->query('search');
         $perPage = (int) $request->query('per_page', 10);
 
+        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
+
         $kelas = Kelas::with(['waliKelas.user', 'tahunAkademik'])
             ->withCount('siswa')
-            ->where('tahun_akademik_id', session('tahun_akademik_id'))
+            ->where('tahun_akademik_id', $tahunAjaranId)
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('nama', 'like', "%{$search}%")
@@ -85,7 +87,9 @@ class KelasController extends Controller
         $data['is_aktif_absensi'] = $request->has('is_aktif_absensi');
         $data['kustomisasi_jam'] = $request->has('kustomisasi_jam');
 
-        Kelas::create($data);
+        $kelas = Kelas::create($data);
+
+        session(['tahun_ajaran_id' => $kelas->tahun_akademik_id, 'tahun_akademik_id' => $kelas->tahun_akademik_id]);
 
         return redirect()->route('admin.kelas.index')->with('success', 'Kelas berhasil ditambahkan.');
     }

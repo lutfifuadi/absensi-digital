@@ -340,6 +340,10 @@ Route::middleware([
           ->name('admin.siswa.sync-google-sheet')
           ->middleware('role:super_admin,admin_sekolah,operator');
 
+      Route::get('siswa/sync-progress', [SiswaController::class, 'syncProgress'])
+          ->name('admin.siswa.sync-progress')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+
       Route::get('siswa/cetak-qr', [SiswaController::class, 'cetakQrKelas'])
           ->name('admin.siswa.cetak-qr')
           ->middleware('role:super_admin,admin_sekolah,operator');

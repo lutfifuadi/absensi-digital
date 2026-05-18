@@ -193,12 +193,9 @@
       </div>
 
       <div class="das-hero__actions">
-        <form action="{{ route('admin.siswa.sync-google-sheet') }}" method="POST" class="d-inline">
-          @csrf
-          <button type="submit" class="btn das-btn --warning">
-            <i class="ti tabler-refresh me-1"></i> Sync Google Sheet
-          </button>
-        </form>
+        <button type="button" class="btn das-btn --warning" id="syncGoogleSheetBtn">
+          <i class="ti tabler-refresh me-1"></i> Sync Google Sheet
+        </button>
         <button type="button" class="btn das-btn --secondary" data-bs-toggle="modal" data-bs-target="#importModal">
           <i class="ti tabler-file-import me-1"></i> Import
         </button>
@@ -398,6 +395,29 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  {{-- SYNC GOOGLE SHEET PROGRESS MODAL --}}
+  <div class="modal fade" id="syncProgressModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="das-modal border-0 shadow-lg" style="background:#1e1e2e;border-radius:12px;">
+        <div class="das-modal-head d-flex align-items-center justify-content-between">
+          <h5 class="das-modal-title"><i class="ti tabler-refresh me-2 text-warning"></i>Sync Google Sheet</h5>
+        </div>
+        <div class="das-modal-body text-center py-4">
+          <div class="mb-3">
+            <div class="spinner-border text-warning" role="status" style="width:3rem;height:3rem;">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+          <h6 class="text-white mb-2" id="syncProgressMessage">Memulai sinkronisasi...</h6>
+          <div class="progress" style="height:8px;background:rgba(255,255,255,0.08);border-radius:8px;overflow:hidden;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" id="syncProgressBar" role="progressbar" style="width:0%"></div>
+          </div>
+          <p class="text-muted small mt-2 mb-0" id="syncProgressCount"></p>
+        </div>
       </div>
     </div>
   </div>
@@ -676,6 +696,83 @@
       }
       if (exportCsvBtn) {
         exportCsvBtn.addEventListener('click', () => handleExport('csv'));
+      }
+
+      // Sync Google Sheet
+      const syncBtn = document.getElementById('syncGoogleSheetBtn');
+      const syncModal = new bootstrap.Modal(document.getElementById('syncProgressModal'));
+      const syncMsg = document.getElementById('syncProgressMessage');
+      const syncBar = document.getElementById('syncProgressBar');
+      const syncCount = document.getElementById('syncProgressCount');
+      let syncInterval;
+
+      if (syncBtn) {
+        syncBtn.addEventListener('click', function() {
+          syncMsg.textContent = 'Memulai sinkronisasi...';
+          syncBar.style.width = '0%';
+          syncCount.textContent = '';
+          syncModal.show();
+
+          fetch('{{ route('admin.siswa.sync-google-sheet') }}', {
+            method: 'POST',
+            headers: {
+              'X-CSRF-TOKEN': '{{ csrf_token() }}',
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json',
+            }
+          })
+          .then(res => res.json())
+          .then(data => {
+            syncMsg.textContent = data.message;
+            syncBar.style.width = '100%';
+            syncBar.classList.remove('progress-bar-animated', 'progress-bar-striped');
+            if (data.success) {
+              syncBar.classList.add('bg-success');
+            } else {
+              syncBar.classList.add('bg-danger');
+            }
+            clearInterval(syncInterval);
+
+            setTimeout(() => {
+              syncModal.hide();
+              if (data.success) {
+                // reload table
+                fetchData(1);
+                // show toast
+                const toast = document.createElement('div');
+                toast.className = 'alert alert-success alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm';
+                toast.style.cssText = 'border-radius:8px;';
+                toast.innerHTML = '<i class="ti tabler-circle-check fs-5"></i><span>' + data.message + '</span><button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>';
+                document.querySelector('.das-hero').insertAdjacentElement('afterend', toast);
+                setTimeout(() => toast.remove(), 5000);
+              }
+            }, 1500);
+          })
+          .catch(err => {
+            syncMsg.textContent = 'Terjadi kesalahan. Silakan coba lagi.';
+            syncBar.style.width = '100%';
+            syncBar.classList.add('bg-danger');
+            clearInterval(syncInterval);
+            console.error('Sync error:', err);
+          });
+
+          // Poll progress
+          syncInterval = setInterval(function() {
+            fetch('{{ route('admin.siswa.sync-progress') }}', {
+              headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(prog => {
+              if (prog.total > 0) {
+                const pct = Math.min(Math.round((prog.processed / prog.total) * 100), 99);
+                syncBar.style.width = pct + '%';
+                syncCount.textContent = prog.processed + ' / ' + prog.total + ' siswa diproses';
+                syncMsg.textContent = prog.message || 'Sedang memproses...';
+              }
+            })
+            .catch(err => console.error('Progress poll error:', err));
+          }, 2000);
+        });
       }
 
       // initial tooltips

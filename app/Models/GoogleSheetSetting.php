@@ -17,6 +17,8 @@ class GoogleSheetSetting extends Model
         'last_sync_at',
         'last_sync_status',
         'last_sync_message',
+        'sync_total_rows',
+        'sync_processed_rows',
         'is_active',
     ];
 
@@ -24,6 +26,8 @@ class GoogleSheetSetting extends Model
         'credentials_json' => 'encrypted',
         'column_mapping' => 'array',
         'is_active' => 'boolean',
+        'sync_total_rows' => 'integer',
+        'sync_processed_rows' => 'integer',
     ];
 
     protected $appends = [
