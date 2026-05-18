@@ -93,6 +93,7 @@ class GoogleSheetsService
 
     public function syncSiswa(array $config, ?int $settingId = null): array
     {
+        set_time_limit(0);
         $syncService = new SyncService();
         $columnMapping = $config['column_mapping'] ?? [];
 
