@@ -12,6 +12,7 @@
     "php": "^8.2",
     "barryvdh/laravel-dompdf": "^3.1",
     "endroid/qr-code": "^6.0",
+    "google/apiclient": "*",
     "laravel/framework": "^12.0",
     "laravel/jetstream": "^5.5",
     "laravel/sanctum": "^4.0",

@@ -9,6 +9,7 @@ use App\Models\StaffTataUsaha;
 use App\Models\Kelas;
 use App\Models\TahunAkademik;
 use App\Support\QrCodeGenerator;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -67,11 +68,30 @@ class SyncService
     {
         DB::beginTransaction();
         try {
+            $tanggalLahir = null;
+            if (!empty($data['tanggal_lahir'])) {
+                try {
+                    $tanggalLahir = Carbon::createFromFormat('d/m/Y', $data['tanggal_lahir'])->format('Y-m-d');
+                } catch (\Exception $e) {
+                    try {
+                        $tanggalLahir = Carbon::parse($data['tanggal_lahir'])->format('Y-m-d');
+                    } catch (\Exception $e2) {
+                        $tanggalLahir = $data['tanggal_lahir'];
+                    }
+                }
+            }
+
+            $email = $data['email'] ?? '';
+            if (empty($email)) {
+                $domain = \App\Models\Pengaturan::where('key', 'website_lembaga')->value('value') ?? 'madrasah.sch.id';
+                $email = strtolower(trim($data['nisn'] ?? $data['nis'] ?? $data['username'])) . '@' . $domain;
+            }
+
             // 1. Sync User Account
             $user = $this->syncUser([
                 'name' => $data['nama_lengkap'],
                 'username' => $data['username'],
-                'email' => $data['email'], // Email wajib ada di payload
+                'email' => $email,
                 'password' => $data['password'] ?? null,
             ], User::ROLE_SISWA);
 
@@ -104,7 +124,7 @@ class SyncService
                     'nama_lengkap' => $data['nama_lengkap'],
                     'jenis_kelamin' => $data['jenis_kelamin'] ?? 'L',
                     'tempat_lahir' => $data['tempat_lahir'] ?? null,
-                    'tanggal_lahir' => $data['tanggal_lahir'] ?? null,
+                    'tanggal_lahir' => $tanggalLahir,
                     'alamat' => $data['alamat'] ?? null,
                     'no_hp' => $data['no_hp'] ?? null,
                     'no_hp_ortu' => $data['no_hp_ortu'] ?? null,

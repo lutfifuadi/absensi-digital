@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Exports\SiswaExport;
 use App\Http\Controllers\Controller;
 use App\Imports\SiswaImport;
+use App\Jobs\GoogleSheetsSyncJob;
 use App\Models\ActivityLog;
+use App\Models\GoogleSheetSetting;
 use App\Models\Kelas;
 use App\Models\Pengaturan;
 use App\Models\Siswa;
@@ -575,4 +577,23 @@ class SiswaController extends Controller
         ));
     }
 
+    public function syncGoogleSheet()
+    {
+        $setting = GoogleSheetSetting::first();
+
+        if (!$setting || !$setting->is_active) {
+            return back()->with('sync_error', 'Konfigurasi Google Sheets belum diatur atau tidak aktif.');
+        }
+
+        if (empty($setting->column_mapping)) {
+            return back()->with('sync_error', 'Mapping kolom Google Sheets belum dikonfigurasi. Silakan atur di halaman Pengaturan Google Sheets.');
+        }
+
+        try {
+            GoogleSheetsSyncJob::dispatch($setting->id);
+            return back()->with('success', 'Sinkronisasi Google Sheets telah dijadwalkan dan akan diproses di latar belakang.');
+        } catch (\Exception $e) {
+            return back()->with('sync_error', 'Gagal menjadwalkan sinkronisasi. Silakan coba lagi.');
+        }
+    }
 }

@@ -336,6 +336,10 @@ Route::middleware([
           ->name('admin.siswa.download-sample')
           ->middleware('role:super_admin,admin_sekolah,operator');
 
+      Route::post('siswa/sync-google-sheet', [SiswaController::class, 'syncGoogleSheet'])
+          ->name('admin.siswa.sync-google-sheet')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+
       Route::get('siswa/cetak-qr', [SiswaController::class, 'cetakQrKelas'])
           ->name('admin.siswa.cetak-qr')
           ->middleware('role:super_admin,admin_sekolah,operator');
@@ -492,6 +496,20 @@ Route::middleware([
           ->middleware('role:super_admin,admin_sekolah');
       Route::post('pengaturan/api-source/sync-now', [\App\Http\Controllers\Admin\ApiSourceSettingsController::class, 'syncNow'])
           ->name('admin.pengaturan.api-source.sync-now')
+          ->middleware('role:super_admin,admin_sekolah');
+
+      // Google Sheets Settings
+      Route::get('pengaturan/google-sheets', [\App\Http\Controllers\Admin\GoogleSheetsSettingController::class, 'index'])
+          ->name('admin.pengaturan.google-sheets.index')
+          ->middleware('role:super_admin,admin_sekolah');
+      Route::post('pengaturan/google-sheets', [\App\Http\Controllers\Admin\GoogleSheetsSettingController::class, 'update'])
+          ->name('admin.pengaturan.google-sheets.update')
+          ->middleware('role:super_admin,admin_sekolah');
+      Route::post('pengaturan/google-sheets/test', [\App\Http\Controllers\Admin\GoogleSheetsSettingController::class, 'testConnection'])
+          ->name('admin.pengaturan.google-sheets.test')
+          ->middleware('role:super_admin,admin_sekolah');
+      Route::post('pengaturan/google-sheets/sync-now', [\App\Http\Controllers\Admin\GoogleSheetsSettingController::class, 'syncNow'])
+          ->name('admin.pengaturan.google-sheets.sync-now')
           ->middleware('role:super_admin,admin_sekolah');
           
       // Integrasi API

@@ -82,6 +82,12 @@
       "slug": "admin.pengaturan.api-source.index"
     },
     {
+      "url": "/admin/pengaturan/google-sheets",
+      "name": "Google Sheets",
+      "icon": "menu-icon ti tabler-file-spreadsheet",
+      "slug": "admin.pengaturan.google-sheets.index"
+    },
+    {
       "url": "/admin/wa-gateway",
       "name": "API WAGateway",
       "icon": "menu-icon ti tabler-brand-whatsapp",

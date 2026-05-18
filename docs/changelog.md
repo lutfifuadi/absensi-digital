@@ -1,5 +1,14 @@
 # Changelog
 
+## [v1.1.0] - 2026-05-18
+### Added
+- Fitur pull data siswa dari Google Sheets
+- Halaman setting Google Sheets di `/admin/pengaturan/google-sheets`
+- Google Sheets API integration service (`GoogleSheetsService`)
+- Background job sync (`GoogleSheetsSyncJob`) dengan queue `syncs`
+- Test connection, mapping kolom, dan trigger sync manual
+- Encryption untuk service account credentials
+
 ## [1.0.10] - 2026-05-09
 ### Added
 - **Fitur Import & Export Guru**: Implementasi lengkap sistem import data guru dari file Excel/CSV dan export data guru ke format Excel (.xlsx).

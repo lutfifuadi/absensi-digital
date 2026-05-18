@@ -193,6 +193,12 @@
       </div>
 
       <div class="das-hero__actions">
+        <form action="{{ route('admin.siswa.sync-google-sheet') }}" method="POST" class="d-inline">
+          @csrf
+          <button type="submit" class="btn das-btn --warning">
+            <i class="ti tabler-refresh me-1"></i> Sync Google Sheet
+          </button>
+        </form>
         <button type="button" class="btn das-btn --secondary" data-bs-toggle="modal" data-bs-target="#importModal">
           <i class="ti tabler-file-import me-1"></i> Import
         </button>
@@ -234,6 +240,15 @@
       role="alert" style="border-radius:8px;">
       <i class="ti tabler-circle-check fs-5"></i>
       <span>{{ session('success') }}</span>
+      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+  @endif
+
+  @if (session('sync_error'))
+    <div class="alert alert-danger alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm"
+      role="alert" style="border-radius:8px;">
+      <i class="ti tabler-alert-triangle fs-5"></i>
+      <span>{{ session('sync_error') }}</span>
       <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
     </div>
   @endif

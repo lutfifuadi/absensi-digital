@@ -73,13 +73,20 @@
             <span>Pengaturan Umum</span>
             <i class="ti tabler-chevron-right set-nav__item-arrow"></i>
           </a>
-          <button type="button" class="set-nav__item active">
+          <a href="{{ route('admin.pengaturan.api-source.index') }}" class="set-nav__item">
             <div class="set-nav__item-icon">
               <i class="ti tabler-api"></i>
             </div>
             <span>Pengaturan API</span>
             <i class="ti tabler-chevron-right set-nav__item-arrow"></i>
-          </button>
+          </a>
+          <a href="{{ route('admin.pengaturan.google-sheets.index') }}" class="set-nav__item">
+            <div class="set-nav__item-icon">
+              <i class="ti tabler-file-spreadsheet"></i>
+            </div>
+            <span>Google Sheets</span>
+            <i class="ti tabler-chevron-right set-nav__item-arrow"></i>
+          </a>
         </nav>
 
         {{-- Save Button (Sidebar) --}}
@@ -216,6 +223,17 @@
     </main>
   </div>
 </form>
+
+{{-- LINK KE GOOGLE SHEETS --}}
+<div class="alert alert-info mb-4" role="alert" style="border-radius: 12px; background: rgba(0, 207, 232, 0.08); border:1px solid rgba(0, 207, 232, 0.15); color:#fff;">
+  <div class="d-flex align-items-center gap-3">
+    <i class="ti tabler-file-spreadsheet fs-3"></i>
+    <div>
+      <strong>Google Sheets Integration</strong><br>
+      Untuk konfigurasi sinkronisasi data via Google Sheets, gunakan halaman khusus <a href="{{ route('admin.pengaturan.google-sheets.index') }}" class="text-info text-decoration-underline">Pengaturan Google Sheets</a>.
+    </div>
+  </div>
+</div>
 
 {{-- TOMBOL SINKRON SEKARANG --}}
 <div class="sync-now-panel mt-4">
