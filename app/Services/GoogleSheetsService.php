@@ -11,7 +11,7 @@ class GoogleSheetsService
 {
     public function getClient(array $config): Client
     {
-        $client = new Client();
+        $client = new Client;
         $client->setApplicationName('Absensi Pusat');
         $client->setScopes([Sheets::SPREADSHEETS_READONLY]);
         $client->setAuthConfig(json_decode($config['credentials_json'], true));
@@ -36,7 +36,7 @@ class GoogleSheetsService
             $response = $service->spreadsheets_values->get($config['spreadsheet_id'], $range);
             $values = $response->getValues();
 
-            $message = 'Koneksi berhasil. Ditemukan ' . count($values ?? []) . ' baris data.';
+            $message = 'Koneksi berhasil. Ditemukan '.count($values ?? []).' baris data.';
             Log::channel('daily')->info('GoogleSheetsService: Test koneksi berhasil', [
                 'spreadsheet_id' => $config['spreadsheet_id'],
             ]);
@@ -91,10 +91,10 @@ class GoogleSheetsService
         }
     }
 
-    public function syncSiswa(array $config, ?int $settingId = null): array
+    public function syncSiswa(array $config, ?int $settingId = null, int $offset = 0, ?int $limit = null): array
     {
         set_time_limit(0);
-        $syncService = new SyncService();
+        $syncService = new SyncService;
         $columnMapping = $config['column_mapping'] ?? [];
 
         if (empty($columnMapping)) {
@@ -108,27 +108,31 @@ class GoogleSheetsService
         try {
             $rows = $this->fetchData($config);
 
-            if (count($rows) > 500) {
-                Log::channel('daily')->warning('GoogleSheetsService: Data melebihi batas 500 baris, hanya 500 baris pertama yang diproses', ['total' => count($rows)]);
-                $rows = array_slice($rows, 0, 500);
-            }
-
             $totalRows = count($rows);
+            $chunkSize = $limit ?? GoogleSheetSetting::CHUNK_SIZE;
 
             if ($settingId) {
-                GoogleSheetSetting::where('id', $settingId)->update([
-                    'sync_total_rows' => $totalRows,
-                    'sync_processed_rows' => 0,
-                    'last_sync_status' => 'in_progress',
-                    'last_sync_message' => '0/' . $totalRows . ' - Sedang memproses...',
-                ]);
+                $setting = GoogleSheetSetting::find($settingId);
+                if ($setting && $offset === 0) {
+                    $setting->update([
+                        'sync_total_rows' => $totalRows,
+                        'sync_processed_rows' => 0,
+                        'sync_offset' => 0,
+                        'last_sync_status' => 'in_progress',
+                        'last_sync_message' => '0/'.$totalRows.' - Sedang memproses...',
+                    ]);
+                }
             }
 
             if (empty($rows)) {
-                return ['success' => true, 'imported' => 0, 'failed' => 0, 'errors' => []];
+                return ['success' => true, 'imported' => 0, 'failed' => 0, 'errors' => [], 'total' => 0, 'offset' => 0, 'more' => false];
             }
 
-            foreach ($rows as $index => $row) {
+            $chunk = array_slice($rows, $offset, $chunkSize);
+            $chunkEnd = $offset + count($chunk);
+
+            foreach ($chunk as $index => $row) {
+                $rowIndex = $offset + $index;
                 try {
                     $mappedData = [];
                     foreach ($columnMapping as $field => $column) {
@@ -139,26 +143,43 @@ class GoogleSheetsService
                     $imported++;
                 } catch (\Exception $e) {
                     $failed++;
-                    $errors[] = "Gagal menyinkronkan data pada baris " . ($index + 2) . ".";
-                    Log::channel('daily')->warning('GoogleSheetsService: Gagal sync siswa baris ' . ($index + 2), [
+                    $errors[] = 'Gagal menyinkronkan data pada baris '.($rowIndex + 2).'.';
+                    Log::channel('daily')->warning('GoogleSheetsService: Gagal sync siswa baris '.($rowIndex + 2), [
                         'error' => $e->getMessage(),
                         'row' => $row,
                     ]);
                 }
 
+                $processed = $imported + $failed;
                 if ($settingId) {
                     GoogleSheetSetting::where('id', $settingId)->update([
-                        'sync_processed_rows' => $imported + $failed,
-                        'last_sync_message' => ($imported + $failed) . '/' . $totalRows . ' - Berhasil: ' . $imported . ', Gagal: ' . $failed,
+                        'sync_processed_rows' => $offset + $processed,
+                        'sync_offset' => $chunkEnd,
+                        'last_sync_message' => ($offset + $processed).'/'.$totalRows.' - Diproses: '.($offset + $processed).' baris',
                     ]);
                 }
 
                 usleep(500000);
             }
 
-            Log::channel('daily')->info('GoogleSheetsService: Sync siswa selesai', [
+            $hasMore = $chunkEnd < $totalRows;
+
+            if (! $hasMore && $settingId) {
+                GoogleSheetSetting::where('id', $settingId)->update([
+                    'last_sync_at' => now(),
+                    'last_sync_status' => $failed === 0 ? 'success' : 'completed_with_errors',
+                    'last_sync_message' => 'Sinkronisasi selesai. Total: '.$totalRows.', Berhasil: '.$imported.', Gagal: '.$failed,
+                    'sync_offset' => null,
+                ]);
+            }
+
+            Log::channel('daily')->info('GoogleSheetsService: Sync siswa chunk selesai', [
                 'imported' => $imported,
                 'failed' => $failed,
+                'offset' => $offset,
+                'chunkEnd' => $chunkEnd,
+                'total' => $totalRows,
+                'more' => $hasMore,
             ]);
 
             return [
@@ -166,6 +187,9 @@ class GoogleSheetsService
                 'imported' => $imported,
                 'failed' => $failed,
                 'errors' => $errors,
+                'total' => $totalRows,
+                'offset' => $chunkEnd,
+                'more' => $hasMore,
             ];
         } catch (\Exception $e) {
             Log::channel('daily')->error('GoogleSheetsService: Sync siswa gagal total', [
@@ -177,6 +201,9 @@ class GoogleSheetsService
                 'imported' => $imported,
                 'failed' => $failed,
                 'errors' => ['Gagal menyinkronkan data. Silakan coba lagi.'],
+                'total' => 0,
+                'offset' => $offset,
+                'more' => false,
             ];
         }
     }

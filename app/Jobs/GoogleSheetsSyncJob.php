@@ -15,15 +15,20 @@ class GoogleSheetsSyncJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $tries = 2;
-    public $backoff = 30;
-    public $timeout = 300;
+    public $tries = 3;
+
+    public $backoff = [30, 60, 120];
+
+    public $timeout = 120;
 
     protected int $settingId;
 
-    public function __construct(int $settingId)
+    protected int $offset;
+
+    public function __construct(int $settingId, int $offset = 0)
     {
         $this->settingId = $settingId;
+        $this->offset = $offset;
         $this->onQueue('syncs');
     }
 
@@ -31,48 +36,56 @@ class GoogleSheetsSyncJob implements ShouldQueue
     {
         $setting = GoogleSheetSetting::find($this->settingId);
 
-        if (!$setting) {
+        if (! $setting) {
             Log::channel('daily')->error('GoogleSheetsSyncJob: Setting tidak ditemukan', [
                 'setting_id' => $this->settingId,
             ]);
+
             return;
         }
 
-        $setting->update([
-            'last_sync_status' => 'in_progress',
-            'last_sync_message' => 'Sinkronisasi sedang berlangsung...',
-        ]);
+        if ($this->offset === 0) {
+            $setting->update([
+                'last_sync_status' => 'in_progress',
+                'last_sync_message' => 'Sinkronisasi sedang berlangsung...',
+            ]);
+        }
 
         try {
-            $service = new GoogleSheetsService();
-            $result = $service->syncSiswa([
-                'spreadsheet_id' => $setting->spreadsheet_id,
-                'sheet_range' => $setting->sheet_range,
-                'credentials_json' => $setting->credentials_json,
-                'column_mapping' => $setting->column_mapping ?? [],
-            ]);
+            $service = new GoogleSheetsService;
+            $chunkSize = GoogleSheetSetting::CHUNK_SIZE;
 
-            $setting->update([
-                'last_sync_at' => now(),
-                'last_sync_status' => $result['success'] ? 'success' : 'failed',
-                'last_sync_message' => $result['success']
-                    ? 'Sinkronisasi berhasil. Imported: ' . $result['imported'] . ', Gagal: ' . $result['failed']
-                    : 'Sinkronisasi gagal: ' . implode('; ', $result['errors']),
-            ]);
+            $result = $service->syncSiswa(
+                [
+                    'spreadsheet_id' => $setting->spreadsheet_id,
+                    'sheet_range' => $setting->sheet_range,
+                    'credentials_json' => $setting->credentials_json,
+                    'column_mapping' => $setting->column_mapping ?? [],
+                ],
+                $this->settingId,
+                $this->offset,
+                $chunkSize
+            );
 
-            Log::channel('daily')->info('GoogleSheetsSyncJob: Selesai', [
+            if ($result['more']) {
+                GoogleSheetsSyncJob::dispatch($this->settingId, $result['offset'])
+                    ->onQueue('syncs')
+                    ->delay(now()->addSeconds(2));
+            }
+
+            Log::channel('daily')->info('GoogleSheetsSyncJob: Chunk selesai', [
                 'setting_id' => $this->settingId,
+                'offset' => $this->offset,
                 'result' => $result,
             ]);
         } catch (\Exception $e) {
             $setting->update([
-                'last_sync_at' => now(),
-                'last_sync_status' => 'failed',
-                'last_sync_message' => 'Error: ' . $e->getMessage(),
+                'last_sync_message' => 'Error pada offset '.$this->offset.': '.$e->getMessage(),
             ]);
 
             Log::channel('daily')->error('GoogleSheetsSyncJob: Error', [
                 'setting_id' => $this->settingId,
+                'offset' => $this->offset,
                 'error' => $e->getMessage(),
             ]);
         }

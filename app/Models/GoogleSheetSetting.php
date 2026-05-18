@@ -9,6 +9,8 @@ class GoogleSheetSetting extends Model
 {
     use HasFactory;
 
+    const CHUNK_SIZE = 50;
+
     protected $fillable = [
         'spreadsheet_id',
         'sheet_range',
@@ -19,6 +21,7 @@ class GoogleSheetSetting extends Model
         'last_sync_message',
         'sync_total_rows',
         'sync_processed_rows',
+        'sync_offset',
         'is_active',
     ];
 
@@ -28,6 +31,7 @@ class GoogleSheetSetting extends Model
         'is_active' => 'boolean',
         'sync_total_rows' => 'integer',
         'sync_processed_rows' => 'integer',
+        'sync_offset' => 'integer',
     ];
 
     protected $appends = [
@@ -38,6 +42,7 @@ class GoogleSheetSetting extends Model
     {
         return match ($this->last_sync_status) {
             'success' => 'Berhasil',
+            'completed_with_errors' => 'Selesai (dengan error)',
             'failed' => 'Gagal',
             'in_progress' => 'Sedang Sinkron',
             default => 'Belum Sinkron',

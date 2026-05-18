@@ -17,7 +17,7 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 
-class SiswaImport implements ToModel, WithHeadingRow, WithValidation, SkipsEmptyRows
+class SiswaImport implements SkipsEmptyRows, ToModel, WithHeadingRow, WithValidation
 {
     use Importable;
 
@@ -25,14 +25,16 @@ class SiswaImport implements ToModel, WithHeadingRow, WithValidation, SkipsEmpty
      * Cache kelas & tahun akademik agar tidak query DB per baris.
      */
     protected array $kelasCache = [];
+
     protected array $tahunAkademikCache = [];
+
     protected ?string $domainEmail = null;
 
     public function model(array $row)
     {
         // ── Resolve Kelas ────────────────────────────────────────────────────
         $namaKelas = trim($row['kelas'] ?? '');
-        if (!isset($this->kelasCache[$namaKelas])) {
+        if (! isset($this->kelasCache[$namaKelas])) {
             $this->kelasCache[$namaKelas] = Kelas::where('nama', $namaKelas)->first();
         }
         $kelas = $this->kelasCache[$namaKelas];
@@ -40,14 +42,14 @@ class SiswaImport implements ToModel, WithHeadingRow, WithValidation, SkipsEmpty
         // ── Resolve Tahun Akademik ────────────────────────────────────────────
         // Format kolom: "2025-2026 Genap" atau "2025/2026 Ganjil"
         $tahunAkademikRaw = trim($row['tahun_ajaran'] ?? $row['tahun_akademik'] ?? '');
-        $tahunAkademikId  = null;
+        $tahunAkademikId = null;
 
         if ($tahunAkademikRaw !== '') {
-            if (!isset($this->tahunAkademikCache[$tahunAkademikRaw])) {
+            if (! isset($this->tahunAkademikCache[$tahunAkademikRaw])) {
                 // Coba pisahkan nama dan semester ("2025-2026 Genap")
-                $parts    = preg_split('/[\s]+/', $tahunAkademikRaw, 2);
+                $parts = preg_split('/[\s]+/', $tahunAkademikRaw, 2);
                 $namaPart = $parts[0] ?? '';                    // "2025-2026"
-                $semPart  = strtolower($parts[1] ?? '');        // "genap" / "ganjil"
+                $semPart = strtolower($parts[1] ?? '');        // "genap" / "ganjil"
 
                 // Normalisasi: "2025/2026" → "2025-2026"
                 $namaPart = str_replace('/', '-', $namaPart);
@@ -89,32 +91,32 @@ class SiswaImport implements ToModel, WithHeadingRow, WithValidation, SkipsEmpty
         if ($this->domainEmail === null) {
             $this->domainEmail = Pengaturan::where('key', 'website_lembaga')->value('value') ?? 'madrasah.sch.id';
         }
-        $nisn       = trim($row['nisn']);
-        $nis        = trim($row['nis']);
+        $nisn = trim($row['nisn']);
+        $nis = trim($row['nis']);
         $identifier = strtolower($nisn ?: $nis);
-        $email      = $identifier . '@' . $this->domainEmail;
-        $username   = $nisn ?: $nis;
+        $email = $identifier.'@'.$this->domainEmail;
+        $username = $nisn ?: $nis;
 
         $user = User::firstOrCreate(
             ['username' => $username],
             [
-                'name'     => trim($row['nama_lengkap']),
-                'email'    => $email,
+                'name' => trim($row['nama_lengkap']),
+                'email' => $email,
                 'password' => Hash::make('password123'),
-                'role'     => User::ROLE_SISWA,
+                'role' => User::ROLE_SISWA,
             ]
         );
 
         // Auto-create akun orang tua
-        $usernameOrtu = 'ortu.' . $identifier;
-        $emailOrtu    = 'ortu.' . $identifier . '@' . $this->domainEmail;
+        $usernameOrtu = 'ortu.'.$identifier;
+        $emailOrtu = 'ortu.'.$identifier.'@'.$this->domainEmail;
         $userOrtu = User::firstOrCreate(
             ['username' => $usernameOrtu],
             [
-                'name'     => 'Wali Murid ' . trim($row['nama_lengkap']),
-                'email'    => $emailOrtu,
+                'name' => 'Wali Murid '.trim($row['nama_lengkap']),
+                'email' => $emailOrtu,
                 'password' => Hash::make('password123'),
-                'role'     => User::ROLE_ORANG_TUA,
+                'role' => User::ROLE_ORANG_TUA,
             ]
         );
 
@@ -122,20 +124,20 @@ class SiswaImport implements ToModel, WithHeadingRow, WithValidation, SkipsEmpty
         $siswa = Siswa::updateOrCreate(
             ['nisn' => $nisn],
             [
-                'user_id'           => $user->id,
-                'ortu_user_id'      => $userOrtu->id,
-                'nis'               => $nis,
-                'nama_lengkap'      => trim($row['nama_lengkap']),
-                'jenis_kelamin'     => strtoupper(trim($row['jenis_kelamin'])),
-                'tempat_lahir'      => trim($row['tempat_lahir']),
-                'tanggal_lahir'     => $tanggalLahir,
-                'alamat'            => trim($row['alamat'] ?? ''),
-                'no_hp'             => trim($row['no_hp'] ?? ''),
-                'no_hp_ortu'        => trim($row['no_hp_ortu'] ?? ''),
-                'kelas_id'          => $kelas?->id,
+                'user_id' => $user->id,
+                'ortu_user_id' => $userOrtu->id,
+                'nis' => $nis,
+                'nama_lengkap' => trim($row['nama_lengkap']),
+                'jenis_kelamin' => strtoupper(trim($row['jenis_kelamin'])),
+                'tempat_lahir' => trim($row['tempat_lahir']),
+                'tanggal_lahir' => $tanggalLahir,
+                'alamat' => trim($row['alamat'] ?? ''),
+                'no_hp' => trim($row['no_hp'] ?? ''),
+                'no_hp_ortu' => trim($row['no_hp_ortu'] ?? ''),
+                'kelas_id' => $kelas?->id,
                 'tahun_akademik_id' => $tahunAkademikId,
-                'status'            => trim($row['status'] ?? 'aktif'),
-                'qr_code'           => $nisn ?: $nis,
+                'status' => trim($row['status'] ?? 'aktif'),
+                'qr_code' => $nisn ?: $nis,
             ]
         );
 
@@ -146,22 +148,22 @@ class SiswaImport implements ToModel, WithHeadingRow, WithValidation, SkipsEmpty
     public function rules(): array
     {
         return [
-            'nis'           => ['required', 'string', 'max:50'],
-            'nisn'          => ['required', 'string', 'max:50'],
-            'nama_lengkap'  => ['required', 'string', 'max:255'],
+            'nis' => ['nullable', 'string', 'max:50'],
+            'nisn' => ['required', 'string', 'max:50'],
+            'nama_lengkap' => ['required', 'string', 'max:255'],
             'jenis_kelamin' => ['required', Rule::in(['L', 'P', 'l', 'p'])],
-            'tempat_lahir'  => ['required', 'string', 'max:255'],
+            'tempat_lahir' => ['required', 'string', 'max:255'],
             'tanggal_lahir' => ['required'],
-            'kelas'         => ['required', 'string', 'exists:kelas,nama'],
-            'status'        => ['required', Rule::in(['aktif', 'nonaktif', 'alumni'])],
-            'no_hp_ortu'    => ['nullable', 'string', 'max:50'],
+            'kelas' => ['required', 'string', 'exists:kelas,nama'],
+            'status' => ['required', Rule::in(['aktif', 'nonaktif', 'alumni'])],
+            'no_hp_ortu' => ['nullable', 'string', 'max:50'],
         ];
     }
 
     public function customValidationMessages(): array
     {
         return [
-            'kelas.exists'    => 'Kelas ":input" tidak ditemukan. Pastikan nama kelas sesuai dengan data di master kelas.',
+            'kelas.exists' => 'Kelas ":input" tidak ditemukan. Pastikan nama kelas sesuai dengan data di master kelas.',
             'jenis_kelamin.in' => 'Jenis kelamin harus L (Laki-laki) atau P (Perempuan).',
         ];
     }

@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Exports\SiswaExport;
 use App\Http\Controllers\Controller;
 use App\Imports\SiswaImport;
+use App\Jobs\GoogleSheetsSyncJob;
+use App\Models\AbsensiSiswa;
 use App\Models\ActivityLog;
 use App\Models\GoogleSheetSetting;
-use App\Services\GoogleSheetsService;
+use App\Models\IdCardTemplate;
+use App\Models\IzinSakit;
 use App\Models\Kelas;
 use App\Models\Pengaturan;
 use App\Models\Siswa;
@@ -19,6 +22,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException as ExcelValidationException;
 
@@ -39,14 +44,14 @@ class SiswaController extends Controller
                     // Tampilkan siswa yang sesuai tahun ajaran ATAU yang tahun_akademik_id-nya NULL
                     // (karena kemungkinan di-sync/import sebelum fitur ini ada)
                     $q->where('tahun_akademik_id', $tahunAjaranId)
-                      ->orWhereNull('tahun_akademik_id');
+                        ->orWhereNull('tahun_akademik_id');
                 }
             })
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('nama_lengkap', 'like', "%{$search}%")
-                      ->orWhere('nis', 'like', "%{$search}%")
-                      ->orWhere('nisn', 'like', "%{$search}%");
+                        ->orWhere('nis', 'like', "%{$search}%")
+                        ->orWhere('nisn', 'like', "%{$search}%");
                 });
             })
             ->orderBy('nama_lengkap')
@@ -63,6 +68,7 @@ class SiswaController extends Controller
         }
 
         $tahunAjaranOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
+
         return view('admin.siswa.index', compact('siswa', 'tahunAjaranOptions', 'siswaNullTahun'));
     }
 
@@ -77,7 +83,7 @@ class SiswaController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'nis' => 'required|string|max:50|unique:siswa,nis',
+            'nis' => 'nullable|string|max:50|unique:siswa,nis',
             'nisn' => 'required|string|max:50|unique:siswa,nisn',
             'nama_lengkap' => 'required|string|max:255',
             'jenis_kelamin' => 'required|in:L,P',
@@ -92,8 +98,8 @@ class SiswaController extends Controller
         ]);
 
         $domainEmail = Pengaturan::where('key', 'website_lembaga')->value('value') ?? 'madrasah.sch.id';
-        $identifier = strtolower(trim($data['nisn'] ?? $data['nis']));
-        $email = $identifier . '@' . $domainEmail;
+        $identifier = strtolower(trim($data['nisn'] ?? $data['nis'] ?? ''));
+        $email = ($identifier ?: 'siswa').'@'.$domainEmail;
         $username = $data['nisn'];
 
         $user = User::firstOrCreate(
@@ -101,20 +107,20 @@ class SiswaController extends Controller
             [
                 'name' => $data['nama_lengkap'],
                 'email' => $email,
-                'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+                'password' => Hash::make('password123'),
                 'role' => User::ROLE_SISWA,
             ]
         );
 
         // Auto-create parent user
-        $emailOrtu = 'ortu.' . $identifier . '@' . $domainEmail;
-        $usernameOrtu = 'ortu.' . $identifier;
+        $emailOrtu = 'ortu.'.$identifier.'@'.$domainEmail;
+        $usernameOrtu = 'ortu.'.$identifier;
         $userOrtu = User::firstOrCreate(
             ['username' => $usernameOrtu],
             [
-                'name' => 'Wali Murid ' . $data['nama_lengkap'],
+                'name' => 'Wali Murid '.$data['nama_lengkap'],
                 'email' => $emailOrtu,
-                'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+                'password' => Hash::make('password123'),
                 'role' => User::ROLE_ORANG_TUA,
             ]
         );
@@ -144,7 +150,7 @@ class SiswaController extends Controller
         ]);
 
         try {
-            Excel::import(new SiswaImport(), $request->file('import_file'));
+            Excel::import(new SiswaImport, $request->file('import_file'));
 
             return redirect()->route('admin.siswa.index')->with('success', 'Data siswa berhasil diimpor dari Excel.');
         } catch (ExcelValidationException $exception) {
@@ -158,9 +164,9 @@ class SiswaController extends Controller
                 return "Baris {$row}: {$attribute} - {$errors}";
             })->implode(' | ');
 
-            return redirect()->back()->with('error', 'Import gagal: ' . $messages);
+            return redirect()->back()->with('error', 'Import gagal: '.$messages);
         } catch (\Throwable $th) {
-            return redirect()->back()->with('error', 'Import gagal: ' . $th->getMessage());
+            return redirect()->back()->with('error', 'Import gagal: '.$th->getMessage());
         }
     }
 
@@ -170,23 +176,23 @@ class SiswaController extends Controller
         $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
         $format = $request->query('format', 'xlsx');
 
-        $filename = 'data_siswa_' . now()->format('Y-m-d_H-i-s');
+        $filename = 'data_siswa_'.now()->format('Y-m-d_H-i-s');
 
         if ($format === 'csv') {
-            return Excel::download(new SiswaExport($search, $tahunAjaranId), $filename . '.csv', \Maatwebsite\Excel\Excel::CSV);
+            return Excel::download(new SiswaExport($search, $tahunAjaranId), $filename.'.csv', \Maatwebsite\Excel\Excel::CSV);
         }
 
-        return Excel::download(new SiswaExport($search, $tahunAjaranId), $filename . '.xlsx');
+        return Excel::download(new SiswaExport($search, $tahunAjaranId), $filename.'.xlsx');
     }
 
     public function downloadSample()
     {
         // Ambil data aktual dari DB untuk contoh yang akurat
-        $namaKelasContoh      = \App\Models\Kelas::orderBy('nama')->value('nama') ?? 'X.E-1';
-        $tahunAkademikContoh  = \App\Models\TahunAkademik::where('is_aktif', true)->first()
-            ?? \App\Models\TahunAkademik::orderBy('tanggal_mulai', 'desc')->first();
+        $namaKelasContoh = Kelas::orderBy('nama')->value('nama') ?? 'X.E-1';
+        $tahunAkademikContoh = TahunAkademik::where('is_aktif', true)->first()
+            ?? TahunAkademik::orderBy('tanggal_mulai', 'desc')->first();
         $tahunContoh = $tahunAkademikContoh
-            ? $tahunAkademikContoh->nama . ' ' . ucfirst($tahunAkademikContoh->semester)
+            ? $tahunAkademikContoh->nama.' '.ucfirst($tahunAkademikContoh->semester)
             : '2025-2026 Genap';
 
         $headers = [
@@ -201,7 +207,7 @@ class SiswaController extends Controller
             'no_hp_ortu',
             'kelas',
             'tahun_ajaran',   // format: "2025-2026 Genap" atau "2025-2026 Ganjil"
-            'status'
+            'status',
         ];
 
         $callback = function () use ($headers, $namaKelasContoh, $tahunContoh) {
@@ -223,7 +229,7 @@ class SiswaController extends Controller
                 '08123456780',       // no_hp_ortu (wajib)
                 $namaKelasContoh,
                 $tahunContoh,
-                'aktif'
+                'aktif',
             ]);
 
             // Baris contoh 2 (perempuan)
@@ -239,18 +245,18 @@ class SiswaController extends Controller
                 '08198765432',
                 $namaKelasContoh,
                 $tahunContoh,
-                'aktif'
+                'aktif',
             ]);
 
             fclose($file);
         };
 
         return response()->stream($callback, 200, [
-            'Content-type'        => 'text/csv',
+            'Content-type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename=sampel_import_siswa.csv',
-            'Pragma'              => 'no-cache',
-            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires'             => '0',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
         ]);
     }
 
@@ -265,8 +271,8 @@ class SiswaController extends Controller
     public function update(Request $request, Siswa $siswa)
     {
         $data = $request->validate([
-            'nis' => 'required|string|max:50|unique:siswa,nis,' . $siswa->id,
-            'nisn' => 'required|string|max:50|unique:siswa,nisn,' . $siswa->id,
+            'nis' => 'nullable|string|max:50|unique:siswa,nis,'.$siswa->id,
+            'nisn' => 'required|string|max:50|unique:siswa,nisn,'.$siswa->id,
             'nama_lengkap' => 'required|string|max:255',
             'jenis_kelamin' => 'required|in:L,P',
             'tempat_lahir' => 'required|string|max:255',
@@ -281,7 +287,7 @@ class SiswaController extends Controller
 
         $domainEmail = Pengaturan::where('key', 'website_lembaga')->value('value') ?? 'madrasah.sch.id';
         $identifier = strtolower(trim($data['nisn']));
-        $email = $identifier . '@' . $domainEmail;
+        $email = $identifier.'@'.$domainEmail;
         $username = $data['nisn'];
 
         $old = $siswa->toArray();
@@ -299,19 +305,19 @@ class SiswaController extends Controller
 
         if ($siswa->ortu) {
             $siswa->ortu->update([
-                'name' => 'Wali Murid ' . $data['nama_lengkap'],
-                'username' => 'ortu.' . $identifier,
-                'email' => 'ortu.' . $identifier . '@' . $domainEmail,
+                'name' => 'Wali Murid '.$data['nama_lengkap'],
+                'username' => 'ortu.'.$identifier,
+                'email' => 'ortu.'.$identifier.'@'.$domainEmail,
             ]);
-        } elseif (!$siswa->ortu_user_id) {
-            $emailOrtu = 'ortu.' . $identifier . '@' . $domainEmail;
-            $usernameOrtu = 'ortu.' . $identifier;
+        } elseif (! $siswa->ortu_user_id) {
+            $emailOrtu = 'ortu.'.$identifier.'@'.$domainEmail;
+            $usernameOrtu = 'ortu.'.$identifier;
             $userOrtu = User::firstOrCreate(
                 ['username' => $usernameOrtu],
                 [
-                    'name' => 'Wali Murid ' . $data['nama_lengkap'],
+                    'name' => 'Wali Murid '.$data['nama_lengkap'],
                     'email' => $emailOrtu,
-                    'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+                    'password' => Hash::make('password123'),
                     'role' => User::ROLE_ORANG_TUA,
                 ]
             );
@@ -350,7 +356,7 @@ class SiswaController extends Controller
 
             // Optional: Hapus akun user siswa yang mungkin sudah tidak punya entitas Siswa terkait
             // Hanya lakukan jika tidak memfilter per tahun ajaran, atau sesuaikan logikanya
-            if (!$tahunAjaranId) {
+            if (! $tahunAjaranId) {
                 User::where('role', User::ROLE_SISWA)
                     ->whereDoesntHave('siswa')
                     ->chunkById(100, function ($users) {
@@ -358,7 +364,7 @@ class SiswaController extends Controller
                             $user->delete();
                         }
                     });
-                
+
                 // Reset auto increment hanya jika benar-benar menghapus SEMUA (tanpa filter)
                 DB::statement('ALTER TABLE siswa AUTO_INCREMENT = 1');
             }
@@ -375,16 +381,16 @@ class SiswaController extends Controller
 
             return redirect()->route('admin.siswa.index')->with('success', "Berhasil menghapus {$deletedCount} siswa.");
         } catch (\Throwable $e) {
-            \Log::error('Error di destroyAll siswa: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            \Log::error('Error di destroyAll siswa: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+                    'message' => 'Terjadi kesalahan: '.$e->getMessage(),
                 ], 500);
             }
 
-            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan: '.$e->getMessage());
         }
     }
 
@@ -415,12 +421,13 @@ class SiswaController extends Controller
     {
         $user = Auth::user();
         $siswa = $user->siswa;
-        
-        if (!$siswa) abort(404, 'Profil siswa Anda tidak ditemukan.');
+
+        if (! $siswa) {
+            abort(404, 'Profil siswa Anda tidak ditemukan.');
+        }
 
         return $this->profil($siswa);
     }
-
 
     public function cetakQrKelas(Request $request)
     {
@@ -446,9 +453,9 @@ class SiswaController extends Controller
             $namaKelas = $kelas->nama;
         }
 
-        $template = \App\Models\IdCardTemplate::where('type', 'siswa')->active()->first();
+        $template = IdCardTemplate::where('type', 'siswa')->active()->first();
 
-        if (!$template) {
+        if (! $template) {
             // Fallback to legacy if no active template
             $qrImages = $siswaList->mapWithKeys(function (Siswa $s) {
                 $this->ensureQrCode($s);
@@ -458,19 +465,19 @@ class SiswaController extends Controller
                 ];
             });
             $namaSekolah = Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
+
             return Pdf::loadView('admin.siswa.kartu-qr-pdf', compact('siswaList', 'namaSekolah', 'namaKelas', 'qrImages'))
-                      ->setPaper('a4', 'portrait')
-                      ->download("kartu-qr-siswa-{$namaKelas}.pdf");
+                ->setPaper('a4', 'portrait')
+                ->download("kartu-qr-siswa-{$namaKelas}.pdf");
         }
 
         $config = $template->config;
         $entities = $siswaList;
 
         return Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'entities'))
-                  ->setPaper([0, 0, $config['canvas']['width'], $config['canvas']['height']])
-                  ->download("kartu-pelajar-{$namaKelas}.pdf");
+            ->setPaper([0, 0, $config['canvas']['width'], $config['canvas']['height']])
+            ->download("kartu-pelajar-{$namaKelas}.pdf");
     }
-
 
     /**
      * Generate & download kartu QR untuk satu siswa.
@@ -479,22 +486,23 @@ class SiswaController extends Controller
     {
         $this->ensureQrCode($siswa);
 
-        $template = \App\Models\IdCardTemplate::where('type', 'siswa')->active()->first();
+        $template = IdCardTemplate::where('type', 'siswa')->active()->first();
 
-        if (!$template) {
+        if (! $template) {
             $namaSekolah = Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
             $qrImage = QrCodeGenerator::renderDataUri($siswa->qr_code, 200);
+
             return Pdf::loadView('admin.siswa.kartu-qr-satu-pdf', compact('siswa', 'namaSekolah', 'qrImage'))
-                      ->setPaper([0, 0, 226.77, 283.46])
-                      ->download("kartu-pelajar-{$siswa->nisn}.pdf");
+                ->setPaper([0, 0, 226.77, 283.46])
+                ->download("kartu-pelajar-{$siswa->nisn}.pdf");
         }
 
         $config = $template->config;
         $entities = collect([$siswa]);
 
         return Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'entities'))
-                  ->setPaper([0, 0, $config['canvas']['width'], $config['canvas']['height']])
-                  ->download("kartu-pelajar-{$siswa->nisn}.pdf");
+            ->setPaper([0, 0, $config['canvas']['width'], $config['canvas']['height']])
+            ->download("kartu-pelajar-{$siswa->nisn}.pdf");
     }
 
     private function ensureQrCode(Siswa $siswa): void
@@ -523,11 +531,12 @@ class SiswaController extends Controller
             'kelas_id' => 'required|integer|exists:kelas,id',
         ], [
             'kelas_id.required' => 'Kelas tujuan wajib dipilih.',
-            'kelas_id.exists'   => 'Kelas tujuan tidak ditemukan.',
+            'kelas_id.exists' => 'Kelas tujuan tidak ditemukan.',
         ]);
 
         try {
             $this->siswaService->pindahKelas($siswa, (int) $request->kelas_id);
+
             return back()->with('success', "Siswa {$siswa->nama_lengkap} berhasil dipindahkan ke kelas tujuan.");
         } catch (\InvalidArgumentException $e) {
             return back()->with('error', $e->getMessage());
@@ -540,13 +549,13 @@ class SiswaController extends Controller
     public function naikKelas(Request $request, Siswa $siswa)
     {
         $request->validate([
-            'kelas_id'           => 'required|integer|exists:kelas,id',
-            'tahun_akademik_id'  => 'required|integer|exists:tahun_akademik,id',
+            'kelas_id' => 'required|integer|exists:kelas,id',
+            'tahun_akademik_id' => 'required|integer|exists:tahun_akademik,id',
         ], [
-            'kelas_id.required'          => 'Kelas tujuan wajib dipilih.',
-            'kelas_id.exists'            => 'Kelas tujuan tidak ditemukan.',
+            'kelas_id.required' => 'Kelas tujuan wajib dipilih.',
+            'kelas_id.exists' => 'Kelas tujuan tidak ditemukan.',
             'tahun_akademik_id.required' => 'Tahun akademik tujuan wajib dipilih.',
-            'tahun_akademik_id.exists'   => 'Tahun akademik tujuan tidak ditemukan.',
+            'tahun_akademik_id.exists' => 'Tahun akademik tujuan tidak ditemukan.',
         ]);
 
         try {
@@ -555,6 +564,7 @@ class SiswaController extends Controller
                 (int) $request->kelas_id,
                 (int) $request->tahun_akademik_id
             );
+
             return back()->with('success', "Siswa {$siswa->nama_lengkap} berhasil dinaikkan kelas.");
         } catch (\InvalidArgumentException $e) {
             return back()->with('error', $e->getMessage());
@@ -578,30 +588,30 @@ class SiswaController extends Controller
         $siswa->load(['kelas.waliKelas', 'tahunAkademik']);
 
         // Riwayat absensi paginated
-        $absensi = \App\Models\AbsensiSiswa::where('siswa_id', $siswa->id)
+        $absensi = AbsensiSiswa::where('siswa_id', $siswa->id)
             ->orderByDesc('tanggal')
             ->paginate(15);
 
         // Riwayat izin/sakit
-        $izinSakit = \App\Models\IzinSakit::where('tipe', 'siswa')
+        $izinSakit = IzinSakit::where('tipe', 'siswa')
             ->where('reference_id', $siswa->id)
             ->orderByDesc('created_at')
             ->get();
 
         // Statistik ringkasan
-        $statsRaw = \App\Models\AbsensiSiswa::where('siswa_id', $siswa->id)
+        $statsRaw = AbsensiSiswa::where('siswa_id', $siswa->id)
             ->selectRaw('status, COUNT(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status')
             ->toArray();
 
         $stats = [
-            'hadir'    => $statsRaw['hadir'] ?? 0,
-            'sakit'    => $statsRaw['sakit'] ?? 0,
-            'izin'     => $statsRaw['izin'] ?? 0,
-            'alpha'    => $statsRaw['alpha'] ?? 0,
-            'terlambat'=> $statsRaw['terlambat'] ?? 0,
-            'total'    => array_sum($statsRaw) ?: 1 // avoid div zero
+            'hadir' => $statsRaw['hadir'] ?? 0,
+            'sakit' => $statsRaw['sakit'] ?? 0,
+            'izin' => $statsRaw['izin'] ?? 0,
+            'alpha' => $statsRaw['alpha'] ?? 0,
+            'terlambat' => $statsRaw['terlambat'] ?? 0,
+            'total' => array_sum($statsRaw) ?: 1, // avoid div zero
         ];
 
         // QR Code for display
@@ -609,7 +619,7 @@ class SiswaController extends Controller
         $qrImage = QrCodeGenerator::renderDataUri($siswa->qr_code, 150);
 
         // Data untuk modal Pindah Kelas & Naik Kelas
-        $kelasOptions       = Kelas::with('tahunAkademik')->orderBy('nama')->get();
+        $kelasOptions = Kelas::with('tahunAkademik')->orderBy('nama')->get();
         $tahunAkademikOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
 
         return view('admin.siswa.profil', compact(
@@ -622,7 +632,7 @@ class SiswaController extends Controller
     {
         $setting = GoogleSheetSetting::first();
 
-        if (!$setting || !$setting->is_active) {
+        if (! $setting || ! $setting->is_active) {
             return response()->json(['success' => false, 'message' => 'Konfigurasi Google Sheets belum diatur atau tidak aktif.']);
         }
 
@@ -630,58 +640,43 @@ class SiswaController extends Controller
             return response()->json(['success' => false, 'message' => 'Mapping kolom Google Sheets belum dikonfigurasi.']);
         }
 
+        if ($setting->last_sync_status === 'in_progress') {
+            return response()->json(['success' => false, 'message' => 'Sinkronisasi sedang berlangsung. Tunggu hingga selesai.']);
+        }
+
         $setting->update([
             'last_sync_status' => 'in_progress',
-            'last_sync_message' => 'Memulai sinkronisasi...',
+            'last_sync_message' => 'Menjadwalkan sinkronisasi...',
             'sync_total_rows' => 0,
             'sync_processed_rows' => 0,
+            'sync_offset' => 0,
         ]);
 
         try {
-            $service = new GoogleSheetsService();
-            $result = $service->syncSiswa([
-                'spreadsheet_id' => $setting->spreadsheet_id,
-                'sheet_range' => $setting->sheet_range,
-                'credentials_json' => $setting->credentials_json,
-                'column_mapping' => $setting->column_mapping ?? [],
-            ], $setting->id);
+            GoogleSheetsSyncJob::dispatch($setting->id, 0);
 
-            $setting->refresh();
-            $setting->update([
-                'last_sync_at' => now(),
-                'last_sync_status' => $result['success'] ? 'success' : 'failed',
-                'last_sync_message' => $result['success']
-                    ? 'Sinkronisasi berhasil. Imported: ' . $result['imported'] . ', Gagal: ' . $result['failed']
-                    : 'Sinkronisasi gagal: ' . implode('; ', $result['errors']),
-                'sync_total_rows' => 0,
-                'sync_processed_rows' => 0,
-            ]);
+            Log::info('Sinkronisasi Google Sheets dijadwalkan dari halaman siswa.');
 
             return response()->json([
-                'success' => $result['success'],
-                'message' => $result['success']
-                    ? 'Sinkronisasi berhasil! ' . $result['imported'] . ' data siswa diimpor.'
-                    : 'Sinkronisasi selesai dengan ' . $result['failed'] . ' kegagalan.',
-                'imported' => $result['imported'],
-                'failed' => $result['failed'],
+                'success' => true,
+                'message' => 'Sinkronisasi Google Sheets telah dijadwalkan dan akan diproses di latar belakang. Proses akan berlanjut meskipun halaman ditutup.',
             ]);
         } catch (\Exception $e) {
             $setting->update([
-                'last_sync_at' => now(),
                 'last_sync_status' => 'failed',
-                'last_sync_message' => 'Error: ' . $e->getMessage(),
-                'sync_total_rows' => 0,
-                'sync_processed_rows' => 0,
+                'last_sync_message' => 'Gagal menjadwalkan: '.$e->getMessage(),
             ]);
 
-            return response()->json(['success' => false, 'message' => 'Gagal sinkronisasi: ' . $e->getMessage()]);
+            Log::error('Gagal menjadwalkan sync Google Sheets dari halaman siswa.', ['error' => $e->getMessage()]);
+
+            return response()->json(['success' => false, 'message' => 'Gagal menjadwalkan sinkronisasi: '.$e->getMessage()]);
         }
     }
 
     public function syncProgress()
     {
         $setting = GoogleSheetSetting::first();
-        if (!$setting) {
+        if (! $setting) {
             return response()->json(['status' => 'idle', 'total' => 0, 'processed' => 0, 'message' => '']);
         }
 

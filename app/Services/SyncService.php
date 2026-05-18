@@ -2,16 +2,18 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use App\Models\Siswa;
 use App\Models\Guru;
-use App\Models\StaffTataUsaha;
 use App\Models\Kelas;
+use App\Models\Pengaturan;
+use App\Models\Siswa;
+use App\Models\StaffTataUsaha;
 use App\Models\TahunAkademik;
+use App\Models\User;
 use App\Support\QrCodeGenerator;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
 class SyncService
@@ -28,7 +30,7 @@ class SyncService
             // Hanya update jika role-nya sama (siswa sync ke siswa)
             // Jangan ubah role akun yang bukan role target (misal orang tua / guru)
             if ($user->role === $role) {
-                if (!empty($userData['password'])) {
+                if (! empty($userData['password'])) {
                     $user->password = Hash::make($userData['password']);
                 }
                 $user->name = $userData['name'];
@@ -48,11 +50,11 @@ class SyncService
                     'role' => $role,
                 ]);
                 DB::statement('RELEASE SAVEPOINT save_user_create');
-            } catch (\Illuminate\Database\QueryException $e) {
+            } catch (QueryException $e) {
                 // Race condition atau double email: rollback ke savepoint lalu cari ulang
                 DB::statement('ROLLBACK TO SAVEPOINT save_user_create');
                 $user = User::where('email', $userData['email'])->first();
-                if (!$user) {
+                if (! $user) {
                     throw $e; // Bukan duplicate key, lempar ulang
                 }
             }
@@ -69,22 +71,38 @@ class SyncService
         DB::beginTransaction();
         try {
             $tanggalLahir = null;
-            if (!empty($data['tanggal_lahir'])) {
-                try {
-                    $tanggalLahir = Carbon::createFromFormat('d/m/Y', $data['tanggal_lahir'])->format('Y-m-d');
-                } catch (\Exception $e) {
+            if (! empty($data['tanggal_lahir'])) {
+                $dateStr = trim($data['tanggal_lahir']);
+                // Coba format d/m/Y (dari Google Sheets / Excel)
+                if (! $tanggalLahir) {
                     try {
-                        $tanggalLahir = Carbon::parse($data['tanggal_lahir'])->format('Y-m-d');
-                    } catch (\Exception $e2) {
-                        $tanggalLahir = $data['tanggal_lahir'];
+                        $tanggalLahir = Carbon::createFromFormat('d/m/Y', $dateStr)->format('Y-m-d');
+                    } catch (\Exception $e) {
+                        // lanjut ke format berikutnya
+                    }
+                }
+                // Coba format Y-m-d (ISO)
+                if (! $tanggalLahir) {
+                    try {
+                        $tanggalLahir = Carbon::createFromFormat('Y-m-d', $dateStr)->format('Y-m-d');
+                    } catch (\Exception $e) {
+                        // lanjut ke format berikutnya
+                    }
+                }
+                // Fallback: parse otomatis
+                if (! $tanggalLahir) {
+                    try {
+                        $tanggalLahir = Carbon::parse($dateStr)->format('Y-m-d');
+                    } catch (\Exception $e) {
+                        $tanggalLahir = null;
                     }
                 }
             }
 
             $email = $data['email'] ?? '';
             if (empty($email)) {
-                $domain = \App\Models\Pengaturan::where('key', 'website_lembaga')->value('value') ?? 'madrasah.sch.id';
-                $email = strtolower(trim($data['nisn'] ?? $data['nis'] ?? $data['username'])) . '@' . $domain;
+                $domain = Pengaturan::where('key', 'website_lembaga')->value('value') ?? 'madrasah.sch.id';
+                $email = strtolower(trim($data['nisn'] ?? $data['nis'] ?? $data['username'])).'@'.$domain;
             }
 
             // 1. Sync User Account
@@ -97,7 +115,7 @@ class SyncService
 
             // 2. Sync Kelas (jika diberikan)
             $kelasId = null;
-            if (!empty($data['kelas_nama'])) {
+            if (! empty($data['kelas_nama'])) {
                 $kelas = Kelas::where('nama', $data['kelas_nama'])->first();
                 if ($kelas) {
                     $kelasId = $kelas->id;
@@ -106,7 +124,7 @@ class SyncService
 
             // 3. Sync Tahun Akademik (jika diberikan)
             $tahunAkademikId = $data['tahun_akademik_id_default'] ?? null;
-            if (!empty($data['tahun_akademik_nama'])) {
+            if (! empty($data['tahun_akademik_nama'])) {
                 $ta = TahunAkademik::where('nama', $data['tahun_akademik_nama'])->first();
                 if ($ta) {
                     $tahunAkademikId = $ta->id;
@@ -141,11 +159,12 @@ class SyncService
             );
 
             DB::commit();
+
             return $siswa;
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Gagal sync siswa: ' . $e->getMessage(), ['payload' => $data]);
+            Log::error('Gagal sync siswa: '.$e->getMessage(), ['payload' => $data]);
             throw $e;
         }
     }
@@ -178,11 +197,12 @@ class SyncService
             );
 
             DB::commit();
+
             return $guru;
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Gagal sync guru: ' . $e->getMessage(), ['payload' => $data]);
+            Log::error('Gagal sync guru: '.$e->getMessage(), ['payload' => $data]);
             throw $e;
         }
     }
@@ -214,11 +234,12 @@ class SyncService
             );
 
             DB::commit();
+
             return $staff;
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Gagal sync staff: ' . $e->getMessage(), ['payload' => $data]);
+            Log::error('Gagal sync staff: '.$e->getMessage(), ['payload' => $data]);
             throw $e;
         }
     }
@@ -230,7 +251,7 @@ class SyncService
     {
         try {
             $waliKelasId = null;
-            if (!empty($data['wali_kelas_nip'])) {
+            if (! empty($data['wali_kelas_nip'])) {
                 $guru = Guru::where('nip', $data['wali_kelas_nip'])->first();
                 if ($guru) {
                     $waliKelasId = $guru->id;
@@ -238,7 +259,7 @@ class SyncService
             }
 
             $tahunAkademikId = null;
-            if (!empty($data['tahun_akademik_nama'])) {
+            if (! empty($data['tahun_akademik_nama'])) {
                 $ta = TahunAkademik::where('nama', $data['tahun_akademik_nama'])->first();
                 if ($ta) {
                     $tahunAkademikId = $ta->id;
@@ -257,7 +278,7 @@ class SyncService
 
             return $kelas;
         } catch (\Exception $e) {
-            Log::error('Gagal sync kelas: ' . $e->getMessage(), ['payload' => $data]);
+            Log::error('Gagal sync kelas: '.$e->getMessage(), ['payload' => $data]);
             throw $e;
         }
     }
@@ -279,10 +300,11 @@ class SyncService
 
             return $ta;
         } catch (\Exception $e) {
-            Log::error('Gagal sync tahun akademik: ' . $e->getMessage(), ['payload' => $data]);
+            Log::error('Gagal sync tahun akademik: '.$e->getMessage(), ['payload' => $data]);
             throw $e;
         }
     }
+
     /**
      * Sinkronisasi Pengaturan Sekolah (Identitas Lembaga)
      */
@@ -308,7 +330,7 @@ class SyncService
 
             foreach ($mapping as $sourceKey => $dbKey) {
                 if (isset($data[$sourceKey])) {
-                    \App\Models\Pengaturan::updateOrCreate(
+                    Pengaturan::updateOrCreate(
                         ['key' => $dbKey],
                         ['value' => $data[$sourceKey], 'group' => 'umum']
                     );
@@ -316,9 +338,10 @@ class SyncService
             }
 
             Log::info('SyncService: Pengaturan sekolah berhasil disinkronisasi dari pusat.');
+
             return true;
         } catch (\Exception $e) {
-            Log::error('Gagal sync pengaturan sekolah: ' . $e->getMessage(), ['payload' => $data]);
+            Log::error('Gagal sync pengaturan sekolah: '.$e->getMessage(), ['payload' => $data]);
             throw $e;
         }
     }

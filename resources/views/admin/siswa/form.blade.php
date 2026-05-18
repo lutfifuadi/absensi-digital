@@ -72,11 +72,11 @@
               {{-- Identitas Utama --}}
               <div class="col-md-6">
                 <label class="form-label fw-semibold small" for="nis">
-                  <i class="ti tabler-id me-1 text-info"></i> NIS <span class="text-danger">*</span>
+                  <i class="ti tabler-id me-1 text-info"></i> NIS
                 </label>
                 <input id="nis" name="nis" type="text"
-                  class="form-control @error('nis') is-invalid @enderror" placeholder="Nomor Induk Siswa"
-                  value="{{ old('nis', $siswa->nis ?? '') }}" required>
+                  class="form-control @error('nis') is-invalid @enderror" placeholder="Nomor Induk Siswa (opsional)"
+                  value="{{ old('nis', $siswa->nis ?? '') }}">
               </div>
 
               <div class="col-md-6">

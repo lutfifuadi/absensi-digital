@@ -280,6 +280,7 @@
                 @php
                   $badgeClass = match($setting->last_sync_status) {
                     'success' => 'bg-label-success',
+                    'completed_with_errors' => 'bg-label-warning',
                     'failed' => 'bg-label-danger',
                     'in_progress' => 'bg-label-warning',
                     default => 'bg-label-secondary',
@@ -318,7 +319,7 @@
       <div class="sync-now-panel__icon"><i class="ti tabler-refresh"></i></div>
       <div>
         <div class="sync-now-panel__title">Sinkronisasi Sekarang</div>
-        <div class="sync-now-panel__sub">Jalankan sinkronisasi data dari Google Sheets secara langsung tanpa menunggu jadwal otomatis.</div>
+          <div class="sync-now-panel__sub">Jalankan sinkronisasi data dari Google Sheets. Proses berjalan di latar belakang dan akan tetap berjalan meskipun halaman ditutup. Data besar akan diproses secara bertahap.</div>
       </div>
     </div>
     <form action="{{ route('admin.pengaturan.google-sheets.sync-now') }}" method="POST" id="gsSyncNowForm">
@@ -381,7 +382,7 @@
         <div class="sync-success-icon"><i class="ti tabler-circle-check"></i></div>
       </div>
       <h2 id="gsSyncSuccessTitle" class="text-gradient-success">Berhasil Dijadwalkan!</h2>
-      <p id="gsSyncSuccessDescription" class="mt-2">Sinkronisasi Google Sheets telah dijadwalkan dan akan diproses di latar belakang. Anda dapat menutup halaman ini atau melanjutkan aktifitas lainnya.</p>
+        <p id="gsSyncSuccessDescription" class="mt-2">Sinkronisasi Google Sheets telah dijadwalkan dan akan diproses di latar belakang secara bertahap (±50 baris per tahap). Anda dapat menutup halaman ini atau melanjutkan aktivitas lainnya. Status sinkronisasi dapat dicek kembali di halaman ini.</p>
     </div>
     <div class="sync-confirm-modal__actions justify-content-center">
       <button type="button" class="sync-confirm-modal__confirm-btn sync-confirm-modal__confirm-btn--success" onclick="closeGsSyncSuccessModal()">

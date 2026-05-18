@@ -13,7 +13,7 @@ class GoogleSheetsSettingController extends Controller
 {
     public function index()
     {
-        $setting = GoogleSheetSetting::first() ?? new GoogleSheetSetting();
+        $setting = GoogleSheetSetting::first() ?? new GoogleSheetSetting;
 
         return view('admin.pengaturan.google-sheets', compact('setting'));
     }
@@ -28,7 +28,7 @@ class GoogleSheetsSettingController extends Controller
 
         $setting = GoogleSheetSetting::first();
 
-        if (!$setting) {
+        if (! $setting) {
             $rules['credentials_json'] = 'required|json';
         } else {
             $rules['credentials_json'] = 'nullable|json';
@@ -70,7 +70,7 @@ class GoogleSheetsSettingController extends Controller
 
         if ($request->filled('credentials_json')) {
             $rules['credentials_json'] = 'json';
-        } elseif (!$setting || empty($setting->credentials_json)) {
+        } elseif (! $setting || empty($setting->credentials_json)) {
             $rules['credentials_json'] = 'required';
         }
 
@@ -88,7 +88,7 @@ class GoogleSheetsSettingController extends Controller
         }
 
         try {
-            $service = new GoogleSheetsService();
+            $service = new GoogleSheetsService;
             $result = $service->testConnection([
                 'spreadsheet_id' => $validated['spreadsheet_id'],
                 'credentials_json' => $credentialsJson,
@@ -112,7 +112,7 @@ class GoogleSheetsSettingController extends Controller
     {
         $setting = GoogleSheetSetting::first();
 
-        if (!$setting || !$setting->is_active) {
+        if (! $setting || ! $setting->is_active) {
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
@@ -123,19 +123,38 @@ class GoogleSheetsSettingController extends Controller
             return back()->with('sync_error', 'Konfigurasi Google Sheets belum diatur atau tidak aktif.');
         }
 
+        if ($setting->last_sync_status === 'in_progress') {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sinkronisasi sedang berlangsung. Tunggu hingga selesai sebelum memulai ulang.',
+                ], 409);
+            }
+
+            return back()->with('sync_error', 'Sinkronisasi sedang berlangsung. Tunggu hingga selesai sebelum memulai ulang.');
+        }
+
         try {
-            GoogleSheetsSyncJob::dispatch($setting->id);
+            $setting->update([
+                'last_sync_status' => 'in_progress',
+                'last_sync_message' => 'Menjadwalkan sinkronisasi...',
+                'sync_total_rows' => 0,
+                'sync_processed_rows' => 0,
+                'sync_offset' => 0,
+            ]);
+
+            GoogleSheetsSyncJob::dispatch($setting->id, 0);
 
             Log::info('Sinkronisasi Google Sheets manual telah dijadwalkan.');
 
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Sinkronisasi Google Sheets telah dijadwalkan dan akan diproses di latar belakang.',
+                    'message' => 'Sinkronisasi Google Sheets telah dijadwalkan dan akan diproses di latar belakang. Proses akan berlanjut meskipun halaman ditutup.',
                 ]);
             }
 
-            return back()->with('sync_success', 'Sinkronisasi Google Sheets telah dijadwalkan dan akan diproses di latar belakang.');
+            return back()->with('sync_success', 'Sinkronisasi Google Sheets telah dijadwalkan dan akan diproses di latar belakang. Proses akan berlanjut meskipun halaman ditutup.');
         } catch (\Exception $e) {
             Log::error('Sinkronisasi Google Sheets gagal dijadwalkan.', ['error' => $e->getMessage()]);
 
