@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Exports\SiswaExport;
 use App\Http\Controllers\Controller;
 use App\Imports\SiswaImport;
-use App\Jobs\GoogleSheetsSyncJob;
 use App\Models\ActivityLog;
 use App\Models\GoogleSheetSetting;
+use App\Services\GoogleSheetsService;
 use App\Models\Kelas;
 use App\Models\Pengaturan;
 use App\Models\Siswa;
@@ -590,10 +590,36 @@ class SiswaController extends Controller
         }
 
         try {
-            GoogleSheetsSyncJob::dispatch($setting->id);
-            return back()->with('success', 'Sinkronisasi Google Sheets telah dijadwalkan dan akan diproses di latar belakang.');
+            $service = new GoogleSheetsService();
+            $result = $service->syncSiswa([
+                'spreadsheet_id' => $setting->spreadsheet_id,
+                'sheet_range' => $setting->sheet_range,
+                'credentials_json' => $setting->credentials_json,
+                'column_mapping' => $setting->column_mapping ?? [],
+            ]);
+
+            $setting->update([
+                'last_sync_at' => now(),
+                'last_sync_status' => $result['success'] ? 'success' : 'failed',
+                'last_sync_message' => $result['success']
+                    ? 'Sinkronisasi berhasil. Imported: ' . $result['imported'] . ', Gagal: ' . $result['failed']
+                    : 'Sinkronisasi gagal: ' . implode('; ', $result['errors']),
+            ]);
+
+            if ($result['success']) {
+                return back()->with('success', 'Sinkronisasi berhasil! ' . $result['imported'] . ' data siswa diimpor, ' . $result['failed'] . ' gagal.');
+            }
+
+            $errorMsg = !empty($result['errors']) ? ' ' . implode(' ', array_slice($result['errors'], 0, 5)) : '';
+            return back()->with('sync_error', 'Sinkronisasi selesai dengan ' . $result['failed'] . ' kegagalan.' . $errorMsg);
         } catch (\Exception $e) {
-            return back()->with('sync_error', 'Gagal menjadwalkan sinkronisasi. Silakan coba lagi.');
+            $setting->update([
+                'last_sync_at' => now(),
+                'last_sync_status' => 'failed',
+                'last_sync_message' => 'Error: ' . $e->getMessage(),
+            ]);
+
+            return back()->with('sync_error', 'Gagal sinkronisasi: ' . $e->getMessage());
         }
     }
 }
