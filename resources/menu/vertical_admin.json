@@ -7,6 +7,12 @@
       "url": "/dashboard"
     },
     {
+      "url": "/admin/ai-chat",
+      "name": "Asisten AI",
+      "icon": "menu-icon ti tabler-message-chatbot",
+      "slug": "admin.ai-chat.index"
+    },
+    {
       "menuHeader": "Master Data"
     },
     {
@@ -26,6 +32,12 @@
       "name": "Siswa",
       "icon": "menu-icon ti tabler-users",
       "slug": "admin.siswa.index"
+    },
+    {
+      "url": "/admin/siswa/naik-kelas-massal",
+      "name": "Naik Kelas Massal",
+      "icon": "menu-icon ti tabler-trending-up",
+      "slug": "admin.siswa.naik-kelas-massal"
     },
     {
       "url": "/admin/guru",

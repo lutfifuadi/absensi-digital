@@ -183,4 +183,12 @@
   @endif
   {{-- ────────────────────────────────────────────────────────────────────── --}}
 
+  {{-- ── Floating AI Chat Widget ─────────────────────────────────────────── --}}
+  @auth
+    @if(in_array(auth()->user()->role, ['super_admin', 'admin_sekolah', 'operator']))
+      @livewire('admin.floating-chat')
+    @endif
+  @endauth
+  {{-- ────────────────────────────────────────────────────────────────────── --}}
+
 @endsection

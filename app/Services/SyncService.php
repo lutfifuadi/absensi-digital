@@ -138,12 +138,20 @@ class SyncService
 
             $qrCode = $data['qr_code'] ?? $data['nisn'] ?? QrCodeGenerator::generate('SISWA');
 
+            $nis = !empty($data['nis']) ? trim($data['nis']) : (!empty($data['nisn']) ? trim($data['nisn']) : null);
+            if ($nis) {
+                $exists = Siswa::where('nis', $nis)->where('nisn', '!=', $data['nisn'])->exists();
+                if ($exists) {
+                    $nis = $nis . '-' . $data['nisn'];
+                }
+            }
+
             // 4. Upsert Siswa berdasarkan NISN
             $siswa = Siswa::updateOrCreate(
                 ['nisn' => $data['nisn']], // Kondisi pencarian
                 [
                     'user_id' => $user->id,
-                    'nis' => $data['nis'] ?? $data['nisn'] ?? null,
+                    'nis' => $nis,
                     'nama_lengkap' => $data['nama_lengkap'],
                     'jenis_kelamin' => $data['jenis_kelamin'] ?? 'L',
                     'tempat_lahir' => $data['tempat_lahir'] ?? null,

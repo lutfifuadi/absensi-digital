@@ -1,5 +1,31 @@
 # Changelog
 
+## [v1.3.0] - 2026-05-19
+### Added
+- **Fitur Naik Kelas Massal**: Promosikan seluruh siswa secara batch ke tahun ajaran baru dengan pemetaan otomatis X→XI, XI→XII, XII→alumni.
+- Halaman `/admin/siswa/naik-kelas-massal` dengan step-by-step flow (pilih TA → preview → eksekusi → hasil)
+- Preview kenaikan kelas sebelum eksekusi (jumlah siswa, mapping kelas tujuan, peringatan alumni)
+- Logika auto-map tingkat berdasarkan jurusan yang sama di tahun ajaran tujuan
+- Status alumni otomatis untuk siswa kelas XII
+- Tabel `riwayat_kenaikan_kelas` untuk histori kenaikan kelas per siswa
+- Model `RiwayatKenaikanKelas` dengan relasi ke siswa, kelas, dan tahun akademik
+- Method `SiswaService::naikKelasMassal()` dan `SiswaService::previewNaikKelasMassal()`
+- RBAC: super_admin, admin_sekolah, operator
+- Sidebar navigasi admin & operator untuk akses cepat
+- Dokumentasi API di `docs/api/naik-kelas-massal.md`
+
+## [v1.2.0] - 2026-05-18
+### Added
+- **Fitur Chat AI dengan Google Gemini**: Asisten AI berbasis Google Gemini (`gemini-3-flash-preview`) untuk membantu user mengelola data dengan percakapan natural language.
+- Halaman Asisten AI di `/admin/ai-chat` dengan Livewire component realtime
+- `GeminiService` dengan round-robin (max 3 retry), function calling, dan 9 tool functions
+- Tool functions: get/update siswa, get/update guru, get/update kelas, cari siswa, cari guru, statistik data
+- Riwayat chat otomatis tersimpan di tabel `chat_logs` per user
+- RBAC: hanya super_admin, admin_sekolah, dan operator yang bisa akses
+- Rate limiting 30 request/menit pada endpoint send
+- Dokumentasi API di `docs/api/ai-chat.md`
+- Konfigurasi: `GEMINI_API_KEY` dan `GEMINI_MODEL` di `.env`
+
 ## [v1.1.0] - 2026-05-18
 ### Added
 - Fitur pull data siswa dari Google Sheets

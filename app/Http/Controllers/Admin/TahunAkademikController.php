@@ -80,7 +80,10 @@ class TahunAkademikController extends Controller
             'tahun_akademik_id' => 'required|exists:tahun_akademik,id',
         ]);
 
-        session(['tahun_ajaran_id' => $request->tahun_akademik_id]);
+        session([
+            'tahun_akademik_id' => $request->tahun_akademik_id,
+            'tahun_ajaran_id' => $request->tahun_akademik_id
+        ]);
 
         return redirect()->back()->with('success', 'Berhasil mengubah sesi Tahun Ajaran aktif.');
     }

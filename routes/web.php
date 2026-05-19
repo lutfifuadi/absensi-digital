@@ -360,6 +360,11 @@ Route::middleware([
           ->name('admin.siswa.pindah-kelas')
           ->middleware('role:super_admin,admin_sekolah,operator');
 
+      Route::get('siswa/naik-kelas-massal', [SiswaController::class, 'naikKelasMassalPage'])
+          ->name('admin.siswa.naik-kelas-massal');
+      Route::post('siswa/naik-kelas-massal', [SiswaController::class, 'naikKelasMassalExecute'])
+          ->name('admin.siswa.naik-kelas-massal.execute');
+
       Route::post('siswa/{siswa}/naik-kelas', [SiswaController::class, 'naikKelas'])
           ->name('admin.siswa.naik-kelas')
           ->middleware('role:super_admin,admin_sekolah,operator');
@@ -515,6 +520,20 @@ Route::middleware([
       Route::post('pengaturan/google-sheets/sync-now', [\App\Http\Controllers\Admin\GoogleSheetsSettingController::class, 'syncNow'])
           ->name('admin.pengaturan.google-sheets.sync-now')
           ->middleware('role:super_admin,admin_sekolah');
+
+      // AI Chat
+      Route::get('ai-chat', [\App\Http\Controllers\Admin\AiChatController::class, 'index'])
+          ->name('admin.ai-chat.index')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+      Route::post('ai-chat/send', [\App\Http\Controllers\Admin\AiChatController::class, 'sendMessage'])
+          ->name('admin.ai-chat.send')
+          ->middleware(['role:super_admin,admin_sekolah,operator', 'throttle:30,1']);
+      Route::get('ai-chat/history', [\App\Http\Controllers\Admin\AiChatController::class, 'history'])
+          ->name('admin.ai-chat.history')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+      Route::delete('ai-chat/clear', [\App\Http\Controllers\Admin\AiChatController::class, 'clear'])
+          ->name('admin.ai-chat.clear')
+          ->middleware('role:super_admin,admin_sekolah,operator');
           
       // Integrasi API
       Route::get('api-integration', [\App\Http\Controllers\Admin\ApiIntegrationController::class, 'index'])

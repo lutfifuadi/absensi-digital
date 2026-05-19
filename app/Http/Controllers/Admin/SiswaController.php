@@ -673,6 +673,65 @@ class SiswaController extends Controller
         }
     }
 
+    public function naikKelasMassalPage(Request $request)
+    {
+        $tahunAkademikAsalId = $request->query('tahun_akademik_asal');
+        $tahunAkademikTujuanId = $request->query('tahun_akademik_tujuan');
+        $preview = null;
+
+        if ($tahunAkademikAsalId && $tahunAkademikTujuanId) {
+            try {
+                $preview = $this->siswaService->previewNaikKelasMassal(
+                    (int) $tahunAkademikAsalId,
+                    (int) $tahunAkademikTujuanId
+                );
+            } catch (\Exception $e) {
+                return back()->with('error', $e->getMessage());
+            }
+        }
+
+        $tahunAkademikOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
+
+        return view('admin.siswa.naik-kelas-massal', compact(
+            'tahunAkademikOptions',
+            'tahunAkademikAsalId',
+            'tahunAkademikTujuanId',
+            'preview'
+        ));
+    }
+
+    public function naikKelasMassalExecute(Request $request)
+    {
+        $request->validate([
+            'tahun_akademik_asal' => 'required|integer|exists:tahun_akademik,id',
+            'tahun_akademik_tujuan' => 'required|integer|exists:tahun_akademik,id|different:tahun_akademik_asal',
+        ], [
+            'tahun_akademik_asal.required' => 'Tahun akademik asal wajib dipilih.',
+            'tahun_akademik_tujuan.required' => 'Tahun akademik tujuan wajib dipilih.',
+            'tahun_akademik_tujuan.different' => 'Tahun akademik tujuan harus berbeda dari tahun akademik asal.',
+        ]);
+
+        try {
+            $result = $this->siswaService->naikKelasMassal(
+                (int) $request->tahun_akademik_asal,
+                (int) $request->tahun_akademik_tujuan
+            );
+
+            return redirect()
+                ->route('admin.siswa.naik-kelas-massal', [
+                    'tahun_akademik_asal' => $request->tahun_akademik_asal,
+                    'tahun_akademik_tujuan' => $request->tahun_akademik_tujuan,
+                ])
+                ->with('naik_kelas_result', $result)
+                ->with('success', "Naik kelas massal berhasil. {$result['success']} siswa diproses.");
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->route('admin.siswa.naik-kelas-massal')->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            \Log::error('Error naik kelas massal: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return redirect()->route('admin.siswa.naik-kelas-massal')->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
     public function syncProgress()
     {
         $setting = GoogleSheetSetting::first();
