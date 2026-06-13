@@ -236,7 +236,28 @@ class PelepasanController extends Controller
             if (!empty($phone)) {
                 $waService = new WhatsAppService();
                 if ($waService->isEnabled()) {
-                    $message = "Assalamu'alaikum Wr. Wb. Yth. Orang Tua/Wali dari *{$siswa->nama_lengkap}* ({$siswa->kelas->nama}), kami menginfokan bahwa putra/putri Anda telah hadir di acara *Pelepasan Kelas XII MAN 1 Kota Bandung* pada pukul " . $waktuAbsen->format('H:i') . " WIB. Terima kasih.";
+                    // Ambil template notifikasi pelepasan dari database
+                    $template = \App\Models\NotificationTemplate::where('type', 'pelepasan_hadir')->first();
+                    $message = $template ? $template->content : '';
+
+                    if (empty($message)) {
+                        // Fallback jika template tidak ditemukan
+                        $message = "Assalamu'alaikum Wr. Wb. Yth. Orang Tua/Wali dari *{$siswa->nama_lengkap}* ({$siswa->kelas->nama}), kami menginfokan bahwa putra/putri Anda telah hadir di acara *Pelepasan Kelas XII MAN 1 Kota Bandung* pada pukul " . $waktuAbsen->format('H:i') . " WIB. Terima kasih.";
+                    } else {
+                        // Replace variabel template
+                        $replacements = [
+                            '{nama}' => $siswa->nama_lengkap,
+                            '{kelas}' => $siswa->kelas->nama ?? '',
+                            '{jam}' => $waktuAbsen->format('H:i'),
+                            '{waktu}' => $waktuAbsen->format('H:i'),
+                            '{tanggal}' => $waktuAbsen->format('d-m-Y'),
+                            '{hari}' => $waktuAbsen->isoFormat('dddd'),
+                            '{status}' => 'HADIR',
+                            '{lembaga}' => 'MAN 1 Kota Bandung',
+                        ];
+                        $message = str_replace(array_keys($replacements), array_values($replacements), $message);
+                    }
+
                     $sent = $waService->sendMessage($phone, $message);
                     $waStatus = $sent ? 'sent' : 'failed';
                 }

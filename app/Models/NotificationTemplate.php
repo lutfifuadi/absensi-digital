@@ -23,5 +23,6 @@ class NotificationTemplate extends Model
         'izin_masuk' => 'Izin Keperluan',
         'alpha_masuk' => 'Tidak Hadir (Alpha)',
         'pulang' => 'Informasi Kepulangan',
+        'pelepasan_hadir' => 'Pelepasan Kelas XII — Hadir',
     ];
 }
