@@ -153,25 +153,43 @@ class SiswaController extends Controller
             'import_file' => 'required|file|mimes:xlsx,xls,csv',
         ]);
 
+        // Hitung total baris dari file (kurangi 1 untuk header)
+        try {
+            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($request->file('import_file'));
+            $reader->setReadDataOnly(true);
+            $spreadsheet = $reader->load($request->file('import_file'));
+            $totalRows = $spreadsheet->getActiveSheet()->getHighestRow() - 1;
+            $spreadsheet->disconnectWorksheets();
+        } catch (\Exception $e) {
+            $totalRows = 0;
+        }
+
+        cache()->put('siswa_import_progress', 0);
+        cache()->put('siswa_import_total', max($totalRows, 0));
+
         try {
             Excel::import(new SiswaImport, $request->file('import_file'));
 
-            return redirect()->route('admin.siswa.index')->with('success', 'Data siswa berhasil diimpor dari Excel.');
-        } catch (ExcelValidationException $exception) {
-            $failures = $exception->failures();
+            cache()->put('siswa_import_progress', $totalRows);
 
-            $messages = collect($failures)->map(function ($failure) {
-                $row = $failure->row();
-                $attribute = $failure->attribute();
-                $errors = implode(', ', $failure->errors());
-
-                return "Baris {$row}: {$attribute} - {$errors}";
-            })->implode(' | ');
-
-            return redirect()->back()->with('error', 'Import gagal: '.$messages);
-        } catch (\Throwable $th) {
-            return redirect()->back()->with('error', 'Import gagal: '.$th->getMessage());
+            return response()->json([
+                'success' => true,
+                'message' => 'Data siswa berhasil diimpor dari Excel.',
+            ]);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Import gagal: '.$exception->getMessage(),
+            ], 500);
         }
+    }
+
+    public function importProgress()
+    {
+        return response()->json([
+            'progress' => (int) cache()->get('siswa_import_progress', 0),
+            'total' => (int) cache()->get('siswa_import_total', 0),
+        ]);
     }
 
     public function export(Request $request)

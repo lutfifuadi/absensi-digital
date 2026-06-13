@@ -430,9 +430,9 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
-                <form action="{{ route('admin.siswa.import.store') }}" method="POST" enctype="multipart/form-data">
+                <form id="importForm" action="{{ route('admin.siswa.import.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <div class="das-modal-body">
+                    <div id="importFormBody" class="das-modal-body">
                         <div class="mb-4">
                             <label class="form-label text-white-50" for="import_file">Pilih File Excel / CSV</label>
                             <input id="import_file" name="import_file" type="file"
@@ -474,11 +474,27 @@
                                     duplikat).</li>
                             </ul>
                         </div>
+
+                        {{-- Progress Bar (hidden by default) --}}
+                        <div id="importProgressArea" class="d-none">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-white-50">Mengimport data...</span>
+                                <span class="small text-white-50" id="importProgressText">0%</span>
+                            </div>
+                            <div class="progress" style="height: 24px; border-radius: 6px; background: rgba(255,255,255,0.05);">
+                                <div id="importProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                    role="progressbar" style="width: 0%; background: linear-gradient(135deg, #7367f0, #a55eea);" 
+                                    aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                            </div>
+                            <div class="text-center mt-2">
+                                <small class="text-white-50" id="importProgressDetail">Memproses 0 dari 0 data...</small>
+                            </div>
+                        </div>
                     </div>
                     <div class="px-4 pb-4 pt-2 d-flex gap-2">
-                        <button type="button" class="btn btn-label-secondary w-100"
+                        <button type="button" id="importCancelBtn" class="btn btn-label-secondary w-100"
                             data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary w-100">
+                        <button type="submit" id="importSubmitBtn" class="btn btn-primary w-100">
                             <i class="ti tabler-upload me-1"></i> Mulai Import
                         </button>
                     </div>
@@ -486,6 +502,125 @@
             </div>
         </div>
     </div>
+
+    @push('page-script')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const importForm = document.getElementById('importForm');
+            const importFormBody = document.getElementById('importFormBody');
+            const importSubmitBtn = document.getElementById('importSubmitBtn');
+            const importCancelBtn = document.getElementById('importCancelBtn');
+            const importProgressArea = document.getElementById('importProgressArea');
+            const importProgressBar = document.getElementById('importProgressBar');
+            const importProgressText = document.getElementById('importProgressText');
+            const importProgressDetail = document.getElementById('importProgressDetail');
+            const importFileInput = document.getElementById('import_file');
+            let progressInterval = null;
+
+            importForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                if (!importFileInput.files[0]) return;
+
+                // Sembunyikan form info, tampilkan progress
+                document.querySelectorAll('#importFormBody > div:not(#importProgressArea)').forEach(el => {
+                    el.style.display = 'none';
+                });
+                importProgressArea.classList.remove('d-none');
+                importSubmitBtn.disabled = true;
+                importSubmitBtn.innerHTML = '<i class="ti tabler-loader spinner"></i> Mengimport...';
+                importCancelBtn.disabled = true;
+
+                const formData = new FormData(importForm);
+
+                // Mulai polling progress
+                progressInterval = setInterval(function() {
+                    fetch("{{ route('admin.siswa.import-progress') }}")
+                        .then(res => res.json())
+                        .then(data => {
+                            const pct = data.total > 0 ? Math.min(100, Math.round((data.progress / data.total) * 100)) : 0;
+                            importProgressBar.style.width = pct + '%';
+                            importProgressBar.textContent = pct + '%';
+                            importProgressBar.setAttribute('aria-valuenow', pct);
+                            importProgressText.textContent = pct + '%';
+                            importProgressDetail.textContent = 'Memproses ' + data.progress + ' dari ' + data.total + ' data...';
+
+                            if (data.progress >= data.total && data.total > 0) {
+                                clearInterval(progressInterval);
+                                importProgressBar.classList.remove('progress-bar-animated');
+                                importProgressBar.style.background = 'linear-gradient(135deg, #28c76f, #00d25a)';
+                                importProgressBar.textContent = '✅ Selesai!';
+                                importProgressDetail.textContent = 'Import berhasil! Mengalihkan...';
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1000);
+                            }
+                        })
+                        .catch(() => {});
+                }, 1000);
+
+                // Kirim file via AJAX
+                fetch(importForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(async res => {
+                    const data = await res.json();
+                    clearInterval(progressInterval);
+
+                    if (res.ok && data.success) {
+                        importProgressBar.style.width = '100%';
+                        importProgressBar.textContent = '✅ Selesai!';
+                        importProgressBar.classList.remove('progress-bar-animated');
+                        importProgressBar.style.background = 'linear-gradient(135deg, #28c76f, #00d25a)';
+                        importProgressDetail.textContent = '✅ ' + data.message;
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        importProgressBar.classList.remove('progress-bar-animated');
+                        importProgressBar.style.background = 'linear-gradient(135deg, #ea5455, #ff5b5b)';
+                        importProgressDetail.textContent = '❌ ' + (data.message || 'Import gagal');
+                        importProgressDetail.style.color = '#ea5455';
+                        importSubmitBtn.disabled = false;
+                        importSubmitBtn.innerHTML = '<i class="ti tabler-upload me-1"></i> Coba Lagi';
+                        importCancelBtn.disabled = false;
+                    }
+                })
+                .catch(err => {
+                    clearInterval(progressInterval);
+                    importProgressBar.classList.remove('progress-bar-animated');
+                    importProgressBar.style.background = 'linear-gradient(135deg, #ea5455, #ff5b5b)';
+                    importProgressDetail.textContent = '❌ Gagal menghubungi server';
+                    importProgressDetail.style.color = '#ea5455';
+                    importSubmitBtn.disabled = false;
+                    importSubmitBtn.innerHTML = '<i class="ti tabler-upload me-1"></i> Coba Lagi';
+                    importCancelBtn.disabled = false;
+                });
+            });
+
+            // Reset modal ketika ditutup
+            document.getElementById('importModal').addEventListener('hidden.bs.modal', function() {
+                clearInterval(progressInterval);
+                importForm.reset();
+                importProgressArea.classList.add('d-none');
+                importProgressBar.style.width = '0%';
+                importProgressBar.textContent = '0%';
+                importProgressBar.className = 'progress-bar progress-bar-striped progress-bar-animated';
+                importProgressBar.style.background = 'linear-gradient(135deg, #7367f0, #a55eea)';
+                importProgressDetail.textContent = 'Memproses 0 dari 0 data...';
+                importProgressDetail.style.color = '';
+                importSubmitBtn.disabled = false;
+                importSubmitBtn.innerHTML = '<i class="ti tabler-upload me-1"></i> Mulai Import';
+                importCancelBtn.disabled = false;
+                document.querySelectorAll('#importFormBody > div:not(#importProgressArea)').forEach(el => {
+                    el.style.display = '';
+                });
+            });
+        });
+    </script>
+    @endpush
 
     {{-- SYNC GOOGLE SHEET PROGRESS MODAL --}}
     <div class="modal fade" id="syncProgressModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"

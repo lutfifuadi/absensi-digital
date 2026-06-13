@@ -30,8 +30,16 @@ class SiswaImport implements SkipsEmptyRows, ToModel, WithHeadingRow, WithValida
 
     protected ?string $domainEmail = null;
 
+    protected int $rowCount = 0;
+
     public function model(array $row)
     {
+        // ── Update progress setiap 5 baris ────────────────────────────────────
+        $this->rowCount++;
+        if ($this->rowCount % 5 === 0) {
+            cache()->put('siswa_import_progress', $this->rowCount);
+        }
+
         // ── Resolve Kelas ────────────────────────────────────────────────────
         $namaKelas = trim($row['kelas'] ?? '');
         if (! isset($this->kelasCache[$namaKelas])) {

@@ -359,6 +359,9 @@ Route::middleware([
       Route::get('siswa/download-sample', [SiswaController::class, 'downloadSample'])
           ->name('admin.siswa.download-sample')
           ->middleware('role:super_admin,admin_sekolah,operator');
+      Route::get('siswa/import-progress', [SiswaController::class, 'importProgress'])
+          ->name('admin.siswa.import-progress')
+          ->middleware('role:super_admin,admin_sekolah,operator');
 
       Route::post('siswa/sync-google-sheet', [SiswaController::class, 'syncGoogleSheet'])
           ->name('admin.siswa.sync-google-sheet')
