@@ -167,6 +167,10 @@ class SiswaController extends Controller
         cache()->put('siswa_import_progress', 0);
         cache()->put('siswa_import_total', max($totalRows, 0));
 
+        // Tutup session agar request polling progress tidak terblokir
+        session()->save();
+        session()->flush();
+
         try {
             Excel::import(new SiswaImport, $request->file('import_file'));
 
