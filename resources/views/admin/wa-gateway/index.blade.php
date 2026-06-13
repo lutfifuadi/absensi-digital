@@ -491,7 +491,7 @@
   border-left: 1px solid var(--das-border);
 }
 .set-input {
-  flex: 1; padding: 0.6rem 0.5rem 0.6rem 0;
+  flex: 1; padding: 0.6rem 0.75rem;
   background: transparent; border: none;
   color: #e2e8f0; font-size: 0.85rem;
   outline: none; min-width: 0;
