@@ -503,124 +503,7 @@
         </div>
     </div>
 
-    @push('page-script')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const importForm = document.getElementById('importForm');
-            const importFormBody = document.getElementById('importFormBody');
-            const importSubmitBtn = document.getElementById('importSubmitBtn');
-            const importCancelBtn = document.getElementById('importCancelBtn');
-            const importProgressArea = document.getElementById('importProgressArea');
-            const importProgressBar = document.getElementById('importProgressBar');
-            const importProgressText = document.getElementById('importProgressText');
-            const importProgressDetail = document.getElementById('importProgressDetail');
-            const importFileInput = document.getElementById('import_file');
-            let progressInterval = null;
 
-            importForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                if (!importFileInput.files[0]) return;
-
-                // Sembunyikan form info, tampilkan progress
-                document.querySelectorAll('#importFormBody > div:not(#importProgressArea)').forEach(el => {
-                    el.style.display = 'none';
-                });
-                importProgressArea.classList.remove('d-none');
-                importSubmitBtn.disabled = true;
-                importSubmitBtn.innerHTML = '<i class="ti tabler-loader spinner"></i> Mengimport...';
-                importCancelBtn.disabled = true;
-
-                const formData = new FormData(importForm);
-
-                // Mulai polling progress
-                progressInterval = setInterval(function() {
-                    fetch("{{ route('admin.siswa.import-progress') }}")
-                        .then(res => res.json())
-                        .then(data => {
-                            const pct = data.total > 0 ? Math.min(100, Math.round((data.progress / data.total) * 100)) : 0;
-                            importProgressBar.style.width = pct + '%';
-                            importProgressBar.textContent = pct + '%';
-                            importProgressBar.setAttribute('aria-valuenow', pct);
-                            importProgressText.textContent = pct + '%';
-                            importProgressDetail.textContent = 'Memproses ' + data.progress + ' dari ' + data.total + ' data...';
-
-                            if (data.progress >= data.total && data.total > 0) {
-                                clearInterval(progressInterval);
-                                importProgressBar.classList.remove('progress-bar-animated');
-                                importProgressBar.style.background = 'linear-gradient(135deg, #28c76f, #00d25a)';
-                                importProgressBar.textContent = '✅ Selesai!';
-                                importProgressDetail.textContent = 'Import berhasil! Mengalihkan...';
-                                setTimeout(() => {
-                                    window.location.reload();
-                                }, 1000);
-                            }
-                        })
-                        .catch(() => {});
-                }, 1000);
-
-                // Kirim file via AJAX
-                fetch(importForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(async res => {
-                    const data = await res.json();
-                    clearInterval(progressInterval);
-
-                    if (res.ok && data.success) {
-                        importProgressBar.style.width = '100%';
-                        importProgressBar.textContent = '✅ Selesai!';
-                        importProgressBar.classList.remove('progress-bar-animated');
-                        importProgressBar.style.background = 'linear-gradient(135deg, #28c76f, #00d25a)';
-                        importProgressDetail.textContent = '✅ ' + data.message;
-                        setTimeout(() => window.location.reload(), 1500);
-                    } else {
-                        importProgressBar.classList.remove('progress-bar-animated');
-                        importProgressBar.style.background = 'linear-gradient(135deg, #ea5455, #ff5b5b)';
-                        importProgressDetail.textContent = '❌ ' + (data.message || 'Import gagal');
-                        importProgressDetail.style.color = '#ea5455';
-                        importSubmitBtn.disabled = false;
-                        importSubmitBtn.innerHTML = '<i class="ti tabler-upload me-1"></i> Coba Lagi';
-                        importCancelBtn.disabled = false;
-                    }
-                })
-                .catch(err => {
-                    clearInterval(progressInterval);
-                    importProgressBar.classList.remove('progress-bar-animated');
-                    importProgressBar.style.background = 'linear-gradient(135deg, #ea5455, #ff5b5b)';
-                    importProgressDetail.textContent = '❌ Gagal menghubungi server';
-                    importProgressDetail.style.color = '#ea5455';
-                    importSubmitBtn.disabled = false;
-                    importSubmitBtn.innerHTML = '<i class="ti tabler-upload me-1"></i> Coba Lagi';
-                    importCancelBtn.disabled = false;
-                });
-            });
-
-            // Reset modal ketika ditutup
-            document.getElementById('importModal').addEventListener('hidden.bs.modal', function() {
-                clearInterval(progressInterval);
-                importForm.reset();
-                importProgressArea.classList.add('d-none');
-                importProgressBar.style.width = '0%';
-                importProgressBar.textContent = '0%';
-                importProgressBar.className = 'progress-bar progress-bar-striped progress-bar-animated';
-                importProgressBar.style.background = 'linear-gradient(135deg, #7367f0, #a55eea)';
-                importProgressDetail.textContent = 'Memproses 0 dari 0 data...';
-                importProgressDetail.style.color = '';
-                importSubmitBtn.disabled = false;
-                importSubmitBtn.innerHTML = '<i class="ti tabler-upload me-1"></i> Mulai Import';
-                importCancelBtn.disabled = false;
-                document.querySelectorAll('#importFormBody > div:not(#importProgressArea)').forEach(el => {
-                    el.style.display = '';
-                });
-            });
-        });
-    </script>
-    @endpush
 
     {{-- SYNC GOOGLE SHEET PROGRESS MODAL --}}
     <div class="modal fade" id="syncProgressModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
@@ -1054,6 +937,97 @@
                             })
                             .catch(err => console.error('Progress poll error:', err));
                     }, 2000);
+                });
+            }
+
+            // ─── Import Progress Bar ───────────────────────────────────────────
+            const importForm = document.getElementById('importForm');
+            if (importForm) {
+                const importFormBody = document.getElementById('importFormBody');
+                const importSubmitBtn = document.getElementById('importSubmitBtn');
+                const importCancelBtn = document.getElementById('importCancelBtn');
+                const importProgressArea = document.getElementById('importProgressArea');
+                const importProgressBar = document.getElementById('importProgressBar');
+                const importProgressText = document.getElementById('importProgressText');
+                const importProgressDetail = document.getElementById('importProgressDetail');
+                const importFileInput = document.getElementById('import_file');
+                let progressInterval = null;
+
+                importForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    if (!importFileInput.files[0]) return;
+
+                    document.querySelectorAll('#importFormBody > div:not(#importProgressArea)').forEach(el => el.style.display = 'none');
+                    importProgressArea.classList.remove('d-none');
+                    importSubmitBtn.disabled = true;
+                    importSubmitBtn.innerHTML = '<i class="ti tabler-loader spinner"></i> Mengimport...';
+                    importCancelBtn.disabled = true;
+
+                    const formData = new FormData(importForm);
+
+                    progressInterval = setInterval(function() {
+                        fetch("{{ route('admin.siswa.import-progress') }}")
+                            .then(res => res.json())
+                            .then(data => {
+                                const pct = data.total > 0 ? Math.min(100, Math.round((data.progress / data.total) * 100)) : 0;
+                                importProgressBar.style.width = pct + '%';
+                                importProgressBar.textContent = pct + '%';
+                                importProgressText.textContent = pct + '%';
+                                importProgressDetail.textContent = 'Memproses ' + data.progress + ' dari ' + data.total + ' data...';
+                                if (data.progress >= data.total && data.total > 0) {
+                                    clearInterval(progressInterval);
+                                    importProgressBar.classList.remove('progress-bar-animated');
+                                    importProgressBar.style.background = 'linear-gradient(135deg, #28c76f, #00d25a)';
+                                    importProgressBar.textContent = 'Selesai!';
+                                    importProgressDetail.textContent = 'Import berhasil!';
+                                    setTimeout(() => window.location.reload(), 1000);
+                                }
+                            }).catch(() => {});
+                    }, 1000);
+
+                    fetch(importForm.action, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                        .then(async res => {
+                            const data = await res.json();
+                            clearInterval(progressInterval);
+                            if (res.ok && data.success) {
+                                importProgressBar.style.width = '100%';
+                                importProgressBar.textContent = 'Selesai!';
+                                importProgressBar.classList.remove('progress-bar-animated');
+                                importProgressBar.style.background = 'linear-gradient(135deg, #28c76f, #00d25a)';
+                                importProgressDetail.textContent = data.message;
+                                setTimeout(() => window.location.reload(), 1500);
+                            } else {
+                                importProgressBar.classList.remove('progress-bar-animated');
+                                importProgressBar.style.background = 'linear-gradient(135deg, #ea5455, #ff5b5b)';
+                                importProgressDetail.textContent = data.message || 'Import gagal';
+                                importSubmitBtn.disabled = false;
+                                importSubmitBtn.innerHTML = '<i class="ti tabler-upload me-1"></i> Coba Lagi';
+                                importCancelBtn.disabled = false;
+                            }
+                        }).catch(() => {
+                            clearInterval(progressInterval);
+                            importProgressBar.classList.remove('progress-bar-animated');
+                            importProgressBar.style.background = 'linear-gradient(135deg, #ea5455, #ff5b5b)';
+                            importProgressDetail.textContent = 'Gagal menghubungi server';
+                            importSubmitBtn.disabled = false;
+                            importSubmitBtn.innerHTML = '<i class="ti tabler-upload me-1"></i> Coba Lagi';
+                            importCancelBtn.disabled = false;
+                        });
+                });
+
+                document.getElementById('importModal').addEventListener('hidden.bs.modal', function() {
+                    clearInterval(progressInterval);
+                    importForm.reset();
+                    importProgressArea.classList.add('d-none');
+                    importProgressBar.style.width = '0%';
+                    importProgressBar.textContent = '0%';
+                    importProgressBar.className = 'progress-bar progress-bar-striped progress-bar-animated';
+                    importProgressBar.style.background = 'linear-gradient(135deg, #7367f0, #a55eea)';
+                    importProgressDetail.textContent = 'Memproses 0 dari 0 data...';
+                    importSubmitBtn.disabled = false;
+                    importSubmitBtn.innerHTML = '<i class="ti tabler-upload me-1"></i> Mulai Import';
+                    importCancelBtn.disabled = false;
+                    document.querySelectorAll('#importFormBody > div:not(#importProgressArea)').forEach(el => el.style.display = '');
                 });
             }
 
