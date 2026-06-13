@@ -145,6 +145,10 @@ class SiswaController extends Controller
 
     public function importStore(Request $request)
     {
+        // Beri waktu lebih lama untuk import banyak data (420 siswa = 840 hash password)
+        set_time_limit(300);
+        ini_set('max_execution_time', 300);
+
         $request->validate([
             'import_file' => 'required|file|mimes:xlsx,xls,csv',
         ]);
