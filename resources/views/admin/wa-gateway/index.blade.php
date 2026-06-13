@@ -156,24 +156,22 @@
             <div class="set-field">
               <label class="set-label">Nomor Pengirim (Sender/Device) <span class="text-danger">*</span></label>
               <div class="set-input-group">
-                <span class="set-input-prefix">+62</span>
                 <input type="text" class="set-input @error('wa_nomor_notifikasi') is-invalid @enderror"
                        name="wa_nomor_notifikasi"
                        value="{{ old('wa_nomor_notifikasi', $settings['wa_nomor_notifikasi'] ?? '') }}"
-                       placeholder="81234567890">
+                       placeholder="08xxxxxxxxx atau 628xxxxxxxxx">
               </div>
-              <div class="set-field-hint">Nomor WA perangkat yang terhubung ke gateway.</div>
+              <div class="set-field-hint">Nomor WA perangkat yang terhubung ke gateway. Bisa gunakan format 08 atau 62.</div>
               @error('wa_nomor_notifikasi')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
             </div>
 
             <div class="set-field">
               <label class="set-label">Nomor Admin</label>
               <div class="set-input-group">
-                <span class="set-input-prefix">+62</span>
                 <input type="text" class="set-input @error('wa_nomor_admin') is-invalid @enderror"
                        name="wa_nomor_admin"
                        value="{{ old('wa_nomor_admin', $settings['wa_nomor_admin'] ?? '') }}"
-                       placeholder="81234567890">
+                       placeholder="08xxxxxxxxx atau 628xxxxxxxxx">
               </div>
               <div class="set-field-hint">Nomor admin untuk notifikasi sistem.</div>
               @error('wa_nomor_admin')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
@@ -242,11 +240,10 @@
         </div>
         <div class="set-panel__body">
           <div class="set-form-grid">
-            <div class="set-field set-field--full">
-              <label class="set-label">Nomor untuk dicek</label>
-              <div class="set-input-group">
-                <span class="set-input-prefix">+62</span>
-                <input type="text" class="set-input" id="testNumber" placeholder="81234567890">
+              <div class="set-field set-field--full">
+                <label class="set-label">Nomor untuk dicek</label>
+                <div class="set-input-group">
+                  <input type="text" class="set-input" id="testNumber" placeholder="08xxxxxxxxx atau 628xxxxxxxxx">
                 <button class="btn btn-outline-success" type="button" onclick="testWaConnection()" id="btnTestWa"
                         style="border-radius:0 8px 8px 0 !important;">
                   <i class="ti tabler-check me-1"></i>Cek Nomor
