@@ -36,11 +36,20 @@ echo "[1/8] Pull kode terbaru dari Git..."
 
 if [ -n "$GITHUB_TOKEN" ]; then
     echo "[INFO] Menggunakan GITHUB_TOKEN untuk autentikasi Git..."
-    # Update remote URL agar menggunakan token (jika menggunakan HTTPS)
     REMOTE_URL=$(git remote get-url origin)
     if [[ $REMOTE_URL == https://github.com* ]]; then
+        # HTTPS: tinggal sisipkan token
         NEW_URL="https://$GITHUB_TOKEN@${REMOTE_URL#https://}"
         git remote set-url origin "$NEW_URL"
+    elif [[ $REMOTE_URL == git@github.com* ]]; then
+        # SSH: ubah ke HTTPS dengan token
+        # Format: git@github.com:owner/repo.git -> https://token@github.com/owner/repo.git
+        SSH_PATH="${REMOTE_URL#git@github.com:}"
+        NEW_URL="https://$GITHUB_TOKEN@github.com/$SSH_PATH"
+        git remote set-url origin "$NEW_URL"
+        echo "[INFO] Remote URL diubah dari SSH ke HTTPS."
+    else
+        echo "[WARN] Remote URL tidak dikenal: $REMOTE_URL"
     fi
 fi
 
