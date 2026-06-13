@@ -157,7 +157,7 @@
               <label class="set-label">Nomor Pengirim (Sender/Device) <span class="text-danger">*</span></label>
               <div class="set-input-group">
                 <input type="text" class="set-input @error('wa_nomor_notifikasi') is-invalid @enderror"
-                       name="wa_nomor_notifikasi"
+                       name="wa_nomor_notifikasi" maxlength="20"
                        value="{{ old('wa_nomor_notifikasi', $settings['wa_nomor_notifikasi'] ?? '') }}"
                        placeholder="08xxxxxxxxx atau 628xxxxxxxxx">
               </div>
@@ -169,7 +169,7 @@
               <label class="set-label">Nomor Admin</label>
               <div class="set-input-group">
                 <input type="text" class="set-input @error('wa_nomor_admin') is-invalid @enderror"
-                       name="wa_nomor_admin"
+                       name="wa_nomor_admin" maxlength="20"
                        value="{{ old('wa_nomor_admin', $settings['wa_nomor_admin'] ?? '') }}"
                        placeholder="08xxxxxxxxx atau 628xxxxxxxxx">
               </div>
@@ -243,7 +243,7 @@
               <div class="set-field set-field--full">
                 <label class="set-label">Nomor untuk dicek</label>
                 <div class="set-input-group">
-                  <input type="text" class="set-input" id="testNumber" placeholder="08xxxxxxxxx atau 628xxxxxxxxx">
+                  <input type="text" class="set-input" id="testNumber" maxlength="20" placeholder="08xxxxxxxxx atau 628xxxxxxxxx">
                 <button class="btn btn-outline-success" type="button" onclick="testWaConnection()" id="btnTestWa"
                         style="border-radius:0 8px 8px 0 !important;">
                   <i class="ti tabler-check me-1"></i>Cek Nomor
