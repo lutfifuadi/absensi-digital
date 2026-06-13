@@ -1,4 +1,4 @@
-<div class="table-responsive">
+<div class="table-responsive" data-total="{{ method_exists($kelas, 'total') ? $kelas->total() : count($kelas) }}">
   <table class="table table-hover align-middle mb-0" style="color:inherit;">
     <thead
       style="background:rgba(255,255,255,0.04);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;opacity:0.7;">

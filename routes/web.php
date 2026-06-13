@@ -29,6 +29,7 @@ use App\Http\Controllers\PublicQrScanController;
 use App\Http\Controllers\AbsensiMandiriController;
 use App\Http\Controllers\PortalSiswaController;
 use App\Http\Controllers\Admin\AbsensiActivityController;
+use App\Http\Controllers\Admin\PelepasanController;
 
 
 
@@ -214,6 +215,29 @@ Route::middleware([
       Route::get('absensi-kegiatan/rekap', [AbsensiKegiatanController::class, 'rekap'])
           ->name('admin.absensi-kegiatan.rekap')
           ->middleware('role:super_admin,admin_sekolah,operator');
+
+      // Absensi Pelepasan Kelas XII
+      Route::get('pelepasan', [PelepasanController::class, 'index'])
+          ->name('admin.pelepasan.index')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+      Route::get('pelepasan/live-board', [PelepasanController::class, 'liveBoard'])
+          ->name('admin.pelepasan.liveboard')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+      Route::post('pelepasan/scan', [PelepasanController::class, 'scanStore'])
+          ->name('admin.pelepasan.scan.store')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+      Route::get('pelepasan/export', [PelepasanController::class, 'export'])
+          ->name('admin.pelepasan.export')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+      Route::post('pelepasan/reset', [PelepasanController::class, 'resetKehadiran'])
+          ->name('admin.pelepasan.reset')
+          ->middleware('role:super_admin,admin_sekolah');
+      Route::get('pelepasan/scan', [PelepasanController::class, 'mobileScan'])
+            ->name('admin.pelepasan.scan.page')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+      Route::get('pelepasan/realtime', [PelepasanController::class, 'realtimeData'])
+            ->name('admin.pelepasan.realtime')
+            ->middleware('role:super_admin,admin_sekolah,operator');
 
       Route::get('scan-qr', [ScanQrController::class, 'index'])
           ->name('admin.scan-qr.index')

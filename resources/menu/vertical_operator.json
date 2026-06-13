@@ -115,6 +115,11 @@
           "url": "/admin/kegiatans/absensi",
           "name": "Absensi Inovasi",
           "slug": "admin.kegiatans.absensi"
+        },
+        {
+          "url": "/admin/pelepasan",
+          "name": "Pelepasan Kelas XII",
+          "slug": "admin.pelepasan.index"
         }
       ]
     },

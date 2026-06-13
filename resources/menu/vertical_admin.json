@@ -146,6 +146,12 @@
       "slug": "admin.kegiatans.absensi"
     },
     {
+      "url": "/admin/pelepasan",
+      "name": "Pelepasan Kelas XII",
+      "icon": "menu-icon ti tabler-school",
+      "slug": "admin.pelepasan.index"
+    },
+    {
       "url": "/admin/kalender-absensi",
       "name": "Kalender Absensi",
       "icon": "menu-icon ti tabler-calendar-stats",

@@ -20,6 +20,7 @@ class KelasController extends Controller
     public function index(Request $request)
     {
         $search = $request->query('search');
+        $tingkat = $request->query('tingkat');
         $perPage = (int) $request->query('per_page', 10);
 
         $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
@@ -27,6 +28,9 @@ class KelasController extends Controller
         $kelas = Kelas::with(['waliKelas.user', 'tahunAkademik'])
             ->withCount('siswa')
             ->where('tahun_akademik_id', $tahunAjaranId)
+            ->when($tingkat, function ($query, $tingkat) {
+                return $query->where('tingkat', $tingkat);
+            })
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('nama', 'like', "%{$search}%")
@@ -47,7 +51,7 @@ class KelasController extends Controller
             ->get();
         $tahunAkademikOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
 
-        return view('admin.kelas.index', compact('kelas', 'guruOptions', 'tahunAkademikOptions'));
+        return view('admin.kelas.index', compact('kelas', 'guruOptions', 'tahunAkademikOptions', 'tingkat'));
     }
 
     public function create()

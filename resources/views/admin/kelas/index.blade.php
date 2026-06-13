@@ -197,6 +197,28 @@
     }
     #perPageSelect option { background: #1a1a2e; color: #ccc; }
     #perPageSelect:focus { outline: none; box-shadow: none; }
+
+    /* SEGMENTED TAB FILTERS */
+    .tingkat-tab-btn {
+      color: rgba(255, 255, 255, 0.6) !important;
+      border: none;
+      box-shadow: none !important;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.35rem 1.1rem;
+      border-radius: var(--das-radius, 5px);
+      transition: all 0.2s ease-in-out;
+      background: transparent;
+    }
+    .tingkat-tab-btn:hover {
+      color: #fff !important;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .tingkat-tab-btn.active {
+      background: var(--das-primary) !important;
+      color: #fff !important;
+      box-shadow: 0 4px 12px rgba(115, 103, 240, 0.3) !important;
+    }
   </style>
 @endsection
 
@@ -263,14 +285,41 @@
   <div class="das-panel">
     <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3"
       style="border-color:rgba(255,255,255,0.08) !important;">
-      <h6 class="das-panel__title mb-0 d-flex align-items-center gap-2">
+      <h6 class="das-panel__title mb-0 d-none d-lg-flex align-items-center gap-2">
         <i class="ti tabler-list text-info"></i> Daftar Kelas
       </h6>
-      <div class="d-flex align-items-center gap-3">
-        <div class="position-relative" style="max-width:300px;">
-          <i class="ti tabler-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size:0.85rem; pointer-events:none;"></i>
-          <input type="text" id="searchInput" class="form-control border-0 text-white" placeholder="Cari nama, tingkat, atau jurusan..." style="background: rgba(255,255,255,0.05); height:38px; padding-left:2.2rem; font-size:0.85rem;">
+
+      <!-- Filter Segmented Tab (Desktop & Tablet) -->
+      <div class="d-none d-md-flex align-items-center">
+        <div class="tingkat-filter-pill p-1" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--das-radius, 5px); display: flex; gap: 4px; backdrop-filter: blur(8px);">
+          <button type="button" class="btn tingkat-tab-btn {{ $tingkat === null || $tingkat === '' ? 'active' : '' }}" data-tingkat="">
+            Semua
+          </button>
+          <button type="button" class="btn tingkat-tab-btn {{ $tingkat === 'X' ? 'active' : '' }}" data-tingkat="X">
+            Tingkat X
+          </button>
+          <button type="button" class="btn tingkat-tab-btn {{ $tingkat === 'XI' ? 'active' : '' }}" data-tingkat="XI">
+            Tingkat XI
+          </button>
+          <button type="button" class="btn tingkat-tab-btn {{ $tingkat === 'XII' ? 'active' : '' }}" data-tingkat="XII">
+            Tingkat XII
+          </button>
         </div>
+      </div>
+
+      <div class="d-flex align-items-center justify-content-between justify-content-md-end gap-3 flex-grow-1 flex-md-grow-0 w-100 w-md-auto">
+        <div class="position-relative flex-grow-1 flex-md-grow-0" style="max-width:300px;">
+          <i class="ti tabler-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size:0.85rem; pointer-events:none;"></i>
+          <input type="text" id="searchInput" class="form-control border-0 text-white" placeholder="Cari nama atau jurusan..." style="background: rgba(255,255,255,0.05); height:38px; padding-left:2.2rem; font-size:0.85rem;">
+        </div>
+
+        <!-- Filter Dropdown (Mobile fallback) -->
+        <select id="tingkatSelect" class="form-select border-0 text-white w-auto d-md-none" style="background: rgba(255,255,255,0.05); height:38px; font-size:0.85rem; cursor:pointer;">
+          <option value="" {{ $tingkat === null || $tingkat === '' ? 'selected' : '' }}>Semua Tingkat</option>
+          <option value="X" {{ $tingkat == 'X' ? 'selected' : '' }}>Tingkat X</option>
+          <option value="XI" {{ $tingkat == 'XI' ? 'selected' : '' }}>Tingkat XI</option>
+          <option value="XII" {{ $tingkat == 'XII' ? 'selected' : '' }}>Tingkat XII</option>
+        </select>
 
         <select id="perPageSelect" class="form-select border-0 text-white w-auto" style="background: rgba(255,255,255,0.05); height:38px; font-size:0.85rem; cursor:pointer;">
           <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
@@ -279,7 +328,7 @@
           <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
         </select>
 
-        <span class="das-chip --info d-none d-sm-inline-flex">{{ method_exists($kelas, 'total') ? $kelas->total() : count($kelas) }} Kelas</span>
+        <span class="das-chip --info d-none d-sm-inline-flex" id="totalKelasChip">{{ method_exists($kelas, 'total') ? $kelas->total() : count($kelas) }} Kelas</span>
       </div>
     </div>
     <div class="das-panel__body p-0">
@@ -596,13 +645,17 @@
     (function() {
       const container = document.getElementById('kelasTableContainer');
       const searchInput = document.getElementById('searchInput');
+      const tingkatSelect = document.getElementById('tingkatSelect');
       const perPageSelect = document.getElementById('perPageSelect');
+      const tabButtons = document.querySelectorAll('.tingkat-tab-btn');
+      let selectedTingkat = '{{ $tingkat ?? "" }}';
       let searchTimeout;
 
       function fetchData(page = 1) {
         const search = encodeURIComponent(searchInput.value || '');
         const perPage = perPageSelect.value || 10;
-        const url = `{{ route('admin.kelas.index') }}?page=${page}&search=${search}&per_page=${perPage}`;
+        const tingkat = encodeURIComponent(selectedTingkat);
+        const url = `{{ route('admin.kelas.index') }}?page=${page}&search=${search}&per_page=${perPage}&tingkat=${tingkat}`;
 
         container.style.opacity = '0.5';
         container.style.pointerEvents = 'none';
@@ -613,6 +666,15 @@
             container.innerHTML = html;
             container.style.opacity = '1';
             container.style.pointerEvents = 'auto';
+
+            // Sync total count badge dynamically
+            const tableWrapper = container.querySelector('.table-responsive');
+            if (tableWrapper && tableWrapper.dataset.total !== undefined) {
+              const totalChip = document.getElementById('totalKelasChip');
+              if (totalChip) {
+                totalChip.textContent = `${tableWrapper.dataset.total} Kelas`;
+              }
+            }
           })
           .catch(err => {
             console.error('Fetch error:', err);
@@ -621,9 +683,39 @@
           });
       }
 
+      // Sync active state of UI components (tabs vs mobile select)
+      function syncTingkatUI(val) {
+        selectedTingkat = val;
+        tingkatSelect.value = val;
+        
+        tabButtons.forEach(btn => {
+          if ((btn.dataset.tingkat || '') === val) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+      }
+
       searchInput.addEventListener('input', function() {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => fetchData(1), 450);
+      });
+
+      // Desktop/Tablet Tab Buttons Click handler
+      tabButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          const targetVal = this.dataset.tingkat || '';
+          syncTingkatUI(targetVal);
+          fetchData(1);
+        });
+      });
+
+      // Mobile Select Dropdown Change handler
+      tingkatSelect.addEventListener('change', function() {
+        syncTingkatUI(this.value);
+        fetchData(1);
       });
 
       perPageSelect.addEventListener('change', function() {
