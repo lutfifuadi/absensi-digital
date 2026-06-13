@@ -809,6 +809,35 @@
             toggleBtn.innerHTML = '<i class="ti tabler-camera"></i> Mulai Kamera';
         }
 
+        // ── Notifikasi Suara ────────────────────────────────────
+        function playChime() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                let osc1 = ctx.createOscillator();
+                let gain1 = ctx.createGain();
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.type = 'sine';
+                osc1.frequency.value = 659.25;
+                gain1.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                osc1.start();
+                osc1.stop(ctx.currentTime + 0.3);
+                let osc2 = ctx.createOscillator();
+                let gain2 = ctx.createGain();
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.type = 'sine';
+                osc2.frequency.value = 880.00;
+                gain2.gain.setValueAtTime(0.1, ctx.currentTime + 0.15);
+                gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.55);
+                osc2.start(ctx.currentTime + 0.15);
+                osc2.stop(ctx.currentTime + 0.55);
+            } catch (e) { console.error("Audio failure: ", e); }
+        }
+
         // ── Scan Logic ───────────────────────────────────────────
         function doScan(qrCode) {
             fetch(SCAN_URL, {
@@ -824,6 +853,7 @@
 
                 if (res.ok) {
                     if (data.is_new) {
+                        playChime();
                         showSuccessOverlay(data);
                         showToast('success', '✅', data.siswa_nama, `${data.siswa_kelas} · ${data.waktu}`);
                         updateCounters(data.total_hadir, parseInt(ctrTotal.textContent));
