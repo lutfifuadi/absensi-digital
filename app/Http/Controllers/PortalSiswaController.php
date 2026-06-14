@@ -24,7 +24,7 @@ class PortalSiswaController extends Controller
 
         if (!$template) {
             $namaSekolah = Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
-            $qrImage = QrCodeGenerator::renderDataUri($siswa->qr_code, 200);
+            $qrImage = QrCodeGenerator::renderDataUri($siswa->qr_code ?? $siswa->nisn, 200);
 
             $pdf = Pdf::loadView('admin.siswa.kartu-qr-satu-pdf', compact(
                 'siswa', 'namaSekolah', 'qrImage'
@@ -39,5 +39,43 @@ class PortalSiswaController extends Controller
         return Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'entities'))
                   ->setPaper([0, 0, $config['canvas']['width'], $config['canvas']['height']])
                   ->download("kartu-pelajar-{$siswa->nisn}.pdf");
+    }
+
+    public function downloadKartuPelepasan()
+    {
+        $user = Auth::user();
+        if ($user->role !== 'siswa') {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $siswa = Siswa::with('kelas')->where('user_id', $user->id)->firstOrFail();
+
+        // Cek apakah siswa kelas XII
+        $tingkat = $siswa->kelas ? trim($siswa->kelas->tingkat) : '';
+        if (!$siswa->kelas || !in_array($tingkat, ['XII', '12'])) {
+            return back()->with('error', 'Fitur ini hanya tersedia untuk siswa kelas XII.');
+        }
+
+        // Data untuk view kartu pelepasan (format gambar PNG)
+        $namaSekolah  = Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
+
+        // Logo sekolah
+        $logoPath = Pengaturan::where('key', 'logo_sekolah')->value('value');
+        $logoSekolah = null;
+        if ($logoPath && file_exists(public_path('storage/' . $logoPath))) {
+            $logoSekolah = asset('storage/' . $logoPath);
+        }
+
+        // QR Code
+        $qrCodeData = $siswa->qr_code ?: $siswa->nisn;
+        $qrImage = QrCodeGenerator::renderDataUri($qrCodeData, 300);
+
+        // Tahun akademik
+        $tahunAkademik = \App\Models\TahunAkademik::where('is_aktif', true)->value('nama')
+            ?? (date('Y') . '/' . (date('Y') + 1));
+
+        return view('siswa.kartu-pelepasan', compact(
+            'siswa', 'namaSekolah', 'logoSekolah', 'qrImage', 'tahunAkademik'
+        ));
     }
 }

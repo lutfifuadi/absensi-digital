@@ -14,9 +14,64 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\IdCardTemplate;
+use App\Support\QrCodeGenerator;
 
 class PelepasanController extends Controller
 {
+    /**
+     * Cetak kartu peserta pelepasan massal untuk kelas XII.
+     */
+    public function cetakKartu(Request $request)
+    {
+        ini_set('max_execution_time', 300); // Set to 5 minutes
+        $taId = session('tahun_akademik_id') ?? TahunAkademik::where('is_aktif', true)->value('id');
+        
+        // Cari template kartu tipe pelepasan yang aktif
+        $template = IdCardTemplate::where('type', 'pelepasan')->active()->first();
+
+        if (!$template) {
+            return back()->with('error', 'Template ID Card tipe "Pelepasan" belum dibuat atau belum diaktifkan.');
+        }
+
+        // Ambil semua siswa kelas XII
+        $siswaList = Siswa::with('kelas')
+            ->whereHas('kelas', function ($q) {
+                $q->where('tingkat', 'XII');
+            })
+            ->where('tahun_akademik_id', $taId)
+            ->orderBy('kelas_id')
+            ->orderBy('nama_lengkap')
+            ->get();
+
+        if ($siswaList->isEmpty()) {
+            return back()->with('error', 'Tidak ada data siswa kelas XII untuk dicetak.');
+        }
+
+        $config = $template->config;
+        $entities = [];
+
+        foreach ($siswaList as $siswa) {
+            $qrCodeData = $siswa->qr_code ?: $siswa->nisn;
+            
+            $entities[] = [
+                'name'      => strtoupper($siswa->nama_lengkap),
+                'id_number' => "NISN: " . ($siswa->nisn ?? '-'),
+                'nis'       => "NIS: " . ($siswa->nis ?? '-'),
+                'gender'    => "JK: " . ($siswa->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan'),
+                'class'     => "KELAS: " . ($siswa->kelas->nama ?? '-'),
+                'photo'     => $siswa->foto ? public_path('storage/' . $siswa->foto) : null,
+                'qr_code'   => QrCodeGenerator::renderDataUri($qrCodeData, 150)
+            ];
+        }
+
+        // Gunakan view template PDF yang sudah ada (dikustomisasi lewat config)
+        return Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'entities'))
+            ->setPaper([0, 0, $config['canvas']['width'] * 0.75, $config['canvas']['height'] * 0.75], $config['canvas']['width'] > $config['canvas']['height'] ? 'landscape' : 'portrait')
+            ->download("kartu-peserta-pelepasan-2026.pdf");
+    }
+
     /**
      * Dapatkan atau buat kegiatan pelepasan untuk hari ini.
      */

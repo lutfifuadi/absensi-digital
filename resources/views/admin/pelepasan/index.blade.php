@@ -346,6 +346,11 @@
                     data-tooltip="Export Excel">
                     <i class="ti tabler-download"></i>
                 </a>
+                <a href="{{ route('admin.pelepasan.cetak-kartu') }}"
+                    class="das-icon-btn --primary"
+                    data-tooltip="Cetak Kartu Peserta">
+                    <i class="ti tabler-id"></i>
+                </a>
             </div>
         </div>
     </div>

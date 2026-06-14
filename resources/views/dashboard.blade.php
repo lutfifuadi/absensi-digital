@@ -113,6 +113,25 @@
                   'button' => 'Buka Profil',
               ],
           ];
+
+          // Jika siswa kelas XII, tambahkan card kartu pelepasan
+          if ($role === 'siswa') {
+              $siswa = \App\Models\Siswa::with('kelas')->where('user_id', auth()->id())->first();
+              // Dump untuk debugging jika diperlukan (hapus jika sudah jalan)
+              // dd($siswa->kelas->tingkat); 
+              
+              if ($siswa && $siswa->kelas) {
+                  $tingkat = trim($siswa->kelas->tingkat);
+                  if ($tingkat === 'XII' || $tingkat === '12') {
+                      $cards[] = [
+                          'title' => 'Kartu Pelepasan',
+                          'description' => 'Unduh kartu peserta khusus untuk acara pelepasan/wisuda.',
+                          'route' => route('siswa.download-kartu-pelepasan'),
+                          'button' => 'Download Kartu',
+                      ];
+                  }
+              }
+          }
       }
     @endphp
 

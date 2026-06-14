@@ -66,9 +66,15 @@
         <!-- PHOTO -->
         @if($elements['photo']['show'])
         @php
-            $fotoPath = $entity->foto ? storage_path('app/public/' . $entity->foto) : public_path('assets/img/avatars/1.png');
+            $fotoPath = '';
+            if(is_array($entity)) {
+                $fotoPath = $entity['photo'] ? $entity['photo'] : public_path('assets/img/avatars/1.png');
+            } else {
+                $fotoPath = $entity->foto ? storage_path('app/public/' . $entity->foto) : public_path('assets/img/avatars/1.png');
+            }
+            
             $fotoBase64 = '';
-            if(file_exists($fotoPath)) {
+            if($fotoPath && file_exists($fotoPath)) {
                 $fotoData = file_get_contents($fotoPath);
                 $fotoBase64 = 'data:image/' . pathinfo($fotoPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($fotoData);
             }
@@ -91,7 +97,7 @@
             font-size: {{ $elements['name']['size'] }}pt;
             color: {{ $elements['name']['color'] }};
         ">
-            {{ strtoupper($entity->nama_lengkap) }}
+            {{ is_array($entity) ? ($entity['name'] ?? '') : strtoupper($entity->nama_lengkap) }}
         </div>
         @endif
 
@@ -105,7 +111,7 @@
             font-size: {{ $elements['id_number']['size'] }}pt;
             color: {{ $elements['id_number']['color'] }};
         ">
-            {{ $entity->nis ?? $entity->nip  ?? '' }}
+            {{ is_array($entity) ? ($entity['id_number'] ?? '') : ($entity->nis ?? $entity->nip  ?? '') }}
         </div>
         @endif
 
@@ -119,14 +125,24 @@
             font-size: {{ $elements['class']['size'] }}pt;
             color: {{ $elements['class']['color'] }};
         ">
-            {{ $entity->kelas->nama ?? $entity->jabatan ?? '' }}
+            {{ is_array($entity) ? ($entity['class'] ?? '') : ($entity->kelas->nama ?? $entity->jabatan ?? '') }}
         </div>
+        @endif
+
+        {{-- EXTRA FIELDS FOR PELEPASAN --}}
+        @if($template->type === 'pelepasan')
+            <div class="element text" style="left: {{ $elements['id_number']['x'] }}pt; top: {{ ($elements['id_number']['y'] + 15) }}pt; font-size: {{ ($elements['id_number']['size'] - 1) }}pt; color: {{ $elements['id_number']['color'] }};">
+                {{ is_array($entity) ? ($entity['nis'] ?? '') : '' }}
+            </div>
+            <div class="element text" style="left: {{ $elements['id_number']['x'] }}pt; top: {{ ($elements['id_number']['y'] + 28) }}pt; font-size: {{ ($elements['id_number']['size'] - 1) }}pt; color: {{ $elements['id_number']['color'] }};">
+                {{ is_array($entity) ? ($entity['gender'] ?? '') : '' }}
+            </div>
         @endif
 
         <!-- QR Code -->
         @if($elements['qr']['show'])
         @php
-            $qrData = \App\Support\QrCodeGenerator::renderDataUri($entity->qr_code, 200);
+            $qrData = is_array($entity) ? $entity['qr_code'] : \App\Support\QrCodeGenerator::renderDataUri($entity->qr_code ?? $entity->nisn, 200);
         @endphp
         <div class="element" style="left: {{ $elements['qr']['x'] }}pt; top: {{ $elements['qr']['y'] }}pt;">
             <img class="qr" src="{{ $qrData }}" style="width: {{ $elements['qr']['w'] }}pt; height: {{ $elements['qr']['h'] }}pt;">

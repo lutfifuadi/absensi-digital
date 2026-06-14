@@ -90,6 +90,11 @@
             </div>
             <div class="col-md-5 text-md-end mt-4 mt-md-0">
                <div class="d-flex flex-column flex-md-row gap-2 justify-content-md-end">
+                  @if($siswaRecord && $siswaRecord->kelas && (trim($siswaRecord->kelas->tingkat) === 'XII' || trim($siswaRecord->kelas->tingkat) === '12'))
+                    <a href="{{ route('siswa.download-kartu-pelepasan') }}" class="btn btn-warning text-white fw-bold shadow-sm">
+                      <i class="ti tabler-id me-2"></i> Unduh Kartu Pelepasan
+                    </a>
+                  @endif
                   <a href="{{ route('siswa.download-kartu') }}" class="btn btn-white text-primary fw-bold shadow-sm" target="_blank">
                     <i class="ti tabler-id-badge me-2"></i> Unduh Kartu Pelajar
                   </a>

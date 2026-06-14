@@ -106,6 +106,7 @@ Route::middleware([
       Route::get('/dashboard', [DashboardController::class, 'index'])->name('siswa.dashboard');
       Route::get('/profile', [SiswaController::class, 'profilSaya'])->name('siswa.profile');
       Route::get('/download-kartu', [PortalSiswaController::class, 'downloadKartu'])->name('siswa.download-kartu');
+      Route::get('/download-kartu-pelepasan', [PortalSiswaController::class, 'downloadKartuPelepasan'])->name('siswa.download-kartu-pelepasan');
       
       // Izin & Sakit (Scoped to self in Controller)
       Route::get('/izin-sakit', [IzinSakitController::class, 'index'])->name('siswa.izin-sakit.index');
@@ -219,6 +220,9 @@ Route::middleware([
       // Absensi Pelepasan Kelas XII
       Route::get('pelepasan', [PelepasanController::class, 'index'])
           ->name('admin.pelepasan.index')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+      Route::get('pelepasan/cetak-kartu', [PelepasanController::class, 'cetakKartu'])
+          ->name('admin.pelepasan.cetak-kartu')
           ->middleware('role:super_admin,admin_sekolah,operator');
       Route::get('pelepasan/live-board', [PelepasanController::class, 'liveBoard'])
           ->name('admin.pelepasan.liveboard')
