@@ -59,11 +59,25 @@ class PortalSiswaController extends Controller
         // Data untuk view kartu pelepasan (format gambar PNG)
         $namaSekolah  = Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
 
-        // Logo sekolah
+        // Logo sekolah - konversi ke base64 data URI biar html2canvas gak kena CORS
         $logoPath = Pengaturan::where('key', 'logo_sekolah')->value('value');
         $logoSekolah = null;
-        if ($logoPath && file_exists(public_path('storage/' . $logoPath))) {
-            $logoSekolah = asset('storage/' . $logoPath);
+        if ($logoPath) {
+            $fullPath = public_path('storage/' . $logoPath);
+            if (file_exists($fullPath)) {
+                $ext = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+                $mime = match($ext) {
+                    'png' => 'image/png',
+                    'jpg', 'jpeg' => 'image/jpeg',
+                    'svg' => 'image/svg+xml',
+                    'webp' => 'image/webp',
+                    default => 'image/png',
+                };
+                $imageData = file_get_contents($fullPath);
+                if ($imageData !== false) {
+                    $logoSekolah = 'data:' . $mime . ';base64,' . base64_encode($imageData);
+                }
+            }
         }
 
         // QR Code

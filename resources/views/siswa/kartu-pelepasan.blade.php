@@ -473,7 +473,7 @@
         {{-- Header --}}
         <div class="kp-header">
           @if($logoSekolah)
-            <img src="{{ $logoSekolah }}" alt="Logo" class="kp-logo" crossorigin="anonymous">
+            <img src="{{ $logoSekolah }}" alt="Logo" class="kp-logo">
           @else
             <div class="kp-logo" style="display:flex;align-items:center;justify-content:center;font-size:28px;color:#d4af37;font-weight:700;font-family:'Product Sans', sans-serif;">
               {{ strtoupper(substr($namaSekolah, 0, 1)) }}
