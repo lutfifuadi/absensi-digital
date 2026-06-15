@@ -30,6 +30,7 @@ use App\Http\Controllers\AbsensiMandiriController;
 use App\Http\Controllers\PortalSiswaController;
 use App\Http\Controllers\Admin\AbsensiActivityController;
 use App\Http\Controllers\Admin\PelepasanController;
+use App\Http\Controllers\PublicPelepasanController;
 
 
 
@@ -90,6 +91,16 @@ Route::get('/bantuan',             [PublicPagesController::class, 'bantuan'])->n
 Route::get('/live-board', [PublicQrScanController::class, 'liveBoard'])->name('public.live-board')->middleware('device.trusted');
 Route::post('/live-board/scan', [PublicQrScanController::class, 'liveBoardScan'])->name('public.live-board.scan')->middleware(['throttle:60,1', 'device.trusted']);
 Route::get('/live-board/leaderboard', [PublicQrScanController::class, 'liveBoardLeaderboard'])->name('public.live-board.leaderboard');
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Halaman Scan Pelepasan Publik (tanpa login, pakai kata kunci) ─────────────
+Route::prefix('pelepasan/scan')->name('public.pelepasan.')->group(function () {
+    Route::get('/',        [PublicPelepasanController::class, 'index'])->name('index');
+    Route::post('/auth',   [PublicPelepasanController::class, 'auth'])->name('auth')->middleware('throttle:5,15');
+    Route::get('/live',    [PublicPelepasanController::class, 'scan'])->name('scan');
+    Route::post('/process',[PublicPelepasanController::class, 'process'])->name('process')->middleware('throttle:60,1');
+    Route::post('/logout', [PublicPelepasanController::class, 'logout'])->name('logout');
+});
 // ─────────────────────────────────────────────────────────────────────────────
 
 Route::middleware([
