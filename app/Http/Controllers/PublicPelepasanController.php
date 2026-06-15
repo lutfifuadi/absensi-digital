@@ -12,6 +12,7 @@ use App\Services\WhatsAppService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class PublicPelepasanController extends Controller
 {
@@ -193,20 +194,50 @@ class PublicPelepasanController extends Controller
      */
     private function getOrCreatePelepasanKegiatan($taId)
     {
-        $kegiatan = Kegiatan::where('nama_kegiatan', 'Pelepasan Kelas XII Angkatan 2026')
+        // Prioritas 1: Cek pengaturan yang disimpan admin
+        $savedKegiatanId = Pengaturan::where('key', 'pelepasan_kegiatan_id')->value('value');
+
+        if ($savedKegiatanId) {
+            $kegiatan = Kegiatan::where('id', $savedKegiatanId)
+                ->where('tahun_akademik_id', $taId)
+                ->first();
+
+            if ($kegiatan) {
+                return $kegiatan;
+            }
+
+            // ✅ Cleanup: setting menyimpan ID yang tidak valid (kegiatan sudah dihapus atau beda tahun akademik)
+            // Hapus setting rusak agar tidak mengganggu sinkronisasi data
+            Pengaturan::where('key', 'pelepasan_kegiatan_id')->delete();
+            Log::warning('Setting pelepasan_kegiatan_id tidak valid (ID ' . $savedKegiatanId . '), telah dihapus dan akan dicari ulang.');
+        }
+
+        // Prioritas 2: Cari berdasarkan nama yang mengandung "Pelepasan"
+        $kegiatan = Kegiatan::where('nama_kegiatan', 'like', '%Pelepasan%Kelas%XII%')
             ->where('tahun_akademik_id', $taId)
             ->first();
 
         if (!$kegiatan) {
+            // Fallback: cari nama versi lama
+            $kegiatan = Kegiatan::where('nama_kegiatan', 'Pelepasan Kelas XII Angkatan 2026')
+                ->where('tahun_akademik_id', $taId)
+                ->first();
+        }
+
+        // Prioritas 3: Buat baru jika belum ada (fallback)
+        if (!$kegiatan) {
+            $ta = TahunAkademik::find($taId);
+            $tahun = $ta ? $ta->nama : date('Y');
+
             $kegiatan = Kegiatan::create([
-                'nama_kegiatan'       => 'Pelepasan Kelas XII Angkatan 2026',
+                'nama_kegiatan'       => "Pelepasan Kelas XII Angkatan {$tahun}",
                 'jenis'               => 'LAINNYA',
                 'tanggal_pelaksanaan' => date('Y-m-d'),
                 'waktu_mulai'         => '07:00:00',
                 'waktu_selesai'       => '13:00:00',
                 'lokasi'              => 'AULA UTAMA',
                 'keterangan'          => 'Absensi khusus wisuda & pelepasan siswa kelas XII',
-                'qr_code_kegiatan'    => 'KGT-PELEPASAN-2026',
+                'qr_code_kegiatan'    => 'KGT-PELEPASAN-' . date('Y'),
                 'is_wajib'            => true,
                 'target_peserta'      => ['XII'],
                 'tahun_akademik_id'   => $taId,

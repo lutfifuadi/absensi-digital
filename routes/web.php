@@ -229,6 +229,13 @@ Route::middleware([
           ->middleware('role:super_admin,admin_sekolah,operator');
 
       // Absensi Pelepasan Kelas XII
+      Route::get('pelepasan/settings', [PelepasanController::class, 'settings'])
+          ->name('admin.pelepasan.settings')
+          ->middleware('role:super_admin,admin_sekolah');
+      Route::post('pelepasan/settings', [PelepasanController::class, 'saveSettings'])
+          ->name('admin.pelepasan.settings.save')
+          ->middleware('role:super_admin,admin_sekolah');
+
       Route::get('pelepasan', [PelepasanController::class, 'index'])
           ->name('admin.pelepasan.index')
           ->middleware('role:super_admin,admin_sekolah,operator');

@@ -283,6 +283,11 @@
 
             <div class="das-hero__actions" style="gap:0.5rem;">
                 @if(auth()->user()->hasAnyRole(['super_admin', 'admin_sekolah']))
+                    <a href="{{ route('admin.pelepasan.settings') }}"
+                        class="das-icon-btn --warning"
+                        data-tooltip="Pengaturan Pelepasan">
+                        <i class="ti tabler-settings"></i>
+                    </a>
                     <button type="button" id="resetKehadiranBtn"
                         class="das-icon-btn --danger"
                         data-tooltip="Reset Kehadiran">

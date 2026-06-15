@@ -74,11 +74,10 @@
     content="{{ config('variables.creatorName') ? config('variables.creatorName') : '' }}" />
   <meta name="robots" content="noindex, nofollow" />
   <!-- Preload critical font assets -->
-  <link rel="preload" href="{{ asset('assets/fonts/Quicksand-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="{{ asset('assets/fonts/Quicksand-Medium.woff2') }}" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="{{ asset('assets/fonts/Quicksand-SemiBold.woff2') }}" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="{{ asset('assets/fonts/Quicksand-Bold.woff2') }}" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="{{ asset('assets/fonts/TrajanPro-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>  <style>body{font-family:'Quicksand',sans-serif !important;}</style>  <!-- laravel CRUD token -->
+  <link rel="preload" href="{{ asset('assets/fonts/ProductSans-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ asset('assets/fonts/ProductSans-Medium.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ asset('assets/fonts/ProductSans-Bold.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ asset('assets/fonts/TrajanPro-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>  <style>body{font-family:'Product Sans',sans-serif !important;}</style>  <!-- laravel CRUD token -->
   <meta name="csrf-token" content="{{ csrf_token() }}" />
   <!-- Canonical SEO -->
   <link rel="canonical" href="{{ config('variables.productPage') ? config('variables.productPage') : '' }}" />

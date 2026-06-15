@@ -1,56 +1,39 @@
 /*
   Local Fonts Definition
-  Quicksand & Trajan Pro
+  Product Sans & Trajan Pro
 */
 
-/* Quicksand - All weights (woff2 only, files located at /assets/fonts/) */
+/* Product Sans - All weights (woff2 only, files located at /assets/fonts/) */
 @font-face {
-  font-family: 'Quicksand';
-  src: url('../fonts/Quicksand-Light.woff2') format('woff2');
+  font-family: 'Product Sans';
+  src: url('../fonts/ProductSans-Light.woff2') format('woff2');
   font-weight: 300;
   font-style: normal;
   font-display: block;
 }
 
 @font-face {
-  font-family: 'Quicksand';
-  src: url('../fonts/Quicksand-Regular.woff2') format('woff2');
+  font-family: 'Product Sans';
+  src: url('../fonts/ProductSans-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: block;
 }
 
 @font-face {
-  font-family: 'Quicksand';
-  src: url('../fonts/Quicksand-Medium.woff2') format('woff2');
+  font-family: 'Product Sans';
+  src: url('../fonts/ProductSans-Medium.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
   font-display: block;
 }
 
 @font-face {
-  font-family: 'Quicksand';
-  src: url('../fonts/Quicksand-SemiBold.woff2') format('woff2');
-  font-weight: 600;
-  font-style: normal;
-  font-display: block;
-}
-
-@font-face {
-  font-family: 'Quicksand';
-  src: url('../fonts/Quicksand-Bold.woff2') format('woff2');
+  font-family: 'Product Sans';
+  src: url('../fonts/ProductSans-Bold.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: block;
-}
-
-/* Alias: Quicksands (plural) */
-@font-face {
-  font-family: 'Quicksands';
-  src: url('../fonts/Quicksand-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
 }
 
 /* Trajan Pro */
@@ -72,20 +55,20 @@
 
 /*
    Global Overrides
-   Ensuring Quicksand is used globally
+   Ensuring Product Sans is used globally
 */
 :root {
-  --font-family-sans-serif: 'Quicksand', sans-serif;
-  --bs-body-font-family: 'Quicksand', sans-serif;
+  --font-family-sans-serif: 'Product Sans', sans-serif;
+  --bs-body-font-family: 'Product Sans', sans-serif;
 }
 
 body {
-  font-family: 'Quicksand', sans-serif !important;
+  font-family: 'Product Sans', sans-serif !important;
 }
 
 /* Utility class */
-.font-quicksand {
-  font-family: 'Quicksand', sans-serif !important;
+.font-product-sans {
+  font-family: 'Product Sans', sans-serif !important;
 }
 
 .trajan {

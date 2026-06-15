@@ -31,7 +31,7 @@
     body,
     .authentication-wrapper {
       background: var(--bg) !important;
-      font-family: 'Quicksand', sans-serif !important;
+      font-family: 'Product Sans', sans-serif !important;
       color: var(--text) !important;
     }
 

@@ -73,24 +73,57 @@ class PelepasanController extends Controller
     }
 
     /**
-     * Dapatkan atau buat kegiatan pelepasan untuk hari ini.
+     * Dapatkan atau buat kegiatan pelepasan berdasarkan pengaturan admin.
+     * Prioritas: 1) Pengaturan tersimpan di tabel pengaturan
+     *            2) Cari berdasarkan nama "Pelepasan Kelas XII"
+     *            3) Fallback: buat baru dengan tanggal hari ini
      */
     private function getOrCreatePelepasanKegiatan($taId)
     {
-        $kegiatan = Kegiatan::where('nama_kegiatan', 'Pelepasan Kelas XII Angkatan 2026')
+        // Prioritas 1: Cek pengaturan yang disimpan admin
+        $savedKegiatanId = \App\Models\Pengaturan::where('key', 'pelepasan_kegiatan_id')->value('value');
+
+        if ($savedKegiatanId) {
+            $kegiatan = Kegiatan::where('id', $savedKegiatanId)
+                ->where('tahun_akademik_id', $taId)
+                ->first();
+
+            if ($kegiatan) {
+                return $kegiatan;
+            }
+
+            // ✅ Cleanup: setting menyimpan ID yang tidak valid (kegiatan sudah dihapus atau beda tahun akademik)
+            // Hapus setting rusak agar tidak mengganggu sinkronisasi data
+            \App\Models\Pengaturan::where('key', 'pelepasan_kegiatan_id')->delete();
+            Log::warning('Setting pelepasan_kegiatan_id tidak valid (ID ' . $savedKegiatanId . '), telah dihapus dan akan dicari ulang.');
+        }
+
+        // Prioritas 2: Cari berdasarkan nama yang mengandung "Pelepasan"
+        $kegiatan = Kegiatan::where('nama_kegiatan', 'like', '%Pelepasan%Kelas%XII%')
             ->where('tahun_akademik_id', $taId)
             ->first();
 
         if (!$kegiatan) {
+            // Fallback: cari nama versi lama
+            $kegiatan = Kegiatan::where('nama_kegiatan', 'Pelepasan Kelas XII Angkatan 2026')
+                ->where('tahun_akademik_id', $taId)
+                ->first();
+        }
+
+        // Prioritas 3: Buat baru jika belum ada (fallback)
+        if (!$kegiatan) {
+            $ta = TahunAkademik::find($taId);
+            $tahun = $ta ? $ta->nama : date('Y');
+
             $kegiatan = Kegiatan::create([
-                'nama_kegiatan' => 'Pelepasan Kelas XII Angkatan 2026',
+                'nama_kegiatan' => "Pelepasan Kelas XII Angkatan {$tahun}",
                 'jenis' => 'LAINNYA',
                 'tanggal_pelaksanaan' => date('Y-m-d'),
                 'waktu_mulai' => '07:00:00',
                 'waktu_selesai' => '13:00:00',
                 'lokasi' => 'AULA UTAMA',
                 'keterangan' => 'Absensi khusus wisuda & pelepasan siswa kelas XII',
-                'qr_code_kegiatan' => 'KGT-PELEPASAN-2026',
+                'qr_code_kegiatan' => 'KGT-PELEPASAN-' . date('Y'),
                 'is_wajib' => true,
                 'target_peserta' => ['XII'],
                 'tahun_akademik_id' => $taId
@@ -98,6 +131,33 @@ class PelepasanController extends Controller
         }
 
         return $kegiatan;
+    }
+
+    public function settings()
+    {
+        $taId = session('tahun_akademik_id') ?? TahunAkademik::where('is_aktif', true)->value('id');
+        $kegiatans = Kegiatan::where('tahun_akademik_id', $taId)
+            ->whereIn('jenis', ['LAINNYA', 'PELEPASAN'])
+            ->orderBy('tanggal_pelaksanaan', 'desc')
+            ->get();
+
+        $currentKegiatanId = \App\Models\Pengaturan::where('key', 'pelepasan_kegiatan_id')->value('value');
+
+        return view('admin.pelepasan.settings', compact('kegiatans', 'currentKegiatanId'));
+    }
+
+    public function saveSettings(Request $request)
+    {
+        $request->validate([
+            'kegiatan_id' => 'required|exists:kegiatan,id'
+        ]);
+
+        \App\Models\Pengaturan::updateOrCreate(
+            ['key' => 'pelepasan_kegiatan_id'],
+            ['value' => $request->kegiatan_id, 'group' => 'pelepasan']
+        );
+
+        return redirect()->route('admin.pelepasan.settings')->with('success', 'Pengaturan pelepasan berhasil disimpan.');
     }
 
     public function index(Request $request)
@@ -391,9 +451,7 @@ class PelepasanController extends Controller
     public function resetKehadiran()
     {
         $taId = session('tahun_akademik_id') ?? TahunAkademik::where('is_aktif', true)->value('id');
-        $kegiatan = Kegiatan::where('nama_kegiatan', 'Pelepasan Kelas XII Angkatan 2026')
-            ->where('tahun_akademik_id', $taId)
-            ->first();
+        $kegiatan = $this->getOrCreatePelepasanKegiatan($taId);
 
         if ($kegiatan) {
             // Delete all absensi_kegiatan records linked to this kegiatan

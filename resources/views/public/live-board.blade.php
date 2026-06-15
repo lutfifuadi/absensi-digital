@@ -26,7 +26,7 @@
     html, body {
       height: 100dvh;
       max-height: 100dvh;
-      font-family: 'Quicksand', sans-serif;
+      font-family: 'Product Sans', sans-serif;
       background: var(--bg);
       color: var(--text);
       overflow: hidden;

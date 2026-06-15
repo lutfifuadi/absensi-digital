@@ -1,83 +1,221 @@
 @extends('layouts/layoutMaster')
 
-@section('title', 'Tambah Kegiatan Khusus')
+@section('title', 'Tambah Kegiatan Baru')
 
 @section('page-style')
 <style>
-    .glass-card {
-        background: rgba(255, 255, 255, 0.04) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        backdrop-filter: blur(10px);
-    }
+  :root {
+    --das-primary: #7367f0;
+    --das-primary-soft: rgba(115, 103, 240, 0.12);
+    --das-success: #28c76f;
+    --das-success-soft: rgba(40, 199, 111, 0.12);
+    --das-info: #00cfe8;
+    --das-info-soft: rgba(0, 207, 232, 0.12);
+    --das-warning: #ff9f43;
+    --das-warning-soft: rgba(255, 159, 67, 0.12);
+    --das-danger: #ea5455;
+    --das-danger-soft: rgba(234, 84, 85, 0.12);
+    --das-surface: rgba(15, 23, 42, 0.4);
+    --das-surface-hover: rgba(30, 41, 59, 0.6);
+    --das-border: rgba(255, 255, 255, 0.06);
+    --das-border-hover: rgba(255, 255, 255, 0.12);
+    --das-radius: 5px;
+  }
+
+  /* HERO */
+  .das-hero { position: relative; border-radius: var(--das-radius); overflow: hidden; margin-bottom: 2rem; }
+  .das-hero__bg { position: absolute; inset: 0; background: linear-gradient(135deg, #1e1b4b 0%, #312d89 40%, #4338ca 100%); z-index: 0; }
+  .das-hero__glass { position: absolute; inset: 0; background: radial-gradient(circle at top right, rgba(115,103,240,.15), transparent 40%); z-index: 1; }
+  .das-hero__grid-lines { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px); background-size: 40px 40px; z-index: 1; }
+  .das-hero__inner { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: 2.5rem; gap: 1.5rem; flex-wrap: wrap; }
+  .das-hero__identity { display: flex; align-items: center; gap: 1.25rem; }
+  .das-hero__icon { width: 64px; height: 64px; background: rgba(115,103,240,.2); border: 1px solid rgba(115,103,240,.3); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; color: #a5a2f7; }
+  .das-hero__title { font-size: 1.5rem; font-weight: 800; color: white; margin: 0 0 4px; }
+  .das-hero__welcome { margin: 0; font-size: .88rem; color: rgba(255,255,255,.6); }
+
+  /* ICON BUTTON */
+  .das-icon-btn { width: 36px; height: 36px; border-radius: 5px; border: 1px solid var(--das-border); background: transparent; color: #888; display: inline-flex; align-items: center; justify-content: center; transition: all .2s; text-decoration: none; cursor: pointer; position: relative; }
+  .das-icon-btn:hover { background: var(--das-surface-hover); color: white; transform: translateY(-2px); }
+  .das-icon-btn--secondary { border-color: var(--das-border); color: #999; }
+  .das-icon-btn--secondary:hover { background: var(--das-surface-hover); color: white; border-color: var(--das-border-hover); }
+  .das-icon-btn--primary { background: var(--das-primary); color: white !important; border-color: var(--das-primary); }
+  .das-icon-btn--primary:hover { background: #6259e8; transform: translateY(-2px); }
+
+  /* BUTTONS */
+  .das-btn { display: inline-flex; align-items: center; gap: 5px; font-size: .75rem; font-weight: 600; padding: .5rem 1rem; border-radius: 5px; border: 1px solid transparent; cursor: pointer; transition: all .18s ease; text-decoration: none; white-space: nowrap; }
+  .das-btn--primary { background: var(--das-primary); color: white !important; border-color: var(--das-primary); }
+  .das-btn--primary:hover { background: #6259e8; transform: translateY(-2px); }
+  .das-btn--ghost { background: transparent; border-color: var(--das-border); color: #999 !important; }
+  .das-btn--ghost:hover { background: var(--das-surface-hover); color: white !important; }
+
+  /* PANEL */
+  .das-panel { background: var(--das-surface); border: 1px solid var(--das-border); border-radius: var(--das-radius); overflow: hidden; backdrop-filter: blur(6px); }
+  .das-panel__head { display: flex; align-items: center; justify-content: space-between; padding: .9rem 1.25rem; border-bottom: 1px solid var(--das-border); }
+  .das-panel__title { font-size: .82rem; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; display: flex; align-items: center; gap: 8px; color: #ccc; }
+  .das-panel__icon-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--das-info); box-shadow: 0 0 6px var(--das-info); }
+  .das-panel__body { padding: 1.5rem; }
+
+  /* FORM ELEMENTS */
+  .das-form-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: #888; margin-bottom: .5rem; display: block; }
+  .das-form-control { background: rgba(255,255,255,.04) !important; border: 1px solid var(--das-border) !important; border-radius: var(--das-radius) !important; color: #e0e0e0 !important; font-size: .85rem !important; transition: border-color .2s, background .2s; }
+  .das-form-control:focus { background: rgba(255,255,255,.07) !important; border-color: rgba(115,103,240,.5) !important; outline: none !important; box-shadow: none !important; color: white !important; }
+  .das-form-control option { background: #1a1a2e; color: #ccc; }
+  textarea.das-form-control { resize: vertical; }
+
+  /* ALERT */
+  .das-alert { display: flex; align-items: flex-start; gap: 10px; padding: .85rem 1.1rem; border-radius: var(--das-radius); font-size: .82rem; border: 1px solid transparent; }
+  .das-alert--danger { background: var(--das-danger-soft); border-color: rgba(234,84,85,.25); color: #f7a7a8; }
+  .das-alert__icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+  .das-alert__list { margin: 0; padding-left: 1.2rem; }
+
+  /* ANIMATION */
+  @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .slide-in-up { animation: slideInUp .5s ease-out; }
+
+  /* TOOLTIP */
+  .das-tooltip { position: relative; }
+  .das-tooltip:hover::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #ccc; font-size: .65rem; font-weight: 600; padding: 4px 10px; border-radius: 4px; border: 1px solid var(--das-border); white-space: nowrap; z-index: 10; }
 </style>
 @endsection
 
 @section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="card glass-card border-0 shadow-none">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-start mb-4">
-                    <div>
-                        <h4 class="mb-1 text-white fw-bold">Tambah Kegiatan Baru</h4>
-                        <p class="text-white-50 mb-0">Masukkan detail kegiatan untuk role operator.</p>
-                    </div>
-                    <a href="{{ route('admin.kegiatan.index') }}" class="btn btn-outline-secondary">Kembali ke Daftar</a>
-                </div>
 
-                @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-                @endif
-
-                <form action="{{ route('admin.kegiatan.store') }}" method="POST">
-                    @csrf
-                    <div class="row gy-3">
-                        <div class="col-md-6">
-                            <label class="form-label text-white-50 small fw-bold">NAMA KEGIATAN</label>
-                            <input type="text" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}" class="form-control bg-dark border-secondary text-white" style="border-radius: 8px;" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-white-50 small fw-bold">JENIS</label>
-                            <select name="jenis" class="form-select bg-dark border-secondary text-white" style="border-radius: 8px;" required>
-                                <option value="EKSTRAKURIKULER" {{ old('jenis') === 'EKSTRAKURIKULER' ? 'selected' : '' }}>Ekstrakurikuler</option>
-                                <option value="UJIAN" {{ old('jenis') === 'UJIAN' ? 'selected' : '' }}>Ujian</option>
-                                <option value="RAPAT" {{ old('jenis') === 'RAPAT' ? 'selected' : '' }}>Rapat</option>
-                                <option value="LAINNYA" {{ old('jenis') === 'LAINNYA' ? 'selected' : '' }}>Lainnya</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-white-50 small fw-bold">TANGGAL</label>
-                            <input type="date" name="tanggal_pelaksanaan" value="{{ old('tanggal_pelaksanaan', date('Y-m-d')) }}" class="form-control bg-dark border-secondary text-white" style="border-radius: 8px;" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-white-50 small fw-bold">WAKTU MULAI</label>
-                            <input type="time" name="waktu_mulai" value="{{ old('waktu_mulai') }}" class="form-control bg-dark border-secondary text-white" style="border-radius: 8px;" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-white-50 small fw-bold">WAKTU SELESAI</label>
-                            <input type="time" name="waktu_selesai" value="{{ old('waktu_selesai') }}" class="form-control bg-dark border-secondary text-white" style="border-radius: 8px;" required>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label text-white-50 small fw-bold">LOKASI</label>
-                            <input type="text" name="lokasi" value="{{ old('lokasi') }}" class="form-control bg-dark border-secondary text-white" style="border-radius: 8px;" placeholder="Nama Aula/Lapangan">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label text-white-50 small fw-bold">DESKRIPSI KEGIATAN</label>
-                            <textarea name="keterangan" class="form-control bg-dark border-secondary text-white" style="border-radius: 8px;" rows="3" placeholder="Tuliskan deskripsi singkat kegiatan">{{ old('keterangan') }}</textarea>
-                        </div>
-                        <div class="col-12 text-end">
-                            <button type="submit" class="btn btn-primary px-4 fw-bold" style="border-radius: 8px;">Simpan Agenda</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
+  {{-- ── HERO HEADER ────────────────────────────────── --}}
+  <div class="das-hero slide-in-up">
+    <div class="das-hero__bg"></div>
+    <div class="das-hero__glass"></div>
+    <div class="das-hero__grid-lines"></div>
+    <div class="das-hero__inner">
+      <div class="das-hero__identity">
+        <div class="das-hero__icon">
+          <i class="ti tabler-calendar-plus"></i>
         </div>
+        <div>
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1" style="font-size:.65rem;text-transform:uppercase;letter-spacing:1px;opacity:.6;">
+              <li class="breadcrumb-item text-white opacity-60">Modul Khusus</li>
+              <li class="breadcrumb-item text-white opacity-60">Kegiatan</li>
+              <li class="breadcrumb-item active text-white opacity-100">Tambah Baru</li>
+            </ol>
+          </nav>
+          <h4 class="das-hero__title">Tambah Kegiatan Baru</h4>
+          <p class="das-hero__welcome">Masukkan detail kegiatan untuk role operator.</p>
+        </div>
+      </div>
+      <div class="das-hero__actions" style="display:flex;gap:.5rem;">
+        <a href="{{ route('admin.kegiatan.index') }}"
+           class="das-icon-btn das-icon-btn--secondary das-tooltip"
+           data-tip="Kembali"
+           data-bs-toggle="tooltip"
+           title="Kembali ke daftar kegiatan">
+          <i class="ti tabler-arrow-left"></i>
+        </a>
+      </div>
     </div>
-</div>
+  </div>
+
+  {{-- ── ERROR VALIDATION ────────────────────────────── --}}
+  @if ($errors->any())
+    <div class="das-alert das-alert--danger slide-in-up mb-4">
+      <i class="ti tabler-alert-triangle das-alert__icon"></i>
+      <div>
+        <strong class="d-block mb-1">Terdapat kesalahan input:</strong>
+        <ul class="das-alert__list">
+          @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+      </div>
+    </div>
+  @endif
+
+  {{-- ── FORM PANEL ──────────────────────────────────── --}}
+  <div class="das-panel slide-in-up">
+    <div class="das-panel__head">
+      <div class="das-panel__title">
+        <span class="das-panel__icon-dot" style="background:var(--das-primary);box-shadow:0 0 6px var(--das-primary);"></span>
+        Formulir Kegiatan Baru
+      </div>
+    </div>
+    <div class="das-panel__body">
+      <form action="{{ route('admin.kegiatan.store') }}" method="POST">
+        @csrf
+
+        <div class="row g-4">
+          {{-- Nama Kegiatan --}}
+          <div class="col-md-6">
+            <label class="das-form-label">Nama Kegiatan <span style="color:var(--das-danger);">*</span></label>
+            <input type="text" name="nama_kegiatan" value="{{ old('nama_kegiatan') }}"
+                   class="form-control das-form-control" placeholder="Contoh: Upacara Bendera" required>
+          </div>
+
+          {{-- Jenis --}}
+          <div class="col-md-6">
+            <label class="das-form-label">Jenis <span style="color:var(--das-danger);">*</span></label>
+            <select name="jenis" class="form-select das-form-control" required>
+              <option value="EKSTRAKURIKULER" {{ old('jenis') === 'EKSTRAKURIKULER' ? 'selected' : '' }}>Ekstrakurikuler</option>
+              <option value="UJIAN" {{ old('jenis') === 'UJIAN' ? 'selected' : '' }}>Ujian</option>
+              <option value="RAPAT" {{ old('jenis') === 'RAPAT' ? 'selected' : '' }}>Rapat</option>
+              <option value="LAINNYA" {{ old('jenis') === 'LAINNYA' ? 'selected' : '' }}>Lainnya</option>
+            </select>
+          </div>
+
+          {{-- Tanggal --}}
+          <div class="col-md-4">
+            <label class="das-form-label">Tanggal <span style="color:var(--das-danger);">*</span></label>
+            <input type="date" name="tanggal_pelaksanaan" value="{{ old('tanggal_pelaksanaan', date('Y-m-d')) }}"
+                   class="form-control das-form-control" required>
+          </div>
+
+          {{-- Waktu Mulai --}}
+          <div class="col-md-4">
+            <label class="das-form-label">Waktu Mulai <span style="color:var(--das-danger);">*</span></label>
+            <input type="time" name="waktu_mulai" value="{{ old('waktu_mulai') }}"
+                   class="form-control das-form-control" required>
+          </div>
+
+          {{-- Waktu Selesai --}}
+          <div class="col-md-4">
+            <label class="das-form-label">Waktu Selesai <span style="color:var(--das-danger);">*</span></label>
+            <input type="time" name="waktu_selesai" value="{{ old('waktu_selesai') }}"
+                   class="form-control das-form-control" required>
+          </div>
+
+          {{-- Lokasi --}}
+          <div class="col-12">
+            <label class="das-form-label">Lokasi</label>
+            <input type="text" name="lokasi" value="{{ old('lokasi') }}"
+                   class="form-control das-form-control" placeholder="Nama Ruangan/Lapangan">
+          </div>
+
+          {{-- Deskripsi --}}
+          <div class="col-12">
+            <label class="das-form-label">Deskripsi Kegiatan</label>
+            <textarea name="keterangan" class="form-control das-form-control" rows="3"
+                      placeholder="Tuliskan deskripsi singkat kegiatan">{{ old('keterangan') }}</textarea>
+          </div>
+        </div>
+
+        {{-- Submit --}}
+        <div class="d-flex justify-content-end gap-2 mt-4 pt-3" style="border-top:1px solid var(--das-border);">
+          <a href="{{ route('admin.kegiatan.index') }}" class="das-btn das-btn--ghost">
+            <i class="ti tabler-x"></i> Batal
+          </a>
+          <button type="submit" class="das-btn das-btn--primary px-4">
+            <i class="ti tabler-device-floppy"></i> Simpan Agenda
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+@endsection
+
+@section('page-script')
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const tooltips = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltips.map(el => new bootstrap.Tooltip(el));
+  });
+</script>
 @endsection

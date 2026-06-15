@@ -24,7 +24,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 
     <style>
         *, *::before, *::after {
@@ -40,7 +40,7 @@
         }
 
         body {
-            font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Product Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             background: #0a0e1a;
             color: #e2e8f0;
             display: flex;
@@ -347,7 +347,7 @@
             border: none;
             border-radius: 4px;
             color: #fff;
-            font-family: 'Quicksand', sans-serif;
+            font-family: 'Product Sans', sans-serif;
             font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
@@ -430,7 +430,7 @@
             border: 1px solid rgba(255,255,255,0.10);
             border-radius: 4px;
             color: #94a3b8;
-            font-family: 'Quicksand', sans-serif;
+            font-family: 'Product Sans', sans-serif;
             font-size: 0.82rem;
             font-weight: 500;
             text-decoration: none;

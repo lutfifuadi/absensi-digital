@@ -57,6 +57,9 @@
       {{-- menu headers --}}
       @if (isset($menu->menuHeader))
         <li class="menu-header small">
+          @if (isset($menu->icon))
+            <i class="{{ $menu->icon }} me-1" style="font-size: 0.85rem;"></i>
+          @endif
           <span class="menu-header-text">{{ __($menu->menuHeader) }}</span>
         </li>
       @else

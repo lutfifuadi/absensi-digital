@@ -4,16 +4,6 @@
 
 @section('page-style')
 <style>
-  @font-face {
-    font-family: 'Product Sans';
-    src: local('Product Sans'), local('ProductSans-Regular'), url('https://fonts.cdnfonts.com/s/14883/ProductSansRegular.woff') format('woff');
-  }
-  @font-face {
-    font-family: 'Product Sans';
-    font-weight: bold;
-    src: local('Product Sans Bold'), local('ProductSans-Bold'), url('https://fonts.cdnfonts.com/s/14883/ProductSansBold.woff') format('woff');
-  }
-
   body, .layout-page, .content-wrapper {
     background: #0a0e1a !important;
   }

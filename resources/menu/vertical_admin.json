@@ -1,190 +1,221 @@
 {
   "menu": [
     {
+      "menuHeader": "Dashboard",
+      "icon": "menu-icon ti tabler-smart-home"
+    },
+    {
       "name": "Dashboard Utama",
-      "icon": "menu-icon icon-base ti tabler-smart-home",
+      "icon": "menu-icon ti tabler-smart-home",
       "slug": "dashboard",
       "url": "/dashboard"
     },
     {
-      "url": "/admin/ai-chat",
+      "menuHeader": "Asisten AI",
+      "icon": "menu-icon ti tabler-message-chatbot"
+    },
+    {
       "name": "Asisten AI",
       "icon": "menu-icon ti tabler-message-chatbot",
-      "slug": "admin.ai-chat.index"
+      "slug": "admin.ai-chat.index",
+      "url": "/admin/ai-chat"
     },
     {
-      "menuHeader": "Master Data"
+      "menuHeader": "Manajemen Akademik",
+      "icon": "menu-icon ti tabler-books"
     },
     {
-      "url": "/admin/tahun-akademik",
       "name": "Tahun Ajaran",
       "icon": "menu-icon ti tabler-calendar-stats",
-      "slug": "admin.tahun-akademik.index"
+      "slug": "admin.tahun-akademik.index",
+      "url": "/admin/tahun-akademik"
     },
     {
-      "url": "/admin/kelas",
       "name": "Kelas",
       "icon": "menu-icon ti tabler-door",
-      "slug": ["admin.kelas.index", "admin.kelas.show"]
+      "slug": ["admin.kelas.index", "admin.kelas.show"],
+      "url": "/admin/kelas"
     },
     {
-      "url": "/admin/siswa",
       "name": "Siswa",
-      "icon": "menu-icon ti tabler-users",
-      "slug": "admin.siswa.index"
+      "icon": "menu-icon ti tabler-users-group",
+      "slug": "admin.siswa.index",
+      "url": "/admin/siswa",
+      "submenu": [
+        {
+          "name": "Data Siswa",
+          "icon": "menu-icon ti tabler-users",
+          "slug": "admin.siswa.index",
+          "url": "/admin/siswa"
+        },
+        {
+          "name": "Naik Kelas Massal",
+          "icon": "menu-icon ti tabler-trending-up",
+          "slug": "admin.siswa.naik-kelas-massal",
+          "url": "/admin/siswa/naik-kelas-massal"
+        }
+      ]
     },
     {
-      "url": "/admin/siswa/naik-kelas-massal",
-      "name": "Naik Kelas Massal",
-      "icon": "menu-icon ti tabler-trending-up",
-      "slug": "admin.siswa.naik-kelas-massal"
-    },
-    {
-      "url": "/admin/guru",
       "name": "Guru",
       "icon": "menu-icon ti tabler-chalkboard-teacher",
-      "slug": "admin.guru.index"
+      "slug": "admin.guru.index",
+      "url": "/admin/guru"
     },
     {
-      "url": "/admin/jadwal",
-      "name": "Mata Pelajaran",
-      "icon": "menu-icon ti tabler-book",
-      "slug": "admin.jadwal.index"
-    },
-    {
-      "url": "/admin/jadwal",
-      "name": "Jam Pelajaran",
-      "icon": "menu-icon ti tabler-clock",
-      "slug": "admin.jadwal.index"
-    },
-    {
-      "url": "/admin/staff-tata-usaha",
       "name": "Staff TU",
       "icon": "menu-icon ti tabler-briefcase",
-      "slug": "admin.staff-tata-usaha.index"
+      "slug": "admin.staff-tata-usaha.index",
+      "url": "/admin/staff-tata-usaha"
     },
     {
-      "menuHeader": "Multi-Tenant (SaaS)"
+      "name": "Jadwal Pelajaran",
+      "icon": "menu-icon ti tabler-calendar-clock",
+      "slug": "admin.jadwal.index",
+      "url": "/admin/jadwal",
+      "submenu": [
+        {
+          "name": "Mata Pelajaran",
+          "icon": "menu-icon ti tabler-book",
+          "slug": "admin.jadwal.index",
+          "url": "/admin/jadwal"
+        },
+        {
+          "name": "Jam Pelajaran",
+          "icon": "menu-icon ti tabler-clock",
+          "slug": "admin.jadwal.index",
+          "url": "/admin/jadwal"
+        }
+      ]
     },
     {
-      "url": "/admin/schools",
-      "name": "Manajemen Sekolah",
-      "icon": "menu-icon ti tabler-building",
-      "slug": "admin.schools.index"
+      "menuHeader": "Manajemen Absensi",
+      "icon": "menu-icon ti tabler-clipboard-check"
     },
     {
-      "menuHeader": "Kebijakan & Sistem"
-    },
-    {
-      "url": "/admin/pengaturan",
-      "name": "Konfigurasi Sekolah",
-      "icon": "menu-icon ti tabler-settings",
-      "slug": "admin.pengaturan.index"
-    },
-    {
-      "url": "/admin/pwa",
-      "name": "Pengaturan PWA",
-      "icon": "menu-icon ti tabler-device-mobile",
-      "slug": "admin.pwa.index"
-    },
-    {
-      "url": "/admin/pengaturan/api-source",
-      "name": "Pengaturan API Source",
-      "icon": "menu-icon ti tabler-api",
-      "slug": "admin.pengaturan.api-source.index"
-    },
-    {
-      "url": "/admin/pengaturan/google-sheets",
-      "name": "Google Sheets",
-      "icon": "menu-icon ti tabler-file-spreadsheet",
-      "slug": "admin.pengaturan.google-sheets.index"
-    },
-    {
-      "url": "/admin/wa-gateway",
-      "name": "API WAGateway",
-      "icon": "menu-icon ti tabler-brand-whatsapp",
-      "slug": "admin.wa-gateway.index"
-    },
-    {
-      "url": "/admin/notification-templates",
-      "name": "Redaksi Notifikasi",
-      "icon": "menu-icon ti tabler-bell",
-      "slug": "admin.notification-templates.index"
-    },
-    {
-      "url": "/admin/devices",
-      "name": "Keamanan Perangkat",
-      "icon": "menu-icon ti tabler-shield-lock",
-      "slug": "admin.devices.index"
-    },
-    {
-      "url": "/admin/users",
-      "name": "Manajemen Pengguna",
-      "icon": "menu-icon ti tabler-users",
-      "slug": "admin.users.index"
-    },
-
-    {
-      "menuHeader": "Monitoring & Kalender"
-    },
-    {
-      "url": "/admin/laporan",
-      "name": "Statistik Eksekutif",
-      "icon": "menu-icon ti tabler-report",
-      "slug": "admin.laporan.index"
-    },
-    {
-      "url": "/admin/scan-qr",
       "name": "Scan Absensi",
       "icon": "menu-icon ti tabler-qrcode",
-      "slug": "admin.scan-qr.index"
+      "slug": "admin.scan-qr.index",
+      "url": "/admin/scan-qr"
     },
     {
-      "url": "/admin/kegiatans/absensi",
       "name": "Absensi Kegiatan",
       "icon": "menu-icon ti tabler-calendar-check",
-      "slug": "admin.kegiatans.absensi"
+      "slug": "admin.kegiatans.absensi",
+      "url": "/admin/kegiatans/absensi"
     },
     {
-      "url": "/admin/pelepasan",
       "name": "Pelepasan Kelas XII",
       "icon": "menu-icon ti tabler-school",
-      "slug": "admin.pelepasan.index"
+      "slug": "admin.pelepasan.index",
+      "url": "/admin/pelepasan"
     },
     {
-      "url": "/admin/kalender-absensi",
       "name": "Kalender Absensi",
-      "icon": "menu-icon ti tabler-calendar-stats",
-      "slug": "admin.kalender-absensi"
+      "icon": "menu-icon ti tabler-calendar",
+      "slug": "admin.kalender-absensi",
+      "url": "/admin/kalender-absensi"
     },
     {
-      "url": "/admin/holidays",
       "name": "Kelola Libur",
       "icon": "menu-icon ti tabler-calendar-plus",
-      "slug": "admin.holidays"
+      "slug": "admin.holidays",
+      "url": "/admin/holidays"
     },
     {
-      "menuHeader": "Sistem & Pembaruan"
+      "name": "Izin & Sakit",
+      "icon": "menu-icon ti tabler-stethoscope",
+      "slug": "admin.izin-sakit.index",
+      "url": "/admin/izin-sakit"
     },
     {
-      "url": "/admin/update",
+      "name": "Laporan",
+      "icon": "menu-icon ti tabler-report-analytics",
+      "slug": "admin.laporan.index",
+      "url": "/admin/laporan"
+    },
+    {
+      "menuHeader": "Pengaturan",
+      "icon": "menu-icon ti tabler-settings"
+    },
+    {
+      "name": "Profil Sekolah",
+      "icon": "menu-icon ti tabler-building-school",
+      "slug": "admin.pengaturan.index",
+      "url": "/admin/pengaturan"
+    },
+    {
+      "name": "PWA",
+      "icon": "menu-icon ti tabler-device-mobile",
+      "slug": "admin.pwa.index",
+      "url": "/admin/pwa"
+    },
+    {
+      "name": "API Source",
+      "icon": "menu-icon ti tabler-api",
+      "slug": "admin.pengaturan.api-source.index",
+      "url": "/admin/pengaturan/api-source"
+    },
+    {
+      "name": "WA Gateway",
+      "icon": "menu-icon ti tabler-brand-whatsapp",
+      "slug": "admin.wa-gateway.index",
+      "url": "/admin/wa-gateway"
+    },
+    {
+      "name": "Templat Notifikasi",
+      "icon": "menu-icon ti tabler-bell",
+      "slug": "admin.notification-templates.index",
+      "url": "/admin/notification-templates"
+    },
+    {
+      "name": "Google Sheets",
+      "icon": "menu-icon ti tabler-file-spreadsheet",
+      "slug": "admin.pengaturan.google-sheets.index",
+      "url": "/admin/pengaturan/google-sheets"
+    },
+    {
+      "name": "Perangkat Terdaftar",
+      "icon": "menu-icon ti tabler-device-laptop",
+      "slug": "admin.devices.index",
+      "url": "/admin/devices"
+    },
+    {
+      "name": "Manajemen Pengguna",
+      "icon": "menu-icon ti tabler-user-shield",
+      "slug": "admin.users.index",
+      "url": "/admin/users"
+    },
+    {
+      "menuHeader": "Sistem",
+      "icon": "menu-icon ti tabler-tool"
+    },
+    {
+      "name": "Manajemen Sekolah",
+      "icon": "menu-icon ti tabler-building",
+      "slug": "admin.schools.index",
+      "url": "/admin/schools",
+      "roles": ["super_admin"]
+    },
+    {
       "name": "Update Sistem",
       "icon": "menu-icon ti tabler-cloud-download",
       "slug": "admin.update.index",
+      "url": "/admin/update",
       "roles": ["super_admin"]
     },
     {
-      "url": "/admin/license",
       "name": "Manajemen Lisensi",
       "icon": "menu-icon ti tabler-key",
       "slug": "admin.license.index",
+      "url": "/admin/license",
       "roles": ["super_admin"]
     },
     {
-      "url": "/admin/pembelian-lisensi",
       "name": "Pembelian & Distribusi",
       "icon": "menu-icon ti tabler-shopping-cart",
       "slug": "admin.pembelian-lisensi.index",
+      "url": "/admin/pembelian-lisensi",
       "roles": ["super_admin"]
     }
   ]

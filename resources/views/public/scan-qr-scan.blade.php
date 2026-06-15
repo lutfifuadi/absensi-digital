@@ -18,7 +18,7 @@
       --das-dark-bg: #0f172a;
       --das-panel-bg: rgba(30, 41, 59, 0.7);
       --das-border-color: rgba(255, 255, 255, 0.08);
-      --font-family: 'Quicksand', sans-serif;
+      --font-family: 'Product Sans', sans-serif;
     }
 
     /* GLOBAL RESET */

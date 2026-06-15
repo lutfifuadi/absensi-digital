@@ -34,7 +34,7 @@
     body {
       background-color: var(--bg);
       color: var(--text);
-      font-family: 'Quicksand', sans-serif;
+      font-family: 'Product Sans', sans-serif;
       overflow-x: hidden;
     }
 
@@ -115,7 +115,7 @@
     }
 
     .hero-title-sub {
-      font-family: 'Quicksand', sans-serif;
+      font-family: 'Product Sans', sans-serif;
       font-size: clamp(1.4rem, 2vw, 1.9rem);
       font-weight: 700;
       background: linear-gradient(90deg, #a89ff7 0%, #22d3ee 100%);
@@ -139,7 +139,7 @@
     .btn-primary-live {
       background: var(--primary);
       color: #fff !important;
-      font-family: 'Quicksand', sans-serif;
+      font-family: 'Product Sans', sans-serif;
       font-size: 13px;
       font-weight: 700;
       padding: 11px 26px;
@@ -165,7 +165,7 @@
     .btn-ghost-live {
       background: transparent;
       color: var(--text) !important;
-      font-family: 'Quicksand', sans-serif;
+      font-family: 'Product Sans', sans-serif;
       font-size: 13px;
       font-weight: 700;
       padding: 11px 22px;
@@ -343,7 +343,7 @@
     }
 
     .scan-status {
-      font-family: 'Quicksand', sans-serif;
+      font-family: 'Product Sans', sans-serif;
       font-size: 10px;
       font-weight: 700;
       letter-spacing: 0.3px;
@@ -586,7 +586,7 @@
     }
 
     .cta-title-q {
-      font-family: 'Quicksand', sans-serif;
+      font-family: 'Product Sans', sans-serif;
       font-size: clamp(1.1rem, 1.6vw, 1.45rem);
       font-weight: 700;
       background: linear-gradient(90deg, #a89ff7 0%, #22d3ee 100%);

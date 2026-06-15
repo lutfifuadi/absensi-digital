@@ -28,7 +28,7 @@
 
     body {
       background: var(--bg);
-      font-family: 'Quicksand', sans-serif;
+      font-family: 'Product Sans', sans-serif;
       color: var(--text);
       min-height: 100vh;
       display: flex;
@@ -79,9 +79,8 @@
     }
 
     .auth-form-wrapper {
-      width: clamp(320px, 40%, 420px);
+      width: 100%;
       max-width: 420px;
-      min-width: 320px;
       padding: 2.5rem 2rem;
       background: rgba(15, 22, 35, 0.92);
       border: 1px solid rgba(255, 255, 255, 0.06);
@@ -205,6 +204,23 @@
       font-size: 0.75rem;
       color: var(--muted);
       margin-top: 1.5rem;
+    }
+
+    /* ── Mobile: form lebih lega ──────────────────────── */
+    @media (max-width: 480px) {
+      .authentication-wrapper {
+        padding: 1rem;
+      }
+
+      .auth-form-wrapper {
+        padding: 2rem 1.25rem;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .auth-form-wrapper {
+        padding: 1.5rem 1rem;
+      }
     }
   </style>
 </head>

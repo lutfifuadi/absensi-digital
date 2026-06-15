@@ -28,7 +28,7 @@
 
     body {
       background: var(--bg);
-      font-family: 'Quicksand', sans-serif;
+      font-family: 'Product Sans', sans-serif;
       color: var(--text);
       min-height: 100vh;
       display: flex;
