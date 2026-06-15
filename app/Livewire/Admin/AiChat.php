@@ -3,8 +3,9 @@
 namespace App\Livewire\Admin;
 
 use App\Models\ChatLog;
+use App\Services\GeminiService;
 use Livewire\Component;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class AiChat extends Component
 {
@@ -54,7 +55,9 @@ class AiChat extends Component
         $this->errorMessage = '';
 
         $userMessage = trim($this->message);
+        $user = auth()->user();
 
+        // Tampilkan bubble user dulu
         $this->messages[] = [
             'id' => uniqid('msg_'),
             'role' => 'user',
@@ -66,45 +69,84 @@ class AiChat extends Component
         $this->dispatch('chat-message-sent');
 
         try {
-            $response = Http::withHeaders([
-                'X-CSRF-TOKEN' => csrf_token(),
-            ])->post(route('admin.ai-chat.send'), [
+            // Simpan pesan user ke database
+            ChatLog::create([
+                'user_id' => $user->id,
+                'role' => 'user',
                 'message' => $userMessage,
             ]);
 
-            if ($response->successful()) {
-                $data = $response->json();
+            // Panggil Gemini langsung tanpa HTTP request ke diri sendiri
+            $gemini = app(GeminiService::class);
+            $history = $gemini->getHistory($user->id, 20);
+            $tools = $gemini->getToolDefinitions();
+            $response = $gemini->sendWithTools($userMessage, $tools, $history);
 
-                $this->messages[] = [
-                    'id' => uniqid('resp_'),
-                    'role' => 'assistant',
-                    'message' => $data['message'] ?? 'Tidak ada respons.',
-                    'time' => now()->format('H:i'),
-                ];
+            $replyText = 'Maaf, terjadi kesalahan saat memproses pesan Anda.';
+            $hasError = false;
 
-                if (!$data['success']) {
-                    $this->hasError = true;
-                    $this->errorMessage = 'AI mengalami kesalahan saat memproses permintaan.';
+            if (isset($response['candidates'][0]['content']['parts'])) {
+                $parts = $response['candidates'][0]['content']['parts'];
+                $textParts = [];
+
+                foreach ($parts as $part) {
+                    if (isset($part['text'])) {
+                        $textParts[] = $part['text'];
+                    }
                 }
-            } else {
-                $this->messages[] = [
-                    'id' => uniqid('resp_'),
-                    'role' => 'assistant',
-                    'message' => 'Maaf, terjadi kesalahan komunikasi dengan server. Silakan coba lagi.',
-                    'time' => now()->format('H:i'),
-                ];
-                $this->hasError = true;
-                $this->errorMessage = 'Gagal terhubung ke server.';
+
+                $replyText = !empty($textParts) ? implode("\n\n", $textParts) : 'Maaf, AI tidak memberikan respons teks.';
+                $hasError = isset($response['error']) && $response['error'];
+            } elseif (isset($response['error'])) {
+                $replyText = $response['error'];
+                $hasError = true;
             }
-        } catch (\Exception $e) {
+
+            // Simpan respons AI ke database
+            ChatLog::create([
+                'user_id' => $user->id,
+                'role' => 'assistant',
+                'message' => $replyText,
+                'metadata' => [
+                    'has_tool_calls' => isset($textParts) && isset($parts) && count($parts) > 1,
+                    'has_error' => $hasError,
+                ],
+            ]);
+
+            // Tampilkan bubble AI
             $this->messages[] = [
                 'id' => uniqid('resp_'),
                 'role' => 'assistant',
-                'message' => 'Maaf, terjadi kesalahan jaringan. Silakan coba lagi.',
+                'message' => $replyText,
+                'time' => now()->format('H:i'),
+            ];
+
+            if ($hasError) {
+                $this->hasError = true;
+                $this->errorMessage = 'AI mengalami kesalahan saat memproses permintaan.';
+            }
+        } catch (\Exception $e) {
+            Log::error('AI Chat send error', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            // Simpan error ke database
+            ChatLog::create([
+                'user_id' => $user->id,
+                'role' => 'assistant',
+                'message' => 'Maaf, terjadi kesalahan sistem. Silakan coba lagi.',
+                'metadata' => ['error' => $e->getMessage()],
+            ]);
+
+            $this->messages[] = [
+                'id' => uniqid('resp_'),
+                'role' => 'assistant',
+                'message' => 'Maaf, terjadi kesalahan sistem. Silakan coba lagi.',
                 'time' => now()->format('H:i'),
             ];
             $this->hasError = true;
-            $this->errorMessage = 'Kesalahan koneksi: ' . $e->getMessage();
+            $this->errorMessage = 'Kesalahan sistem: ' . $e->getMessage();
         }
 
         $this->isLoading = false;
@@ -114,9 +156,7 @@ class AiChat extends Component
     public function clearChat()
     {
         try {
-            Http::withHeaders([
-                'X-CSRF-TOKEN' => csrf_token(),
-            ])->delete(route('admin.ai-chat.clear'));
+            ChatLog::where('user_id', auth()->id())->delete();
 
             $this->messages = [];
             $this->dispatch('chat-cleared');

@@ -93,15 +93,15 @@ fi
 # --- Metode 2: Download URL publik (tanpa token) ---
 if [ "$DOWNLOAD_OK" = false ]; then
     echo "[INFO] Mencoba download dari URL publik GitHub..."
-    # Ambil tag release terbaru dari API
+    # Ambil tag release terbaru dari API (grep+cut, universal tanpa python/jq)
     if [ -n "$GITHUB_TOKEN" ]; then
-        TAG=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" \
-            | python3 -c "import sys,json; print(json.load(sys.stdin).get('tag_name',''))" 2>/dev/null)
+        API_RESP=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest")
     else
-        TAG=$(curl -s "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" \
-            | python3 -c "import sys,json; print(json.load(sys.stdin).get('tag_name',''))" 2>/dev/null)
+        API_RESP=$(curl -s "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest")
     fi
+    
+    TAG=$(echo "$API_RESP" | grep '"tag_name"' | cut -d '"' -f 4)
 
     if [ -n "$TAG" ]; then
         DOWNLOAD_URL="https://github.com/$GITHUB_OWNER/$GITHUB_REPO/releases/download/$TAG/$ASSET_FILE"
@@ -113,31 +113,21 @@ if [ "$DOWNLOAD_OK" = false ]; then
         else
             echo "[WARN] Gagal download dari URL publik."
         fi
+    else
+        echo "[WARN] Tidak dapat membaca tag release dari API."
     fi
 fi
 
-# --- Metode 3: Download via API Asset ID (dengan token, fallback) ---
-if [ "$DOWNLOAD_OK" = false ] && [ -n "$GITHUB_TOKEN" ]; then
-    echo "[INFO] Mencoba download via API Asset ID..."
-    ASSET_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-        "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" \
-        | python3 -c "
-import sys, json
-data = json.load(sys.stdin)
-for asset in data.get('assets', []):
-    if asset.get('name') == '$ASSET_FILE':
-        print(asset['id'])
-" 2>/dev/null)
-
-    if [ -n "$ASSET_ID" ]; then
-        echo "[INFO] Asset ID: $ASSET_ID"
-        wget -q --timeout=60 \
-            --header="Authorization: token $GITHUB_TOKEN" \
-            --header="Accept: application/octet-stream" \
-            -O "$TEMP_FILE" \
-            "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/assets/$ASSET_ID"
+# --- Metode 3: Cari browser_download_url langsung dari API ---
+if [ "$DOWNLOAD_OK" = false ] && [ -n "$API_RESP" ]; then
+    echo "[INFO] Mencari URL download dari API response..."
+    DOWNLOAD_URL=$(echo "$API_RESP" | grep "browser_download_url" | grep "$ASSET_FILE" | cut -d '"' -f 4 | head -1)
+    
+    if [ -n "$DOWNLOAD_URL" ]; then
+        echo "[INFO] Mengunduh: $DOWNLOAD_URL"
+        wget -q --timeout=60 -O "$TEMP_FILE" "$DOWNLOAD_URL"
         if [ $? -eq 0 ]; then
-            echo "[OK] Download berhasil via API Asset ID."
+            echo "[OK] Download berhasil via browser_download_url."
             DOWNLOAD_OK=true
         fi
     fi
