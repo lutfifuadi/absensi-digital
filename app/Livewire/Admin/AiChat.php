@@ -14,7 +14,7 @@ class AiChat extends Component
     public bool $hasError = false;
     public string $errorMessage = '';
 
-    protected $listeners = ['echo:chat,MessageSent' => 'refreshMessages'];
+    protected $listeners = [];
 
     public function mount()
     {

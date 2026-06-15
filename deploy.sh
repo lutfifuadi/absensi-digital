@@ -72,46 +72,85 @@ composer install --no-dev --optimize-autoloader --no-interaction
 echo ""
 echo "[3/8] Download public/build dari GitHub Release..."
 
-AUTH_HEADER=""
-WGET_HEADER=""
-if [ -n "$GITHUB_TOKEN" ]; then
-    AUTH_HEADER="-H \"Authorization: token $GITHUB_TOKEN\""
-    WGET_HEADER="--header=\"Authorization: token $GITHUB_TOKEN\""
-    echo "[INFO] Menggunakan GITHUB_TOKEN untuk autentikasi API."
+ASSET_FILE="absensi-siap-pakai.zip"
+TEMP_FILE="/tmp/$ASSET_FILE"
+DOWNLOAD_OK=false
+
+# --- Metode 1: gh CLI (paling reliable) ---
+if command -v gh &>/dev/null; then
+    echo "[INFO] Mencoba download dengan gh CLI..."
+    TAG=$(gh release view --repo "$GITHUB_OWNER/$GITHUB_REPO" --json tagName --jq '.tagName' 2>/dev/null)
+    if [ -n "$TAG" ]; then
+        gh release download "$TAG" --repo "$GITHUB_OWNER/$GITHUB_REPO" \
+            --pattern "$ASSET_FILE" --dir "/tmp" --clobber 2>/dev/null
+        if [ $? -eq 0 ] && [ -f "$TEMP_FILE" ]; then
+            echo "[OK] Download berhasil via gh CLI (tag: $TAG)."
+            DOWNLOAD_OK=true
+        fi
+    fi
 fi
 
-LATEST_URL=$(curl -s $AUTH_HEADER "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" \
-    | grep "browser_download_url" \
-    | grep "absensi-siap-pakai.zip" \
-    | cut -d '"' -f 4)
-
-if [ -n "$LATEST_URL" ]; then
-    echo "[INFO] Mengunduh: $LATEST_URL"
+# --- Metode 2: Download URL publik (tanpa token) ---
+if [ "$DOWNLOAD_OK" = false ]; then
+    echo "[INFO] Mencoba download dari URL publik GitHub..."
+    # Ambil tag release terbaru dari API
     if [ -n "$GITHUB_TOKEN" ]; then
-        ASSET_ID=$(curl -s $AUTH_HEADER "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" \
-            | grep -B 1 "absensi-siap-pakai.zip" \
-            | grep "\"id\":" \
-            | head -n 1 \
-            | cut -d ':' -f 2 \
-            | tr -d ' ,')
-        
-        wget -q $WGET_HEADER --header="Accept: application/octet-stream" \
-            -O /tmp/absensi-siap-pakai.zip \
-            "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/assets/$ASSET_ID"
+        TAG=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin).get('tag_name',''))" 2>/dev/null)
     else
-        wget -q -O /tmp/absensi-siap-pakai.zip "$LATEST_URL"
+        TAG=$(curl -s "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin).get('tag_name',''))" 2>/dev/null)
     fi
 
-    if [ $? -eq 0 ]; then
-        rm -rf public/build
-        unzip -o /tmp/absensi-siap-pakai.zip 'public/build/*' -d "$APP_PATH" > /dev/null
-        rm /tmp/absensi-siap-pakai.zip
-        echo "[OK] public/build berhasil diperbarui."
-    else
-        echo "[WARN] Gagal mengunduh build asset. public/build tetap menggunakan versi sebelumnya."
+    if [ -n "$TAG" ]; then
+        DOWNLOAD_URL="https://github.com/$GITHUB_OWNER/$GITHUB_REPO/releases/download/$TAG/$ASSET_FILE"
+        echo "[INFO] Mengunduh: $DOWNLOAD_URL"
+        
+        if wget -q --timeout=60 -O "$TEMP_FILE" "$DOWNLOAD_URL"; then
+            echo "[OK] Download berhasil via URL publik (tag: $TAG)."
+            DOWNLOAD_OK=true
+        else
+            echo "[WARN] Gagal download dari URL publik."
+        fi
     fi
+fi
+
+# --- Metode 3: Download via API Asset ID (dengan token, fallback) ---
+if [ "$DOWNLOAD_OK" = false ] && [ -n "$GITHUB_TOKEN" ]; then
+    echo "[INFO] Mencoba download via API Asset ID..."
+    ASSET_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+        "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest" \
+        | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+for asset in data.get('assets', []):
+    if asset.get('name') == '$ASSET_FILE':
+        print(asset['id'])
+" 2>/dev/null)
+
+    if [ -n "$ASSET_ID" ]; then
+        echo "[INFO] Asset ID: $ASSET_ID"
+        wget -q --timeout=60 \
+            --header="Authorization: token $GITHUB_TOKEN" \
+            --header="Accept: application/octet-stream" \
+            -O "$TEMP_FILE" \
+            "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/assets/$ASSET_ID"
+        if [ $? -eq 0 ]; then
+            echo "[OK] Download berhasil via API Asset ID."
+            DOWNLOAD_OK=true
+        fi
+    fi
+fi
+
+# --- Ekstrak jika berhasil download ---
+if [ "$DOWNLOAD_OK" = true ] && [ -f "$TEMP_FILE" ]; then
+    rm -rf public/build
+    unzip -o "$TEMP_FILE" 'public/build/*' -d "$APP_PATH" > /dev/null 2>&1
+    rm -f "$TEMP_FILE"
+    echo "[OK] public/build berhasil diperbarui."
 else
-    echo "[WARN] Tidak ada release ditemukan, public/build tetap menggunakan versi sebelumnya."
+    echo "[WARN] Gagal mengunduh build asset. public/build tetap menggunakan versi sebelumnya."
 fi
 
 # ----------------------------------------------------------

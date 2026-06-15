@@ -73,9 +73,11 @@ class GeminiService
     public function sendMessage(string $message, array $context = []): array
     {
         $contents = $this->buildContents($message, $context);
+        $systemInstruction = $this->buildSystemInstruction();
 
         $payload = [
             'contents' => $contents,
+            'system_instruction' => $systemInstruction,
         ];
 
         return $this->callWithRetry($payload);
@@ -85,8 +87,11 @@ class GeminiService
     {
         $contents = $this->buildContents($message, $context);
 
+        $systemInstruction = $this->buildSystemInstruction();
+
         $payload = [
             'contents' => $contents,
+            'system_instruction' => $systemInstruction,
             'tools' => $tools,
         ];
 
@@ -172,14 +177,23 @@ class GeminiService
         \App\Models\ChatLog::where('user_id', $userId)->delete();
     }
 
+    protected function buildSystemInstruction(): array
+    {
+        $instruction = 'Kamu adalah asisten AI untuk sistem absensi sekolah. ';
+        $instruction .= 'Tugasmu membantu user mengelola data seperti siswa, guru, kelas, dan pengaturan lainnya. ';
+        $instruction .= 'Gunakan bahasa Indonesia yang sopan dan profesional. ';
+        $instruction .= 'Jika user meminta edit data, gunakan tool yang tersedia. ';
+        $instruction .= 'Jangan pernah memberikan informasi sensitif seperti password.';
+
+        return [
+            'parts' => [
+                ['text' => $instruction],
+            ],
+        ];
+    }
+
     protected function buildContents(string $message, array $context): array
     {
-        $systemInstruction = 'Kamu adalah asisten AI untuk sistem absensi sekolah. ';
-        $systemInstruction .= 'Tugasmu membantu user mengelola data seperti siswa, guru, kelas, dan pengaturan lainnya. ';
-        $systemInstruction .= 'Gunakan bahasa Indonesia yang sopan dan profesional. ';
-        $systemInstruction .= 'Jika user meminta edit data, gunakan tool yang tersedia. ';
-        $systemInstruction .= 'Jangan pernah memberikan informasi sensitif seperti password.';
-
         $contents = [];
 
         if (!empty($context)) {

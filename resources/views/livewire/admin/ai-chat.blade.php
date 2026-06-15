@@ -14,7 +14,7 @@
         </div>
 
         <div class="das-panel__body chat-panel-body" x-data x-ref="chatContainer" id="chatPanelBody">
-            <div class="mb-auto" wire:ignore>
+            <div class="mb-auto">
                 @if(count($messages) === 0)
                     <div class="text-center py-5">
                         <i class="ti tabler-message-chatbot chat-empty-icon"></i>
