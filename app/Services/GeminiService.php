@@ -100,6 +100,16 @@ class GeminiService
                 $parts = $response['candidates'][0]['content']['parts'];
                 $hasFunctionCall = false;
 
+                // Pastikan functionCall.args yang kosong di-encode sebagai objek {} bukan array []
+                $content = $response['candidates'][0]['content'];
+                if (isset($content['parts'])) {
+                    foreach ($content['parts'] as &$p) {
+                        if (isset($p['functionCall']) && (empty($p['functionCall']['args']) || is_array($p['functionCall']['args']) && count($p['functionCall']['args']) === 0)) {
+                            $p['functionCall']['args'] = (object)[];
+                        }
+                    }
+                }
+
                 foreach ($parts as $part) {
                     if (isset($part['functionCall'])) {
                         $hasFunctionCall = true;
@@ -108,7 +118,7 @@ class GeminiService
 
                         $result = $this->executeTool($functionName, $functionArgs);
 
-                        $payload['contents'][] = $response['candidates'][0]['content'];
+                        $payload['contents'][] = $content; // Gunakan variabel $content yang sudah di-fix args-nya
                         $payload['contents'][] = [
                             'role' => 'function',
                             'parts' => [
