@@ -423,15 +423,21 @@ class PelepasanController extends Controller
 
             foreach ($siswaList as $idx => $s) {
                 $log = $s->absensiKegiatan->first();
+                
+                // Trik formula string Excel agar dibaca sebagai TEXT
+                $nisnText = $s->nisn ? '="' . $s->nisn . '"' : '-';
+                $nisText = $s->nis ? '="' . $s->nis . '"' : '-';
+                $noWaText = $s->no_hp_ortu ? '="' . $s->no_hp_ortu . '"' : '-';
+
                 fputcsv($file, [
                     $idx + 1,
-                    $s->nisn,
-                    $s->nis,
+                    $nisnText,
+                    $nisText,
                     $s->nama_lengkap,
                     $s->kelas->nama ?? '-',
                     $log ? 'HADIR' : 'BELUM HADIR',
                     $log ? Carbon::parse($log->jam_absen)->format('H:i:s') : '-',
-                    $s->no_hp_ortu ?? '-'
+                    $noWaText
                 ]);
             }
             fclose($file);
