@@ -472,7 +472,10 @@
   {{-- ═══════════════════════════════════════════════════════
        SECTION 2: ACTION CARDS — Tombol Download Kartu yang Menonjol
   ═══════════════════════════════════════════════════════ --}}
-  <div class="siswa-action-row">
+  @php
+    $isKelasXII = $siswaRecord && $siswaRecord->kelas && (trim($siswaRecord->kelas->tingkat) === 'XII' || trim($siswaRecord->kelas->tingkat) === '12');
+  @endphp
+  <div class="siswa-action-row" @if($isKelasXII) style="margin-top: 0.5rem !important;" @endif>
     <div class="row g-3">
       @if($siswaRecord && $siswaRecord->kelas && (trim($siswaRecord->kelas->tingkat) === 'XII' || trim($siswaRecord->kelas->tingkat) === '12'))
       <div class="col-md-6 col-12">
