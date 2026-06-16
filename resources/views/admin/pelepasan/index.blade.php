@@ -28,6 +28,19 @@
             color: var(--das-danger) !important;
         }
 
+        /* Clickable Stat Cards */
+        .das-stat-card-clickable {
+            cursor: pointer;
+            transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease !important;
+        }
+        .das-stat-card-clickable:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25) !important;
+        }
+        .das-stat-card-clickable:active {
+            transform: translateY(-1px);
+        }
+
         /* PAGINATION */
         .das-page-btn {
             display: inline-flex;
@@ -325,7 +338,7 @@
 
     {{-- ── STAT CARDS ──────────────────────────────────── --}}
     <div class="das-stats-row mb-4 slide-in-up" style="position: relative; bottom: 0; left: 0; right: 0;">
-        <div class="das-stat-card das-stat-card--info">
+        <div class="das-stat-card das-stat-card--info das-stat-card-clickable" id="cardTotalSiswa">
             <div class="das-stat-card__icon"><i class="ti tabler-users"></i></div>
             <div class="das-stat-card__body">
                 <div id="statTotal" class="das-stat-card__val">{{ $totalSiswa }}</div>
@@ -333,7 +346,7 @@
             </div>
         </div>
 
-        <div class="das-stat-card das-stat-card--success">
+        <div class="das-stat-card das-stat-card--success das-stat-card-clickable" id="cardHadir">
             <div class="das-stat-card__icon"><i class="ti tabler-check"></i></div>
             <div class="das-stat-card__body">
                 <div id="statHadir" class="das-stat-card__val">{{ $totalHadir }}</div>
@@ -341,11 +354,11 @@
             </div>
         </div>
 
-        <div class="das-stat-card das-stat-card--danger">
+        <div class="das-stat-card das-stat-card--danger das-stat-card-clickable" id="cardBelumHadir">
             <div class="das-stat-card__icon"><i class="ti tabler-user-x"></i></div>
             <div class="das-stat-card__body">
                 <div id="statBelumHadir" class="das-stat-card__val">{{ $totalBelumHadir }}</div>
-                <div class="das-stat-card__label">Belum Hadir</div>
+                <div class="das-stat-card__label">Belum</div>
             </div>
         </div>
 
@@ -454,7 +467,7 @@
                             <select id="pelepasanStatus" class="form-select border-0 text-white w-100" style="background: rgba(255,255,255,0.05); height:38px; font-size:0.85rem; cursor:pointer;">
                                 <option value="">Semua Status</option>
                                 <option value="hadir" {{ $status === 'hadir' ? 'selected' : '' }}>Hadir</option>
-                                <option value="belum_hadir" {{ $status === 'belum_hadir' ? 'selected' : '' }}>Belum Hadir</option>
+                                <option value="belum_hadir" {{ $status === 'belum_hadir' ? 'selected' : '' }}>Belum</option>
                             </select>
                         </div>
 
@@ -1199,6 +1212,32 @@
             statusSelect.addEventListener('change', function() {
                 fetchData(1);
             });
+
+            // Clickable Stat Cards Event Handlers
+            const cardTotalSiswa = document.getElementById('cardTotalSiswa');
+            const cardHadir = document.getElementById('cardHadir');
+            const cardBelumHadir = document.getElementById('cardBelumHadir');
+
+            if (cardTotalSiswa) {
+                cardTotalSiswa.addEventListener('click', function() {
+                    statusSelect.value = '';
+                    fetchData(1);
+                });
+            }
+
+            if (cardHadir) {
+                cardHadir.addEventListener('click', function() {
+                    statusSelect.value = 'hadir';
+                    fetchData(1);
+                });
+            }
+
+            if (cardBelumHadir) {
+                cardBelumHadir.addEventListener('click', function() {
+                    statusSelect.value = 'belum_hadir';
+                    fetchData(1);
+                });
+            }
 
             // Reset Filters Click
             resetBtn.addEventListener('click', function(e) {
