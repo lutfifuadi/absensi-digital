@@ -545,6 +545,8 @@
   // Preload Audio Files
   const soundBell     = new Audio('/assets/audio/bell.mp3');
   const soundThankYou = new Audio('/assets/audio/terima-kasih.mp3');
+  const soundPelepasanSuccess = new Audio('/assets/audio/pelepasan-success.wav');
+  soundPelepasanSuccess.volume = 1.0; // Pastikan volume maksimal
 
   function toggleSound() {
     soundEnabled = !soundEnabled;
@@ -555,29 +557,35 @@
     if (!soundEnabled) return;
 
     if (type === 'success') {
-      switch (varianSuara) {
-        case 'default':
-          soundBell.pause(); soundBell.currentTime = 0;
-          soundBell.play().then(() => {
-            soundBell.onended = () => {
-              setTimeout(() => {
-                soundThankYou.pause(); soundThankYou.currentTime = 0;
-                soundThankYou.play().catch(() => playLegacyBeep(type));
-              }, 200);
-            };
-          }).catch(() => playLegacyBeep(type));
-          return;
-        case 'beep':
-          playLegacyBeep('success'); return;
-        case 'chime':
-          playChime(); return;
-        case 'soft':
-          playSoftBell(); return;
-        case 'digital':
-          playDigitalBeep(); return;
-        default:
-          playLegacyBeep(type); return;
-      }
+      soundPelepasanSuccess.pause();
+      soundPelepasanSuccess.currentTime = 0;
+      soundPelepasanSuccess.play().catch(() => {
+        // Fallback jika pemutaran audio gagal/diblokir oleh browser
+        switch (varianSuara) {
+          case 'default':
+            soundBell.pause(); soundBell.currentTime = 0;
+            soundBell.play().then(() => {
+              soundBell.onended = () => {
+                setTimeout(() => {
+                  soundThankYou.pause(); soundThankYou.currentTime = 0;
+                  soundThankYou.play().catch(() => playLegacyBeep(type));
+                }, 200);
+              };
+            }).catch(() => playLegacyBeep(type));
+            return;
+          case 'beep':
+            playLegacyBeep('success'); return;
+          case 'chime':
+            playChime(); return;
+          case 'soft':
+            playSoftBell(); return;
+          case 'digital':
+            playDigitalBeep(); return;
+          default:
+            playLegacyBeep(type); return;
+        }
+      });
+      return;
     }
     playLegacyBeep(type);
   }
