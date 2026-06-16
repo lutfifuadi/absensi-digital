@@ -107,7 +107,7 @@ class SiswaController extends Controller
             [
                 'name' => $data['nama_lengkap'],
                 'email' => $email,
-                'password' => Hash::make('password123'),
+                'password' => Hash::make($data['nisn'] ?? $data['nis'] ?? 'password123'),
                 'role' => User::ROLE_SISWA,
             ]
         );
@@ -120,7 +120,7 @@ class SiswaController extends Controller
             [
                 'name' => 'Wali Murid '.$data['nama_lengkap'],
                 'email' => $emailOrtu,
-                'password' => Hash::make('password123'),
+                'password' => Hash::make($data['nisn'] ?? $data['nis'] ?? 'password123'),
                 'role' => User::ROLE_ORANG_TUA,
             ]
         );
@@ -343,7 +343,7 @@ class SiswaController extends Controller
                 [
                     'name' => 'Wali Murid '.$data['nama_lengkap'],
                     'email' => $emailOrtu,
-                    'password' => Hash::make('password123'),
+                    'password' => Hash::make($data['nisn'] ?? $data['nis'] ?? 'password123'),
                     'role' => User::ROLE_ORANG_TUA,
                 ]
             );

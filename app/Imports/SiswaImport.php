@@ -110,7 +110,7 @@ class SiswaImport implements SkipsEmptyRows, ToModel, WithHeadingRow, WithValida
             [
                 'name' => trim($row['nama_lengkap']),
                 'email' => $email,
-                'password' => Hash::make('password123'),
+                'password' => Hash::make($nisn ?: $nis),
                 'role' => User::ROLE_SISWA,
             ]
         );
@@ -123,7 +123,7 @@ class SiswaImport implements SkipsEmptyRows, ToModel, WithHeadingRow, WithValida
             [
                 'name' => 'Wali Murid '.trim($row['nama_lengkap']),
                 'email' => $emailOrtu,
-                'password' => Hash::make('password123'),
+                'password' => Hash::make($nisn ?: $nis),
                 'role' => User::ROLE_ORANG_TUA,
             ]
         );
