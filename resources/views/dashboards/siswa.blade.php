@@ -320,6 +320,14 @@
         ? \App\Models\AbsensiSiswa::where('siswa_id', $siswaRecord->id)->whereDate('tanggal', today())->first()
         : null;
     
+    $pelepasanKegiatanId = \App\Models\Pengaturan::where('key', 'pelepasan_kegiatan_id')->value('value');
+    $absenPelepasan = null;
+    if ($pelepasanKegiatanId && $siswaRecord) {
+        $absenPelepasan = \App\Models\AbsensiKegiatan::where('kegiatan_id', $pelepasanKegiatanId)
+            ->where('siswa_id', $siswaRecord->id)
+            ->first();
+    }
+    
     $logoSekolah = \App\Models\Pengaturan::where('key', 'logo_sekolah')->value('value');
     $namaSekolah = \App\Models\Pengaturan::where('key', 'nama_sekolah')->value('value') ?: 'Sistem Absensi';
     
@@ -415,6 +423,51 @@
       </div>
     </div>
   </div>
+
+  {{-- ═══════════════════════════════════════════════════════
+       SECTION 1.5: KONFIRMASI KEHADIRAN PELEPASAN (Khusus Kelas XII)
+  ═══════════════════════════════════════════════════════ --}}
+  @if($siswaRecord && $siswaRecord->kelas && (trim($siswaRecord->kelas->tingkat) === 'XII' || trim($siswaRecord->kelas->tingkat) === '12'))
+    <div class="row mb-4">
+      <div class="col-12">
+        @if($absenPelepasan)
+          <div class="das-panel" style="border-left: 4px solid var(--das-success) !important; background: rgba(40, 199, 111, 0.06);">
+            <div class="das-panel__body p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <div class="d-flex align-items-center gap-3">
+                <div class="avatar avatar-md bg-label-success rounded p-1"><i class="ti tabler-circle-check fs-4"></i></div>
+                <div>
+                  <h6 class="mb-0 text-success fw-bold">Presensi Pelepasan Terkonfirmasi!</h6>
+                  <p class="text-white-50 mb-0 small">Anda telah terkonfirmasi <strong>HADIR</strong> pada acara pelepasan kelas XII.</p>
+                </div>
+              </div>
+              <div class="text-md-end text-start">
+                <span class="badge bg-label-success p-2 px-3 border border-success border-opacity-20 font-monospace">
+                  Jam Absen: {{ \Carbon\Carbon::parse($absenPelepasan->jam_absen)->format('H:i:s') }}
+                </span>
+              </div>
+            </div>
+          </div>
+        @else
+          <div class="das-panel" style="border-left: 4px solid var(--das-danger) !important; background: rgba(234, 84, 85, 0.06);">
+            <div class="das-panel__body p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <div class="d-flex align-items-center gap-3">
+                <div class="avatar avatar-md bg-label-danger rounded p-1"><i class="ti tabler-circle-x fs-4"></i></div>
+                <div>
+                  <h6 class="mb-0 text-danger fw-bold">Presensi Pelepasan Belum Tercatat</h6>
+                  <p class="text-white-50 mb-0 small">Silakan tunjukkan QR Code pada Kartu Pelepasan Anda kepada panitia saat acara berlangsung.</p>
+                </div>
+              </div>
+              <div>
+                <span class="badge bg-label-danger p-2 px-3 border border-danger border-opacity-20">
+                  BELUM HADIR
+                </span>
+              </div>
+            </div>
+          </div>
+        @endif
+      </div>
+    </div>
+  @endif
 
   {{-- ═══════════════════════════════════════════════════════
        SECTION 2: ACTION CARDS — Tombol Download Kartu yang Menonjol

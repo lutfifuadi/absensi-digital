@@ -33,9 +33,9 @@
                     <td>{{ $s->kelas->nama ?? '-' }}</td>
                     <td>
                         @if($log)
-                            <span class="das-chip das-chip--success">Hadir</span>
+                            <span class="das-chip das-chip--success" style="box-shadow: 0 0 10px rgba(40, 199, 111, 0.2);"><i class="ti tabler-circle-check-filled me-1 small"></i> Hadir</span>
                         @else
-                            <span class="das-chip das-chip--danger">Belum Hadir</span>
+                            <span class="das-chip das-chip--danger" style="box-shadow: 0 0 10px rgba(234, 84, 85, 0.2);"><i class="ti tabler-circle-x-filled me-1 small"></i> Belum Hadir</span>
                         @endif
                     </td>
                     <td>
