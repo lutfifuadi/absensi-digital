@@ -563,32 +563,62 @@
 function downloadKartu() {
   const btn = document.getElementById('btnDownloadKartu');
   const card = document.getElementById('kartuPelepasan');
+  const wrapper = document.querySelector('.kp-scale-wrapper');
 
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Memproses...';
 
-  html2canvas(card, {
-    scale: 2,
-    useCORS: true,
-    allowTaint: true,
-    backgroundColor: null,
-    width: 1011,
-    height: 638,
-    logging: false,
-  }).then(function(canvas) {
-    const link = document.createElement('a');
-    link.download = 'kartu-pelepasan-{{ \Illuminate\Support\Str::slug($siswa->nama_lengkap) }}.png';
-    link.href = canvas.toDataURL('image/png', 1.0);
-    link.click();
+  // Simpan style transform asli sebelum render
+  const originalTransform = wrapper ? wrapper.style.transform : '';
+  const originalMarginBottom = wrapper ? wrapper.style.marginBottom : '';
 
-    btn.disabled = false;
-    btn.innerHTML = '<i class="ti tabler-download" style="font-size:18px;"></i> Download Kartu (PNG)';
-  }).catch(function(err) {
-    console.error('Gagal generate kartu:', err);
-    alert('Gagal membuat gambar kartu. Silakan coba lagi.');
-    btn.disabled = false;
-    btn.innerHTML = '<i class="ti tabler-download" style="font-size:18px;"></i> Download Kartu (PNG)';
-  });
+  // Nonaktifkan transform scaling sementara agar html2canvas membaca dimensi asli (1011x638 px)
+  if (wrapper) {
+    wrapper.style.transform = 'none';
+    wrapper.style.marginBottom = '0';
+  }
+
+  // Tambahkan sedikit delay untuk memastikan layout terhitung ulang oleh browser
+  setTimeout(() => {
+    html2canvas(card, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: null,
+      width: 1011,
+      height: 638,
+      scrollX: 0,
+      scrollY: 0,
+      x: 0,
+      y: 0,
+      logging: false,
+    }).then(function(canvas) {
+      // Kembalikan style transform asli setelah render selesai
+      if (wrapper) {
+        wrapper.style.transform = originalTransform;
+        wrapper.style.marginBottom = originalMarginBottom;
+      }
+
+      const link = document.createElement('a');
+      link.download = 'kartu-pelepasan-{{ \Illuminate\Support\Str::slug($siswa->nama_lengkap) }}.png';
+      link.href = canvas.toDataURL('image/png', 1.0);
+      link.click();
+
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti tabler-download" style="font-size:18px;"></i> Download Kartu (PNG)';
+    }).catch(function(err) {
+      // Kembalikan style transform asli jika terjadi error
+      if (wrapper) {
+        wrapper.style.transform = originalTransform;
+        wrapper.style.marginBottom = originalMarginBottom;
+      }
+
+      console.error('Gagal generate kartu:', err);
+      alert('Gagal membuat gambar kartu. Silakan coba lagi.');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti tabler-download" style="font-size:18px;"></i> Download Kartu (PNG)';
+    });
+  }, 150);
 }
 </script>
 @endpush

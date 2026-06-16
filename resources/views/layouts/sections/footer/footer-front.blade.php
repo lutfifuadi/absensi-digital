@@ -18,12 +18,14 @@ $logoSekolah = $logoSekolah ?? \App\Models\Pengaturan::where('key', 'logo_sekola
             <span class="app-brand-text demo text-white fw-bold" style="font-size: 1.5rem; letter-spacing: -0.5px;">{{ $namaSekolah }}</span>
           </a>
           <p class="footer-text mb-6 mt-2 opacity-75" style="max-width: 400px; line-height: 1.6;">Solusi administrasi digital terintegrasi untuk <strong>{{ $namaSekolah }}</strong> yang modern, akuntabel, dan transparan dalam pengelolaan kehadiran.</p>
-          <div class="d-flex align-items-center gap-3 mt-4">
-            <a href="javascript:void(0);" class="footer-social-link"><i class="ti tabler-brand-facebook fs-4"></i></a>
-            <a href="javascript:void(0);" class="footer-social-link"><i class="ti tabler-brand-instagram fs-4"></i></a>
-            <a href="javascript:void(0);" class="footer-social-link"><i class="ti tabler-brand-twitter fs-4"></i></a>
-            <a href="javascript:void(0);" class="footer-social-link"><i class="ti tabler-brand-youtube fs-4"></i></a>
-          </div>
+          @php
+            $websiteLembaga = \App\Models\Pengaturan::where('key', 'website_lembaga')->value('value');
+          @endphp
+          @if($websiteLembaga)
+            <div class="d-flex align-items-center gap-3 mt-4">
+              <a href="{{ $websiteLembaga }}" target="_blank" class="footer-social-link" title="Website Resmi"><i class="ti tabler-world fs-4"></i></a>
+            </div>
+          @endif
         </div>
         <div class="col-lg-2 col-md-4 col-sm-6">
           <h6 class="footer-title text-white fw-bold mb-4">Layanan</h6>

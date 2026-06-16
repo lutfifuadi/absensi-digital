@@ -896,7 +896,7 @@
               <div class="recap-grid">
                 <div class="recap-cell">
                   <div class="recap-val" style="color:#4ade80;">
-                    {{ max($siswaCount, 250) }}
+                    {{ $siswaCount }}
                   </div>
                   <div class="recap-label">Hadir</div>
                 </div>
@@ -926,12 +926,12 @@
       <div class="row g-4 text-center justify-content-center">
 
         <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="0">
-          <div class="stat-val">{{ max($siswaCount, 250) }}<span class="stat-accent">+</span></div>
+          <div class="stat-val">{{ $siswaCount }}<span class="stat-accent">+</span></div>
           <p class="stat-label">Siswa Terdaftar</p>
         </div>
 
         <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="80">
-          <div class="stat-val">{{ max($guruCount + $staffCount, 45) }}<span class="stat-accent">+</span></div>
+          <div class="stat-val">{{ $guruCount + $staffCount }}<span class="stat-accent">+</span></div>
           <p class="stat-label">Tenaga Pendidik</p>
         </div>
 
@@ -999,7 +999,7 @@
         <h2 class="cta-title">Siap Digitalisasi Sekolah Anda?</h2>
         <div class="cta-title-q">Bergabung. Gratis. Sekarang.</div>
         <p class="cta-desc">
-          Tingkatkan efisiensi administrasi madrasah Anda bersama ekosistem sekolah modern — tanpa biaya, tanpa batas.
+          Tingkatkan efisiensi administrasi lembaga Anda bersama ekosistem sekolah modern — tanpa biaya, tanpa batas.
         </p>
 
         <div class="cta-btns">
