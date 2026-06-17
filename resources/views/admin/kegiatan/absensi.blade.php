@@ -90,7 +90,10 @@
           <p class="das-hero__welcome">Monitoring dan pencatatan kehadiran siswa pada berbagai agenda sekolah.</p>
         </div>
       </div>
-      <div>
+      <div class="d-flex align-items-center gap-2">
+        <a href="{{ route('admin.absensi-kegiatan.scan') }}" class="das-btn das-btn--primary">
+          <i class="ti tabler-qrcode me-1"></i> Scan QR Kegiatan
+        </a>
         <a href="{{ route('admin.kegiatan.index') }}" class="das-btn das-btn--ghost">
           <i class="ti tabler-settings me-1"></i> Kelola Kegiatan
         </a>
@@ -262,15 +265,20 @@ async function viewAbsensi(id, nama) {
           <span class="das-chip das-chip--primary">${a.siswa?.kelas?.nama || '-'}</span>
         </td>
         <td class="text-center">
-          <span class="das-chip ${statusBadges[a.status] || 'das-chip--secondary'}">${a.status}</span>
+          <span class="das-chip ${statusBadges[a.status] || 'das-chip--secondary'}">
+            ${a.status ? a.status.charAt(0).toUpperCase() + a.status.slice(1) : '-'}
+          </span>
         </td>
         <td>
           <div class="text-muted small">${a.keterangan || '-'}</div>
         </td>
         <td class="text-end px-4">
-          <button class="das-btn das-btn--primary das-btn--sm" onclick="updateStatus(${a.id}, 'hadir', ${a.kegiatan_id}, ${a.siswa_id})">
-            <i class="ti tabler-check"></i> Hadir
-          </button>
+          <select class="form-select form-select-sm text-white border-secondary" style="font-size: .75rem; background-color: var(--das-surface); width: auto; display: inline-block;" onchange="updateStatus(${a.id}, this.value, ${a.kegiatan_id}, ${a.siswa_id})">
+            <option value="hadir" class="bg-dark text-white" ${a.status === 'hadir' ? 'selected' : ''}>Hadir</option>
+            <option value="izin" class="bg-dark text-white" ${a.status === 'izin' ? 'selected' : ''}>Izin</option>
+            <option value="sakit" class="bg-dark text-white" ${a.status === 'sakit' ? 'selected' : ''}>Sakit</option>
+            <option value="alpha" class="bg-dark text-white" ${a.status === 'alpha' ? 'selected' : ''}>Alpha</option>
+          </select>
         </td>
       </tr>
     `).join('');
@@ -282,6 +290,11 @@ async function viewAbsensi(id, nama) {
 }
 
 async function updateStatus(attendanceId, status, kegiatanId, siswaId) {
+  let keterangan = '';
+  if (status === 'izin' || status === 'sakit') {
+    keterangan = prompt('Masukkan keterangan alasan (opsional):') || '';
+  }
+
   try {
     const response = await fetch('/api/v1/innovation/activity-attendance', {
       method: 'POST',
@@ -293,7 +306,8 @@ async function updateStatus(attendanceId, status, kegiatanId, siswaId) {
       body: JSON.stringify({
         kegiatan_id: kegiatanId,
         siswa_id: siswaId,
-        status: status
+        status: status,
+        keterangan: keterangan
       })
     });
     

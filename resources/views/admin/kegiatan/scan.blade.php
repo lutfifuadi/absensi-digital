@@ -165,6 +165,7 @@
     const placeholder = document.getElementById('scanner-placeholder');
     const errorMsg = document.getElementById('kegiatan-error');
     const switchBtn = document.getElementById('switch-cam-btn');
+    const kegiatanSelect = document.getElementById('kegiatan_id');
     
     let isProcessing = false;
     let currentFacingMode = "environment";

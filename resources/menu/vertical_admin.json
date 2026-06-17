@@ -102,7 +102,24 @@
       "name": "Absensi Kegiatan",
       "icon": "menu-icon ti tabler-calendar-check",
       "slug": "admin.kegiatans.absensi",
-      "url": "/admin/kegiatans/absensi"
+      "url": "/admin/kegiatans/absensi",
+      "submenu": [
+        {
+          "url": "/admin/kegiatans/absensi",
+          "name": "Daftar Kegiatan",
+          "slug": "admin.kegiatans.absensi"
+        },
+        {
+          "url": "/admin/absensi-kegiatan/scan",
+          "name": "Scan Kegiatan",
+          "slug": "admin.absensi-kegiatan.scan"
+        },
+        {
+          "url": "/admin/absensi-kegiatan/rekap",
+          "name": "Rekap Scan",
+          "slug": "admin.absensi-kegiatan.rekap"
+        }
+      ]
     },
     {
       "name": "Pelepasan Kelas XII",

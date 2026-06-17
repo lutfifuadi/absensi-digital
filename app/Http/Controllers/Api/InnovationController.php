@@ -15,7 +15,7 @@ use App\Models\StudentBadge;
 use App\Models\ClassLeaderboard;
 use App\Models\OfflineQueue;
 use App\Models\AuthorizedDevice;
-use App\Models\ActivityAttendance;
+use App\Models\AbsensiKegiatan;
 use App\Models\ActivityNotificationQueue;
 use App\Models\ReminderSettings;
 use App\Models\Pengaturan;
@@ -290,7 +290,7 @@ class InnovationController extends Controller
     {
         $kegiatanId = $request->get('kegiatan_id');
 
-        $attendance = ActivityAttendance::with(['siswa', 'kegiatan'])
+        $attendance = AbsensiKegiatan::with(['siswa.kelas', 'kegiatan'])
             ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId))
             ->get();
 
@@ -302,16 +302,23 @@ class InnovationController extends Controller
         $request->validate([
             'kegiatan_id' => 'required|exists:kegiatan,id',
             'siswa_id' => 'required|exists:siswa,id',
-            'status' => 'required|in:hadir,tidak_hadir,izin,sakit',
+            'status' => 'required|in:hadir,tidak_hadir,izin,sakit,alpha',
             'keterangan' => 'nullable|string',
         ]);
 
-        $attendance = ActivityAttendance::updateOrCreate(
+        $status = $request->status;
+        if ($status === 'tidak_hadir') {
+            $status = 'alpha';
+        }
+
+        $jamAbsen = $status === 'hadir' ? now() : null;
+
+        $attendance = AbsensiKegiatan::updateOrCreate(
             ['kegiatan_id' => $request->kegiatan_id, 'siswa_id' => $request->siswa_id],
             [
-                'status' => $request->status,
+                'status' => $status,
                 'keterangan' => $request->keterangan,
-                'recorded_by' => auth()->id(),
+                'jam_absen' => $jamAbsen,
             ]
         );
 
