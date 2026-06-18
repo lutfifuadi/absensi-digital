@@ -47,3 +47,4 @@ yarn-error.log
 /scratch/
 /public/hot
 .agents/
+.planning/

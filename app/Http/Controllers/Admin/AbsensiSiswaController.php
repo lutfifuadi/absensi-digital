@@ -203,7 +203,10 @@ class AbsensiSiswaController extends Controller
         $selectedKelasId = $request->query('kelas_id');
         $siswa = collect();
         if ($selectedKelasId) {
-            $siswa = Siswa::where('kelas_id', $selectedKelasId)
+            $siswa = Siswa::with(['absensi' => function($q) use ($request) {
+                    $q->whereDate('tanggal', $request->query('tanggal', now()->toDateString()));
+                }])
+                ->where('kelas_id', $selectedKelasId)
                 ->where('status', 'aktif')
                 ->orderBy('nama_lengkap')
                 ->limit(200)

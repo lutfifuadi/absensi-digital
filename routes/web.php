@@ -43,20 +43,22 @@ Route::get('/license-warning', [\App\Http\Controllers\LicenseController::class, 
 Route::post('/license-warning/activate', [\App\Http\Controllers\LicenseController::class, 'activate'])->name('license.activate');
 // ─────────────────────────────────────────────────────────────────────────
 
-// ── Web Installer Routes ──────────────────────────────────────────────────
-Route::prefix('install')->name('installer.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\InstallerController::class, 'step1'])->name('step1');
-    Route::get('/step2', [\App\Http\Controllers\InstallerController::class, 'step2'])->name('step2');
-    Route::post('/step2', [\App\Http\Controllers\InstallerController::class, 'step2Submit'])->name('step2Submit');
-    Route::get('/step3', [\App\Http\Controllers\InstallerController::class, 'step3'])->name('step3');
-    Route::post('/step3', [\App\Http\Controllers\InstallerController::class, 'step3Submit'])->name('step3Submit');
-    Route::get('/step4', [\App\Http\Controllers\InstallerController::class, 'step4'])->name('step4');
-    Route::post('/step4', [\App\Http\Controllers\InstallerController::class, 'step4Submit'])->name('step4Submit');
-    Route::get('/step5', [\App\Http\Controllers\InstallerController::class, 'step5'])->name('step5');
-    Route::post('/process', [\App\Http\Controllers\InstallerController::class, 'process'])->name('process');
-    Route::post('/save-progress', [\App\Http\Controllers\InstallerController::class, 'saveProgress'])->name('saveProgress');
-    Route::post('/publish-assets', [\App\Http\Controllers\InstallerController::class, 'publishAssets'])->name('publishAssets');
-});
+// ── Web Installer Routes (dinonaktifkan setelah instalasi) ───────────────
+if (config('app.installed') !== true) {
+    Route::prefix('install')->name('installer.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\InstallerController::class, 'step1'])->name('step1');
+        Route::get('/step2', [\App\Http\Controllers\InstallerController::class, 'step2'])->name('step2');
+        Route::post('/step2', [\App\Http\Controllers\InstallerController::class, 'step2Submit'])->name('step2Submit');
+        Route::get('/step3', [\App\Http\Controllers\InstallerController::class, 'step3'])->name('step3');
+        Route::post('/step3', [\App\Http\Controllers\InstallerController::class, 'step3Submit'])->name('step3Submit');
+        Route::get('/step4', [\App\Http\Controllers\InstallerController::class, 'step4'])->name('step4');
+        Route::post('/step4', [\App\Http\Controllers\InstallerController::class, 'step4Submit'])->name('step4Submit');
+        Route::get('/step5', [\App\Http\Controllers\InstallerController::class, 'step5'])->name('step5');
+        Route::post('/process', [\App\Http\Controllers\InstallerController::class, 'process'])->name('process');
+        Route::post('/save-progress', [\App\Http\Controllers\InstallerController::class, 'saveProgress'])->name('saveProgress');
+        Route::post('/publish-assets', [\App\Http\Controllers\InstallerController::class, 'publishAssets'])->name('publishAssets');
+    });
+}
 // ─────────────────────────────────────────────────────────────────────────
 
 // locale

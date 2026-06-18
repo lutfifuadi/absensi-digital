@@ -10,9 +10,29 @@ use App\Models\Guru;
 use App\Support\QrScanLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cache;
 
 class PublicQrScanController extends Controller
 {
+    /**
+     * Helper: Ambil pengaturan ter-cache untuk efisiensi.
+     */
+    private function getCachedSettings()
+    {
+        return Cache::remember('absensi_settings', now()->addDay(), function () {
+            return Pengaturan::whereIn('key', [
+                'jam_masuk', 
+                'jam_batas_masuk', 
+                'jam_pulang', 
+                'jam_mulai_pulang', 
+                'jam_akhir_pulang', 
+                'toleransi_terlambat',
+                'nama_sekolah',
+                'announcement_text'
+            ])->pluck('value', 'key')->toArray();
+        });
+    }
+
     /**
      * Halaman login password scan QR (publik).
      */
@@ -86,9 +106,8 @@ class PublicQrScanController extends Controller
 
         $ip             = $request->ip();
         $qrCode         = $data['qr_code'];
-        $settings       = Pengaturan::whereIn('key', [
-            'jam_masuk', 'jam_batas_masuk', 'jam_pulang', 'jam_mulai_pulang', 'jam_akhir_pulang', 'toleransi_terlambat'
-        ])->pluck('value', 'key');
+        
+        $settings       = $this->getCachedSettings();
 
         $jamMasuk       = $settings['jam_masuk']       ?? '07:00';
         $jamBatasMasuk  = $settings['jam_batas_masuk'] ?? '08:00';
@@ -310,10 +329,11 @@ class PublicQrScanController extends Controller
      */
     public function liveBoard()
     {
-        $namaSekolah  = Pengaturan::where('key', 'nama_sekolah')->value('value')  ?? 'Madrasah Aliyah';
-        $jamMasukCfg  = Pengaturan::where('key', 'jam_masuk')->value('value')     ?? '07:00';
-        $toleransi    = (int)(Pengaturan::where('key', 'toleransi_terlambat')->value('value') ?? 15);
-        $announcement = Pengaturan::where('key', 'announcement_text')->value('value') ?? null;
+        $settings     = $this->getCachedSettings();
+        $namaSekolah  = $settings['nama_sekolah']        ?? 'Madrasah Aliyah';
+        $jamMasukCfg  = $settings['jam_masuk']          ?? '07:00';
+        $toleransi    = (int)($settings['toleransi_terlambat'] ?? 15);
+        $announcement = $settings['announcement_text']   ?? null;
 
         [$leaderboardAwal, $leaderboardAkhir, $stats] = $this->getLeaderboardData();
 
@@ -333,9 +353,7 @@ class PublicQrScanController extends Controller
         $qrCode = $data['qr_code'];
         $ip     = $request->ip();
 
-        $settings = Pengaturan::whereIn('key', [
-            'jam_masuk', 'jam_batas_masuk', 'jam_pulang', 'jam_mulai_pulang', 'jam_akhir_pulang', 'toleransi_terlambat'
-        ])->pluck('value', 'key');
+        $settings = $this->getCachedSettings();
 
         $jamMasuk       = $settings['jam_masuk']       ?? '07:00';
         $jamBatasMasuk  = $settings['jam_batas_masuk'] ?? '08:00';

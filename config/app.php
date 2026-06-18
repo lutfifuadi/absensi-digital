@@ -130,4 +130,16 @@ return [
         'Helper' => App\Helpers\Helpers::class,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Application Installed
+    |--------------------------------------------------------------------------
+    |
+    | Menandakan apakah aplikasi sudah diinstal. Installer routes hanya aktif
+    | jika nilai ini false.
+    |
+    */
+
+    'installed' => env('APP_INSTALLED', false),
+
 ];

@@ -112,7 +112,7 @@ class DashboardController extends Controller
 
         // 1. Ranking Kelas
         // Hitung % hadir: (total hadir + terlambat) / (total siswa * hari efektif)
-        $kelas = Kelas::withCount('siswa')->get();
+        $kelas = Kelas::with(['siswa' => fn($q) => $q->where('status', 'aktif')])->withCount('siswa')->get();
         $rankingKelas = [];
         
         // Asumsi hari efektif di bulan ini adalah hari yang sudah lewat
@@ -557,7 +557,15 @@ private function superAdminData(): array
 
     private function orangTuaData($user): array
     {
-        $children = Siswa::with('kelas')
+        $children = Siswa::with(['kelas', 'absensi' => function($q) use ($today, $month, $year) {
+            $q->where(function($query) use ($today, $month, $year) {
+                $query->whereDate('tanggal', $today)
+                      ->orWhere(function($q2) use ($month, $year) {
+                          $q2->whereMonth('tanggal', $month)
+                             ->whereYear('tanggal', $year);
+                      });
+            });
+        }])
             ->where('ortu_user_id', $user->id)
             ->get();
 
