@@ -90,6 +90,7 @@
           ['id' => 'keamanan',   'icon' => 'tabler-shield-lock',     'label' => 'Keamanan & Lokasi'],
           ['id' => 'branding',   'icon' => 'tabler-photo',           'label' => 'Logo & Branding'],
           ['id' => 'notifikasi', 'icon' => 'tabler-bell-ringing',    'label' => 'Integrasi & Notifikasi'],
+          ['id' => 'ai',         'icon' => 'tabler-brain',           'label' => 'Kecerdasan Buatan (AI)'],
         ];
 
         if (auth()->user()->isSuperAdmin()) {
@@ -814,7 +815,50 @@
         </div>
       </div>
 
-      {{-- ══ TAB 6: PEMBARUAN GITHUB ══ --}}
+      {{-- ══ TAB 6: AI CONFIGURATION ══ --}}
+      <div class="set-tab" id="tab-ai">
+        <div class="set-panel">
+          <div class="set-panel__head">
+            <div class="set-panel__title-wrap">
+              <div class="set-panel__icon --primary"><i class="ti tabler-brain"></i></div>
+              <div>
+                <div class="set-panel__title">Kecerdasan Buatan (AI)</div>
+                <div class="set-panel__sub">Konfigurasi kunci API untuk fitur Asisten AI (Gemini).</div>
+              </div>
+            </div>
+          </div>
+          <div class="set-panel__body">
+            <div class="alert alert-info mb-4" role="alert" style="border-radius: 12px; background: rgba(115, 103, 240, 0.08); border: 1px solid rgba(115, 103, 240, 0.15);">
+              <div class="d-flex align-items-center gap-3">
+                <i class="ti tabler-info-circle fs-3 text-primary"></i>
+                <div class="text-white">
+                  <strong>Tentang Asisten AI:</strong><br>
+                  Aplikasi ini menggunakan Google Gemini AI untuk membantu administrasi. Masukkan kunci API yang valid untuk mengaktifkan fitur chat asisten.
+                </div>
+              </div>
+            </div>
+
+            <div class="set-field">
+              <label class="set-label">Gemini API Key</label>
+              <div class="set-input-group set-password-toggle">
+                <span class="set-input-prefix"><i class="ti tabler-key"></i></span>
+                <input type="password" class="set-input font-monospace" name="gemini_api_key"
+                  value="{{ old('gemini_api_key', $settings['gemini_api_key'] ?? '') }}"
+                  placeholder="Masukkan API Key Gemini di sini...">
+                <button type="button" class="set-input-eye">
+                  <i class="ti tabler-eye-off"></i>
+                </button>
+              </div>
+              <div class="set-field-hint --info">
+                <i class="ti tabler-info-circle"></i> 
+                Dapatkan API Key di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-info text-decoration-underline">Google AI Studio</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {{-- ══ TAB 7: PEMBARUAN GITHUB ══ --}}
       @if(auth()->user()->isSuperAdmin())
       <div class="set-tab" id="tab-update">
         <div class="set-panel">

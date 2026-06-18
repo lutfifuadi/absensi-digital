@@ -56,7 +56,7 @@
     .chat-bubble-user {
         background: linear-gradient(135deg, #7367f0, #9e95f5);
         color: #fff;
-        border-radius: 5px 5px 5px 18px;
+        border-radius: 5px;
         padding: 10px 16px;
         max-width: 80%;
         margin-bottom: 10px;
@@ -68,7 +68,7 @@
     .chat-bubble-ai {
         background: rgba(255, 255, 255, 0.04);
         border: 1px solid var(--das-border);
-        border-radius: 5px 18px 5px 5px;
+        border-radius: 5px;
         padding: 10px 16px;
         max-width: 80%;
         margin-bottom: 10px;
@@ -77,6 +77,17 @@
     }
     .chat-bubble-ai p {
         color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 0.5rem;
+    }
+    .markdown-body p:last-child {
+        margin-bottom: 0;
+    }
+    .markdown-body ul, .markdown-body ol {
+        margin-bottom: 0.5rem;
+        padding-left: 1.25rem;
+    }
+    .markdown-body li {
+        margin-bottom: 0.25rem;
     }
 
     /* Timestamp */
@@ -188,6 +199,25 @@
         background: rgba(234, 84, 85, 0.12);
         color: #ea5455 !important;
         border-color: rgba(234, 84, 85, 0.5);
+    }
+
+    /* ── TYPING INDICATOR ────────────────────────────────── */
+    .typing-indicator {
+        display: flex;
+        gap: 3px;
+    }
+    .typing-indicator span {
+        width: 4px;
+        height: 4px;
+        background: var(--das-primary);
+        border-radius: 50%;
+        animation: typingBounce 1.4s infinite ease-in-out both;
+    }
+    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes typingBounce {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1); }
     }
 
     /* ── RESPONSIVE ────────────────────────────────────────── */

@@ -92,7 +92,7 @@
         .msg-bubble {
             max-width: 85%;
             padding: 10px 14px;
-            border-radius: 16px;
+            border-radius: 5px;
             margin-bottom: 8px;
             word-wrap: break-word;
         }
@@ -107,18 +107,29 @@
         .msg-user {
             background: linear-gradient(135deg, #7367f0, #9e95f5);
             color: #fff;
-            border-radius: 16px 16px 4px 16px;
+            border-radius: 5px;
             align-self: flex-end;
         }
         .msg-ai {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px 16px 16px 4px;
+            border-radius: 5px;
             align-self: flex-start;
             backdrop-filter: blur(6px);
         }
         .msg-ai p {
             color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 0.4rem;
+        }
+        .markdown-body p:last-child {
+            margin-bottom: 0;
+        }
+        .markdown-body ul {
+            margin-bottom: 0.4rem;
+            padding-left: 1.1rem;
+        }
+        .markdown-body li {
+            margin-bottom: 0.2rem;
         }
 
         .floating-unread {
@@ -250,6 +261,25 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
+        /* Typing Indicator Floating */
+        .typing-indicator {
+            display: flex;
+            gap: 2px;
+        }
+        .typing-indicator span {
+            width: 3px;
+            height: 3px;
+            background: #7367f0;
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out both;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
         @media (max-width: 480px) {
             .floating-chat-window {
                 width: calc(100vw - 32px);
@@ -305,10 +335,42 @@
                             </div>
                         @endif
 
-                        @foreach($messages as $msg)
-                            <div class="d-flex {{ $msg['role'] === 'user' ? 'justify-content-end' : 'justify-content-start' }}">
+        @foreach($messages as $index => $msg)
+                            <div class="d-flex {{ $msg['role'] === 'user' ? 'justify-content-end' : 'justify-content-start' }}"
+                                 @if($msg['role'] === 'assistant' && $index === count($messages) - 1)
+                                    x-data="{
+                                        fullText: '{{ str_replace(["\r", "\n"], ['\r', '\n'], addslashes($msg['message'])) }}',
+                                        displayedText: '',
+                                        currentIndex: 0,
+                                        speed: 15,
+                                        init() {
+                                            if (window.lastProcessedFloatingId === '{{ $msg['id'] }}') {
+                                                this.displayedText = this.fullText;
+                                                return;
+                                            }
+                                            window.lastProcessedFloatingId = '{{ $msg['id'] }}';
+                                            this.type();
+                                        },
+                                        type() {
+                                            if (this.currentIndex < this.fullText.length) {
+                                                this.displayedText += this.fullText.charAt(this.currentIndex);
+                                                this.currentIndex++;
+                                                
+                                                // Render markdown
+                                                $el.querySelector('.markdown-body').innerHTML = marked.parse(this.displayedText);
+                                                
+                                                setTimeout(() => this.type(), this.speed);
+                                                scrollFloating();
+                                            }
+                                        }
+                                    }"
+                                 @endif>
                                 <div class="msg-bubble {{ $msg['role'] === 'user' ? 'msg-user' : 'msg-ai' }}">
-                                    <p>{{ $msg['message'] }}</p>
+                                    <div class="mb-0 markdown-body" style="font-size: 13px;">
+                                        @if($msg['role'] === 'user' || $index < count($messages) - 1)
+                                            {!! \Illuminate\Support\Str::markdown($msg['message']) !!}
+                                        @endif
+                                    </div>
                                     <small style="color: {{ $msg['role'] === 'user' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.4)' }};">{{ $msg['time'] }}</small>
                                 </div>
                             </div>
@@ -318,8 +380,12 @@
                             <div class="d-flex justify-content-start">
                                 <div class="msg-bubble msg-ai">
                                     <div class="d-flex align-items-center gap-2">
-                                        <div class="spinner-grow spinner-grow-sm text-primary" role="status"></div>
-                                        <small style="color:rgba(255,255,255,0.5);">AI sedang berpikir...</small>
+                                        <div class="typing-indicator">
+                                            <span></span>
+                                            <span></span>
+                                            <span></span>
+                                        </div>
+                                        <small style="color:rgba(255,255,255,0.5); font-weight: 600;">Mengetik...</small>
                                     </div>
                                 </div>
                             </div>
@@ -350,7 +416,10 @@
         @endif
     @endauth
 
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
+        window.lastProcessedFloatingId = null;
+
         document.addEventListener('livewire:initialized', function () {
             Livewire.on('chat-message-sent', function () { scrollFloating(); });
             Livewire.on('chat-message-received', function () { scrollFloating(); });

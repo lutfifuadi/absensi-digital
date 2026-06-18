@@ -102,6 +102,9 @@ class PengaturanController extends Controller
         'github_repo_owner' => '',
         'github_repo_name' => '',
         'app_version' => '1.3.0',
+
+        // AI Configuration
+        'gemini_api_key' => '',
     ];
 
     protected \App\Services\UpdateService $updateService;

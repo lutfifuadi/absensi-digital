@@ -24,6 +24,9 @@ class AiChatController extends Controller
 
     public function sendMessage(Request $request)
     {
+        // Tingkatkan execution time khusus untuk request ini
+        @set_time_limit(120);
+
         $validated = $request->validate([
             'message' => 'required|string|max:2000',
         ]);

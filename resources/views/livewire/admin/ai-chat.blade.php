@@ -30,10 +30,45 @@
             </div>
 
             <div wire:loading.class="opacity-50" id="messagesContainer">
-                @foreach($messages as $msg)
-                    <div class="d-flex mb-2 {{ $msg['role'] === 'user' ? 'justify-content-end' : 'justify-content-start' }}">
+                @foreach($messages as $index => $msg)
+                    <div class="d-flex mb-2 {{ $msg['role'] === 'user' ? 'justify-content-end' : 'justify-content-start' }}" 
+                         @if($msg['role'] === 'assistant' && $index === count($messages) - 1) 
+                            x-data="{ 
+                                fullText: '{{ str_replace(["\r", "\n"], ['\r', '\n'], addslashes($msg['message'])) }}', 
+                                displayedText: '',
+                                currentIndex: 0,
+                                speed: 20,
+                                init() {
+                                    if (window.lastProcessedMessageId === '{{ $msg['id'] }}') {
+                                        this.displayedText = this.fullText;
+                                        return;
+                                    }
+                                    window.lastProcessedMessageId = '{{ $msg['id'] }}';
+                                    this.type();
+                                },
+                                type() {
+                                    if (this.currentIndex < this.fullText.length) {
+                                        this.displayedText += this.fullText.charAt(this.currentIndex);
+                                        this.currentIndex++;
+                                        
+                                        // Render markdown
+                                        let markdownContainer = $el.querySelector('.markdown-body');
+                                        if (markdownContainer) {
+                                            markdownContainer.innerHTML = marked.parse(this.displayedText);
+                                        }
+                                        
+                                        setTimeout(() => this.type(), this.speed);
+                                        scrollToBottom();
+                                    }
+                                }
+                            }" 
+                         @endif>
                         <div class="chat-bubble-{{ $msg['role'] === 'user' ? 'user' : 'ai' }}">
-                            <p class="mb-0" style="white-space: pre-wrap;">{{ $msg['message'] }}</p>
+                            <div class="mb-0 markdown-body" style="font-size: 0.85rem;">
+                                @if($msg['role'] === 'user' || $index < count($messages) - 1)
+                                    {!! \Illuminate\Support\Str::markdown($msg['message']) !!}
+                                @endif
+                            </div>
                             <small class="chat-ts chat-ts-{{ $msg['role'] === 'user' ? 'user' : 'ai' }}">{{ $msg['time'] }}</small>
                         </div>
                     </div>
@@ -44,8 +79,12 @@
                 <div class="d-flex justify-content-start mb-2">
                     <div class="chat-bubble-ai">
                         <div class="d-flex align-items-center gap-2">
-                            <div class="spinner-grow spinner-grow-sm text-primary" role="status"></div>
-                            <small style="color:rgba(255,255,255,0.5);">AI sedang berpikir...</small>
+                            <div class="typing-indicator">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                            <small style="color:rgba(255,255,255,0.5); font-weight: 600;">Asisten Mansaba sedang mengetik...</small>
                         </div>
                     </div>
                 </div>
@@ -65,9 +104,8 @@
             <form wire:submit="send">
                 <div class="input-group">
                     <input type="text" class="form-control das-form-control" placeholder="Ketik pesan..." wire:model="message" wire:keydown.enter="send" {{ $isLoading ? 'disabled' : '' }}>
-                    <button class="das-btn --primary" type="submit" wire:loading.attr="disabled" {{ $isLoading ? 'disabled' : '' }}>
-                        <i class="ti tabler-send" wire:loading.remove></i>
-                        <span wire:loading><span class="spinner-border spinner-border-sm" role="status"></span></span>
+                    <button class="das-btn --primary" type="submit" {{ $isLoading ? 'disabled' : '' }}>
+                        <i class="ti tabler-send"></i>
                         <span class="d-none d-sm-inline ms-50">Kirim</span>
                     </button>
                 </div>
@@ -75,7 +113,10 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
+        window.lastProcessedMessageId = null;
+
         document.addEventListener('livewire:initialized', function () {
             Livewire.on('chat-message-sent', function () {
                 scrollToBottom();

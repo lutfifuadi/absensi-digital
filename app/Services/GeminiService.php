@@ -12,8 +12,8 @@ class GeminiService
     protected array $apiKeys = [];
     protected string $model;
     protected string $baseUrl;
-    protected int $maxRetries = 3;
-    protected int $timeout = 60;
+    protected int $maxRetries = 2;
+    protected int $timeout = 8;
 
     public function __construct()
     {
@@ -24,12 +24,30 @@ class GeminiService
 
     protected function loadApiKeys(): void
     {
-        $stored = Pengaturan::where('key', 'gemini_api_keys')->value('value');
+        // Coba ambil dari key baru 'gemini_api_key'
+        $stored = Pengaturan::where('key', 'gemini_api_key')->value('value');
 
         if ($stored) {
-            $keys = json_decode($stored, true);
-            if (is_array($keys) && count($keys) > 0) {
-                $this->apiKeys = array_values(array_filter($keys, fn($k) => !empty($k)));
+            // Coba decode sebagai JSON (untuk format ["key1", "key2"])
+            $decoded = json_decode($stored, true);
+            
+            if (is_array($decoded)) {
+                $this->apiKeys = array_values(array_filter($decoded, fn($k) => !empty($k)));
+            } else {
+                // Jika bukan JSON, mungkin format koma: key1, key2, key3
+                $parts = explode(',', $stored);
+                $this->apiKeys = array_values(array_filter(array_map('trim', $parts), fn($k) => !empty($k)));
+            }
+        }
+
+        // Fallback ke key lama 'gemini_api_keys' jika masih kosong
+        if (empty($this->apiKeys)) {
+            $oldStored = Pengaturan::where('key', 'gemini_api_keys')->value('value');
+            if ($oldStored) {
+                $decodedOld = json_decode($oldStored, true);
+                if (is_array($decodedOld)) {
+                    $this->apiKeys = array_values(array_filter($decodedOld, fn($k) => !empty($k)));
+                }
             }
         }
 
@@ -190,9 +208,14 @@ class GeminiService
 
     protected function buildSystemInstruction(): array
     {
-        $instruction = 'Kamu adalah asisten AI untuk sistem absensi sekolah. ';
+        $instruction = 'Kamu adalah asisten AI untuk sistem absensi sekolah bernama "Asisten Mansaba". ';
         $instruction .= 'Tugasmu membantu user mengelola data seperti siswa, guru, kelas, dan pengaturan lainnya. ';
-        $instruction .= 'Gunakan bahasa Indonesia yang sopan dan profesional. ';
+        $instruction .= 'Gunakan bahasa Indonesia yang sopan, ramah, dan profesional. ';
+        $instruction .= 'SELALU berikan jawaban dalam format Markdown yang rapi: ';
+        $instruction .= '- Gunakan **tebal** untuk poin penting atau angka. ';
+        $instruction .= '- Gunakan bullet points atau tabel untuk menyajikan data list. ';
+        $instruction .= '- Gunakan emoji yang relevan (misal: 👨‍🎓, 👩‍🏫, 🏫, 📊) agar tampilan menarik. ';
+        $instruction .= '- Berikan jawaban yang padat dan tidak terlalu banyak baris kosong antar paragraf. ';
         $instruction .= 'Jika user meminta edit data, gunakan tool yang tersedia. ';
         $instruction .= 'Jangan pernah memberikan informasi sensitif seperti password.';
 
@@ -295,8 +318,20 @@ class GeminiService
                     return $this->errorResponse('Semua API Key tidak valid atau tidak memiliki izin.');
                 }
 
-                if ($status === 500 || $status === 503) {
-                    Log::warning("Gemini API server error (attempt {$attempt})", ['status' => $status]);
+                if ($status === 503) {
+                    Log::warning("Gemini API 503 Service Unavailable (attempt {$attempt})");
+                    if ($attempt < $this->maxRetries) {
+                        sleep(1); // Jeda 1 detik sebelum ganti key biar server sempat pulih
+                        if ($this->rotateToNextKey()) {
+                            continue;
+                        }
+                        sleep(2 * $attempt);
+                        continue;
+                    }
+                }
+
+                if ($status === 500) {
+                    Log::warning("Gemini API 500 Internal Server Error (attempt {$attempt})");
                     if ($attempt < $this->maxRetries) {
                         if ($this->rotateToNextKey()) {
                             continue;

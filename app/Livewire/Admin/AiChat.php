@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\ChatLog;
 use App\Services\GeminiService;
 use Livewire\Component;
+use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Log;
 
 class AiChat extends Component
@@ -46,6 +47,9 @@ class AiChat extends Component
 
     public function send()
     {
+        // Tingkatkan execution time khusus untuk request ini
+        @set_time_limit(120);
+
         $this->validate([
             'message' => 'required|string|max:2000',
         ]);
@@ -57,7 +61,7 @@ class AiChat extends Component
         $userMessage = trim($this->message);
         $user = auth()->user();
 
-        // Tampilkan bubble user dulu
+        // 1. Tampilkan bubble user dulu & simpan ke DB
         $this->messages[] = [
             'id' => uniqid('msg_'),
             'role' => 'user',
@@ -65,22 +69,35 @@ class AiChat extends Component
             'time' => now()->format('H:i'),
         ];
 
+        ChatLog::create([
+            'user_id' => $user->id,
+            'role' => 'user',
+            'message' => $userMessage,
+        ]);
+
         $this->message = '';
+        
+        // 2. Dispatch event agar UI scroll dan memicu pemrosesan AI setelah pesan terkirim
         $this->dispatch('chat-message-sent');
+        $this->dispatch('process-ai-response');
+    }
+
+    #[On('process-ai-response')]
+    public function processAi()
+    {
+        $user = auth()->user();
+        // Ambil pesan terakhir user dari array messages
+        $userMessages = array_filter($this->messages, fn($m) => $m['role'] === 'user');
+        $lastUserMessage = end($userMessages)['message'];
 
         try {
-            // Simpan pesan user ke database
-            ChatLog::create([
-                'user_id' => $user->id,
-                'role' => 'user',
-                'message' => $userMessage,
-            ]);
-
-            // Panggil Gemini langsung tanpa HTTP request ke diri sendiri
+            // Panggil Gemini langsung
             $gemini = app(GeminiService::class);
             $history = $gemini->getHistory($user->id, 20);
             $tools = $gemini->getToolDefinitions();
-            $response = $gemini->sendWithTools($userMessage, $tools, $history);
+            $response = $gemini->sendWithTools($lastUserMessage, $tools, $history);
+            
+            // ... (logika proses respons sama seperti sebelumnya)
 
             $replyText = 'Maaf, terjadi kesalahan saat memproses pesan Anda.';
             $hasError = false;
@@ -113,13 +130,17 @@ class AiChat extends Component
                 ],
             ]);
 
-            // Tampilkan bubble AI
+            // Tampilkan bubble AI — langsung aktifkan tombol agar user bisa bertanya lagi
             $this->messages[] = [
                 'id' => uniqid('resp_'),
                 'role' => 'assistant',
                 'message' => $replyText,
                 'time' => now()->format('H:i'),
             ];
+            
+            // Buka kunci tombol kirim segera setelah pesan AI muncul (typing animasi tetap jalan di frontend)
+            $this->isLoading = false;
+            $this->dispatch('chat-message-received');
 
             if ($hasError) {
                 $this->hasError = true;
@@ -145,12 +166,14 @@ class AiChat extends Component
                 'message' => 'Maaf, terjadi kesalahan sistem. Silakan coba lagi.',
                 'time' => now()->format('H:i'),
             ];
+            
+            // Buka kunci tombol kirim meskipun error
+            $this->isLoading = false;
+            $this->dispatch('chat-message-received');
+            
             $this->hasError = true;
             $this->errorMessage = 'Kesalahan sistem: ' . $e->getMessage();
         }
-
-        $this->isLoading = false;
-        $this->dispatch('chat-message-received');
     }
 
     public function clearChat()

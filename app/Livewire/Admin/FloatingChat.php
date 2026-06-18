@@ -131,6 +131,10 @@ class FloatingChat extends Component
                 'message' => $replyText,
                 'time' => now()->format('H:i'),
             ];
+            
+            // Buka kunci tombol kirim segera
+            $this->isLoading = false;
+            $this->dispatch('chat-message-received');
 
             if ($hasError) {
                 $this->hasError = true;
@@ -155,12 +159,14 @@ class FloatingChat extends Component
                 'message' => 'Maaf, terjadi kesalahan sistem. Silakan coba lagi.',
                 'time' => now()->format('H:i'),
             ];
+            
+            // Buka kunci tombol kirim meskipun error
+            $this->isLoading = false;
+            $this->dispatch('chat-message-received');
+            
             $this->hasError = true;
             $this->errorMessage = 'Kesalahan sistem: ' . $e->getMessage();
         }
-
-        $this->isLoading = false;
-        $this->dispatch('chat-message-received');
     }
 
     public function clearChat()
