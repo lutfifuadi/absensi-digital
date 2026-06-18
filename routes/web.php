@@ -276,6 +276,12 @@ Route::middleware([
       Route::post('ekskul/{ekskul}/generate-qr', [EkskulAbsensiController::class, 'generateQR'])
           ->name('admin.ekskul.generate-qr')
           ->middleware('role:super_admin,admin_sekolah,operator,guru');
+      Route::post('ekskul/{ekskul}/absensi/lookup-siswa', [EkskulAbsensiController::class, 'lookupSiswa'])
+          ->name('admin.ekskul.absensi.lookup-siswa')
+          ->middleware('role:super_admin,admin_sekolah,operator,guru');
+      Route::post('ekskul/{ekskul}/absensi/admin-scan', [EkskulAbsensiController::class, 'adminScan'])
+          ->name('admin.ekskul.absensi.admin-scan')
+          ->middleware('role:super_admin,admin_sekolah,operator,guru');
       // ───────────────────────────────────────────────────────────────────────
 
       // Absensi Pelepasan Kelas XII

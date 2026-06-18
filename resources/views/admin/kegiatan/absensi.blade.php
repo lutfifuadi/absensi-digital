@@ -138,7 +138,11 @@
             </td>
             <td>
               <div class="text-white small fw-medium mb-1">
-                {{ $k->tanggal_pelaksanaan->translatedFormat('d F Y') }}
+                @if($k->tanggal_pelaksanaan)
+                  {{ $k->tanggal_pelaksanaan->translatedFormat('d F Y') }}
+                @else
+                  <span class="das-chip das-chip--warning" style="font-size:.6rem;padding:1px 8px;">Fleksibel</span>
+                @endif
               </div>
               <div class="text-muted d-flex align-items-center gap-1" style="font-size:.7rem;">
                 <i class="ti tabler-map-pin" style="font-size:.8rem;"></i> {{ $k->lokasi ?? 'Lokasi tidak diatur' }}

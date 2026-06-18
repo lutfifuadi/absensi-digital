@@ -170,24 +170,62 @@
           </div>
 
           {{-- Tanggal --}}
-          <div class="col-md-4">
-            <label class="das-form-label">Tanggal <span style="color:var(--das-danger);">*</span></label>
-            <input type="date" name="tanggal_pelaksanaan" value="{{ old('tanggal_pelaksanaan', $kegiatan->tanggal_pelaksanaan?->format('Y-m-d')) }}"
-                   class="form-control das-form-control" required>
+          <div class="col-md-4" id="tanggal_wrapper">
+            <label class="das-form-label">Tanggal</label>
+            <input type="date" name="tanggal_pelaksanaan" id="tanggal_pelaksanaan" value="{{ old('tanggal_pelaksanaan', $kegiatan->tanggal_pelaksanaan?->format('Y-m-d')) }}"
+                   class="form-control das-form-control">
+          </div>
+
+          {{-- Tanpa Tanggal Pasti --}}
+          <div class="col-12">
+            <div class="p-3 mb-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
+              <div class="form-check">
+                <input type="checkbox" id="tanpa_tanggal_pasti" class="form-check-input"
+                       style="width:18px;height:18px;cursor:pointer;"
+                       onchange="toggleTanggal(this)"
+                       {{ !$kegiatan->tanggal_pelaksanaan ? 'checked' : '' }}>
+                <label class="form-check-label text-white small fw-semibold" for="tanpa_tanggal_pasti" style="cursor:pointer;font-size:.82rem;">
+                  <i class="ti tabler-calendar-off text-warning me-1"></i>
+                  Tanpa tanggal pasti (kegiatan rutin/fleksibel)
+                </label>
+                <small class="text-muted d-block mt-1" style="font-size:.7rem;">
+                  <i class="ti tabler-info-circle"></i> Jika diaktifkan, kegiatan tidak terikat pada tanggal tertentu (contoh: Sholat Dhuha).
+                </small>
+              </div>
+            </div>
+          </div>
+
+          {{-- Tanpa Batas Waktu --}}
+          <div class="col-12">
+            <div class="p-3 mb-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
+              <div class="form-check">
+                <input type="checkbox" id="tanpa_batas_waktu" class="form-check-input"
+                       style="width:18px;height:18px;cursor:pointer;"
+                       onchange="toggleWaktu(this)"
+                       {{ !$kegiatan->waktu_mulai || !$kegiatan->waktu_selesai ? 'checked' : '' }}>
+                <label class="form-check-label text-white small fw-semibold" for="tanpa_batas_waktu" style="cursor:pointer;font-size:.82rem;">
+                  <i class="ti tabler-clock-off text-info me-1"></i>
+                  Kegiatan seharian penuh (tanpa batas waktu)
+                </label>
+                <small class="text-muted d-block mt-1" style="font-size:.7rem;">
+                  <i class="ti tabler-info-circle"></i> Jika diaktifkan, kegiatan berlangsung seharian penuh dan input waktu mulai & selesai tidak diperlukan.
+                </small>
+              </div>
+            </div>
           </div>
 
           {{-- Waktu Mulai --}}
-          <div class="col-md-4">
-            <label class="das-form-label">Waktu Mulai <span style="color:var(--das-danger);">*</span></label>
-            <input type="time" name="waktu_mulai" value="{{ old('waktu_mulai', $kegiatan->waktu_mulai) }}"
-                   class="form-control das-form-control" required>
+          <div class="col-md-4" id="waktu_mulai_wrapper">
+            <label class="das-form-label">Waktu Mulai</label>
+            <input type="time" name="waktu_mulai" id="waktu_mulai" value="{{ old('waktu_mulai', $kegiatan->waktu_mulai) }}"
+                   class="form-control das-form-control">
           </div>
 
           {{-- Waktu Selesai --}}
-          <div class="col-md-4">
-            <label class="das-form-label">Waktu Selesai <span style="color:var(--das-danger);">*</span></label>
-            <input type="time" name="waktu_selesai" value="{{ old('waktu_selesai', $kegiatan->waktu_selesai) }}"
-                   class="form-control das-form-control" required>
+          <div class="col-md-4" id="waktu_selesai_wrapper">
+            <label class="das-form-label">Waktu Selesai</label>
+            <input type="time" name="waktu_selesai" id="waktu_selesai" value="{{ old('waktu_selesai', $kegiatan->waktu_selesai) }}"
+                   class="form-control das-form-control">
           </div>
 
           {{-- Lokasi --}}
@@ -325,6 +363,49 @@
 
     // Initial check
     updateKelasVisibility();
+
+    // Toggle tanggal berdasarkan checkbox tanpa tanggal pasti
+    window.toggleTanggal = function(checkbox) {
+      const tanggalWrapper = document.getElementById('tanggal_wrapper');
+      const tanggalInput = document.getElementById('tanggal_pelaksanaan');
+
+      if (checkbox.checked) {
+        tanggalWrapper.style.display = 'none';
+        tanggalInput.value = '';
+      } else {
+        tanggalWrapper.style.display = 'block';
+      }
+    };
+
+    // Toggle waktu berdasarkan checkbox tanpa batas waktu
+    window.toggleWaktu = function(checkbox) {
+      const mulaiWrapper = document.getElementById('waktu_mulai_wrapper');
+      const selesaiWrapper = document.getElementById('waktu_selesai_wrapper');
+      const waktuMulai = document.getElementById('waktu_mulai');
+      const waktuSelesai = document.getElementById('waktu_selesai');
+
+      if (checkbox.checked) {
+        mulaiWrapper.style.display = 'none';
+        selesaiWrapper.style.display = 'none';
+        waktuMulai.value = '';
+        waktuSelesai.value = '';
+      } else {
+        mulaiWrapper.style.display = 'block';
+        selesaiWrapper.style.display = 'block';
+      }
+    };
+
+    // Run on page load to set correct initial state
+    setTimeout(function() {
+      const cbTanggal = document.getElementById('tanpa_tanggal_pasti');
+      if (cbTanggal && cbTanggal.checked) {
+        window.toggleTanggal(cbTanggal);
+      }
+      const cbWaktu = document.getElementById('tanpa_batas_waktu');
+      if (cbWaktu && cbWaktu.checked) {
+        window.toggleWaktu(cbWaktu);
+      }
+    }, 100);
   });
 </script>
 @endsection

@@ -483,7 +483,11 @@
     {{-- Info kegiatan --}}
     <div class="sidebar-info">
       <strong>{{ $kegiatan->nama_kegiatan }}</strong><br>
-      {{ \Carbon\Carbon::parse($kegiatan->tanggal_pelaksanaan)->locale('id')->isoFormat('dddd, D MMMM Y') }}
+      @if($kegiatan->tanggal_pelaksanaan)
+        {{ \Carbon\Carbon::parse($kegiatan->tanggal_pelaksanaan)->locale('id')->isoFormat('dddd, D MMMM Y') }}
+      @else
+        <span style="color:#64748b;">Fleksibel (setiap hari)</span>
+      @endif
     </div>
 
     <div class="stats-row">

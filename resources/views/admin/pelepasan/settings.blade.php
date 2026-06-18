@@ -251,7 +251,7 @@
                                 <option value="">-- Pilih Kegiatan Pelepasan --</option>
                                 @foreach($kegiatans as $k)
                                     <option value="{{ $k->id }}" class="bg-dark" {{ $currentKegiatanId == $k->id ? 'selected' : '' }}>
-                                        {{ $k->nama_kegiatan }} ({{ $k->tanggal_pelaksanaan->format('d M Y') }})
+                                        {{ $k->nama_kegiatan }} @if($k->tanggal_pelaksanaan)({{ $k->tanggal_pelaksanaan->format('d M Y') }})@else(Fleksibel)@endif
                                     </option>
                                 @endforeach
                             </select>
@@ -324,9 +324,9 @@
             const kData = {
                 @foreach($kegiatans as $k)
                 '{{ $k->id }}': {
-                    tanggal: '{{ $k->tanggal_pelaksanaan->format('l, d F Y') }}',
+                    tanggal: '{{ $k->tanggal_pelaksanaan ? $k->tanggal_pelaksanaan->format('l, d F Y') : 'Fleksibel' }}',
                     lokasi: '{{ $k->lokasi ?? "-" }}',
-                    waktu: '{{ $k->waktu_mulai }} - {{ $k->waktu_selesai }}',
+                    waktu: '{{ $k->waktu_mulai && $k->waktu_selesai ? $k->waktu_mulai . ' - ' . $k->waktu_selesai : 'Seharian' }}',
                     editUrl: '{{ route('admin.kegiatan.edit', $k->id) }}'
                 },
                 @endforeach

@@ -30,9 +30,9 @@ class KegiatanController extends Controller
         $data = $request->validate([
             'nama_kegiatan' => 'required|string|max:255',
             'jenis' => 'required|string',
-            'tanggal_pelaksanaan' => 'required|date',
-            'waktu_mulai' => 'required',
-            'waktu_selesai' => 'required',
+            'tanggal_pelaksanaan' => 'nullable|date',
+            'waktu_mulai' => 'nullable',
+            'waktu_selesai' => 'nullable',
             'lokasi' => 'nullable|string',
             'keterangan' => 'nullable|string|max:500',
             'target_peserta' => 'nullable|array',
@@ -43,6 +43,11 @@ class KegiatanController extends Controller
         $data['is_wajib'] = $request->boolean('is_wajib');
         $data['qr_code_kegiatan'] = 'KGT-' . strtoupper(Str::random(10));
         $data['tahun_akademik_id'] = session('tahun_akademik_id') ?? TahunAkademik::where('is_aktif', true)->first()?->id;
+
+        // Jika tanggal_pelaksanaan dikirim kosong, set ke null
+        if (empty($data['tanggal_pelaksanaan'])) {
+            $data['tanggal_pelaksanaan'] = null;
+        }
 
         Kegiatan::create($data);
 
@@ -67,9 +72,9 @@ class KegiatanController extends Controller
         $data = $request->validate([
             'nama_kegiatan' => 'required|string|max:255',
             'jenis' => 'required|string',
-            'tanggal_pelaksanaan' => 'required|date',
-            'waktu_mulai' => 'required',
-            'waktu_selesai' => 'required',
+            'tanggal_pelaksanaan' => 'nullable|date',
+            'waktu_mulai' => 'nullable',
+            'waktu_selesai' => 'nullable',
             'lokasi' => 'nullable|string',
             'keterangan' => 'nullable|string|max:500',
             'target_peserta' => 'nullable|array',
@@ -78,6 +83,12 @@ class KegiatanController extends Controller
         ]);
 
         $data['is_wajib'] = $request->boolean('is_wajib');
+
+        // Jika tanggal_pelaksanaan dikirim kosong, set ke null
+        if (empty($data['tanggal_pelaksanaan'])) {
+            $data['tanggal_pelaksanaan'] = null;
+        }
+
         $kegiatan->update($data);
 
         return redirect()->route('admin.kegiatan.index')->with('success', 'Kegiatan berhasil diperbarui.');

@@ -51,7 +51,7 @@
             <select id="kegiatan_id" name="kegiatan_id" class="form-select">
               <option value="">-- Pilih Kegiatan --</option>
               @foreach($kegiatans as $kegiatan)
-                <option value="{{ $kegiatan->id }}" {{ old('kegiatan_id') == $kegiatan->id ? 'selected' : '' }}>{{ $kegiatan->nama }} ({{ $kegiatan->tanggal_pelaksanaan }})</option>
+                <option value="{{ $kegiatan->id }}" {{ old('kegiatan_id') == $kegiatan->id ? 'selected' : '' }}>{{ $kegiatan->nama }} @if($kegiatan->tanggal_pelaksanaan)({{ $kegiatan->tanggal_pelaksanaan }})@else(Fleksibel)@endif</option>
               @endforeach
             </select>
           </div>

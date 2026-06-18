@@ -46,6 +46,74 @@
   .shortcut-card { background: rgba(255,255,255,.03); border: 1px solid var(--das-border); border-radius: var(--das-radius); padding: 1rem; text-align: center; transition: all .2s; cursor: pointer; text-decoration: none; display: block; }
   .shortcut-card:hover { background: rgba(255,255,255,.06); border-color: rgba(115,103,240,.3); transform: translateY(-2px); }
   .shortcut-card__icon { font-size: 2rem; margin-bottom: .5rem; }
+
+  .scan-crosshair-admin {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; pointer-events: none; z-index: 5;
+  }
+  @keyframes scanLineAdmin {
+    0% { top: 5%; }
+    50% { top: 95%; }
+    100% { top: 5%; }
+  }
+
+  /* ── QR Video Container ── */
+  .qr-video-wrapper { position: relative; border-radius: 8px; overflow: hidden; background: #000; min-height: 180px; }
+  .qr-video { width: 100%; height: auto; display: block; min-height: 180px; object-fit: cover; }
+  .qr-canvas { display: none; }
+
+  /* ── QR Crosshair ── */
+  .qr-crosshair__box { width: 160px; height: 160px; position: relative; margin: auto; }
+
+  .qr-corner { position: absolute; width: 24px; height: 24px; border-color: var(--das-success); border-style: solid; }
+  .qr-corner--tl { top: 0; left: 0; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+  .qr-corner--tr { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+  .qr-corner--bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+  .qr-corner--br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+
+  .qr-scan-line {
+    position: absolute; left: 3px; right: 3px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--das-success), transparent);
+    box-shadow: 0 0 10px var(--das-success);
+    animation: scanLineAdmin 2s ease-in-out infinite;
+  }
+
+  /* ── QR Camera Overlays ── */
+  .qr-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+  .qr-overlay--idle { background: rgba(0,0,0,.3); }
+  .qr-overlay--error { background: rgba(0,0,0,.7); padding: 1rem; gap: 8px; }
+  .qr-overlay__icon { font-size: 2rem; opacity: .4; }
+  .qr-overlay__text { font-size: .7rem; max-width: 200px; text-align: center; }
+  .qr-overlay__error-icon { font-size: 1.5rem; }
+  .qr-overlay__error-text { font-size: .7rem; }
+
+  /* ── NIS Hint ── */
+  .qr-nis-hint { font-size: .65rem; }
+
+  /* ── Lookup Result Panel ── */
+  .qr-result { background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.2); }
+  .qr-result__avatar {
+    width: 42px; height: 42px; border-radius: 10px !important;
+    background: rgba(16, 185, 129, 0.15);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .qr-result__name { font-size: .85rem; }
+  .qr-result__meta { font-size: .7rem; }
+  .qr-result__badge { font-size: .6rem; }
+  .qr-result__alert {
+    font-size: .7rem; border-radius: 4px;
+    background: rgba(234,84,85,0.1); border: 1px solid rgba(234,84,85,0.2); color: #ea5455;
+  }
+  .qr-result__warning { font-size: .7rem; color: var(--das-warning); text-align: center; }
+
+  /* ── Scan Log ── */
+  .qr-log { border-top: 1px solid var(--das-border); padding-top: 0.75rem; }
+  .qr-log__header { font-size: .65rem; text-transform: uppercase; letter-spacing: .5px; font-weight: 700; }
+  .qr-log__container { max-height: 120px; overflow-y: auto; }
+  .qr-log__item { border-radius: 4px; background: rgba(255,255,255,0.03); }
+  .qr-log__icon { font-size: .8rem; }
+  .qr-log__message { font-size: .7rem; }
+  .qr-log__time { font-size: .6rem; }
 </style>
 @endsection
 
@@ -159,7 +227,7 @@
     </div>
 
     {{-- ═══════════ QR GENERATOR ═══════════ --}}
-    <div class="col-lg-4">
+    <div class="col-lg-4 d-flex flex-column gap-3">
       <div class="das-panel slide-in-up" x-data="qrGenerator({{ $ekskul->id }})">
         <div class="das-panel__head">
           <div class="das-panel__title">
@@ -206,6 +274,169 @@
           </div>
         </div>
       </div>
+
+      {{-- ═══════════ SCAN QR SISWA ═══════════ --}}
+      <div class="das-panel slide-in-up" x-data="qrScanner({{ $ekskul->id }})">
+        <div class="das-panel__head">
+          <div class="das-panel__title">
+            <span class="das-panel__icon-dot" style="background:var(--das-success);box-shadow:0 0 6px var(--das-success);"></span>
+            Scan QR Siswa
+          </div>
+        </div>
+        <div class="p-4">
+
+          {{-- ··· NIS INPUT ··· --}}
+          <div class="mb-3">
+            <label class="das-form-label">
+              <i class="ti tabler-id me-1 text-info"></i> NIS / NISN Siswa
+            </label>
+            <div class="d-flex gap-2">
+              <input type="text" x-model="nis"
+                class="form-control das-form-control flex-grow-1"
+                placeholder="Masukkan NIS..."
+                inputmode="numeric"
+                autocomplete="off"
+                maxlength="30"
+                :disabled="scannerActive || loading">
+              <button class="das-btn das-btn--primary flex-shrink-0" @click="lookupSiswa"
+                :disabled="!nis.trim() || loading"
+                x-show="!scannerActive">
+                <i class="ti tabler-search"></i>
+              </button>
+            </div>
+            <div class="text-white-50 small mt-1 qr-nis-hint">
+              <i class="ti tabler-info-circle"></i> Masukkan NIS manual, atau scan QR siswa
+            </div>
+          </div>
+
+          {{-- ··· CAMERA SECTION ··· --}}
+          <div class="position-relative mb-3 qr-video-wrapper">
+            {{-- Video Preview --}}
+            <video x-ref="video" playsinline muted autoplay
+              x-show="scannerActive"
+              class="qr-video">
+            </video>
+            <canvas x-ref="canvas" class="qr-canvas"></canvas>
+
+            {{-- Crosshair --}}
+            <div x-show="scannerActive" class="scan-crosshair-admin">
+              <div class="qr-crosshair__box">
+                <div class="qr-corner qr-corner--tl"></div>
+                <div class="qr-corner qr-corner--tr"></div>
+                <div class="qr-corner qr-corner--bl"></div>
+                <div class="qr-corner qr-corner--br"></div>
+                <div class="qr-scan-line"></div>
+              </div>
+            </div>
+
+            {{-- Idle / Initial State --}}
+            <div x-show="!scannerActive && !lookupResult"
+                 class="qr-overlay qr-overlay--idle">
+              <i class="ti tabler-camera text-muted qr-overlay__icon"></i>
+              <p class="text-white-50 small text-center mb-0 qr-overlay__text">Arahkan kamera ke QR Code siswa (kartu NIS / HP)</p>
+            </div>
+
+            {{-- Camera Error --}}
+            <div x-show="cameraError" class="qr-overlay qr-overlay--error">
+              <i class="ti tabler-alert-triangle text-danger qr-overlay__error-icon"></i>
+              <p class="text-danger small text-center mb-0 qr-overlay__error-text" x-text="cameraError"></p>
+            </div>
+          </div>
+
+          {{-- ··· CAMERA BUTTONS ··· --}}
+          <div class="d-flex gap-2 mb-3">
+            <button class="das-btn flex-grow-1 justify-content-center"
+              :class="scannerActive ? 'das-btn--danger' : 'das-btn--ghost'"
+              @click="scannerActive ? stopCamera() : startCamera()"
+              :disabled="loading">
+              <template x-if="!scannerActive">
+                <><i class="ti tabler-camera-plus me-1"></i> Buka Kamera</>
+              </template>
+              <template x-if="scannerActive">
+                <><i class="ti tabler-camera-off me-1"></i> Tutup Kamera</>
+              </template>
+            </button>
+            <button class="das-btn das-btn--ghost" @click="switchCamera" x-show="scannerActive"
+              :disabled="loading" title="Ganti Kamera">
+              <i class="ti tabler-camera-rotate"></i>
+            </button>
+          </div>
+
+          {{-- ··· LOADING ··· --}}
+          <div x-show="loading" class="text-center py-2">
+            <div class="spinner-border text-success spinner-border-sm me-2" role="status"></div>
+            <span class="text-white-50 small" x-text="loadingText"></span>
+          </div>
+
+          {{-- ··· LOOKUP RESULT ··· --}}
+          <div x-show="lookupResult" class="das-panel qr-result">
+            <div class="p-3">
+              <div class="d-flex align-items-center gap-3 mb-2">
+                <div class="qr-result__avatar">
+                  <i class="ti tabler-user-check text-success fs-5"></i>
+                </div>
+                <div class="min-w-0">
+                  <div class="text-white fw-semibold small qr-result__name" x-text="lookupResult.siswa.nama_lengkap"></div>
+                  <div class="text-white-50 small qr-result__meta">
+                    <span x-text="lookupResult.siswa.nis"></span>
+                    <template x-if="lookupResult.siswa.kelas">
+                      <span> · <span x-text="lookupResult.siswa.kelas"></span></span>
+                    </template>
+                  </div>
+                </div>
+                <template x-if="!lookupResult.is_anggota">
+                  <span class="badge bg-danger ms-auto qr-result__badge">Non-Anggota</span>
+                </template>
+              </div>
+
+              <template x-if="!lookupResult.is_anggota">
+                <div class="alert alert-danger py-1 px-2 mb-2 qr-result__alert">
+                  <i class="ti tabler-alert-triangle me-1"></i> Siswa ini bukan anggota ekskul
+                </div>
+              </template>
+
+              <div class="d-flex gap-2 mt-2">
+                <button class="das-btn flex-grow-1 justify-content-center"
+                  :class="confirmed ? 'das-btn--success' : 'das-btn--primary'"
+                  @click="confirmAbsensi"
+                  :disabled="loading || confirmed || !lookupResult.is_anggota">
+                  <template x-if="!confirmed">
+                    <><i class="ti tabler-check me-1"></i> Konfirmasi Absen</>
+                  </template>
+                  <template x-if="confirmed">
+                    <><i class="ti tabler-circle-check me-1"></i> Tercatat Hadir</>
+                  </template>
+                </button>
+                <button class="das-btn das-btn--ghost" @click="resetScan" :disabled="loading">
+                  <i class="ti tabler-x"></i>
+                </button>
+              </div>
+
+              {{-- Warning for already attended --}}
+              <div x-show="alreadyAttended" class="mt-2 qr-result__warning">
+                <i class="ti tabler-exclamation-circle me-1"></i> <span x-text="alreadyMessage"></span>
+              </div>
+            </div>
+          </div>
+
+          {{-- ··· SCAN LOG ··· --}}
+          <div x-show="scanLog.length > 0" class="mt-3 qr-log">
+            <div class="text-white-50 small mb-2 qr-log__header">
+              <i class="ti tabler-clock me-1"></i> Riwayat Scan Hari Ini
+            </div>
+            <div class="d-flex flex-column gap-1 qr-log__container">
+              <template x-for="(log, idx) in scanLog" :key="idx">
+                <div class="d-flex align-items-center gap-2 px-2 py-1 qr-log__item">
+                  <i class="ti qr-log__icon" :class="log.type === 'success' ? 'tabler-circle-check text-success' : (log.type === 'warning' ? 'tabler-exclamation-circle text-warning' : 'tabler-circle-x text-danger')"></i>
+                  <span class="text-white small flex-grow-1 qr-log__message" x-text="log.message"></span>
+                  <span class="text-white-50 qr-log__time" x-text="log.time"></span>
+                </div>
+              </template>
+            </div>
+          </div>
+
+        </div>
+      </div>
     </div>
   </div>
 
@@ -247,6 +478,7 @@
 @endsection
 
 @section('page-script')
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     // Buka absensi dengan tanggal yang dipilih
@@ -288,8 +520,8 @@
           const result = await response.json();
 
           if (result.success) {
-            // Gunakan QR API eksternal untuk generate gambar
-            this.qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(result.data.token);
+            // Generate QR code secara lokal — encode URL lengkap agar konsisten dengan halaman scan
+            this.qrUrl = result.qr_image || ('https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(result.data.url));
             this.tokenShort = result.data.token.substring(0, 16) + '...';
           } else {
             this.error = result.message || 'Gagal generate QR code.';
@@ -299,6 +531,308 @@
         } finally {
           this.loading = false;
         }
+      }
+    }
+  }
+
+  /**
+   * ── QR Scanner Component ──────────────────────────────────────
+   * Digunakan oleh admin/pembina untuk memindai QR Code siswa
+   * (kartu NIS atau HP siswa) dan mencatat kehadiran.
+   */
+  function qrScanner(ekskulId) {
+    return {
+      // ── State ────────────────────────────────────────────────
+      nis: '',
+      scannerActive: false,
+      loading: false,
+      loadingText: 'Memproses...',
+      cameraError: null,
+      lookupResult: null,
+      confirmed: false,
+      alreadyAttended: false,
+      alreadyMessage: '',
+      scanLog: [],
+      currentFacingMode: 'environment',
+
+      // Internal (non-reaktif via closure)
+      stream: null,
+      animFrame: null,
+      isProcessing: false,
+      lastQR: '',
+      lastQRTime: 0,
+      DEBOUNCE: 3000,
+
+      // ── Init ─────────────────────────────────────────────────
+      init() {
+        // Reset state
+        this.stopCamera();
+      },
+
+      // ── Start Camera ─────────────────────────────────────────
+      async startCamera() {
+        this.cameraError = null;
+        this.loading = true;
+        this.loadingText = 'Mengakses kamera...';
+
+        try {
+          if (this.stream) {
+            this.stream.getTracks().forEach(t => t.stop());
+            this.stream = null;
+          }
+
+          const constraints = {
+            video: {
+              facingMode: { ideal: this.currentFacingMode },
+              width: { ideal: 640 },
+              height: { ideal: 480 }
+            }
+          };
+
+          this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+          const video = this.$refs.video;
+          video.srcObject = this.stream;
+          await video.play();
+
+          this.scannerActive = true;
+          this.loading = false;
+
+          // Mulai tick loop
+          this.startTick();
+        } catch (err) {
+          this.loading = false;
+
+          if (['NotAllowedError', 'PermissionDeniedError'].includes(err.name)) {
+            this.cameraError = 'Izin kamera ditolak. Buka pengaturan browser untuk mengizinkan.';
+          } else if (['NotFoundError', 'DevicesNotFoundError'].includes(err.name)) {
+            this.cameraError = 'Kamera tidak ditemukan di perangkat ini.';
+          } else if (err.name === 'NotReadableError') {
+            this.cameraError = 'Kamera sedang digunakan aplikasi lain.';
+          } else {
+            this.cameraError = 'Gagal mengakses kamera: ' + (err.message || 'unknown error');
+          }
+        }
+      },
+
+      // ── Stop Camera ──────────────────────────────────────────
+      stopCamera() {
+        if (this.animFrame) {
+          cancelAnimationFrame(this.animFrame);
+          this.animFrame = null;
+        }
+        if (this.stream) {
+          this.stream.getTracks().forEach(t => t.stop());
+          this.stream = null;
+        }
+        this.scannerActive = false;
+        this.isProcessing = false;
+      },
+
+      // ── Switch Camera ────────────────────────────────────────
+      async switchCamera() {
+        this.currentFacingMode = this.currentFacingMode === 'environment' ? 'user' : 'environment';
+        await this.startCamera();
+      },
+
+      // ── Tick: baca frame dari video, deteksi QR ─────────────
+      startTick() {
+        const tick = () => {
+          if (!this.stream || !this.scannerActive) {
+            this.animFrame = null;
+            return;
+          }
+
+          const video = this.$refs.video;
+          const canvas = this.$refs.canvas;
+
+          if (video.readyState >= video.HAVE_ENOUGH_DATA) {
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imgData.data, imgData.width, imgData.height, {
+              inversionAttempts: 'attemptBoth'
+            });
+
+            if (code && !this.isProcessing && !this.lookupResult) {
+              const now = Date.now();
+              if (code.data !== this.lastQR || now - this.lastQRTime > this.DEBOUNCE) {
+                this.lastQR = code.data;
+                this.lastQRTime = now;
+                this.handleScan(code.data);
+              }
+            }
+          }
+
+          this.animFrame = requestAnimationFrame(tick);
+        };
+
+        this.animFrame = requestAnimationFrame(tick);
+      },
+
+      // ── Handle QR Detection ──────────────────────────────────
+      async handleScan(qrData) {
+        // QR bisa berisi NIS langsung atau URL
+        let nis = qrData.trim();
+
+        // Jika QR berisi URL, coba ekstrak NIS dari parameter (fallback)
+        // Tapi umumnya kita asumsikan QR siswa berisi NIS langsung
+        // Support format URL: .../siswa/qr?nis=12345
+        try {
+          if (nis.startsWith('http')) {
+            const url = new URL(nis);
+            const params = new URLSearchParams(url.search);
+            if (params.has('nis')) {
+              nis = params.get('nis');
+            }
+          }
+        } catch (_) {}
+
+        // Hanya proses jika NIS terlihat valid (numeric atau alfanumerik pendek)
+        if (!nis || nis.length < 3 || nis.length > 50) {
+          return; // skip, lanjut scan
+        }
+
+        this.isProcessing = true;
+        this.nis = nis;
+        this.loading = true;
+        this.loadingText = 'Memproses QR...';
+
+        // Hentikan tick sementara
+        if (this.animFrame) {
+          cancelAnimationFrame(this.animFrame);
+          this.animFrame = null;
+        }
+
+        await this.lookupSiswa();
+
+        this.isProcessing = false;
+
+        // Jika berhasil dapat result, stop kamera
+        if (this.lookupResult) {
+          this.stopCamera();
+        } else {
+          // Lanjutkan tick jika gagal
+          this.startTick();
+        }
+      },
+
+      // ── Lookup Siswa via API ─────────────────────────────────
+      async lookupSiswa() {
+        const nisValue = this.nis.trim();
+        if (!nisValue) {
+          this.addLog('error', 'NIS kosong');
+          return;
+        }
+
+        this.loading = true;
+        this.loadingText = 'Mencari siswa...';
+        this.lookupResult = null;
+        this.confirmed = false;
+        this.alreadyAttended = false;
+
+        try {
+          const response = await fetch('{{ route('admin.ekskul.absensi.lookup-siswa', $ekskul->id) }}', {
+            method: 'POST',
+            headers: {
+              'X-CSRF-TOKEN': '{{ csrf_token() }}',
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({ nis: nisValue })
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            this.lookupResult = result.data;
+            this.addLog('success', 'Ditemukan: ' + result.data.siswa.nama_lengkap);
+          } else {
+            this.addLog('error', result.message || 'Siswa tidak ditemukan');
+            // Haptic feedback
+            if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+          }
+        } catch (e) {
+          this.addLog('error', 'Gagal terhubung ke server');
+          if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+        } finally {
+          this.loading = false;
+        }
+      },
+
+      // ── Confirm Absensi via API ──────────────────────────────
+      async confirmAbsensi() {
+        if (!this.lookupResult || !this.lookupResult.is_anggota || this.confirmed) return;
+
+        this.loading = true;
+        this.loadingText = 'Menyimpan absensi...';
+
+        try {
+          const response = await fetch('{{ route('admin.ekskul.absensi.admin-scan', $ekskul->id) }}', {
+            method: 'POST',
+            headers: {
+              'X-CSRF-TOKEN': '{{ csrf_token() }}',
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              siswa_id: this.lookupResult.siswa.id
+            })
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            this.confirmed = true;
+            this.addLog('success', result.message || 'Absensi berhasil');
+            if (navigator.vibrate) navigator.vibrate([100]);
+          } else if (response.status === 409) {
+            // Already attended
+            this.alreadyAttended = true;
+            this.alreadyMessage = result.message || 'Siswa sudah tercatat hadir';
+            this.addLog('warning', result.message || 'Sudah hadir');
+            if (navigator.vibrate) navigator.vibrate([50]);
+          } else {
+            this.addLog('error', result.message || 'Gagal mencatat absensi');
+            if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+          }
+        } catch (e) {
+          this.addLog('error', 'Gagal terhubung ke server');
+          if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+        } finally {
+          this.loading = false;
+        }
+      },
+
+      // ── Reset Scan ───────────────────────────────────────────
+      resetScan() {
+        this.lookupResult = null;
+        this.confirmed = false;
+        this.alreadyAttended = false;
+        this.alreadyMessage = '';
+        this.nis = '';
+        this.lastQR = '';
+      },
+
+      // ── Add Log ──────────────────────────────────────────────
+      addLog(type, message) {
+        const time = new Date().toLocaleTimeString('id-ID', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        this.scanLog.unshift({ type, message, time });
+        // Batasi maks 20 log
+        if (this.scanLog.length > 20) {
+          this.scanLog = this.scanLog.slice(0, 20);
+        }
+      },
+
+      // ── Cleanup ──────────────────────────────────────────────
+      destroy() {
+        this.stopCamera();
       }
     }
   }

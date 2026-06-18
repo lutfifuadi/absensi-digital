@@ -148,7 +148,7 @@
             <option value="">-- Tampilkan Semua Riwayat --</option>
             @foreach($kegiatans as $k)
               <option value="{{ $k->id }}" {{ request('kegiatan_id') == $k->id ? 'selected' : '' }}>
-                {{ $k->nama_kegiatan }} ({{ $k->tanggal_pelaksanaan->format('d M Y') }})
+                {{ $k->nama_kegiatan }} @if($k->tanggal_pelaksanaan)({{ $k->tanggal_pelaksanaan->format('d M Y') }})@else(Fleksibel)@endif
               </option>
             @endforeach
           </select>

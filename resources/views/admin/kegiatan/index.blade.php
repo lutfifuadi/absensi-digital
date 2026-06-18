@@ -158,7 +158,21 @@
               </div>
             </td>
             <td>
-              <div class="text-white small fw-medium">{{ $k->tanggal_pelaksanaan?->translatedFormat('d F Y') }}</div>
+              @if($k->tanggal_pelaksanaan)
+                <div class="text-white small fw-medium">{{ $k->tanggal_pelaksanaan->translatedFormat('d F Y') }}</div>
+              @else
+                <div class="text-white small fw-medium">
+                  <span class="das-chip das-chip--warning" style="font-size:.6rem;padding:1px 8px;">Fleksibel</span>
+                </div>
+              @endif
+              <div class="text-muted small mb-1" style="font-size:.7rem;">
+                <i class="ti tabler-clock" style="font-size:.8rem;"></i>
+                @if($k->waktu_mulai && $k->waktu_selesai)
+                  {{ \Carbon\Carbon::parse($k->waktu_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($k->waktu_selesai)->format('H:i') }}
+                @else
+                  <span class="das-chip das-chip--info" style="font-size:.55rem;padding:0px 6px;">Seharian</span>
+                @endif
+              </div>
               <div class="text-muted small mb-1" style="font-size:.7rem;">
                 <i class="ti tabler-map-pin" style="font-size:.8rem;"></i> {{ $k->lokasi ?? '-' }}
               </div>
@@ -252,20 +266,50 @@
                   <option value="LAINNYA">Lainnya</option>
                 </select>
               </div>
-              <div class="col-6">
-                <label class="das-form-label">Tanggal <span class="text-danger">*</span></label>
-                <input type="date" name="tanggal_pelaksanaan" class="form-control das-form-control" value="{{ date('Y-m-d') }}" required>
+              <div class="col-6" id="tanggal_modal_wrapper">
+                <label class="das-form-label">Tanggal</label>
+                <input type="date" name="tanggal_pelaksanaan" id="tanggal_pelaksanaan_modal" class="form-control das-form-control" value="{{ date('Y-m-d') }}">
               </div>
             </div>
 
-            <div class="row g-3 mb-3">
+            {{-- Tanpa Tanggal Pasti --}}
+            <div class="mb-3">
+              <div class="p-2" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
+                <div class="form-check">
+                  <input type="checkbox" id="tanpa_tanggal_pasti_modal" class="form-check-input"
+                         style="width:18px;height:18px;cursor:pointer;"
+                         onchange="toggleTanggalModal(this)">
+                  <label class="form-check-label text-white small fw-semibold" for="tanpa_tanggal_pasti_modal" style="cursor:pointer;font-size:.75rem;">
+                    <i class="ti tabler-calendar-off text-warning me-1"></i>
+                    Tanpa tanggal pasti (kegiatan rutin/fleksibel)
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {{-- Tanpa Batas Waktu --}}
+            <div class="mb-3">
+              <div class="p-2" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
+                <div class="form-check">
+                  <input type="checkbox" id="tanpa_batas_waktu_modal" class="form-check-input"
+                         style="width:18px;height:18px;cursor:pointer;"
+                         onchange="toggleWaktuModal(this)">
+                  <label class="form-check-label text-white small fw-semibold" for="tanpa_batas_waktu_modal" style="cursor:pointer;font-size:.75rem;">
+                    <i class="ti tabler-clock-off text-info me-1"></i>
+                    Kegiatan seharian penuh (tanpa batas waktu)
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3" id="waktu_modal_wrapper">
               <div class="col-6">
-                <label class="das-form-label">Waktu Mulai <span class="text-danger">*</span></label>
-                <input type="time" name="waktu_mulai" class="form-control das-form-control" required>
+                <label class="das-form-label">Waktu Mulai</label>
+                <input type="time" name="waktu_mulai" id="waktu_mulai_modal" class="form-control das-form-control">
               </div>
               <div class="col-6">
-                <label class="das-form-label">Waktu Selesai <span class="text-danger">*</span></label>
-                <input type="time" name="waktu_selesai" class="form-control das-form-control" required>
+                <label class="das-form-label">Waktu Selesai</label>
+                <input type="time" name="waktu_selesai" id="waktu_selesai_modal" class="form-control das-form-control">
               </div>
             </div>
 
@@ -296,5 +340,33 @@
     const tooltips = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltips.map(el => new bootstrap.Tooltip(el));
   });
+
+  // Toggle tanggal modal
+  window.toggleTanggalModal = function(checkbox) {
+    const wrapper = document.getElementById('tanggal_modal_wrapper');
+    const tanggalInput = document.getElementById('tanggal_pelaksanaan_modal');
+
+    if (checkbox.checked) {
+      wrapper.style.display = 'none';
+      tanggalInput.value = '';
+    } else {
+      wrapper.style.display = 'block';
+    }
+  };
+
+  // Toggle waktu modal
+  window.toggleWaktuModal = function(checkbox) {
+    const wrapper = document.getElementById('waktu_modal_wrapper');
+    const waktuMulai = document.getElementById('waktu_mulai_modal');
+    const waktuSelesai = document.getElementById('waktu_selesai_modal');
+
+    if (checkbox.checked) {
+      wrapper.style.display = 'none';
+      waktuMulai.value = '';
+      waktuSelesai.value = '';
+    } else {
+      wrapper.style.display = 'flex';
+    }
+  };
 </script>
 @endsection

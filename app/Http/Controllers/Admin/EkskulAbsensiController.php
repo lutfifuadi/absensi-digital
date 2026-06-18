@@ -9,7 +9,10 @@ use App\Models\Guru;
 use App\Services\EkskulAbsensiService;
 use App\Models\Ekskul;
 use App\Models\EkskulAnggota;
+use App\Models\Siswa;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
@@ -183,9 +186,27 @@ class EkskulAbsensiController extends Controller
             $tanggal = request()->input('tanggal', now()->toDateString());
             $qrData = $this->absensiService->generateQRCode($ekskulId, $tanggal);
 
+            // Generate QR code image secara lokal menggunakan endroid/qr-code
+            // Library ini sudah terinstall di composer.json
+            $qrImage = null;
+            try {
+                $qrCode = new QrCode(
+                    data: $qrData['url'],
+                    size: 200,
+                );
+                $writer = new PngWriter();
+                $result = $writer->write($qrCode);
+                $qrImage = 'data:image/png;base64,' . base64_encode($result->getString());
+            } catch (\Exception $e) {
+                Log::warning('Gagal generate QR image via endroid, fallback ke eksternal', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
             return response()->json([
-                'success' => true,
-                'data'    => $qrData,
+                'success'  => true,
+                'data'     => $qrData,
+                'qr_image' => $qrImage,
             ]);
         } catch (\Exception $e) {
             Log::error('Gagal generate QR ekskul', [
@@ -198,5 +219,110 @@ class EkskulAbsensiController extends Controller
                 'message' => 'Gagal generate QR. Silakan coba lagi.',
             ], 500);
         }
+    }
+
+    /**
+     * Cari siswa berdasarkan NIS (untuk admin scan).
+     *
+     * POST /admin/ekskul/{ekskul}/absensi/lookup-siswa
+     * Body: { nis: string }
+     */
+    public function lookupSiswa(Request $request, $ekskulId)
+    {
+        $ekskul = Ekskul::findOrFail($ekskulId);
+        $this->authorize('absensiAccess', $ekskul);
+
+        $request->validate([
+            'nis' => ['required', 'string', 'max:50'],
+        ], [
+            'nis.required' => 'NIS/NISN wajib diisi.',
+        ]);
+
+        $siswa = Siswa::with('kelas:id,nama')
+            ->where('nis', $request->nis)
+            ->first();
+
+        if (!$siswa) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Siswa dengan NIS tersebut tidak ditemukan.',
+            ], 404);
+        }
+
+        // Cek apakah siswa sudah terdaftar sebagai anggota aktif
+        $anggota = EkskulAnggota::where('ekskul_id', $ekskulId)
+            ->where('siswa_id', $siswa->id)
+            ->where('status', 'aktif')
+            ->exists();
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'siswa' => [
+                    'id'           => $siswa->id,
+                    'nama_lengkap' => $siswa->nama_lengkap,
+                    'nis'          => $siswa->nis,
+                    'kelas'        => $siswa->kelas?->nama ?? '-',
+                ],
+                'is_anggota' => $anggota,
+                'ekskul'     => $ekskul->nama,
+            ],
+        ]);
+    }
+
+    /**
+     * Catat absensi siswa oleh admin via scan QR atau manual NIS.
+     *
+     * POST /admin/ekskul/{ekskul}/absensi/admin-scan
+     * Body: { siswa_id: int, tanggal?: string }
+     */
+    public function adminScan(Request $request, $ekskulId)
+    {
+        $ekskul = Ekskul::findOrFail($ekskulId);
+        $this->authorize('absensiAccess', $ekskul);
+
+        $request->validate([
+            'siswa_id' => ['required', 'integer', 'exists:siswa,id'],
+        ]);
+
+        $siswa = Siswa::with('kelas:id,nama')->find($request->siswa_id);
+
+        // Tentukan pembina
+        $pembinaId = null;
+        if (auth()->user()->isRole(\App\Models\User::ROLE_GURU)) {
+            $guru = Guru::where('user_id', auth()->id())->first();
+            $pembinaId = $guru ? $guru->id : null;
+        }
+
+        $tanggal = $request->input('tanggal', now()->toDateString());
+
+        // Catat absensi
+        $result = $this->absensiService->recordScanAbsensi(
+            (int) $ekskulId,
+            $tanggal,
+            $siswa->id,
+            $pembinaId
+        );
+
+        if (!$result['success']) {
+            $statusCode = ($result['already'] ?? false) ? 409 : 422;
+            return response()->json($result, $statusCode);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $siswa->nama_lengkap . ' tercatat hadir di ' . $ekskul->nama . '.',
+            'data'    => [
+                'ekskul'  => $ekskul->nama,
+                'siswa'   => [
+                    'nama'  => $siswa->nama_lengkap,
+                    'nis'   => $siswa->nis,
+                    'kelas' => $siswa->kelas?->nama ?? '-',
+                ],
+                'status'  => 'hadir',
+                'jam'     => $result['jam'] ?? now()->format('H:i'),
+                'tanggal' => $tanggal,
+            ],
+        ]);
     }
 }
