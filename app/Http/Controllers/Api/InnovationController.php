@@ -289,10 +289,21 @@ class InnovationController extends Controller
     public function getActivityAttendance(Request $request)
     {
         $kegiatanId = $request->get('kegiatan_id');
+        $page = (int) $request->get('page', 1);
+        $perPage = (int) $request->get('per_page', 10);
+
         $kegiatan = \App\Models\Kegiatan::find($kegiatanId);
 
         if (!$kegiatan) {
-            return response()->json(['data' => []]);
+            return response()->json([
+                'data' => [],
+                'current_page' => 1,
+                'last_page' => 1,
+                'per_page' => $perPage,
+                'total' => 0,
+                'from' => null,
+                'to' => null,
+            ]);
         }
 
         // Ambil data yang sudah ada di tabel absensi_kegiatan
@@ -341,7 +352,30 @@ class InnovationController extends Controller
             ];
         }
 
-        return response()->json(['data' => $resultData]);
+        // Manual pagination pada merged collection
+        $total = count($resultData);
+        $lastPage = max(1, (int) ceil($total / $perPage));
+
+        // Pastikan page tidak melebihi lastPage
+        if ($page > $lastPage) {
+            $page = $lastPage;
+        }
+
+        $offset = ($page - 1) * $perPage;
+        $items = array_slice($resultData, $offset, $perPage);
+
+        $from = $total > 0 ? $offset + 1 : null;
+        $to = $total > 0 ? min($offset + $perPage, $total) : null;
+
+        return response()->json([
+            'data' => $items,
+            'current_page' => $page,
+            'last_page' => $lastPage,
+            'per_page' => $perPage,
+            'total' => $total,
+            'from' => $from,
+            'to' => $to,
+        ]);
     }
 
     public function recordActivityAttendance(Request $request)

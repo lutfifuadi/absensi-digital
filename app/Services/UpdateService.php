@@ -154,12 +154,16 @@ class UpdateService
             return ['status' => false, 'message' => 'Informasi update tidak ditemukan. Silakan periksa update terlebih dahulu.'];
         }
 
-        // Cek Izin Tulis (Permission Check) - Contoh pada satu file krusial
-        if (!is_writable(base_path('resources/menu/vertical_admin.json'))) {
-            return [
-                'status' => false, 
-                'message' => 'Gagal: Server tidak memiliki izin untuk menulis file (Permission Denied). Silakan jalankan "chown -R www:www" di terminal server atau hubungi admin.'
-            ];
+        // Cek Izin Tulis (Permission Check) - pada direktori storage
+        $testFile = storage_path('framework/temp/_permission_test.tmp');
+        try {
+            if (!File::exists(storage_path('framework/temp'))) {
+                File::makeDirectory(storage_path('framework/temp'), 0755, true);
+            }
+            file_put_contents($testFile, 'test');
+            unlink($testFile);
+        } catch (\Exception $e) {
+            return ['status' => false, 'message' => 'Gagal: Server tidak memiliki izin menulis ke folder <code>storage</code>. Silakan jalankan perintah berikut di terminal server (via SSH):<br><br><code>chown -R www-data:www-data ' . base_path('storage') . '</code><br><code>chmod -R 775 ' . base_path('storage') . '</code><br><br>Atau hubungi admin server Anda.'];
         }
 
         try {

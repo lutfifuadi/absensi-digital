@@ -37,8 +37,10 @@ class KegiatanController extends Controller
             'keterangan' => 'nullable|string|max:500',
             'target_peserta' => 'nullable|array',
             'target_tingkat' => 'nullable|array',
+            'is_wajib' => 'nullable|boolean',
         ]);
 
+        $data['is_wajib'] = $request->boolean('is_wajib');
         $data['qr_code_kegiatan'] = 'KGT-' . strtoupper(Str::random(10));
         $data['tahun_akademik_id'] = session('tahun_akademik_id') ?? TahunAkademik::where('is_aktif', true)->first()?->id;
 
@@ -72,8 +74,10 @@ class KegiatanController extends Controller
             'keterangan' => 'nullable|string|max:500',
             'target_peserta' => 'nullable|array',
             'target_tingkat' => 'nullable|array',
+            'is_wajib' => 'nullable|boolean',
         ]);
 
+        $data['is_wajib'] = $request->boolean('is_wajib');
         $kegiatan->update($data);
 
         return redirect()->route('admin.kegiatan.index')->with('success', 'Kegiatan berhasil diperbarui.');

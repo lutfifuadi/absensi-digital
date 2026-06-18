@@ -13,8 +13,8 @@ class AbsensiKegiatanController extends Controller
 {
     public function scan()
     {
-        // Only active activities today
-        $kegiatans = Kegiatan::where('tanggal_pelaksanaan', date('Y-m-d'))->get();
+        // Tampilkan semua kegiatan (tanpa filter tanggal) agar admin bisa scan kapan saja
+        $kegiatans = Kegiatan::latest('tanggal_pelaksanaan')->get();
         return view('admin.kegiatan.scan', compact('kegiatans'));
     }
 
@@ -25,7 +25,7 @@ class AbsensiKegiatanController extends Controller
             'kegiatan_id' => 'required|exists:kegiatan,id',
         ]);
 
-        $siswa = Siswa::where('qr_code', $request->qr_code)->first();
+        $siswa = Siswa::with('kelas')->where('qr_code', $request->qr_code)->first();
 
         if (!$siswa) {
             return response()->json(['success' => false, 'message' => 'Kartu Siswa tidak terdaftar!'], 404);
@@ -58,13 +58,23 @@ class AbsensiKegiatanController extends Controller
             return response()->json(['success' => false, 'message' => 'Siswa tidak termasuk dalam target peserta kegiatan ini.'], 403);
         }
 
-        // Check duplicate today
+        // Check duplicate
         $already = AbsensiKegiatan::where('kegiatan_id', $request->kegiatan_id)
             ->where('siswa_id', $siswa->id)
             ->exists();
 
-        if ($already) {
-            return response()->json(['success' => false, 'message' => 'Siswa sudah melakukan absensi pada kegiatan ini.'], 422);
+        $isNewAttendance = !$already;
+
+        if (!$isNewAttendance) {
+            $totalHadir = AbsensiKegiatan::where('kegiatan_id', $request->kegiatan_id)->count();
+            return response()->json([
+                'success' => false,
+                'is_new' => false,
+                'message' => 'Siswa sudah melakukan absensi pada kegiatan ini.',
+                'siswa_nama' => $siswa->nama_lengkap,
+                'siswa_kelas' => $siswa->kelas?->nama ?? '-',
+                'total_hadir' => $totalHadir,
+            ], 422);
         }
 
         AbsensiKegiatan::create([
@@ -74,11 +84,17 @@ class AbsensiKegiatanController extends Controller
             'status' => 'HADIR',
         ]);
 
+        $totalHadir = AbsensiKegiatan::where('kegiatan_id', $request->kegiatan_id)->count();
+
         return response()->json([
             'success' => true,
-            'message' => 'Absensi ' . $siswa->nama . ' berhasil dicatat.',
-            'siswa_nama' => $siswa->nama,
-            'waktu' => now()->format('H:i:s')
+            'is_new' => true,
+            'message' => 'Absensi ' . $siswa->nama_lengkap . ' berhasil dicatat.',
+            'siswa_nama' => $siswa->nama_lengkap,
+            'siswa_nisn' => $siswa->nisn,
+            'siswa_kelas' => $siswa->kelas?->nama ?? '-',
+            'waktu' => now()->format('H:i:s'),
+            'total_hadir' => $totalHadir,
         ]);
     }
 

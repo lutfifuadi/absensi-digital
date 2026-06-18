@@ -224,6 +224,24 @@
           </tbody>
         </table>
       </div>
+
+      {{-- Pagination Navigation --}}
+      <div id="paginationContainer" class="d-flex align-items-center justify-content-between px-3 py-3 border-top" style="border-color: var(--das-border) !important; display: none;">
+        <div class="text-muted small">
+          Menampilkan <span id="paginationFrom" class="fw-medium text-white">0</span>
+          - <span id="paginationTo" class="fw-medium text-white">0</span>
+          dari <span id="paginationTotal" class="fw-medium text-white">0</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button class="das-btn das-btn--ghost" id="prevPage" onclick="changePage(currentPage - 1)" disabled>
+            <i class="ti tabler-chevron-left me-1"></i> Sebelumnya
+          </button>
+          <span class="small text-muted px-1" id="paginationInfo">Halaman 1 dari 1</span>
+          <button class="das-btn das-btn--ghost" id="nextPage" onclick="changePage(currentPage + 1)" disabled>
+            Selanjutnya <i class="ti tabler-chevron-right ms-1"></i>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -231,26 +249,74 @@
 
 @section('page-script')
 <script>
-async function viewAbsensi(id, nama) {
+// ── Pagination State ──────────────────────────────────────────
+let currentPage = 1;
+let currentKegiatanId = null;
+let currentKegiatanName = '';
+let currentTotalPages = 1;
+
+// ── Render Pagination Controls ────────────────────────────────
+function renderPagination(result) {
+  const container = document.getElementById('paginationContainer');
+  const prevBtn = document.getElementById('prevPage');
+  const nextBtn = document.getElementById('nextPage');
+  const infoEl = document.getElementById('paginationInfo');
+  const fromEl = document.getElementById('paginationFrom');
+  const toEl = document.getElementById('paginationTo');
+  const totalEl = document.getElementById('paginationTotal');
+
+  const total = result.total || 0;
+
+  if (total === 0) {
+    container.style.display = 'none';
+    return;
+  }
+
+  container.style.display = 'flex';
+  fromEl.textContent = result.from || 0;
+  toEl.textContent = result.to || 0;
+  totalEl.textContent = total;
+
+  currentPage = result.current_page || 1;
+  currentTotalPages = result.last_page || 1;
+
+  infoEl.textContent = `Halaman ${currentPage} dari ${currentTotalPages}`;
+
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= currentTotalPages;
+}
+
+// ── Change Page ───────────────────────────────────────────────
+function changePage(page) {
+  if (page < 1 || page > currentTotalPages) return;
+  viewAbsensi(currentKegiatanId, currentKegiatanName, page);
+}
+
+// ── View Absensi (with pagination) ────────────────────────────
+async function viewAbsensi(id, nama, page = 1) {
   const detailCard = document.getElementById('detailCard');
   const kegiatanName = document.getElementById('kegiatanName');
   const loading = document.getElementById('loadingDetail');
-  
+  const tbody = document.getElementById('absensiPesertaBody');
+
+  currentKegiatanId = id;
+  currentKegiatanName = nama;
+  currentPage = page;
+
   kegiatanName.textContent = nama;
   detailCard.style.display = 'block';
   loading.style.display = 'block';
-  
+
   detailCard.scrollIntoView({ behavior: 'smooth' });
 
   try {
-    const response = await fetch(`/api/v1/innovation/activity-attendance?kegiatan_id=${id}`);
+    const response = await fetch(`/api/v1/innovation/activity-attendance?kegiatan_id=${id}&page=${page}&per_page=10`);
     const result = await response.json();
-    
-    const tbody = document.getElementById('absensiPesertaBody');
+
     const data = result.data || [];
-    
+
     loading.style.display = 'none';
-    
+
     if (data.length === 0) {
       tbody.innerHTML = `
         <tr>
@@ -262,9 +328,10 @@ async function viewAbsensi(id, nama) {
           </td>
         </tr>
       `;
+      renderPagination(result);
       return;
     }
-    
+
     const statusBadges = {
       'hadir': 'das-chip--success',
       'tidak_hadir': 'das-chip--danger',
@@ -272,8 +339,9 @@ async function viewAbsensi(id, nama) {
       'sakit': 'das-chip--info',
       'alpha': 'das-chip--danger'
     };
-    
+
     tbody.innerHTML = data.map(a => `
+
       <tr>
         <td>
           <div class="fw-bold text-white" style="font-size:.82rem;">${a.siswa?.nama_lengkap || '-'}</div>
@@ -291,7 +359,7 @@ async function viewAbsensi(id, nama) {
           <div class="text-muted small">${a.keterangan || '-'}</div>
         </td>
         <td class="text-end px-4">
-          <select class="form-select form-select-sm text-white border-secondary" style="font-size: .75rem; background-color: var(--das-surface); width: auto; display: inline-block;" onchange="updateStatus(${a.id}, this.value, ${a.kegiatan_id}, ${a.siswa_id})">
+          <select class="form-select form-select-sm text-white border-secondary" style="font-size: .75rem; background-color: var(--das-surface); width: auto; display: inline-block;" onchange="updateStatus(${a.id ?? 'null'}, this.value, ${a.kegiatan_id}, ${a.siswa_id})">
             <option value="hadir" class="bg-dark text-white" ${a.status === 'hadir' ? 'selected' : ''}>Hadir</option>
             <option value="izin" class="bg-dark text-white" ${a.status === 'izin' ? 'selected' : ''}>Izin</option>
             <option value="sakit" class="bg-dark text-white" ${a.status === 'sakit' ? 'selected' : ''}>Sakit</option>
@@ -299,14 +367,17 @@ async function viewAbsensi(id, nama) {
           </select>
         </td>
       </tr>
-    `).join('');
-    
+    `}).join('');
+
+    renderPagination(result);
+
   } catch (e) {
     console.error('Error:', e);
     loading.style.display = 'none';
   }
 }
 
+// ── Update Status ─────────────────────────────────────────────
 async function updateStatus(attendanceId, status, kegiatanId, siswaId) {
   let keterangan = '';
   if (status === 'izin' || status === 'sakit') {
@@ -328,11 +399,11 @@ async function updateStatus(attendanceId, status, kegiatanId, siswaId) {
         keterangan: keterangan
       })
     });
-    
+
     const result = await response.json();
     if (result.success) {
-      // Re-load the list to show updated status
-      viewAbsensi(kegiatanId, document.getElementById('kegiatanName').textContent);
+      // Re-load the list to show updated status — tetap di halaman yang sama
+      viewAbsensi(kegiatanId, document.getElementById('kegiatanName').textContent, currentPage);
     } else {
       alert('Gagal memperbarui status: ' + (result.message || 'Error unknown'));
     }

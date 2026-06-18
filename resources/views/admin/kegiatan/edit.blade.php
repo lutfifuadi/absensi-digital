@@ -197,6 +197,24 @@
                    class="form-control das-form-control" placeholder="Nama Ruangan/Lapangan">
           </div>
 
+          {{-- Wajib / Opsional --}}
+          <div class="col-12">
+            <div class="p-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="is_wajib" value="1" id="is_wajib"
+                       style="width:40px;height:20px;cursor:pointer;"
+                       {{ old('is_wajib', $kegiatan->is_wajib) ? 'checked' : '' }}>
+                <label class="form-check-label text-white small fw-semibold" for="is_wajib" style="cursor:pointer;font-size:.82rem;">
+                  <i class="ti tabler-alert-triangle text-warning me-1"></i>
+                 Wajib Hadir
+                </label>
+                <small class="text-muted d-block mt-1" style="font-size:.7rem;">
+                  <i class="ti tabler-info-circle"></i> Jika diaktifkan, peserta diwajibkan hadir pada kegiatan ini.
+                </small>
+              </div>
+            </div>
+          </div>
+
           {{-- Deskripsi --}}
           <div class="col-12">
             <label class="das-form-label">Deskripsi Kegiatan</label>
