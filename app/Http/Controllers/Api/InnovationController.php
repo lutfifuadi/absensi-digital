@@ -289,12 +289,59 @@ class InnovationController extends Controller
     public function getActivityAttendance(Request $request)
     {
         $kegiatanId = $request->get('kegiatan_id');
+        $kegiatan = \App\Models\Kegiatan::find($kegiatanId);
 
+        if (!$kegiatan) {
+            return response()->json(['data' => []]);
+        }
+
+        // Ambil data yang sudah ada di tabel absensi_kegiatan
         $attendance = AbsensiKegiatan::with(['siswa.kelas', 'kegiatan'])
-            ->when($kegiatanId, fn($q) => $q->where('kegiatan_id', $kegiatanId))
+            ->where('kegiatan_id', $kegiatanId)
             ->get();
 
-        return response()->json(['data' => $attendance]);
+        $existingSiswaIds = $attendance->pluck('siswa_id')->toArray();
+
+        // Cari siswa yang seharusnya ikut kegiatan ini tapi belum ada datanya di absensi_kegiatan
+        $querySiswa = Siswa::with('kelas');
+
+        // Filter berdasarkan target_tingkat
+        if ($kegiatan->target_tingkat && count($kegiatan->target_tingkat) > 0) {
+            $targetTingkats = $kegiatan->target_tingkat;
+            $querySiswa->whereHas('kelas', function($q) use ($targetTingkats) {
+                $q->whereIn('tingkat', $targetTingkats);
+            });
+        }
+
+        // Filter berdasarkan target_peserta (ID Kelas)
+        if ($kegiatan->target_peserta && count($kegiatan->target_peserta) > 0) {
+            $targetKelasIds = $kegiatan->target_peserta;
+            // Jika target_tingkat juga diisi, gunakan OR
+            if ($kegiatan->target_tingkat && count($kegiatan->target_tingkat) > 0) {
+                $querySiswa->orWhereIn('kelas_id', $targetKelasIds);
+            } else {
+                $querySiswa->whereIn('kelas_id', $targetKelasIds);
+            }
+        }
+
+        $siswaLainnya = $querySiswa->whereNotIn('id', $existingSiswaIds)->get();
+
+        // Gabungkan data
+        $resultData = $attendance->toArray();
+        foreach ($siswaLainnya as $siswa) {
+            $resultData[] = [
+                'id' => null,
+                'kegiatan_id' => $kegiatanId,
+                'siswa_id' => $siswa->id,
+                'status' => null,
+                'keterangan' => null,
+                'jam_absen' => null,
+                'siswa' => $siswa->toArray(),
+                'kegiatan' => $kegiatan->toArray(),
+            ];
+        }
+
+        return response()->json(['data' => $resultData]);
     }
 
     public function recordActivityAttendance(Request $request)
@@ -305,6 +352,33 @@ class InnovationController extends Controller
             'status' => 'required|in:hadir,tidak_hadir,izin,sakit,alpha',
             'keterangan' => 'nullable|string',
         ]);
+
+        $kegiatan = \App\Models\Kegiatan::findOrFail($request->kegiatan_id);
+        $siswa = Siswa::findOrFail($request->siswa_id);
+
+        // Validasi target peserta
+        $isTarget = false;
+        if (!$kegiatan->target_tingkat && !$kegiatan->target_peserta) {
+            $isTarget = true;
+        } else {
+            if ($kegiatan->target_tingkat && count($kegiatan->target_tingkat) > 0) {
+                if ($siswa->kelas && in_array($siswa->kelas->tingkat, $kegiatan->target_tingkat)) {
+                    $isTarget = true;
+                }
+            }
+            if (!$isTarget && $kegiatan->target_peserta && count($kegiatan->target_peserta) > 0) {
+                if (in_array($siswa->kelas_id, $kegiatan->target_peserta)) {
+                    $isTarget = true;
+                }
+            }
+        }
+
+        if (!$isTarget) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Siswa tidak termasuk dalam target peserta kegiatan ini.'
+            ], 403);
+        }
 
         $status = $request->status;
         if ($status === 'tidak_hadir') {
@@ -322,7 +396,7 @@ class InnovationController extends Controller
             ]
         );
 
-        return response()->json(['success' => true, 'data' => $attendance]);
+        return response()->json(['success' => true, 'data' => $attendance, 'message' => 'Absensi berhasil dicatat']);
     }
 
     public function updateDeviceOfflineMode(Request $request, $id)

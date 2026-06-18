@@ -183,7 +183,7 @@ class UpdateService
                 throw new \Exception('Gagal mengunduh paket dari GitHub (Status: ' . $response->status() . ').');
             }
 
-            $tempPath = storage_path('app/updates');
+            $tempPath = storage_path('framework/temp/updates');
             if (!File::exists($tempPath)) {
                 File::makeDirectory($tempPath, 0755, true);
             }
@@ -198,7 +198,7 @@ class UpdateService
                 if (File::exists($extractPath)) {
                     File::deleteDirectory($extractPath);
                 }
-                File::makeDirectory($extractPath);
+                File::makeDirectory($extractPath, 0755, true);
                 $zip->extractTo($extractPath);
                 $zip->close();
             } else {

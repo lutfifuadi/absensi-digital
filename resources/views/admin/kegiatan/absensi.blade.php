@@ -145,8 +145,26 @@
               </div>
             </td>
             <td class="text-center">
-              @if($k->target_peserta)
-                <span class="das-chip das-chip--primary">{{ count($k->target_peserta) }} Kelas</span>
+              @if(($k->target_tingkat && count($k->target_tingkat) > 0) || ($k->target_peserta && count($k->target_peserta) > 0))
+                <div class="d-flex flex-wrap justify-content-center gap-1" style="max-width: 150px; margin: 0 auto;">
+                  @if($k->target_tingkat && count($k->target_tingkat) > 0)
+                    @foreach($k->target_tingkat as $t)
+                      <span class="das-chip das-chip--primary" style="font-size:.6rem;">Tingkat {{ $t }}</span>
+                    @endforeach
+                  @endif
+                  
+                  @if($k->target_peserta && count($k->target_peserta) > 0)
+                    @php
+                      $targetKelas = \App\Models\Kelas::whereIn('id', $k->target_peserta)->pluck('nama')->toArray();
+                    @endphp
+                    @foreach(array_slice($targetKelas, 0, 2) as $namaKelas)
+                      <span class="das-chip das-chip--info" style="font-size:.6rem;">{{ $namaKelas }}</span>
+                    @endforeach
+                    @if(count($targetKelas) > 2)
+                      <span class="das-chip das-chip--info" style="font-size:.6rem;">+{{ count($targetKelas) - 2 }}</span>
+                    @endif
+                  @endif
+                </div>
               @else
                 <span class="das-chip das-chip--success">Seluruh Siswa</span>
               @endif

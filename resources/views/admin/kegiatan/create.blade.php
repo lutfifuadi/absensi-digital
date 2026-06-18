@@ -194,6 +194,46 @@
             <textarea name="keterangan" class="form-control das-form-control" rows="3"
                       placeholder="Tuliskan deskripsi singkat kegiatan">{{ old('keterangan') }}</textarea>
           </div>
+
+          {{-- Target Peserta (Berdasarkan Tingkat) --}}
+          <div class="col-12">
+            <label class="das-form-label">Target Peserta (Berdasarkan Tingkat)</label>
+            <div class="row g-2 p-3 mb-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
+              @foreach($tingkat as $t)
+                <div class="col-md-2 col-4">
+                  <div class="form-check">
+                    <input class="form-check-input checkbox-tingkat" type="checkbox" name="target_tingkat[]" value="{{ $t }}" id="tingkat_{{ $t }}"
+                           data-tingkat="{{ $t }}"
+                           {{ is_array(old('target_tingkat')) && in_array($t, old('target_tingkat')) ? 'checked' : '' }}>
+                    <label class="form-check-label text-white small" for="tingkat_{{ $t }}">
+                      Tingkat {{ $t }}
+                    </label>
+                  </div>
+                </div>
+              @endforeach
+            </div>
+          </div>
+
+          {{-- Target Peserta (Kelas) --}}
+          <div class="col-12">
+            <label class="das-form-label">Target Peserta (Kelas Spesifik)</label>
+            <div class="row g-2 p-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
+              @foreach($kelas as $k)
+                <div class="col-md-3 col-6 checkbox-kelas-wrapper" data-tingkat="{{ $k->tingkat }}">
+                  <div class="form-check">
+                    <input class="form-check-input checkbox-kelas" type="checkbox" name="target_peserta[]" value="{{ $k->id }}" id="kelas_{{ $k->id }}"
+                           {{ is_array(old('target_peserta')) && in_array($k->id, old('target_peserta')) ? 'checked' : '' }}>
+                    <label class="form-check-label text-white small" for="kelas_{{ $k->id }}">
+                      {{ $k->nama }}
+                    </label>
+                  </div>
+                </div>
+              @endforeach
+            </div>
+            <small class="text-muted mt-2 d-block" style="font-size: .7rem;">
+              <i class="ti tabler-info-circle"></i> Jika tingkat dipilih, seluruh kelas di tingkat tersebut akan otomatis menjadi target. Gunakan "Kelas Spesifik" jika hanya ingin memilih kelas tertentu.
+            </small>
+          </div>
         </div>
 
         {{-- Submit --}}
@@ -216,6 +256,36 @@
   document.addEventListener('DOMContentLoaded', function() {
     const tooltips = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltips.map(el => new bootstrap.Tooltip(el));
+
+    const tingkatCheckboxes = document.querySelectorAll('.checkbox-tingkat');
+    const kelasWrappers = document.querySelectorAll('.checkbox-kelas-wrapper');
+
+    function updateKelasVisibility() {
+      const selectedTingkats = Array.from(tingkatCheckboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.dataset.tingkat);
+
+      kelasWrappers.forEach(wrapper => {
+        const tingkat = wrapper.dataset.tingkat;
+        const checkbox = wrapper.querySelector('.checkbox-kelas');
+        
+        if (selectedTingkats.includes(tingkat)) {
+          wrapper.style.opacity = '0.5';
+          wrapper.style.pointerEvents = 'none';
+          checkbox.checked = false; // Uncheck because level already covers it
+        } else {
+          wrapper.style.opacity = '1';
+          wrapper.style.pointerEvents = 'auto';
+        }
+      });
+    }
+
+    tingkatCheckboxes.forEach(cb => {
+      cb.addEventListener('change', updateKelasVisibility);
+    });
+
+    // Initial check
+    updateKelasVisibility();
   });
 </script>
 @endsection

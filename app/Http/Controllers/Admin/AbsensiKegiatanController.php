@@ -31,10 +31,36 @@ class AbsensiKegiatanController extends Controller
             return response()->json(['success' => false, 'message' => 'Kartu Siswa tidak terdaftar!'], 404);
         }
 
+        // Check if student is target
+        $kegiatan = Kegiatan::findOrFail($request->kegiatan_id);
+        $isTarget = false;
+
+        // 1. Check Level (Tingkat)
+        if ($kegiatan->target_tingkat && count($kegiatan->target_tingkat) > 0) {
+            if ($siswa->kelas && in_array($siswa->kelas->tingkat, $kegiatan->target_tingkat)) {
+                $isTarget = true;
+            }
+        }
+
+        // 2. Check Specific Class (ID Kelas)
+        if (!$isTarget && $kegiatan->target_peserta && count($kegiatan->target_peserta) > 0) {
+            if (in_array($siswa->kelas_id, $kegiatan->target_peserta)) {
+                $isTarget = true;
+            }
+        }
+
+        // 3. If no target defined, assume ALL students
+        if (!$kegiatan->target_tingkat && !$kegiatan->target_peserta) {
+            $isTarget = true;
+        }
+
+        if (!$isTarget) {
+            return response()->json(['success' => false, 'message' => 'Siswa tidak termasuk dalam target peserta kegiatan ini.'], 403);
+        }
+
         // Check duplicate today
         $already = AbsensiKegiatan::where('kegiatan_id', $request->kegiatan_id)
             ->where('siswa_id', $siswa->id)
-            ->whereDate('jam_absen', Carbon::today())
             ->exists();
 
         if ($already) {

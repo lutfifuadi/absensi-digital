@@ -20,6 +20,11 @@ class CheckLicense
 
     public function handle(Request $request, Closure $next): Response
     {
+        // Bypass license check in local development environment
+        if (config('app.env') === 'local') {
+            return $next($request);
+        }
+
         // Only enforce after the application has been installed
         if (!file_exists(storage_path('installed'))) {
             return $next($request);
@@ -34,25 +39,32 @@ class CheckLicense
 
         $licenseKey = config('license.key');
 
-        // Double-check with database to bypass config caching issues
-        $dbStatus = \App\Models\Pengaturan::where('key', 'license_status')->value('value');
+        try {
+            // Double-check with database to bypass config caching issues
+            $dbStatus = \App\Models\Pengaturan::where('key', 'license_status')->value('value');
 
-        if (empty($licenseKey) || $dbStatus === 'inactive') {
-            \Illuminate\Support\Facades\Log::info(
-                'License check: UNAUTHORIZED detected for ' . $request->fullUrl() .
-                ' (Key: ' . ($licenseKey ? 'Exists' : 'Empty') .
-                ', DB Status: ' . ($dbStatus ?: 'Not Set') . ')'
-            );
+            if (empty($licenseKey) || $dbStatus === 'inactive') {
+                \Illuminate\Support\Facades\Log::info(
+                    'License check: UNAUTHORIZED detected for ' . $request->fullUrl() .
+                    ' (Key: ' . ($licenseKey ? 'Exists' : 'Empty') .
+                    ', DB Status: ' . ($dbStatus ?: 'Not Set') . ')'
+                );
 
-            // AJAX / JSON requests get a 403 JSON response
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message'  => 'Lisensi belum diaktifkan atau telah dicabut. Silakan aktifkan lisensi kembali.',
-                    'redirect' => route('license.warning'),
-                ], 403);
+                // AJAX / JSON requests get a 403 JSON response
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message'  => 'Lisensi belum diaktifkan atau telah dicabut. Silakan aktifkan lisensi kembali.',
+                        'redirect' => route('license.warning'),
+                    ], 403);
+                }
+
+                return redirect()->route('license.warning');
             }
-
-            return redirect()->route('license.warning');
+        } catch (\Throwable $e) {
+            // Failsafe: if database is not ready or table missing during migration/update, 
+            // allow request to continue to prevent fatal loops.
+            \Illuminate\Support\Facades\Log::warning('License check skipped due to error: ' . $e->getMessage());
+            return $next($request);
         }
 
         // FAIL-SAFE: Trigger scheduler silently if it hasn't run in the last 10 minutes.

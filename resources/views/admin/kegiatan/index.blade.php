@@ -159,8 +159,31 @@
             </td>
             <td>
               <div class="text-white small fw-medium">{{ $k->tanggal_pelaksanaan?->translatedFormat('d F Y') }}</div>
-              <div class="text-muted small" style="font-size:.7rem;">
+              <div class="text-muted small mb-1" style="font-size:.7rem;">
                 <i class="ti tabler-map-pin" style="font-size:.8rem;"></i> {{ $k->lokasi ?? '-' }}
+              </div>
+              <div class="d-flex flex-wrap gap-1">
+                @if(($k->target_tingkat && count($k->target_tingkat) > 0) || ($k->target_peserta && count($k->target_peserta) > 0))
+                  @if($k->target_tingkat && count($k->target_tingkat) > 0)
+                    @foreach($k->target_tingkat as $t)
+                      <span class="das-chip das-chip--primary" style="font-size:.55rem;padding:0px 6px;">Tingkat {{ $t }}</span>
+                    @endforeach
+                  @endif
+                  
+                  @if($k->target_peserta && count($k->target_peserta) > 0)
+                    @php
+                      $targetKelas = \App\Models\Kelas::whereIn('id', $k->target_peserta)->pluck('nama')->toArray();
+                    @endphp
+                    @foreach(array_slice($targetKelas, 0, 3) as $namaKelas)
+                      <span class="das-chip das-chip--info" style="font-size:.55rem;padding:0px 6px;">{{ $namaKelas }}</span>
+                    @endforeach
+                    @if(count($targetKelas) > 3)
+                      <span class="das-chip das-chip--info" style="font-size:.55rem;padding:0px 6px;">+{{ count($targetKelas) - 3 }}</span>
+                    @endif
+                  @endif
+                @else
+                  <span class="das-chip das-chip--success" style="font-size:.55rem;padding:0px 6px;">Seluruh Siswa</span>
+                @endif
               </div>
             </td>
             <td>

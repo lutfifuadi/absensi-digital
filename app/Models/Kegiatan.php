@@ -23,6 +23,7 @@ class Kegiatan extends Model
         'qr_code_kegiatan',
         'is_wajib',
         'target_peserta',
+        'target_tingkat',
         'tahun_akademik_id',
     ];
 
@@ -30,6 +31,7 @@ class Kegiatan extends Model
         'tanggal_pelaksanaan' => 'date',
         'is_wajib' => 'boolean',
         'target_peserta' => 'array',
+        'target_tingkat' => 'array',
     ];
 
     public function tahunAkademik()

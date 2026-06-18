@@ -378,11 +378,18 @@
     }
 
     .form-label { color: rgba(255,255,255,0.55) !important; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.4rem !important; }
-    .form-control {
+    .form-control,
+    .form-control:focus,
+    .form-control.is-invalid,
+    .form-control.is-valid,
+    .form-control.is-invalid:focus,
+    .form-control.is-valid:focus {
       background: rgba(255,255,255,0.025) !important;
       border: 1px solid rgba(255,255,255,0.08) !important;
       color: #e2e8f0 !important;
-      padding: 0.7rem 1rem;
+      padding: 0.7rem 1rem !important;
+      padding-block: 0.7rem !important;
+      padding-inline: 1rem !important;
       border-radius: 8px !important;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
@@ -403,12 +410,26 @@
       transition: border-color 0.2s, box-shadow 0.2s;
     }
     /* Fix alignment & seamless connection for password toggle */
-    .form-password-toggle .input-group .form-control {
+    .form-password-toggle .input-group .form-control,
+    .form-password-toggle .input-group .form-control:focus,
+    .form-password-toggle .input-group .form-control.is-invalid,
+    .form-password-toggle .input-group .form-control.is-valid {
       border-top-right-radius: 0 !important;
       border-bottom-right-radius: 0 !important;
       border-right: none !important;
+      padding: 0.7rem 1rem !important;
+      padding-block: 0.7rem !important;
+      padding-inline: 1rem !important;
     }
-    .form-password-toggle .input-group .input-group-text {
+    .form-password-toggle .input-group .input-group-text,
+    .form-password-toggle .input-group .input-group-text:focus,
+    .form-password-toggle .input-group:focus-within .input-group-text {
+      padding: 0.7rem 0.85rem !important;
+      padding-block: 0.7rem !important;
+      padding-inline: 0.85rem !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
       transition: all 0.2s ease;
     }

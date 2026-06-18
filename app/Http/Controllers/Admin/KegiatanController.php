@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Kegiatan;
 use App\Models\TahunAkademik;
+use App\Models\Kelas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -19,7 +20,9 @@ class KegiatanController extends Controller
     public function create()
     {
         $tahunAkademiks = TahunAkademik::all();
-        return view('admin.kegiatan.create', compact('tahunAkademiks'));
+        $kelas = Kelas::all();
+        $tingkat = Kelas::distinct()->pluck('tingkat')->filter()->sort();
+        return view('admin.kegiatan.create', compact('tahunAkademiks', 'kelas', 'tingkat'));
     }
 
     public function store(Request $request)
@@ -33,6 +36,7 @@ class KegiatanController extends Controller
             'lokasi' => 'nullable|string',
             'keterangan' => 'nullable|string|max:500',
             'target_peserta' => 'nullable|array',
+            'target_tingkat' => 'nullable|array',
         ]);
 
         $data['qr_code_kegiatan'] = 'KGT-' . strtoupper(Str::random(10));
@@ -51,7 +55,9 @@ class KegiatanController extends Controller
     public function edit(Kegiatan $kegiatan)
     {
         $tahunAkademiks = TahunAkademik::all();
-        return view('admin.kegiatan.edit', compact('kegiatan', 'tahunAkademiks'));
+        $kelas = Kelas::all();
+        $tingkat = Kelas::distinct()->pluck('tingkat')->filter()->sort();
+        return view('admin.kegiatan.edit', compact('kegiatan', 'tahunAkademiks', 'kelas', 'tingkat'));
     }
 
     public function update(Request $request, Kegiatan $kegiatan)
@@ -65,6 +71,7 @@ class KegiatanController extends Controller
             'lokasi' => 'nullable|string',
             'keterangan' => 'nullable|string|max:500',
             'target_peserta' => 'nullable|array',
+            'target_tingkat' => 'nullable|array',
         ]);
 
         $kegiatan->update($data);

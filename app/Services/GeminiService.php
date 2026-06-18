@@ -48,6 +48,7 @@ class GeminiService
     public function rotateToNextKey(): bool
     {
         if (empty($this->apiKeys)) {
+            Log::error('GeminiService: No API keys available for rotation');
             return false;
         }
 
@@ -65,6 +66,7 @@ class GeminiService
             'from_index' => $lastIndex,
             'to_index' => $nextIndex,
             'total_keys' => count($this->apiKeys),
+            'new_key_masked' => substr($this->apiKey, 0, 5) . '...' . substr($this->apiKey, -5)
         ]);
 
         return true;
@@ -72,6 +74,7 @@ class GeminiService
 
     public function sendMessage(string $message, array $context = []): array
     {
+        $this->loadApiKeys(); // Pastikan keys terbaru dimuat sebelum mengirim pesan
         $contents = $this->buildContents($message, $context);
         $systemInstruction = $this->buildSystemInstruction();
 
@@ -85,6 +88,7 @@ class GeminiService
 
     public function sendWithTools(string $message, array $tools, array $context = []): array
     {
+        $this->loadApiKeys(); // Pastikan keys terbaru dimuat sebelum mengirim pesan
         $contents = $this->buildContents($message, $context);
 
         $systemInstruction = $this->buildSystemInstruction();
@@ -92,11 +96,13 @@ class GeminiService
         $payload = [
             'contents' => $contents,
             'system_instruction' => $systemInstruction,
-            'tools' => $tools,
+            'tools' => [
+                ['function_declarations' => $tools]
+            ],
         ];
 
         $attempt = 0;
-        $maxToolRounds = 3;
+        $maxToolRounds = 5; // Tingkatkan sedikit batas round-trip tool
 
         while ($attempt < $maxToolRounds) {
             $response = $this->callWithRetry($payload);
@@ -120,6 +126,11 @@ class GeminiService
                         $hasFunctionCall = true;
                         $functionName = $part['functionCall']['name'];
                         $functionArgs = $part['functionCall']['args'] ?? [];
+                        
+                        // Konversi object ke array jika perlu
+                        if (is_object($functionArgs)) {
+                            $functionArgs = (array) $functionArgs;
+                        }
 
                         $result = $this->executeTool($functionName, $functionArgs);
 
@@ -202,10 +213,24 @@ class GeminiService
                 if ($role === 'assistant') {
                     $role = 'model';
                 }
-                $contents[] = [
-                    'role' => $role,
-                    'parts' => [['text' => $msg['message'] ?? $msg['text'] ?? '']],
-                ];
+                
+                // Pastikan format content sesuai dengan dokumentasi Gemini
+                $parts = [];
+                if (isset($msg['parts'])) {
+                    $parts = $msg['parts'];
+                } else {
+                    $text = $msg['message'] ?? $msg['text'] ?? '';
+                    if (!empty($text)) {
+                        $parts[] = ['text' => $text];
+                    }
+                }
+
+                if (!empty($parts)) {
+                    $contents[] = [
+                        'role' => $role,
+                        'parts' => $parts,
+                    ];
+                }
             }
         }
 
@@ -221,7 +246,7 @@ class GeminiService
     {
         if (empty($this->apiKey)) {
             Log::error('Gemini API key not configured');
-            return $this->errorResponse('API Key Gemini belum dikonfigurasi. Set GEMINI_API_KEY di .env');
+            return $this->errorResponse('API Key Gemini belum dikonfigurasi. Set GEMINI_API_KEY di .env atau di Pengaturan.');
         }
 
         $lastError = null;
@@ -230,9 +255,14 @@ class GeminiService
             try {
                 $url = "{$this->baseUrl}/{$this->model}:generateContent?key={$this->apiKey}";
 
+                // Pastikan payload di-encode dengan benar untuk Gemini API terbaru
+                // Khususnya penanganan empty args pada functionCall
+                $jsonPayload = json_encode($payload);
+
                 $response = Http::timeout($this->timeout)
                     ->withHeaders(['Content-Type' => 'application/json'])
-                    ->post($url, $payload);
+                    ->withBody($jsonPayload, 'application/json')
+                    ->post($url);
 
                 if ($response->successful()) {
                     return $response->json();
@@ -240,38 +270,37 @@ class GeminiService
 
                 $status = $response->status();
                 $body = $response->body();
+                $errorData = $response->json();
 
-                if ($status === 429) {
-                    Log::warning("Gemini API rate limited (attempt {$attempt})");
+                // Deteksi masalah 'args' atau unknown name
+                if ($status === 400 && str_contains($body, 'args')) {
+                    Log::warning("Gemini API Error 400 (args issues) detected. Attempting to fix payload structure.");
+                    // Payload sudah di-handle di sendWithTools, jika masih 400 berarti ada isu lain
+                }
+
+                if ($status === 429 || ($status === 400 && str_contains($body, 'API_KEY_INVALID'))) {
+                    Log::warning("Gemini API Issue (Status: {$status}) — rotating key (attempt {$attempt})");
                     if ($this->rotateToNextKey()) {
-                        $url = "{$this->baseUrl}/{$this->model}:generateContent?key={$this->apiKey}";
                         continue;
                     }
                     sleep(min(5 * $attempt, 30));
                     continue;
                 }
 
-                if ($status === 400) {
-                    Log::error('Gemini API bad request', ['status' => $status, 'body' => $body]);
-                    return $this->errorResponse('Permintaan tidak valid. Periksa format data.');
-                }
-
                 if ($status === 403) {
                     Log::warning("Gemini API forbidden — rotating key (attempt {$attempt})");
                     if ($this->rotateToNextKey()) {
-                        $url = "{$this->baseUrl}/{$this->model}:generateContent?key={$this->apiKey}";
                         continue;
                     }
-                    return $this->errorResponse('Semua API Key tidak valid. Periksa konfigurasi.');
+                    return $this->errorResponse('Semua API Key tidak valid atau tidak memiliki izin.');
                 }
 
                 if ($status === 500 || $status === 503) {
                     Log::warning("Gemini API server error (attempt {$attempt})", ['status' => $status]);
-                    if ($this->rotateToNextKey()) {
-                        $url = "{$this->baseUrl}/{$this->model}:generateContent?key={$this->apiKey}";
-                        continue;
-                    }
                     if ($attempt < $this->maxRetries) {
+                        if ($this->rotateToNextKey()) {
+                            continue;
+                        }
                         sleep(2 * $attempt);
                         continue;
                     }
@@ -283,7 +312,6 @@ class GeminiService
                 ]);
 
                 if ($this->rotateToNextKey()) {
-                    $url = "{$this->baseUrl}/{$this->model}:generateContent?key={$this->apiKey}";
                     continue;
                 }
 
@@ -296,7 +324,6 @@ class GeminiService
                 ]);
 
                 if ($this->rotateToNextKey()) {
-                    $url = "{$this->baseUrl}/{$this->model}:generateContent?key={$this->apiKey}";
                     continue;
                 }
 
@@ -561,124 +588,120 @@ class GeminiService
     {
         return [
             [
-                'functionDeclarations' => [
-                    [
-                        'name' => 'get_siswa',
-                        'description' => 'Mendapatkan data siswa berdasarkan ID, NISN, atau kelas',
-                        'parameters' => [
-                            'type' => 'object',
-                            'properties' => [
-                                'id' => ['type' => 'integer', 'description' => 'ID siswa (opsional)'],
-                                'nisn' => ['type' => 'string', 'description' => 'NISN siswa (opsional)'],
-                                'kelas_id' => ['type' => 'integer', 'description' => 'ID kelas (opsional)'],
-                            ],
-                        ],
+                'name' => 'get_siswa',
+                'description' => 'Mendapatkan data siswa berdasarkan ID, NISN, atau kelas',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'id' => ['type' => 'integer', 'description' => 'ID siswa (opsional)'],
+                        'nisn' => ['type' => 'string', 'description' => 'NISN siswa (opsional)'],
+                        'kelas_id' => ['type' => 'integer', 'description' => 'ID kelas (opsional)'],
                     ],
-                    [
-                        'name' => 'update_siswa',
-                        'description' => 'Mengupdate data siswa (nama, alamat, no_hp, status, dll)',
-                        'parameters' => [
-                            'type' => 'object',
-                            'properties' => [
-                                'id' => ['type' => 'integer', 'description' => 'ID siswa'],
-                                'nama_lengkap' => ['type' => 'string', 'description' => 'Nama lengkap siswa'],
-                                'nis' => ['type' => 'string', 'description' => 'NIS siswa'],
-                                'jenis_kelamin' => ['type' => 'string', 'description' => 'Jenis kelamin (L/P)'],
-                                'tempat_lahir' => ['type' => 'string', 'description' => 'Tempat lahir'],
-                                'tanggal_lahir' => ['type' => 'string', 'description' => 'Tanggal lahir'],
-                                'alamat' => ['type' => 'string', 'description' => 'Alamat'],
-                                'no_hp' => ['type' => 'string', 'description' => 'Nomor HP'],
-                                'no_hp_ortu' => ['type' => 'string', 'description' => 'Nomor HP orang tua'],
-                                'status' => ['type' => 'string', 'description' => 'Status (aktif/nonaktif/lulus/keluar)'],
-                            ],
-                            'required' => ['id'],
-                        ],
+                ],
+            ],
+            [
+                'name' => 'update_siswa',
+                'description' => 'Mengupdate data siswa (nama, alamat, no_hp, status, dll)',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'id' => ['type' => 'integer', 'description' => 'ID siswa'],
+                        'nama_lengkap' => ['type' => 'string', 'description' => 'Nama lengkap siswa'],
+                        'nis' => ['type' => 'string', 'description' => 'NIS siswa'],
+                        'jenis_kelamin' => ['type' => 'string', 'description' => 'Jenis kelamin (L/P)'],
+                        'tempat_lahir' => ['type' => 'string', 'description' => 'Tempat lahir'],
+                        'tanggal_lahir' => ['type' => 'string', 'description' => 'Tanggal lahir'],
+                        'alamat' => ['type' => 'string', 'description' => 'Alamat'],
+                        'no_hp' => ['type' => 'string', 'description' => 'Nomor HP'],
+                        'no_hp_ortu' => ['type' => 'string', 'description' => 'Nomor HP orang tua'],
+                        'status' => ['type' => 'string', 'description' => 'Status (aktif/nonaktif/lulus/keluar)'],
                     ],
-                    [
-                        'name' => 'get_guru',
-                        'description' => 'Mendapatkan data guru berdasarkan ID atau NIP',
-                        'parameters' => [
-                            'type' => 'object',
-                            'properties' => [
-                                'id' => ['type' => 'integer', 'description' => 'ID guru (opsional)'],
-                                'nip' => ['type' => 'string', 'description' => 'NIP guru (opsional)'],
-                            ],
-                        ],
+                    'required' => ['id'],
+                ],
+            ],
+            [
+                'name' => 'get_guru',
+                'description' => 'Mendapatkan data guru berdasarkan ID atau NIP',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'id' => ['type' => 'integer', 'description' => 'ID guru (opsional)'],
+                        'nip' => ['type' => 'string', 'description' => 'NIP guru (opsional)'],
                     ],
-                    [
-                        'name' => 'update_guru',
-                        'description' => 'Mengupdate data guru (nama, mapel, jabatan, dll)',
-                        'parameters' => [
-                            'type' => 'object',
-                            'properties' => [
-                                'id' => ['type' => 'integer', 'description' => 'ID guru'],
-                                'nama_lengkap' => ['type' => 'string', 'description' => 'Nama lengkap guru'],
-                                'nip' => ['type' => 'string', 'description' => 'NIP guru'],
-                                'jenis_kelamin' => ['type' => 'string', 'description' => 'Jenis kelamin (L/P)'],
-                                'mata_pelajaran' => ['type' => 'string', 'description' => 'Mata pelajaran'],
-                                'jabatan' => ['type' => 'string', 'description' => 'Jabatan'],
-                                'no_hp' => ['type' => 'string', 'description' => 'Nomor HP'],
-                                'status' => ['type' => 'string', 'description' => 'Status (aktif/nonaktif)'],
-                            ],
-                            'required' => ['id'],
-                        ],
+                ],
+            ],
+            [
+                'name' => 'update_guru',
+                'description' => 'Mengupdate data guru (nama, mapel, jabatan, dll)',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'id' => ['type' => 'integer', 'description' => 'ID guru'],
+                        'nama_lengkap' => ['type' => 'string', 'description' => 'Nama lengkap guru'],
+                        'nip' => ['type' => 'string', 'description' => 'NIP guru'],
+                        'jenis_kelamin' => ['type' => 'string', 'description' => 'Jenis kelamin (L/P)'],
+                        'mata_pelajaran' => ['type' => 'string', 'description' => 'Mata pelajaran'],
+                        'jabatan' => ['type' => 'string', 'description' => 'Jabatan'],
+                        'no_hp' => ['type' => 'string', 'description' => 'Nomor HP'],
+                        'status' => ['type' => 'string', 'description' => 'Status (aktif/nonaktif)'],
                     ],
-                    [
-                        'name' => 'get_kelas',
-                        'description' => 'Mendapatkan data kelas berdasarkan ID atau nama',
-                        'parameters' => [
-                            'type' => 'object',
-                            'properties' => [
-                                'id' => ['type' => 'integer', 'description' => 'ID kelas (opsional)'],
-                                'nama' => ['type' => 'string', 'description' => 'Nama kelas untuk pencarian (opsional)'],
-                            ],
-                        ],
+                    'required' => ['id'],
+                ],
+            ],
+            [
+                'name' => 'get_kelas',
+                'description' => 'Mendapatkan data kelas berdasarkan ID atau nama',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'id' => ['type' => 'integer', 'description' => 'ID kelas (opsional)'],
+                        'nama' => ['type' => 'string', 'description' => 'Nama kelas untuk pencarian (opsional)'],
                     ],
-                    [
-                        'name' => 'update_kelas',
-                        'description' => 'Mengupdate data kelas (nama, tingkat, jurusan)',
-                        'parameters' => [
-                            'type' => 'object',
-                            'properties' => [
-                                'id' => ['type' => 'integer', 'description' => 'ID kelas'],
-                                'nama' => ['type' => 'string', 'description' => 'Nama kelas'],
-                                'tingkat' => ['type' => 'string', 'description' => 'Tingkat (10/11/12)'],
-                                'jurusan' => ['type' => 'string', 'description' => 'Jurusan'],
-                                'status' => ['type' => 'string', 'description' => 'Status (aktif/nonaktif)'],
-                            ],
-                            'required' => ['id'],
-                        ],
+                ],
+            ],
+            [
+                'name' => 'update_kelas',
+                'description' => 'Mengupdate data kelas (nama, tingkat, jurusan)',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'id' => ['type' => 'integer', 'description' => 'ID kelas'],
+                        'nama' => ['type' => 'string', 'description' => 'Nama kelas'],
+                        'tingkat' => ['type' => 'string', 'description' => 'Tingkat (10/11/12)'],
+                        'jurusan' => ['type' => 'string', 'description' => 'Jurusan'],
+                        'status' => ['type' => 'string', 'description' => 'Status (aktif/nonaktif)'],
                     ],
-                    [
-                        'name' => 'cari_siswa',
-                        'description' => 'Mencari siswa berdasarkan nama, NISN, atau NIS',
-                        'parameters' => [
-                            'type' => 'object',
-                            'properties' => [
-                                'keyword' => ['type' => 'string', 'description' => 'Kata kunci pencarian (nama, NISN, atau NIS)'],
-                            ],
-                            'required' => ['keyword'],
-                        ],
+                    'required' => ['id'],
+                ],
+            ],
+            [
+                'name' => 'cari_siswa',
+                'description' => 'Mencari siswa berdasarkan nama, NISN, atau NIS',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'keyword' => ['type' => 'string', 'description' => 'Kata kunci pencarian (nama, NISN, atau NIS)'],
                     ],
-                    [
-                        'name' => 'cari_guru',
-                        'description' => 'Mencari guru berdasarkan nama atau NIP',
-                        'parameters' => [
-                            'type' => 'object',
-                            'properties' => [
-                                'keyword' => ['type' => 'string', 'description' => 'Kata kunci pencarian (nama atau NIP)'],
-                            ],
-                            'required' => ['keyword'],
-                        ],
+                    'required' => ['keyword'],
+                ],
+            ],
+            [
+                'name' => 'cari_guru',
+                'description' => 'Mencari guru berdasarkan nama atau NIP',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'keyword' => ['type' => 'string', 'description' => 'Kata kunci pencarian (nama atau NIP)'],
                     ],
-                    [
-                        'name' => 'statistik_data',
-                        'description' => 'Mendapatkan statistik data (total siswa, guru, kelas, user)',
-                        'parameters' => [
-                            'type' => 'object',
-                            'properties' => (object) [],
-                        ],
-                    ],
+                    'required' => ['keyword'],
+                ],
+            ],
+            [
+                'name' => 'statistik_data',
+                'description' => 'Mendapatkan statistik data (total siswa, guru, kelas, user)',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => (object) [],
                 ],
             ],
         ];
