@@ -53,12 +53,19 @@ Route::prefix('v1/innovation')->middleware(['tenant'])->group(function () {
     
     Route::put('/device/offline-mode/{id}', [\App\Http\Controllers\Api\InnovationController::class, 'updateDeviceOfflineMode']);
 
-Route::prefix('holidays')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Api\HolidayController::class, 'index']);
-    Route::post('/', [\App\Http\Controllers\Api\HolidayController::class, 'store']);
-    Route::get('/{id}', [\App\Http\Controllers\Api\HolidayController::class, 'show']);
-    Route::put('/{id}', [\App\Http\Controllers\Api\HolidayController::class, 'update']);
-    Route::delete('/{id}', [\App\Http\Controllers\Api\HolidayController::class, 'destroy']);
-    Route::get('/check/{date}', [\App\Http\Controllers\Api\HolidayController::class, 'checkHoliday']);
+    Route::prefix('holidays')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\HolidayController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\Api\HolidayController::class, 'store']);
+        Route::get('/{id}', [\App\Http\Controllers\Api\HolidayController::class, 'show']);
+        Route::put('/{id}', [\App\Http\Controllers\Api\HolidayController::class, 'update']);
+        Route::delete('/{id}', [\App\Http\Controllers\Api\HolidayController::class, 'destroy']);
+        Route::get('/check/{date}', [\App\Http\Controllers\Api\HolidayController::class, 'checkHoliday']);
+    });
 });
+
+// ── Ekskul Absensi Scan QR (publik — digunakan oleh halaman scan siswa) ──
+Route::prefix('ekskul/absensi')->group(function () {
+    Route::post('/scan/{token}', [\App\Http\Controllers\Api\EkskulAbsensiScanController::class, 'scan'])
+        ->name('api.ekskul.absensi.scan')
+        ->middleware('throttle:30,1');
 });

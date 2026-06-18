@@ -17,5 +17,6 @@ class DatabaseSeeder extends Seeder
         $this->call(RolePermissionSeeder::class);
         $this->call(SampleUsersSeeder::class);
         $this->call(HolidaySeeder::class);
+        $this->call(EkskulSeeder::class);
     }
 }

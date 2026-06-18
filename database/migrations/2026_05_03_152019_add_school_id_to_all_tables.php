@@ -48,7 +48,10 @@ return new class extends Migration
         // Phase 3 & 4: Enforce NOT NULL, add index and foreign key
         foreach ($this->tables as $tableName) {
             if (Schema::hasTable($tableName)) {
-                DB::statement("ALTER TABLE {$tableName} MODIFY school_id BIGINT UNSIGNED NOT NULL");
+                // MODIFY is MySQL/MariaDB specific; SQLite doesn't support it.
+                if (DB::getDriverName() !== 'sqlite') {
+                    DB::statement("ALTER TABLE {$tableName} MODIFY school_id BIGINT UNSIGNED NOT NULL");
+                }
                 
                 Schema::table($tableName, function (Blueprint $table) {
                     $table->index('school_id');

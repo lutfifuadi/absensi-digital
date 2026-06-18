@@ -3,7 +3,8 @@ const OFFLINE_URL = '/pages/misc-error'; // We can change this to a custom offli
 
 const urlsToCache = [
   '/',
-  '/manifest.json'
+  '/manifest.json',
+  '/scan-ekskul'
 ];
 
 self.addEventListener('install', event => {

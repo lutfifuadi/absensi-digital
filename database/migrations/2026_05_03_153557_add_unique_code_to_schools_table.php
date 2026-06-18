@@ -26,7 +26,9 @@ return new class extends Migration
         }
 
         // Make it NOT NULL after backfilling
-        DB::statement('ALTER TABLE schools MODIFY unique_code VARCHAR(64) NOT NULL');
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE schools MODIFY unique_code VARCHAR(64) NOT NULL');
+        }
     }
 
     /**

@@ -12,8 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // MySQL/MariaDB approach to modify ENUM
-        DB::statement("ALTER TABLE id_card_templates MODIFY COLUMN type ENUM('siswa', 'guru', 'staff', 'pelepasan') NOT NULL");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE id_card_templates MODIFY COLUMN type ENUM('siswa', 'guru', 'staff', 'pelepasan') NOT NULL");
+        }
     }
 
     /**
@@ -21,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE id_card_templates MODIFY COLUMN type ENUM('siswa', 'guru', 'staff') NOT NULL");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE id_card_templates MODIFY COLUMN type ENUM('siswa', 'guru', 'staff') NOT NULL");
+        }
     }
 };

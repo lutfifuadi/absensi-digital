@@ -140,6 +140,12 @@
       "url": "/admin/holidays"
     },
     {
+      "name": "Ekstrakurikuler",
+      "icon": "menu-icon ti tabler-trophy",
+      "slug": ["admin.ekskul"],
+      "url": "/admin/ekskul"
+    },
+    {
       "name": "Izin & Sakit",
       "icon": "menu-icon ti tabler-stethoscope",
       "slug": "admin.izin-sakit.index",

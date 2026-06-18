@@ -23,6 +23,12 @@
       "slug": "admin.absensi-kegiatan.scan"
     },
     {
+      "name": "Ekstrakurikuler",
+      "icon": "menu-icon ti tabler-trophy",
+      "slug": ["admin.ekskul"],
+      "url": "/admin/ekskul"
+    },
+    {
       "url": "/admin/kegiatans/absensi",
       "name": "Absensi Kegiatan",
       "icon": "menu-icon ti tabler-calendar-check",

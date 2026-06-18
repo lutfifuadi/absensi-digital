@@ -30,6 +30,9 @@ use App\Http\Controllers\AbsensiMandiriController;
 use App\Http\Controllers\PortalSiswaController;
 use App\Http\Controllers\Admin\AbsensiActivityController;
 use App\Http\Controllers\Admin\PelepasanController;
+use App\Http\Controllers\Admin\EkskulController;
+use App\Http\Controllers\Admin\EkskulAnggotaController;
+use App\Http\Controllers\Admin\EkskulAbsensiController;
 use App\Http\Controllers\PublicPelepasanController;
 
 
@@ -87,6 +90,11 @@ Route::get('/tentang-kami',        [PublicPagesController::class, 'tentangKami']
 Route::get('/panduan-pengguna',    [PublicPagesController::class, 'panduanPengguna'])->name('public.panduan-pengguna');
 Route::get('/kebijakan-privasi',   [PublicPagesController::class, 'kebijakanPrivasi'])->name('public.kebijakan-privasi');
 Route::get('/bantuan',             [PublicPagesController::class, 'bantuan'])->name('public.bantuan');
+
+// ── Halaman Scan QR Ekskul (publik — siswa scan QR dari pembina) ────────────
+Route::get('/scan-ekskul', function () {
+    return view('scan-ekskul');
+})->name('public.scan-ekskul');
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── Halaman Live Board Publik (tanpa login) ───────────────────────────────────
@@ -229,6 +237,46 @@ Route::middleware([
       Route::get('absensi-kegiatan/rekap', [AbsensiKegiatanController::class, 'rekap'])
           ->name('admin.absensi-kegiatan.rekap')
           ->middleware('role:super_admin,admin_sekolah,operator');
+
+      // ── MODUL EKSTRAKURIKULER ──────────────────────────────────────────────
+      Route::resource('ekskul', EkskulController::class)
+          ->names('admin.ekskul')
+          ->except(['show'])
+          ->middleware('role:super_admin,admin_sekolah,operator');
+      Route::post('ekskul/{ekskul}/toggle-status', [EkskulController::class, 'toggleStatus'])
+          ->name('admin.ekskul.toggle-status')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+
+      Route::resource('ekskul.anggota', EkskulAnggotaController::class)
+          ->names('admin.ekskul.anggota')
+          ->only(['index', 'store', 'destroy'])
+          ->middleware('role:super_admin,admin_sekolah,operator');
+      Route::post('ekskul/{ekskul}/anggota/{anggota}/update-status', [EkskulAnggotaController::class, 'updateStatus'])
+          ->name('admin.ekskul.anggota.update-status')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+
+      Route::get('ekskul/{ekskul}/absensi', [EkskulAbsensiController::class, 'index'])
+          ->name('admin.ekskul.absensi.index')
+          ->middleware('role:super_admin,admin_sekolah,operator,guru');
+      Route::get('ekskul/{ekskul}/absensi/{tanggal}', [EkskulAbsensiController::class, 'show'])
+          ->name('admin.ekskul.absensi.show')
+          ->middleware('role:super_admin,admin_sekolah,operator,guru');
+      Route::post('ekskul/{ekskul}/absensi/{tanggal}', [EkskulAbsensiController::class, 'store'])
+          ->name('admin.ekskul.absensi.store')
+          ->middleware('role:super_admin,admin_sekolah,operator,guru');
+      Route::get('ekskul/{ekskul}/absensi-rekap', [EkskulAbsensiController::class, 'rekap'])
+          ->name('admin.ekskul.absensi.rekap')
+          ->middleware('role:super_admin,admin_sekolah,operator,guru');
+      Route::get('ekskul/{ekskul}/absensi-rekap/export-excel', [EkskulAbsensiController::class, 'exportExcel'])
+          ->name('admin.ekskul.absensi.rekap.export-excel')
+          ->middleware('role:super_admin,admin_sekolah,operator,guru');
+      Route::get('ekskul/{ekskul}/absensi-rekap/export-pdf', [EkskulAbsensiController::class, 'exportPdf'])
+          ->name('admin.ekskul.absensi.rekap.export-pdf')
+          ->middleware('role:super_admin,admin_sekolah,operator,guru');
+      Route::post('ekskul/{ekskul}/generate-qr', [EkskulAbsensiController::class, 'generateQR'])
+          ->name('admin.ekskul.generate-qr')
+          ->middleware('role:super_admin,admin_sekolah,operator,guru');
+      // ───────────────────────────────────────────────────────────────────────
 
       // Absensi Pelepasan Kelas XII
       Route::get('pelepasan/settings', [PelepasanController::class, 'settings'])

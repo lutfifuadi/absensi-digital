@@ -117,11 +117,18 @@
           "slug": "admin.kegiatans.absensi"
         },
         {
-          "url": "/admin/pelepasan",
-          "name": "Pelepasan Kelas XII",
-          "slug": "admin.pelepasan.index"
-        }
+    {
+      "url": "/admin/pelepasan",
+      "name": "Pelepasan Kelas XII",
+      "slug": "admin.pelepasan.index"
+    }
       ]
+    },
+    {
+      "name": "Ekstrakurikuler",
+      "icon": "menu-icon ti tabler-trophy",
+      "slug": ["admin.ekskul"],
+      "url": "/admin/ekskul"
     },
     {
       "url": "/admin/izin-sakit",
