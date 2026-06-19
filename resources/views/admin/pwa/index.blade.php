@@ -279,6 +279,16 @@
   padding: 0; font-size: 0.9rem; transition: color 0.15s;
 }
 .set-toast__close:hover { color: white; }
+.set-toast.--danger {
+  background: rgba(234,84,85,0.12);
+  border-color: rgba(234,84,85,0.25);
+}
+.set-toast.--danger .set-toast__icon {
+  color: var(--das-danger);
+}
+.set-toast.--danger .set-toast__msg {
+  color: #fecaca;
+}
 
 @media (max-width: 767px) {
   .set-form-grid { grid-template-columns: 1fr; }
@@ -297,6 +307,14 @@
     <div class="set-toast__icon"><i class="ti tabler-circle-check"></i></div>
     <div class="set-toast__msg">{{ session('success') }}</div>
     <button type="button" class="set-toast__close" onclick="document.getElementById('successToast').style.display='none'"><i class="ti tabler-x"></i></button>
+  </div>
+@endif
+
+@if (session('error'))
+  <div class="set-toast --danger mb-4" id="errorToast">
+    <div class="set-toast__icon"><i class="ti tabler-alert-circle"></i></div>
+    <div class="set-toast__msg">{{ session('error') }}</div>
+    <button type="button" class="set-toast__close" onclick="document.getElementById('errorToast').style.display='none'"><i class="ti tabler-x"></i></button>
   </div>
 @endif
 
@@ -449,7 +467,7 @@
             </div>
             <div class="upload-area">
               <input class="form-control" type="file" id="icon_192" name="icon_192" accept="image/png">
-              <input type="url" class="form-control mt-2" id="icon_192_url" name="icon_192_url" placeholder="Atau masukkan URL..." value="{{ old('icon_192_url') }}">
+              <input type="url" class="form-control mt-2" id="icon_192_url" name="icon_192_url" placeholder="Atau masukkan URL..." value="{{ old('icon_192_url', (filter_var($icon192, FILTER_VALIDATE_URL) ? $icon192 : '')) }}">
               <div class="set-field-hint">Upload PNG (Maks 2MB) atau gunakan URL.</div>
               @error('icon_192')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
               @error('icon_192_url')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
@@ -469,7 +487,7 @@
             </div>
             <div class="upload-area">
               <input class="form-control" type="file" id="icon_512" name="icon_512" accept="image/png">
-              <input type="url" class="form-control mt-2" id="icon_512_url" name="icon_512_url" placeholder="Atau masukkan URL..." value="{{ old('icon_512_url') }}">
+              <input type="url" class="form-control mt-2" id="icon_512_url" name="icon_512_url" placeholder="Atau masukkan URL..." value="{{ old('icon_512_url', (filter_var($icon512, FILTER_VALIDATE_URL) ? $icon512 : '')) }}">
               <div class="set-field-hint">Upload PNG (Maks 4MB) - Disarankan resolusi tinggi.</div>
               @error('icon_512')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
               @error('icon_512_url')<div class="text-danger small mt-1">{{ $message }}</div>@enderror

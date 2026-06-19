@@ -557,6 +557,10 @@ private function superAdminData(): array
 
     private function orangTuaData($user): array
     {
+        $today = Carbon::today();
+        $month = now()->month;
+        $year = now()->year;
+
         $children = Siswa::with(['kelas', 'absensi' => function($q) use ($today, $month, $year) {
             $q->where(function($query) use ($today, $month, $year) {
                 $query->whereDate('tanggal', $today)
@@ -568,10 +572,6 @@ private function superAdminData(): array
         }])
             ->where('ortu_user_id', $user->id)
             ->get();
-
-        $today = Carbon::today();
-        $month = now()->month;
-        $year = now()->year;
 
         $anakData = $children->map(function ($anak) use ($today, $month, $year) {
             $absensiHariIni = AbsensiSiswa::where('siswa_id', $anak->id)
