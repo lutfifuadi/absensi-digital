@@ -42,15 +42,22 @@ class AbsensiKegiatanController extends Controller
             }
         }
 
-        // 2. Check Specific Class (ID Kelas)
+        // 2. Check Jurusan
+        if (!$isTarget && $kegiatan->target_jurusan && count($kegiatan->target_jurusan) > 0) {
+            if ($siswa->kelas && in_array($siswa->kelas->jurusan, $kegiatan->target_jurusan)) {
+                $isTarget = true;
+            }
+        }
+
+        // 3. Check Specific Class (ID Kelas)
         if (!$isTarget && $kegiatan->target_peserta && count($kegiatan->target_peserta) > 0) {
             if (in_array($siswa->kelas_id, $kegiatan->target_peserta)) {
                 $isTarget = true;
             }
         }
 
-        // 3. If no target defined, assume ALL students
-        if (!$kegiatan->target_tingkat && !$kegiatan->target_peserta) {
+        // 4. If no target defined, assume ALL students
+        if (!$kegiatan->target_tingkat && !$kegiatan->target_jurusan && !$kegiatan->target_peserta) {
             $isTarget = true;
         }
 

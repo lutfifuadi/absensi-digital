@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrf_token() }}">
+  {{-- PWA Meta Tags --}}
+  <meta name="application-name" content="Scan QR Absensi">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Scan Absensi">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="/manifest.json">
   <title>Scan QR Absensi — Guru Piket</title>
   <link rel="stylesheet" href="{{ asset('assets/css/local-fonts.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/tabler-icons.css') }}">
@@ -301,6 +308,57 @@
       .nav-brand h1 { font-size: 0.9rem; }
       .nav-brand p { font-size: 0.6rem; }
     }
+
+    /* Offline / Online Banner */
+    .offline-banner {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 9999;
+        background: linear-gradient(135deg, #ea5455, #f97316);
+        color: white;
+        text-align: center;
+        padding: 6px 12px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 15px rgba(234,84,85,0.3);
+    }
+    .offline-banner.show { display: flex; }
+    .offline-banner i {
+        font-size: 1rem;
+        animation: pulse-offline 1.5s infinite;
+    }
+    @keyframes pulse-offline {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+    .online-indicator {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 9999;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        text-align: center;
+        padding: 6px 12px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 15px rgba(16,185,129,0.3);
+        animation: slideDownIndicator 0.4s ease;
+    }
+    .online-indicator.show { display: flex; }
+    @keyframes slideDownIndicator {
+        from { transform: translateY(-100%); }
+        to { transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
@@ -322,6 +380,15 @@
     </form>
   </div>
 </nav>
+
+<div class="offline-banner" id="offline-banner">
+    <i class="ti tabler-wifi-off"></i>
+    Kamu sedang offline — Scan akan disimpan & dikirim otomatis saat online
+</div>
+<div class="online-indicator" id="online-indicator">
+    <i class="ti tabler-wifi"></i>
+    Koneksi kembali! Data scan akan dikirim...
+</div>
 
 <!-- ── LAYOUT ─────────────────────────────────────────────────── -->
 <div class="layout">
@@ -768,9 +835,35 @@
         showToast('error', null, data.message ?? 'QR tidak dikenal.');
       }
     } catch(e) {
-      beep('error');
-      incrStat('error');
-      showToast('error', null, 'Gagal terhubung ke server.');
+      // Simpan ke IndexedDB untuk offline sync
+      try {
+        await saveScanToIndexedDB({
+            url: SCAN_URL,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF,
+                'Accept': 'application/json',
+            },
+            body: { qr_code: qrCode },
+            scanned_at: new Date().toISOString()
+        });
+
+        // Register background sync
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+            const reg = await navigator.serviceWorker.ready;
+            await reg.sync.register('sync-absensi');
+        }
+
+        beep('warning');
+        incrStat('warning');
+        addLog('warning', { nama: 'Tersimpan Offline', jam: '-' }, 'Data akan dikirim otomatis saat online');
+        showToast('warning', { nama: 'Disimpan Offline' }, 'Data scan tersimpan. Akan dikirim otomatis saat koneksi pulih.');
+      } catch(dbError) {
+        beep('error');
+        incrStat('error');
+        showToast('error', null, 'Gagal terhubung ke server dan gagal menyimpan offline.');
+      }
     }
   }
 
@@ -782,6 +875,62 @@
       animFrame = requestAnimationFrame(tick);
     }
   });
+
+  // ── IndexedDB Helper ─────────────────────────────────────────
+  async function saveScanToIndexedDB(scanData) {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('AbsensiOfflineDB', 1);
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains('pending')) {
+          db.createObjectStore('pending', { keyPath: 'id', autoIncrement: true });
+        }
+      };
+      request.onsuccess = () => {
+        const db = request.result;
+        const tx = db.transaction('pending', 'readwrite');
+        const store = tx.objectStore('pending');
+        store.add({
+          url: scanData.url,
+          method: scanData.method,
+          headers: scanData.headers,
+          body: scanData.body,
+          scanned_at: scanData.scanned_at,
+          timestamp: Date.now()
+        });
+        tx.oncomplete = () => resolve();
+        tx.onerror = (e) => reject(e);
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  // ── Register Service Worker (PWA) ────────────────────────────
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.log('SW registration failed:', err));
+    });
+  }
+
+  // ── Online/Offline Detection ─────────────────────────────────
+  const offlineBanner = document.getElementById('offline-banner');
+  const onlineIndicator = document.getElementById('online-indicator');
+
+  window.addEventListener('online', () => {
+    offlineBanner.classList.remove('show');
+    onlineIndicator.classList.add('show');
+    setTimeout(() => { onlineIndicator.classList.remove('show'); }, 3000);
+  });
+
+  window.addEventListener('offline', () => {
+    offlineBanner.classList.add('show');
+  });
+
+  if (!navigator.onLine) {
+    offlineBanner.classList.add('show');
+  }
 </script>
 </body>
 </html>

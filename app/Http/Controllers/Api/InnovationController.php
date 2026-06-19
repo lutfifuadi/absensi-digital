@@ -8,6 +8,8 @@ use App\Models\IzinSakit;
 use App\Models\Siswa;
 use App\Models\Kelas;
 use App\Models\AbsensiSiswa;
+use App\Models\AbsensiGuru;
+use App\Models\Guru;
 use App\Models\TahunAkademik;
 use App\Models\AttendanceAnalytics;
 use App\Models\Badge;
@@ -225,8 +227,117 @@ class InnovationController extends Controller
                 
                 switch ($queue->event_type) {
                     case 'absensi':
-                        AbsensiSiswa::create($queue->payload);
-                        break;
+                        $payload = $queue->payload;
+                        $qrCode = $payload['qr_code'] ?? null;
+                        $scannedAt = $payload['scanned_at'] ?? null;
+
+                        if (!$qrCode) {
+                            throw new \Exception('Data absensi tidak lengkap: qr_code diperlukan.');
+                        }
+
+                        // Tentukan waktu scan (gunakan scanned_at atau waktu sekarang)
+                        $scanTime = $scannedAt ? \Carbon\Carbon::parse($scannedAt) : now();
+                        $tanggal = $scanTime->toDateString();
+                        $currentTime = $scanTime->format('H:i');
+
+                        // Load settings (cache dari DB atau default)
+                        $jamMasuk       = '07:00';
+                        $jamBatasMasuk  = '08:00';
+                        $jamMulaiPulang = '14:00';
+                        $jamAkhirPulang = '17:00';
+                        $toleransi      = 15;
+
+                        // 1. Cek apakah ini Siswa
+                        $siswa = \App\Models\Siswa::with('kelas')->where('qr_code', $qrCode)->first();
+
+                        if ($siswa) {
+                            $absensi = \App\Models\AbsensiSiswa::where('siswa_id', $siswa->id)
+                                ->whereDate('tanggal', $tanggal)
+                                ->first();
+
+                            // --- LOGIKA PULANG ---
+                            if ($absensi && $currentTime >= $jamMulaiPulang) {
+                                if ($currentTime > $jamAkhirPulang) {
+                                    throw new \Exception('Sesi scan pulang sudah ditutup (Batas: ' . $jamAkhirPulang . ').');
+                                }
+
+                                if ($absensi->jam_pulang) {
+                                    // Sudah scan pulang, skip (anggap sukses)
+                                    break;
+                                }
+
+                                $absensi->update(['jam_pulang' => $currentTime]);
+                                break;
+                            }
+
+                            // --- LOGIKA MASUK ---
+                            if ($absensi) {
+                                // Sudah tercatat hadir, skip
+                                break;
+                            }
+
+                            if ($currentTime > $jamBatasMasuk) {
+                                throw new \Exception('Sesi scan masuk sudah ditutup (Batas: ' . $jamBatasMasuk . ').');
+                            }
+
+                            $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i');
+                            $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
+
+                            \App\Models\AbsensiSiswa::create([
+                                'siswa_id'   => $siswa->id,
+                                'kelas_id'   => $siswa->kelas_id,
+                                'tanggal'    => $tanggal,
+                                'jam_masuk'  => $currentTime,
+                                'status'     => $status,
+                                'keterangan' => 'Offline sync',
+                                'metode'     => 'qr',
+                            ]);
+                            break;
+                        }
+
+                        // 2. Jika bukan siswa, cek Guru
+                        $guru = \App\Models\Guru::where('qr_code', $qrCode)->first();
+                        if ($guru) {
+                            $absensi = \App\Models\AbsensiGuru::where('guru_id', $guru->id)
+                                ->whereDate('tanggal', $tanggal)
+                                ->first();
+
+                            // --- LOGIKA PULANG GURU ---
+                            if ($absensi && $currentTime >= $jamMulaiPulang) {
+                                if ($currentTime > $jamAkhirPulang) {
+                                    throw new \Exception('Sesi scan pulang sudah ditutup.');
+                                }
+                                if ($absensi->jam_pulang) {
+                                    break; // sudah pulang, skip
+                                }
+                                $absensi->update(['jam_pulang' => $currentTime]);
+                                break;
+                            }
+
+                            if ($absensi) {
+                                break; // sudah hadir, skip
+                            }
+
+                            if ($currentTime > $jamBatasMasuk) {
+                                throw new \Exception('Sesi scan masuk guru sudah ditutup.');
+                            }
+
+                            $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i');
+                            $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
+
+                            \App\Models\AbsensiGuru::create([
+                                'guru_id'    => $guru->id,
+                                'tanggal'    => $tanggal,
+                                'jam_masuk'  => $currentTime,
+                                'status'     => $status,
+                                'keterangan' => 'Offline sync',
+                                'metode'     => 'qr',
+                            ]);
+                            break;
+                        }
+
+                        // 3. Tidak ditemukan
+                        throw new \Exception('QR code tidak dikenal (Siswa/Guru).');
 
                     case 'absensi_ekskul':
                         $payload = $queue->payload;
@@ -400,6 +511,21 @@ class InnovationController extends Controller
             });
         }
 
+        // Filter berdasarkan target_jurusan
+        if ($kegiatan->target_jurusan && count($kegiatan->target_jurusan) > 0) {
+            $targetJurusan = $kegiatan->target_jurusan;
+            if (($kegiatan->target_tingkat && count($kegiatan->target_tingkat) > 0) || 
+                ($kegiatan->target_peserta && count($kegiatan->target_peserta) > 0)) {
+                $querySiswa->orWhereHas('kelas', function($q) use ($targetJurusan) {
+                    $q->whereIn('jurusan', $targetJurusan);
+                });
+            } else {
+                $querySiswa->whereHas('kelas', function($q) use ($targetJurusan) {
+                    $q->whereIn('jurusan', $targetJurusan);
+                });
+            }
+        }
+
         // Filter berdasarkan target_peserta (ID Kelas)
         if ($kegiatan->target_peserta && count($kegiatan->target_peserta) > 0) {
             $targetKelasIds = $kegiatan->target_peserta;
@@ -468,11 +594,17 @@ class InnovationController extends Controller
 
         // Validasi target peserta
         $isTarget = false;
-        if (!$kegiatan->target_tingkat && !$kegiatan->target_peserta) {
+        if (!$kegiatan->target_tingkat && !$kegiatan->target_jurusan && !$kegiatan->target_peserta) {
             $isTarget = true;
         } else {
             if ($kegiatan->target_tingkat && count($kegiatan->target_tingkat) > 0) {
                 if ($siswa->kelas && in_array($siswa->kelas->tingkat, $kegiatan->target_tingkat)) {
+                    $isTarget = true;
+                }
+            }
+            // Check Jurusan
+            if (!$isTarget && $kegiatan->target_jurusan && count($kegiatan->target_jurusan) > 0) {
+                if ($siswa->kelas && in_array($siswa->kelas->jurusan, $kegiatan->target_jurusan)) {
                     $isTarget = true;
                 }
             }

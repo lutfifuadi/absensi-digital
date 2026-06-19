@@ -32,6 +32,7 @@ class Kegiatan extends Model
         'is_wajib' => 'boolean',
         'target_peserta' => 'array',
         'target_tingkat' => 'array',
+        'target_jurusan' => 'array',
     ];
 
     public function tahunAkademik()

@@ -22,7 +22,12 @@ class KegiatanController extends Controller
         $tahunAkademiks = TahunAkademik::all();
         $kelas = Kelas::all();
         $tingkat = Kelas::distinct()->pluck('tingkat')->filter()->sort();
-        return view('admin.kegiatan.create', compact('tahunAkademiks', 'kelas', 'tingkat'));
+        $jurusanList = Kelas::whereNotNull('jurusan')
+            ->distinct()
+            ->pluck('jurusan')
+            ->sort()
+            ->values();
+        return view('admin.kegiatan.create', compact('tahunAkademiks', 'kelas', 'tingkat', 'jurusanList'));
     }
 
     public function store(Request $request)
@@ -37,6 +42,8 @@ class KegiatanController extends Controller
             'keterangan' => 'nullable|string|max:500',
             'target_peserta' => 'nullable|array',
             'target_tingkat' => 'nullable|array',
+            'target_jurusan' => 'nullable|array',
+            'target_jurusan.*' => 'string|max:255',
             'is_wajib' => 'nullable|boolean',
         ]);
 
@@ -64,7 +71,12 @@ class KegiatanController extends Controller
         $tahunAkademiks = TahunAkademik::all();
         $kelas = Kelas::all();
         $tingkat = Kelas::distinct()->pluck('tingkat')->filter()->sort();
-        return view('admin.kegiatan.edit', compact('kegiatan', 'tahunAkademiks', 'kelas', 'tingkat'));
+        $jurusanList = Kelas::whereNotNull('jurusan')
+            ->distinct()
+            ->pluck('jurusan')
+            ->sort()
+            ->values();
+        return view('admin.kegiatan.edit', compact('kegiatan', 'tahunAkademiks', 'kelas', 'tingkat', 'jurusanList'));
     }
 
     public function update(Request $request, Kegiatan $kegiatan)
@@ -79,6 +91,8 @@ class KegiatanController extends Controller
             'keterangan' => 'nullable|string|max:500',
             'target_peserta' => 'nullable|array',
             'target_tingkat' => 'nullable|array',
+            'target_jurusan' => 'nullable|array',
+            'target_jurusan.*' => 'string|max:255',
             'is_wajib' => 'nullable|boolean',
         ]);
 

@@ -268,12 +268,36 @@
             </div>
           </div>
 
+          {{-- Target Peserta (Jurusan) --}}
+          <div class="col-12">
+            <label class="das-form-label">Target Jurusan <small class="text-muted" style="font-size:.65rem;text-transform:none;letter-spacing:0;">(Opsional)</small></label>
+            <div class="row g-2 p-3 mb-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
+              @forelse($jurusanList as $jurusan)
+                <div class="col-md-2 col-4">
+                  <div class="form-check">
+                    <input class="form-check-input jurusan-checkbox" type="checkbox" name="target_jurusan[]" value="{{ $jurusan }}" id="jurusan_{{ Str::slug($jurusan) }}"
+                           {{ in_array($jurusan, old('target_jurusan', [])) ? 'checked' : '' }}>
+                    <label class="form-check-label text-white small" for="jurusan_{{ Str::slug($jurusan) }}">
+                      {{ $jurusan }}
+                    </label>
+                  </div>
+                </div>
+              @empty
+                <div class="col-12">
+                  <p class="text-muted small mb-0" style="font-size:.75rem;">
+                    <i class="ti tabler-info-circle me-1"></i>Tidak ada data jurusan tersedia.
+                  </p>
+                </div>
+              @endforelse
+            </div>
+          </div>
+
           {{-- Target Peserta (Kelas) --}}
           <div class="col-12">
             <label class="das-form-label">Target Peserta (Kelas Spesifik)</label>
             <div class="row g-2 p-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
               @foreach($kelas as $k)
-                <div class="col-md-3 col-6 checkbox-kelas-wrapper" data-tingkat="{{ $k->tingkat }}">
+                <div class="col-md-3 col-6 checkbox-kelas-wrapper" data-tingkat="{{ $k->tingkat }}" data-jurusan="{{ $k->jurusan ?? '' }}">
                   <div class="form-check">
                     <input class="form-check-input checkbox-kelas" type="checkbox" name="target_peserta[]" value="{{ $k->id }}" id="kelas_{{ $k->id }}"
                            {{ is_array(old('target_peserta')) && in_array($k->id, old('target_peserta')) ? 'checked' : '' }}>
@@ -340,6 +364,64 @@
 
     // Initial check
     updateKelasVisibility();
+
+    // ── Jurusan Checkboxes ──────────────────────────────
+    const jurusanCheckboxes = document.querySelectorAll('.jurusan-checkbox');
+
+    /** Check/uncheck semua kelas dalam jurusan tertentu */
+    function updateKelasByJurusan() {
+      const selectedJurusan = Array.from(jurusanCheckboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+      kelasWrappers.forEach(wrapper => {
+        const jurusan = wrapper.dataset.jurusan;
+        if (!jurusan) return;
+
+        const checkbox = wrapper.querySelector('.checkbox-kelas');
+        const isDisabled = wrapper.style.pointerEvents === 'none';
+
+        if (selectedJurusan.includes(jurusan) && !isDisabled) {
+          checkbox.checked = true;
+        }
+      });
+    }
+
+    /** Auto centang jurusan jika semua kelas di jurusan itu dicentang */
+    function updateJurusanFromKelas() {
+      jurusanCheckboxes.forEach(jcb => {
+        const jurusan = jcb.value;
+        const relatedWrappers = Array.from(kelasWrappers)
+          .filter(w => w.dataset.jurusan === jurusan && w.style.pointerEvents !== 'none');
+
+        if (relatedWrappers.length > 0) {
+          const allChecked = relatedWrappers.every(w => w.querySelector('.checkbox-kelas').checked);
+          jcb.checked = allChecked;
+        }
+      });
+    }
+
+    // Event: jurusan checkbox berubah → centang kelas terkait
+    jurusanCheckboxes.forEach(cb => {
+      cb.addEventListener('change', function() {
+        updateKelasByJurusan();
+        updateJurusanFromKelas();
+      });
+    });
+
+    // Event: kelas checkbox berubah → update jurusan
+    document.querySelectorAll('.checkbox-kelas').forEach(cb => {
+      cb.addEventListener('change', updateJurusanFromKelas);
+    });
+
+    // Integrasi: saat tingkat berubah, refresh jurusan state
+    tingkatCheckboxes.forEach(cb => {
+      cb.addEventListener('change', updateJurusanFromKelas);
+    });
+
+    // Initial check untuk jurusan
+    updateKelasByJurusan();
+    updateJurusanFromKelas();
 
     // Toggle tanggal berdasarkan checkbox tanpa tanggal pasti
     window.toggleTanggal = function(checkbox) {
