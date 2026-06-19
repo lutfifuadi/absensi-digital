@@ -346,6 +346,67 @@
       .result-toast { width: 94%; padding: 0.8rem; }
       .btn-start { padding: 0.7rem 1.8rem; font-size: 0.9rem; }
     }
+
+    /* Offline Banner */
+    .offline-banner {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 9999;
+        background: linear-gradient(135deg, #ea5455, #f97316);
+        color: white;
+        text-align: center;
+        padding: 6px 12px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 15px rgba(234,84,85,0.3);
+    }
+    .offline-banner.show {
+        display: flex;
+    }
+    .offline-banner i {
+        font-size: 1rem;
+        animation: pulse-offline 1.5s infinite;
+    }
+    @keyframes pulse-offline {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+
+    /* Online indicator (hijau, muncul saat kembali online) */
+    .online-indicator {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 9999;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        text-align: center;
+        padding: 6px 12px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 15px rgba(16,185,129,0.3);
+        animation: slideDownIndicator 0.4s ease;
+    }
+    .online-indicator.show {
+        display: flex;
+    }
+    @keyframes slideDownIndicator {
+        from { transform: translateY(-100%); }
+        to { transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
@@ -365,6 +426,16 @@
     <div class="nav-date" id="nav-date"></div>
   </div>
 </nav>
+
+<!-- ── OFFLINE / ONLINE INDICATOR ──────────────────────────── -->
+<div class="offline-banner" id="offline-banner">
+    <i class="ti tabler-wifi-off"></i>
+    Kamu sedang offline — Scan akan disimpan & dikirim otomatis saat online
+</div>
+<div class="online-indicator" id="online-indicator">
+    <i class="ti tabler-wifi"></i>
+    Koneksi kembali! Data scan akan dikirim...
+</div>
 
 <!-- ── LAYOUT ─────────────────────────────────────────────────── -->
 <div class="layout">
@@ -701,6 +772,34 @@
     animFrame = requestAnimationFrame(tick);
   }
 
+  // ── IndexedDB Helper ─────────────────────────────────────────
+  async function saveScanToIndexedDB(scanData) {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('AbsensiOfflineDB', 1);
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains('pending')) {
+          db.createObjectStore('pending', { keyPath: 'id', autoIncrement: true });
+        }
+      };
+      request.onsuccess = () => {
+        const db = request.result;
+        const tx = db.transaction('pending', 'readwrite');
+        const store = tx.objectStore('pending');
+        store.add({
+          url: scanData.url,
+          method: scanData.method,
+          headers: scanData.headers,
+          body: scanData.body,
+          timestamp: Date.now()
+        });
+        tx.oncomplete = () => resolve();
+        tx.onerror = (e) => reject(e);
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   // ── Handle Scan ──────────────────────────────────────────────
   async function handleScan(qrData) {
     // Validasi NIS sudah diisi
@@ -771,9 +870,33 @@
         showToast('error', 'Gagal', '', data.message || 'QR Code tidak valid atau sudah kadaluarsa.');
       }
     } catch(e) {
-      beep('error');
-      addLog('error', 'Error', 'Gagal terhubung ke server.');
-      showToast('error', 'Koneksi Gagal', '', 'Tidak dapat terhubung ke server. Periksa koneksi internet kamu.');
+      // Simpan ke IndexedDB untuk offline sync
+      try {
+        await saveScanToIndexedDB({
+          url: `${SCAN_URL}/${encodeURIComponent(token)}`,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': CSRF,
+            'Accept': 'application/json',
+          },
+          body: { nis: nis }
+        });
+
+        // Register background sync jika browser mendukung
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+          const reg = await navigator.serviceWorker.ready;
+          await reg.sync.register('sync-absensi');
+        }
+
+        beep('warning');
+        addLog('warning', 'Tersimpan Offline', 'Data akan dikirim otomatis saat online');
+        showToast('warning', 'Disimpan Offline', '', 'Data scan tersimpan. Akan dikirim otomatis saat koneksi pulih.');
+      } catch(dbError) {
+        beep('error');
+        addLog('error', 'Error', 'Gagal terhubung ke server.');
+        showToast('error', 'Koneksi Gagal', '', 'Tidak dapat terhubung ke server dan gagal menyimpan offline.');
+      }
     }
   }
 
@@ -802,6 +925,35 @@
         .then(reg => console.log('SW registered:', reg.scope))
         .catch(err => console.log('SW registration failed:', err));
     });
+  }
+
+  // ── Online/Offline Detection ────────────────────────────
+  const offlineBanner = document.getElementById('offline-banner');
+  const onlineIndicator = document.getElementById('online-indicator');
+
+  function updateOnlineStatus() {
+    if (navigator.onLine) {
+      offlineBanner.classList.remove('show');
+    } else {
+      offlineBanner.classList.add('show');
+    }
+  }
+
+  window.addEventListener('online', () => {
+    offlineBanner.classList.remove('show');
+    onlineIndicator.classList.add('show');
+    setTimeout(() => {
+      onlineIndicator.classList.remove('show');
+    }, 3000);
+  });
+
+  window.addEventListener('offline', () => {
+    offlineBanner.classList.add('show');
+  });
+
+  // Cek status awal
+  if (!navigator.onLine) {
+    offlineBanner.classList.add('show');
   }
 </script>
 

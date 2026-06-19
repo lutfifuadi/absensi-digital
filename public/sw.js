@@ -7,6 +7,21 @@ const urlsToCache = [
   '/scan-ekskul'
 ];
 
+// Helper untuk membuka IndexedDB
+function openAbsensiDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('AbsensiOfflineDB', 1);
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('pending')) {
+                db.createObjectStore('pending', { keyPath: 'id', autoIncrement: true });
+            }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -68,6 +83,51 @@ self.addEventListener('sync', event => {
 });
 
 async function syncAbsensiData() {
-    // In a full implementation, we'd read from IndexedDB and fetch to server here.
     console.log('Service Worker: Background Sync triggered for Absensi...');
+    try {
+        const db = await openAbsensiDB();
+        const tx = db.transaction('pending', 'readonly');
+        const store = tx.objectStore('pending');
+        const allItems = await new Promise((resolve, reject) => {
+            const request = store.getAll();
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+
+        if (!allItems || allItems.length === 0) {
+            console.log('Service Worker: No pending absensi data to sync.');
+            db.close();
+            return;
+        }
+
+        for (const item of allItems) {
+            try {
+                const response = await fetch(item.url, {
+                    method: item.method || 'POST',
+                    headers: item.headers || { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(item.body),
+                });
+
+                if (response.ok) {
+                    const deleteTx = db.transaction('pending', 'readwrite');
+                    const deleteStore = deleteTx.objectStore('pending');
+                    await new Promise((resolve, reject) => {
+                        const req = deleteStore.delete(item.id);
+                        req.onsuccess = () => resolve();
+                        req.onerror = () => reject(req.error);
+                    });
+                    console.log('Service Worker: Absensi data synced successfully:', item.id);
+                } else {
+                    console.warn('Service Worker: Failed to sync item, will retry later:', item.id, response.status);
+                }
+            } catch (err) {
+                console.error('Service Worker: Error syncing item:', item.id, err);
+                // Biarkan item tetap di IndexedDB, akan dicoba lagi nanti
+            }
+        }
+
+        db.close();
+    } catch (err) {
+        console.error('Service Worker: Error accessing IndexedDB:', err);
+    }
 }

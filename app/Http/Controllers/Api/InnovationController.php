@@ -20,6 +20,9 @@ use App\Models\ActivityNotificationQueue;
 use App\Models\ReminderSettings;
 use App\Models\Pengaturan;
 use App\Services\WhatsAppService;
+use App\Services\EkskulAbsensiService;
+use App\Models\EkskulAbsensi;
+use App\Models\EkskulAnggota;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -224,6 +227,74 @@ class InnovationController extends Controller
                     case 'absensi':
                         AbsensiSiswa::create($queue->payload);
                         break;
+
+                    case 'absensi_ekskul':
+                        $payload = $queue->payload;
+                        $nis = $payload['nis'] ?? null;
+                        $token = $payload['token'] ?? null;
+                        $scannedAt = $payload['scanned_at'] ?? null;
+
+                        if (!$nis || !$token) {
+                            throw new \Exception('Data absensi ekskul tidak lengkap: NIS dan token diperlukan.');
+                        }
+
+                        // Cari siswa berdasarkan NIS
+                        $siswa = Siswa::where('nis', $nis)->first();
+                        if (!$siswa) {
+                            throw new \Exception("Siswa dengan NIS {$nis} tidak ditemukan.");
+                        }
+
+                        // Validasi token QR menggunakan service
+                        $ekskulAbsensiService = new EkskulAbsensiService();
+                        $tokenData = $ekskulAbsensiService->verifyQRToken($token);
+                        if (!$tokenData) {
+                            throw new \Exception('Token QR tidak valid atau sudah kedaluwarsa.');
+                        }
+
+                        $ekskulId = $tokenData['ekskul_id'];
+                        $tanggal = $tokenData['tanggal'];
+
+                        // Validasi membership siswa sebagai anggota aktif ekskul
+                        $anggota = EkskulAnggota::where('ekskul_id', $ekskulId)
+                            ->where('siswa_id', $siswa->id)
+                            ->where('status', 'aktif')
+                            ->first();
+
+                        if (!$anggota) {
+                            throw new \Exception('Siswa bukan anggota aktif ekskul ini.');
+                        }
+
+                        // Cek duplikasi — sudah absen hari ini untuk ekskul yang sama
+                        $existing = EkskulAbsensi::where('ekskul_id', $ekskulId)
+                            ->where('siswa_id', $siswa->id)
+                            ->whereDate('tanggal', $tanggal)
+                            ->first();
+
+                        if ($existing) {
+                            // Sudah pernah absen, lewati saja (anggap sukses)
+                            break;
+                        }
+
+                        // Hitung jam absen dari scanned_at
+                        $jamAbsen = null;
+                        if ($scannedAt) {
+                            try {
+                                $jamAbsen = \Carbon\Carbon::parse($scannedAt)->format('H:i');
+                            } catch (\Exception $e) {
+                                $jamAbsen = now()->format('H:i');
+                            }
+                        }
+
+                        // Buat record absensi ekskul
+                        EkskulAbsensi::create([
+                            'ekskul_id' => $ekskulId,
+                            'siswa_id'  => $siswa->id,
+                            'tanggal'   => $tanggal,
+                            'status'    => 'hadir',
+                            'jam_absen' => $jamAbsen,
+                            'keterangan' => 'Offline sync',
+                        ]);
+                        break;
                 }
 
                 $queue->update(['status' => 'synced', 'synced_at' => now()]);
@@ -233,6 +304,11 @@ class InnovationController extends Controller
                 DB::rollBack();
                 $queue->increment('retry_count');
                 $queue->update(['error_message' => $e->getMessage()]);
+                Log::error('Sync offline event gagal', [
+                    'event_type' => $queue->event_type,
+                    'queue_id'   => $queue->id,
+                    'error'      => $e->getMessage(),
+                ]);
             }
         }
 
