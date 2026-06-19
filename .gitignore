@@ -49,3 +49,7 @@ yarn-error.log
 .agents/
 .planning/
 vendor.zip
+
+# Uploaded files (user content)
+/public/uploads/logo/*
+!/public/uploads/logo/.gitkeep

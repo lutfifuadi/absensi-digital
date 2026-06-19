@@ -499,7 +499,7 @@
                   $logoSrc = null;
                   // Prioritaskan file upload lokal, baru URL/S3
                   if (!empty($settings['logo_sekolah'])) {
-                    $logoSrc = Storage::url($settings['logo_sekolah']);
+                    $logoSrc = asset('uploads/logo/' . $settings['logo_sekolah']);
                   } elseif (!empty($settings['logo_url'])) {
                     $logoSrc = $settings['logo_url'];
                   }

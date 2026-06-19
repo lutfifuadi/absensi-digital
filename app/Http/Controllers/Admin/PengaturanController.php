@@ -148,13 +148,19 @@ class PengaturanController extends Controller
             unset($data['password_unlock_scan_qr']);
         }
 
-        // Handle logo upload dari file
+        // Handle logo upload dari file — simpan langsung ke public/uploads/logo/
         if ($request->hasFile('logo_sekolah')) {
             $old = Pengaturan::where('key', 'logo_sekolah')->value('value');
             if ($old) {
-                Storage::disk('public')->delete($old);
+                $oldPath = public_path('uploads/logo/' . $old);
+                if (file_exists($oldPath)) {
+                    @unlink($oldPath);
+                }
             }
-            $data['logo_sekolah'] = $request->file('logo_sekolah')->store('logo', 'public');
+            $file = $request->file('logo_sekolah');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads/logo'), $filename);
+            $data['logo_sekolah'] = $filename;
             // Hapus logo_url jika ada, karena sudah pakai file lokal
             $data['logo_url'] = '';
         }
