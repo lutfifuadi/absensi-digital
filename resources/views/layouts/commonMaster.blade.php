@@ -87,7 +87,7 @@
     if (!$faviconSetting) {
       $faviconSetting = \App\Models\Pengaturan::where('key', 'logo_sekolah')->value('value');
       if ($faviconSetting) {
-        $faviconSetting = asset('storage/' . $faviconSetting);
+        $faviconSetting = asset('uploads/logo/' . $faviconSetting);
       }
     }
   @endphp

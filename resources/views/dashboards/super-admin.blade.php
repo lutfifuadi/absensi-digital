@@ -17,7 +17,7 @@
       <div class="das-hero__identity">
         <div class="das-hero__logo-wrapper">
           @if (isset($pengaturanArr['logo_sekolah']))
-            <img src="{{ asset('storage/' . $pengaturanArr['logo_sekolah']) }}" alt="Logo" class="das-hero__logo">
+            <img src="{{ asset('uploads/logo/' . $pengaturanArr['logo_sekolah']) }}" alt="Logo" class="das-hero__logo">
           @else
             <div class="das-hero__logo-placeholder">
               <i class="ti tabler-school"></i>

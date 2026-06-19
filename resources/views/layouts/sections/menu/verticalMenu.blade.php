@@ -12,7 +12,7 @@
   } else {
     $logoLocal = \App\Models\Pengaturan::where('key', 'logo_sekolah')->value('value');
     if ($logoLocal) {
-      $logoSrc = asset('storage/' . $logoLocal);
+      $logoSrc = asset('uploads/logo/' . $logoLocal);
     }
   }
 @endphp
