@@ -18,14 +18,13 @@ return new class extends Migration
     public function up(): void
     {
         $isSqlite = DB::getDriverName() === 'sqlite';
+        $databaseName = DB::connection()->getDatabaseName();
 
         foreach ($this->tables as $tableName) {
             if (Schema::hasTable($tableName) && Schema::hasColumn($tableName, 'school_id')) {
                 if (!$isSqlite) {
-                    // Drop foreign key first (MySQL/MariaDB specific)
-                    DB::statement("ALTER TABLE {$tableName} DROP FOREIGN KEY IF EXISTS {$tableName}_school_id_foreign");
-                    // Drop index
-                    DB::statement("DROP INDEX IF EXISTS {$tableName}_school_id_index ON {$tableName}");
+                    $this->dropForeignKeyIfExists($databaseName, $tableName, "{$tableName}_school_id_foreign");
+                    $this->dropIndexIfExists($databaseName, $tableName, "{$tableName}_school_id_index");
                 }
 
                 // Drop column — SQLite does not support dropping FK-referenced columns,
@@ -41,6 +40,38 @@ return new class extends Migration
         // Also drop schools table if exists (skip for SQLite — FK constraints prevent it)
         if (!$isSqlite && Schema::hasTable('schools')) {
             Schema::dropIfExists('schools');
+        }
+    }
+
+    /**
+     * Drop a foreign key if it exists — compatible with MySQL 5.x, MySQL 8+, and MariaDB.
+     */
+    private function dropForeignKeyIfExists(string $database, string $table, string $fkName): void
+    {
+        $exists = DB::selectOne(
+            "SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND CONSTRAINT_NAME = ? AND CONSTRAINT_TYPE = 'FOREIGN KEY'",
+            [$database, $table, $fkName]
+        );
+
+        if ($exists) {
+            DB::statement("ALTER TABLE {$table} DROP FOREIGN KEY {$fkName}");
+        }
+    }
+
+    /**
+     * Drop an index if it exists — compatible with MySQL 5.x, MySQL 8+, and MariaDB.
+     */
+    private function dropIndexIfExists(string $database, string $table, string $indexName): void
+    {
+        $exists = DB::selectOne(
+            "SELECT INDEX_NAME FROM INFORMATION_SCHEMA.STATISTICS
+             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?",
+            [$database, $table, $indexName]
+        );
+
+        if ($exists) {
+            DB::statement("DROP INDEX {$indexName} ON {$table}");
         }
     }
 
