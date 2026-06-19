@@ -155,6 +155,8 @@ class PengaturanController extends Controller
                 Storage::disk('public')->delete($old);
             }
             $data['logo_sekolah'] = $request->file('logo_sekolah')->store('logo', 'public');
+            // Hapus logo_url jika ada, karena sudah pakai file lokal
+            $data['logo_url'] = '';
         }
         
         // Handle logo dari URL/S3 - simpan URL terus

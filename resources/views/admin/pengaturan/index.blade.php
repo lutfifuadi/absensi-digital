@@ -497,10 +497,11 @@
               <div class="set-logo-preview" id="logoPreviewWrap">
                 @php
                   $logoSrc = null;
-                  if (!empty($settings['logo_url'])) {
-                    $logoSrc = $settings['logo_url'];
-                  } elseif (!empty($settings['logo_sekolah'])) {
+                  // Prioritaskan file upload lokal, baru URL/S3
+                  if (!empty($settings['logo_sekolah'])) {
                     $logoSrc = Storage::url($settings['logo_sekolah']);
+                  } elseif (!empty($settings['logo_url'])) {
+                    $logoSrc = $settings['logo_url'];
                   }
                 @endphp
                 @if ($logoSrc)
@@ -538,7 +539,7 @@
                     <div class="set-input-group">
                       <span class="set-input-prefix"><i class="ti tabler-link"></i></span>
                       <input type="url" class="set-input" name="logo_url" id="logoUrlInput"
-                        value="{{ old('logo_url') }}"
+                        value="{{ old('logo_url', $settings['logo_url'] ?? '') }}"
                         placeholder="https://example.com/logo.png">
                       </div>
                     </div>
