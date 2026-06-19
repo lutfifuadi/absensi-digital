@@ -13,6 +13,11 @@
 - **Offline scan absensi datang/pulang** — halaman Guru Piket `/scan-qr/scan`
   - IndexedDB + Background Sync + banner offline/online
   - Backend sync handle logika datang (INSERT) + pulang (UPDATE) + Guru
+- **Filter absensi kegiatan per jurusan** — selain per tingkat & per kelas
+  - Migration: kolom `target_jurusan` (JSON) di tabel `kegiatan`
+  - Checkbox jurusan di form create & edit kegiatan dengan JS interaksi
+  - Logika cek jurusan di scan & rekap kegiatan
+  - Auto-centang kelas ketika jurusan dipilih
 - **Banner indikator** offline (merah) dan online (hijau) di semua halaman scan
 - **Toast indikator** "Disimpan Offline" saat scan di mode offline
 - **Registrasi Service Worker** di halaman scan datang/pulang
@@ -20,6 +25,7 @@
 ### Changed
 - `InnovationController@syncOfflineEvents`: case `absensi` diupgrade — validasi QR, deteksi datang/pulang, handle Guru
 - `InnovationController@syncOfflineEvents`: case `absensi_ekskul` baru — validasi NIS, token QR, membership, duplikasi
+- `InnovationController@getActivityAttendance` & `recordActivityAttendance`: tambah filter jurusan
 - PWA Enhancement: meta tags, manifest link di halaman scan datang/pulang
 
 ### Fixed
