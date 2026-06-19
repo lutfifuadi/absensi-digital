@@ -476,6 +476,7 @@ class InnovationController extends Controller
     public function getActivityAttendance(Request $request)
     {
         $kegiatanId = $request->get('kegiatan_id');
+        $jurusan = $request->get('jurusan');
         $page = (int) $request->get('page', 1);
         $perPage = (int) $request->get('per_page', 10);
 
@@ -494,14 +495,27 @@ class InnovationController extends Controller
         }
 
         // Ambil data yang sudah ada di tabel absensi_kegiatan
-        $attendance = AbsensiKegiatan::with(['siswa.kelas', 'kegiatan'])
-            ->where('kegiatan_id', $kegiatanId)
-            ->get();
+        $attendanceQuery = AbsensiKegiatan::with(['siswa.kelas', 'kegiatan'])
+            ->where('kegiatan_id', $kegiatanId);
+
+        if ($jurusan) {
+            $attendanceQuery->whereHas('siswa.kelas', function($q) use ($jurusan) {
+                $q->where('jurusan', $jurusan);
+            });
+        }
+
+        $attendance = $attendanceQuery->get();
 
         $existingSiswaIds = $attendance->pluck('siswa_id')->toArray();
 
         // Cari siswa yang seharusnya ikut kegiatan ini tapi belum ada datanya di absensi_kegiatan
         $querySiswa = Siswa::with('kelas');
+
+        if ($jurusan) {
+            $querySiswa->whereHas('kelas', function($q) use ($jurusan) {
+                $q->where('jurusan', $jurusan);
+            });
+        }
 
         // Filter berdasarkan target_tingkat
         if ($kegiatan->target_tingkat && count($kegiatan->target_tingkat) > 0) {

@@ -24,6 +24,7 @@ class Kegiatan extends Model
         'is_wajib',
         'target_peserta',
         'target_tingkat',
+        'target_jurusan',
         'tahun_akademik_id',
     ];
 

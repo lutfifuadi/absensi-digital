@@ -137,18 +137,29 @@
     <div class="das-panel__head">
       <div class="das-panel__title">
         <span class="das-panel__icon-dot" style="background:var(--das-info);box-shadow:0 0 6px var(--das-info);"></span>
-        Filter Agenda
+        Filter Agenda & Jurusan
       </div>
     </div>
     <div class="das-panel__body">
       <form action="{{ route('admin.absensi-kegiatan.rekap') }}" method="GET" class="row g-3 align-items-end">
-        <div class="col-md-9">
+        <div class="col-md-5">
           <label class="das-form-label">Filter Berdasarkan Agenda</label>
           <select name="kegiatan_id" class="form-select das-form-control">
             <option value="">-- Tampilkan Semua Riwayat --</option>
             @foreach($kegiatans as $k)
               <option value="{{ $k->id }}" {{ request('kegiatan_id') == $k->id ? 'selected' : '' }}>
                 {{ $k->nama_kegiatan }} @if($k->tanggal_pelaksanaan)({{ $k->tanggal_pelaksanaan->format('d M Y') }})@else(Fleksibel)@endif
+              </option>
+            @endforeach
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="das-form-label">Filter Berdasarkan Jurusan</label>
+          <select name="jurusan" class="form-select das-form-control">
+            <option value="">-- Tampilkan Semua Jurusan --</option>
+            @foreach($jurusanList as $jur)
+              <option value="{{ $jur }}" {{ request('jurusan') == $jur ? 'selected' : '' }}>
+                {{ $jur }}
               </option>
             @endforeach
           </select>
@@ -169,9 +180,14 @@
         <span class="das-panel__icon-dot" style="background:var(--das-success);box-shadow:0 0 6px var(--das-success);"></span>
         Riwayat Kehadiran
       </div>
-      @if(request('kegiatan_id'))
-        <span class="das-chip das-chip--info">Difilter</span>
-      @endif
+      <div class="d-flex gap-2">
+        @if(request('kegiatan_id'))
+          <span class="das-chip das-chip--info">Agenda: Difilter</span>
+        @endif
+        @if(request('jurusan'))
+          <span class="das-chip das-chip--primary">Jurusan: {{ request('jurusan') }}</span>
+        @endif
+      </div>
     </div>
 
     <div class="table-responsive">

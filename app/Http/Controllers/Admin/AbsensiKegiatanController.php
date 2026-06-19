@@ -108,14 +108,27 @@ class AbsensiKegiatanController extends Controller
     public function rekap(Request $request)
     {
         $kegiatanId = $request->kegiatan_id;
+        $jurusan = $request->jurusan;
+
         $logs = AbsensiKegiatan::with(['siswa.kelas', 'kegiatan'])
             ->when($kegiatanId, function($q) use ($kegiatanId) {
                 return $q->where('kegiatan_id', $kegiatanId);
+            })
+            ->when($jurusan, function($q) use ($jurusan) {
+                return $q->whereHas('siswa.kelas', function($qk) use ($jurusan) {
+                    $qk->where('jurusan', $jurusan);
+                });
             })
             ->latest()
             ->paginate(20);
 
         $kegiatans = Kegiatan::latest()->get();
-        return view('admin.kegiatan.rekap', compact('logs', 'kegiatans'));
+        $jurusanList = \App\Models\Kelas::whereNotNull('jurusan')
+            ->distinct()
+            ->pluck('jurusan')
+            ->sort()
+            ->values();
+
+        return view('admin.kegiatan.rekap', compact('logs', 'kegiatans', 'jurusanList'));
     }
 }

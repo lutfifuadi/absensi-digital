@@ -204,12 +204,22 @@
   {{-- ── DETAIL ABSENSI PANEL ────────────────────────── --}}
   <div class="das-panel slide-in-up" id="detailCard" style="display: none;">
     <div class="das-panel__head">
-      <div class="das-panel__title">
-        <span class="das-panel__icon-dot" style="background:var(--das-success);box-shadow:0 0 6px var(--das-success);"></span>
-        Detail Absensi: <span id="kegiatanName" class="text-white ms-1"></span>
-      </div>
-      <div id="loadingDetail" style="display: none;">
-        <div class="spinner-border spinner-border-sm text-info" role="status"></div>
+      <div class="das-panel__title" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="das-panel__icon-dot" style="background:var(--das-success);box-shadow:0 0 6px var(--das-success);"></span>
+          Detail Absensi: <span id="kegiatanName" class="text-white ms-1"></span>
+        </div>
+        <div class="ms-md-auto d-flex align-items-center gap-2" style="min-width:200px;">
+          <select id="filterJurusan" class="form-select das-form-control form-select-sm" style="font-size:.75rem;height:32px;background:rgba(255,255,255,0.04);border:1px solid var(--das-border);" onchange="filterJurusanChanged()">
+            <option value="">-- Semua Jurusan --</option>
+            @foreach($jurusanList as $jur)
+              <option value="{{ $jur }}">{{ $jur }}</option>
+            @endforeach
+          </select>
+        </div>
+        <div id="loadingDetail" style="display: none;">
+          <div class="spinner-border spinner-border-sm text-info" role="status"></div>
+        </div>
       </div>
     </div>
     <div class="das-panel__body p-0">
@@ -258,6 +268,12 @@ let currentPage = 1;
 let currentKegiatanId = null;
 let currentKegiatanName = '';
 let currentTotalPages = 1;
+let currentJurusan = '';
+
+function filterJurusanChanged() {
+  currentJurusan = document.getElementById('filterJurusan').value;
+  viewAbsensi(currentKegiatanId, currentKegiatanName, 1);
+}
 
 // ── Render Pagination Controls ────────────────────────────────
 function renderPagination(result) {
@@ -303,6 +319,12 @@ async function viewAbsensi(id, nama, page = 1) {
   const loading = document.getElementById('loadingDetail');
   const tbody = document.getElementById('absensiPesertaBody');
 
+  // Reset jurusan filter drop-down selection if we are switching kegiatan
+  if (currentKegiatanId !== id) {
+    document.getElementById('filterJurusan').value = '';
+    currentJurusan = '';
+  }
+
   currentKegiatanId = id;
   currentKegiatanName = nama;
   currentPage = page;
@@ -314,7 +336,7 @@ async function viewAbsensi(id, nama, page = 1) {
   detailCard.scrollIntoView({ behavior: 'smooth' });
 
   try {
-    const response = await fetch(`/api/v1/innovation/activity-attendance?kegiatan_id=${id}&page=${page}&per_page=10`);
+    const response = await fetch(`/api/v1/innovation/activity-attendance?kegiatan_id=${id}&page=${page}&per_page=10&jurusan=${encodeURIComponent(currentJurusan)}`);
     const result = await response.json();
 
     const data = result.data || [];
