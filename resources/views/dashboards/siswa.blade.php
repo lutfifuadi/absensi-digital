@@ -668,6 +668,18 @@
               <i class="ti tabler-chevron-right"></i>
             </div>
           </a>
+          <a href="{{ route('siswa.leaderboard') }}" class="siswa-action-card siswa-action-card--warning mt-0">
+            <div class="siswa-action-card__icon">
+              <i class="ti tabler-trophy"></i>
+            </div>
+            <div class="siswa-action-card__body">
+              <div class="siswa-action-card__title">Papan Peringkat</div>
+              <div class="siswa-action-card__subtitle">Lihat peringkat dan skor kehadiranmu</div>
+            </div>
+            <div class="siswa-action-card__arrow">
+              <i class="ti tabler-chevron-right"></i>
+            </div>
+          </a>
         </div>
       </div>
     </div>

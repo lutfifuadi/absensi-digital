@@ -128,6 +128,7 @@ Route::middleware([
       Route::get('/profile', [SiswaController::class, 'profilSaya'])->name('siswa.profile');
       Route::get('/download-kartu', [PortalSiswaController::class, 'downloadKartu'])->name('siswa.download-kartu');
       Route::get('/download-kartu-pelepasan', [PortalSiswaController::class, 'downloadKartuPelepasan'])->name('siswa.download-kartu-pelepasan');
+      Route::get('/leaderboard', [PortalSiswaController::class, 'leaderboard'])->name('siswa.leaderboard');
       
       // Izin & Sakit (Scoped to self in Controller)
       Route::get('/izin-sakit', [IzinSakitController::class, 'index'])->name('siswa.izin-sakit.index');

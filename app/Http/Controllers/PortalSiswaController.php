@@ -41,6 +41,18 @@ class PortalSiswaController extends Controller
                   ->download("kartu-pelajar-{$siswa->nisn}.pdf");
     }
 
+    public function leaderboard()
+    {
+        $user = Auth::user();
+        if ($user->role !== 'siswa') {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $siswa = Siswa::with('kelas')->where('user_id', $user->id)->firstOrFail();
+        
+        return view('siswa.leaderboard', compact('siswa'));
+    }
+
     public function downloadKartuPelepasan()
     {
         $user = Auth::user();

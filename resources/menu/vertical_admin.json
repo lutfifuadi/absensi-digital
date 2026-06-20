@@ -158,6 +158,12 @@
       "url": "/admin/laporan"
     },
     {
+      "name": "Gamifikasi",
+      "icon": "menu-icon ti tabler-trophy",
+      "slug": "admin.gamifikasi.index",
+      "url": "/admin/gamifikasi"
+    },
+    {
       "menuHeader": "Pengaturan",
       "icon": "menu-icon ti tabler-settings"
     },
