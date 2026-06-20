@@ -27,35 +27,36 @@
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html { scroll-behavior: smooth; }
-
-    body {
+    html, body {
+      height: 100dvh;
+      max-height: 100dvh;
+      overflow: hidden;
       font-family: 'Inter', sans-serif;
       background: var(--bg);
       color: var(--text);
-      min-height: 100vh;
       -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
     }
 
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: var(--surface); }
-    ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 2px; }
+    ::-webkit-scrollbar { width: 3px; height: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(115,103,240,0.4); border-radius: 2px; }
 
     /* ═══════════════════════════════════
-       HEADER
+       HEADER — fixed height
     ═══════════════════════════════════ */
     .header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      padding: 0.875rem 1.75rem;
+      padding: 0.6rem 1.25rem;
       background: linear-gradient(135deg, #10152a 0%, #0d1321 100%);
       border-bottom: 1px solid rgba(115,103,240,0.2);
-      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      box-shadow: 0 2px 16px rgba(0,0,0,0.4);
+      z-index: 100;
     }
 
     .header-brand {
@@ -190,12 +191,13 @@
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
     /* ═══════════════════════════════════
-       ANNOUNCE BAR
+       ANNOUNCE BAR — fixed height
     ═══════════════════════════════════ */
     .announce-bar {
+      flex-shrink: 0;
       background: rgba(115,103,240,0.08);
       border-bottom: 1px solid rgba(115,103,240,0.15);
-      padding: 6px 1.75rem;
+      padding: 4px 1.25rem;
       overflow: hidden;
       white-space: nowrap;
     }
@@ -212,12 +214,16 @@
     }
 
     /* ═══════════════════════════════════
-       MAIN WRAPPER
+       MAIN WRAPPER — flex grow, overflow scroll
     ═══════════════════════════════════ */
     .main-wrap {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 1.5rem 1.75rem 2rem;
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 0.75rem 1rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
     }
 
     /* ═══════════════════════════════════
@@ -226,21 +232,20 @@
     .stats-row {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
-      margin-bottom: 1.5rem;
+      gap: 0.6rem;
+      flex-shrink: 0;
     }
 
     .stat-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 1.25rem 1.5rem;
+      padding: 0.75rem 1rem;
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 0.75rem;
       position: relative;
       overflow: hidden;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     .stat-card::before {
@@ -255,13 +260,13 @@
     .stat-card--purple::before { background: linear-gradient(90deg, var(--primary), transparent); }
 
     .stat-card__icon {
-      width: 52px;
-      height: 52px;
+      width: 40px;
+      height: 40px;
       border-radius: var(--radius);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.5rem;
+      font-size: 1.2rem;
       flex-shrink: 0;
     }
 
@@ -270,49 +275,59 @@
     .stat-card--purple .stat-card__icon { background: rgba(115,103,240,0.1);  color: var(--primary); }
 
     .stat-card__val {
-      font-size: 2rem;
+      font-size: 1.6rem;
       font-weight: 900;
       color: #fff;
       line-height: 1;
     }
 
     .stat-card__label {
-      font-size: 0.72rem;
+      font-size: 0.65rem;
       color: var(--muted);
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-top: 4px;
+      margin-top: 3px;
     }
 
     /* ═══════════════════════════════════
-       CONTENT GRID
+       CONTENT GRID — flex grow, panels scroll internal
     ═══════════════════════════════════ */
     .content-grid {
       display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 1rem;
-      margin-bottom: 1rem;
-      align-items: start;
+      grid-template-columns: 1fr 300px;
+      gap: 0.75rem;
+      flex: 1;
+      min-height: 0;
     }
 
     /* ═══════════════════════════════════
-       PANEL
+       PANEL — internal scroll
     ═══════════════════════════════════ */
     .panel {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
     }
 
     .panel__head {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 1rem 1.25rem;
+      padding: 0.6rem 1rem;
       border-bottom: 1px solid var(--border);
       background: rgba(255,255,255,0.02);
+      flex-shrink: 0;
+    }
+
+    .panel__body-scroll {
+      overflow-y: auto;
+      flex: 1;
+      min-height: 0;
     }
 
     .panel__title {
@@ -375,23 +390,23 @@
       display: flex;
       align-items: flex-end;
       justify-content: center;
-      gap: 0.75rem;
-      padding: 1.5rem 1.25rem 1rem;
+      gap: 0.6rem;
+      padding: 0.875rem 1rem 0.75rem;
+      flex-shrink: 0;
     }
 
     .podium-card {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 0.6rem;
-      padding: 1rem 0.875rem;
+      gap: 0.4rem;
+      padding: 0.75rem 0.625rem;
       border-radius: var(--radius);
       border: 1px solid var(--border);
       position: relative;
-      transition: transform 0.2s;
       min-width: 0;
       flex: 1;
-      max-width: 180px;
+      max-width: 160px;
     }
 
     .podium-card:hover { transform: translateY(-3px); }
@@ -421,13 +436,13 @@
     }
 
     .podium-avatar {
-      width: 52px;
-      height: 52px;
+      width: 42px;
+      height: 42px;
       border-radius: var(--radius);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.1rem;
+      font-size: 0.95rem;
       font-weight: 800;
       flex-shrink: 0;
       position: relative;
@@ -456,7 +471,7 @@
     .podium-rank--bronze { background: var(--bronze); color: #fff; }
 
     .podium-name {
-      font-size: 0.78rem;
+      font-size: 0.7rem;
       font-weight: 700;
       color: #fff;
       text-align: center;
@@ -465,16 +480,17 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      width: 100%;
     }
 
     .podium-kelas {
-      font-size: 0.62rem;
+      font-size: 0.58rem;
       color: var(--muted);
       font-weight: 600;
     }
 
     .podium-score {
-      font-size: 1.4rem;
+      font-size: 1.1rem;
       font-weight: 900;
       line-height: 1;
     }
@@ -626,38 +642,35 @@
        BADGE PANEL (kanan)
     ═══════════════════════════════════ */
     .badge-list {
-      padding: 0.875rem;
+      padding: 0.625rem;
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.4rem;
+      overflow-y: auto;
+      flex: 1;
     }
 
     .badge-item {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      padding: 0.75rem;
+      gap: 0.6rem;
+      padding: 0.5rem 0.625rem;
       border-radius: var(--radius);
       background: rgba(255,255,255,0.02);
       border: 1px solid var(--border);
       border-left: 3px solid var(--gold);
-      transition: background 0.15s;
-    }
-
-    .badge-item:hover {
-      background: rgba(255,215,0,0.04);
     }
 
     .badge-item__icon {
-      width: 38px;
-      height: 38px;
+      width: 30px;
+      height: 30px;
       border-radius: var(--radius);
       background: rgba(255,215,0,0.1);
       color: var(--gold);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.1rem;
+      font-size: 0.9rem;
       flex-shrink: 0;
     }
 
@@ -694,37 +707,31 @@
     ═══════════════════════════════════ */
     .achievements-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 0.75rem;
-      padding: 1rem 1.25rem;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 0.5rem;
+      padding: 0.625rem 0.875rem;
     }
 
     .achievement-card {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      padding: 0.875rem;
+      gap: 0.6rem;
+      padding: 0.6rem 0.75rem;
       border-radius: var(--radius);
       background: rgba(255,255,255,0.02);
       border: 1px solid var(--border);
-      transition: all 0.15s;
-    }
-
-    .achievement-card:hover {
-      background: rgba(255,255,255,0.04);
-      border-color: rgba(255,215,0,0.15);
     }
 
     .achievement-avatar {
-      width: 38px;
-      height: 38px;
+      width: 30px;
+      height: 30px;
       border-radius: var(--radius);
       background: rgba(115,103,240,0.12);
       border: 1px solid rgba(115,103,240,0.2);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.8rem;
+      font-size: 0.65rem;
       font-weight: 800;
       color: #a5a2f7;
       flex-shrink: 0;
@@ -813,31 +820,33 @@
     }
 
     /* ═══════════════════════════════════
-       FOOTER
+       FOOTER — compact, fixed shrink
     ═══════════════════════════════════ */
     .footer {
-      margin-top: 1.5rem;
+      flex-shrink: 0;
       text-align: center;
-      padding: 1.25rem;
+      padding: 0.5rem 1rem;
       border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
     }
 
     .footer__school {
-      font-size: 0.85rem;
+      font-size: 0.72rem;
       font-weight: 700;
-      color: rgba(255,255,255,0.5);
+      color: rgba(255,255,255,0.4);
     }
 
     .footer__powered {
-      font-size: 0.65rem;
+      font-size: 0.6rem;
       color: var(--muted);
-      margin-top: 4px;
     }
 
     #last-updated {
-      font-size: 0.62rem;
+      font-size: 0.6rem;
       color: rgba(255,255,255,0.2);
-      margin-top: 4px;
     }
 
     /* ═══════════════════════════════════
@@ -848,21 +857,26 @@
     }
 
     @media (max-width: 768px) {
-      .header { padding: 0.75rem 1rem; }
-      .header-title h1 { font-size: 0.85rem; max-width: 140px; }
-      #live-clock { font-size: 1.3rem; }
-      .main-wrap { padding: 1rem; }
-      .stats-row { grid-template-columns: 1fr; }
-      .podium-wrap { gap: 0.5rem; }
-      .podium-card { padding: 0.75rem 0.5rem; }
-      .podium-name { font-size: 0.7rem; }
-      .achievements-grid { grid-template-columns: 1fr; }
+      .header { padding: 0.5rem 0.875rem; }
+      .header-title h1 { font-size: 0.82rem; max-width: 120px; }
+      #live-clock { font-size: 1.1rem; }
+      .main-wrap { padding: 0.5rem; gap: 0.5rem; }
+      .stats-row { grid-template-columns: repeat(3,1fr); gap: 0.4rem; }
+      .stat-card { padding: 0.5rem 0.625rem; gap: 0.5rem; }
+      .stat-card__val { font-size: 1.2rem; }
+      .podium-wrap { gap: 0.4rem; padding: 0.625rem; }
+      .podium-card { padding: 0.5rem 0.375rem; }
+      .podium-name { font-size: 0.62rem; }
+      .achievements-grid { grid-template-columns: 1fr 1fr; }
     }
 
     @media (max-width: 480px) {
       .header-clock { display: none; }
-      .podium-score { font-size: 1.1rem; }
-      .podium-avatar { width: 42px; height: 42px; font-size: 0.9rem; }
+      .stats-row { grid-template-columns: 1fr; }
+      .podium-score { font-size: 0.95rem; }
+      .podium-avatar { width: 34px; height: 34px; font-size: 0.75rem; }
+      .achievements-grid { grid-template-columns: 1fr; }
+      .header-title h1 { max-width: 100px; }
     }
   </style>
 </head>
@@ -952,16 +966,16 @@
         </div>
 
         <!-- TAB SISWA -->
-        <div id="panelSiswa">
+        <div id="panelSiswa" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
           <!-- PODIUM TOP 3 -->
           <div class="podium-wrap" id="podiumWrap">
-            <div style="text-align:center;width:100%;padding:2rem 0;color:var(--muted);font-size:0.8rem;">
+            <div style="text-align:center;width:100%;padding:1.5rem 0;color:var(--muted);font-size:0.8rem;">
               <i class="ti tabler-loader-2" style="animation:spin 1s linear infinite;display:block;font-size:1.5rem;margin-bottom:0.5rem;"></i>
               Memuat data...
             </div>
           </div>
           <!-- TABLE RANK 4+ -->
-          <div class="table-responsive" id="siswaTableWrap" style="display:none;">
+          <div id="siswaTableWrap" style="display:none;overflow-y:auto;flex:1;">
             <table class="p-table">
               <thead>
                 <tr>
@@ -979,30 +993,28 @@
         </div>
 
         <!-- TAB KELAS (hidden default) -->
-        <div id="panelKelas" style="display:none;">
-          <div class="table-responsive">
-            <table class="p-table">
-              <thead>
-                <tr>
-                  <th class="text-center" style="width:50px;">Rank</th>
-                  <th>Kelas</th>
-                  <th class="text-center">Absensi</th>
-                  <th>Kehadiran</th>
-                  <th class="text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody id="kelasTableBody">
-                <tr>
-                  <td colspan="5">
-                    <div class="empty-state">
-                      <i class="ti tabler-loader-2" style="animation:spin 1s linear infinite;"></i>
-                      <p>Memuat data...</p>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <div id="panelKelas" style="display:none;overflow-y:auto;flex:1;">
+          <table class="p-table">
+            <thead>
+              <tr>
+                <th class="text-center" style="width:50px;">Rank</th>
+                <th>Kelas</th>
+                <th class="text-center">Absensi</th>
+                <th>Kehadiran</th>
+                <th class="text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody id="kelasTableBody">
+              <tr>
+                <td colspan="5">
+                  <div class="empty-state">
+                    <i class="ti tabler-loader-2" style="animation:spin 1s linear infinite;"></i>
+                    <p>Memuat data...</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -1015,7 +1027,7 @@
           </div>
         </div>
         <div class="badge-list" id="badgeList">
-          <div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.8rem;">
+          <div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:0.8rem;">
             <i class="ti tabler-loader-2" style="animation:spin 1s linear infinite;display:block;font-size:1.5rem;margin-bottom:0.5rem;"></i>
             Memuat badge...
           </div>
@@ -1024,7 +1036,7 @@
     </div>
 
     <!-- RECENT ACHIEVEMENTS -->
-    <div class="panel">
+    <div class="panel" style="flex-shrink:0;max-height:220px;">
       <div class="panel__head">
         <div class="panel__title">
           <span class="panel__dot panel__dot--green"></span>
@@ -1032,7 +1044,7 @@
         </div>
         <span style="font-size:0.65rem;color:var(--muted);" id="achievementCount">—</span>
       </div>
-      <div id="achievementsWrap">
+      <div id="achievementsWrap" style="overflow-y:auto;overflow-x:hidden;flex:1;">
         <div class="empty-state">
           <i class="ti tabler-loader-2" style="animation:spin 1s linear infinite;"></i>
           <p>Memuat data...</p>
@@ -1040,14 +1052,14 @@
       </div>
     </div>
 
-    <!-- FOOTER -->
-    <footer class="footer">
-      <div class="footer__school">{{ $namaSekolah }}</div>
-      <div class="footer__powered">Powered by E-Absensi Digital &bull; Sistem Presensi Cerdas</div>
-      <div id="last-updated">Terakhir diperbarui: —</div>
-    </footer>
-
   </div><!-- /main-wrap -->
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer__school">{{ $namaSekolah }}</div>
+    <div class="footer__powered">Powered by E-Absensi Digital &bull; Sistem Presensi Cerdas</div>
+    <div id="last-updated">Terakhir diperbarui: —</div>
+  </footer>
 
   <script>
   // ─── CLOCK ────────────────────────────────────────────────────────────────
@@ -1087,8 +1099,10 @@
 
   // ─── TABS ─────────────────────────────────────────────────────────────────
   function switchTab(tab) {
-    document.getElementById('panelSiswa').style.display = tab === 'siswa' ? '' : 'none';
-    document.getElementById('panelKelas').style.display = tab === 'kelas' ? '' : 'none';
+    const pSiswa = document.getElementById('panelSiswa');
+    const pKelas = document.getElementById('panelKelas');
+    pSiswa.style.display = tab === 'siswa' ? 'flex' : 'none';
+    pKelas.style.display = tab === 'kelas' ? 'block' : 'none';
     document.getElementById('tabSiswaBtn').classList.toggle('active', tab === 'siswa');
     document.getElementById('tabKelasBtn').classList.toggle('active', tab === 'kelas');
   }
