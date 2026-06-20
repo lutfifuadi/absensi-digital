@@ -121,6 +121,45 @@ class InnovationController extends Controller
         return response()->json(['data' => $badges]);
     }
 
+    public function storeBadge(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'icon' => 'required|string|max:255',
+            'description' => 'required|string',
+            'badge_type' => 'required|in:individual,class',
+            'requirement_days' => 'required|integer|min:1',
+            'requirement_type' => 'required|in:consecutive,total',
+        ]);
+
+        $badge = Badge::create([
+            'name' => $request->name,
+            'icon' => $request->icon,
+            'description' => $request->description,
+            'badge_type' => $request->badge_type,
+            'requirement_days' => $request->requirement_days,
+            'requirement_type' => $request->requirement_type,
+            'is_active' => true,
+        ]);
+
+        return response()->json(['success' => true, 'data' => $badge]);
+    }
+
+    public function getStudentBadgesHistory()
+    {
+        $history = StudentBadge::with(['siswa.kelas', 'badge'])
+            ->latest('earned_at')
+            ->get();
+
+        $totalEarnedStudents = StudentBadge::distinct('siswa_id')->count('siswa_id');
+
+        return response()->json([
+            'success' => true,
+            'data' => $history,
+            'total_earned_students' => $totalEarnedStudents
+        ]);
+    }
+
     public function assignBadge(Request $request)
     {
         $request->validate([
@@ -188,6 +227,75 @@ class InnovationController extends Controller
                 'percentage' => $result['percentage'],
                 'calculated_at' => now(),
             ]);
+        }
+
+        // --- PEMBERIAN BADGE OTOMATIS (Siswa Terajin / Kehadiran) ---
+        $badges = Badge::where('is_active', true)->where('badge_type', 'individual')->get();
+        $siswas = Siswa::all();
+
+        foreach ($badges as $badge) {
+            $reqDays = $badge->requirement_days;
+            $reqType = $badge->requirement_type;
+
+            foreach ($siswas as $siswa) {
+                $qualified = false;
+
+                if ($reqType === 'total') {
+                    // Berdasarkan total akumulasi kehadiran
+                    $totalHadir = AbsensiSiswa::where('siswa_id', $siswa->id)
+                        ->whereIn('status', ['Hadir', 'Terlambat'])
+                        ->count();
+
+                    if ($totalHadir >= $reqDays) {
+                        $qualified = true;
+                    }
+                } else {
+                    // Berdasarkan streak kehadiran beruntun
+                    // Ambil riwayat absen urut berdasarkan tanggal
+                    $absensis = AbsensiSiswa::where('siswa_id', $siswa->id)
+                        ->whereIn('status', ['Hadir', 'Terlambat'])
+                        ->orderBy('tanggal', 'asc')
+                        ->pluck('tanggal')
+                        ->map(fn($d) => \Carbon\Carbon::parse($d)->toDateString())
+                        ->toArray();
+
+                    if (count($absensis) >= $reqDays) {
+                        $currentStreak = 0;
+                        $maxStreak = 0;
+                        $lastDate = null;
+
+                        foreach ($absensis as $dateStr) {
+                            $date = \Carbon\Carbon::parse($dateStr);
+                            if ($lastDate === null) {
+                                $currentStreak = 1;
+                            } else {
+                                $diff = $date->diffInDays($lastDate);
+                                if ($diff === 1) {
+                                    $currentStreak++;
+                                } elseif ($diff > 1) {
+                                    $maxStreak = max($maxStreak, $currentStreak);
+                                    $currentStreak = 1;
+                                }
+                            }
+                            $lastDate = $date;
+                        }
+                        $maxStreak = max($maxStreak, $currentStreak);
+
+                        if ($maxStreak >= $reqDays) {
+                            $qualified = true;
+                        }
+                    }
+                }
+
+                if ($qualified) {
+                    StudentBadge::firstOrCreate([
+                        'siswa_id' => $siswa->id,
+                        'badge_id' => $badge->id,
+                    ], [
+                        'earned_at' => now(),
+                    ]);
+                }
+            }
         }
 
         return response()->json(['success' => true, 'data' => $results]);

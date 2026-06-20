@@ -11,6 +11,24 @@ class IzinSakit extends Model
 
     protected $table = 'izin_sakit';
 
+    protected $fillable = [
+        'tipe',
+        'reference_id',
+        'user_id',
+        'tanggal_mulai',
+        'tanggal_selesai',
+        'jenis',
+        'keterangan',
+        'lampiran',
+        'status',
+        'disetujui_oleh',
+    ];
+
+    protected $casts = [
+        'tanggal_mulai' => 'date',
+        'tanggal_selesai' => 'date',
+    ];
+
     public function guru()
     {
         return $this->belongsTo(Guru::class, 'reference_id');

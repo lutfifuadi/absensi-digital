@@ -267,11 +267,15 @@ async function calculateLeaderboard() {
   try {
     const response = await fetch('/api/v1/innovation/leaderboard/calculate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      }
     });
     const result = await response.json();
     if (result.success) {
       await loadLeaderboard();
+      await loadStudentBadges();
     }
   } catch (e) {
     console.error('Error:', e);
@@ -317,8 +321,53 @@ async function loadBadges() {
 }
 
 async function loadStudentBadges() {
-  // Mock data or load from API if implemented
-  document.getElementById('studentEarned').textContent = '24';
+  try {
+    const response = await fetch('/api/v1/innovation/badges/history');
+    const result = await response.json();
+    
+    const tbody = document.getElementById('studentBadgesBody');
+    const data = result.data || [];
+    
+    document.getElementById('studentEarned').textContent = result.total_earned_students || '0';
+    
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted opacity-50">Belum ada aktivitas perolehan badge terbaru.</td></tr>`;
+      return;
+    }
+    
+    tbody.innerHTML = data.map(item => {
+      const earnedAt = item.earned_at ? new Date(item.earned_at).toLocaleDateString('id-ID', {
+        day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      }) : '-';
+      
+      return `
+        <tr>
+          <td>
+            <div class="fw-bold text-white small">${item.siswa?.nama_lengkap || '-'}</div>
+            <div class="text-muted" style="font-size: 0.7rem;">NISN: ${item.siswa?.nisn || '-'}</div>
+          </td>
+          <td>
+            <span class="badge bg-label-secondary">${item.siswa?.kelas?.nama || '-'}</span>
+          </td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <span class="das-stat-card__icon" style="width: 28px; height: 28px; background: rgba(255, 215, 0, 0.1); color: #ffd700; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.90rem;">
+                <i class="ti ${item.badge?.icon || 'tabler-award'}"></i>
+              </span>
+              <div>
+                <div class="fw-bold text-white" style="font-size: 0.8rem;">${item.badge?.name || '-'}</div>
+                <div class="text-muted" style="font-size: 0.65rem;">${item.badge?.description || '-'}</div>
+              </div>
+            </div>
+          </td>
+          <td class="text-muted small">${earnedAt}</td>
+        </tr>
+      `;
+    }).join('');
+    
+  } catch (e) {
+    console.error('Error loading student badges:', e);
+  }
 }
 
 function openBadgeModal() {
@@ -342,13 +391,17 @@ async function saveBadge() {
   try {
     const response = await fetch('/api/v1/innovation/badges', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
       body: JSON.stringify(data)
     });
     
     if (response.ok) {
       await loadBadges();
       bootstrap.Modal.getInstance(document.getElementById('badgeModal')).hide();
+      document.getElementById('badgeForm').reset();
     }
   } catch (e) {
     console.error('Error:', e);
