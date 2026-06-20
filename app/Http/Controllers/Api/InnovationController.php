@@ -289,12 +289,30 @@ class InnovationController extends Controller
                 }
 
                 if ($qualified) {
-                    StudentBadge::firstOrCreate([
+                    $studentBadge = StudentBadge::firstOrCreate([
                         'siswa_id' => $siswa->id,
                         'badge_id' => $badge->id,
                     ], [
                         'earned_at' => now(),
                     ]);
+
+                    // Kirim WA ucapan selamat ke orang tua jika badge baru diraih
+                    if ($studentBadge->wasRecentlyCreated && $siswa->no_hp_ortu) {
+                        $badgeTemplate = NotificationTemplate::where('type', 'badge_baru')->first();
+                        $lembaga = Pengaturan::where('key', 'lembaga')->value('value') ?? 'Sekolah';
+                        $pesan = str_replace(
+                            ['{nama}', '{badge}', '{kelas}', '{lembaga}'],
+                            [$siswa->nama_lengkap, $badge->name, $siswa->kelas?->nama ?? '-', $lembaga],
+                            $badgeTemplate?->content ?? "Alhamdulillah! {nama} meraih badge {badge} di {lembaga}. Selamat!"
+                        );
+                        SendWhatsAppMessage::dispatch(
+                            $siswa->no_hp_ortu,
+                            $pesan,
+                            'Prestasi Ananda - ' . $lembaga,
+                            true,
+                            $siswa->id
+                        );
+                    }
                 }
             }
         }
@@ -343,6 +361,29 @@ class InnovationController extends Controller
                 'total_present' => $data['total_present'],
                 'calculated_at' => now(),
             ]);
+        }
+
+        // Kirim WA ucapan selamat ke Top 3 siswa
+        $top3Template = NotificationTemplate::where('type', 'leaderboard_top3')->first();
+        $lembaga = Pengaturan::where('key', 'lembaga')->value('value') ?? 'Sekolah';
+        foreach ($studentScores as $index => $data) {
+            if ($index >= 3) break; // Hanya Top 3
+
+            $siswaTop = Siswa::with('kelas')->find($data['siswa_id']);
+            if ($siswaTop && $siswaTop->no_hp_ortu) {
+                $pesan = str_replace(
+                    ['{nama}', '{kelas}', '{rank}', '{score}', '{lembaga}'],
+                    [$siswaTop->nama_lengkap, $siswaTop->kelas?->nama ?? '-', $index + 1, $data['score'], $lembaga],
+                    $top3Template?->content ?? "Alhamdulillah! {nama} meraih peringkat #{rank} sebagai siswa terajin di {lembaga}!"
+                );
+                SendWhatsAppMessage::dispatch(
+                    $siswaTop->no_hp_ortu,
+                    $pesan,
+                    'Prestasi Ananda - ' . $lembaga,
+                    true,
+                    $siswaTop->id
+                );
+            }
         }
 
         return response()->json(['success' => true, 'data' => $results]);

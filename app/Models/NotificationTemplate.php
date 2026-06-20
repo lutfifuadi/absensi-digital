@@ -24,5 +24,8 @@ class NotificationTemplate extends Model
         'alpha_masuk' => 'Tidak Hadir (Alpha)',
         'pulang' => 'Informasi Kepulangan',
         'pelepasan_hadir' => 'Pelepasan Kelas XII — Hadir',
+        'badge_baru' => 'Ucapan Selamat — Badge Baru',
+        'leaderboard_top3' => 'Ucapan Selamat — Top 3 Leaderboard',
+        'streak_milestone' => 'Ucapan Selamat — Streak Kehadiran',
     ];
 }

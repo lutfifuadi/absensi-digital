@@ -164,6 +164,10 @@
             ['{status}',      'Status kehadiran (HADIR, dll)'],
             ['{lembaga}',     'Nama sekolah/lembaga'],
             ['{keterangan}',  'Keterangan tambahan'],
+            ['{badge}',       'Nama badge (ucapan badge)'],
+            ['{rank}',        'Peringkat (ucapan leaderboard)'],
+            ['{score}',       'Skor keaktifan (ucapan leaderboard)'],
+            ['{streak}',      'Hari beruntun (ucapan streak)'],
           ] as [$var, $desc])
           <div class="d-flex align-items-start gap-2 mb-3">
             <span class="var-chip flex-shrink-0" onclick="insertVar('{{ $var }}')" title="Klik untuk menyalin">

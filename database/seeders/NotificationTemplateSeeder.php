@@ -158,6 +158,54 @@ Wassalamualaikum warahmatullaahi wabarakatuh
 Admin Kesiswaan {lembaga}
 EOS,
             ],
+            'badge_baru' => [
+                'label' => 'Ucapan Selamat — Badge Baru',
+                'content' => <<<'EOS'
+Assalamu'alaikum Wr. Wb.
+Yth. Bapak/Ibu Orang Tua/Wali dari {nama} — Kelas {kelas},
+
+Alhamdulillah! 🎉 Kami dengan bangga menginformasikan bahwa putra/putri Bapak/Ibu telah berhasil meraih Badge *"{badge}"* di {lembaga}.
+
+Pencapaian ini diberikan karena dedikasi dan kedisiplinan {nama} dalam hal kehadiran di sekolah.
+
+Terima kasih atas dukungan Bapak/Ibu selama ini. Semoga prestasi ini menjadi motivasi untuk terus berkembang.
+
+Wassalamu'alaikum Wr. Wb.
+Admin Kesiswaan {lembaga}
+EOS,
+            ],
+            'leaderboard_top3' => [
+                'label' => 'Ucapan Selamat — Top 3 Leaderboard',
+                'content' => <<<'EOS'
+Assalamu'alaikum Wr. Wb.
+Yth. Bapak/Ibu Orang Tua/Wali dari {nama} — Kelas {kelas},
+
+Alhamdulillah! 🏆 Kami dengan bangga menginformasikan bahwa putra/putri Bapak/Ibu berhasil meraih *Peringkat #{rank}* sebagai siswa terajin dalam hal kehadiran di {lembaga} dengan skor keaktifan {score} poin.
+
+Pencapaian ini menunjukkan kedisiplinan dan semangat belajar yang luar biasa dari {nama}. Semoga terus dipertahankan dan ditingkatkan.
+
+Terima kasih atas dukungan dan kerjasamanya.
+
+Wassalamu'alaikum Wr. Wb.
+Admin Kesiswaan {lembaga}
+EOS,
+            ],
+            'streak_milestone' => [
+                'label' => 'Ucapan Selamat — Streak Kehadiran',
+                'content' => <<<'EOS'
+Assalamu'alaikum Wr. Wb.
+Yth. Bapak/Ibu Orang Tua/Wali dari {nama} — Kelas {kelas},
+
+Alhamdulillah! 🌟 Kami dengan bangga menginformasikan bahwa putra/putri Bapak/Ibu telah berhasil hadir tepat waktu selama *{streak} hari berturut-turut* di {lembaga}.
+
+Kedisiplinan yang luar biasa! Semoga {nama} terus istiqomah dan menjadi teladan bagi teman-temannya.
+
+Terima kasih atas dukungan Bapak/Ibu di rumah.
+
+Wassalamu'alaikum Wr. Wb.
+Admin Kesiswaan {lembaga}
+EOS,
+            ],
         ];
 
         foreach ($templates as $type => $data) {
