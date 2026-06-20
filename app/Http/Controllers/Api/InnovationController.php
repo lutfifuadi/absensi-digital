@@ -15,6 +15,7 @@ use App\Models\AttendanceAnalytics;
 use App\Models\Badge;
 use App\Models\StudentBadge;
 use App\Models\ClassLeaderboard;
+use App\Models\StudentLeaderboard;
 use App\Models\OfflineQueue;
 use App\Models\AuthorizedDevice;
 use App\Models\AbsensiKegiatan;
@@ -298,7 +299,69 @@ class InnovationController extends Controller
             }
         }
 
+        // --- KALKULASI LEADERBOARD SISWA INDIVIDUAL (Skor Keaktifan) ---
+        StudentLeaderboard::where('tahun_akademik_id', $taId)->delete();
+
+        $allSiswas = Siswa::with('kelas')->get();
+        $studentScores = [];
+
+        foreach ($allSiswas as $siswa) {
+            $absensis = AbsensiSiswa::where('siswa_id', $siswa->id)
+                ->where('tahun_akademik_id', $taId)
+                ->get();
+
+            $totalAttendance = $absensis->count();
+            $totalHadir = $absensis->whereIn('status', ['Hadir', 'Terlambat'])->count();
+            $totalIzinSakit = $absensis->whereIn('status', ['Sakit', 'Izin'])->count();
+            $totalAlpha = $absensis->where('status', 'Alpha')->count();
+
+            // Formula skor keaktifan
+            $score = ($totalHadir * 10) + ($totalIzinSakit * 2) + ($totalAlpha * -10);
+
+            if ($totalAttendance > 0) {
+                $studentScores[] = [
+                    'siswa_id' => $siswa->id,
+                    'tahun_akademik_id' => $taId,
+                    'score' => $score,
+                    'total_attendance' => $totalAttendance,
+                    'total_present' => $totalHadir,
+                ];
+            }
+        }
+
+        // Urutkan berdasarkan skor tertinggi
+        usort($studentScores, fn($a, $b) => $b['score'] <=> $a['score']);
+
+        // Simpan ranking
+        foreach ($studentScores as $index => $data) {
+            StudentLeaderboard::create([
+                'siswa_id' => $data['siswa_id'],
+                'tahun_akademik_id' => $data['tahun_akademik_id'],
+                'rank' => $index + 1,
+                'score' => $data['score'],
+                'total_attendance' => $data['total_attendance'],
+                'total_present' => $data['total_present'],
+                'calculated_at' => now(),
+            ]);
+        }
+
         return response()->json(['success' => true, 'data' => $results]);
+    }
+
+    public function getStudentLeaderboard(Request $request)
+    {
+        $taId = $request->get('tahun_akademik_id',
+            TahunAkademik::where('is_aktif', true)->first()?->id);
+
+        $limit = (int) $request->get('limit', 20);
+
+        $leaderboard = StudentLeaderboard::with(['siswa.kelas', 'siswa.studentBadges.badge'])
+            ->where('tahun_akademik_id', $taId)
+            ->orderBy('rank')
+            ->limit($limit)
+            ->get();
+
+        return response()->json(['success' => true, 'data' => $leaderboard]);
     }
 
     public function queueOfflineEvent(Request $request)

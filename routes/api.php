@@ -41,6 +41,7 @@ Route::prefix('v1/innovation')->middleware(['tenant'])->group(function () {
     Route::post('/badges/assign', [\App\Http\Controllers\Api\InnovationController::class, 'assignBadge']);
     
     Route::get('/leaderboard', [\App\Http\Controllers\Api\InnovationController::class, 'getLeaderboard']);
+    Route::get('/leaderboard/students', [\App\Http\Controllers\Api\InnovationController::class, 'getStudentLeaderboard']);
     Route::post('/leaderboard/calculate', [\App\Http\Controllers\Api\InnovationController::class, 'calculateLeaderboard']);
     
     Route::post('/offline/queue', [\App\Http\Controllers\Api\InnovationController::class, 'queueOfflineEvent']);

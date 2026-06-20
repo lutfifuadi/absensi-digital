@@ -80,4 +80,14 @@ class Siswa extends Model
     {
         return $this->belongsTo(TahunAkademik::class, 'tahun_akademik_id');
     }
+
+    public function studentBadges()
+    {
+        return $this->hasMany(StudentBadge::class, 'siswa_id');
+    }
+
+    public function studentLeaderboard()
+    {
+        return $this->hasMany(StudentLeaderboard::class, 'siswa_id');
+    }
 }

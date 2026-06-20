@@ -72,29 +72,64 @@
       <div class="das-panel__head">
         <div class="das-panel__title">
           <span class="das-panel__icon-dot --primary"></span>
-          Leaderboard Kelas Global
+          Papan Peringkat
         </div>
-        <div class="das-chip --info">Bulan Ini</div>
+        <div class="d-flex align-items-center gap-2">
+          <div class="nav nav-tabs border-0" id="leaderboardTab" role="tablist" style="font-size:.75rem;">
+            <button class="nav-link active px-3 py-1 fw-bold" id="kelas-tab" data-bs-toggle="tab" data-bs-target="#kelasTab" type="button" role="tab" style="color:#999;border:none;background:transparent;" onclick="switchLeaderboardTab('kelas')">Kelas</button>
+            <button class="nav-link px-3 py-1 fw-bold" id="siswa-tab" data-bs-toggle="tab" data-bs-target="#siswaTab" type="button" role="tab" style="color:#999;border:none;background:transparent;" onclick="switchLeaderboardTab('siswa')">Siswa</button>
+          </div>
+          <span class="das-chip --info" id="leaderboardPeriod">Bulan Ini</span>
+        </div>
       </div>
-      <div class="table-responsive">
-        <table class="das-table">
-          <thead>
-            <tr>
-              <th class="text-center">RANK</th>
-              <th>KELAS</th>
-              <th class="text-center">ABSENSI</th>
-              <th class="text-center">KEHADIRAN (%)</th>
-              <th class="text-center">PERFORMA</th>
-            </tr>
-          </thead>
-          <tbody id="leaderboardBody">
-            <tr>
-              <td colspan="5" class="text-center py-5 text-muted">
-                <div class="spinner-border spinner-border-sm text-primary me-2"></div> Memuat peringkat...
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="tab-content">
+        {{-- TAB KELAS --}}
+        <div class="tab-pane fade show active" id="kelasTab" role="tabpanel">
+          <div class="table-responsive">
+            <table class="das-table">
+              <thead>
+                <tr>
+                  <th class="text-center">RANK</th>
+                  <th>KELAS</th>
+                  <th class="text-center">ABSENSI</th>
+                  <th class="text-center">KEHADIRAN (%)</th>
+                  <th class="text-center">PERFORMA</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboardBody">
+                <tr>
+                  <td colspan="5" class="text-center py-5 text-muted">
+                    <div class="spinner-border spinner-border-sm text-primary me-2"></div> Memuat peringkat...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {{-- TAB SISWA --}}
+        <div class="tab-pane fade" id="siswaTab" role="tabpanel">
+          <div class="table-responsive">
+            <table class="das-table">
+              <thead>
+                <tr>
+                  <th class="text-center">RANK</th>
+                  <th>SISWA</th>
+                  <th>KELAS</th>
+                  <th class="text-center">HADIR</th>
+                  <th class="text-center">SKOR</th>
+                  <th class="text-center">BADGE</th>
+                </tr>
+              </thead>
+              <tbody id="studentLeaderboardBody">
+                <tr>
+                  <td colspan="6" class="text-center py-5 text-muted">
+                    <div class="spinner-border spinner-border-sm text-primary me-2"></div> Memuat peringkat siswa...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -203,6 +238,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   loadLeaderboard();
+  loadStudentLeaderboard();
   loadBadges();
   loadStudentBadges();
 });
@@ -258,6 +294,68 @@ async function loadLeaderboard() {
   }
 }
 
+async function loadStudentLeaderboard() {
+  try {
+    const response = await fetch('/api/v1/innovation/leaderboard/students?limit=20');
+    const result = await response.json();
+    
+    const tbody = document.getElementById('studentLeaderboardBody');
+    const data = result.data || [];
+    
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted opacity-50">Belum ada data peringkat siswa. Klik "Hitung Ulang Skor" untuk memulai.</td></tr>`;
+      return;
+    }
+    
+    tbody.innerHTML = data.map((item, index) => {
+      const rankBadge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1);
+      const badges = item.siswa?.student_badges || [];
+      const badgeIcons = badges.slice(0, 3).map(b => 
+        `<span class="das-stat-card__icon" style="width:22px;height:22px;background:rgba(255,215,0,0.1);color:#ffd700;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;margin:0 1px;"><i class="ti ${b.badge?.icon || 'tabler-award'}"></i></span>`
+      ).join('');
+      
+      return `
+        <tr>
+          <td class="text-center fw-bold fs-5">${rankBadge}</td>
+          <td>
+            <div class="fw-bold text-white" style="font-size:.82rem;">${item.siswa?.nama_lengkap || '-'}</div>
+            <div class="text-muted" style="font-size:.65rem;">NIS: ${item.siswa?.nis || '-'}</div>
+          </td>
+          <td>
+            <span class="badge bg-label-secondary" style="font-size:.65rem;">${item.siswa?.kelas?.nama || '-'}</span>
+          </td>
+          <td class="text-center fw-semibold" style="color:var(--das-success);">${item.total_present}/${item.total_attendance}</td>
+          <td class="text-center">
+            <span class="fw-bold" style="color:${item.score > 0 ? '#ffd700' : '#999'};font-size:.95rem;">${item.score}</span>
+          </td>
+          <td class="text-center">
+            <div class="d-flex align-items-center justify-content-center gap-1" style="min-width:70px;">
+              ${badgeIcons || '<span class="text-muted" style="font-size:.65rem;">-</span>'}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+    
+  } catch (e) {
+    console.error('Error loading student leaderboard:', e);
+  }
+}
+
+function switchLeaderboardTab(tab) {
+  document.querySelectorAll('#leaderboardTab .nav-link').forEach(btn => {
+    btn.classList.remove('active');
+    btn.style.color = '#999';
+    btn.style.background = 'transparent';
+  });
+  const activeBtn = document.getElementById(tab + '-tab');
+  if (activeBtn) {
+    activeBtn.classList.add('active');
+    activeBtn.style.color = 'white';
+    activeBtn.style.background = 'rgba(255,255,255,0.06)';
+  }
+}
+
 async function calculateLeaderboard() {
   const btn = event.currentTarget;
   const originalHtml = btn.innerHTML;
@@ -275,6 +373,7 @@ async function calculateLeaderboard() {
     const result = await response.json();
     if (result.success) {
       await loadLeaderboard();
+      await loadStudentLeaderboard();
       await loadStudentBadges();
     }
   } catch (e) {
