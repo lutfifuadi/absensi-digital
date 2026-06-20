@@ -90,6 +90,7 @@ Route::get('/tentang-kami',        [PublicPagesController::class, 'tentangKami']
 Route::get('/panduan-pengguna',    [PublicPagesController::class, 'panduanPengguna'])->name('public.panduan-pengguna');
 Route::get('/kebijakan-privasi',   [PublicPagesController::class, 'kebijakanPrivasi'])->name('public.kebijakan-privasi');
 Route::get('/bantuan',             [PublicPagesController::class, 'bantuan'])->name('public.bantuan');
+Route::get('/prestasi',            [PublicPagesController::class, 'prestasi'])->name('public.prestasi');
 
 // ── Halaman Scan QR Ekskul (publik — siswa scan QR dari pembina) ────────────
 Route::get('/scan-ekskul', function () {

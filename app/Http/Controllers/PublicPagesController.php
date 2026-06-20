@@ -45,4 +45,17 @@ class PublicPagesController extends Controller
         $info = $this->getInstitusiInfo();
         return view('public.bantuan', compact('info'));
     }
+
+    public function prestasi()
+    {
+        $namaSekolah = Pengaturan::where('key', 'nama_lembaga')->value('value')
+            ?? Pengaturan::where('key', 'nama_sekolah')->value('value')
+            ?? 'Madrasah Aliyah';
+        $logoUrl = Pengaturan::where('key', 'logo_url')->value('value');
+        if (!$logoUrl) {
+            $logoLocal = Pengaturan::where('key', 'logo_sekolah')->value('value');
+            if ($logoLocal) $logoUrl = asset('uploads/logo/' . $logoLocal);
+        }
+        return view('public.prestasi', compact('namaSekolah', 'logoUrl'));
+    }
 }
