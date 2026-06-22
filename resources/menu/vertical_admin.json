@@ -164,6 +164,30 @@
       "url": "/admin/gamifikasi"
     },
     {
+      "menuHeader": "Panduan & Dokumentasi",
+      "icon": "menu-icon ti tabler-book"
+    },
+    {
+      "name": "Panduan",
+      "icon": "menu-icon ti tabler-book",
+      "slug": ["admin.guides"],
+      "url": "/admin/guides",
+      "submenu": [
+        {
+          "name": "📖 Semua Panduan",
+          "icon": "menu-icon ti tabler-books",
+          "slug": "admin.guides.index",
+          "url": "/admin/guides"
+        },
+        {
+          "name": "📂 Kategori",
+          "icon": "menu-icon ti tabler-folder",
+          "slug": "admin.guide-categories.index",
+          "url": "/admin/guide-categories"
+        }
+      ]
+    },
+    {
       "menuHeader": "Pengaturan",
       "icon": "menu-icon ti tabler-settings"
     },
@@ -214,6 +238,12 @@
       "icon": "menu-icon ti tabler-user-shield",
       "slug": "admin.users.index",
       "url": "/admin/users"
+    },
+    {
+      "name": "Profil & Password",
+      "icon": "menu-icon ti tabler-key",
+      "slug": "profile.show",
+      "url": "/user/profile"
     },
     {
       "menuHeader": "Sistem",

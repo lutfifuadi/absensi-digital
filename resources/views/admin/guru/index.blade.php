@@ -189,6 +189,10 @@
                 <td class="pe-4 text-end">
                   <div class="d-flex justify-content-end gap-1">
                     @if($profile)
+                      <a href="{{ route('admin.impersonate.login-as', $item->id) }}" class="action-btn text-success"
+                        title="Login Sebagai Guru" data-bs-toggle="tooltip">
+                        <i class="ti tabler-login fs-5"></i>
+                      </a>
                       <a href="{{ route('admin.guru.generate-qr', $profile->id) }}" class="action-btn text-info"
                         title="Unduh QR" data-bs-toggle="tooltip">
                         <i class="ti tabler-qrcode fs-5"></i>
@@ -205,6 +209,10 @@
                         </button>
                       </form>
                     @else
+                      <a href="{{ route('admin.impersonate.login-as', $item->id) }}" class="action-btn text-success me-1"
+                        title="Login Sebagai User" data-bs-toggle="tooltip">
+                        <i class="ti tabler-login fs-5"></i>
+                      </a>
                       <a href="{{ route('admin.guru.create', ['user_id' => $item->id]) }}" class="action-btn text-success"
                         title="Lengkapi Profil Guru" data-bs-toggle="tooltip">
                         <i class="ti tabler-user-plus fs-5"></i>

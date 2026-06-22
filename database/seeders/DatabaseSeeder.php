@@ -18,5 +18,6 @@ class DatabaseSeeder extends Seeder
         $this->call(SampleUsersSeeder::class);
         $this->call(HolidaySeeder::class);
         $this->call(EkskulSeeder::class);
+        $this->call(GuideCategorySeeder::class);
     }
 }

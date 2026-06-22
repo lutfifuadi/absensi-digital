@@ -42,16 +42,16 @@
       "icon": "menu-icon ti tabler-users",
       "slug": "admin.users-data",
       "submenu": [
-          {
-            "url": "/admin/siswa",
-            "name": "Data Siswa",
-            "slug": "admin.siswa.index"
-          },
-          {
-            "url": "/admin/siswa/naik-kelas-massal",
-            "name": "Naik Kelas Massal",
-            "slug": "admin.siswa.naik-kelas-massal"
-          },
+        {
+          "url": "/admin/siswa",
+          "name": "Data Siswa",
+          "slug": "admin.siswa.index"
+        },
+        {
+          "url": "/admin/siswa/naik-kelas-massal",
+          "name": "Naik Kelas Massal",
+          "slug": "admin.siswa.naik-kelas-massal"
+        },
         {
           "url": "/admin/guru",
           "name": "Data Guru",
@@ -117,11 +117,10 @@
           "slug": "admin.kegiatans.absensi"
         },
         {
-    {
-      "url": "/admin/pelepasan",
-      "name": "Pelepasan Kelas XII",
-      "slug": "admin.pelepasan.index"
-    }
+          "url": "/admin/pelepasan",
+          "name": "Pelepasan Kelas XII",
+          "slug": "admin.pelepasan.index"
+        }
       ]
     },
     {
@@ -147,6 +146,30 @@
       "name": "Designer ID Card",
       "icon": "menu-icon ti tabler-id-badge-2",
       "slug": "admin.id-card-templates"
+    },
+    {
+      "menuHeader": "Panduan & Dokumentasi",
+      "icon": "menu-icon ti tabler-book"
+    },
+    {
+      "name": "Panduan",
+      "icon": "menu-icon ti tabler-book",
+      "slug": ["admin.guides"],
+      "url": "/admin/guides",
+      "submenu": [
+        {
+          "name": "📖 Semua Panduan",
+          "icon": "menu-icon ti tabler-books",
+          "slug": "admin.guides.index",
+          "url": "/admin/guides"
+        },
+        {
+          "name": "📂 Kategori",
+          "icon": "menu-icon ti tabler-folder",
+          "slug": "admin.guide-categories.index",
+          "url": "/admin/guide-categories"
+        }
+      ]
     }
   ]
 }

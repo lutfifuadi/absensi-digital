@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Guide;
+use App\Models\GuideCategory;
+use App\Policies\GuidePolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Vite;
 
@@ -20,6 +24,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Daftarkan policy untuk Guide dan GuideCategory
+        Gate::policy(Guide::class, GuidePolicy::class);
+        Gate::policy(GuideCategory::class, GuidePolicy::class);
+
         if (!file_exists(storage_path('installed'))) {
             return;
         }
