@@ -2,13 +2,19 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\Pengaturan;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_the_application_responds_successfully(): void
     {
+        // Setup default configuration
+        Pengaturan::updateOrCreate(['key' => 'tampilkan_beranda'], ['value' => 'Ya']);
+
         $response = $this->get('/');
 
         $this->assertTrue(

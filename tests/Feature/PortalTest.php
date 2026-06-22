@@ -27,6 +27,7 @@ class PortalTest extends TestCase
 
         $this->kelas = Kelas::create([
             'nama' => 'X-A',
+            'tingkat' => 'X',
             'tahun_akademik_id' => $this->tahunAkademik->id,
             'jurusan' => 'Umum'
         ]);

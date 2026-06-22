@@ -36,7 +36,8 @@ class MasterDataTest extends TestCase
         $this->kelas = Kelas::create([
             'nama' => 'X-A',
             'tahun_akademik_id' => $this->tahunAkademik->id,
-            'jurusan' => 'Umum'
+            'jurusan' => 'Umum',
+            'tingkat' => 'X'
         ]);
     }
 
