@@ -155,6 +155,10 @@ Route::middleware([
       Route::get('/izin-sakit/create', [IzinSakitController::class, 'create'])->name('siswa.izin-sakit.create');
       Route::post('/izin-sakit', [IzinSakitController::class, 'store'])->name('siswa.izin-sakit.store');
       
+      // Penugasan Guru untuk Siswa
+      Route::get('/assignments', [\App\Http\Controllers\AssignmentController::class, 'index'])->name('siswa.assignments.index');
+      Route::get('/assignments/{assignment}', [\App\Http\Controllers\AssignmentController::class, 'show'])->name('siswa.assignments.show');
+      
       Route::post('/absensi-mandiri', [AbsensiMandiriController::class, 'store'])->name('siswa.absensi-mandiri.store');
   });
 
@@ -168,6 +172,17 @@ Route::middleware([
       Route::get('/izin-sakit', [IzinSakitController::class, 'index'])->name('guru.izin-sakit.index');
       Route::get('/izin-sakit/create', [IzinSakitController::class, 'create'])->name('guru.izin-sakit.create');
       Route::post('/izin-sakit', [IzinSakitController::class, 'store'])->name('guru.izin-sakit.store');
+
+      // Penugasan Guru
+      Route::resource('/assignments', \App\Http\Controllers\AssignmentController::class)->names([
+          'index' => 'assignments.index',
+          'create' => 'assignments.create',
+          'store' => 'assignments.store',
+          'edit' => 'assignments.edit',
+          'update' => 'assignments.update',
+          'destroy' => 'assignments.destroy',
+          'show' => 'assignments.show',
+      ]);
   });
 
   // ── PORTAL WALI KELAS ─────────────────────────────────────────────────────
@@ -549,6 +564,11 @@ Route::middleware([
           ->names('admin.izin-sakit')
           ->except(['show'])
           ->middleware('role:super_admin,admin_sekolah,operator,staff_tu');
+
+      // Penugasan Guru untuk Admin/Super Admin/Operator
+      Route::get('assignments', [\App\Http\Controllers\AssignmentController::class, 'index'])->name('admin.assignments.index');
+      Route::get('assignments/{assignment}', [\App\Http\Controllers\AssignmentController::class, 'show'])->name('admin.assignments.show');
+      Route::delete('assignments/{assignment}', [\App\Http\Controllers\AssignmentController::class, 'destroy'])->name('admin.assignments.destroy');
 
       Route::post('izin-sakit/{izinSakit}/approve', [IzinSakitController::class, 'approve'])
           ->name('admin.izin-sakit.approve')

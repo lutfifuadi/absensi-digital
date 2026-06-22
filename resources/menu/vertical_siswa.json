@@ -22,6 +22,12 @@
       "slug": "siswa.izin-sakit.index"
     },
     {
+      "url": "/siswa/assignments",
+      "name": "Tugas Mandiri",
+      "icon": "menu-icon ti tabler-notebook",
+      "slug": "siswa.assignments.index"
+    },
+    {
       "url": "/siswa/leaderboard",
       "name": "Papan Peringkat",
       "icon": "menu-icon ti tabler-trophy",

@@ -55,6 +55,12 @@
       "name": "Pengajuan Izin",
       "icon": "menu-icon ti tabler-stethoscope",
       "slug": "guru.izin-sakit.index"
+    },
+    {
+      "url": "/guru/assignments",
+      "name": "Penugasan Siswa",
+      "icon": "menu-icon ti tabler-book-upload",
+      "slug": "assignments.index"
     }
   ]
 }

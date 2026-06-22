@@ -152,6 +152,12 @@
       "url": "/admin/izin-sakit"
     },
     {
+      "name": "Penugasan Guru",
+      "icon": "menu-icon ti tabler-book-upload",
+      "slug": "admin.assignments.index",
+      "url": "/admin/assignments"
+    },
+    {
       "name": "Laporan",
       "icon": "menu-icon ti tabler-report-analytics",
       "slug": "admin.laporan.index",
