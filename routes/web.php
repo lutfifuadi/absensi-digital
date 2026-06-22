@@ -174,7 +174,7 @@ Route::middleware([
       Route::post('/izin-sakit', [IzinSakitController::class, 'store'])->name('guru.izin-sakit.store');
 
       // Penugasan Guru
-      Route::resource('/assignments', \App\Http\Controllers\AssignmentController::class)->names([
+      Route::resource('assignments', \App\Http\Controllers\AssignmentController::class)->names([
           'index' => 'assignments.index',
           'create' => 'assignments.create',
           'store' => 'assignments.store',

@@ -60,7 +60,7 @@
       "url": "/guru/assignments",
       "name": "Penugasan Siswa",
       "icon": "menu-icon ti tabler-book-upload",
-      "slug": "assignments.index"
+      "slug": "assignments"
     }
   ]
 }
