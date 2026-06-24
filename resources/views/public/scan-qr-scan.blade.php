@@ -94,17 +94,19 @@
     /* ─── LAYOUT WRAPPER ──────────────────────────────────────── */
     .layout {
       flex: 1;
+      min-height: 0;
+      overflow: hidden;
       display: grid;
       grid-template-columns: 1fr;
-      grid-template-rows: 1fr;
-      min-height: 0;
     }
 
     @media (min-width: 992px) {
-      .layout { grid-template-columns: 1fr 450px; }
+      .layout {
+        grid-template-columns: 1fr 450px;
+      }
     }
 
-    /* Di mobile: camera-panel ambil sisa ruang, sidebar tingginya otomatis */
+    /* Di mobile: camera-panel ambil 1fr, sidebar auto (setinggi kontennya) */
     @media (max-width: 991px) {
       .layout {
         grid-template-rows: 1fr auto;
@@ -273,6 +275,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      min-height: 0;
     }
 
     .sidebar-header { padding: 1.5rem; border-bottom: 1px solid var(--das-border-color); }
