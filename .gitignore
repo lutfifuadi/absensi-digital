@@ -48,6 +48,9 @@ yarn-error.log
 /public/hot
 .agents/
 .planning/
+.prd/
+opencode.json
+/.opencode/
 vendor.zip
 
 # Uploaded files (user content)
