@@ -90,6 +90,8 @@ Route::prefix('scan-qr')->name('public.scan-qr.')->group(function () {
     Route::post('/process',[PublicQrScanController::class, 'process'])->name('process')->middleware(['qr.scan.auth', 'device.trusted']);
     Route::post('/logout', [PublicQrScanController::class, 'logout'])->name('logout');
     Route::get('/stats', [PublicQrScanController::class, 'scanStats'])->name('stats');
+    Route::get('/search', [PublicQrScanController::class, 'searchSiswaGuru'])
+        ->name('search');
 });
 
 Route::get('/device-unauthorized', function() {

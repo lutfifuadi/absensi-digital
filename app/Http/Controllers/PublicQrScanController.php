@@ -407,6 +407,49 @@ class PublicQrScanController extends Controller
     }
 
     /**
+     * Cari siswa/guru berdasarkan NIS/NIP/nama — untuk input manual di scan QR.
+     */
+    public function searchSiswaGuru(Request $request)
+    {
+        $data = $request->validate([
+            'q' => 'required|string|min:2|max:50',
+        ]);
+
+        $q = $data['q'];
+
+        $siswa = Siswa::where('nis', 'like', "%{$q}%")
+            ->orWhere('nama_lengkap', 'like', "%{$q}%")
+            ->with('kelas')
+            ->take(10)
+            ->get()
+            ->map(fn($s) => [
+                'id'    => $s->id,
+                'nis'   => $s->nis,
+                'nama'  => $s->nama_lengkap,
+                'kelas' => $s->kelas->nama ?? '-',
+                'foto'  => $s->foto,
+                'tipe'  => 'siswa',
+            ]);
+
+        $guru = Guru::where('nip', 'like', "%{$q}%")
+            ->orWhere('nama_lengkap', 'like', "%{$q}%")
+            ->take(10)
+            ->get()
+            ->map(fn($g) => [
+                'id'    => $g->id,
+                'nis'   => $g->nip,
+                'nama'  => $g->nama_lengkap,
+                'kelas' => 'GURU',
+                'foto'  => null,
+                'tipe'  => 'guru',
+            ]);
+
+        $results = collect($siswa)->concat($guru)->take(10)->values();
+
+        return response()->json(['results' => $results]);
+    }
+
+    /**
      * Logout dari sesi scan QR publik.
      */
     public function logout(Request $request)

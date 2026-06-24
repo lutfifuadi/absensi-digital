@@ -300,6 +300,30 @@
     
     .btn-sound { background: rgba(255,255,255,0.05); border: 1px solid var(--das-border-color); color: #64748b; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .btn-sound:hover { border-color: var(--das-primary); color: var(--das-primary); }
+    .btn-turbo {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--das-border-color);
+      color: #64748b;
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      font-size: 1rem;
+    }
+    .btn-turbo:hover { border-color: var(--das-primary); color: var(--das-primary); }
+    .btn-turbo.active {
+      background: rgba(255, 159, 67, 0.15);
+      border-color: var(--das-warning);
+      color: var(--das-warning);
+      animation: pulse-turbo 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-turbo {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255, 159, 67, 0.4); }
+      50% { box-shadow: 0 0 0 8px rgba(255, 159, 67, 0); }
+    }
 
     @media (max-width: 991px) {
       .sidebar { border-left: none; border-top: 1px solid var(--das-border-color); max-height: 40%; }
@@ -444,6 +468,7 @@
   </div>
   <div class="nav-right" style="display:flex; align-items:center; gap:1.5rem;">
     <div id="nav-date" style="font-size:0.8rem; font-weight:700; color:#94a3b8; display:none;"></div>
+    <button class="btn-turbo" id="turbo-btn" onclick="toggleTurbo()" title="Turbo: scan lebih cepat">⚡</button>
     <form action="{{ route('public.scan-qr.logout') }}" method="POST" style="margin:0;">
       @csrf
       <button type="submit" class="btn-logout"><i class="ti tabler-logout me-1"></i> Keluar</button>
@@ -483,6 +508,9 @@
       </div>
     </div>
 
+    <!-- Flash overlay -->
+    <div id="flash-overlay" style="position:absolute;inset:0;pointer-events:none;z-index:45;transition:opacity 0.1s ease;opacity:0;"></div>
+
     <!-- Idle screen -->
     <div class="idle-screen" id="idle-screen">
       <div class="idle-icon-wrapper">
@@ -494,6 +522,20 @@
         <i class="ti tabler-player-play"></i> Aktifkan Scanner
       </button>
     </div>
+
+    <!-- OVERLAY STATUS BAR -->
+    <div id="scan-overlay-bar" style="position:absolute;top:0;left:0;right:0;z-index:35;display:flex;align-items:center;justify-content:space-between;padding:0.7rem 1rem;background:linear-gradient(180deg,rgba(15,23,42,0.85) 0%,transparent 100%);pointer-events:none;opacity:0;transition:opacity 0.3s;">
+      <div style="display:flex;gap:1rem;font-size:0.7rem;font-weight:700;">
+        <span style="color:var(--das-success);">✅ <b id="ov-hadir">0</b></span>
+        <span style="color:var(--das-warning);">⚠️ <b id="ov-terlambat">0</b></span>
+      </div>
+      <div style="font-size:0.8rem;font-weight:800;color:white;font-family:monospace;" id="ov-clock">--:--:--</div>
+    </div>
+
+    <!-- Manual Input Button -->
+    <button id="btn-manual-input" style="position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);z-index:40;background:rgba(15,23,42,0.7);backdrop-filter:blur(8px);border:1px solid var(--das-border-color);color:white;padding:0.6rem 1.2rem;border-radius:10px;font-size:0.75rem;font-weight:700;cursor:pointer;display:none;align-items:center;gap:0.5rem;transition:all 0.2s;" onclick="openManualInput()">
+      <i class="ti tabler-keyboard"></i> Input NIS / NIP
+    </button>
 
     <!-- Result toast (bottom of camera) -->
     <div class="result-toast" id="result-toast">
@@ -574,6 +616,11 @@
     const d = new Date();
     document.getElementById('nav-date').textContent =
       `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    const timeStr = String(d.getHours()).padStart(2,'0') + ':' + 
+                    String(d.getMinutes()).padStart(2,'0') + ':' + 
+                    String(d.getSeconds()).padStart(2,'0');
+    const clock = document.getElementById('ov-clock');
+    if (clock) clock.textContent = timeStr;
   }
   updateNavDate();
 
@@ -717,6 +764,33 @@
     } catch(_) {}
   }
 
+  // ── Flash Effect ──────────────────────────────────
+  function flash(type) {
+    const el = document.getElementById('flash-overlay');
+    if (!el) return;
+    el.style.background = type === 'success' 
+      ? 'rgba(255,255,255,0.25)' 
+      : type === 'warning' 
+        ? 'rgba(255,159,67,0.15)' 
+        : 'rgba(234,84,85,0.2)';
+    el.style.opacity = '1';
+    setTimeout(() => { el.style.opacity = '0'; }, 100);
+  }
+
+  // ── Turbo Mode ─────────────────────────────────
+  let turboMode = localStorage.getItem('scan_turbo') === 'true';
+  const turboBtn = document.getElementById('turbo-btn');
+  if (turboBtn && turboMode) turboBtn.classList.add('active');
+
+  function toggleTurbo() {
+    turboMode = !turboMode;
+    localStorage.setItem('scan_turbo', turboMode);
+    if (turboBtn) turboBtn.classList.toggle('active', turboMode);
+  }
+
+  function getDebounce() { return turboMode ? 1200 : DEBOUNCE; }
+  function getDismiss()  { return turboMode ? 1500 : DISMISS; }
+
   // ── Stats Sync from Server ─────────────────────────────
   async function fetchServerStats() {
     try {
@@ -732,6 +806,11 @@
         if (tc) tc.style.display = 'block';
         document.getElementById('stat-terlambat').textContent = terlambatTotal;
       }
+
+      // Update overlay stats
+      document.getElementById('ov-hadir').textContent = data.stats.siswa_hadir + data.stats.guru_hadir;
+      const terlambat = data.stats.siswa_terlambat + data.stats.guru_terlambat;
+      document.getElementById('ov-terlambat').textContent = terlambat;
 
       // Render recent logs
       renderServerLogs(data.recent_logs);
@@ -831,14 +910,14 @@
 
     if (toastTimer) clearTimeout(toastTimer);
     requestAnimationFrame(() => {
-      fill.style.transition = `width ${DISMISS}ms linear`;
+      fill.style.transition = `width ${getDismiss()}ms linear`;
       fill.style.width = '100%';
     });
     toastTimer = setTimeout(() => {
       toast.classList.remove('show');
       isProcessing = false;
       if (stream && !animFrame) animFrame = requestAnimationFrame(tick);
-    }, DISMISS);
+    }, getDismiss());
   }
 
   // ── Camera vars ──
@@ -876,6 +955,8 @@
       video.style.display = 'block';
       crosshair.classList.add('active');
       switchBtn.classList.add('active');
+      document.getElementById('scan-overlay-bar').style.opacity = '1';
+      document.getElementById('btn-manual-input').style.display = 'flex';
       
       if (!animFrame) animFrame = requestAnimationFrame(tick);
       return true;
@@ -926,7 +1007,7 @@
       const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
       if (code && !isProcessing) {
         const now = Date.now();
-        if (code.data !== lastQR || now - lastQRTime > DEBOUNCE) {
+        if (code.data !== lastQR || now - lastQRTime > getDebounce()) {
           lastQR = code.data; lastQRTime = now;
           handleScan(code.data);
         }
@@ -954,18 +1035,21 @@
 
       const data = await resp.json();
       if (data.success) {
+        flash('success');
         beep('success');
         incrStat('success');
         addLog('success', data.siswa, data.message);
         showToast('success', data.siswa, data.message);
         if (navigator.vibrate) navigator.vibrate([80]);
       } else if (data.already) {
+        flash('warning');
         beep('warning');
         incrStat('warning');
         addLog('warning', data.siswa, data.message);
         showToast('warning', data.siswa, data.message);
         if (navigator.vibrate) navigator.vibrate([80, 60, 80]);
       } else {
+        flash('error');
         beep('error');
         incrStat('error');
         addLog('error', null, data.message ?? 'QR tidak dikenal.');
@@ -1073,6 +1157,157 @@
   fetchServerStats();
   // Auto-refresh every 10 seconds
   setInterval(fetchServerStats, 10000);
+
+  // ── Input Manual ─────────────────────────────────
+  let selectedManualTarget = null;
+  let searchTimeout = null;
+  const SEARCH_URL = "{{ route('public.scan-qr.search') }}";
+
+  function openManualInput() {
+    selectedManualTarget = null;
+    document.getElementById('manualSearchInput').value = '';
+    document.getElementById('manualSearchResults').style.display = 'none';
+    document.getElementById('manualConfirm').style.display = 'none';
+    document.getElementById('manualNotFound').style.display = 'none';
+    new bootstrap.Modal(document.getElementById('modalManualInput')).show();
+    setTimeout(() => document.getElementById('manualSearchInput').focus(), 500);
+  }
+
+  document.getElementById('manualSearchInput').addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    const q = this.value.trim();
+    if (q.length < 2) {
+      document.getElementById('manualSearchResults').style.display = 'none';
+      return;
+    }
+    searchTimeout = setTimeout(() => doSearch(q), 300);
+  });
+
+  async function doSearch(q) {
+    try {
+      const resp = await fetch(`${SEARCH_URL}?q=${encodeURIComponent(q)}`);
+      const data = await resp.json();
+      const container = document.getElementById('manualSearchResults');
+      
+      if (!data.results || data.results.length === 0) {
+        container.style.display = 'none';
+        document.getElementById('manualNotFound').style.display = 'block';
+        document.getElementById('manualConfirm').style.display = 'none';
+        return;
+      }
+      
+      document.getElementById('manualNotFound').style.display = 'none';
+      container.style.display = 'block';
+      container.innerHTML = data.results.map(r => `
+        <button type="button" class="list-group-item list-group-item-action" 
+          style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:inherit;padding:0.6rem 0.8rem;border-radius:6px;margin-bottom:4px;text-align:left;width:100%;"
+          onclick="selectManualResult('${r.nis}', '${r.nama.replace(/'/g, "\\'")}', '${r.kelas}', '${r.tipe}')">
+          <div class="d-flex align-items-center gap-2">
+            <span style="font-size:1.2rem;">${r.tipe === 'guru' ? '👤' : '🎓'}</span>
+            <div>
+              <div class="fw-bold" style="font-size:0.85rem;">${r.nama}</div>
+              <div class="text-white-50" style="font-size:0.7rem;">${r.tipe === 'guru' ? 'GURU' : r.kelas} · ${r.nis}</div>
+            </div>
+          </div>
+        </button>
+      `).join('');
+    } catch(e) {
+      console.error('Search error:', e);
+    }
+  }
+
+  function selectManualResult(nis, nama, kelas, tipe) {
+    selectedManualTarget = { nis, nama, kelas, tipe };
+    document.getElementById('manualSearchResults').style.display = 'none';
+    document.getElementById('manualConfirm').style.display = 'block';
+    document.getElementById('manualConfirmNama').textContent = `${nama} ${tipe === 'guru' ? '👤' : '🎓'}`;
+    document.getElementById('manualConfirmKelas').textContent = `${tipe === 'guru' ? 'Tenaga Pendidik' : 'Kelas ' + kelas} · NIS/NIP: ${nis}`;
+  }
+
+  async function submitManualAbsen() {
+    if (!selectedManualTarget) return;
+    
+    const btn = document.querySelector('#manualConfirm button');
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Memproses...';
+    
+    try {
+      const resp = await fetch(SCAN_URL, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json'},
+        body: JSON.stringify({ qr_code: selectedManualTarget.nis }),
+      });
+      const data = await resp.json();
+      
+      bootstrap.Modal.getInstance(document.getElementById('modalManualInput')).hide();
+      
+      if (data.success) {
+        flash('success');
+        beep('success');
+        incrStat('success');
+        addLog('success', data.siswa, data.message);
+        showToast('success', data.siswa, data.message);
+      } else if (data.already) {
+        flash('warning');
+        beep('warning');
+        incrStat('warning');
+        addLog('warning', data.siswa, data.message);
+        showToast('warning', data.siswa, data.message);
+      } else {
+        flash('error');
+        beep('error');
+        incrStat('error');
+        showToast('error', null, data.message ?? 'Gagal.');
+      }
+    } catch(e) {
+      flash('error');
+      beep('error');
+      showToast('error', null, 'Gagal terhubung ke server.');
+    }
+    
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti tabler-check me-1"></i> Konfirmasi Absen';
+  }
 </script>
+{{-- ═══════════════════════════════════════════ --}}
+{{-- MODAL INPUT MANUAL --}}
+{{-- ═══════════════════════════════════════════ --}}
+<div class="modal fade" id="modalManualInput" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+    <div class="modal-content" style="background:#1e1e2d;border:1px solid rgba(255,255,255,0.1);border-radius:12px;">
+      <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,0.08);padding:1.25rem 1.5rem;">
+        <div class="d-flex align-items-center gap-3">
+          <div style="width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(115,103,240,0.2);border:1px solid rgba(115,103,240,0.35);">
+            <i class="ti tabler-keyboard text-primary fs-5"></i>
+          </div>
+          <div>
+            <h5 class="modal-title mb-0 text-white fw-bold">Input Manual</h5>
+            <small class="text-white-50">Masukkan NIS siswa atau NIP guru</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="padding:1.5rem;">
+        <div class="position-relative mb-3">
+          <input type="text" id="manualSearchInput" class="form-control" 
+            placeholder="Ketik NIS, NIP, atau nama..." 
+            style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:inherit;border-radius:8px;padding:0.7rem 1rem;font-size:0.9rem;">
+          <div id="manualSearchResults" class="list-group mt-2" style="max-height:200px;overflow-y:auto;display:none;"></div>
+        </div>
+        <div id="manualConfirm" style="display:none;background:rgba(40,199,111,0.06);border:1px solid rgba(40,199,111,0.15);border-radius:10px;padding:1rem;">
+          <p class="mb-1 text-white-50 small">Data ditemukan:</p>
+          <p class="fw-bold text-white fs-5 mb-0" id="manualConfirmNama">—</p>
+          <p class="text-white-50 small mb-2" id="manualConfirmKelas">—</p>
+          <button class="btn btn-success w-100 fw-bold" onclick="submitManualAbsen()">
+            <i class="ti tabler-check me-1"></i> Konfirmasi Absen
+          </button>
+        </div>
+        <div id="manualNotFound" style="display:none;text-align:center;padding:1rem;">
+          <p class="text-white-50">Siswa/guru tidak ditemukan. Coba NIS/NIP lain.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
