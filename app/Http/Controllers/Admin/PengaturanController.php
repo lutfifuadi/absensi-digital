@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Pengaturan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
@@ -192,6 +193,9 @@ class PengaturanController extends Controller
                 );
             }
         }
+
+        // Hapus cache absensi_settings agar live-board pakai nilai terbaru
+        Cache::forget('absensi_settings');
 
         return back()->with('success', 'Pengaturan berhasil disimpan.');
     }
