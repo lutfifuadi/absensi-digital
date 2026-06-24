@@ -465,13 +465,38 @@ class PublicQrScanController extends Controller
             $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i');
             $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
 
-            AbsensiGuru::create([
-                'guru_id'    => $guru->id,
-                'tanggal'    => $tanggal,
-                'jam_masuk'  => $currentTime,
-                'status'     => $status,
-                'keterangan' => 'Scan QR Live Board',
-                'metode'     => 'qr',
+            try {
+                AbsensiGuru::create([
+                    'guru_id'    => $guru->id,
+                    'tanggal'    => $tanggal,
+                    'jam_masuk'  => $currentTime,
+                    'status'     => $status,
+                    'keterangan' => 'Scan QR Live Board',
+                    'metode'     => 'qr',
+                ]);
+            } catch (\Illuminate\Database\QueryException $e) {
+                if ($e->errorInfo[1] === 1062) {
+                    QrScanLogger::warning('QR_SCAN_GURU_DUPLICATE', [
+                        'ip'    => $ip,
+                        'guru'  => $guru->nama_lengkap,
+                        'jam'   => $currentTime,
+                        'tanggal' => $tanggal,
+                    ]);
+
+                    return response()->json([
+                        'success' => false,
+                        'already' => true,
+                        'message' => 'Guru ' . $guru->nama_lengkap . ' sudah tercatat hadir hari ini.',
+                    ]);
+                }
+                throw $e;
+            }
+
+            QrScanLogger::info('QR_SCAN_GURU_SUCCESS', [
+                'ip'    => $ip,
+                'guru'  => $guru->nama_lengkap,
+                'jam'   => $currentTime,
+                'tanggal' => $tanggal,
             ]);
 
             return response()->json([
