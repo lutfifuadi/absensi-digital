@@ -205,6 +205,12 @@
       color: var(--muted);
       margin-top: 1.5rem;
     }
+
+    @media (max-width: 480px) {
+      .authentication-wrapper {
+        padding: 1.5rem 1rem;
+      }
+    }
   </style>
 </head>
 
