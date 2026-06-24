@@ -14,6 +14,7 @@
   <title>Scan QR Absensi — Guru Piket</title>
   <link rel="stylesheet" href="{{ asset('assets/css/local-fonts.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/tabler-icons.css') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     /* DESIGN SYSTEM TOKENS */
     :root {
@@ -26,6 +27,7 @@
       --das-panel-bg: rgba(30, 41, 59, 0.7);
       --das-border-color: rgba(255, 255, 255, 0.08);
       --font-family: 'Product Sans', sans-serif;
+      --das-radius: 5px;
     }
 
     /* GLOBAL RESET */
@@ -66,7 +68,7 @@
       width: 40px;
       height: 40px;
       background: linear-gradient(135deg, var(--das-primary), #6259e8);
-      border-radius: 10px;
+      border-radius: var(--das-radius);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -80,7 +82,7 @@
       background: rgba(234, 84, 85, 0.1);
       border: 1px solid rgba(234, 84, 85, 0.3);
       color: var(--das-danger);
-      border-radius: 8px;
+      border-radius: var(--das-radius);
       padding: 0.5rem 1rem;
       font-size: 0.8rem;
       font-weight: 700;
@@ -102,6 +104,13 @@
       .layout { grid-template-columns: 1fr 450px; }
     }
 
+    /* Di mobile: camera-panel ambil sisa ruang, sidebar tingginya otomatis */
+    @media (max-width: 991px) {
+      .layout {
+        grid-template-rows: 1fr auto;
+      }
+    }
+
     /* ─── CAMERA AREA ─────────────────────────────────────────── */
     .camera-panel {
       position: relative;
@@ -110,7 +119,9 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
+      min-height: 0;
     }
+
 
     #video { width: 100%; height: 100%; object-fit: cover; display: none; }
 
@@ -148,21 +159,22 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 1.5rem;
+      gap: 1rem;
       background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
-      z-index: 20;
+      z-index: 70;
       padding: 2rem;
+      overflow-y: auto;
     }
     .idle-icon-wrapper {
-      width: 120px;
-      height: 120px;
+      width: 72px;
+      height: 72px;
       background: rgba(115, 103, 240, 0.1);
       border: 1px solid rgba(115, 103, 240, 0.2);
-      border-radius: 30px;
+      border-radius: var(--das-radius);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 3.5rem;
+      font-size: 2rem;
       margin-bottom: 0.5rem;
       position: relative;
     }
@@ -171,7 +183,7 @@
       position: absolute;
       inset: -10px;
       border: 2px dashed rgba(115, 103, 240, 0.2);
-      border-radius: 40px;
+      border-radius: var(--das-radius);
       animation: das_spin 10s linear infinite;
     }
     @keyframes das_spin { 100% { transform: rotate(360deg); } }
@@ -182,8 +194,8 @@
       background: var(--das-primary);
       color: white;
       border: none;
-      padding: 1rem 2.5rem;
-      border-radius: 12px;
+      padding: 0.75rem 1.5rem;
+      border-radius: var(--das-radius);
       font-weight: 800;
       font-size: 1rem;
       cursor: pointer;
@@ -206,7 +218,7 @@
       color: white;
       width: 44px;
       height: 44px;
-      border-radius: 12px;
+      border-radius: var(--das-radius);
       display: none;
       align-items: center;
       justify-content: center;
@@ -229,7 +241,7 @@
       background: rgba(15, 23, 42, 0.9);
       backdrop-filter: blur(10px);
       border: 1px solid var(--das-border-color);
-      border-radius: 16px;
+      border-radius: var(--das-radius);
       padding: 1.2rem;
       display: flex;
       flex-direction: column;
@@ -242,7 +254,7 @@
     .result-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
     
     .toast-inner { display: flex; align-items: start; gap: 1rem; }
-    .toast-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+    .toast-icon { width: 50px; height: 50px; border-radius: var(--das-radius); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
     .success .toast-icon { background: rgba(40, 199, 111, 0.1); color: var(--das-success); border: 1px solid rgba(40, 199, 111, 0.2); }
     .warning .toast-icon { background: rgba(255, 159, 67, 0.1); color: var(--das-warning); border: 1px solid rgba(255, 159, 67, 0.2); }
     .error .toast-icon { background: rgba(234, 84, 85, 0.1); color: var(--das-danger); border: 1px solid rgba(234, 84, 85, 0.2); }
@@ -267,7 +279,7 @@
     .sidebar-title { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; }
     
     .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); padding: 1rem; gap: 1rem; border-bottom: 1px solid var(--das-border-color); }
-    .stat-item { background: rgba(15, 23, 42, 0.4); border: 1px solid var(--das-border-color); padding: 1rem; border-radius: 12px; text-align: center; }
+    .stat-item { background: rgba(15, 23, 42, 0.4); border: 1px solid var(--das-border-color); padding: 1rem; border-radius: var(--das-radius); text-align: center; }
     .stat-num { font-size: 1.8rem; font-weight: 800; display: block; }
     .stat-label { font-size: 0.6rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-top: 5px; }
 
@@ -278,7 +290,7 @@
       padding: 1rem;
       background: rgba(15, 23, 42, 0.3);
       border: 1px solid var(--das-border-color);
-      border-radius: 14px;
+      border-radius: var(--das-radius);
       display: flex;
       align-items: center;
       gap: 1rem;
@@ -286,26 +298,26 @@
     }
     @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
     
-    .log-avatar { width: 40px; height: 40px; border-radius: 12px; background: var(--das-primary); display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; color: white; border: 1px solid rgba(255,255,255,0.1); }
+    .log-avatar { width: 40px; height: 40px; border-radius: var(--das-radius); background: var(--das-primary); display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; color: white; border: 1px solid rgba(255,255,255,0.1); }
     .log-avatar.late { background: var(--das-warning); }
     .log-avatar.dup { background: #334155; }
     
     .log-info { flex: 1; min-width: 0; }
     .log-name { font-size: 0.85rem; font-weight: 700; color: white; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .log-kelas { font-size: 0.75rem; color: #64748b; }
-    .log-jam { font-size: 0.8rem; font-weight: 800; padding: 0.2rem 0.5rem; border-radius: 6px; background: rgba(255,255,255,0.05); }
+    .log-jam { font-size: 0.8rem; font-weight: 800; padding: 0.2rem 0.5rem; border-radius: var(--das-radius); background: rgba(255,255,255,0.05); }
 
     .log-empty { text-align: center; padding: 3rem; opacity: 0.4; }
     .log-empty i { font-size: 3.5rem; margin-bottom: 1rem; display: block; opacity: 0.2; }
     
-    .btn-sound { background: rgba(255,255,255,0.05); border: 1px solid var(--das-border-color); color: #64748b; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .btn-sound { background: rgba(255,255,255,0.05); border: 1px solid var(--das-border-color); color: #64748b; width: 34px; height: 34px; border-radius: var(--das-radius); cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .btn-sound:hover { border-color: var(--das-primary); color: var(--das-primary); }
     .btn-turbo {
       background: rgba(255,255,255,0.05);
       border: 1px solid var(--das-border-color);
       color: #64748b;
       width: 34px; height: 34px;
-      border-radius: 8px;
+      border-radius: var(--das-radius);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -326,12 +338,84 @@
     }
 
     @media (max-width: 991px) {
-      .sidebar { border-left: none; border-top: 1px solid var(--das-border-color); max-height: 40%; }
+      /* Sidebar: hanya tampil setinggi kontennya, tanpa area kosong */
+      .sidebar {
+        border-left: none;
+        border-top: 1px solid var(--das-border-color);
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+      /* Sembunyikan log (selalu kosong saat idle) agar tidak buat ruang kosong besar */
+      .scan-log-header,
+      .scan-log,
+      .server-log-section { display: none !important; }
+
+      /* Kompakkan header & stats */
+      .sidebar-header { padding: 0.6rem 1rem; }
+      .stats-row { padding: 0.6rem 0.75rem; gap: 0.5rem; }
+      .stat-item { padding: 0.5rem 0.4rem; }
+      .stat-num { font-size: 1.3rem; }
+      .stat-label { font-size: 0.55rem; margin-top: 2px; }
+
       .nav { padding: 0.6rem 1rem; }
       .brand-icon { width: 34px; height: 34px; font-size: 1rem; }
       .nav-brand h1 { font-size: 0.9rem; }
       .nav-brand p { font-size: 0.6rem; }
+
+      /* Pastikan idle-screen & tombol Scan selalu terlihat di mobile */
+      .idle-screen {
+        justify-content: center;
+        padding: 1.5rem 1rem;
+        gap: 0.75rem;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .idle-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        font-size: 1.6rem;
+        margin-bottom: 0;
+        flex-shrink: 0;
+      }
+      .idle-screen p {
+        font-size: 0.85rem;
+        margin: 0;
+      }
+      .btn-start {
+        padding: 0.7rem 1.5rem;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+      }
     }
+
+    /* Layar sangat kecil (< 400px height) */
+    @media (max-height: 600px) {
+      .idle-screen {
+        justify-content: flex-start;
+        padding: 0.75rem 1rem 1rem;
+        gap: 0.5rem;
+      }
+      .idle-icon-wrapper {
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+      }
+      .idle-icon-wrapper::after { display: none; }
+      .idle-screen p { font-size: 0.75rem; }
+      .btn-start {
+        padding: 0.55rem 1rem;
+        font-size: 0.85rem;
+      }
+    }
+
+    @media (min-width: 992px) {
+      .idle-icon-wrapper { width: 96px; height: 96px; font-size: 2.8rem; }
+      .idle-screen { gap: 1.25rem; }
+    }
+
 
     /* Offline / Online Banner */
     .offline-banner {
@@ -466,9 +550,12 @@
       <p>Pintu Gerbang & Guru Piket</p>
     </div>
   </div>
-  <div class="nav-right" style="display:flex; align-items:center; gap:1.5rem;">
-    <div id="nav-date" style="font-size:0.8rem; font-weight:700; color:#94a3b8; display:none;"></div>
+  <div class="nav-right" style="display:flex; align-items:center; gap:0.5rem;">
+    <div id="nav-date" style="font-size:0.8rem; font-weight:700; color:#94a3b8; display:none; margin-right:0.5rem;"></div>
     <button class="btn-turbo" id="turbo-btn" onclick="toggleTurbo()" title="Turbo: scan lebih cepat">⚡</button>
+    <button class="btn-turbo" id="btn-manual-input" onclick="openManualInput()" title="Input NIS / NIP" style="display:none;">
+      <i class="ti tabler-keyboard"></i>
+    </button>
     <form action="{{ route('public.scan-qr.logout') }}" method="POST" style="margin:0;">
       @csrf
       <button type="submit" class="btn-logout"><i class="ti tabler-logout me-1"></i> Keluar</button>
@@ -508,23 +595,8 @@
       </div>
     </div>
 
-    <!-- Flash overlay -->
-    <div id="flash-overlay" style="position:absolute;inset:0;pointer-events:none;z-index:45;transition:opacity 0.1s ease;opacity:0;"></div>
-
-    <!-- Idle screen -->
-    <div class="idle-screen" id="idle-screen">
-      <div class="idle-icon-wrapper">
-        <i class="ti tabler-qrcode"></i>
-      </div>
-      <p>Akses kamera dibutuhkan untuk memulai pemindaian kartu siswa.</p>
-      <div class="error-box" id="error-box" style="display:none; background:rgba(234,84,85,0.1); border:1px solid var(--das-danger); color:var(--das-danger); padding:1rem; border-radius:12px; font-size:0.85rem; max-width:300px; text-align:center;"></div>
-      <button class="btn-start" id="start-btn">
-        <i class="ti tabler-player-play"></i> Aktifkan Scanner
-      </button>
-    </div>
-
     <!-- OVERLAY STATUS BAR -->
-    <div id="scan-overlay-bar" style="position:absolute;top:0;left:0;right:0;z-index:35;display:flex;align-items:center;justify-content:space-between;padding:0.7rem 1rem;background:linear-gradient(180deg,rgba(15,23,42,0.85) 0%,transparent 100%);pointer-events:none;opacity:0;transition:opacity 0.3s;">
+    <div id="scan-overlay-bar" style="position:absolute;top:0;left:0;right:0;z-index:55;display:flex;align-items:center;justify-content:space-between;padding:0.7rem 1rem;background:linear-gradient(180deg,rgba(15,23,42,0.85) 0%,transparent 100%);pointer-events:none;opacity:0;transition:opacity 0.3s;">
       <div style="display:flex;gap:1rem;font-size:0.7rem;font-weight:700;">
         <span style="color:var(--das-success);">✅ <b id="ov-hadir">0</b></span>
         <span style="color:var(--das-warning);">⚠️ <b id="ov-terlambat">0</b></span>
@@ -532,10 +604,20 @@
       <div style="font-size:0.8rem;font-weight:800;color:white;font-family:monospace;" id="ov-clock">--:--:--</div>
     </div>
 
-    <!-- Manual Input Button -->
-    <button id="btn-manual-input" style="position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);z-index:40;background:rgba(15,23,42,0.7);backdrop-filter:blur(8px);border:1px solid var(--das-border-color);color:white;padding:0.6rem 1.2rem;border-radius:10px;font-size:0.75rem;font-weight:700;cursor:pointer;display:none;align-items:center;gap:0.5rem;transition:all 0.2s;" onclick="openManualInput()">
-      <i class="ti tabler-keyboard"></i> Input NIS / NIP
-    </button>
+    <!-- Idle screen (z-index tertinggi agar selalu di atas) -->
+    <div class="idle-screen" id="idle-screen">
+      <div class="idle-icon-wrapper">
+        <i class="ti tabler-qrcode"></i>
+      </div>
+      <p>Akses kamera dibutuhkan untuk memulai pemindaian kartu siswa.</p>
+      <div class="error-box" id="error-box" style="display:none; background:rgba(234,84,85,0.1); border:1px solid var(--das-danger); color:var(--das-danger); padding:1rem; border-radius:var(--das-radius); font-size:0.85rem; max-width:300px; text-align:center;"></div>
+      <button class="btn-start" id="start-btn">
+        <i class="ti tabler-player-play"></i> Aktifkan Scanner
+      </button>
+    </div>
+
+    <!-- Flash overlay (paling bawah agar tidak nutup idle screen) -->
+    <div id="flash-overlay" style="position:absolute;inset:0;pointer-events:none;z-index:45;transition:opacity 0.1s ease;opacity:0;"></div>
 
     <!-- Result toast (bottom of camera) -->
     <div class="result-toast" id="result-toast">
@@ -599,6 +681,7 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
   // ── Config ──
@@ -1200,7 +1283,7 @@
       container.style.display = 'block';
       container.innerHTML = data.results.map(r => `
         <button type="button" class="list-group-item list-group-item-action" 
-          style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:inherit;padding:0.6rem 0.8rem;border-radius:6px;margin-bottom:4px;text-align:left;width:100%;"
+          style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-bottom:1px solid rgba(255,255,255,0.04);color:inherit;padding:0.5rem 0.75rem;border-radius:var(--das-radius);margin-bottom:4px;text-align:left;width:100%;"
           onclick="selectManualResult('${r.nis}', '${r.nama.replace(/'/g, "\\'")}', '${r.kelas}', '${r.tipe}')">
           <div class="d-flex align-items-center gap-2">
             <span style="font-size:1.2rem;">${r.tipe === 'guru' ? '👤' : '🎓'}</span>
@@ -1274,31 +1357,25 @@
 {{-- ═══════════════════════════════════════════ --}}
 <div class="modal fade" id="modalManualInput" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
-    <div class="modal-content" style="background:#1e1e2d;border:1px solid rgba(255,255,255,0.1);border-radius:12px;">
-      <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,0.08);padding:1.25rem 1.5rem;">
-        <div class="d-flex align-items-center gap-3">
-          <div style="width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(115,103,240,0.2);border:1px solid rgba(115,103,240,0.35);">
-            <i class="ti tabler-keyboard text-primary fs-5"></i>
-          </div>
-          <div>
-            <h5 class="modal-title mb-0 text-white fw-bold">Input Manual</h5>
-            <small class="text-white-50">Masukkan NIS siswa atau NIP guru</small>
-          </div>
+    <div class="modal-content" style="background:#1e1e2d;border:1px solid rgba(255,255,255,0.1);border-radius:var(--das-radius);">
+      <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,0.08);padding:0.75rem 1rem;">
+        <div style="width:32px;height:32px;border-radius:var(--das-radius);display:flex;align-items:center;justify-content:center;background:rgba(115,103,240,0.2);border:1px solid rgba(115,103,240,0.35);">
+          <i class="ti tabler-keyboard text-primary" style="font-size:1rem;"></i>
         </div>
-        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close btn-close-white ms-auto" style="font-size:0.7rem;" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body" style="padding:1.5rem;">
-        <div class="position-relative mb-3">
+      <div class="modal-body" style="padding:1.5rem;display:flex;flex-direction:column;gap:1rem;">
+        <div class="position-relative">
           <input type="text" id="manualSearchInput" class="form-control" 
             placeholder="Ketik NIS, NIP, atau nama..." 
-            style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:inherit;border-radius:8px;padding:0.7rem 1rem;font-size:0.9rem;">
-          <div id="manualSearchResults" class="list-group mt-2" style="max-height:200px;overflow-y:auto;display:none;"></div>
+            style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:inherit;border-radius:var(--das-radius);padding:0.8rem 1rem;font-size:1rem;">
+          <div id="manualSearchResults" class="list-group" style="max-height:200px;overflow-y:auto;display:none;"></div>
         </div>
-        <div id="manualConfirm" style="display:none;background:rgba(40,199,111,0.06);border:1px solid rgba(40,199,111,0.15);border-radius:10px;padding:1rem;">
-          <p class="mb-1 text-white-50 small">Data ditemukan:</p>
-          <p class="fw-bold text-white fs-5 mb-0" id="manualConfirmNama">—</p>
-          <p class="text-white-50 small mb-2" id="manualConfirmKelas">—</p>
-          <button class="btn btn-success w-100 fw-bold" onclick="submitManualAbsen()">
+        <div id="manualConfirm" style="display:none;background:rgba(40,199,111,0.06);border:1px solid rgba(40,199,111,0.15);border-radius:var(--das-radius);padding:0.75rem 1rem;">
+          <p class="text-white-50 small">Data ditemukan:</p>
+          <p class="fw-bold text-white fs-5" id="manualConfirmNama">—</p>
+          <p class="text-white-50 small" id="manualConfirmKelas">—</p>
+          <button class="btn btn-success w-100 fw-bold" onclick="submitManualAbsen()" style="padding:0.6rem 1rem;border-radius:var(--das-radius);">
             <i class="ti tabler-check me-1"></i> Konfirmasi Absen
           </button>
         </div>
