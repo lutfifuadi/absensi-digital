@@ -89,6 +89,7 @@ Route::prefix('scan-qr')->name('public.scan-qr.')->group(function () {
     Route::get('/scan',    [PublicQrScanController::class, 'scan'])->name('scan')->middleware(['qr.scan.auth', 'device.trusted']);
     Route::post('/process',[PublicQrScanController::class, 'process'])->name('process')->middleware(['qr.scan.auth', 'device.trusted']);
     Route::post('/logout', [PublicQrScanController::class, 'logout'])->name('logout');
+    Route::get('/stats', [PublicQrScanController::class, 'scanStats'])->name('stats');
 });
 
 Route::get('/device-unauthorized', function() {

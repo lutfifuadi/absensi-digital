@@ -279,19 +279,42 @@ class PublicQrScanController extends Controller
             $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i');
             $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
 
-            AbsensiGuru::create([
-                'guru_id'    => $guru->id,
-                'tanggal'    => $tanggal,
-                'jam_masuk'  => $currentTime,
-                'status'     => $status,
-                'keterangan' => 'Scan QR publik oleh guru piket',
-                'metode'     => 'qr',
+            try {
+                AbsensiGuru::create([
+                    'guru_id'    => $guru->id,
+                    'tanggal'    => $tanggal,
+                    'jam_masuk'  => $currentTime,
+                    'status'     => $status,
+                    'keterangan' => 'Scan QR publik oleh guru piket',
+                    'metode'     => 'qr',
+                ]);
+            } catch (\Illuminate\Database\QueryException $e) {
+                if ($e->errorInfo[1] === 1062) {
+                    return response()->json([
+                        'success' => false,
+                        'already' => true,
+                        'message' => 'Guru ' . $guru->nama_lengkap . ' sudah tercatat hadir hari ini.',
+                    ]);
+                }
+                throw $e;
+            }
+
+            QrScanLogger::info('QR_SCAN_GURU_SUCCESS', [
+                'ip'    => $ip,
+                'guru'  => $guru->nama_lengkap,
+                'jam'   => $currentTime,
+                'tanggal' => $tanggal,
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Berhasil! Absensi guru tercatat.',
-                'siswa'   => ['nama' => $guru->nama_lengkap, 'kelas' => 'GURU', 'jam' => $currentTime],
+                'siswa'   => [
+                    'nama'   => $guru->nama_lengkap,
+                    'kelas'  => 'GURU',
+                    'jam'    => $currentTime,
+                    'status' => $status,
+                ],
             ]);
         }
 
@@ -305,6 +328,81 @@ class PublicQrScanController extends Controller
         return response()->json([
             'success' => false,
             'message' => 'QR code tidak dikenal. Pastikan QR code siswa atau guru valid.',
+        ]);
+    }
+
+    /**
+     * Endpoint statistik real-time untuk halaman scan QR.
+     * Data dari DB — bukan client-side counter.
+     */
+    public function scanStats()
+    {
+        $today = today()->toDateString();
+
+        // 1. Statistik Siswa
+        $siswaStats = AbsensiSiswa::whereDate('tanggal', $today)
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN status IN ('hadir','terlambat') THEN 1 ELSE 0 END) as hadir,
+                SUM(CASE WHEN status = 'terlambat' THEN 1 ELSE 0 END) as terlambat
+            ")
+            ->first();
+
+        // 2. Statistik Guru
+        $guruStats = AbsensiGuru::whereDate('tanggal', $today)
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN status IN ('hadir','terlambat') THEN 1 ELSE 0 END) as hadir,
+                SUM(CASE WHEN status = 'terlambat' THEN 1 ELSE 0 END) as terlambat
+            ")
+            ->first();
+
+        // 3. Recent logs — Siswa
+        $siswaLogs = AbsensiSiswa::with('siswa.kelas')
+            ->whereDate('tanggal', $today)
+            ->whereNotNull('jam_masuk')
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get()
+            ->map(fn($a) => [
+                'nama'   => $a->siswa->nama_lengkap ?? '-',
+                'kelas'  => $a->siswa->kelas->nama ?? '-',
+                'jam'    => $a->jam_masuk,
+                'status' => $a->status,
+                'tipe'   => 'siswa',
+            ]);
+
+        // 4. Recent logs — Guru
+        $guruLogs = AbsensiGuru::with('guru')
+            ->whereDate('tanggal', $today)
+            ->whereNotNull('jam_masuk')
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get()
+            ->map(fn($a) => [
+                'nama'   => $a->guru->nama_lengkap ?? '-',
+                'kelas'  => 'GURU',
+                'jam'    => $a->jam_masuk,
+                'status' => $a->status,
+                'tipe'   => 'guru',
+            ]);
+
+        // 5. Gabung & sort
+        $recentLogs = collect($siswaLogs)->concat($guruLogs)
+            ->sortByDesc('jam')
+            ->take(10)
+            ->values();
+
+        return response()->json([
+            'stats' => [
+                'siswa_hadir'     => (int) ($siswaStats->hadir ?? 0),
+                'siswa_terlambat' => (int) ($siswaStats->terlambat ?? 0),
+                'siswa_total'     => (int) ($siswaStats->total ?? 0),
+                'guru_hadir'      => (int) ($guruStats->hadir ?? 0),
+                'guru_terlambat'  => (int) ($guruStats->terlambat ?? 0),
+                'guru_total'      => (int) ($guruStats->total ?? 0),
+            ],
+            'recent_logs' => $recentLogs,
         ]);
     }
 

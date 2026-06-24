@@ -266,7 +266,7 @@
     .sidebar-header { padding: 1.5rem; border-bottom: 1px solid var(--das-border-color); }
     .sidebar-title { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; }
     
-    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); padding: 1rem; gap: 1rem; border-bottom: 1px solid var(--das-border-color); }
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); padding: 1rem; gap: 1rem; border-bottom: 1px solid var(--das-border-color); }
     .stat-item { background: rgba(15, 23, 42, 0.4); border: 1px solid var(--das-border-color); padding: 1rem; border-radius: 12px; text-align: center; }
     .stat-num { font-size: 1.8rem; font-weight: 800; display: block; }
     .stat-label { font-size: 0.6rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-top: 5px; }
@@ -359,6 +359,76 @@
         from { transform: translateY(-100%); }
         to { transform: translateY(0); }
     }
+
+    /* ─── GURU Badge ──────────────────────────────── */
+    .log-avatar.guru {
+      background: #7367f0 !important;
+      font-size: 1.2rem;
+    }
+
+    .guru-badge {
+      display: inline-block;
+      background: rgba(115, 103, 240, 0.15);
+      color: #a89aff;
+      font-size: 0.55rem;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      vertical-align: middle;
+      margin-left: 2px;
+    }
+
+    /* ─── Server Log Section ───────────────────────── */
+    .server-log-section {
+      border-top: 1px solid rgba(255,255,255,0.06);
+      margin-top: 0.5rem;
+    }
+
+    .server-log-header {
+      padding: 0.6rem 1.5rem;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .server-log-list {
+      padding: 0.5rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .server-log-list .log-item {
+      padding: 0.5rem 0.7rem;
+      gap: 0.6rem;
+      background: rgba(15, 23, 42, 0.2);
+      border-color: rgba(255,255,255,0.04);
+      animation: none;
+    }
+
+    .server-log-list .log-avatar {
+      width: 28px;
+      height: 28px;
+      font-size: 0.65rem;
+    }
+
+    .server-log-list .log-name {
+      font-size: 0.75rem;
+    }
+
+    .server-log-list .log-kelas {
+      font-size: 0.65rem;
+    }
+
+    .server-log-list .log-jam {
+      font-size: 0.7rem;
+    }
   </style>
 </head>
 <body>
@@ -445,7 +515,7 @@
       <div class="sidebar-title">Rekap Scan Sesi Ini</div>
     </div>
 
-    <div class="stats-row">
+    <div class="stats-row" style="grid-template-columns: repeat(4, 1fr);">
       <div class="stat-item">
         <div class="stat-num" id="stat-success" style="color:var(--das-success);">0</div>
         <div class="stat-label">Hadir</div>
@@ -457,6 +527,10 @@
       <div class="stat-item">
         <div class="stat-num" id="stat-fail" style="color:var(--das-danger);">0</div>
         <div class="stat-label">Error</div>
+      </div>
+      <div class="stat-item" style="display:none;" id="stat-terlambat-container">
+        <div class="stat-num" id="stat-terlambat" style="color:var(--das-warning);">0</div>
+        <div class="stat-label">Terlambat</div>
       </div>
     </div>
 
@@ -471,6 +545,14 @@
         <p style="font-size:0.85rem;">Menunggu aktivitas scan...</p>
       </div>
     </div>
+
+    <!-- ── SERVER LOG (persistent data from DB) ── -->
+    <div class="server-log-section">
+      <div class="server-log-header">📋 Riwayat Hari Ini</div>
+      <div class="server-log-list" id="scan-log-server">
+        <div class="log-empty"><i class="ti tabler-cloud-download" style="font-size:1.5rem;opacity:0.3;"></i><p style="font-size:0.75rem;">Memuat data...</p></div>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -481,6 +563,7 @@
   const CSRF      = document.querySelector('meta[name="csrf-token"]').content;
   const SCAN_URL  = "{{ route('public.scan-qr.process') }}";
   const LOGIN_URL = "{{ route('public.scan-qr.index') }}";
+  const STATS_URL = "{{ route('public.scan-qr.stats') }}";
   const DISMISS   = 3000;
   const DEBOUNCE  = 3500;
 
@@ -634,6 +717,56 @@
     } catch(_) {}
   }
 
+  // ── Stats Sync from Server ─────────────────────────────
+  async function fetchServerStats() {
+    try {
+      const resp = await fetch(STATS_URL);
+      const data = await resp.json();
+
+      // Update counter dari server
+      document.getElementById('stat-success').textContent = data.stats.siswa_hadir + data.stats.guru_hadir;
+
+      const terlambatTotal = data.stats.siswa_terlambat + data.stats.guru_terlambat;
+      if (terlambatTotal > 0) {
+        const tc = document.getElementById('stat-terlambat-container');
+        if (tc) tc.style.display = 'block';
+        document.getElementById('stat-terlambat').textContent = terlambatTotal;
+      }
+
+      // Render recent logs
+      renderServerLogs(data.recent_logs);
+    } catch(e) {
+      // Silent fail — JS counter tetap jalan
+    }
+  }
+
+  function renderServerLogs(logs) {
+    const container = document.getElementById('scan-log-server');
+    if (!container) return;
+
+    if (!logs || logs.length === 0) {
+      container.innerHTML = '<div class="log-empty"><i class="ti tabler-inbox" style="font-size:1.5rem;opacity:0.3;"></i><p style="font-size:0.75rem;">Belum ada data hari ini</p></div>';
+      return;
+    }
+
+    container.innerHTML = logs.map(log => {
+      const initials = log.tipe === 'guru' ? '👤' : log.nama.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+      const avatarClass = log.tipe === 'guru' ? 'guru' : (log.status === 'terlambat' ? 'late' : '');
+      const guruBadge = log.tipe === 'guru' ? '<span class="guru-badge">GURU</span>' : '';
+
+      return `
+        <div class="log-item">
+          <div class="log-avatar ${avatarClass}">${initials}</div>
+          <div class="log-info">
+            <span class="log-name">${log.nama} ${guruBadge}</span>
+            <span class="log-kelas">${log.tipe === 'guru' ? 'Tenaga Pendidik' : 'Kelas ' + log.kelas} · ${log.status}</span>
+          </div>
+          <div class="log-jam" style="color:${log.status === 'terlambat' ? 'var(--das-warning)' : 'var(--das-success)'}">${log.jam}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
   // ── Counters ──
   let cntSuccess = 0, cntDup = 0, cntFail = 0;
   function incrStat(type) {
@@ -653,14 +786,15 @@
     item.className = 'log-item';
 
     const initials = siswa?.nama ? siswa.nama.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase() : '?';
-    const avatarClass = type === 'success' ? '' : (type === 'warning' ? 'dup' : 'dup');
+    const isGuru = siswa?.kelas === 'GURU';
+    const avatarClass = isGuru ? 'guru' : (type === 'success' ? '' : 'dup');
     const jam = siswa?.jam ?? new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
 
     item.innerHTML = `
-      <div class="log-avatar ${avatarClass}">${initials}</div>
+      <div class="log-avatar ${avatarClass}">${isGuru ? '👤' : initials}</div>
       <div class="log-info">
-        <span class="log-name">${siswa?.nama ?? (type === 'error' ? 'Gagal Pindai' : 'Informasi')}</span>
-        <span class="log-kelas">${siswa?.kelas ? 'Kelas ' + siswa.kelas : msg.substring(0, 38)}</span>
+        <span class="log-name">${siswa?.nama ?? (type === 'error' ? 'Gagal Pindai' : 'Informasi')} ${isGuru ? '<span class="guru-badge">GURU</span>' : ''}</span>
+        <span class="log-kelas">${isGuru ? 'Tenaga Pendidik' : (siswa?.kelas ? 'Kelas ' + siswa.kelas : msg.substring(0, 38))}</span>
       </div>
       <div class="log-jam" style="color:var(--das-${type === 'success' ? 'success' : (type === 'warning' ? 'warning' : 'danger')})">${jam}</div>
     `;
@@ -684,7 +818,10 @@
 
     iconEl.innerHTML = icons[type] || icons.error;
     document.getElementById('toast-name').textContent = siswa?.nama ?? (type === 'error' ? 'Sistem Error' : 'Perhatian');
-    document.getElementById('toast-meta').textContent = siswa?.kelas ? `Kelas ${siswa.kelas} · ${siswa.jam}` : '';
+    const isGuru = siswa?.kelas === 'GURU';
+    document.getElementById('toast-meta').textContent = siswa?.kelas 
+      ? (isGuru ? `👤 Tenaga Pendidik · ${siswa.jam}` : `Kelas ${siswa.kelas} · ${siswa.jam}`) 
+      : '';
     document.getElementById('toast-msg').textContent  = msg;
 
     toast.className = `result-toast ${type} show`;
@@ -931,6 +1068,11 @@
   if (!navigator.onLine) {
     offlineBanner.classList.add('show');
   }
+
+  // Load server stats on page load
+  fetchServerStats();
+  // Auto-refresh every 10 seconds
+  setInterval(fetchServerStats, 10000);
 </script>
 </body>
 </html>
