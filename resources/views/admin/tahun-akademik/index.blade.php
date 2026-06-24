@@ -104,6 +104,22 @@
       border-top: 1px solid rgba(255, 255, 255, 0.08);
       background: rgba(255, 255, 255, 0.02);
     }
+    /* Toggle switch styling */
+    .form-check-input:checked {
+      background-color: #28c76f !important;
+      border-color: #28c76f !important;
+    }
+
+    .form-check-input:focus {
+      border-color: #28c76f !important;
+      box-shadow: 0 0 0 0.2rem rgba(40, 199, 111, 0.25) !important;
+    }
+
+    /* Loading state */
+    .toggle-loading {
+      opacity: 0.5;
+      pointer-events: none;
+    }
   </style>
 @endsection
 
@@ -207,13 +223,13 @@
                   </div>
                 </td>
                 <td class="text-center">
-                  @if ($item->is_aktif)
-                    <span class="badge bg-success px-3 py-1">
-                      <i class="ti tabler-circle-check me-1"></i> Aktif
-                    </span>
-                  @else
-                    <span class="badge bg-label-secondary px-3 py-1">Nonaktif</span>
-                  @endif
+                  <div class="form-check form-switch d-inline-block mb-0" style="padding-left:2em;">
+                    <input class="form-check-input" type="checkbox" role="switch"
+                      id="toggle-{{ $item->id }}"
+                      {{ $item->is_aktif ? 'checked' : '' }}
+                      onchange="toggleAktif({{ $item->id }}, this)"
+                      style="cursor:pointer; width:2.5rem; height:1.3rem;">
+                  </div>
                 </td>
                 <td class="pe-4 text-end">
                   <button type="button" class="action-btn bg-label-warning text-warning me-1"
@@ -487,5 +503,80 @@
         new bootstrap.Modal(document.getElementById('modalTambahEdit')).show();
       });
     @endif
+
+    // Toggle aktif/nonaktif tahun ajaran via AJAX
+    function toggleAktif(id, checkbox) {
+      const originalState = checkbox.checked;
+
+      // Disable toggle selama proses
+      checkbox.disabled = true;
+      checkbox.closest('td').classList.add('toggle-loading');
+
+      // Ambil CSRF token
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+      fetch('{{ url("admin/tahun-akademik") }}/' + id + '/toggle-aktif', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({})
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          checkbox.checked = data.is_aktif;
+
+          // Update semua toggle sesuai status di database
+          document.querySelectorAll('[id^="toggle-"]').forEach(el => {
+            const toggleId = parseInt(el.id.replace('toggle-', ''));
+            if (toggleId !== id) {
+              el.checked = false;
+            }
+          });
+
+          // Tampilkan notifikasi sukses
+          showToast('success', data.message);
+        } else {
+          // Kembalikan ke posisi semula
+          checkbox.checked = originalState;
+          showToast('error', data.message || 'Gagal mengubah status');
+        }
+      })
+      .catch(error => {
+        // Kembalikan ke posisi semula
+        checkbox.checked = originalState;
+        showToast('error', 'Terjadi kesalahan jaringan. Silakan coba lagi.');
+        console.error('Toggle error:', error);
+      })
+      .finally(() => {
+        // Enable toggle kembali
+        checkbox.disabled = false;
+        checkbox.closest('td').classList.remove('toggle-loading');
+      });
+    }
+
+    // Fungsi toast sederhana
+    function showToast(type, message) {
+      const container = document.querySelector('.das-hero') || document.querySelector('.das-panel');
+      if (!container) return;
+
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm`;
+      alertDiv.style.cssText = 'border-radius:8px;position:fixed;top:20px;right:20px;z-index:9999;max-width:400px;';
+      alertDiv.innerHTML = `
+        <i class="ti ${type === 'success' ? 'tabler-circle-check' : 'tabler-alert-circle'} fs-5"></i>
+        <span>${message}</span>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+      `;
+      document.body.appendChild(alertDiv);
+
+      // Auto hide setelah 3 detik
+      setTimeout(() => {
+        alertDiv.remove();
+      }, 3000);
+    }
   </script>
 @endsection

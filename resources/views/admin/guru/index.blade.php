@@ -98,13 +98,22 @@
     </div>
   @endif
 
+  @if (session('error'))
+    <div class="alert alert-danger alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm"
+      role="alert" style="border-radius:8px;">
+      <i class="ti tabler-alert-circle fs-5"></i>
+      <span>{{ session('error') }}</span>
+      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+  @endif
+
   {{-- TABLE CARD --}}
-    <div class="das-panel">
+  <div class="das-panel">
     <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3"
       style="border-color:rgba(255,255,255,0.08) !important;">
-      <h6 class="das-panel__title mb-0 d-flex align-items-center gap-2">
+      <h2 class="das-panel__title mb-0 d-flex align-items-center gap-2" style="font-size:1rem;">
         <i class="ti tabler-list text-info"></i> Daftar Guru
-      </h6>
+      </h2>
       <div class="d-flex align-items-center gap-3">
         <div class="position-relative" style="max-width:300px;">
           <i class="ti tabler-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size:0.85rem; pointer-events:none;"></i>
@@ -190,31 +199,34 @@
                   <div class="d-flex justify-content-end gap-1">
                     @if($profile)
                       <a href="{{ route('admin.impersonate.login-as', $item->id) }}" class="action-btn text-success"
-                        title="Login Sebagai Guru" data-bs-toggle="tooltip">
+                        title="Login Sebagai Guru" data-bs-toggle="tooltip"
+                        aria-label="Login sebagai {{ $displayName }}">
                         <i class="ti tabler-login fs-5"></i>
                       </a>
                       <a href="{{ route('admin.guru.generate-qr', $profile->id) }}" class="action-btn text-info"
-                        title="Unduh QR" data-bs-toggle="tooltip">
+                        title="Unduh QR" data-bs-toggle="tooltip"
+                        aria-label="Unduh QR {{ $displayName }}">
                         <i class="ti tabler-qrcode fs-5"></i>
                       </a>
                       <a href="{{ route('admin.guru.edit', $profile->id) }}" class="action-btn text-warning"
-                        title="Ubah" data-bs-toggle="tooltip">
+                        title="Ubah" data-bs-toggle="tooltip"
+                        aria-label="Ubah {{ $displayName }}">
                         <i class="ti tabler-pencil fs-5"></i>
                       </a>
-                      <form action="{{ route('admin.guru.destroy', $profile->id) }}" method="POST" class="d-inline"
-                        onsubmit="return confirm('Yakin ingin menghapus guru ini?');">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="action-btn text-danger" title="Hapus" data-bs-toggle="tooltip">
-                          <i class="ti tabler-trash fs-5"></i>
-                        </button>
-                      </form>
+                      <button type="button" class="action-btn text-danger" title="Hapus" data-bs-toggle="tooltip"
+                        aria-label="Hapus {{ $displayName }}"
+                        onclick='openHapusModal({{ $profile->id }}, "{{ addslashes($profile->nama_lengkap) }}", "{{ $profile->nip }}")'>
+                        <i class="ti tabler-trash fs-5"></i>
+                      </button>
                     @else
                       <a href="{{ route('admin.impersonate.login-as', $item->id) }}" class="action-btn text-success me-1"
-                        title="Login Sebagai User" data-bs-toggle="tooltip">
+                        title="Login Sebagai User" data-bs-toggle="tooltip"
+                        aria-label="Login sebagai {{ $item->name }}">
                         <i class="ti tabler-login fs-5"></i>
                       </a>
                       <a href="{{ route('admin.guru.create', ['user_id' => $item->id]) }}" class="action-btn text-success"
-                        title="Lengkapi Profil Guru" data-bs-toggle="tooltip">
+                        title="Lengkapi Profil Guru" data-bs-toggle="tooltip"
+                        aria-label="Lengkapi Profil Guru {{ $item->name }}">
                         <i class="ti tabler-user-plus fs-5"></i>
                       </a>
                     @endif
@@ -282,6 +294,47 @@
     </div>
   </div>
 
+  <!-- Modal Hapus Guru -->
+  <div class="modal fade" id="modalHapusGuru" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+      <div class="modal-content das-modal shadow-lg">
+        <div class="das-modal-head d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-3">
+            <div style="width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(234,84,85,0.2);border:1px solid rgba(234,84,85,0.35);">
+              <i class="ti tabler-alert-triangle text-danger fs-5"></i>
+            </div>
+            <div>
+              <h5 class="das-modal-title text-white fw-bold">Konfirmasi Hapus</h5>
+              <small class="text-white-50">Tindakan ini tidak dapat dibatalkan.</small>
+            </div>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="das-modal-body text-center py-4">
+          <p class="mb-1">Yakin ingin menghapus guru:</p>
+          <p class="fw-bold text-warning fs-5 mb-1" id="hapusNamaGuru">—</p>
+          <p class="text-white-50 small" id="hapusNipGuru">—</p>
+          <p class="text-white-50 small mt-3 mb-0">
+            <i class="ti tabler-info-circle me-1"></i>
+            Akun user dan semua data terkait akan ikut terhapus.
+          </p>
+        </div>
+        <div class="px-4 pb-4 pt-2 d-flex gap-2 justify-content-center">
+          <button type="button" class="btn btn-label-secondary px-4" data-bs-dismiss="modal">
+            <i class="ti tabler-x me-1"></i> Batal
+          </button>
+          <form id="formHapusGuru" method="POST">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-danger fw-semibold px-4 shadow-sm">
+              <i class="ti tabler-trash me-1"></i> Hapus
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
 @endsection
 
 @section('page-script')
@@ -307,5 +360,13 @@
         });
       }
     });
+
+    // Modal hapus guru
+    function openHapusModal(id, nama, nip) {
+      document.getElementById('hapusNamaGuru').textContent = nama;
+      document.getElementById('hapusNipGuru').textContent = 'NIP: ' + (nip || '-');
+      document.getElementById('formHapusGuru').action = '{{ url("admin/guru") }}/' + id;
+      new bootstrap.Modal(document.getElementById('modalHapusGuru')).show();
+    }
   </script>
 @endsection

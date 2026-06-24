@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Guru;
 use App\Models\Kelas;
 use App\Models\Siswa;
 use App\Models\TahunAkademik;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 use App\Services\SiswaService;
@@ -50,8 +52,9 @@ class KelasController extends Controller
             ->orderBy('nama_lengkap')
             ->get();
         $tahunAkademikOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
+        $tahunAkademikList = TahunAkademik::orderBy('nama', 'desc')->orderBy('semester', 'desc')->get();
 
-        return view('admin.kelas.index', compact('kelas', 'guruOptions', 'tahunAkademikOptions', 'tingkat'));
+        return view('admin.kelas.index', compact('kelas', 'guruOptions', 'tahunAkademikOptions', 'tahunAkademikList', 'tingkat'));
     }
 
     public function create()
@@ -233,6 +236,110 @@ class KelasController extends Controller
 
         return redirect()->route('admin.kelas.show', $kelas)
             ->with('success', 'Siswa berhasil dilepas dari kelas.');
+    }
+
+    /**
+     * Preview copy kelas dari TA sumber ke TA tujuan
+     */
+    public function previewCopy(Request $request)
+    {
+        $request->validate([
+            'source_ta_id' => 'required|exists:tahun_akademik,id',
+            'target_ta_id' => 'required|exists:tahun_akademik,id|different:source_ta_id',
+        ]);
+
+        $taSumber = TahunAkademik::findOrFail($request->source_ta_id);
+        $taTujuan = TahunAkademik::findOrFail($request->target_ta_id);
+
+        $kelasSumber = Kelas::where('tahun_akademik_id', $taSumber->id)
+            ->orderBy('tingkat')->orderBy('nama')->get();
+
+        $kelasExisting = Kelas::where('tahun_akademik_id', $taTujuan->id)
+            ->get()->keyBy('nama');
+
+        $baru = [];
+        $skip = [];
+
+        foreach ($kelasSumber as $kelas) {
+            if ($kelasExisting->has($kelas->nama)) {
+                $skip[] = $kelas;
+            } else {
+                $baru[] = $kelas;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'ta_sumber' => $taSumber->nama . ' ' . ucfirst($taSumber->semester),
+                'ta_tujuan' => $taTujuan->nama . ' ' . ucfirst($taTujuan->semester),
+                'total_sumber' => $kelasSumber->count(),
+                'total_skip' => count($skip),
+                'total_baru' => count($baru),
+                'kelas_baru' => collect($baru)->map(fn($k) => ['nama' => $k->nama, 'tingkat' => $k->tingkat, 'jurusan' => $k->jurusan]),
+                'kelas_skip' => collect($skip)->map(fn($k) => ['nama' => $k->nama, 'tingkat' => $k->tingkat, 'jurusan' => $k->jurusan]),
+            ]
+        ]);
+    }
+
+    /**
+     * Execute copy kelas dari TA sumber ke TA tujuan
+     */
+    public function executeCopy(Request $request)
+    {
+        $request->validate([
+            'source_ta_id' => 'required|exists:tahun_akademik,id',
+            'target_ta_id' => 'required|exists:tahun_akademik,id|different:source_ta_id',
+        ]);
+
+        $taSumber = TahunAkademik::findOrFail($request->source_ta_id);
+        $taTujuan = TahunAkademik::findOrFail($request->target_ta_id);
+
+        $kelasSumber = Kelas::where('tahun_akademik_id', $taSumber->id)->get();
+        $kelasExisting = Kelas::where('tahun_akademik_id', $taTujuan->id)->get()->keyBy('nama');
+
+        $berhasil = 0;
+        $skip = 0;
+
+        DB::beginTransaction();
+        try {
+            foreach ($kelasSumber as $kelas) {
+                if ($kelasExisting->has($kelas->nama)) {
+                    $skip++;
+                    continue;
+                }
+                Kelas::create([
+                    'nama' => $kelas->nama,
+                    'tingkat' => $kelas->tingkat,
+                    'jurusan' => $kelas->jurusan,
+                    'tahun_akademik_id' => $taTujuan->id,
+                    'wali_kelas_id' => null,
+                    'is_aktif_absensi' => true,
+                ]);
+                $berhasil++;
+            }
+
+            DB::commit();
+
+            ActivityLog::record(
+                'create',
+                'kelas',
+                "Copy {$berhasil} kelas dari {$taSumber->nama} {$taSumber->semester} ke {$taTujuan->nama} {$taTujuan->semester} ({$skip} skip)",
+                ['tahun_akademik_id_sumber' => $taSumber->id],
+                ['tahun_akademik_id_tujuan' => $taTujuan->id, 'kelas_baru' => $berhasil, 'kelas_skip' => $skip]
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil menyalin {$berhasil} kelas. {$skip} kelas sudah ada (di-skip)."
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function downloadSample()

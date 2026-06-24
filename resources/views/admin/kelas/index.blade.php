@@ -255,6 +255,9 @@
         <button type="button" class="btn das-btn --secondary" data-bs-toggle="modal" data-bs-target="#modalImportKelas">
           <i class="ti tabler-file-import me-1"></i> Import
         </button>
+        <button type="button" class="btn das-btn --secondary" data-bs-toggle="modal" data-bs-target="#modalCopyKelas">
+          <i class="ti tabler-copy me-1"></i> Copy dari TA Sebelumnya
+        </button>
         <button type="button" class="btn das-btn --primary" onclick="openTambahKelas()">
           <i class="ti tabler-plus me-1"></i> Tambah Kelas
         </button>
@@ -637,6 +640,120 @@
     </div>
   </div>
 
+  {{-- ══════════════════════════════════════════════ --}}
+  {{-- MODAL COPY KELAS DARI TA SEBELUMNYA --}}
+  {{-- ══════════════════════════════════════════════ --}}
+  <div class="modal fade" id="modalCopyKelas" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" style="max-width:720px;">
+      <div class="modal-content shadow-lg" style="border:1px solid rgba(255,255,255,0.1); background:#1e1e2d; border-radius:12px; overflow:hidden;">
+        <div class="modal-header" style="background:linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%); border-bottom:1px solid rgba(255,255,255,0.08);">
+          <div class="d-flex align-items-center gap-3">
+            <div class="modal-icon-header" style="background:rgba(0,207,232,0.2); border:1px solid rgba(0,207,232,0.35);">
+              <i class="ti tabler-copy text-info fs-5"></i>
+            </div>
+            <div>
+              <h5 class="modal-title mb-0 text-white fw-bold">Copy Kelas dari Tahun Ajaran Lain</h5>
+              <small class="text-white-50">Salin kelas dari tahun ajaran sumber ke tahun ajaran tujuan.</small>
+            </div>
+          </div>
+          <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          {{-- TA Selection --}}
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small" for="copySourceTa">
+                <i class="ti tabler-source-code me-1 text-info"></i> TA Sumber
+              </label>
+              <select id="copySourceTa" class="form-select" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#cdd2e0; border-radius:8px;">
+                <option value="">Pilih TA Sumber</option>
+                @foreach ($tahunAkademikList as $ta)
+                  <option value="{{ $ta->id }}">{{ $ta->nama }} — {{ ucfirst($ta->semester) }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small" for="copyTargetTa">
+                <i class="ti tabler-target me-1 text-info"></i> TA Tujuan
+              </label>
+              <select id="copyTargetTa" class="form-select" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#cdd2e0; border-radius:8px;">
+                <option value="">Pilih TA Tujuan</option>
+                @foreach ($tahunAkademikList as $ta)
+                  <option value="{{ $ta->id }}">{{ $ta->nama }} — {{ ucfirst($ta->semester) }}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mb-4">
+            <button type="button" id="btnPreviewCopy" class="btn btn-info fw-semibold px-4 shadow-sm" onclick="previewCopyKelas()">
+              <i id="previewCopyIcon" class="ti tabler-eye me-1"></i>
+              <span id="previewCopyText">Preview</span>
+            </button>
+          </div>
+
+          {{-- Preview Result --}}
+          <div id="copyPreviewResult" style="display:none;">
+            <hr class="border-secondary opacity-25 my-3">
+            <div id="copySummary" class="alert d-flex align-items-center gap-2 mb-3 border-0" style="border-radius:8px; background:rgba(0,207,232,0.1);">
+              <i class="ti tabler-info-circle text-info fs-5"></i>
+              <span id="copySummaryText" class="text-white-50 small"></span>
+            </div>
+
+            {{-- Tabel Kelas Baru --}}
+            <h6 class="text-info fw-semibold mb-2"><i class="ti tabler-plus-circle me-1"></i>Kelas yang Akan Dibuat</h6>
+            <div class="table-responsive mb-3" style="max-height:200px; overflow-y:auto; border:1px solid rgba(255,255,255,0.08); border-radius:8px;">
+              <table class="table table-dark table-sm mb-0" style="font-size:0.8rem;">
+                <thead>
+                  <tr>
+                    <th>Nama Kelas</th>
+                    <th>Tingkat</th>
+                    <th>Jurusan</th>
+                  </tr>
+                </thead>
+                <tbody id="copyBaruBody"></tbody>
+              </table>
+            </div>
+
+            {{-- Tabel Kelas Skip --}}
+            <h6 class="text-warning fw-semibold mb-2"><i class="ti tabler-alert-triangle me-1"></i>Kelas yang Di-skip (Sudah Ada)</h6>
+            <div class="table-responsive mb-3" style="max-height:200px; overflow-y:auto; border:1px solid rgba(255,255,255,0.08); border-radius:8px;">
+              <table class="table table-dark table-sm mb-0" style="font-size:0.8rem;">
+                <thead>
+                  <tr>
+                    <th>Nama Kelas</th>
+                    <th>Tingkat</th>
+                    <th>Jurusan</th>
+                  </tr>
+                </thead>
+                <tbody id="copySkipBody"></tbody>
+              </table>
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+              <button type="button" id="btnExecuteCopy" class="btn btn-success fw-semibold px-4 shadow-sm" onclick="executeCopyKelas()">
+                <i id="executeCopyIcon" class="ti tabler-copy me-1"></i>
+                <span id="executeCopyText">Copy Sekarang</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="copyErrorContainer" style="display:none;">
+            <div class="alert alert-danger d-flex align-items-center gap-2 border-0" style="border-radius:8px;">
+              <i class="ti tabler-alert-circle text-danger fs-5"></i>
+              <span id="copyErrorText" class="small"></span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer gap-2" style="border-top:1px solid rgba(255,255,255,0.08); padding:1rem 1.5rem; background:rgba(255,255,255,0.02);">
+          <button type="button" class="btn btn-label-secondary px-4" data-bs-dismiss="modal">
+            <i class="ti tabler-x me-1"></i> Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 @endsection
 
 @section('page-script')
@@ -837,5 +954,157 @@
         new bootstrap.Modal(document.getElementById('modalKelas')).show();
       });
     @endif
+
+    // ─── Copy Kelas dari TA Sebelumnya ─────────────────────────────────────
+    const previewCopyUrl = "{{ route('admin.kelas.preview-copy') }}";
+    const executeCopyUrl = "{{ route('admin.kelas.execute-copy') }}";
+
+    function previewCopyKelas() {
+      const sourceId = document.getElementById('copySourceTa').value;
+      const targetId = document.getElementById('copyTargetTa').value;
+
+      if (!sourceId || !targetId) {
+        showCopyError('Pilih TA Sumber dan TA Tujuan terlebih dahulu.');
+        return;
+      }
+      if (sourceId === targetId) {
+        showCopyError('TA Sumber dan TA Tujuan tidak boleh sama.');
+        return;
+      }
+
+      const btn = document.getElementById('btnPreviewCopy');
+      const icon = document.getElementById('previewCopyIcon');
+      const text = document.getElementById('previewCopyText');
+      btn.disabled = true;
+      icon.className = 'ti tabler-loader ti-spin me-1';
+      text.textContent = 'Memproses...';
+
+      document.getElementById('copyPreviewResult').style.display = 'none';
+      document.getElementById('copyErrorContainer').style.display = 'none';
+
+      fetch(previewCopyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ source_ta_id: sourceId, target_ta_id: targetId })
+      })
+      .then(res => res.json())
+      .then(data => {
+        btn.disabled = false;
+        icon.className = 'ti tabler-eye me-1';
+        text.textContent = 'Preview';
+
+        if (!data.success) {
+          showCopyError(data.message || 'Gagal memuat preview.');
+          return;
+        }
+
+        const d = data.data;
+        document.getElementById('copySummaryText').textContent =
+          `${d.total_baru} kelas akan dibuat, ${d.total_skip} kelas di-skip (dari total ${d.total_sumber} kelas di ${d.ta_sumber}).`;
+
+        // Kelas baru
+        const baruBody = document.getElementById('copyBaruBody');
+        baruBody.innerHTML = '';
+        if (d.kelas_baru.length === 0) {
+          baruBody.innerHTML = '<tr><td colspan="3" class="text-center text-white-50 py-3">Tidak ada kelas baru.</td></tr>';
+        } else {
+          d.kelas_baru.forEach(k => {
+            baruBody.innerHTML += `<tr><td>${k.nama}</td><td>${k.tingkat}</td><td>${k.jurusan}</td></tr>`;
+          });
+        }
+
+        // Kelas skip
+        const skipBody = document.getElementById('copySkipBody');
+        skipBody.innerHTML = '';
+        if (d.kelas_skip.length === 0) {
+          skipBody.innerHTML = '<tr><td colspan="3" class="text-center text-white-50 py-3">Tidak ada kelas yang di-skip.</td></tr>';
+        } else {
+          d.kelas_skip.forEach(k => {
+            skipBody.innerHTML += `<tr><td>${k.nama}</td><td>${k.tingkat}</td><td>${k.jurusan}</td></tr>`;
+          });
+        }
+
+        // Tampilkan/sembunyikan tombol execute
+        document.getElementById('btnExecuteCopy').style.display = d.total_baru > 0 ? '' : 'none';
+        document.getElementById('copyPreviewResult').style.display = 'block';
+      })
+      .catch(err => {
+        btn.disabled = false;
+        icon.className = 'ti tabler-eye me-1';
+        text.textContent = 'Preview';
+        showCopyError('Terjadi kesalahan. Silakan coba lagi.');
+        console.error('Preview copy error:', err);
+      });
+    }
+
+    function executeCopyKelas() {
+      const sourceId = document.getElementById('copySourceTa').value;
+      const targetId = document.getElementById('copyTargetTa').value;
+
+      if (!confirm('Yakin akan menyalin kelas sekarang?')) return;
+
+      const btn = document.getElementById('btnExecuteCopy');
+      const icon = document.getElementById('executeCopyIcon');
+      const text = document.getElementById('executeCopyText');
+      btn.disabled = true;
+      icon.className = 'ti tabler-loader ti-spin me-1';
+      text.textContent = 'Menyalin...';
+
+      fetch(executeCopyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ source_ta_id: sourceId, target_ta_id: targetId })
+      })
+      .then(res => res.json())
+      .then(data => {
+        btn.disabled = false;
+        icon.className = 'ti tabler-copy me-1';
+        text.textContent = 'Copy Sekarang';
+
+        if (!data.success) {
+          showCopyError(data.message || 'Gagal menyalin kelas.');
+          return;
+        }
+
+        alert(data.message);
+        location.reload();
+      })
+      .catch(err => {
+        btn.disabled = false;
+        icon.className = 'ti tabler-copy me-1';
+        text.textContent = 'Copy Sekarang';
+        showCopyError('Terjadi kesalahan. Silakan coba lagi.');
+        console.error('Execute copy error:', err);
+      });
+    }
+
+    function showCopyError(msg) {
+      const container = document.getElementById('copyErrorContainer');
+      document.getElementById('copyErrorText').textContent = msg;
+      container.style.display = 'block';
+    }
+
+    // Reset modal saat ditutup
+    document.getElementById('modalCopyKelas').addEventListener('hidden.bs.modal', function() {
+      document.getElementById('copyPreviewResult').style.display = 'none';
+      document.getElementById('copyErrorContainer').style.display = 'none';
+      document.getElementById('btnPreviewCopy').disabled = false;
+      document.getElementById('btnExecuteCopy').disabled = false;
+      document.getElementById('previewCopyIcon').className = 'ti tabler-eye me-1';
+      document.getElementById('previewCopyText').textContent = 'Preview';
+      document.getElementById('executeCopyIcon').className = 'ti tabler-copy me-1';
+      document.getElementById('executeCopyText').textContent = 'Copy Sekarang';
+    });
+    // ─── End Copy Kelas ─────────────────────────────────────────────────────
   </script>
 @endsection

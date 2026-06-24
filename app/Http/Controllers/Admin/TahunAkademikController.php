@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\TahunAkademik;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TahunAkademikController extends Controller
 {
@@ -72,6 +74,44 @@ class TahunAkademikController extends Controller
         $tahunAkademik->delete();
 
         return redirect()->route('admin.tahun-akademik.index')->with('success', 'Tahun ajaran berhasil dihapus.');
+    }
+
+    public function toggleAktif(TahunAkademik $tahunAkademik)
+    {
+        if ($tahunAkademik->is_aktif) {
+            $aktifCount = TahunAkademik::where('is_aktif', true)->count();
+            if ($aktifCount <= 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak bisa menonaktifkan. Minimal harus ada satu tahun ajaran yang aktif.'
+                ], 422);
+            }
+        }
+
+        $taSblm = $tahunAkademik->is_aktif;
+
+        DB::transaction(function () use ($tahunAkademik) {
+            if (!$tahunAkademik->is_aktif) {
+                TahunAkademik::where('is_aktif', true)->update(['is_aktif' => false]);
+            }
+            $tahunAkademik->update(['is_aktif' => !$tahunAkademik->is_aktif]);
+        });
+
+        $tahunAkademik->refresh();
+
+        ActivityLog::record(
+            'update',
+            'tahun_akademik',
+            "Toggle status tahun ajaran: {$tahunAkademik->nama} {$tahunAkademik->semester} → " . ($tahunAkademik->is_aktif ? 'Aktif' : 'Nonaktif'),
+            ['is_aktif_sebelum' => $taSblm],
+            ['is_aktif_sesudah' => $tahunAkademik->is_aktif]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status tahun ajaran berhasil diperbarui.',
+            'is_aktif' => $tahunAkademik->is_aktif
+        ]);
     }
 
     public function setSession(Request $request)

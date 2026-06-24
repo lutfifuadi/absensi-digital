@@ -1,0 +1,38 @@
+{
+  "$schema": "https://opencode.ai/opencode.schema.json",
+  "default_agent": "sophia",
+  "references": {
+    "Proyek Overview": ".planning/proyek.md",
+    "Rencana Harian": ".planning/hari-ini.md",
+    "Rencana Sprint": ".planning/rencana.md",
+    "Changelog": ".planning/changelog.md",
+    "Agent Skills": "C:/Users/luthf/.agents/skills",
+    "Agent Configs": ".opencode/agents"
+  },
+  "command": {
+    "plan": {
+      "description": "Tampilkan rencana kerja hari ini dan prioritaskan task",
+      "template": "cat .planning/hari-ini.md && echo '---' && cat .planning/rencana.md"
+    },
+    "status": {
+      "description": "Cek status proyek dan konteks terkini",
+      "template": "echo '=== Current Context ===' && Get-Content -LiteralPath '.agents/current_context.json' -ErrorAction SilentlyContinue && echo '' && echo '=== Git Status ===' && git status --short"
+    },
+    "context": {
+      "description": "Baca ulang semua planning documents untuk konteks penuh",
+      "template": "Write-Host '=== PROYEK ===' -ForegroundColor Cyan; Get-Content '.planning/proyek.md'; Write-Host '=== HARI INI ===' -ForegroundColor Cyan; Get-Content '.planning/hari-ini.md'; Write-Host '=== RENCANA ===' -ForegroundColor Cyan; Get-Content '.planning/rencana.md'; Write-Host '=== CHANGELOG ===' -ForegroundColor Cyan; Get-Content '.planning/changelog.md'"
+    },
+    "agents:list": {
+      "description": "Lihat daftar semua agent specialist yang terdaftar",
+      "template": "Get-ChildItem -LiteralPath '.opencode/agents' -Filter '*.md' | ForEach-Object { $name = $_.BaseName; $desc = (Select-String -LiteralPath $_.FullName -Pattern 'description: (.+)' | Select-Object -First 1).Matches.Groups[1].Value; Write-Host \"[$name]\" -NoNewline -ForegroundColor Green; Write-Host \" $desc\" }"
+    },
+    "changelog": {
+      "description": "Catat perubahan terbaru ke changelog + commit",
+      "template": "echo 'Buka .planning/changelog.md dan tambahkan entri baru dengan versi, tanggal, dan daftar perubahan.'"
+    },
+    "deploy": {
+      "description": "Deploy aplikasi ke server production/staging",
+      "template": "echo 'Gunakan agent gilang untuk deploy. Jalankan: opencode run gilang dengan konteks deploy.'"
+    }
+  }
+}

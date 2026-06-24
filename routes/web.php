@@ -371,6 +371,10 @@ Route::middleware([
           ->except(['show'])
           ->middleware('role:super_admin,admin_sekolah,operator');
 
+      Route::post('tahun-akademik/{tahunAkademik}/toggle-aktif', [TahunAkademikController::class, 'toggleAktif'])
+          ->name('admin.tahun-akademik.toggle-aktif')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+
       Route::resource('kelas', KelasController::class)
           ->names('admin.kelas')
           ->parameters(['kelas' => 'kelas'])
@@ -393,6 +397,13 @@ Route::middleware([
           ->middleware('role:super_admin,admin_sekolah,operator');
       Route::delete('kelas/{kelas}/siswa/{siswa}', [KelasController::class, 'removeSiswa'])
           ->name('admin.kelas.remove-siswa')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+
+      Route::post('kelas/preview-copy', [KelasController::class, 'previewCopy'])
+          ->name('admin.kelas.preview-copy')
+          ->middleware('role:super_admin,admin_sekolah,operator');
+      Route::post('kelas/execute-copy', [KelasController::class, 'executeCopy'])
+          ->name('admin.kelas.execute-copy')
           ->middleware('role:super_admin,admin_sekolah,operator');
 
       Route::get('guru/cetak-qr', [GuruController::class, 'cetakQr'])
