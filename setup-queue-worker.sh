@@ -28,17 +28,17 @@ php artisan cache:clear
 echo "[2/5] Membuat config supervisor..."
 cat > /etc/supervisor/conf.d/laravel-worker.conf <<EOF
 [program:laravel-worker]
-process_name:%(program_name)s_%(process_num)02d
-command=php $APP_PATH/artisan queue:work database --sleep=3 --tries=3 --max-time=3600
+process_name=%(program_name)s_%(process_num)02d
+command=php $APP_PATH/artisan queue:work database --sleep=3 --tries=3 --max-time=3600 --timeout=300
 autostart=true
 autorestart=true
 stopasgroup=true
 killasgroup=true
 user=$USER
-numprocs=1
+numprocs=2
 redirect_stderr=true
 stdout_logfile=$LOG_PATH/worker.log
-stopwaitsecs=3600
+stopwaitsecs=360
 EOF
 
 # 4. Buat direktori log jika belum ada

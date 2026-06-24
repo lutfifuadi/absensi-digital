@@ -19,6 +19,12 @@ Schedule::command(AutoMarkAlphaCommand::class)->dailyAt('08:00');
 // Jadwal: setiap menit cek lisensi ke server untuk antisipasi lisensi ilegal
 Schedule::command(\App\Console\Commands\VerifyLicense::class)->everyMinute()->withoutOverlapping();
 
+Schedule::call(function () {
+    \Illuminate\Support\Facades\Cache::put('queue_heartbeat', now(), 120);
+})->everyMinute()->description('Queue Heartbeat');
+
+Schedule::command('model:prune', ['--model' => \App\Models\DeployLog::class])->daily();
+
 if (file_exists(storage_path('installed'))) {
     try {
         $syncEnabled = Pengaturan::where('key', 'master_db_sync_enabled')->value('value') ?? 'Ya';

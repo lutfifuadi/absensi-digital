@@ -282,6 +282,13 @@
       "slug": "admin.pembelian-lisensi.index",
       "url": "/admin/pembelian-lisensi",
       "roles": ["super_admin"]
+    },
+    {
+      "name": "Update Aplikasi",
+      "icon": "menu-icon ti tabler-cloud-upload",
+      "slug": "admin.deploy.index",
+      "url": "/admin/deploy",
+      "roles": ["super_admin"]
     }
   ]
 }

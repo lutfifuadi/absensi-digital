@@ -638,7 +638,27 @@ Route::middleware([
           ->name('admin.update.run')
           ->middleware('role:super_admin');
       Route::post('update/publish-assets', [\App\Http\Controllers\Admin\UpdateController::class, 'publishAssets'])
-          ->name('admin.update.publish-assets')
+            ->name('admin.update.publish-assets')
+            ->middleware('role:super_admin');
+
+      // One-Click Deploy
+      Route::get('deploy', [\App\Http\Controllers\Admin\DeployController::class, 'index'])
+          ->name('admin.deploy.index')
+          ->middleware('role:super_admin');
+      Route::get('deploy/status', [\App\Http\Controllers\Admin\DeployController::class, 'status'])
+          ->name('admin.deploy.status')
+          ->middleware('role:super_admin');
+      Route::get('deploy/progress', [\App\Http\Controllers\Admin\DeployController::class, 'progress'])
+          ->name('admin.deploy.progress')
+          ->middleware('role:super_admin');
+      Route::post('deploy/run', [\App\Http\Controllers\Admin\DeployController::class, 'run'])
+          ->name('admin.deploy.run')
+          ->middleware(['role:super_admin', 'throttle:3,10']);
+      Route::post('deploy/{deployLog}/rollback', [\App\Http\Controllers\Admin\DeployController::class, 'rollback'])
+          ->name('admin.deploy.rollback')
+          ->middleware(['role:super_admin', 'throttle:3,10']);
+      Route::get('deploy/history', [\App\Http\Controllers\Admin\DeployController::class, 'history'])
+          ->name('admin.deploy.history')
           ->middleware('role:super_admin');
 
       // Manajemen Lisensi
