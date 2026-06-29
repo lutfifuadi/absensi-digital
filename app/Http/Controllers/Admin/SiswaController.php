@@ -145,13 +145,12 @@ class SiswaController extends Controller
 
     public function importStore(Request $request)
     {
-        // Beri waktu lebih lama untuk import banyak data (420 siswa = 840 hash password)
-        set_time_limit(300);
-        ini_set('max_execution_time', 300);
-
+        // Validasi file dan ukurannya (max 20MB = 20480KB)
         $request->validate([
-            'import_file' => 'required|file|mimes:xlsx,xls,csv',
+            'import_file' => 'required|file|mimes:xlsx,xls,csv|max:20480',
         ]);
+
+        $originalFileName = $request->file('import_file')->getClientOriginalName();
 
         // Hitung total baris dari file (kurangi 1 untuk header)
         try {
@@ -161,29 +160,119 @@ class SiswaController extends Controller
             $totalRows = $spreadsheet->getActiveSheet()->getHighestRow() - 1;
             $spreadsheet->disconnectWorksheets();
         } catch (\Exception $e) {
+            Log::error('Gagal membaca total baris file excel untuk progress', [
+                'file' => $originalFileName,
+                'error' => $e->getMessage()
+            ]);
             $totalRows = 0;
         }
 
+        // Set timeout dinamis: 300 detik + 0.5 detik per baris (untuk file besar)
+        $timeout = max(300, (int) ($totalRows * 0.5));
+        set_time_limit($timeout);
+        ini_set('max_execution_time', (string) $timeout);
+
+        // Set memory limit lebih tinggi
+        ini_set('memory_limit', '512M');
+
         cache()->put('siswa_import_progress', 0);
         cache()->put('siswa_import_total', max($totalRows, 0));
+        cache()->put('siswa_import_status', 'processing');
 
-        // Tutup session agar request polling progress tidak terblokir
-        session()->save();
-        session()->flush();
+        // Gunakan session_write_close() agar request polling tidak terblokir (TANPA menghapus session)
+        session_write_close();
+
+        Log::info('Import siswa dimulai oleh User ID: ' . (Auth::id() ?? 'System') . ' dengan file: ' . $originalFileName, [
+            'total_rows' => $totalRows,
+            'timeout' => $timeout
+        ]);
 
         try {
-            Excel::import(new SiswaImport, $request->file('import_file'));
+            $import = new SiswaImport;
+            $import->setFileName($originalFileName);
+
+            Excel::import($import, $request->file('import_file'));
 
             cache()->put('siswa_import_progress', $totalRows);
+            cache()->put('siswa_import_status', 'completed');
+
+            $result = $import->getImportResult();
+
+            Log::info('Import siswa selesai', [
+                'file' => $originalFileName,
+                'success_count' => $result['success'],
+                'failed_count' => $result['failed']
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data siswa berhasil diimpor dari Excel.',
+                'message' => "Import selesai. {$result['success']} baris berhasil" . 
+                    ($result['failed'] > 0 ? ", {$result['failed']} baris gagal." : "."),
+                'success_count' => $result['success'],
+                'failed_count' => $result['failed'],
+                'errors' => $result['errors'],
             ]);
-        } catch (\Exception $exception) {
+        } catch (ExcelValidationException $exception) {
+            cache()->put('siswa_import_status', 'failed');
+            Log::warning('Import validasi error (Maatwebsite)', [
+                'file' => $originalFileName,
+                'failures' => $exception->failures()
+            ]);
+
+            $failures = [];
+            foreach ($exception->failures() as $failure) {
+                $failures[] = [
+                    'row' => $failure->row(),
+                    'attribute' => $failure->attribute(),
+                    'errors' => $failure->errors(),
+                ];
+            }
+
             return response()->json([
                 'success' => false,
-                'message' => 'Import gagal: '.$exception->getMessage(),
+                'message' => 'Validasi file gagal. Silakan periksa data Anda.',
+                'validation_errors' => $failures,
+            ], 422);
+        } catch (\PhpOffice\PhpSpreadsheet\Exception $exception) {
+            cache()->put('siswa_import_status', 'failed');
+            Log::error('Import file corrupt atau tidak dapat dibaca', [
+                'file' => $originalFileName,
+                'error' => $exception->getMessage()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'File Excel tidak dapat dibaca. Pastikan file tidak corrupt.',
+            ], 400);
+        } catch (\Illuminate\Database\QueryException $exception) {
+            cache()->put('siswa_import_status', 'failed');
+            Log::error('Import DB QueryException', [
+                'file' => $originalFileName,
+                'error' => $exception->getMessage()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan database. Silakan hubungi developer.',
+            ], 500);
+        } catch (\Error $exception) {
+            cache()->put('siswa_import_status', 'failed');
+            Log::error('Import fatal error (memory limit?)', [
+                'file' => $originalFileName,
+                'error' => $exception->getMessage()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Memori server tidak cukup untuk memproses file ini. Coba bagi file menjadi lebih kecil.',
+            ], 500);
+        } catch (\Throwable $exception) {
+            cache()->put('siswa_import_status', 'failed');
+            Log::error('Import unknown error', [
+                'file' => $originalFileName,
+                'error' => $exception->getMessage(),
+                'trace' => $exception->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan yang tidak terduga: ' . $exception->getMessage(),
             ], 500);
         }
     }

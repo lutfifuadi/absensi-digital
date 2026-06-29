@@ -979,8 +979,7 @@
                                     importProgressBar.classList.remove('progress-bar-animated');
                                     importProgressBar.style.background = 'linear-gradient(135deg, #28c76f, #00d25a)';
                                     importProgressBar.textContent = 'Selesai!';
-                                    importProgressDetail.textContent = 'Import berhasil!';
-                                    setTimeout(() => window.location.reload(), 1000);
+                                    importProgressDetail.textContent = 'Menyimpan data...';
                                 }
                             }).catch(() => {});
                     }, 1000);
@@ -989,22 +988,107 @@
                         .then(async res => {
                             const data = await res.json();
                             clearInterval(progressInterval);
+                            
+                            // Tampilkan tombol submit & cancel kembali
+                            importSubmitBtn.disabled = false;
+                            importSubmitBtn.innerHTML = '<i class="ti tabler-upload me-1"></i> Mulai Import';
+                            importCancelBtn.disabled = false;
+                            
                             if (res.ok && data.success) {
                                 importProgressBar.style.width = '100%';
                                 importProgressBar.textContent = 'Selesai!';
                                 importProgressBar.classList.remove('progress-bar-animated');
                                 importProgressBar.style.background = 'linear-gradient(135deg, #28c76f, #00d25a)';
                                 importProgressDetail.textContent = data.message;
-                                setTimeout(() => window.location.reload(), 1500);
+                                
+                                // Jika ada error per baris, kumpulkan dan tampilkan menggunakan SweetAlert2
+                                if (data.errors && data.errors.length > 0) {
+                                    let errorHtml = '<div class="text-start mt-3" style="max-height: 250px; overflow-y: auto; font-size: 0.8rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">';
+                                    errorHtml += '<ul class="list-unstyled mb-0">';
+                                    data.errors.forEach(err => {
+                                        errorHtml += `<li class="mb-2 text-warning"><i class="ti tabler-alert-triangle me-1"></i> <b>Baris ${err.row}:</b> ${err.error} <span class="text-white-50">(NISN: ${err.nisn}, Nama: ${err.nama})</span></li>`;
+                                    });
+                                    errorHtml += '</ul></div>';
+
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Import Selesai dengan Catatan',
+                                        html: `<div>Beberapa data berhasil diimport, namun terdapat <b>${data.errors.length} baris yang gagal</b>.</div>` + errorHtml,
+                                        customClass: {
+                                            popup: 'das-swal-popup',
+                                            title: 'das-swal-title',
+                                            htmlContainer: 'das-swal-html',
+                                            confirmButton: 'btn btn-warning das-swal-confirm'
+                                        },
+                                        background: 'transparent',
+                                        buttonsStyling: false
+                                    }).then(() => {
+                                        window.location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil!',
+                                        text: data.message || 'Data siswa berhasil diimport.',
+                                        customClass: {
+                                            popup: 'das-swal-popup',
+                                            title: 'das-swal-title',
+                                            htmlContainer: 'das-swal-html',
+                                            confirmButton: 'btn btn-success das-swal-confirm'
+                                        },
+                                        timer: 2000,
+                                        showConfirmButton: false,
+                                        background: 'transparent',
+                                    }).then(() => {
+                                        window.location.reload();
+                                    });
+                                }
+                            } else if (res.status === 422 && data.validation_errors) {
+                                importProgressBar.classList.remove('progress-bar-animated');
+                                importProgressBar.style.background = 'linear-gradient(135deg, #ea5455, #ff5b5b)';
+                                importProgressDetail.textContent = 'Validasi file gagal.';
+                                
+                                let validationHtml = '<div class="text-start mt-3" style="max-height: 250px; overflow-y: auto; font-size: 0.8rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">';
+                                validationHtml += '<ul class="list-unstyled mb-0">';
+                                data.validation_errors.forEach(err => {
+                                    const errMsg = Array.isArray(err.errors) ? err.errors.join(', ') : err.errors;
+                                    validationHtml += `<li class="mb-2 text-danger"><i class="ti tabler-circle-x me-1"></i> <b>Baris ${err.row} (Kolom: ${err.attribute}):</b> ${errMsg}</li>`;
+                                });
+                                validationHtml += '</ul></div>';
+
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Validasi Gagal',
+                                    html: `<div>Terdapat kesalahan validasi pada data yang Anda upload:</div>` + validationHtml,
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-primary das-swal-confirm'
+                                    },
+                                    background: 'transparent',
+                                    buttonsStyling: false
+                                });
                             } else {
                                 importProgressBar.classList.remove('progress-bar-animated');
                                 importProgressBar.style.background = 'linear-gradient(135deg, #ea5455, #ff5b5b)';
                                 importProgressDetail.textContent = data.message || 'Import gagal';
-                                importSubmitBtn.disabled = false;
-                                importSubmitBtn.innerHTML = '<i class="ti tabler-upload me-1"></i> Coba Lagi';
-                                importCancelBtn.disabled = false;
+                                
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal!',
+                                    text: data.message || 'Terjadi kesalahan.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-primary das-swal-confirm'
+                                    },
+                                    background: 'transparent',
+                                    buttonsStyling: false
+                                });
                             }
-                        }).catch(() => {
+                        }).catch(err => {
                             clearInterval(progressInterval);
                             importProgressBar.classList.remove('progress-bar-animated');
                             importProgressBar.style.background = 'linear-gradient(135deg, #ea5455, #ff5b5b)';
@@ -1012,6 +1096,21 @@
                             importSubmitBtn.disabled = false;
                             importSubmitBtn.innerHTML = '<i class="ti tabler-upload me-1"></i> Coba Lagi';
                             importCancelBtn.disabled = false;
+                            
+                            console.error('Fetch error:', err);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: 'Gagal menghubungi server. Silakan coba lagi.',
+                                customClass: {
+                                    popup: 'das-swal-popup',
+                                    title: 'das-swal-title',
+                                    htmlContainer: 'das-swal-html',
+                                    confirmButton: 'btn btn-primary das-swal-confirm'
+                                },
+                                background: 'transparent',
+                                buttonsStyling: false
+                            });
                         });
                 });
 
