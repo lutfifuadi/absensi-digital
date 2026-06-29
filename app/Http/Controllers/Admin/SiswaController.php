@@ -131,6 +131,9 @@ class SiswaController extends Controller
             'ortu_user_id' => $userOrtu->id,
         ]));
 
+        // Sync to pivot table siswa_ortu
+        $siswa->ortu()->syncWithoutDetaching([$userOrtu->id]);
+
         ActivityLog::record('create', 'siswa', "Tambah siswa: {$siswa->nama_lengkap} (NIS: {$siswa->nis})", null, $siswa->toArray());
 
         session(['tahun_ajaran_id' => $siswa->tahun_akademik_id, 'tahun_akademik_id' => $siswa->tahun_akademik_id]);
@@ -424,6 +427,7 @@ class SiswaController extends Controller
                 'username' => 'ortu.'.$identifier,
                 'email' => 'ortu.'.$identifier.'@'.$domainEmail,
             ]);
+            $siswa->ortu()->syncWithoutDetaching([$siswa->ortu_user_id]);
         } elseif (! $siswa->ortu_user_id) {
             $emailOrtu = 'ortu.'.$identifier.'@'.$domainEmail;
             $usernameOrtu = 'ortu.'.$identifier;
@@ -437,6 +441,7 @@ class SiswaController extends Controller
                 ]
             );
             $siswa->update(['ortu_user_id' => $userOrtu->id]);
+            $siswa->ortu()->syncWithoutDetaching([$userOrtu->id]);
         }
 
         ActivityLog::record('update', 'siswa', "Update siswa: {$siswa->nama_lengkap} (NIS: {$siswa->nis})", $old, $siswa->fresh()->toArray());

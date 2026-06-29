@@ -113,6 +113,19 @@ class SyncService
                 'password' => $data['password'] ?? null,
             ], User::ROLE_SISWA);
 
+            // 1b. Sync Ortu Account
+            $identifier = strtolower(trim($data['nisn'] ?? $data['nis'] ?? ''));
+            $domainEmail = Pengaturan::where('key', 'website_lembaga')->value('value') ?? 'madrasah.sch.id';
+            $emailOrtu = 'ortu.'.$identifier.'@'.$domainEmail;
+            $usernameOrtu = 'ortu.'.$identifier;
+            
+            $userOrtu = $this->syncUser([
+                'name' => 'Wali Murid '.$data['nama_lengkap'],
+                'username' => $usernameOrtu,
+                'email' => $emailOrtu,
+                'password' => $data['password'] ?? null,
+            ], User::ROLE_ORANG_TUA);
+
             // 2. Sync Kelas (jika diberikan)
             $kelasId = null;
             if (! empty($data['kelas_nama'])) {
@@ -151,6 +164,7 @@ class SyncService
                 ['nisn' => $data['nisn']], // Kondisi pencarian
                 [
                     'user_id' => $user->id,
+                    'ortu_user_id' => $userOrtu->id,
                     'nis' => $nis,
                     'nama_lengkap' => $data['nama_lengkap'],
                     'jenis_kelamin' => $data['jenis_kelamin'] ?? 'L',
@@ -165,6 +179,11 @@ class SyncService
                     'qr_code' => $qrCode,
                 ]
             );
+
+            // 5. Hubungkan ke tabel pivot siswa_ortu jika belum ada
+            if ($siswa->ortu_user_id) {
+                $siswa->ortu()->syncWithoutDetaching([$siswa->ortu_user_id]);
+            }
 
             DB::commit();
 

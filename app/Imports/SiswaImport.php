@@ -147,6 +147,9 @@ class SiswaImport implements SkipsEmptyRows, ToModel, WithHeadingRow, WithValida
                 ]
             );
 
+            // Sync pivot table siswa_ortu
+            $siswa->ortu()->syncWithoutDetaching([$userOrtu->id]);
+
             $this->successCount++;
         } catch (\Throwable $e) {
             $this->failedCount++;
