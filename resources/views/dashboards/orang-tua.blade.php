@@ -50,15 +50,15 @@
 
     /* Stat circle values */
     .stat-circle {
-        width: 54px;
-        height: 54px;
+        width: 50px;
+        height: 50px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         margin: 0 auto 8px;
         font-weight: 700;
-        font-size: 1.15rem;
+        font-size: 1.1rem;
         transition: transform 0.2s ease;
     }
     .premium-card:hover .stat-circle {
@@ -73,9 +73,17 @@
         background: rgba(255, 159, 67, 0.12);
         color: #ff9f43;
     }
+    .stat-circle-info {
+        background: rgba(0, 207, 221, 0.12);
+        color: #00cfdd;
+    }
     .stat-circle-danger {
         background: rgba(234, 84, 85, 0.12);
         color: #ea5455;
+    }
+    .stat-circle-primary {
+        background: rgba(115, 103, 240, 0.12);
+        color: #7367f0;
     }
 
     .badge-dynamic {
@@ -122,6 +130,98 @@
     .quick-action-btn:hover {
         transform: translateY(-2px);
     }
+
+    /* Kalender Minimalis */
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 6px;
+        text-align: center;
+    }
+    .calendar-header-day {
+        font-weight: 600;
+        font-size: 0.75rem;
+        color: #8b949e;
+        text-transform: uppercase;
+        padding-bottom: 8px;
+    }
+    .calendar-cell {
+        aspect-ratio: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        position: relative;
+        cursor: default;
+        transition: all 0.15s ease;
+        background: #f8f9fa;
+        border: 1px solid #f1f2f4;
+    }
+    [data-bs-theme="dark"] .calendar-cell {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .calendar-cell-empty {
+        background: transparent !important;
+        border: none !important;
+    }
+    .calendar-cell-today {
+        border: 2px solid #7367f0 !important;
+    }
+    .calendar-cell-holiday {
+        background: rgba(234, 84, 85, 0.1) !important;
+        color: #ea5455 !important;
+    }
+    .calendar-cell-hadir {
+        background: rgba(40, 199, 111, 0.15) !important;
+        color: #28c76f !important;
+    }
+    .calendar-cell-terlambat {
+        background: rgba(255, 159, 67, 0.15) !important;
+        color: #ff9f43 !important;
+    }
+    .calendar-cell-izin {
+        background: rgba(115, 103, 240, 0.15) !important;
+        color: #7367f0 !important;
+    }
+    .calendar-cell-sakit {
+        background: rgba(0, 207, 221, 0.15) !important;
+        color: #00cfdd !important;
+    }
+    .calendar-cell-alpha {
+        background: rgba(234, 84, 85, 0.15) !important;
+        color: #ea5455 !important;
+    }
+    .calendar-legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    .calendar-legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+
+    /* Profile Switcher style */
+    .profile-switch-btn {
+        transition: all 0.2s ease;
+        border: 2px solid transparent;
+        padding: 4px;
+        border-radius: 50%;
+    }
+    .profile-switch-btn.active {
+        border-color: #7367f0;
+        transform: scale(1.08);
+    }
+    .profile-switch-btn:hover {
+        transform: scale(1.08);
+    }
 </style>
 @endsection
 
@@ -145,35 +245,6 @@
     </div>
   </div>
 
-  <!-- Quick Actions Panel -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card premium-card">
-        <div class="card-body p-3">
-          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-            <div class="d-flex align-items-center gap-2">
-              <div class="avatar bg-label-primary p-2 rounded" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                <i class="ti tabler-apps text-primary fs-4"></i>
-              </div>
-              <div>
-                <h6 class="mb-0 fw-bold">Akses Cepat Portal</h6>
-                <small class="text-muted">Aksi cepat wali murid</small>
-              </div>
-            </div>
-            <div class="d-flex flex-wrap gap-2">
-              <a href="{{ route('ortu.izin-sakit.create') }}" class="btn btn-primary quick-action-btn shadow-sm">
-                <i class="ti tabler-file-text fs-5"></i> Ajukan Izin / Sakit Anak
-              </a>
-              <a href="{{ route('ortu.izin-sakit.index') }}" class="btn btn-outline-secondary quick-action-btn">
-                <i class="ti tabler-history fs-5"></i> Riwayat Pengajuan Izin
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   @if($anakList->isEmpty())
     <div class="row">
       <div class="col-12">
@@ -189,106 +260,271 @@
       </div>
     </div>
   @else
-    <h5 class="mb-3 fw-bold d-flex align-items-center gap-2">
-      <i class="ti tabler-users text-primary"></i> Data Kehadiran Siswa
-    </h5>
     
-    <div class="row gy-4">
-      @foreach($anakList as $dataAnak)
-        @php
-            $anak = $dataAnak['siswa'];
-            $absensiHariIni = $dataAnak['absensi_hari_ini'];
-            $stats = $dataAnak['stats'];
-            $earlyWarning = $dataAnak['early_warning'];
-        @endphp
-
-        <div class="col-md-6 col-xl-4">
-          <div class="card h-100 premium-card {{ $earlyWarning ? 'border-danger border-2' : '' }}">
-            <div class="card-header border-bottom pb-3">
-              <div class="d-flex justify-content-between align-items-start gap-2">
-                <div>
-                  <h5 class="mb-1 fw-bold text-truncate" style="max-width: 180px;" title="{{ $anak->nama_lengkap }}">
-                    {{ $anak->nama_lengkap }}
-                  </h5>
-                  <span class="badge bg-label-primary font-monospace" style="font-size: 0.7rem;">NISN: {{ $anak->nisn }}</span>
-                  <div class="text-muted small mt-1">
-                    <i class="ti tabler-school me-1 fs-6"></i>{{ $anak->kelas->nama ?? 'Tidak Ada Kelas' }}
-                  </div>
-                </div>
-                <div class="text-end">
-                  @if($absensiHariIni)
-                    @if(in_array($absensiHariIni->status, ['sakit', 'izin']))
-                      <span class="badge-dynamic bg-label-warning">
-                        <i class="ti tabler-file-text"></i> {{ ucfirst($absensiHariIni->status) }}
-                      </span>
-                    @elseif($absensiHariIni->status == 'terlambat')
-                      <span class="badge-dynamic bg-label-danger">
-                        <i class="ti tabler-clock-play"></i> Terlambat
-                      </span>
-                    @else
-                      <span class="badge-dynamic bg-label-success">
-                        <i class="ti tabler-check"></i> Hadir
-                      </span>
-                    @endif
-                    <small class="d-block text-muted mt-1" style="font-size: 0.70rem; font-weight: 500;">
-                      Masuk: <span class="fw-bold text-dark dark-text-light">{{ $absensiHariIni->jam_masuk }}</span>
-                    </small>
-                  @else
-                    <span class="badge-dynamic bg-label-warning pulse-amber">
-                      <i class="ti tabler-loader animate-spin"></i> Belum Absen
-                    </span>
-                    <small class="d-block text-muted mt-1" style="font-size: 0.65rem;">Menunggu kehadiran...</small>
-                  @endif
-                </div>
+    <!-- Profile Switcher & Selector (Jika Multi-Anak) -->
+    @if($anakList->count() > 1)
+      <div class="card premium-card mb-4">
+        <div class="card-body p-3">
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+              <i class="ti tabler-arrows-left-right text-primary fs-4"></i>
+              <div>
+                <h6 class="mb-0 fw-bold">Pilih Anak Aktif</h6>
+                <small class="text-muted">Ganti profil untuk melihat rekap kehadiran</small>
               </div>
             </div>
-            
-            <div class="card-body pt-4">
-              <h6 class="mb-3 fw-bold text-muted" style="font-size: 0.8rem; letter-spacing: 0.5px; text-transform: uppercase;">
-                Ringkasan Bulan Ini
-              </h6>
-              <div class="row text-center mb-4">
-                <div class="col-4">
-                  <div class="stat-circle stat-circle-success">
-                    {{ $stats['hadir'] }}
-                  </div>
-                  <span class="text-muted small fw-medium">Hadir</span>
-                </div>
-                <div class="col-4 border-start border-end">
-                  <div class="stat-circle stat-circle-warning">
-                    {{ $stats['izin_sakit'] }}
-                  </div>
-                  <span class="text-muted small fw-medium">Izin/Sakit</span>
-                </div>
-                <div class="col-4">
-                  <div class="stat-circle stat-circle-danger">
-                    {{ $stats['alpha'] }}
-                  </div>
-                  <span class="text-muted small fw-medium">Alpha</span>
-                </div>
-              </div>
-              
-              @if($earlyWarning)
-                <div class="alert alert-danger mb-4 py-2 px-3 d-flex align-items-center gap-2" style="border-radius: 10px;">
-                  <i class="ti tabler-alert-triangle fs-4 text-danger animate-bounce"></i>
-                  <span class="small text-danger fw-bold" style="font-size: 0.75rem;">
-                    Peringatan: Jumlah Alpha bulan ini melebihi batas toleransi!
-                  </span>
-                </div>
-              @endif
-              
-              <div class="d-flex flex-column gap-2 mt-2">
-                <a href="{{ route('ortu.anak.profil', $anak->id) }}" class="btn btn-outline-primary btn-sm py-2" style="border-radius: 10px; font-weight: 600;">
-                  <i class="ti tabler-user-circle me-1 fs-5"></i> Lihat Detail Profil
-                </a>
-                <a href="{{ route('ortu.anak.absensi', $anak->id) }}" class="btn btn-outline-info btn-sm py-2" style="border-radius: 10px; font-weight: 600;">
-                  <i class="ti tabler-calendar-stats me-1 fs-5"></i> Riwayat Absensi Bulanan
-                </a>
-              </div>
+            <div class="d-flex align-items-center gap-3">
+              @foreach($anakList as $child)
+                <form action="{{ route('ortu.switch-anak') }}" method="POST" class="d-inline">
+                  @csrf
+                  <input type="hidden" name="siswa_id" value="{{ $child->id }}">
+                  <button type="submit" class="btn p-0 profile-switch-btn {{ $activeAnak->id == $child->id ? 'active' : '' }}" title="{{ $child->nama_lengkap }}">
+                    @if($child->foto)
+                      <img src="{{ asset('storage/' . $child->foto) }}" alt="{{ $child->nama_lengkap }}" class="rounded-circle" style="width: 48px; height: 48px; object-fit: cover;">
+                    @else
+                      <div class="rounded-circle bg-label-primary d-flex align-items-center justify-content-center fw-bold" style="width: 48px; height: 48px; font-size: 1.2rem;">
+                        {{ substr($child->nama_lengkap, 0, 1) }}
+                      </div>
+                    @endif
+                  </button>
+                </form>
+              @endforeach
             </div>
           </div>
         </div>
-      @endforeach
+      </div>
+    @endif
+
+    <div class="row g-4">
+      <!-- Info & Ringkasan Kehadiran Hari Ini -->
+      <div class="col-md-6 col-xl-4">
+        <div class="card h-100 premium-card">
+          <div class="card-header d-flex justify-content-between align-items-center border-bottom pb-3">
+            <div class="d-flex align-items-center gap-2">
+              @if($activeAnak->foto)
+                <img src="{{ asset('storage/' . $activeAnak->foto) }}" alt="{{ $activeAnak->nama_lengkap }}" class="rounded-circle" style="width: 42px; height: 42px; object-fit: cover;">
+              @else
+                <div class="avatar avatar-md bg-label-primary rounded-circle d-flex align-items-center justify-content-center fw-bold">
+                  {{ substr($activeAnak->nama_lengkap, 0, 1) }}
+                </div>
+              @endif
+              <div>
+                <h5 class="mb-0 fw-bold text-truncate" style="max-width: 160px;" title="{{ $activeAnak->nama_lengkap }}">
+                  {{ $activeAnak->nama_lengkap }}
+                </h5>
+                <span class="badge bg-label-primary font-monospace" style="font-size: 0.65rem;">NISN: {{ $activeAnak->nisn }}</span>
+              </div>
+            </div>
+            <div>
+              <span class="badge bg-label-secondary font-semibold" style="font-size: 0.75rem;">
+                Kelas {{ $activeAnak->kelas->nama ?? 'Tidak Ada Kelas' }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="card-body pt-4">
+            <h6 class="mb-3 fw-bold text-muted" style="font-size: 0.8rem; letter-spacing: 0.5px; text-transform: uppercase;">
+              Status Presensi Hari Ini
+            </h6>
+            
+            <div class="text-center py-3 mb-4 rounded bg-light dark-bg-dark border position-relative overflow-hidden">
+              @if($absensiHariIni)
+                @php
+                  $statusLabel = match($absensiHariIni->status) {
+                      'hadir' => 'Hadir',
+                      'terlambat' => 'Terlambat',
+                      'sakit' => 'Sakit',
+                      'izin' => 'Izin',
+                      'alpha' => 'Alpa',
+                      default => 'Belum Absen'
+                  };
+                  $statusColor = match($absensiHariIni->status) {
+                      'hadir' => 'text-success',
+                      'terlambat' => 'text-warning',
+                      'sakit' => 'text-info',
+                      'izin' => 'text-primary',
+                      'alpha' => 'text-danger',
+                      default => 'text-muted'
+                  };
+                  $statusBg = match($absensiHariIni->status) {
+                      'hadir' => 'bg-label-success',
+                      'terlambat' => 'bg-label-warning',
+                      'sakit' => 'bg-label-info',
+                      'izin' => 'bg-label-primary',
+                      'alpha' => 'bg-label-danger',
+                      default => 'bg-label-secondary'
+                  };
+                @endphp
+                <div class="d-inline-block p-3 rounded-circle {{ $statusBg }} mb-2">
+                  <i class="ti {{ $absensiHariIni->status == 'hadir' || $absensiHariIni->status == 'terlambat' ? 'tabler-check' : 'tabler-clock' }} fs-2"></i>
+                </div>
+                <h3 class="fw-bold {{ $statusColor }} mb-1">{{ $statusLabel }}</h3>
+                <p class="text-muted small mb-0">Tercatat Jam: <span class="fw-bold text-dark dark-text-light">{{ $absensiHariIni->jam_masuk ?? '-' }}</span></p>
+                @if($absensiHariIni->metode)
+                  <span class="badge bg-label-dark mt-2" style="font-size: 0.65rem;">Scan: {{ strtoupper($absensiHariIni->metode) }}</span>
+                @endif
+              @else
+                <div class="d-inline-block p-3 rounded-circle bg-label-warning pulse-amber mb-2">
+                  <i class="ti tabler-loader fs-2 animate-spin"></i>
+                </div>
+                <h3 class="fw-bold text-warning mb-1">Belum Absen</h3>
+                <p class="text-muted small mb-0">Menunggu kehadiran siswa di sekolah...</p>
+              @endif
+            </div>
+
+            <div class="d-flex flex-column gap-2">
+              <a href="{{ route('ortu.izin-sakit.create') }}" class="btn btn-primary py-2 w-full" style="border-radius: 10px; font-weight: 600;">
+                <i class="ti tabler-file-text me-1 fs-5"></i> Ajukan Izin / Sakit
+              </a>
+              <a href="{{ route('ortu.anak.profil', $activeAnak->id) }}" class="btn btn-outline-secondary py-2 w-full" style="border-radius: 10px; font-weight: 600;">
+                <i class="ti tabler-user-circle me-1 fs-5"></i> Lihat Detail Profil Anak
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ringkasan Performa Bulanan & Kalender Widget -->
+      <div class="col-md-6 col-xl-8">
+        <div class="card h-100 premium-card">
+          <div class="card-header border-bottom pb-3">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div>
+                <h5 class="mb-0 fw-bold">Kalender & Riwayat Kehadiran</h5>
+                <small class="text-muted">Performa bulanan anak aktif</small>
+              </div>
+              <form action="{{ route('ortu.dashboard') }}" method="GET" class="d-flex gap-2">
+                <select name="month" class="form-select form-select-sm">
+                  @for($m=1; $m<=12; $m++)
+                    <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>{{ \Carbon\Carbon::create(2000, $m, 1)->translatedFormat('F') }}</option>
+                  @endfor
+                </select>
+                <select name="year" class="form-select form-select-sm">
+                  @for($y=now()->year; $y>=now()->year-2; $y--)
+                    <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                  @endfor
+                </select>
+                <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="card-body pt-4">
+            <!-- Counter Bulanan -->
+            <div class="row text-center mb-4 g-2">
+              <div class="col-6 col-md-2">
+                <div class="p-2 border rounded bg-light dark-bg-dark">
+                  <h4 class="fw-bold text-success mb-1">{{ $rekapBulanan['hadir'] }}</h4>
+                  <small class="text-muted">Hadir</small>
+                </div>
+              </div>
+              <div class="col-6 col-md-2">
+                <div class="p-2 border rounded bg-light dark-bg-dark">
+                  <h4 class="fw-bold text-warning mb-1">{{ $rekapBulanan['terlambat'] }}</h4>
+                  <small class="text-muted">Terlambat</small>
+                </div>
+              </div>
+              <div class="col-6 col-md-2">
+                <div class="p-2 border rounded bg-light dark-bg-dark">
+                  <h4 class="fw-bold text-info mb-1">{{ $rekapBulanan['sakit'] }}</h4>
+                  <small class="text-muted">Sakit</small>
+                </div>
+              </div>
+              <div class="col-6 col-md-2">
+                <div class="p-2 border rounded bg-light dark-bg-dark">
+                  <h4 class="fw-bold text-primary mb-1">{{ $rekapBulanan['izin'] }}</h4>
+                  <small class="text-muted">Izin</small>
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="p-2 border rounded bg-light dark-bg-dark {{ $rekapBulanan['alpha'] >= 3 ? 'border-danger bg-label-danger' : '' }}">
+                  <h4 class="fw-bold text-danger mb-1">{{ $rekapBulanan['alpha'] }}</h4>
+                  <small class="text-muted">Tanpa Keterangan (Alpha)</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Kalender Bulanan -->
+            @php
+              $startOfMonth = \Carbon\Carbon::create($year, $month, 1);
+              $daysInMonth = $startOfMonth->daysInMonth;
+              $firstDayOfWeek = $startOfMonth->dayOfWeek; // 0=Sunday, 1=Monday
+              // Adjust so Monday is first (0=Mon, 1=Tue, ..., 6=Sun)
+              $offset = ($firstDayOfWeek + 6) % 7;
+            @endphp
+
+            <div class="calendar-grid mb-3">
+              <!-- Header Hari -->
+              <div class="calendar-header-day">Sen</div>
+              <div class="calendar-header-day">Sel</div>
+              <div class="calendar-header-day">Rab</div>
+              <div class="calendar-header-day">Kam</div>
+              <div class="calendar-header-day">Jum</div>
+              <div class="calendar-header-day">Sab</div>
+              <div class="calendar-header-day">Min</div>
+
+              <!-- Offset Cells -->
+              @for($i = 0; $i < $offset; $i++)
+                <div class="calendar-cell calendar-cell-empty"></div>
+              @endfor
+
+              <!-- Day Cells -->
+              @for($day = 1; $day <= $daysInMonth; $day++)
+                @php
+                  $dateStr = \Carbon\Carbon::create($year, $month, $day)->toDateString();
+                  $abs = $rawAbsensiBulan->get($dateStr);
+                  $isToday = \Carbon\Carbon::today()->toDateString() == $dateStr;
+                  $isHoliday = isset($holidays[$dateStr]) || \Carbon\Carbon::create($year, $month, $day)->isSunday();
+                  
+                  $cellClass = '';
+                  $tooltip = '';
+                  
+                  if ($abs) {
+                      $cellClass = 'calendar-cell-' . $abs->status;
+                      $tooltip = strtoupper($abs->status) . ' (' . ($abs->jam_masuk ?? '-') . ')';
+                  } elseif ($isHoliday) {
+                      $cellClass = 'calendar-cell-holiday';
+                      $tooltip = $holidays[$dateStr] ?? 'Libur Akhir Pekan';
+                  } elseif (\Carbon\Carbon::create($year, $month, $day)->isPast()) {
+                      // default alpha if past and no record and not holiday (simplified)
+                      // $cellClass = 'calendar-cell-alpha';
+                  }
+                @endphp
+
+                <div class="calendar-cell {{ $cellClass }} {{ $isToday ? 'calendar-cell-today' : '' }}" 
+                     data-bs-toggle="tooltip" 
+                     data-bs-placement="top" 
+                     title="{{ $day }} {{ \Carbon\Carbon::create(2000, $month, 1)->translatedFormat('F') }}: {{ $tooltip ?: 'Tidak ada catatan' }}">
+                  <span>{{ $day }}</span>
+                </div>
+              @endfor
+            </div>
+
+            <!-- Legenda Kalender -->
+            <div class="d-flex flex-wrap justify-content-center gap-3 pt-2 border-top">
+              <div class="calendar-legend-item">
+                <div class="calendar-legend-dot bg-success"></div> Hadir
+              </div>
+              <div class="calendar-legend-item">
+                <div class="calendar-legend-dot bg-warning"></div> Terlambat
+              </div>
+              <div class="calendar-legend-item">
+                <div class="calendar-legend-dot bg-info"></div> Sakit
+              </div>
+              <div class="calendar-legend-item">
+                <div class="calendar-legend-dot bg-primary"></div> Izin
+              </div>
+              <div class="calendar-legend-item">
+                <div class="calendar-legend-dot bg-danger"></div> Alpa
+              </div>
+              <div class="calendar-legend-item">
+                <div class="calendar-legend-dot bg-danger opacity-50"></div> Libur
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
     </div>
   @endif
 

@@ -26,6 +26,12 @@
       "name": "Ajukan Izin/Sakit",
       "icon": "menu-icon ti tabler-file-plus",
       "slug": "ortu.izin-sakit.create"
+    },
+    {
+      "url": "/ortu/pengaturan",
+      "name": "Pengaturan & Password",
+      "icon": "menu-icon ti tabler-settings",
+      "slug": "ortu.pengaturan"
     }
   ]
 }

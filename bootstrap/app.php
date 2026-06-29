@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->alias([
             'role'           => \App\Http\Middleware\RoleMiddleware::class,
+            'ortu'           => \App\Http\Middleware\OrangTuaMiddleware::class,
             'qr.scan.auth'   => \App\Http\Middleware\QrScanAuth::class,
             'device.trusted' => \App\Http\Middleware\CheckAuthorizedDevice::class,
             'pmbm.api.key'   => \App\Http\Middleware\ValidatePmbmApiKey::class,

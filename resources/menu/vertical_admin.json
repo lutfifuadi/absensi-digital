@@ -63,6 +63,12 @@
       "url": "/admin/guru"
     },
     {
+      "name": "Orang Tua",
+      "icon": "menu-icon ti tabler-user-heart",
+      "slug": "admin.orang-tua.index",
+      "url": "/admin/orang-tua"
+    },
+    {
       "name": "Staff TU",
       "icon": "menu-icon ti tabler-briefcase",
       "slug": "admin.staff-tata-usaha.index",

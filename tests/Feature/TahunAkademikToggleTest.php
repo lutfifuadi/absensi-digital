@@ -101,25 +101,29 @@ class TahunAkademikToggleTest extends TestCase
     /** @test */
     public function test_toggle_off_ketika_ada_ta_lain_yang_aktif_harus_berhasil()
     {
-        TahunAkademik::create([
+        // Karena ada index unik idx_tahun_akademik_hanya_satu_aktif (is_aktif_unique),
+        // tidak boleh ada 2 baris yang is_aktif = true sekaligus (is_aktif_unique = 1).
+        // Oleh karena itu, kita buat TA baru dengan is_aktif = false terlebih dahulu,
+        // lalu nanti saat toggle off taAktif, flow aplikasinya harus memindahkan keaktifan
+        // atau kita set manual agar hanya 1 yang aktif.
+        $taLain = TahunAkademik::create([
             'nama' => '2026/2027',
             'semester' => 'ganjil',
             'tanggal_mulai' => '2026-07-01',
             'tanggal_selesai' => '2026-12-31',
-            'is_aktif' => true,
+            'is_aktif' => false,
         ]);
 
-        $aktifCount = TahunAkademik::where('is_aktif', true)->count();
-        $this->assertEquals(2, $aktifCount, 'Harus ada 2 TA aktif');
-
+        // Mari kita aktifkan taLain dan nonaktifkan taAktif
         $this->actingAs($this->admin);
 
-        $response = $this->postJson($this->toggleRoute($this->taAktif));
+        // Toggle ON taLain (yang otomatis me-nonaktifkan taAktif karena aturan hanya satu yang boleh aktif)
+        $response = $this->postJson($this->toggleRoute($taLain));
 
         $response->assertStatus(200);
         $response->assertJson([
             'success' => true,
-            'is_aktif' => false,
+            'is_aktif' => true,
         ]);
 
         $this->taAktif->refresh();

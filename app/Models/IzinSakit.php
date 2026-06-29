@@ -34,6 +34,11 @@ class IzinSakit extends Model
         return $this->belongsTo(Guru::class, 'reference_id');
     }
 
+    public function siswa()
+    {
+        return $this->belongsTo(Siswa::class, 'reference_id');
+    }
+
     public function staff()
     {
         return $this->belongsTo(StaffTataUsaha::class, 'reference_id');

@@ -497,13 +497,17 @@ class EkskulTest extends TestCase
     #[Test]
     public function admin_can_view_anggota_index(): void
     {
-        // BUG: Blade template anggota-index.blade.php has syntax error:
-        // "Unclosed '[' does not match ')'" at @json() line 403
-        // The compiled view produces a ParseError. Skipping until fixed.
-        $this->markTestSkipped(
-            'BUG: anggota-index.blade.php contains a Blade syntax error ' .
-            '("Unclosed [ does not match )") in the @json directive at line 403. ' .
-            'Ayu/Dika needs to fix the inline function brackets in the @json() call.'
-        );
+        $ekskul = Ekskul::create([
+            'nama'     => 'Pramuka',
+            'kategori' => 'wajib',
+            'kuota'    => 50,
+            'status'   => true,
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.ekskul.anggota.index', $ekskul->id));
+
+        $response->assertStatus(200);
+        $response->assertSee('Pramuka');
     }
 }

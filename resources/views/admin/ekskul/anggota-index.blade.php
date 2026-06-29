@@ -400,7 +400,7 @@
       search: '',
       filterKelas: '',
       selectedId: null,
-      allSiswa: @json($siswaOptions->map(function($s) { return ['id' => $s->id, 'nama_lengkap' => $s->nama_lengkap, 'nis' => $s->nis, 'kelas_id' => $s->kelas_id, 'kelas' => $s->kelas ? array('nama' => $s->kelas->nama) : null]; })),
+      allSiswa: {!! json_encode($siswaOptions->map(function($s) { return ['id' => $s->id, 'nama_lengkap' => $s->nama_lengkap, 'nis' => $s->nis, 'kelas_id' => $s->kelas_id, 'kelas' => $s->kelas ? ['nama' => $s->kelas->nama] : null]; })) !!},
       get filteredSiswa() {
         return this.allSiswa.filter(s => {
           const matchSearch = !this.search || 

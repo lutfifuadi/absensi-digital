@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preview Mobile — Scan QR</title>
+  <style>
+    body { margin: 0; background: #1a1a2e; font-family: sans-serif; display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; align-items: flex-start; }
+    .device-frame {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .device-label {
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    iframe {
+      border: 2px solid #334155;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.5);
+      background: #000;
+    }
+    .status {
+      color: #64748b;
+      font-size: 11px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="device-frame">
+    <div class="device-label">📱 iPhone SE (375×667)</div>
+    <iframe src="/scan-qr/scan" width="375" height="667" scrolling="no"></iframe>
+    <div class="status">Layar kecil</div>
+  </div>
+
+  <div class="device-frame">
+    <div class="device-label">📱 iPhone 14 (390×844)</div>
+    <iframe src="/scan-qr/scan" width="390" height="844" scrolling="no"></iframe>
+    <div class="status">Standar medium</div>
+  </div>
+
+  <div class="device-frame">
+    <div class="device-label">📱 Android (360×780)</div>
+    <iframe src="/scan-qr/scan" width="360" height="780" scrolling="no"></iframe>
+    <div class="status">Standar Android</div>
+  </div>
+
+  <div class="device-frame">
+    <div class="device-label">📱 Samsung S23 (393×851)</div>
+    <iframe src="/scan-qr/scan" width="393" height="851" scrolling="no"></iframe>
+    <div class="status">Flagship Android</div>
+  </div>
+
+</body>
+</html>

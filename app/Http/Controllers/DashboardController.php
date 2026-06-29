@@ -555,55 +555,119 @@ private function superAdminData(): array
         ];
     }
 
+    public function switchAnak(Request $request)
+    {
+        $request->validate([
+            'siswa_id' => 'required|exists:siswa,id'
+        ]);
+
+        $user = $request->user();
+        
+        // Verifikasi bahwa anak tersebut memang milik user/ortu ini
+        // Kita dukung baik yang langsung ortu_user_id di tabel siswa maupun relasi pivot siswa_ortu
+        $isOwnChild = \App\Models\Siswa::where('id', $request->siswa_id)
+            ->where(function($query) use ($user) {
+                $query->where('ortu_user_id', $user->id)
+                      ->orWhereHas('ortu', function($q) use ($user) {
+                          $q->where('users.id', $user->id);
+                      });
+            })->exists();
+
+        if ($isOwnChild) {
+            session(['active_siswa_id' => $request->siswa_id]);
+        }
+
+        return redirect()->back();
+    }
+
     private function orangTuaData($user): array
     {
         $today = Carbon::today();
-        $month = now()->month;
-        $year = now()->year;
-
-        $children = Siswa::with(['kelas', 'absensi' => function($q) use ($today, $month, $year) {
-            $q->where(function($query) use ($today, $month, $year) {
-                $query->whereDate('tanggal', $today)
-                      ->orWhere(function($q2) use ($month, $year) {
-                          $q2->whereMonth('tanggal', $month)
-                             ->whereYear('tanggal', $year);
+        
+        // Ambil semua anak yang terhubung dengan ortu ini
+        $children = Siswa::with(['kelas'])
+            ->where(function($query) use ($user) {
+                $query->where('ortu_user_id', $user->id)
+                      ->orWhereHas('ortu', function($q) use ($user) {
+                          $q->where('users.id', $user->id);
                       });
-            });
-        }])
-            ->where('ortu_user_id', $user->id)
+            })
             ->get();
 
-        $anakData = $children->map(function ($anak) use ($today, $month, $year) {
-            $absensiHariIni = AbsensiSiswa::where('siswa_id', $anak->id)
-                ->whereDate('tanggal', $today)
-                ->first();
-
-            $statsRaw = AbsensiSiswa::where('siswa_id', $anak->id)
-                ->whereMonth('tanggal', $month)
-                ->whereYear('tanggal', $year)
-                ->selectRaw('status, COUNT(*) as total')
-                ->groupBy('status')
-                ->pluck('total', 'status')
-                ->toArray();
-
-            $hadir = ($statsRaw['hadir'] ?? 0) + ($statsRaw['terlambat'] ?? 0);
-            $alpha = $statsRaw['alpha'] ?? 0;
-            $izinSakit = ($statsRaw['izin'] ?? 0) + ($statsRaw['sakit'] ?? 0);
-
+        if ($children->isEmpty()) {
             return [
-                'siswa' => $anak,
-                'absensi_hari_ini' => $absensiHariIni,
-                'stats' => [
-                    'hadir' => $hadir,
-                    'alpha' => $alpha,
-                    'izin_sakit' => $izinSakit,
-                ],
-                'early_warning' => $alpha >= 3,
+                'anakList' => collect(),
+                'activeAnak' => null,
+                'absensiHariIni' => null,
+                'rekapBulanan' => [],
+                'kalenderAbsensi' => [],
+                'month' => now()->month,
+                'year' => now()->year
             ];
-        });
+        }
+
+        // Tentukan anak aktif
+        $activeSiswaId = session('active_siswa_id');
+        $activeAnak = null;
+        
+        if ($activeSiswaId) {
+            $activeAnak = $children->firstWhere('id', $activeSiswaId);
+        }
+        
+        if (!$activeAnak) {
+            $activeAnak = $children->first();
+            session(['active_siswa_id' => $activeAnak->id]);
+        }
+
+        // Ambil filter bulan/tahun (dari request jika ada, tapi karena dipanggil dari Dashboard index, kita handle request query parameter juga)
+        $month = request()->query('month', now()->month);
+        $year = request()->query('year', now()->year);
+
+        // Ringkasan Hari Ini untuk Anak Aktif
+        $absensiHariIni = AbsensiSiswa::where('siswa_id', $activeAnak->id)
+            ->whereDate('tanggal', $today)
+            ->first();
+
+        // Rekapitulasi bulanan berdasarkan filter bulan dan tahun untuk anak aktif
+        $statsRaw = AbsensiSiswa::where('siswa_id', $activeAnak->id)
+            ->whereMonth('tanggal', $month)
+            ->whereYear('tanggal', $year)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->toArray();
+
+        $rekapBulanan = [
+            'hadir' => $statsRaw['hadir'] ?? 0,
+            'terlambat' => $statsRaw['terlambat'] ?? 0,
+            'sakit' => $statsRaw['sakit'] ?? 0,
+            'izin' => $statsRaw['izin'] ?? 0,
+            'alpha' => $statsRaw['alpha'] ?? 0,
+        ];
+
+        // Dapatkan data kalender bulanan untuk anak aktif (agar widget kalender terisi)
+        $startOfMonth = Carbon::create($year, $month, 1)->startOfDay();
+        $endOfMonth   = $startOfMonth->copy()->endOfMonth();
+
+        $rawAbsensiBulan = AbsensiSiswa::where('siswa_id', $activeAnak->id)
+            ->whereBetween('tanggal', [$startOfMonth, $endOfMonth])
+            ->get()
+            ->keyBy('tanggal');
+
+        // Dapatkan daftar hari libur di bulan/tahun terpilih
+        $holidays = Holiday::whereBetween('tanggal', [$startOfMonth, $endOfMonth])
+            ->pluck('nama', 'tanggal')
+            ->toArray();
 
         return [
-            'anakList' => $anakData,
+            'anakList' => $children,
+            'activeAnak' => $activeAnak,
+            'absensiHariIni' => $absensiHariIni,
+            'rekapBulanan' => $rekapBulanan,
+            'rawAbsensiBulan' => $rawAbsensiBulan,
+            'holidays' => $holidays,
+            'month' => (int)$month,
+            'year' => (int)$year,
         ];
     }
 

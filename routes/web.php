@@ -198,14 +198,21 @@ Route::middleware([
   });
   
   // ── PORTAL ORANG TUA ──────────────────────────────────────────────────────
-  Route::prefix('ortu')->middleware('role:orang_tua')->group(function () {
+  Route::prefix('ortu')->middleware('ortu')->group(function () {
       Route::get('/dashboard', [DashboardController::class, 'index'])->name('ortu.dashboard');
+      Route::post('/switch-anak', [DashboardController::class, 'switchAnak'])->name('ortu.switch-anak');
       Route::get('/anak/{id}/profil', [\App\Http\Controllers\PortalOrangTuaController::class, 'profilAnak'])->name('ortu.anak.profil');
       Route::get('/anak/{id}/absensi', [\App\Http\Controllers\PortalOrangTuaController::class, 'absensiAnak'])->name('ortu.anak.absensi');
       
       Route::get('/izin-sakit', [\App\Http\Controllers\PortalOrangTuaController::class, 'izinSakit'])->name('ortu.izin-sakit.index');
       Route::get('/izin-sakit/create', [\App\Http\Controllers\PortalOrangTuaController::class, 'izinSakitCreate'])->name('ortu.izin-sakit.create');
       Route::post('/izin-sakit', [\App\Http\Controllers\PortalOrangTuaController::class, 'izinSakitStore'])->name('ortu.izin-sakit.store');
+      Route::delete('/izin-sakit/{id}', [\App\Http\Controllers\PortalOrangTuaController::class, 'izinSakitDestroy'])->name('ortu.izin-sakit.destroy');
+
+      // Pengaturan Profil & Ganti Password Ortu
+      Route::get('/pengaturan', [\App\Http\Controllers\PortalOrangTuaController::class, 'pengaturan'])->name('ortu.pengaturan');
+      Route::put('/pengaturan/profil', [\App\Http\Controllers\PortalOrangTuaController::class, 'updateProfil'])->name('ortu.pengaturan.profil');
+      Route::put('/pengaturan/password', [\App\Http\Controllers\PortalOrangTuaController::class, 'updatePassword'])->name('ortu.pengaturan.password');
   });
 
   // ── Impersonation routes ────────────────────────────────────────────────────
@@ -477,6 +484,10 @@ Route::middleware([
           ->names('admin.siswa')
           ->except(['show'])
           ->middleware('role:super_admin,admin_sekolah,operator');
+
+      Route::resource('orang-tua', \App\Http\Controllers\Admin\OrangTuaController::class)
+          ->names('admin.orang-tua')
+          ->middleware('role:super_admin,admin_sekolah');
 
       Route::get('siswa/import', [SiswaController::class, 'import'])
           ->name('admin.siswa.import')

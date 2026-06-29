@@ -68,7 +68,7 @@ class Siswa extends Model
 
     public function ortu()
     {
-        return $this->belongsTo(User::class, 'ortu_user_id');
+        return $this->belongsToMany(User::class, 'siswa_ortu', 'siswa_id', 'ortu_user_id')->withTimestamps();
     }
 
     public function kelas()

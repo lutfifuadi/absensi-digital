@@ -44,6 +44,10 @@ class User extends Authenticatable
         'password',
         'role',
         'roles',
+        'no_hp',
+        'hubungan',
+        'status',
+        'alamat',
     ];
 
     /**
@@ -156,6 +160,6 @@ class User extends Authenticatable
 
     public function children()
     {
-        return $this->hasMany(Siswa::class, 'ortu_user_id');
+        return $this->belongsToMany(Siswa::class, 'siswa_ortu', 'ortu_user_id', 'siswa_id')->withTimestamps();
     }
 }
