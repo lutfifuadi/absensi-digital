@@ -142,7 +142,6 @@ Route::middleware([
   'verified',
 ])->group(function () {
   Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-  Route::post('/dashboard/scan-qr', [DashboardController::class, 'scanQrAjax'])->name('admin.dashboard.scan-qr')->middleware('role:super_admin,admin_sekolah');
   Route::get('/dashboard/refresh-stats', [DashboardController::class, 'refreshStats'])->name('admin.dashboard.refresh-stats')->middleware('role:super_admin,admin_sekolah');
 
   // ── PORTAL SISWA ──────────────────────────────────────────────────────────

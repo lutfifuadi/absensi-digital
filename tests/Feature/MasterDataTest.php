@@ -47,6 +47,67 @@ class MasterDataTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_admin_can_access_siswa_create_and_edit_pages_filtered_by_session_ta()
+    {
+        // 1. Create a second inactive TahunAkademik
+        $inactiveTa = TahunAkademik::create([
+            'nama' => '2026-2027',
+            'semester' => 'Ganjil',
+            'tanggal_mulai' => now()->addYear()->startOfYear(),
+            'tanggal_selesai' => now()->addYear()->endOfYear(),
+            'is_aktif' => false
+        ]);
+
+        // 2. Create class for the inactive TA
+        $inactiveKelas = Kelas::create([
+            'nama' => 'XI-B',
+            'tahun_akademik_id' => $inactiveTa->id,
+            'jurusan' => 'Umum',
+            'tingkat' => 'XI'
+        ]);
+
+        // 3. Create a Siswa for testing edit
+        $siswa = Siswa::create([
+            'nis' => '54321',
+            'nisn' => '0054321000',
+            'nama_lengkap' => 'Siswa Edit Test',
+            'jenis_kelamin' => 'P',
+            'tempat_lahir' => 'Bandung',
+            'tanggal_lahir' => '2010-02-02',
+            'no_hp_ortu' => '08123456780',
+            'kelas_id' => $this->kelas->id,
+            'tahun_akademik_id' => $this->tahunAkademik->id,
+            'status' => 'aktif',
+        ]);
+
+        // Test with session pointing to active TA
+        $response = $this->actingAs($this->admin)
+            ->withSession(['tahun_akademik_id' => $this->tahunAkademik->id])
+            ->get(route('admin.siswa.create'));
+        
+        $response->assertStatus(200);
+        $response->assertSee($this->kelas->nama);
+        $response->assertDontSee($inactiveKelas->nama);
+
+        // Test edit with session pointing to inactive TA
+        $response = $this->actingAs($this->admin)
+            ->withSession(['tahun_akademik_id' => $inactiveTa->id])
+            ->get(route('admin.siswa.edit', $siswa));
+
+        $response->assertStatus(200);
+        $response->assertSee($inactiveKelas->nama);
+        $response->assertDontSee($this->kelas->nama);
+
+        // Test cetak Qr Kelas page filtering by session TA
+        $response = $this->actingAs($this->admin)
+            ->withSession(['tahun_akademik_id' => $this->tahunAkademik->id])
+            ->get(route('admin.siswa.cetak-qr'));
+        
+        $response->assertStatus(200);
+        $response->assertSee($this->kelas->nama);
+        $response->assertDontSee($inactiveKelas->nama);
+    }
+
     public function test_admin_can_create_siswa()
     {
         $siswaData = [

@@ -4,6 +4,7 @@
 
 @section('page-style')
 <style>
+    /* Step Indicator Styling */
     .step-indicator {
         display: flex;
         align-items: center;
@@ -19,9 +20,13 @@
     }
     .step.active {
         color: #fff;
+        font-weight: 600;
     }
     .step.completed {
         color: #28c76f;
+    }
+    .step.pending {
+        color: rgba(255, 255, 255, 0.25);
     }
     .step-number {
         width: 28px;
@@ -39,17 +44,72 @@
     .step.active .step-number {
         background: #7367f0;
         border-color: #7367f0;
+        box-shadow: 0 0 10px rgba(115, 103, 240, 0.5);
     }
     .step.completed .step-number {
         background: #28c76f;
         border-color: #28c76f;
+        box-shadow: 0 0 10px rgba(40, 199, 111, 0.5);
+    }
+    .step.pending .step-number {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.05);
     }
     .step-line {
         flex: 1;
-        height: 1px;
+        height: 2px;
         background: rgba(255, 255, 255, 0.08);
         max-width: 60px;
     }
+    .step-line.completed {
+        background: #28c76f;
+    }
+    .step-line.active {
+        background: #7367f0;
+    }
+
+    /* Table Preview Row Styling */
+    .table-preview-row-normal {
+        background: transparent;
+        transition: all 0.2s ease;
+    }
+    .table-preview-row-normal:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
+    .table-preview-row-warning {
+        background: rgba(255, 159, 67, 0.04);
+        border-left: 3px solid #ff9f43 !important;
+        transition: all 0.2s ease;
+    }
+    .table-preview-row-warning:hover {
+        background: rgba(255, 159, 67, 0.08);
+    }
+    .table-preview-row-danger {
+        background: rgba(234, 84, 85, 0.04);
+        border-left: 3px solid #ea5455 !important;
+        transition: all 0.2s ease;
+    }
+    .table-preview-row-danger:hover {
+        background: rgba(234, 84, 85, 0.08);
+    }
+
+    /* Custom Form Select Option Styling */
+    .form-select.bg-dark {
+        background-color: #2f3349 !important;
+        color: #cfd3ec !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 8px;
+        transition: all 0.2s ease-in-out;
+    }
+    .form-select.bg-dark:focus {
+        border-color: #7367f0 !important;
+        box-shadow: 0 0 0 0.25rem rgba(115, 103, 240, 0.25) !important;
+    }
+    .form-select.bg-dark option {
+        background-color: #2f3349 !important;
+        color: #cfd3ec !important;
+    }
+
     .tingkat-badge {
         font-size: 0.7rem;
         padding: 2px 10px;
@@ -95,6 +155,86 @@
         border-left: 3px solid #ff9f43;
         border-radius: 8px;
         padding: 1rem;
+    }
+
+    /* SweetAlert2 Custom Premium Styling */
+    .das-swal-popup {
+        background: rgba(26, 26, 46, 0.95) !important;
+        backdrop-filter: blur(16px) saturate(180%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4) !important;
+        padding: 2rem 1.5rem !important;
+    }
+    .das-swal-title {
+        color: #fff !important;
+        font-size: 1.25rem !important;
+        font-weight: 700 !important;
+        margin-bottom: 0.75rem !important;
+    }
+    .das-swal-icon {
+        margin: 1.25rem auto 0.75rem auto !important;
+        border-color: rgba(255, 255, 255, 0.15) !important;
+    }
+    .das-swal-html {
+        color: rgba(255, 255, 255, 0.7) !important;
+        font-size: 0.9rem !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .das-summary-box {
+        background: rgba(15, 17, 28, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 12px !important;
+        padding: 1.25rem !important;
+        margin-top: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+    .das-summary-table {
+        width: 100% !important;
+        margin-bottom: 0 !important;
+        border-collapse: collapse !important;
+    }
+    .das-summary-table td {
+        padding: 0.6rem 0 !important;
+        color: rgba(255, 255, 255, 0.75) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        font-size: 0.85rem !important;
+    }
+    .das-summary-table tr:last-child td {
+        border-bottom: none !important;
+    }
+    .das-summary-table td.text-end {
+        font-weight: 700 !important;
+    }
+    .das-swal-confirm {
+        background: #28c76f !important;
+        color: #fff !important;
+        border-radius: 8px !important;
+        padding: 10px 24px !important;
+        font-size: 0.85rem !important;
+        font-weight: 600 !important;
+        border: none !important;
+        box-shadow: 0 4px 12px rgba(40, 199, 111, 0.3) !important;
+        transition: all 0.2s ease !important;
+    }
+    .das-swal-confirm:hover {
+        background: #20a65b !important;
+        box-shadow: 0 6px 16px rgba(40, 199, 111, 0.4) !important;
+    }
+    .das-swal-cancel {
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 8px !important;
+        padding: 10px 24px !important;
+        font-size: 0.85rem !important;
+        font-weight: 600 !important;
+        transition: all 0.2s ease !important;
+    }
+    .das-swal-cancel:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important;
     }
 </style>
 @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
@@ -150,13 +290,13 @@
         <span class="step-number">1</span>
         <span>Pilih Tahun Ajaran</span>
     </div>
-    <div class="step-line"></div>
-    <div class="step {{ $preview ? 'active' : '' }}">
+    <div class="step-line {{ $preview ? 'completed' : '' }}"></div>
+    <div class="step {{ $preview ? (session('naik_kelas_result') ? 'completed' : 'active') : 'pending' }}">
         <span class="step-number">2</span>
         <span>Preview & Konfirmasi</span>
     </div>
-    <div class="step-line"></div>
-    <div class="step {{ session('naik_kelas_result') ? 'completed' : '' }}">
+    <div class="step-line {{ session('naik_kelas_result') ? 'completed' : '' }}"></div>
+    <div class="step {{ session('naik_kelas_result') ? 'completed' : 'pending' }}">
         <span class="step-number">3</span>
         <span>Selesai</span>
     </div>
@@ -214,7 +354,7 @@
         <small class="text-white-50">
             Dari <strong class="text-info">{{ $preview['ta_asal']->nama }}</strong>
             → <strong class="text-success">{{ $preview['ta_tujuan']->nama }}</strong>
-            ({{ $preview['total_siswa'] }} siswa akan diproses)
+            (<span id="summary-total-siswa">{{ $preview['total_siswa'] }}</span> siswa akan diproses)
         </small>
     </div>
     <div class="das-panel__body p-0">
@@ -232,7 +372,15 @@
                 </thead>
                 <tbody>
                     @foreach($preview['detail'] as $item)
-                    <tr class="siswa-row-hover">
+                    @php
+                        $rowClass = 'table-preview-row-normal';
+                        if ($item['next_tingkat'] === null) {
+                            $rowClass = 'table-preview-row-warning';
+                        } elseif (!$item['kelas_tujuan']) {
+                            $rowClass = 'table-preview-row-danger';
+                        }
+                    @endphp
+                    <tr class="{{ $rowClass }}">
                         <td class="py-3 px-4">{{ $item['kelas_asal']->nama }}</td>
                         <td class="py-3">
                             <span class="tingkat-badge {{ 'tingkat-' . $item['tingkat'] }}">{{ $item['tingkat'] }}</span>
@@ -266,17 +414,23 @@
         </div>
     </div>
     <div class="das-panel__footer border-top p-4 d-flex align-items-center justify-content-between flex-wrap gap-3" style="border-color:rgba(255,255,255,0.08) !important;">
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
             <span class="text-white-50 small">Total: <strong class="text-white">{{ $preview['total_siswa'] }} siswa</strong></span>
             @php
                 $xiiCount = collect($preview['detail'])->where('tingkat', 'XII')->sum('jumlah_siswa');
                 $notFound = collect($preview['detail'])->where('bisa_diproses', false)->sum('jumlah_siswa');
+                $normalCount = $preview['total_siswa'] - $xiiCount - $notFound;
             @endphp
+            <span class="d-none" id="summary-normal">{{ $normalCount }}</span>
             @if($xiiCount > 0)
-                <span class="badge bg-label-warning">{{ $xiiCount }} siswa akan menjadi alumni</span>
+                <span class="badge bg-label-warning"><span id="summary-alumni">{{ $xiiCount }}</span> siswa akan menjadi alumni</span>
+            @else
+                <span class="d-none" id="summary-alumni">0</span>
             @endif
             @if($notFound > 0)
-                <span class="badge bg-label-danger">{{ $notFound }} siswa tidak bisa diproses</span>
+                <span class="badge bg-label-danger"><span id="summary-error">{{ $notFound }}</span> siswa tidak bisa diproses</span>
+            @else
+                <span class="d-none" id="summary-error">0</span>
             @endif
         </div>
         <form method="POST" action="{{ route('admin.siswa.naik-kelas-massal.execute') }}" id="executeForm">
@@ -352,6 +506,9 @@
         </div>
         @endif
 
+        @php
+            $xiiCount = collect($result['details'])->where('tingkat', 'XII')->sum('jumlah');
+        @endphp
         @if($xiiCount > 0)
         <div class="alumni-warning mt-4">
             <div class="d-flex align-items-center gap-2 mb-1">
@@ -407,13 +564,42 @@ document.addEventListener('DOMContentLoaded', function() {
     const executeBtn = document.getElementById('executeBtn');
     if (executeBtn) {
         executeBtn.addEventListener('click', function() {
+            const totalSiswa = document.getElementById('summary-total-siswa')?.innerText || '0';
+            const alumniSiswa = document.getElementById('summary-alumni')?.innerText || '0';
+            const errorSiswa = document.getElementById('summary-error')?.innerText || '0';
+            const normalSiswa = document.getElementById('summary-normal')?.innerText || '0';
+
             Swal.fire({
                 title: 'Konfirmasi Naik Kelas Massal',
                 html: `
-                    <div class="mt-2">
-                        Semua siswa akan dipromosikan ke tingkat berikutnya.<br>
-                        Siswa <strong class="text-warning">XII</strong> akan menjadi <strong>alumni</strong>.<br><br>
-                        Tindakan ini <strong class="text-danger">tidak dapat dibatalkan</strong>.
+                    <div class="text-start">
+                        <p class="mb-3 text-center text-white-50">Apakah Anda yakin ingin memproses kenaikan kelas massal ini?</p>
+                        <div class="das-summary-box">
+                            <h6 class="text-white mb-2 fs-6 d-flex align-items-center gap-2">
+                                <i class="ti tabler-info-circle text-info"></i> Ringkasan Proses
+                            </h6>
+                            <table class="das-summary-table">
+                                <tr>
+                                    <td><i class="ti tabler-users text-primary me-2"></i>Total Siswa Terdeteksi</td>
+                                    <td class="text-end text-primary">${totalSiswa}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="ti tabler-circle-check text-success me-2"></i>Naik Kelas (Normal)</td>
+                                    <td class="text-end text-success">${normalSiswa}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="ti tabler-school text-warning me-2"></i>Lulus (Menjadi Alumni)</td>
+                                    <td class="text-end text-warning">${alumniSiswa}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="ti tabler-circle-x text-danger me-2"></i>Tidak Bisa Diproses</td>
+                                    <td class="text-end text-danger">${errorSiswa}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <p class="mt-3 text-danger text-center small fw-bold mb-0">
+                            <i class="ti tabler-alert-triangle me-1"></i> Tindakan ini tidak dapat dibatalkan!
+                        </p>
                     </div>
                 `,
                 icon: 'warning',
@@ -424,15 +610,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     popup: 'das-swal-popup',
                     title: 'das-swal-title',
                     htmlContainer: 'das-swal-html',
-                    confirmButton: 'btn btn-success das-swal-confirm me-2',
-                    cancelButton: 'btn das-swal-cancel',
+                    confirmButton: 'das-swal-confirm me-2',
+                    cancelButton: 'das-swal-cancel',
                     icon: 'das-swal-icon'
                 },
                 buttonsStyling: false,
                 showClass: { popup: 'animate__animated animate__fadeInUp animate__faster' },
                 hideClass: { popup: 'animate__animated animate__fadeOutDown animate__faster' },
                 background: 'transparent',
-                backdrop: 'rgba(0,0,10,0.4)',
+                backdrop: 'rgba(0,0,10,0.5)',
             }).then((result) => {
                 if (result.isConfirmed) {
                     executeBtn.disabled = true;

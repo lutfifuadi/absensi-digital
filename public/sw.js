@@ -4,7 +4,8 @@ const OFFLINE_URL = '/pages/misc-error'; // We can change this to a custom offli
 const urlsToCache = [
   '/',
   '/manifest.json',
-  '/scan-ekskul'
+  '/scan-ekskul',
+  OFFLINE_URL
 ];
 
 // Helper untuk membuka IndexedDB
@@ -49,11 +50,14 @@ self.addEventListener('fetch', event => {
         if (response) {
           return response;
         }
-        return fetch(event.request).catch(() => {
+        return fetch(event.request).catch(err => {
           // If network fails (offline), return cached offline page if navigating
           if (event.request.mode === 'navigate') {
-            return caches.match(OFFLINE_URL);
+            return caches.match(OFFLINE_URL).then(offlineResponse => {
+              return offlineResponse || Promise.reject(err);
+            });
           }
+          return Promise.reject(err);
         });
       })
   );

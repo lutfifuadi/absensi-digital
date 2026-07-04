@@ -171,7 +171,7 @@
                   @foreach ($kelasOptions as $kelas)
                     <option value="{{ $kelas->id }}"
                       {{ old('kelas_id', $siswa->kelas_id ?? '') == $kelas->id ? 'selected' : '' }}>
-                      {{ $kelas->nama }} — {{ $kelas->jurusan }}</option>
+                      {{ $kelas->nama }} — {{ $kelas->jurusan }} ({{ $kelas->tahunAkademik->nama ?? '-' }})</option>
                   @endforeach
                 </select>
               </div>

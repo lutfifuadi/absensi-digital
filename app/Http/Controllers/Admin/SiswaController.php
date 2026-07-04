@@ -74,7 +74,12 @@ class SiswaController extends Controller
 
     public function create()
     {
-        $kelasOptions = Kelas::orderBy('nama')->get();
+        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'))
+            ?? TahunAkademik::where('is_aktif', true)->value('id');
+
+        $kelasOptions = Kelas::where('tahun_akademik_id', $tahunAjaranId)
+            ->orderBy('nama')
+            ->get();
         $tahunAkademikOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
 
         return view('admin.siswa.form', compact('kelasOptions', 'tahunAkademikOptions'));
@@ -380,7 +385,12 @@ class SiswaController extends Controller
 
     public function edit(Siswa $siswa)
     {
-        $kelasOptions = Kelas::orderBy('nama')->get();
+        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'))
+            ?? TahunAkademik::where('is_aktif', true)->value('id');
+
+        $kelasOptions = Kelas::where('tahun_akademik_id', $tahunAjaranId)
+            ->orderBy('nama')
+            ->get();
         $tahunAkademikOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
 
         return view('admin.siswa.form', compact('siswa', 'kelasOptions', 'tahunAkademikOptions'));
@@ -552,7 +562,12 @@ class SiswaController extends Controller
     public function cetakQrKelas(Request $request)
     {
         $kelasId = $request->input('kelas_id');
-        $kelasOptions = Kelas::orderBy('nama')->get();
+        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'))
+            ?? TahunAkademik::where('is_aktif', true)->value('id');
+
+        $kelasOptions = Kelas::where('tahun_akademik_id', $tahunAjaranId)
+            ->orderBy('nama')
+            ->get();
 
         if (! $kelasId) {
             return view('admin.siswa.cetak-qr-pilih', compact('kelasOptions'));
@@ -561,6 +576,11 @@ class SiswaController extends Controller
         if ($kelasId === 'semua') {
             $siswaList = Siswa::with('kelas')
                 ->where('status', 'aktif')
+                ->where(function ($q) use ($tahunAjaranId) {
+                    if ($tahunAjaranId) {
+                        $q->where('tahun_akademik_id', $tahunAjaranId);
+                    }
+                })
                 ->orderBy('nama_lengkap')
                 ->get();
             $namaKelas = 'Semua Kelas';
