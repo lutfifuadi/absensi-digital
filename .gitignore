@@ -56,3 +56,8 @@ vendor.zip
 # Uploaded files (user content)
 /public/uploads/logo/*
 !/public/uploads/logo/.gitkeep
+
+# Exclude custom backup and planning docs from git
+/PRD-Google-Sheets-Sync-Siswa.md
+/backup_legacy.php
+/backup_live_presensi.sql
