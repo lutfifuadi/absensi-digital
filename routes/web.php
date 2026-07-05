@@ -737,6 +737,9 @@ Route::middleware([
         Route::post('pengaturan/google-sheets/process-queue', [GoogleSheetsSettingController::class, 'processQueue'])
             ->name('admin.pengaturan.google-sheets.process-queue')
             ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pengaturan/google-sheets/reset-antrian', [GoogleSheetsSettingController::class, 'resetAntrian'])
+            ->name('admin.pengaturan.google-sheets.reset-antrian')
+            ->middleware('role:super_admin,admin_sekolah');
         Route::get('pengaturan/google-sheets/template/download', [GoogleSheetsSettingController::class, 'downloadTemplate'])
             ->name('admin.pengaturan.google-sheets.template.download')
             ->middleware('role:super_admin,admin_sekolah');

@@ -59,5 +59,7 @@ vendor.zip
 
 # Exclude custom backup and planning docs from git
 /PRD-Google-Sheets-Sync-Siswa.md
+/PRD-Google-Sheets-Reset-Antrian.md
+/PRD-Google-Sheets-UIUX-Refinement.md
 /backup_legacy.php
 /backup_live_presensi.sql

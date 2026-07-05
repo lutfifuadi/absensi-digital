@@ -129,8 +129,6 @@
   </div>
 </div>
 
-<form action="{{ route('admin.pengaturan.google-sheets.update') }}" method="POST">
-  @csrf
   <div class="set-layout">
 
     {{-- ─────────────────────────────
@@ -165,7 +163,7 @@
 
         {{-- Save Button (Sidebar) --}}
         <div class="set-nav__save-wrap">
-          <button type="submit" class="set-save-btn w-100">
+          <button type="submit" form="gsUpdateForm" class="set-save-btn w-100">
             <i class="ti tabler-device-floppy"></i>
             <span>Simpan Pengaturan</span>
           </button>
@@ -174,379 +172,416 @@
     </aside>
 
     <main class="set-content">
-
-      {{-- ─────────────────────────────
-           PANEL 1: Konfigurasi Google Sheets
-      ───────────────────────────── --}}
-      <div class="set-panel mb-4">
-        <div class="set-panel__head">
-          <div class="set-panel__title-wrap">
-            <div class="set-panel__icon --primary"><i class="ti tabler-file-spreadsheet"></i></div>
-            <div>
-              <div class="set-panel__title">Konfigurasi Google Sheets</div>
-              <div class="set-panel__sub">Atur koneksi spreadsheet Google Sheets untuk sinkronisasi data siswa dan pengguna.</div>
-            </div>
-          </div>
-        </div>
-        <div class="set-panel__body">
-          {{-- Action Bar: Download Template & Buat Google Sheet --}}
-          <div class="d-flex flex-wrap gap-2 mb-4 pb-3" style="border-bottom: 1px solid var(--das-border);">
-            <a href="{{ route('admin.pengaturan.google-sheets.template.download') }}"
-               class="gs-action-btn gs-action-btn--info">
-              <i class="ti tabler-download"></i>
-              <span>Download Template Excel</span>
-            </a>
-            <button type="button"
-                    class="gs-action-btn gs-action-btn--success"
-                    id="gsCreateSheetBtn"
-                    onclick="createGsSheetTemplate()">
-              <i class="ti tabler-file-plus"></i>
-              <span>Buat Google Sheet Template</span>
-            </button>
-          </div>
-
-          <div class="set-form-grid">
-
-            <div class="set-field set-field--full">
-              <label class="set-label" for="spreadsheet_id">ID Spreadsheet</label>
-              <div class="set-input-group">
-                <span class="set-input-prefix"><i class="ti tabler-brand-google"></i></span>
-                <input type="text" class="set-input font-monospace {{ $errors->has('spreadsheet_id') ? 'is-invalid' : '' }}"
-                  id="spreadsheet_id"
-                  name="spreadsheet_id"
-                  value="{{ old('spreadsheet_id', $setting->spreadsheet_id ?? '') }}"
-                  placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"
-                  aria-describedby="spreadsheet_id_help">
+      <div class="gs-grid-container">
+        
+        <!-- KOLOM KIRI (UTAMA): FORM KONFIGURASI -->
+        <div class="gs-grid-left">
+          <form action="{{ route('admin.pengaturan.google-sheets.update') }}" method="POST" id="gsUpdateForm">
+            @csrf
+            
+            {{-- ─────────────────────────────
+                 PANEL 1: Konfigurasi Google Sheets
+            ───────────────────────────── --}}
+            <div class="set-panel mb-4">
+              <div class="set-panel__head">
+                <div class="set-panel__title-wrap">
+                  <div class="set-panel__icon --primary"><i class="ti tabler-file-spreadsheet"></i></div>
+                  <div>
+                    <div class="set-panel__title">Konfigurasi Google Sheets</div>
+                    <div class="set-panel__sub">Atur koneksi spreadsheet Google Sheets untuk sinkronisasi data siswa dan pengguna.</div>
+                  </div>
+                </div>
               </div>
-              <div id="spreadsheet_id_help" class="text-muted small mt-1">ID spreadsheet dari URL Google Sheets (contoh: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms)</div>
-              @error('spreadsheet_id')
-                <div class="text-danger small mt-1">{{ $message }}</div>
-              @enderror
-            </div>
+              <div class="set-panel__body">
+                {{-- Action Bar: Download Template & Buat Google Sheet --}}
+                <div class="d-flex flex-wrap gap-2 mb-4 pb-3" style="border-bottom: 1px solid var(--das-border);">
+                  <a href="{{ route('admin.pengaturan.google-sheets.template.download') }}"
+                     class="gs-action-btn gs-action-btn--info">
+                    <i class="ti tabler-download"></i>
+                    <span>Download Template Excel</span>
+                  </a>
+                  <button type="button"
+                          class="gs-action-btn gs-action-btn--success"
+                          id="gsCreateSheetBtn"
+                          onclick="createGsSheetTemplate()">
+                    <i class="ti tabler-file-plus"></i>
+                    <span>Buat Google Sheet Template</span>
+                  </button>
+                </div>
 
-            <div class="set-field set-field--full">
-              <label class="set-label" for="sheet_range">Range Sheet</label>
-              <div class="set-input-group">
-                <span class="set-input-prefix"><i class="ti tabler-table"></i></span>
-                <input type="text" class="set-input {{ $errors->has('sheet_range') ? 'is-invalid' : '' }}"
-                  id="sheet_range"
-                  name="sheet_range"
-                  value="{{ old('sheet_range', $setting->sheet_range ?? 'Sheet1!A:Z') }}"
-                  aria-describedby="sheet_range_help">
-              </div>
-              <div id="sheet_range_help" class="text-muted small mt-1">Range data di sheet (contoh: Sheet1!A:Z)</div>
-              @error('sheet_range')
-                <div class="text-danger small mt-1">{{ $message }}</div>
-              @enderror
-            </div>
+                <div class="set-form-grid">
 
-            <div class="set-field set-field--full">
-              <label class="set-label" for="credentials_json">Service Account JSON</label>
-              <div class="set-input-group">
-                <span class="set-input-prefix"><i class="ti tabler-key"></i></span>
-                <textarea class="set-input font-monospace {{ $errors->has('credentials_json') ? 'is-invalid' : '' }}"
-                  id="credentials_json"
-                  name="credentials_json"
-                  rows="8"
-                  aria-describedby="credentials_json_help"
-                  placeholder="{{ $setting->id ? 'Kosongkan jika tidak ingin mengubah credentials yang sudah tersimpan' : '' }}">{{ old('credentials_json', $setting->id ? '' : '') }}</textarea>
-              </div>
-              <div id="credentials_json_help" class="text-muted small mt-1">Upload file JSON Service Account dari Google Cloud Console. Kosongkan jika tidak ingin mengubah.</div>
-              @error('credentials_json')
-                <div class="text-danger small mt-1">{{ $message }}</div>
-              @enderror
-            </div>
-
-            <div class="set-field set-field--full">
-              <label class="set-label" for="column_mapping">Mapping Kolom (JSON)</label>
-              <div class="set-input-group">
-                <span class="set-input-prefix"><i class="ti tabler-columns"></i></span>
-                <textarea class="set-input font-monospace {{ $errors->has('column_mapping') ? 'is-invalid' : '' }}"
-                  id="column_mapping"
-                  name="column_mapping"
-                  rows="4"
-                  aria-describedby="column_mapping_help">{{ old('column_mapping', json_encode($setting->column_mapping ?? [], JSON_PRETTY_PRINT)) }}</textarea>
-              </div>
-              <div id="column_mapping_help" class="text-muted small mt-1">Mapping kolom Google Sheets ke field database. Format: {"nis":"NIS","nama_lengkap":"Nama Lengkap","nisn":"NISN","jenis_kelamin":"Jenis Kelamin","tempat_lahir":"Tempat Lahir","tanggal_lahir":"Tanggal Lahir","alamat":"Alamat","no_hp":"No HP"}</div>
-              @error('column_mapping')
-                <div class="text-danger small mt-1">{{ $message }}</div>
-              @enderror
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-      {{-- ─────────────────────────────
-           PANEL 2: Status Sinkronisasi
-      ───────────────────────────── --}}
-      @if($setting->id)
-      <div class="set-panel mb-4">
-        <div class="set-panel__head">
-          <div class="set-panel__title-wrap">
-            <div class="set-panel__icon --info"><i class="ti tabler-refresh"></i></div>
-            <div>
-              <div class="set-panel__title">Status Sinkronisasi</div>
-              <div class="set-panel__sub">Informasi terakhir proses sinkronisasi data dari Google Sheets.</div>
-            </div>
-          </div>
-        </div>
-        <div class="set-panel__body">
-          <div class="set-form-grid">
-            <div class="set-field">
-              <label class="set-label">Terakhir Sinkron</label>
-              <div class="d-flex align-items-center gap-2 mt-1">
-                <i class="ti tabler-calendar-time text-muted"></i>
-                <span class="text-white small" id="sync-last-time">{{ $setting->last_sync_at ? \Carbon\Carbon::parse($setting->last_sync_at)->format('d M Y H:i:s') : '-' }}</span>
-              </div>
-            </div>
-            <div class="set-field">
-              <label class="set-label">Status</label>
-              <div class="mt-1">
-                @php
-                  $badgeClass = match($setting->last_sync_status) {
-                    'success' => 'bg-label-success',
-                    'completed_with_errors' => 'bg-label-warning',
-                    'failed' => 'bg-label-danger',
-                    'in_progress' => 'bg-label-warning',
-                    default => 'bg-label-secondary',
-                  };
-                @endphp
-                <span class="badge {{ $badgeClass }}" id="sync-status-badge">{{ $setting->status_badge_text }}</span>
-              </div>
-            </div>
-            {{-- Selalu render div pesan, tapi set d-none jika pesan kosong --}}
-            <div class="set-field set-field--full {{ !$setting->last_sync_message ? 'd-none' : '' }}" id="sync-message-container">
-              <label class="set-label">Pesan</label>
-              <p class="text-muted small mt-1 mb-0" id="sync-message-text">{{ $setting->last_sync_message ?? '' }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      @endif
-
-      {{-- ─────────────────────────────
-           PANEL 3: Panduan Pemecahan Masalah (Dinamis)
-      ───────────────────────────── --}}
-      @if($setting->id)
-      <div class="set-panel mb-4 {{ !in_array($setting->last_sync_status, ['failed', 'completed_with_errors']) ? 'd-none' : '' }}" id="sync-troubleshoot-panel" style="border-color: rgba(234, 84, 85, 0.25);">
-        <div class="set-panel__head" style="background: linear-gradient(90deg, rgba(234, 84, 85, 0.05) 0%, transparent 60%);">
-          <div class="set-panel__title-wrap">
-            <div class="set-panel__icon" style="background: rgba(234, 84, 85, 0.12); color: var(--das-danger);"><i class="ti tabler-help-circle"></i></div>
-            <div>
-              <div class="set-panel__title">Panduan Pemecahan Masalah</div>
-              <div class="set-panel__sub">Ikuti langkah berikut untuk memperbaiki kesalahan sinkronisasi yang terjadi.</div>
-            </div>
-          </div>
-        </div>
-        <div class="set-panel__body">
-          <div id="sync-troubleshoot-steps" style="display:flex;flex-direction:column;gap:0.75rem;font-size:0.8rem;color:#94a3b8;">
-            {{-- Diisi secara dinamis oleh JavaScript, atau render server-side jika error --}}
-            @if(in_array($setting->last_sync_status, ['failed', 'completed_with_errors']))
-              @php
-                $msg = $setting->last_sync_message ?? '';
-                $stepHtml = '';
-                if (str_contains($msg, 'Credentials JSON') || str_contains($msg, 'MAC') || str_contains($msg, 'decrypt') || str_contains($msg, 'decrpyt')) {
-                  $stepHtml = '
-                    <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(234, 84, 85, 0.04); border: 1px solid rgba(234, 84, 85, 0.08);">
-                      <i class="ti tabler-circle-number-1 text-danger mt-1"></i>
-                      <div>
-                        <b class="text-white">Credentials Lama Rusak (APP_KEY Berubah)</b>
-                        <p class="mb-0 mt-1 small">Langkah perbaikan: Silakan upload/tempel kembali isi file <b>Service Account JSON</b> Anda yang baru pada kolom konfigurasi di bawah, lalu klik <b>Simpan Pengaturan</b>.</p>
-                      </div>
-                    </div>';
-                } elseif (str_contains($msg, 'Mapping kolom')) {
-                  $stepHtml = '
-                    <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(234, 84, 85, 0.04); border: 1px solid rgba(234, 84, 85, 0.08);">
-                      <i class="ti tabler-circle-number-1 text-danger mt-1"></i>
-                      <div>
-                        <b class="text-white">Konfigurasi Mapping Kolom Kosong</b>
-                        <p class="mb-0 mt-1 small">Langkah perbaikan: Gulir ke bagian <b>Mapping Kolom (JSON)</b> di bawah, masukkan format pemetaan kolom database Anda ke kolom Google Sheet (gunakan template contoh di bawah input), lalu klik <b>Simpan</b>.</p>
-                      </div>
-                    </div>';
-                } elseif (str_contains($msg, 'Gagal mengambil data') || str_contains($msg, 'permission') || str_contains($msg, 'access') || str_contains($msg, 'Forbidden')) {
-                  $stepHtml = '
-                    <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(234, 84, 85, 0.04); border: 1px solid rgba(234, 84, 85, 0.08);">
-                      <i class="ti tabler-circle-number-1 text-danger mt-1"></i>
-                      <div>
-                        <b class="text-white">Akses ke Spreadsheet Ditolak / Dilarang</b>
-                        <p class="mb-0 mt-1 small">Langkah perbaikan: Buka Google Sheets Anda ➔ Klik tombol <b>Bagikan (Share)</b> di pojok kanan atas ➔ Undang email <b>Service Account</b> Anda (misal yang berakhiran <i>@gserviceaccount.com</i>) sebagai <b>Viewer</b> atau <b>Editor</b>, lalu klik kirim.</p>
-                      </div>
+                  <div class="set-field set-field--full">
+                    <label class="set-label" for="spreadsheet_id">ID Spreadsheet</label>
+                    <div class="set-input-group">
+                      <span class="set-input-prefix"><i class="ti tabler-brand-google"></i></span>
+                      <input type="text" class="set-input font-monospace {{ $errors->has('spreadsheet_id') ? 'is-invalid' : '' }}"
+                        id="spreadsheet_id"
+                        name="spreadsheet_id"
+                        value="{{ old('spreadsheet_id', $setting->spreadsheet_id ?? '') }}"
+                        placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"
+                        aria-describedby="spreadsheet_id_help">
                     </div>
-                    <div class="d-flex align-items-start gap-2 p-2 rounded mt-2" style="background: rgba(234, 84, 85, 0.04); border: 1px solid rgba(234, 84, 85, 0.08);">
-                      <i class="ti tabler-circle-number-2 text-danger mt-1"></i>
-                      <div>
-                        <b class="text-white">ID Spreadsheet atau Range Salah</b>
-                        <p class="mb-0 mt-1 small">Pastikan nilai pada kolom <b>ID Spreadsheet</b> dan <b>Range Sheet</b> di bawah sudah benar sesuai URL dan nama Sheet Anda.</p>
-                      </div>
-                    </div>';
-                } elseif (str_contains($msg, 'tidak dikenal')) {
-                  $stepHtml = '
-                    <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(255, 159, 67, 0.04); border: 1px solid rgba(255, 159, 67, 0.08);">
-                      <i class="ti tabler-circle-number-1 text-warning mt-1"></i>
-                      <div>
-                        <b class="text-white">Ada Header Kolom yang Tidak Dikenal</b>
-                        <p class="mb-0 mt-1 small">Kolom berikut tidak dikenal: <span id="troubleshoot-unrecognized-list" class="text-warning fw-bold"></span>. Silakan sesuaikan header Google Sheet dengan template standar yang bisa diunduh di atas.</p>
-                      </div>
-                    </div>';
-                } else {
-                  $stepHtml = '
-                    <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(255, 159, 67, 0.04); border: 1px solid rgba(255, 159, 67, 0.08);">
-                      <i class="ti tabler-info-circle text-warning mt-1"></i>
-                      <div>
-                        <b class="text-white">Kesalahan Umum</b>
-                        <p class="mb-0 mt-1 small">Langkah perbaikan: Pastikan koneksi internet server stabil, file credentials Service Account JSON valid, ID Spreadsheet benar, dan Anda sudah melakukan <b>Test Koneksi</b> terlebih dahulu sebelum sinkronisasi.</p>
-                      </div>
-                    </div>';
-                }
-                echo $stepHtml;
-              @endphp
-            @endif
+                    <div id="spreadsheet_id_help" class="text-muted small mt-1">ID spreadsheet dari URL Google Sheets (contoh: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms)</div>
+                    @error('spreadsheet_id')
+                      <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
+                  </div>
+
+                  <div class="set-field set-field--full">
+                    <label class="set-label" for="sheet_range">Range Sheet</label>
+                    <div class="set-input-group">
+                      <span class="set-input-prefix"><i class="ti tabler-table"></i></span>
+                      <input type="text" class="set-input {{ $errors->has('sheet_range') ? 'is-invalid' : '' }}"
+                        id="sheet_range"
+                        name="sheet_range"
+                        value="{{ old('sheet_range', $setting->sheet_range ?? 'Sheet1!A:Z') }}"
+                        aria-describedby="sheet_range_help">
+                    </div>
+                    <div id="sheet_range_help" class="text-muted small mt-1">Range data di sheet (contoh: Sheet1!A:Z)</div>
+                    @error('sheet_range')
+                      <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
+                  </div>
+
+                  <div class="set-field set-field--full">
+                    <label class="set-label" for="credentials_json">Service Account JSON</label>
+                    <div class="set-input-group">
+                      <span class="set-input-prefix"><i class="ti tabler-key"></i></span>
+                      <textarea class="set-input font-monospace {{ $errors->has('credentials_json') ? 'is-invalid' : '' }}"
+                        id="credentials_json"
+                        name="credentials_json"
+                        rows="8"
+                        aria-describedby="credentials_json_help"
+                        placeholder="{{ $setting->id ? 'Kosongkan jika tidak ingin mengubah credentials yang sudah tersimpan' : '' }}">{{ old('credentials_json', $setting->id ? '' : '') }}</textarea>
+                    </div>
+                    <div id="credentials_json_help" class="text-muted small mt-1">Upload file JSON Service Account dari Google Cloud Console. Kosongkan jika tidak ingin mengubah.</div>
+                    @error('credentials_json')
+                      <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
+                  </div>
+
+                  <div class="set-field set-field--full">
+                    <label class="set-label" for="column_mapping">Mapping Kolom (JSON)</label>
+                    <div class="set-input-group">
+                      <span class="set-input-prefix"><i class="ti tabler-columns"></i></span>
+                      <textarea class="set-input font-monospace {{ $errors->has('column_mapping') ? 'is-invalid' : '' }}"
+                        id="column_mapping"
+                        name="column_mapping"
+                        rows="4"
+                        aria-describedby="column_mapping_help">{{ old('column_mapping', json_encode($setting->column_mapping ?? [], JSON_PRETTY_PRINT)) }}</textarea>
+                    </div>
+                    <div id="column_mapping_help" class="text-muted small mt-1">Mapping kolom Google Sheets ke field database. Format: {"nis":"NIS","nama_lengkap":"Nama Lengkap","nisn":"NISN","jenis_kelamin":"Jenis Kelamin","tempat_lahir":"Tempat Lahir","tanggal_lahir":"Tanggal Lahir","alamat":"Alamat","no_hp":"No HP"}</div>
+                    @error('column_mapping')
+                      <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        
+        <!-- KOLOM KANAN (KONTROL): STATUS & AKSI CEPAT -->
+        <div class="gs-grid-right">
+          
+          {{-- ─────────────────────────────
+               PANEL 2: Status Sinkronisasi
+          ───────────────────────────── --}}
+          @if($setting->id)
+          <div class="set-panel mb-4">
+            <div class="set-panel__head">
+              <div class="set-panel__title-wrap">
+                <div class="set-panel__icon --info"><i class="ti tabler-refresh"></i></div>
+                <div>
+                  <div class="set-panel__title">Status Sinkronisasi</div>
+                  <div class="set-panel__sub">Informasi terakhir proses sinkronisasi data dari Google Sheets.</div>
+                </div>
+              </div>
+            </div>
+            <div class="set-panel__body">
+              <div class="set-form-grid">
+                <div class="set-field">
+                  <label class="set-label">Terakhir Sinkron</label>
+                  <div class="d-flex align-items-center gap-2 mt-1">
+                    <i class="ti tabler-calendar-time text-muted"></i>
+                    <span class="text-white small" id="sync-last-time">{{ $setting->last_sync_at ? \Carbon\Carbon::parse($setting->last_sync_at)->format('d M Y H:i:s') : '-' }}</span>
+                  </div>
+                </div>
+                <div class="set-field">
+                  <label class="set-label">Status</label>
+                  <div class="mt-1">
+                    @php
+                      $badgeClass = match($setting->last_sync_status) {
+                        'success' => 'bg-label-success',
+                        'completed_with_errors' => 'bg-label-warning',
+                        'failed' => 'bg-label-danger',
+                        'in_progress' => 'bg-label-warning',
+                        default => 'bg-label-secondary',
+                      };
+                    @endphp
+                    <span class="badge {{ $badgeClass }}" id="sync-status-badge">{{ $setting->status_badge_text }}</span>
+                  </div>
+                </div>
+                {{-- Selalu render div pesan, tapi set d-none jika pesan kosong --}}
+                <div class="set-field set-field--full {{ !$setting->last_sync_message ? 'd-none' : '' }}" id="sync-message-container">
+                  <label class="set-label">Pesan</label>
+                  <p class="text-muted small mt-1 mb-0" id="sync-message-text">{{ $setting->last_sync_message ?? '' }}</p>
+                </div>
+              </div>
+            </div>
           </div>
+          @endif
+
+          <!-- Panel 3: Aksi Cepat (Quick Actions) -->
+          @if($setting->id)
+          <div class="set-panel mb-4">
+            <div class="set-panel__head">
+              <div class="set-panel__title-wrap">
+                <div class="set-panel__icon --primary"><i class="ti tabler-bolt"></i></div>
+                <div>
+                  <div class="set-panel__title">Aksi Cepat</div>
+                  <div class="set-panel__sub">Jalankan aksi sinkronisasi dan manajemen antrian.</div>
+                </div>
+              </div>
+            </div>
+            <div class="set-panel__body">
+              <div class="gs-action-list">
+                
+                <!-- Aksi 1: Sinkron Sekarang -->
+                <div class="gs-action-item">
+                  <div class="gs-action-item__header">
+                    <div class="gs-action-item__icon --warning"><i class="ti tabler-refresh"></i></div>
+                    <div>
+                      <div class="gs-action-item__title">Sinkronisasi Sekarang</div>
+                      <div class="gs-action-item__sub">Tarik data siswa terbaru ke antrian.</div>
+                    </div>
+                  </div>
+                  <form action="{{ route('admin.pengaturan.google-sheets.sync-now') }}" method="POST" id="gsSyncNowForm" class="m-0">
+                    @csrf
+                    <button type="button" class="gs-btn-compact gs-btn-compact--warning" id="gsOpenSyncConfirmButton" onclick="openGsSyncConfirmModal()">
+                      <i class="ti tabler-refresh"></i>
+                      <span>Sinkron Sekarang</span>
+                    </button>
+                  </form>
+                </div>
+
+                <!-- Aksi 2: Proses Antrian -->
+                <div class="gs-action-item">
+                  <div class="gs-action-item__header">
+                    <div class="gs-action-item__icon --primary"><i class="ti tabler-player-play"></i></div>
+                    <div>
+                      <div class="gs-action-item__title">Proses Antrian</div>
+                      <div class="gs-action-item__sub">Proses job tertunda di lokal.</div>
+                    </div>
+                  </div>
+                  <button type="button" class="gs-btn-compact gs-btn-compact--primary" id="gsProcessQueueBtn" onclick="processGsQueue()">
+                    <i class="ti tabler-player-play"></i>
+                    <span>Proses Antrian</span>
+                  </button>
+                </div>
+
+                <!-- Aksi 3: Reset Antrian -->
+                <div class="gs-action-item">
+                  <div class="gs-action-item__header">
+                    <div class="gs-action-item__icon --danger"><i class="ti tabler-trash-x"></i></div>
+                    <div>
+                      <div class="gs-action-item__title">Reset Antrian</div>
+                      <div class="gs-action-item__sub">Batalkan sinkronisasi stuck.</div>
+                    </div>
+                  </div>
+                  <button type="button" class="gs-btn-compact gs-btn-compact--danger" id="gsResetQueueBtn" onclick="confirmGsResetQueue()">
+                    <i class="ti tabler-trash-x"></i>
+                    <span>Reset Antrian</span>
+                  </button>
+                </div>
+
+                <!-- Aksi 4: Test Koneksi -->
+                <div class="gs-action-item">
+                  <div class="gs-action-item__header">
+                    <div class="gs-action-item__icon --info"><i class="ti tabler-plug-connected"></i></div>
+                    <div>
+                      <div class="gs-action-item__title">Test Koneksi API</div>
+                      <div class="gs-action-item__sub">Uji credential ke Google API.</div>
+                    </div>
+                  </div>
+                  <button type="button" class="gs-btn-compact gs-btn-compact--info" id="gsTestBtn" onclick="openGsTestModal()">
+                    <i class="ti tabler-plug-connected"></i>
+                    <span>Test Koneksi</span>
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+          @endif
+          
         </div>
       </div>
-      @endif
 
-      {{-- ─────────────────────────────
-           PANEL 4: Preview Mapping Kolom
-      ───────────────────────────── --}}
-      @if($setting->id)
-      <div class="set-panel mb-4">
-        <div class="set-panel__head">
-          <div class="set-panel__title-wrap">
-            <div class="set-panel__icon --primary"><i class="ti tabler-columns"></i></div>
-            <div>
-              <div class="set-panel__title">Preview Mapping Kolom</div>
-              <div class="set-panel__sub">Deteksi otomatis header Google Sheet dan mapping ke kolom database.</div>
+      <!-- BAGIAN BAWAH: TROUBLESHOOTING & PREVIEW MAPPING (FULL WIDTH) -->
+      <div class="gs-grid-bottom mt-4">
+        {{-- ─────────────────────────────
+             PANEL 3: Panduan Pemecahan Masalah (Dinamis)
+        ───────────────────────────── --}}
+        @if($setting->id)
+        <div class="set-panel mb-4 {{ !in_array($setting->last_sync_status, ['failed', 'completed_with_errors']) ? 'd-none' : '' }}" id="sync-troubleshoot-panel" style="border-color: rgba(234, 84, 85, 0.25);">
+          <div class="set-panel__head" style="background: linear-gradient(90deg, rgba(234, 84, 85, 0.05) 0%, transparent 60%);">
+            <div class="set-panel__title-wrap">
+              <div class="set-panel__icon" style="background: rgba(234, 84, 85, 0.12); color: var(--das-danger);"><i class="ti tabler-help-circle"></i></div>
+              <div>
+                <div class="set-panel__title">Panduan Pemecahan Masalah</div>
+                <div class="set-panel__sub">Ikuti langkah berikut untuk memperbaiki kesalahan sinkronisasi yang terjadi.</div>
+              </div>
+            </div>
+          </div>
+          <div class="set-panel__body">
+            <div id="sync-troubleshoot-steps" style="display:flex;flex-direction:column;gap:0.75rem;font-size:0.8rem;color:#94a3b8;">
+              {{-- Diisi secara dinamis oleh JavaScript, atau render server-side jika error --}}
+              @if(in_array($setting->last_sync_status, ['failed', 'completed_with_errors']))
+                @php
+                  $msg = $setting->last_sync_message ?? '';
+                  $stepHtml = '';
+                  if (str_contains($msg, 'Credentials JSON') || str_contains($msg, 'MAC') || str_contains($msg, 'decrypt') || str_contains($msg, 'decrpyt')) {
+                    $stepHtml = '
+                      <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(234, 84, 85, 0.04); border: 1px solid rgba(234, 84, 85, 0.08);">
+                        <i class="ti tabler-circle-number-1 text-danger mt-1"></i>
+                        <div>
+                          <b class="text-white">Credentials Lama Rusak (APP_KEY Berubah)</b>
+                          <p class="mb-0 mt-1 small">Langkah perbaikan: Silakan upload/tempel kembali isi file <b>Service Account JSON</b> Anda yang baru pada kolom konfigurasi di bawah, lalu klik <b>Simpan Pengaturan</b>.</p>
+                        </div>
+                      </div>';
+                  } elseif (str_contains($msg, 'Mapping kolom')) {
+                    $stepHtml = '
+                      <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(234, 84, 85, 0.04); border: 1px solid rgba(234, 84, 85, 0.08);">
+                        <i class="ti tabler-circle-number-1 text-danger mt-1"></i>
+                        <div>
+                          <b class="text-white">Konfigurasi Mapping Kolom Kosong</b>
+                          <p class="mb-0 mt-1 small">Langkah perbaikan: Gulir ke bagian <b>Mapping Kolom (JSON)</b> di bawah, masukkan format pemetaan kolom database Anda ke kolom Google Sheet (gunakan template contoh di bawah input), lalu klik <b>Simpan</b>.</p>
+                        </div>
+                      </div>';
+                  } elseif (str_contains($msg, 'Gagal mengambil data') || str_contains($msg, 'permission') || str_contains($msg, 'access') || str_contains($msg, 'Forbidden')) {
+                    $stepHtml = '
+                      <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(234, 84, 85, 0.04); border: 1px solid rgba(234, 84, 85, 0.08);">
+                        <i class="ti tabler-circle-number-1 text-danger mt-1"></i>
+                        <div>
+                          <b class="text-white">Akses ke Spreadsheet Ditolak / Dilarang</b>
+                          <p class="mb-0 mt-1 small">Langkah perbaikan: Buka Google Sheets Anda ➔ Klik tombol <b>Bagikan (Share)</b> di pojok kanan atas ➔ Undang email <b>Service Account</b> Anda (misal yang berakhiran <i>@gserviceaccount.com</i>) sebagai <b>Viewer</b> atau <b>Editor</b>, lalu klik kirim.</p>
+                        </div>
+                      </div>
+                      <div class="d-flex align-items-start gap-2 p-2 rounded mt-2" style="background: rgba(234, 84, 85, 0.04); border: 1px solid rgba(234, 84, 85, 0.08);">
+                        <i class="ti tabler-circle-number-2 text-danger mt-1"></i>
+                        <div>
+                          <b class="text-white">ID Spreadsheet atau Range Salah</b>
+                          <p class="mb-0 mt-1 small">Pastikan nilai pada kolom <b>ID Spreadsheet</b> dan <b>Range Sheet</b> di bawah sudah benar sesuai URL dan nama Sheet Anda.</p>
+                        </div>
+                      </div>';
+                  } elseif (str_contains($msg, 'tidak dikenal')) {
+                    $stepHtml = '
+                      <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(255, 159, 67, 0.04); border: 1px solid rgba(255, 159, 67, 0.08);">
+                        <i class="ti tabler-circle-number-1 text-warning mt-1"></i>
+                        <div>
+                          <b class="text-white">Ada Header Kolom yang Tidak Dikenal</b>
+                          <p class="mb-0 mt-1 small">Kolom berikut tidak dikenal: <span id="troubleshoot-unrecognized-list" class="text-warning fw-bold"></span>. Silakan sesuaikan header Google Sheet dengan template standar yang bisa diunduh di atas.</p>
+                        </div>
+                      </div>';
+                  } else {
+                    $stepHtml = '
+                      <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(255, 159, 67, 0.04); border: 1px solid rgba(255, 159, 67, 0.08);">
+                        <i class="ti tabler-info-circle text-warning mt-1"></i>
+                        <div>
+                          <b class="text-white">Kesalahan Umum</b>
+                          <p class="mb-0 mt-1 small">Langkah perbaikan: Pastikan koneksi internet server stabil, file credentials Service Account JSON valid, ID Spreadsheet benar, dan Anda sudah melakukan <b>Test Koneksi</b> terlebih dahulu sebelum sinkronisasi.</p>
+                        </div>
+                      </div>';
+                  }
+                  echo $stepHtml;
+                @endphp
+              @endif
             </div>
           </div>
         </div>
-        <div class="set-panel__body">
-          <p class="text-muted small mb-3" style="color:#94a3b8;font-size:0.78rem;line-height:1.5;">
-            Klik tombol di bawah untuk mendeteksi header dari Google Sheet dan melihat preview mapping kolom.
-          </p>
-          <div class="d-flex flex-wrap gap-2 mb-3">
-            <button type="button" class="gs-action-btn gs-action-btn--primary" id="gsDetectMappingBtn" onclick="detectGsMapping()">
-              <i class="ti tabler-refresh"></i>
-              <span>Deteksi Mapping</span>
-            </button>
-            <span id="gsDetectMappingSpinner" style="display:none;align-self:center;">
-              <i class="ti tabler-loader-2 animate-spin" style="font-size:1.1rem;color:var(--das-primary);"></i>
-              <span class="small text-muted ms-1">Mendeteksi header...</span>
-            </span>
-          </div>
+        @endif
 
-          {{-- Wrapper hasil preview (diisi JS) --}}
-          <div id="gsMappingResult" style="display:none;">
-            {{-- Tabel Preview --}}
-            <div style="overflow-x:auto;border:1px solid var(--das-border);border-radius:var(--das-radius-sm);">
-              <table class="gs-preview-table" id="gsMappingTable">
-                <thead>
-                  <tr>
-                    <th style="width:60px;text-align:center;">No</th>
-                    <th>Header Sheet</th>
-                    <th>Mapping ke Database</th>
-                    <th style="width:130px;text-align:center;">Status</th>
-                  </tr>
-                </thead>
-                <tbody id="gsMappingTableBody"></tbody>
-              </table>
-            </div>
-
-            {{-- Warning unrecognized --}}
-            <div id="gsUnrecognizedWarning" style="display:none;margin-top:0.75rem;padding:0.65rem 1rem;background:rgba(255,159,67,0.08);border:1px solid rgba(255,159,67,0.2);border-radius:var(--das-radius-sm);font-size:0.78rem;color:#fcd34d;">
-              <i class="ti tabler-alert-triangle me-1"></i>
-              <span id="gsUnrecognizedWarningText"></span>
-            </div>
-
-            {{-- Ringkasan --}}
-            <div id="gsMappingSummary" style="display:none;margin-top:0.75rem;flex-wrap:wrap;gap:1rem;font-size:0.78rem;">
-              <span><span class="text-muted">Total Header:</span> <strong class="text-white" id="gsTotalHeaders">0</strong></span>
-              <span><span class="text-muted">Terdeteksi:</span> <strong class="text-white" id="gsMatchedCount">0</strong></span>
-              <span><span class="text-muted">Tidak Dikenal:</span> <strong class="text-white" id="gsUnrecognizedCount">0</strong></span>
+        {{-- ─────────────────────────────
+             PANEL 4: Preview Mapping Kolom
+        ───────────────────────────── --}}
+        @if($setting->id)
+        <div class="set-panel mb-4">
+          <div class="set-panel__head">
+            <div class="set-panel__title-wrap">
+              <div class="set-panel__icon --primary"><i class="ti tabler-columns"></i></div>
+              <div>
+                <div class="set-panel__title">Preview Mapping Kolom</div>
+                <div class="set-panel__sub">Deteksi otomatis header Google Sheet dan mapping ke kolom database.</div>
+              </div>
             </div>
           </div>
+          <div class="set-panel__body">
+            <p class="text-muted small mb-3" style="color:#94a3b8;font-size:0.78rem;line-height:1.5;">
+              Klik tombol di bawah untuk mendeteksi header dari Google Sheet dan melihat preview mapping kolom.
+            </p>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <button type="button" class="gs-action-btn gs-action-btn--primary" id="gsDetectMappingBtn" onclick="detectGsMapping()">
+                <i class="ti tabler-refresh"></i>
+                <span>Deteksi Mapping</span>
+              </button>
+              <span id="gsDetectMappingSpinner" style="display:none;align-self:center;">
+                <i class="ti tabler-loader-2 animate-spin" style="font-size:1.1rem;color:var(--das-primary);"></i>
+                <span class="small text-muted ms-1">Mendeteksi header...</span>
+              </span>
+            </div>
 
-          {{-- Error state --}}
-          <div id="gsMappingError" style="display:none;padding:1rem;background:rgba(234,84,85,0.06);border:1px solid rgba(234,84,85,0.15);border-radius:var(--das-radius-sm);font-size:0.82rem;color:#fca5a5;">
-            <i class="ti tabler-alert-circle me-1"></i>
-            <span id="gsMappingErrorText"></span>
+            {{-- Wrapper hasil preview (diisi JS) --}}
+            <div id="gsMappingResult" style="display:none;">
+              {{-- Tabel Preview --}}
+              <div style="overflow-x:auto;border:1px solid var(--das-border);border-radius:var(--das-radius-sm);">
+                <table class="gs-preview-table" id="gsMappingTable">
+                  <thead>
+                    <tr>
+                      <th style="width:60px;text-align:center;">No</th>
+                      <th>Header Sheet</th>
+                      <th>Mapping ke Database</th>
+                      <th style="width:130px;text-align:center;">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="gsMappingTableBody"></tbody>
+                </table>
+              </div>
+
+              {{-- Warning unrecognized --}}
+              <div id="gsUnrecognizedWarning" style="display:none;margin-top:0.75rem;padding:0.65rem 1rem;background:rgba(255,159,67,0.08);border:1px solid rgba(255,159,67,0.2);border-radius:var(--das-radius-sm);font-size:0.78rem;color:#fcd34d;">
+                <i class="ti tabler-alert-triangle me-1"></i>
+                <span id="gsUnrecognizedWarningText"></span>
+              </div>
+
+              {{-- Ringkasan --}}
+              <div id="gsMappingSummary" style="display:none;margin-top:0.75rem;flex-wrap:wrap;gap:1rem;font-size:0.78rem;">
+                <span><span class="text-muted">Total Header:</span> <strong class="text-white" id="gsTotalHeaders">0</strong></span>
+                <span><span class="text-muted">Terdeteksi:</span> <strong class="text-white" id="gsMatchedCount">0</strong></span>
+                <span><span class="text-muted">Tidak Dikenal:</span> <strong class="text-white" id="gsUnrecognizedCount">0</strong></span>
+              </div>
+            </div>
+
+            {{-- Error state --}}
+            <div id="gsMappingError" style="display:none;padding:1rem;background:rgba(234,84,85,0.06);border:1px solid rgba(234,84,85,0.15);border-radius:var(--das-radius-sm);font-size:0.82rem;color:#fca5a5;">
+              <i class="ti tabler-alert-circle me-1"></i>
+              <span id="gsMappingErrorText"></span>
+            </div>
           </div>
         </div>
+        @endif
       </div>
-      @endif
 
       <div class="set-footer-save d-lg-none">
-        <button type="submit" class="set-save-btn">
+        <button type="submit" form="gsUpdateForm" class="set-save-btn">
           <i class="ti tabler-device-floppy"></i>
           <span>Simpan Pengaturan</span>
         </button>
       </div>
     </main>
   </div>
-</form>
-
-{{-- ─────────────────────────────
-     SYNC NOW PANEL
-───────────────────────────── --}}
-<div class="sync-now-panel mt-4">
-  <div class="sync-now-panel__inner">
-    <div class="sync-now-panel__info">
-      <div class="sync-now-panel__icon"><i class="ti tabler-refresh"></i></div>
-      <div>
-        <div class="sync-now-panel__title">Sinkronisasi Sekarang</div>
-          <div class="sync-now-panel__sub">Jalankan sinkronisasi data dari Google Sheets. Proses berjalan di latar belakang dan akan tetap berjalan meskipun halaman ditutup. Data besar akan diproses secara bertahap.</div>
-      </div>
-    </div>
-    <form action="{{ route('admin.pengaturan.google-sheets.sync-now') }}" method="POST" id="gsSyncNowForm">
-      @csrf
-      <button type="button" class="sync-now-btn" id="gsOpenSyncConfirmButton" onclick="openGsSyncConfirmModal()">
-        <i class="ti tabler-refresh"></i>
-        <span>Sinkron Sekarang</span>
-      </button>
-    </form>
-  </div>
-</div>
-
-{{-- ─────────────────────────────
-     PROSES ANTRIAN PANEL
-───────────────────────────── --}}
-<div class="sync-now-panel mt-3" style="border-color: rgba(0, 207, 232, 0.25);">
-  <div class="sync-now-panel__inner" style="background: linear-gradient(90deg, rgba(0, 207, 232, 0.06) 0%, transparent 60%);">
-    <div class="sync-now-panel__info">
-      <div class="sync-now-panel__icon" style="background: rgba(0, 207, 232, 0.15); color: var(--das-info);">
-        <i class="ti tabler-player-play"></i>
-      </div>
-      <div>
-        <div class="sync-now-panel__title">Proses Antrian</div>
-        <div class="sync-now-panel__sub">Jalankan worker untuk memproses job sinkronisasi yang tertunda di antrian.</div>
-      </div>
-    </div>
-    <button type="button" class="sync-now-btn" style="background: var(--das-info); color: #fff;" id="gsProcessQueueBtn" onclick="processGsQueue()">
-      <i class="ti tabler-player-play"></i>
-      <span>Proses Antrian</span>
-    </button>
-  </div>
-</div>
-
-{{-- ─────────────────────────────
-     TEST CONNECTION PANEL
-───────────────────────────── --}}
-<div class="sync-now-panel mt-4" style="border-color: rgba(0, 207, 232, 0.25);">
-  <div class="sync-now-panel__inner" style="background: linear-gradient(90deg, rgba(0, 207, 232, 0.06) 0%, transparent 60%);">
-    <div class="sync-now-panel__info">
-      <div class="sync-now-panel__icon" style="background: rgba(0, 207, 232, 0.15); color: var(--das-info);"><i class="ti tabler-plug-connected"></i></div>
-      <div>
-        <div class="sync-now-panel__title">Test Koneksi</div>
-        <div class="sync-now-panel__sub">Uji koneksi ke Google Sheets untuk memastikan konfigurasi sudah benar sebelum menyimpan.</div>
-      </div>
-    </div>
-    <button type="button" class="sync-now-btn" style="background: var(--das-info); color: #fff;" id="gsTestBtn" onclick="openGsTestModal()">
-      <i class="ti tabler-plug-connected"></i>
-      <span>Test Koneksi</span>
-    </button>
-  </div>
-</div>
 
 {{-- ── MODAL KONFIRMASI SINKRON ── --}}
 <div id="gsSyncConfirmModal" class="sync-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="gsSyncConfirmTitle" aria-describedby="gsSyncConfirmDescription" hidden>
@@ -970,6 +1005,112 @@ textarea.set-input { resize: vertical; padding: 0.6rem 0.5rem; }
   box-shadow: 0 6px 16px rgba(0,207,232,0.35);
 }
 
+/* ── Layout Grid 2 Kolom ── */
+@media (min-width: 992px) {
+  .gs-grid-container {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 1.25rem;
+    align-items: start;
+  }
+}
+
+.gs-grid-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.gs-grid-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Panel Aksi Cepat (Quick Actions) ── */
+.gs-action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.gs-action-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--das-border);
+  border-radius: var(--das-radius-sm);
+  transition: all 0.2s ease;
+}
+
+.gs-action-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.gs-action-item__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.gs-action-item__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.gs-action-item__icon.--warning { background: var(--das-warning-soft); color: var(--das-warning); }
+.gs-action-item__icon.--info { background: var(--das-info-soft); color: var(--das-info); }
+.gs-action-item__icon.--danger { background: var(--das-danger-soft); color: var(--das-danger); }
+.gs-action-item__icon.--primary { background: var(--das-primary-soft); color: var(--das-primary); }
+
+.gs-action-item__title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.gs-action-item__sub {
+  font-size: 0.68rem;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.gs-btn-compact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gs-btn-compact--warning { background: var(--das-warning); color: #1a1a1a; }
+.gs-btn-compact--warning:hover { background: #f0920a; transform: translateY(-1px); }
+
+.gs-btn-compact--info { background: var(--das-info); color: #1a1a1a; }
+.gs-btn-compact--info:hover { background: #00b8d4; transform: translateY(-1px); }
+
+.gs-btn-compact--danger { background: var(--das-danger); color: #fff; }
+.gs-btn-compact--danger:hover { background: #d32f2f; transform: translateY(-1px); }
+
+.gs-btn-compact--primary { background: var(--das-primary); color: #fff; }
+.gs-btn-compact--primary:hover { background: #5a4ee3; transform: translateY(-1px); }
+
 /* ── Preview Mapping Table ── */
 .gs-preview-table {
   width: 100%;
@@ -1128,6 +1269,31 @@ textarea.set-input { resize: vertical; padding: 0.6rem 0.5rem; }
   background: linear-gradient(135deg, #3ddb84, #28c76f) !important;
 }
 
+.das-swal-danger-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  width: 100% !important;
+  padding: 0.7rem 1.25rem !important;
+  background: linear-gradient(135deg, #ea5455, #c53738) !important;
+  color: #fff !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  border: none !important;
+  border-radius: 10px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 4px 16px rgba(234, 84, 85, 0.25) !important;
+  text-decoration: none !important;
+}
+
+.das-swal-danger-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 24px rgba(234, 84, 85, 0.35) !important;
+  background: linear-gradient(135deg, #ff6b6b, #ea5455) !important;
+}
+
 .das-swal-cancel-btn {
   display: inline-flex !important;
   align-items: center !important;
@@ -1165,6 +1331,7 @@ textarea.set-input { resize: vertical; padding: 0.6rem 0.5rem; }
 .das-swal-icon-error .swal2-x-mark-line-right {
   background-color: #ea5455 !important;
 }
+
 </style>
 
 <style>
@@ -1359,6 +1526,87 @@ async function refreshGsSyncStatus() {
     }
   } catch (e) {
     console.warn('Failed to refresh sync status:', e);
+  }
+}
+
+/**
+ * Konfirmasi reset antrian via SweetAlert2.
+ */
+function confirmGsResetQueue() {
+  Swal.fire({
+    icon: 'warning',
+    title: 'Reset Antrian?',
+    html: '<div style="text-align:center">Apakah Anda yakin ingin membatalkan sinkronisasi aktif dan menghapus semua antrian?</div>',
+    showCancelButton: true,
+    confirmButtonText: '<i class="ti tabler-trash"></i> Ya, Reset',
+    cancelButtonText: 'Batal',
+    buttonsStyling: false,
+    customClass: {
+      popup: 'das-swal-popup das-swal-popup-error',
+      title: 'das-swal-title',
+      htmlContainer: 'das-swal-html',
+      actions: 'das-swal-actions',
+      confirmButton: 'das-swal-danger-btn',
+      cancelButton: 'das-swal-cancel-btn'
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      submitGsResetQueue();
+    }
+  });
+}
+
+/**
+ * Submit reset antrian via AJAX.
+ */
+async function submitGsResetQueue() {
+  const btn = document.getElementById('gsResetQueueBtn');
+  const originalHtml = btn.innerHTML;
+  
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti tabler-loader-2 animate-spin"></i> <span>Mereset...</span>';
+  
+  try {
+    const response = await fetch('{{ route("admin.pengaturan.google-sheets.reset-antrian") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({})
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      // Refresh status sinkronisasi
+      await refreshGsSyncStatus();
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Antrian Di-reset!',
+        html: 'Antrian sinkronisasi berhasil dikosongkan dan status di-reset ke idle.',
+        confirmButtonText: '<i class="ti tabler-check"></i> OK',
+        buttonsStyling: false,
+        customClass: {
+          popup: 'das-swal-popup',
+          title: 'das-swal-title',
+          htmlContainer: 'das-swal-html',
+          confirmButton: 'das-swal-cancel-btn',
+          icon: 'das-swal-icon-success'
+        }
+      });
+    } else {
+      showGsDynamicToast('danger', result.message || 'Gagal mereset antrian.');
+    }
+  } catch (error) {
+    console.error('Reset queue error:', error);
+    showGsDynamicToast('danger', 'Gagal menghubungi server. Silakan coba lagi.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHtml;
   }
 }
 

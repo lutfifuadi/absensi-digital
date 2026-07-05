@@ -10,6 +10,7 @@ use App\Services\GoogleSheetTemplateService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class GoogleSheetsSettingController extends Controller
@@ -220,6 +221,53 @@ class GoogleSheetsSettingController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal memproses antrian: '.$e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Reset antrian sinkronisasi Google Sheets.
+     * Menghapus semua job di queue 'syncs' dan mereset status di settings ke default/idle.
+     */
+    public function resetAntrian(Request $request)
+    {
+        abort_if(! $request->ajax(), 403);
+
+        try {
+            // 1. Hapus semua job di queue 'syncs'
+            $deletedJobsCount = DB::table('jobs')->where('queue', 'syncs')->delete();
+
+            // 2. Reset status sinkronisasi di model GoogleSheetSetting
+            $setting = GoogleSheetSetting::first();
+            if ($setting) {
+                $setting->update([
+                    'last_sync_status' => null,
+                    'last_sync_message' => 'Sinkronisasi dibatalkan dan antrian di-reset.',
+                    'sync_total_rows' => null,
+                    'sync_processed_rows' => null,
+                    'sync_offset' => null,
+                ]);
+            }
+
+            Log::info('Google Sheets sync queue and status reset by admin.', [
+                'deleted_jobs' => $deletedJobsCount,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Antrian berhasil di-reset dan status dikembalikan ke idle.',
+                'deleted_jobs' => $deletedJobsCount,
+                'last_sync_status' => null,
+                'last_sync_message' => 'Sinkronisasi dibatalkan dan antrian di-reset.',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Gagal mereset antrian Google Sheets', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mereset antrian: '.$e->getMessage(),
             ], 500);
         }
     }
