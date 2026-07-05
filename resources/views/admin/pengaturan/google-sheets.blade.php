@@ -189,6 +189,22 @@
           </div>
         </div>
         <div class="set-panel__body">
+          {{-- Action Bar: Download Template & Buat Google Sheet --}}
+          <div class="d-flex flex-wrap gap-2 mb-4 pb-3" style="border-bottom: 1px solid var(--das-border);">
+            <a href="{{ route('admin.pengaturan.google-sheets.template.download') }}"
+               class="gs-action-btn gs-action-btn--info">
+              <i class="ti tabler-download"></i>
+              <span>Download Template Excel</span>
+            </a>
+            <button type="button"
+                    class="gs-action-btn gs-action-btn--success"
+                    id="gsCreateSheetBtn"
+                    onclick="createGsSheetTemplate()">
+              <i class="ti tabler-file-plus"></i>
+              <span>Buat Google Sheet Template</span>
+            </button>
+          </div>
+
           <div class="set-form-grid">
 
             <div class="set-field set-field--full">
@@ -364,6 +380,15 @@
                         <p class="mb-0 mt-1 small">Pastikan nilai pada kolom <b>ID Spreadsheet</b> dan <b>Range Sheet</b> di bawah sudah benar sesuai URL dan nama Sheet Anda.</p>
                       </div>
                     </div>';
+                } elseif (str_contains($msg, 'tidak dikenal')) {
+                  $stepHtml = '
+                    <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(255, 159, 67, 0.04); border: 1px solid rgba(255, 159, 67, 0.08);">
+                      <i class="ti tabler-circle-number-1 text-warning mt-1"></i>
+                      <div>
+                        <b class="text-white">Ada Header Kolom yang Tidak Dikenal</b>
+                        <p class="mb-0 mt-1 small">Kolom berikut tidak dikenal: <span id="troubleshoot-unrecognized-list" class="text-warning fw-bold"></span>. Silakan sesuaikan header Google Sheet dengan template standar yang bisa diunduh di atas.</p>
+                      </div>
+                    </div>';
                 } else {
                   $stepHtml = '
                     <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(255, 159, 67, 0.04); border: 1px solid rgba(255, 159, 67, 0.08);">
@@ -377,6 +402,75 @@
                 echo $stepHtml;
               @endphp
             @endif
+          </div>
+        </div>
+      </div>
+      @endif
+
+      {{-- ─────────────────────────────
+           PANEL 4: Preview Mapping Kolom
+      ───────────────────────────── --}}
+      @if($setting->id)
+      <div class="set-panel mb-4">
+        <div class="set-panel__head">
+          <div class="set-panel__title-wrap">
+            <div class="set-panel__icon --primary"><i class="ti tabler-columns"></i></div>
+            <div>
+              <div class="set-panel__title">Preview Mapping Kolom</div>
+              <div class="set-panel__sub">Deteksi otomatis header Google Sheet dan mapping ke kolom database.</div>
+            </div>
+          </div>
+        </div>
+        <div class="set-panel__body">
+          <p class="text-muted small mb-3" style="color:#94a3b8;font-size:0.78rem;line-height:1.5;">
+            Klik tombol di bawah untuk mendeteksi header dari Google Sheet dan melihat preview mapping kolom.
+          </p>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <button type="button" class="gs-action-btn gs-action-btn--primary" id="gsDetectMappingBtn" onclick="detectGsMapping()">
+              <i class="ti tabler-refresh"></i>
+              <span>Deteksi Mapping</span>
+            </button>
+            <span id="gsDetectMappingSpinner" style="display:none;align-self:center;">
+              <i class="ti tabler-loader-2 animate-spin" style="font-size:1.1rem;color:var(--das-primary);"></i>
+              <span class="small text-muted ms-1">Mendeteksi header...</span>
+            </span>
+          </div>
+
+          {{-- Wrapper hasil preview (diisi JS) --}}
+          <div id="gsMappingResult" style="display:none;">
+            {{-- Tabel Preview --}}
+            <div style="overflow-x:auto;border:1px solid var(--das-border);border-radius:var(--das-radius-sm);">
+              <table class="gs-preview-table" id="gsMappingTable">
+                <thead>
+                  <tr>
+                    <th style="width:60px;text-align:center;">No</th>
+                    <th>Header Sheet</th>
+                    <th>Mapping ke Database</th>
+                    <th style="width:130px;text-align:center;">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="gsMappingTableBody"></tbody>
+              </table>
+            </div>
+
+            {{-- Warning unrecognized --}}
+            <div id="gsUnrecognizedWarning" style="display:none;margin-top:0.75rem;padding:0.65rem 1rem;background:rgba(255,159,67,0.08);border:1px solid rgba(255,159,67,0.2);border-radius:var(--das-radius-sm);font-size:0.78rem;color:#fcd34d;">
+              <i class="ti tabler-alert-triangle me-1"></i>
+              <span id="gsUnrecognizedWarningText"></span>
+            </div>
+
+            {{-- Ringkasan --}}
+            <div id="gsMappingSummary" style="display:none;margin-top:0.75rem;flex-wrap:wrap;gap:1rem;font-size:0.78rem;">
+              <span><span class="text-muted">Total Header:</span> <strong class="text-white" id="gsTotalHeaders">0</strong></span>
+              <span><span class="text-muted">Terdeteksi:</span> <strong class="text-white" id="gsMatchedCount">0</strong></span>
+              <span><span class="text-muted">Tidak Dikenal:</span> <strong class="text-white" id="gsUnrecognizedCount">0</strong></span>
+            </div>
+          </div>
+
+          {{-- Error state --}}
+          <div id="gsMappingError" style="display:none;padding:1rem;background:rgba(234,84,85,0.06);border:1px solid rgba(234,84,85,0.15);border-radius:var(--das-radius-sm);font-size:0.82rem;color:#fca5a5;">
+            <i class="ti tabler-alert-circle me-1"></i>
+            <span id="gsMappingErrorText"></span>
           </div>
         </div>
       </div>
@@ -809,6 +903,110 @@ textarea.set-input { resize: vertical; padding: 0.6rem 0.5rem; }
 @media (max-width: 767px) {
   .set-form-grid { grid-template-columns: 1fr; }
 }
+
+/* ── Action Buttons (Download Template, Buat Sheet, Deteksi Mapping) ── */
+.gs-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 1.15rem;
+  border: none;
+  border-radius: var(--das-radius-sm);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.gs-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  color: #fff;
+}
+.gs-action-btn--primary {
+  background: var(--das-primary);
+  color: #fff;
+}
+.gs-action-btn--primary:hover {
+  background: #6259e8;
+  box-shadow: 0 6px 16px rgba(115,103,240,0.35);
+}
+.gs-action-btn--success {
+  background: var(--das-success);
+  color: #fff;
+}
+.gs-action-btn--success:hover {
+  background: #23ad60;
+  box-shadow: 0 6px 16px rgba(40,199,111,0.35);
+}
+.gs-action-btn--info {
+  background: var(--das-info);
+  color: #fff;
+}
+.gs-action-btn--info:hover {
+  background: #00b8d4;
+  box-shadow: 0 6px 16px rgba(0,207,232,0.35);
+}
+
+/* ── Preview Mapping Table ── */
+.gs-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.gs-preview-table thead th {
+  background: rgba(255,255,255,0.04);
+  color: #64748b;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.62rem;
+  letter-spacing: 0.8px;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--das-border);
+  text-align: left;
+}
+.gs-preview-table tbody td {
+  padding: 0.55rem 1rem;
+  border-bottom: 1px solid var(--das-border);
+  color: #cbd5e1;
+  vertical-align: middle;
+}
+.gs-preview-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.gs-preview-table tbody tr:hover {
+  background: rgba(255,255,255,0.02);
+}
+.gs-preview-table tbody tr td:first-child {
+  text-align: center;
+  color: #64748b;
+}
+.gs-preview-table .gs-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 20px;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+.gs-preview-table .gs-status-badge--matched {
+  background: rgba(40,199,111,0.12);
+  color: #4ade80;
+}
+.gs-preview-table .gs-status-badge--unrecognized {
+  background: rgba(255,159,67,0.12);
+  color: #fcd34d;
+}
+.gs-mapped-col {
+  font-family: 'Courier New', monospace;
+  color: #e2e8f0;
+}
+.gs-unmapped-col {
+  color: #64748b;
+  font-style: italic;
+}
 </style>
 
 <style>
@@ -1068,6 +1266,18 @@ function getTroubleshootStepsHtml(message) {
     `;
   }
   
+  if (message.includes('tidak dikenal')) {
+    return `
+      <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(255, 159, 67, 0.04); border: 1px solid rgba(255, 159, 67, 0.08);">
+        <i class="ti tabler-circle-number-1 text-warning mt-1"></i>
+        <div>
+          <b class="text-white">Ada Header Kolom yang Tidak Dikenal</b>
+          <p class="mb-0 mt-1 small">Kolom berikut tidak dikenal: <span id="troubleshoot-unrecognized-list-dynamic" class="text-warning fw-bold"></span>. Silakan sesuaikan header Google Sheet dengan template standar yang bisa diunduh di atas.</p>
+        </div>
+      </div>
+    `;
+  }
+
   // Fallback
   return `
     <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(255, 159, 67, 0.04); border: 1px solid rgba(255, 159, 67, 0.08);">
@@ -1078,6 +1288,182 @@ function getTroubleshootStepsHtml(message) {
       </div>
     </div>
   `;
+}
+
+/* ── SweetAlert2 (di-load via Vite di akhir halaman) ── */
+
+/**
+ * Buat Google Sheet Template via AJAX.
+ * Memanggil route admin.pengaturan.google-sheets.template.create
+ */
+async function createGsSheetTemplate() {
+  const btn = document.getElementById('gsCreateSheetBtn');
+  const originalHtml = btn.innerHTML;
+
+  // Loading state
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti tabler-loader-2 animate-spin"></i> <span>Membuat...</span>';
+
+  try {
+    const response = await fetch('{{ route("admin.pengaturan.google-sheets.template.create") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({})
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      // Isi otomatis spreadsheet_id
+      const inputEl = document.getElementById('spreadsheet_id');
+      if (inputEl && result.spreadsheet_id) {
+        inputEl.value = result.spreadsheet_id;
+      }
+
+      // SweetAlert2 sukses
+      Swal.fire({
+        icon: 'success',
+        title: 'Template Berhasil Dibuat!',
+        html: 'Google Sheet template telah berhasil dibuat. <br><br>' +
+              '<a href="' + (result.url || '#') + '" target="_blank" class="btn btn-sm btn-success">' +
+              '<i class="ti tabler-external-link"></i> Buka Google Sheet</a>',
+        confirmButtonText: 'Selesai',
+        confirmButtonColor: '#28c76f'
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Membuat Template',
+        text: result.message || 'Terjadi kesalahan saat membuat template Google Sheet.',
+        confirmButtonColor: '#ea5455'
+      });
+    }
+  } catch (error) {
+    console.error('Create sheet error:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal Menghubungi Server',
+      text: 'Terjadi kesalahan jaringan. Silakan coba lagi.',
+      confirmButtonColor: '#ea5455'
+    });
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHtml;
+  }
+}
+
+/**
+ * Deteksi mapping kolom via AJAX.
+ * Memanggil route admin.pengaturan.google-sheets.preview-mapping
+ */
+async function detectGsMapping() {
+  const btn = document.getElementById('gsDetectMappingBtn');
+  const spinner = document.getElementById('gsDetectMappingSpinner');
+  const resultDiv = document.getElementById('gsMappingResult');
+  const errorDiv = document.getElementById('gsMappingError');
+  const tableBody = document.getElementById('gsMappingTableBody');
+  const warningDiv = document.getElementById('gsUnrecognizedWarning');
+  const warningText = document.getElementById('gsUnrecognizedWarningText');
+
+  // Reset
+  resultDiv.style.display = 'none';
+  errorDiv.style.display = 'none';
+  warningDiv.style.display = 'none';
+  btn.disabled = true;
+  spinner.style.display = 'inline-flex';
+
+  try {
+    const response = await fetch('{{ route("admin.pengaturan.google-sheets.preview-mapping") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({})
+    });
+
+    const json = await response.json();
+
+    if (!json.success) {
+      errorDiv.style.display = 'flex';
+      document.getElementById('gsMappingErrorText').textContent = json.message || 'Gagal mendapatkan preview mapping.';
+      return;
+    }
+
+    const data = json.data;
+
+    // Validasi data
+    if (!data.preview || data.preview.length === 0) {
+      errorDiv.style.display = 'flex';
+      document.getElementById('gsMappingErrorText').textContent = data.error || 'Tidak ada header yang terdeteksi dari sheet.';
+      return;
+    }
+
+    // Render tabel
+    let html = '';
+    data.preview.forEach((item, index) => {
+      const no = index + 1;
+      const isMatched = item.status === 'matched';
+
+      html += '<tr>' +
+        '<td>' + no + '</td>' +
+        '<td>' + escapeHtml(item.header) + '</td>' +
+        '<td>' + (isMatched
+          ? '<span class="gs-mapped-col">' + escapeHtml(item.mapped_to) + '</span>'
+          : '<span class="gs-unmapped-col">—</span>') +
+        '</td>' +
+        '<td style="text-align:center;">' +
+        (isMatched
+          ? '<span class="gs-status-badge gs-status-badge--matched"><i class="ti tabler-circle-check"></i> Terdeteksi</span>'
+          : '<span class="gs-status-badge gs-status-badge--unrecognized"><i class="ti tabler-alert-triangle"></i> Tidak dikenal</span>') +
+        '</td>' +
+        '</tr>';
+    });
+
+    tableBody.innerHTML = html;
+
+    // Update ringkasan
+    document.getElementById('gsTotalHeaders').textContent = data.total_headers || data.preview.length;
+    document.getElementById('gsMatchedCount').textContent = data.matched || 0;
+    const unrecognizedCount = (data.unrecognized && data.unrecognized.length) || 0;
+    document.getElementById('gsUnrecognizedCount').textContent = unrecognizedCount;
+
+    // Warning untuk unrecognized
+    if (unrecognizedCount > 0) {
+      warningText.textContent = unrecognizedCount + ' kolom tidak dikenal. Sinkronisasi tetap berjalan untuk kolom yang dikenal.';
+      warningDiv.style.display = 'flex';
+    } else {
+      warningDiv.style.display = 'none';
+    }
+
+    // Tampilkan hasil
+    resultDiv.style.display = 'block';
+    // Tampilkan ringkasan
+    document.getElementById('gsMappingSummary').style.display = 'flex';
+
+  } catch (error) {
+    console.error('Preview mapping error:', error);
+    errorDiv.style.display = 'flex';
+    document.getElementById('gsMappingErrorText').textContent = 'Gagal menghubungi server. Silakan coba lagi.';
+  } finally {
+    btn.disabled = false;
+    spinner.style.display = 'none';
+  }
+}
+
+/**
+ * Escape HTML untuk mencegah XSS.
+ */
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.appendChild(document.createTextNode(text));
+  return div.innerHTML;
 }
 
 let gsSyncPollingInterval = null;
@@ -1145,6 +1531,15 @@ function startGsSyncPolling() {
         if (data.last_sync_status === 'failed' || data.last_sync_status === 'completed_with_errors') {
           tsStepsEl.innerHTML = getTroubleshootStepsHtml(data.last_sync_message);
           tsPanel.classList.remove('d-none');
+
+          // Isi daftar unrecognized headers jika ada
+          if (data.unrecognized_headers && data.unrecognized_headers.length > 0) {
+            const listEl = document.getElementById('troubleshoot-unrecognized-list');
+            const listElDynamic = document.getElementById('troubleshoot-unrecognized-list-dynamic');
+            const listText = data.unrecognized_headers.join(', ');
+            if (listEl) listEl.textContent = listText;
+            if (listElDynamic) listElDynamic.textContent = listText;
+          }
         } else {
           tsPanel.classList.add('d-none');
         }
@@ -1169,5 +1564,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+
+{{-- SweetAlert2 --}}
+@vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
+@vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.js'])
 
 @endsection

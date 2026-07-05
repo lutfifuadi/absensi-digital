@@ -734,6 +734,15 @@ Route::middleware([
         Route::post('pengaturan/google-sheets/sync-now', [GoogleSheetsSettingController::class, 'syncNow'])
             ->name('admin.pengaturan.google-sheets.sync-now')
             ->middleware('role:super_admin,admin_sekolah');
+        Route::get('pengaturan/google-sheets/template/download', [GoogleSheetsSettingController::class, 'downloadTemplate'])
+            ->name('admin.pengaturan.google-sheets.template.download')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pengaturan/google-sheets/template/create', [GoogleSheetsSettingController::class, 'createSheetTemplate'])
+            ->name('admin.pengaturan.google-sheets.template.create')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pengaturan/google-sheets/preview-mapping', [GoogleSheetsSettingController::class, 'previewMapping'])
+            ->name('admin.pengaturan.google-sheets.preview-mapping')
+            ->middleware('role:super_admin,admin_sekolah');
 
         // AI Chat
         Route::get('ai-chat', [AiChatController::class, 'index'])

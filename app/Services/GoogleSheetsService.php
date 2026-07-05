@@ -91,22 +91,187 @@ class GoogleSheetsService
         }
     }
 
+    /**
+     * Baca hanya baris pertama (header) dari sheet.
+     *
+     * @param  array  $config  Konfigurasi koneksi
+     * @return array Daftar header strings
+     */
+    public function readSheetHeaders(array $config): array
+    {
+        try {
+            $client = $this->getClient($config);
+            $service = new Sheets($client);
+
+            $range = $config['sheet_range'] ?? 'Sheet1!A1:Z1';
+            // Force hanya membaca baris pertama
+            if (preg_match('/!/', $range)) {
+                $parts = explode('!', $range);
+                $range = $parts[0].'!A1:'.preg_replace('/\d/', '', $parts[1]).'1';
+            } else {
+                $range = 'Sheet1!A1:Z1';
+            }
+
+            $response = $service->spreadsheets_values->get($config['spreadsheet_id'], $range);
+            $values = $response->getValues();
+
+            if (empty($values) || empty($values[0])) {
+                return [];
+            }
+
+            return $values[0];
+        } catch (\Exception $e) {
+            Log::channel('daily')->error('GoogleSheetsService: Gagal membaca header sheet', [
+                'error' => $e->getMessage(),
+                'spreadsheet_id' => $config['spreadsheet_id'],
+            ]);
+
+            throw new \RuntimeException('Gagal membaca header dari Google Sheets: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Dapatkan preview mapping dari header sheet ke kolom database.
+     * Berguna untuk endpoint preview sebelum sinkronisasi.
+     *
+     * @param  array  $config  Konfigurasi koneksi
+     * @return array ['headers' => [...], 'mapping' => [...], 'unrecognized' => [...], 'total_headers' => int, 'matched' => int]
+     */
+    public function getMappingPreview(array $config): array
+    {
+        try {
+            // Baca headers dari sheet
+            $headers = $this->readSheetHeaders($config);
+
+            if (empty($headers)) {
+                return [
+                    'headers' => [],
+                    'mapping' => [],
+                    'unrecognized' => [],
+                    'total_headers' => 0,
+                    'matched' => 0,
+                    'error' => 'Tidak dapat membaca header dari sheet. Periksa sheet_range dan spreadsheet_id.',
+                ];
+            }
+
+            // Ambil manual mapping jika ada
+            $manualMapping = $config['column_mapping'] ?? [];
+
+            // Deteksi mapping
+            $mappingService = new MappingService;
+
+            if (! empty($manualMapping)) {
+                $result = $mappingService->mergeMapping($headers, $manualMapping);
+            } else {
+                $result = $mappingService->detectMapping($headers);
+            }
+
+            // Format preview per header
+            $preview = [];
+            foreach ($headers as $header) {
+                $mappedColumn = $result['mapping'][$header] ?? null;
+                $isUnrecognized = in_array($header, $result['unrecognized']);
+
+                $preview[] = [
+                    'header' => $header,
+                    'mapped_to' => $mappedColumn,
+                    'is_mapped' => $mappedColumn !== null,
+                    'is_unrecognized' => $isUnrecognized,
+                    'status' => $mappedColumn ? 'matched' : 'unrecognized',
+                ];
+            }
+
+            return [
+                'headers' => $headers,
+                'preview' => $preview,
+                'mapping' => $result['mapping'],
+                'unrecognized' => $result['unrecognized'],
+                'total_headers' => $result['total_headers'],
+                'matched' => $result['matched'],
+                'manual_mapping' => $manualMapping,
+            ];
+        } catch (\Exception $e) {
+            Log::channel('daily')->error('GoogleSheetsService: Gagal mendapatkan preview mapping', [
+                'error' => $e->getMessage(),
+                'spreadsheet_id' => $config['spreadsheet_id'] ?? null,
+            ]);
+
+            return [
+                'headers' => [],
+                'preview' => [],
+                'mapping' => [],
+                'unrecognized' => [],
+                'total_headers' => 0,
+                'matched' => 0,
+                'error' => 'Gagal mendapatkan preview mapping: '.$e->getMessage(),
+            ];
+        }
+    }
+
     public function syncSiswa(array $config, ?int $settingId = null, int $offset = 0, ?int $limit = null): array
     {
         set_time_limit(0);
         $syncService = new SyncService;
-        $columnMapping = $config['column_mapping'] ?? [];
+
+        $manualMapping = $config['column_mapping'] ?? [];
+        $unrecognizedHeaders = [];
+
+        // --- BARU: Auto-detect jika mapping manual kosong atau tidak lengkap ---
+        try {
+            $headers = $this->readSheetHeaders($config);
+            $mappingService = new MappingService;
+
+            if (! empty($manualMapping)) {
+                // Merge: manual mapping override auto-detect untuk field yang sama
+                $autoResult = $mappingService->mergeMapping($headers, $manualMapping);
+            } else {
+                // Full auto-detect
+                $autoResult = $mappingService->detectMapping($headers);
+            }
+
+            $columnMapping = $autoResult['mapping'];
+            $unrecognizedHeaders = $autoResult['unrecognized'];
+        } catch (\Exception $e) {
+            // Fallback ke manual mapping jika gagal auto-detect
+            $columnMapping = $manualMapping;
+            Log::channel('daily')->warning('GoogleSheetsService: Auto-detect gagal, fallback ke manual mapping', [
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        // Jika masih menggunakan manual mapping dan formatnya adalah ['nis' => 'NIS', ...] (reverse)
+        // Maka kita perlu membaliknya: [header_dari_sheet => kolom_db]
+        // Tapi kita sudah punya columnMapping dari auto-detect, jadi aman.
 
         if (empty($columnMapping)) {
+            // Update status jika settingId diberikan
+            if ($settingId) {
+                GoogleSheetSetting::where('id', $settingId)->update([
+                    'last_sync_at' => now(),
+                    'last_sync_status' => 'completed_with_errors',
+                    'last_sync_message' => 'Tidak ada kolom yang dikenal di header sheet. Periksa header atau atur mapping manual.',
+                    'sync_offset' => null,
+                ]);
+            }
+
             return [
                 'success' => false,
                 'imported' => 0,
                 'failed' => 0,
-                'errors' => ['Mapping kolom belum dikonfigurasi. Silakan atur mapping kolom terlebih dahulu.'],
+                'errors' => ['Tidak ada kolom yang dikenal di header sheet. Periksa header atau atur mapping manual.'],
                 'total' => 0,
-                'offset' => $offset,
+                'offset' => 0,
                 'more' => false,
+                'unrecognized_headers' => $unrecognizedHeaders,
             ];
+        }
+
+        // Log warning untuk header tidak dikenal
+        if (! empty($unrecognizedHeaders)) {
+            Log::channel('daily')->warning('GoogleSheetsService: Header tidak dikenal saat sync', [
+                'headers' => $unrecognizedHeaders,
+                'spreadsheet_id' => $config['spreadsheet_id'] ?? null,
+            ]);
         }
 
         $imported = 0;
@@ -209,6 +374,7 @@ class GoogleSheetsService
                 'total' => $totalRows,
                 'offset' => $chunkEnd,
                 'more' => $hasMore,
+                'unrecognized_headers' => $unrecognizedHeaders,
             ];
         } catch (\Exception $e) {
             Log::channel('daily')->error('GoogleSheetsService: Sync siswa gagal total', [
@@ -223,6 +389,7 @@ class GoogleSheetsService
                 'total' => 0,
                 'offset' => $offset,
                 'more' => false,
+                'unrecognized_headers' => $unrecognizedHeaders ?? [],
             ];
         }
     }
