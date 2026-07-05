@@ -4,9 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\AbsensiSiswa;
-use App\Models\AbsensiKegiatan;
-use App\Models\IzinSakit;
 
 class Siswa extends Model
 {
@@ -89,5 +86,10 @@ class Siswa extends Model
     public function studentLeaderboard()
     {
         return $this->hasMany(StudentLeaderboard::class, 'siswa_id');
+    }
+
+    public function riwayatKenaikanKelas()
+    {
+        return $this->hasMany(RiwayatKenaikanKelas::class, 'siswa_id');
     }
 }

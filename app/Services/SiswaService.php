@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\ActivityLog;
 use App\Models\Kelas;
-use App\Models\RiwayatKenaikanKelas;
 use App\Models\Siswa;
 use App\Models\TahunAkademik;
 use Illuminate\Support\Facades\DB;
@@ -15,9 +14,6 @@ class SiswaService
      * Pindah kelas siswa dalam tahun ajaran yang sama.
      * Data siswa tetap utuh — hanya kelas_id yang diperbarui.
      *
-     * @param  Siswa  $siswa
-     * @param  int    $kelasIdBaru
-     * @return Siswa
      *
      * @throws \InvalidArgumentException
      */
@@ -61,17 +57,13 @@ class SiswaService
      * Naik kelas siswa ke tahun ajaran baru.
      * Data siswa tetap utuh — kelas_id dan tahun_akademik_id diperbarui.
      *
-     * @param  Siswa         $siswa
-     * @param  int           $kelasIdBaru
-     * @param  int           $tahunAkademikIdBaru
-     * @return Siswa
      *
      * @throws \InvalidArgumentException
      */
     public function naikKelas(Siswa $siswa, int $kelasIdBaru, int $tahunAkademikIdBaru): Siswa
     {
-        $kelasBaru          = Kelas::find($kelasIdBaru);
-        $tahunAkademikBaru  = TahunAkademik::find($tahunAkademikIdBaru);
+        $kelasBaru = Kelas::find($kelasIdBaru);
+        $tahunAkademikBaru = TahunAkademik::find($tahunAkademikIdBaru);
 
         if (! $kelasBaru) {
             throw new \InvalidArgumentException('Kelas tujuan tidak ditemukan.');
@@ -95,8 +87,8 @@ class SiswaService
 
         DB::transaction(function () use ($siswa, $kelasBaru, $tahunAkademikBaru) {
             $siswa->update([
-                'kelas_id'           => $kelasBaru->id,
-                'tahun_akademik_id'  => $tahunAkademikBaru->id,
+                'kelas_id' => $kelasBaru->id,
+                'tahun_akademik_id' => $tahunAkademikBaru->id,
             ]);
         });
 
@@ -116,9 +108,7 @@ class SiswaService
     /**
      * Pindah kelas siswa secara massal dari satu kelas ke kelas lain.
      *
-     * @param  int  $kelasIdAsal
-     * @param  int  $kelasIdTujuan
-     * @return int  Jumlah siswa yang dipindahkan
+     * @return int Jumlah siswa yang dipindahkan
      *
      * @throws \InvalidArgumentException
      */
@@ -143,7 +133,7 @@ class SiswaService
 
         DB::transaction(function () use ($kelasIdAsal, $kelasTujuan) {
             Siswa::where('kelas_id', $kelasIdAsal)->update([
-                'kelas_id' => $kelasTujuan->id
+                'kelas_id' => $kelasTujuan->id,
             ]);
         });
 
@@ -180,10 +170,10 @@ class SiswaService
 
         $kelasTujuanMap = Kelas::where('tahun_akademik_id', $taTujuan->id)
             ->get()
-            ->groupBy(fn($k) => $k->tingkat . '|' . $k->jurusan);
+            ->groupBy(fn ($k) => $k->tingkat.'|'.$k->jurusan);
 
         // Sort kelas tujuan dalam setiap grup by nama ASC agar urutan mapping konsisten
-        $kelasTujuanMap = $kelasTujuanMap->map(fn($group) => $group->sortBy('nama')->values());
+        $kelasTujuanMap = $kelasTujuanMap->map(fn ($group) => $group->sortBy('nama')->values());
 
         $detail = [];
         $totalSiswa = 0;
@@ -206,7 +196,7 @@ class SiswaService
             if ($nextTingkat === null) {
                 $keterangan = 'Lulus — status akan diubah menjadi alumni';
             } else {
-                $key = $nextTingkat . '|' . $kelas->jurusan;
+                $key = $nextTingkat.'|'.$kelas->jurusan;
                 $kelasTujuanList = $kelasTujuanMap->get($key);
 
                 if ($kelasTujuanList !== null) {
@@ -215,7 +205,7 @@ class SiswaService
                     $kelasTujuan = $kelasTujuanList->get($idx);
 
                     if (! $kelasTujuan) {
-                        $keterangan = "Kelas {$nextTingkat} {$kelas->jurusan} ke-" . ($idx + 1) . " tidak tersedia di TA tujuan";
+                        $keterangan = "Kelas {$nextTingkat} {$kelas->jurusan} ke-".($idx + 1).' tidak tersedia di TA tujuan';
                     }
                 } else {
                     $keterangan = "Kelas {$nextTingkat} {$kelas->jurusan} tidak ditemukan di TA tujuan";
@@ -261,10 +251,10 @@ class SiswaService
 
         $kelasTujuanMap = Kelas::where('tahun_akademik_id', $taTujuan->id)
             ->get()
-            ->groupBy(fn($k) => $k->tingkat . '|' . $k->jurusan);
+            ->groupBy(fn ($k) => $k->tingkat.'|'.$k->jurusan);
 
         // Sort kelas tujuan dalam setiap grup by nama ASC agar urutan mapping konsisten
-        $kelasTujuanMap = $kelasTujuanMap->map(fn($group) => $group->sortBy('nama')->values());
+        $kelasTujuanMap = $kelasTujuanMap->map(fn ($group) => $group->sortBy('nama')->values());
 
         $success = 0;
         $failed = 0;
@@ -302,30 +292,30 @@ class SiswaService
 
                 foreach ($siswaIds as $sid) {
                     $riwayatAlumniData[] = [
-                        'siswa_id'                => $sid,
-                        'kelas_asal_id'           => $kelas->id,
-                        'kelas_tujuan_id'         => null,
-                        'tahun_akademik_asal_id'  => $taAsal->id,
-                        'tahun_akademik_tujuan_id'=> null,
-                        'status_awal'             => 'aktif',
-                        'status_akhir'            => 'alumni',
-                        'keterangan'              => 'Lulus — naik kelas massal',
-                        'created_at'              => now(),
-                        'updated_at'              => now(),
+                        'siswa_id' => $sid,
+                        'kelas_asal_id' => $kelas->id,
+                        'kelas_tujuan_id' => null,
+                        'tahun_akademik_asal_id' => $taAsal->id,
+                        'tahun_akademik_tujuan_id' => null,
+                        'status_awal' => 'aktif',
+                        'status_akhir' => 'alumni',
+                        'keterangan' => 'Lulus — naik kelas massal',
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ];
                 }
 
                 $success += $siswaCount;
                 $details[] = [
-                    'kelas_asal'   => $kelas->nama,
-                    'tingkat'      => $tingkatSekarang,
-                    'jumlah'       => $siswaCount,
-                    'sukses'       => $siswaCount,
-                    'gagal'        => 0,
+                    'kelas_asal' => $kelas->nama,
+                    'tingkat' => $tingkatSekarang,
+                    'jumlah' => $siswaCount,
+                    'sukses' => $siswaCount,
+                    'gagal' => 0,
                     'kelas_tujuan' => 'ALUMNI',
                 ];
             } else {
-                $key = $nextTingkat . '|' . $kelas->jurusan;
+                $key = $nextTingkat.'|'.$kelas->jurusan;
                 $kelasTujuanList = $kelasTujuanMap->get($key);
 
                 if ($kelasTujuanList !== null) {
@@ -340,13 +330,14 @@ class SiswaService
                     // Tidak ada kelas tujuan di TA baru → seluruh kelas gagal
                     $failed += $siswaCount;
                     $details[] = [
-                        'kelas_asal'   => $kelas->nama,
-                        'tingkat'      => $tingkatSekarang,
-                        'jumlah'       => $siswaCount,
-                        'sukses'       => 0,
-                        'gagal'        => $siswaCount,
+                        'kelas_asal' => $kelas->nama,
+                        'tingkat' => $tingkatSekarang,
+                        'jumlah' => $siswaCount,
+                        'sukses' => 0,
+                        'gagal' => $siswaCount,
                         'kelas_tujuan' => '—',
                     ];
+
                     continue;
                 }
 
@@ -354,9 +345,9 @@ class SiswaService
                 $tujuanId = $kelasTujuan->id;
                 if (! isset($kelompokPromosi[$tujuanId])) {
                     $kelompokPromosi[$tujuanId] = [
-                        'ids'                     => [],
-                        'kelas_tujuan_id'         => $tujuanId,
-                        'tahun_akademik_tujuan_id'=> $taTujuan->id,
+                        'ids' => [],
+                        'kelas_tujuan_id' => $tujuanId,
+                        'tahun_akademik_tujuan_id' => $taTujuan->id,
                     ];
                 }
                 $kelompokPromosi[$tujuanId]['ids'] = array_merge(
@@ -366,26 +357,26 @@ class SiswaService
 
                 foreach ($siswaIds as $sid) {
                     $riwayatPromosiData[] = [
-                        'siswa_id'                => $sid,
-                        'kelas_asal_id'           => $kelas->id,
-                        'kelas_tujuan_id'         => $tujuanId,
-                        'tahun_akademik_asal_id'  => $taAsal->id,
-                        'tahun_akademik_tujuan_id'=> $taTujuan->id,
-                        'status_awal'             => 'aktif',
-                        'status_akhir'            => 'aktif',
-                        'keterangan'              => "Naik dari {$tingkatSekarang} ke {$nextTingkat}",
-                        'created_at'              => now(),
-                        'updated_at'              => now(),
+                        'siswa_id' => $sid,
+                        'kelas_asal_id' => $kelas->id,
+                        'kelas_tujuan_id' => $tujuanId,
+                        'tahun_akademik_asal_id' => $taAsal->id,
+                        'tahun_akademik_tujuan_id' => $taTujuan->id,
+                        'status_awal' => 'aktif',
+                        'status_akhir' => 'aktif',
+                        'keterangan' => "Naik dari {$tingkatSekarang} ke {$nextTingkat}",
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ];
                 }
 
                 $success += $siswaCount;
                 $details[] = [
-                    'kelas_asal'   => $kelas->nama,
-                    'tingkat'      => $tingkatSekarang,
-                    'jumlah'       => $siswaCount,
-                    'sukses'       => $siswaCount,
-                    'gagal'        => 0,
+                    'kelas_asal' => $kelas->nama,
+                    'tingkat' => $tingkatSekarang,
+                    'jumlah' => $siswaCount,
+                    'sukses' => $siswaCount,
+                    'gagal' => 0,
                     'kelas_tujuan' => $kelasTujuan->nama,
                 ];
             }
@@ -395,13 +386,57 @@ class SiswaService
         DB::transaction(function () use ($siswaAlumniIds, $kelompokPromosi, $riwayatAlumniData, $riwayatPromosiData) {
             // 1. Bulk update: XII → alumni (1 query untuk semua)
             if (! empty($siswaAlumniIds)) {
+                // Ambil data user_id dan ortu_user_id sebelum diupdate
+                $siswaAlumniUsers = DB::table('siswa')
+                    ->whereIn('id', $siswaAlumniIds)
+                    ->select('user_id', 'ortu_user_id')
+                    ->get();
+
+                $siswaUserIds = [];
+                $ortuUserIds = [];
+                foreach ($siswaAlumniUsers as $sau) {
+                    if ($sau->user_id) {
+                        $siswaUserIds[] = $sau->user_id;
+                    }
+                    if ($sau->ortu_user_id) {
+                        $ortuUserIds[] = $sau->ortu_user_id;
+                    }
+                }
+                $siswaUserIds = array_unique($siswaUserIds);
+                $ortuUserIds = array_unique($ortuUserIds);
+
                 DB::table('siswa')
                     ->whereIn('id', $siswaAlumniIds)
                     ->update([
-                        'status'             => 'alumni',
-                        'kelas_id'           => null,
-                        'tahun_akademik_id'  => null,
+                        'status' => 'alumni',
+                        'kelas_id' => null,
+                        'tahun_akademik_id' => null,
                     ]);
+
+                // Nonaktifkan Akun Siswa (user_id)
+                if (! empty($siswaUserIds)) {
+                    DB::table('users')
+                        ->whereIn('id', $siswaUserIds)
+                        ->update(['status' => 'nonaktif']);
+                }
+
+                // Nonaktifkan Akun Orang Tua (ortu_user_id) jika tidak memiliki anak aktif/nonaktif lain (bukan alumni)
+                if (! empty($ortuUserIds)) {
+                    $ortuWithActiveChildren = DB::table('siswa')
+                        ->whereIn('ortu_user_id', $ortuUserIds)
+                        ->whereIn('status', ['aktif', 'nonaktif'])
+                        ->pluck('ortu_user_id')
+                        ->unique()
+                        ->toArray();
+
+                    $ortuToDeactivate = array_diff($ortuUserIds, $ortuWithActiveChildren);
+
+                    if (! empty($ortuToDeactivate)) {
+                        DB::table('users')
+                            ->whereIn('id', $ortuToDeactivate)
+                            ->update(['status' => 'nonaktif']);
+                    }
+                }
             }
 
             // 2. Bulk update per kelompok promosi: X→XI, XI→XII (1 query per kelas tujuan)
@@ -409,7 +444,7 @@ class SiswaService
                 DB::table('siswa')
                     ->whereIn('id', $data['ids'])
                     ->update([
-                        'kelas_id'          => $data['kelas_tujuan_id'],
+                        'kelas_id' => $data['kelas_tujuan_id'],
                         'tahun_akademik_id' => $data['tahun_akademik_tujuan_id'],
                     ]);
             }

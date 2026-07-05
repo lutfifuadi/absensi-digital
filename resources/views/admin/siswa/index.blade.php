@@ -434,12 +434,11 @@
                     @csrf
                     <div id="importFormBody" class="das-modal-body">
                         <div class="mb-4">
-                            <label class="form-label text-white-50" for="import_file">Pilih File Excel / CSV</label>
+                            <label class="form-label text-white-50" for="import_file">Pilih File Excel (.xlsx)</label>
                             <input id="import_file" name="import_file" type="file"
-                                class="form-control bg-dark border-secondary text-white" accept=".xlsx,.xls,.csv"
+                                class="form-control bg-dark border-secondary text-white" accept=".xlsx"
                                 required>
-                            <div class="form-text text-white-50 small mt-2">Gunakan format file Excel (.xlsx) atau CSV yang
-                                sesuai.</div>
+                            <div class="form-text text-white-50 small mt-2">Gunakan format file Excel (.xlsx) yang sesuai.</div>
                         </div>
 
                         <div class="alert alert-info border-0 shadow-sm"

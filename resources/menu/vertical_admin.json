@@ -75,6 +75,13 @@
       "url": "/admin/staff-tata-usaha"
     },
     {
+      "name": "Alumni",
+      "icon": "menu-icon ti tabler-academic-cap",
+      "slug": "admin.alumni.index",
+      "url": "/admin/alumni",
+      "roles": ["super_admin"]
+    },
+    {
       "name": "Jadwal Pelajaran",
       "icon": "menu-icon ti tabler-calendar-clock",
       "slug": "admin.jadwal.index",

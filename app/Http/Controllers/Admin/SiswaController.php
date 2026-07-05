@@ -19,6 +19,7 @@ use App\Models\User;
 use App\Services\SiswaService;
 use App\Support\QrCodeGenerator;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException as ExcelValidationException;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class SiswaController extends Controller
 {
@@ -39,6 +45,7 @@ class SiswaController extends Controller
         $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
 
         $siswa = Siswa::with(['kelas', 'tahunAkademik'])
+            ->where('status', '!=', 'alumni')
             ->where(function ($q) use ($tahunAjaranId) {
                 if ($tahunAjaranId) {
                     // Tampilkan siswa yang sesuai tahun ajaran ATAU yang tahun_akademik_id-nya NULL
@@ -60,7 +67,7 @@ class SiswaController extends Controller
 
         // Deteksi siswa dengan tahun_akademik_id NULL untuk notifikasi admin
         $siswaNullTahun = $tahunAjaranId
-            ? Siswa::whereNull('tahun_akademik_id')->count()
+            ? Siswa::whereNull('tahun_akademik_id')->where('status', '!=', 'alumni')->count()
             : 0;
 
         if ($request->ajax()) {
@@ -155,14 +162,14 @@ class SiswaController extends Controller
     {
         // Validasi file dan ukurannya (max 20MB = 20480KB)
         $request->validate([
-            'import_file' => 'required|file|mimes:xlsx,xls,csv|max:20480',
+            'import_file' => 'required|file|mimes:xlsx|max:20480',
         ]);
 
         $originalFileName = $request->file('import_file')->getClientOriginalName();
 
         // Hitung total baris dari file (kurangi 1 untuk header)
         try {
-            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($request->file('import_file'));
+            $reader = IOFactory::createReaderForFile($request->file('import_file'));
             $reader->setReadDataOnly(true);
             $spreadsheet = $reader->load($request->file('import_file'));
             $totalRows = $spreadsheet->getActiveSheet()->getHighestRow() - 1;
@@ -170,7 +177,7 @@ class SiswaController extends Controller
         } catch (\Exception $e) {
             Log::error('Gagal membaca total baris file excel untuk progress', [
                 'file' => $originalFileName,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
             $totalRows = 0;
         }
@@ -190,9 +197,9 @@ class SiswaController extends Controller
         // Gunakan session_write_close() agar request polling tidak terblokir (TANPA menghapus session)
         session_write_close();
 
-        Log::info('Import siswa dimulai oleh User ID: ' . (Auth::id() ?? 'System') . ' dengan file: ' . $originalFileName, [
+        Log::info('Import siswa dimulai oleh User ID: '.(Auth::id() ?? 'System').' dengan file: '.$originalFileName, [
             'total_rows' => $totalRows,
-            'timeout' => $timeout
+            'timeout' => $timeout,
         ]);
 
         try {
@@ -209,13 +216,13 @@ class SiswaController extends Controller
             Log::info('Import siswa selesai', [
                 'file' => $originalFileName,
                 'success_count' => $result['success'],
-                'failed_count' => $result['failed']
+                'failed_count' => $result['failed'],
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => "Import selesai. {$result['success']} baris berhasil" . 
-                    ($result['failed'] > 0 ? ", {$result['failed']} baris gagal." : "."),
+                'message' => "Import selesai. {$result['success']} baris berhasil".
+                    ($result['failed'] > 0 ? ", {$result['failed']} baris gagal." : '.'),
                 'success_count' => $result['success'],
                 'failed_count' => $result['failed'],
                 'errors' => $result['errors'],
@@ -224,7 +231,7 @@ class SiswaController extends Controller
             cache()->put('siswa_import_status', 'failed');
             Log::warning('Import validasi error (Maatwebsite)', [
                 'file' => $originalFileName,
-                'failures' => $exception->failures()
+                'failures' => $exception->failures(),
             ]);
 
             $failures = [];
@@ -245,18 +252,20 @@ class SiswaController extends Controller
             cache()->put('siswa_import_status', 'failed');
             Log::error('Import file corrupt atau tidak dapat dibaca', [
                 'file' => $originalFileName,
-                'error' => $exception->getMessage()
+                'error' => $exception->getMessage(),
             ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'File Excel tidak dapat dibaca. Pastikan file tidak corrupt.',
             ], 400);
-        } catch (\Illuminate\Database\QueryException $exception) {
+        } catch (QueryException $exception) {
             cache()->put('siswa_import_status', 'failed');
             Log::error('Import DB QueryException', [
                 'file' => $originalFileName,
-                'error' => $exception->getMessage()
+                'error' => $exception->getMessage(),
             ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan database. Silakan hubungi developer.',
@@ -265,8 +274,9 @@ class SiswaController extends Controller
             cache()->put('siswa_import_status', 'failed');
             Log::error('Import fatal error (memory limit?)', [
                 'file' => $originalFileName,
-                'error' => $exception->getMessage()
+                'error' => $exception->getMessage(),
             ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Memori server tidak cukup untuk memproses file ini. Coba bagi file menjadi lebih kecil.',
@@ -276,11 +286,12 @@ class SiswaController extends Controller
             Log::error('Import unknown error', [
                 'file' => $originalFileName,
                 'error' => $exception->getMessage(),
-                'trace' => $exception->getTraceAsString()
+                'trace' => $exception->getTraceAsString(),
             ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan yang tidak terduga: ' . $exception->getMessage(),
+                'message' => 'Terjadi kesalahan yang tidak terduga: '.$exception->getMessage(),
             ], 500);
         }
     }
@@ -333,53 +344,48 @@ class SiswaController extends Controller
             'status',
         ];
 
-        $callback = function () use ($headers, $namaKelasContoh, $tahunContoh) {
-            $file = fopen('php://output', 'w');
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Sampel Import Siswa');
 
-            // Header row
-            fputcsv($file, $headers);
+        // Header
+        $sheet->fromArray($headers, null, 'A1');
 
-            // Baris contoh 1 (laki-laki)
-            fputcsv($file, [
-                '12345',
-                '0012345678',
-                'Ahmad Siswa Sampel',
-                'L',
-                'Jakarta',
-                '01/01/2010',        // format: dd/mm/yyyy
-                'Jl. Merdeka No. 1',
-                '08123456789',       // no_hp siswa (boleh kosong)
-                '08123456780',       // no_hp_ortu (wajib)
-                $namaKelasContoh,
-                $tahunContoh,
-                'aktif',
-            ]);
+        // Set header bold
+        $sheet->getStyle('A1:'.Coordinate::stringFromColumnIndex(count($headers)).'1')->getFont()->setBold(true);
 
-            // Baris contoh 2 (perempuan)
-            fputcsv($file, [
-                '12346',
-                '0012345679',
-                'Siti Siswi Sampel',
-                'P',
-                'Bandung',
-                '15/06/2010',
-                'Jl. Sudirman No. 5',
-                '',                  // no_hp boleh kosong
-                '08198765432',
-                $namaKelasContoh,
-                $tahunContoh,
-                'aktif',
-            ]);
+        // Data baris 1 (L)
+        $sheet->fromArray([
+            '12345', '0012345678', 'Ahmad Siswa Sampel', 'L', 'Jakarta', '01/01/2010',
+            'Jl. Merdeka No. 1', '08123456789', '08123456780', $namaKelasContoh, $tahunContoh, 'aktif',
+        ], null, 'A2');
 
-            fclose($file);
-        };
+        // Data baris 2 (P)
+        $sheet->fromArray([
+            '12346', '0012345679', 'Siti Siswi Sampel', 'P', 'Bandung', '15/06/2010',
+            'Jl. Sudirman No. 5', '', '08198765432', $namaKelasContoh, $tahunContoh, 'aktif',
+        ], null, 'A3');
 
-        return response()->stream($callback, 200, [
-            'Content-type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename=sampel_import_siswa.csv',
-            'Pragma' => 'no-cache',
-            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires' => '0',
+        // FORMAT SEMUA KOLOM SEBAGAI TEXT (kunci utama agar NISN panjang tidak berubah scientific notation)
+        $lastColumn = Coordinate::stringFromColumnIndex(count($headers));
+        $sheet->getStyle("A2:{$lastColumn}3")
+            ->getNumberFormat()
+            ->setFormatCode(NumberFormat::FORMAT_TEXT);
+
+        // Auto-size kolom
+        foreach (range('A', $lastColumn) as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Write to output
+        $writer = new Xlsx($spreadsheet);
+        $fileName = 'sampel_import_siswa.xlsx';
+
+        return response()->stream(function () use ($writer) {
+            $writer->save('php://output');
+        }, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
         ]);
     }
 
@@ -867,8 +873,9 @@ class SiswaController extends Controller
         } catch (\InvalidArgumentException $e) {
             return redirect()->route('admin.siswa.naik-kelas-massal')->with('error', $e->getMessage());
         } catch (\Exception $e) {
-            \Log::error('Error naik kelas massal: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return redirect()->route('admin.siswa.naik-kelas-massal')->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            \Log::error('Error naik kelas massal: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+
+            return redirect()->route('admin.siswa.naik-kelas-massal')->with('error', 'Terjadi kesalahan: '.$e->getMessage());
         }
     }
 
