@@ -866,55 +866,8 @@
                     syncMsg.textContent = 'Memulai sinkronisasi...';
                     syncBar.style.width = '0%';
                     syncCount.textContent = '';
+                    syncBar.className = 'progress-bar progress-bar-striped progress-bar-animated bg-warning';
                     syncModal.show();
-
-                    fetch('{{ route('admin.siswa.sync-google-sheet') }}', {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'Accept': 'application/json',
-                            }
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            syncMsg.textContent = data.message;
-                            syncBar.style.width = '100%';
-                            syncBar.classList.remove('progress-bar-animated', 'progress-bar-striped');
-                            if (data.success) {
-                                syncBar.classList.add('bg-success');
-                            } else {
-                                syncBar.classList.add('bg-danger');
-                            }
-                            clearInterval(syncInterval);
-
-                            setTimeout(() => {
-                                syncModal.hide();
-                                if (data.success) {
-                                    // reload table
-                                    fetchData(1);
-                                    // show toast
-                                    const toast = document.createElement('div');
-                                    toast.className =
-                                        'alert alert-success alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm';
-                                    toast.style.cssText = 'border-radius:8px;';
-                                    toast.innerHTML =
-                                        '<i class="ti tabler-circle-check fs-5"></i><span>' +
-                                        data.message +
-                                        '</span><button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>';
-                                    document.querySelector('.das-hero').insertAdjacentElement(
-                                        'afterend', toast);
-                                    setTimeout(() => toast.remove(), 5000);
-                                }
-                            }, 1500);
-                        })
-                        .catch(err => {
-                            syncMsg.textContent = 'Terjadi kesalahan. Silakan coba lagi.';
-                            syncBar.style.width = '100%';
-                            syncBar.classList.add('bg-danger');
-                            clearInterval(syncInterval);
-                            console.error('Sync error:', err);
-                        });
 
                     // Poll progress
                     syncInterval = setInterval(function() {
@@ -926,16 +879,79 @@
                             .then(res => res.json())
                             .then(prog => {
                                 if (prog.total > 0) {
-                                    const pct = Math.min(Math.round((prog.processed / prog
-                                        .total) * 100), 99);
+                                    const pct = Math.min(Math.round((prog.processed / prog.total) * 100), 99);
                                     syncBar.style.width = pct + '%';
-                                    syncCount.textContent = prog.processed + ' / ' + prog
-                                        .total + ' siswa diproses';
+                                    syncCount.textContent = prog.processed + ' / ' + prog.total + ' siswa diproses';
                                     syncMsg.textContent = prog.message || 'Sedang memproses...';
                                 }
                             })
                             .catch(err => console.error('Progress poll error:', err));
                     }, 2000);
+
+                    fetch('{{ route('admin.siswa.sync-google-sheet') }}', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            clearInterval(syncInterval);
+                            syncModal.hide();
+
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil Dijadwalkan!',
+                                    text: data.message || 'Sinkronisasi Google Sheets telah dijadwalkan dan akan diproses di latar belakang.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-success das-swal-confirm'
+                                    },
+                                    timer: 3000,
+                                    showConfirmButton: false,
+                                    background: 'transparent',
+                                }).then(() => {
+                                    fetchData(1);
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Sinkronisasi Gagal',
+                                    text: data.message || 'Terjadi kesalahan saat memulai sinkronisasi.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-primary das-swal-confirm'
+                                    },
+                                    background: 'transparent',
+                                    buttonsStyling: false
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            clearInterval(syncInterval);
+                            syncModal.hide();
+                            console.error('Sync error:', err);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Koneksi Gagal',
+                                text: 'Gagal menghubungi server untuk sinkronisasi. Silakan coba lagi.',
+                                customClass: {
+                                    popup: 'das-swal-popup',
+                                    title: 'das-swal-title',
+                                    htmlContainer: 'das-swal-html',
+                                    confirmButton: 'btn btn-primary das-swal-confirm'
+                                },
+                                background: 'transparent',
+                                buttonsStyling: false
+                            });
+                        });
                 });
             }
 

@@ -44,6 +44,19 @@ class GoogleSheetsSyncJob implements ShouldQueue
             return;
         }
 
+        if ($setting->credentials_json === null) {
+            $setting->update([
+                'last_sync_status' => 'failed',
+                'last_sync_message' => 'Sinkronisasi gagal: Credentials JSON rusak atau tidak dapat didekripsi (APP_KEY berubah).',
+            ]);
+
+            Log::channel('daily')->error('GoogleSheetsSyncJob: Credentials JSON rusak atau tidak dapat didekripsi (APP_KEY berubah).', [
+                'setting_id' => $this->settingId,
+            ]);
+
+            return;
+        }
+
         if ($this->offset === 0) {
             $setting->update([
                 'last_sync_status' => 'in_progress',
@@ -67,10 +80,17 @@ class GoogleSheetsSyncJob implements ShouldQueue
                 $chunkSize
             );
 
-            if ($result['more']) {
+            if (isset($result['more']) && $result['more']) {
                 GoogleSheetsSyncJob::dispatch($this->settingId, $result['offset'])
                     ->onQueue('syncs')
                     ->delay(now()->addSeconds(2));
+            }
+
+            if (isset($result['success']) && ! $result['success'] && ! (isset($result['more']) && $result['more'])) {
+                $setting->update([
+                    'last_sync_status' => 'failed',
+                    'last_sync_message' => 'Sinkronisasi gagal: '.implode(', ', $result['errors'] ?? []),
+                ]);
             }
 
             Log::channel('daily')->info('GoogleSheetsSyncJob: Chunk selesai', [

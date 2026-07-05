@@ -55,6 +55,16 @@
   </div>
 @endif
 
+{{-- Warning jika credentials rusak akibat perubahan APP_KEY --}}
+@if($setting->id && empty($setting->credentials_json))
+  <div class="alert alert-danger d-flex align-items-center gap-2 mb-4 border-0 shadow-sm" role="alert" style="border-radius:8px;">
+    <i class="ti tabler-alert-triangle fs-5 flex-shrink-0"></i>
+    <span>
+      <strong>Peringatan Keamanan:</strong> Kunci aplikasi (APP_KEY) sistem telah berubah. File <strong>Service Account JSON</strong> yang tersimpan sebelumnya tidak dapat didekripsi. Silakan unggah kembali file JSON Anda pada kolom konfigurasi di bawah untuk mengaktifkan kembali fitur sinkronisasi Google Sheets.
+    </span>
+  </div>
+@endif
+
 {{-- ─────────────────────────────
      PETUNJUK PENGGUNAAN
 ───────────────────────────── --}}
@@ -271,7 +281,7 @@
               <label class="set-label">Terakhir Sinkron</label>
               <div class="d-flex align-items-center gap-2 mt-1">
                 <i class="ti tabler-calendar-time text-muted"></i>
-                <span class="text-white small">{{ $setting->last_sync_at ? \Carbon\Carbon::parse($setting->last_sync_at)->format('d M Y H:i:s') : '-' }}</span>
+                <span class="text-white small" id="sync-last-time">{{ $setting->last_sync_at ? \Carbon\Carbon::parse($setting->last_sync_at)->format('d M Y H:i:s') : '-' }}</span>
               </div>
             </div>
             <div class="set-field">
@@ -286,14 +296,86 @@
                     default => 'bg-label-secondary',
                   };
                 @endphp
-                <span class="badge {{ $badgeClass }}">{{ $setting->status_badge_text }}</span>
+                <span class="badge {{ $badgeClass }}" id="sync-status-badge">{{ $setting->status_badge_text }}</span>
               </div>
             </div>
-            @if($setting->last_sync_message)
-            <div class="set-field set-field--full">
+            {{-- Selalu render div pesan, tapi set d-none jika pesan kosong --}}
+            <div class="set-field set-field--full {{ !$setting->last_sync_message ? 'd-none' : '' }}" id="sync-message-container">
               <label class="set-label">Pesan</label>
-              <p class="text-muted small mt-1 mb-0">{{ $setting->last_sync_message }}</p>
+              <p class="text-muted small mt-1 mb-0" id="sync-message-text">{{ $setting->last_sync_message ?? '' }}</p>
             </div>
+          </div>
+        </div>
+      </div>
+      @endif
+
+      {{-- ─────────────────────────────
+           PANEL 3: Panduan Pemecahan Masalah (Dinamis)
+      ───────────────────────────── --}}
+      @if($setting->id)
+      <div class="set-panel mb-4 {{ !in_array($setting->last_sync_status, ['failed', 'completed_with_errors']) ? 'd-none' : '' }}" id="sync-troubleshoot-panel" style="border-color: rgba(234, 84, 85, 0.25);">
+        <div class="set-panel__head" style="background: linear-gradient(90deg, rgba(234, 84, 85, 0.05) 0%, transparent 60%);">
+          <div class="set-panel__title-wrap">
+            <div class="set-panel__icon" style="background: rgba(234, 84, 85, 0.12); color: var(--das-danger);"><i class="ti tabler-help-circle"></i></div>
+            <div>
+              <div class="set-panel__title">Panduan Pemecahan Masalah</div>
+              <div class="set-panel__sub">Ikuti langkah berikut untuk memperbaiki kesalahan sinkronisasi yang terjadi.</div>
+            </div>
+          </div>
+        </div>
+        <div class="set-panel__body">
+          <div id="sync-troubleshoot-steps" style="display:flex;flex-direction:column;gap:0.75rem;font-size:0.8rem;color:#94a3b8;">
+            {{-- Diisi secara dinamis oleh JavaScript, atau render server-side jika error --}}
+            @if(in_array($setting->last_sync_status, ['failed', 'completed_with_errors']))
+              @php
+                $msg = $setting->last_sync_message ?? '';
+                $stepHtml = '';
+                if (str_contains($msg, 'Credentials JSON') || str_contains($msg, 'MAC') || str_contains($msg, 'decrypt') || str_contains($msg, 'decrpyt')) {
+                  $stepHtml = '
+                    <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(234, 84, 85, 0.04); border: 1px solid rgba(234, 84, 85, 0.08);">
+                      <i class="ti tabler-circle-number-1 text-danger mt-1"></i>
+                      <div>
+                        <b class="text-white">Credentials Lama Rusak (APP_KEY Berubah)</b>
+                        <p class="mb-0 mt-1 small">Langkah perbaikan: Silakan upload/tempel kembali isi file <b>Service Account JSON</b> Anda yang baru pada kolom konfigurasi di bawah, lalu klik <b>Simpan Pengaturan</b>.</p>
+                      </div>
+                    </div>';
+                } elseif (str_contains($msg, 'Mapping kolom')) {
+                  $stepHtml = '
+                    <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(234, 84, 85, 0.04); border: 1px solid rgba(234, 84, 85, 0.08);">
+                      <i class="ti tabler-circle-number-1 text-danger mt-1"></i>
+                      <div>
+                        <b class="text-white">Konfigurasi Mapping Kolom Kosong</b>
+                        <p class="mb-0 mt-1 small">Langkah perbaikan: Gulir ke bagian <b>Mapping Kolom (JSON)</b> di bawah, masukkan format pemetaan kolom database Anda ke kolom Google Sheet (gunakan template contoh di bawah input), lalu klik <b>Simpan</b>.</p>
+                      </div>
+                    </div>';
+                } elseif (str_contains($msg, 'Gagal mengambil data') || str_contains($msg, 'permission') || str_contains($msg, 'access') || str_contains($msg, 'Forbidden')) {
+                  $stepHtml = '
+                    <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(234, 84, 85, 0.04); border: 1px solid rgba(234, 84, 85, 0.08);">
+                      <i class="ti tabler-circle-number-1 text-danger mt-1"></i>
+                      <div>
+                        <b class="text-white">Akses ke Spreadsheet Ditolak / Dilarang</b>
+                        <p class="mb-0 mt-1 small">Langkah perbaikan: Buka Google Sheets Anda ➔ Klik tombol <b>Bagikan (Share)</b> di pojok kanan atas ➔ Undang email <b>Service Account</b> Anda (misal yang berakhiran <i>@gserviceaccount.com</i>) sebagai <b>Viewer</b> atau <b>Editor</b>, lalu klik kirim.</p>
+                      </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-2 p-2 rounded mt-2" style="background: rgba(234, 84, 85, 0.04); border: 1px solid rgba(234, 84, 85, 0.08);">
+                      <i class="ti tabler-circle-number-2 text-danger mt-1"></i>
+                      <div>
+                        <b class="text-white">ID Spreadsheet atau Range Salah</b>
+                        <p class="mb-0 mt-1 small">Pastikan nilai pada kolom <b>ID Spreadsheet</b> dan <b>Range Sheet</b> di bawah sudah benar sesuai URL dan nama Sheet Anda.</p>
+                      </div>
+                    </div>';
+                } else {
+                  $stepHtml = '
+                    <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(255, 159, 67, 0.04); border: 1px solid rgba(255, 159, 67, 0.08);">
+                      <i class="ti tabler-info-circle text-warning mt-1"></i>
+                      <div>
+                        <b class="text-white">Kesalahan Umum</b>
+                        <p class="mb-0 mt-1 small">Langkah perbaikan: Pastikan koneksi internet server stabil, file credentials Service Account JSON valid, ID Spreadsheet benar, dan Anda sudah melakukan <b>Test Koneksi</b> terlebih dahulu sebelum sinkronisasi.</p>
+                      </div>
+                    </div>';
+                }
+                echo $stepHtml;
+              @endphp
             @endif
           </div>
         </div>
@@ -805,6 +887,7 @@ async function submitGsSyncNow() {
       closeGsSyncConfirmModal();
       setTimeout(() => {
         openGsSyncSuccessModal();
+        startGsSyncPolling(); // <--- PANGGIL POLLING DI SINI
       }, 300);
     } else {
       showGsDynamicToast('danger', result.message || 'Terjadi kesalahan saat sinkronisasi.');
@@ -936,6 +1019,153 @@ window.addEventListener('keydown', function (event) {
     if (confirmModal && !confirmModal.hidden) closeGsSyncConfirmModal();
     if (successModal && !successModal.hidden) closeGsSyncSuccessModal();
     if (testModal && !testModal.hidden) closeGsTestModal();
+  }
+});
+
+function getTroubleshootStepsHtml(message) {
+  if (!message) return '';
+  
+  if (message.includes('Credentials JSON') || message.includes('MAC') || message.includes('decrypt') || message.includes('decrpyt')) {
+    return `
+      <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(234, 84, 85, 0.04); border: 1px solid rgba(234, 84, 85, 0.08);">
+        <i class="ti tabler-circle-number-1 text-danger mt-1"></i>
+        <div>
+          <b class="text-white">Credentials Lama Rusak (APP_KEY Berubah)</b>
+          <p class="mb-0 mt-1 small">Langkah perbaikan: Silakan upload/tempel kembali isi file <b>Service Account JSON</b> Anda yang baru pada kolom konfigurasi di bawah, lalu klik <b>Simpan Pengaturan</b>.</p>
+        </div>
+      </div>
+    `;
+  }
+  
+  if (message.includes('Mapping kolom')) {
+    return `
+      <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(234, 84, 85, 0.04); border: 1px solid rgba(234, 84, 85, 0.08);">
+        <i class="ti tabler-circle-number-1 text-danger mt-1"></i>
+        <div>
+          <b class="text-white">Konfigurasi Mapping Kolom Kosong</b>
+          <p class="mb-0 mt-1 small">Langkah perbaikan: Gulir ke bagian <b>Mapping Kolom (JSON)</b> di bawah, masukkan format pemetaan kolom database Anda ke kolom Google Sheet (gunakan template contoh di bawah input), lalu klik <b>Simpan</b>.</p>
+        </div>
+      </div>
+    `;
+  }
+  
+  if (message.includes('Gagal mengambil data') || message.includes('permission') || message.includes('access') || message.includes('Forbidden')) {
+    return `
+      <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(234, 84, 85, 0.04); border: 1px solid rgba(234, 84, 85, 0.08);">
+        <i class="ti tabler-circle-number-1 text-danger mt-1"></i>
+        <div>
+          <b class="text-white">Akses ke Spreadsheet Ditolak / Dilarang</b>
+          <p class="mb-0 mt-1 small">Langkah perbaikan: Buka Google Sheets Anda ➔ Klik tombol <b>Bagikan (Share)</b> di pojok kanan atas ➔ Undang email <b>Service Account</b> Anda (misal yang berakhiran <i>@gserviceaccount.com</i>) sebagai <b>Viewer</b> atau <b>Editor</b>, lalu klik kirim.</p>
+        </div>
+      </div>
+      <div class="d-flex align-items-start gap-2 p-2 rounded mt-2" style="background: rgba(234, 84, 85, 0.04); border: 1px solid rgba(234, 84, 85, 0.08);">
+        <i class="ti tabler-circle-number-2 text-danger mt-1"></i>
+        <div>
+          <b class="text-white">ID Spreadsheet atau Range Salah</b>
+          <p class="mb-0 mt-1 small">Pastikan nilai pada kolom <b>ID Spreadsheet</b> dan <b>Range Sheet</b> di bawah sudah benar sesuai URL dan nama Sheet Anda.</p>
+        </div>
+      </div>
+    `;
+  }
+  
+  // Fallback
+  return `
+    <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: rgba(255, 159, 67, 0.04); border: 1px solid rgba(255, 159, 67, 0.08);">
+      <i class="ti tabler-info-circle text-warning mt-1"></i>
+      <div>
+        <b class="text-white">Kesalahan Umum</b>
+        <p class="mb-0 mt-1 small">Langkah perbaikan: Pastikan koneksi internet server stabil, file credentials Service Account JSON valid, ID Spreadsheet benar, dan Anda sudah melakukan <b>Test Koneksi</b> terlebih dahulu sebelum sinkronisasi.</p>
+      </div>
+    </div>
+  `;
+}
+
+let gsSyncPollingInterval = null;
+
+function startGsSyncPolling() {
+  if (gsSyncPollingInterval) return; // cegah dobel interval
+
+  const lastTimeEl = document.getElementById('sync-last-time');
+  const badgeEl = document.getElementById('sync-status-badge');
+  const msgContainer = document.getElementById('sync-message-container');
+  const msgEl = document.getElementById('sync-message-text');
+
+  // Pastikan elemen ada di DOM sebelum polling
+  if (!badgeEl) return;
+
+  gsSyncPollingInterval = setInterval(async () => {
+    try {
+      const response = await fetch('{{ route('admin.pengaturan.google-sheets.index') }}', {
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+      const data = await response.json();
+
+      // Update Terakhir Sinkron
+      if (lastTimeEl) lastTimeEl.textContent = data.last_sync_at;
+
+      // Update Status Badge
+      if (badgeEl) {
+        badgeEl.textContent = data.status_badge_text;
+        
+        // Reset classes
+        badgeEl.className = 'badge';
+        
+        // Set new class
+        const status = data.last_sync_status;
+        if (status === 'success') {
+          badgeEl.classList.add('bg-label-success');
+        } else if (status === 'completed_with_errors') {
+          badgeEl.classList.add('bg-label-warning');
+        } else if (status === 'failed') {
+          badgeEl.classList.add('bg-label-danger');
+        } else if (status === 'in_progress') {
+          badgeEl.classList.add('bg-label-warning');
+        } else {
+          badgeEl.classList.add('bg-label-secondary');
+        }
+      }
+
+      // Update Pesan
+      if (msgEl) {
+        if (data.last_sync_message) {
+          msgEl.textContent = data.last_sync_message;
+          if (msgContainer) msgContainer.classList.remove('d-none');
+        } else {
+          if (msgContainer) msgContainer.classList.add('d-none');
+        }
+      }
+
+      // Update Panel Troubleshooting (TAMBAHAN LOGIC BARU)
+      const tsPanel = document.getElementById('sync-troubleshoot-panel');
+      const tsStepsEl = document.getElementById('sync-troubleshoot-steps');
+      if (tsPanel && tsStepsEl) {
+        if (data.last_sync_status === 'failed' || data.last_sync_status === 'completed_with_errors') {
+          tsStepsEl.innerHTML = getTroubleshootStepsHtml(data.last_sync_message);
+          tsPanel.classList.remove('d-none');
+        } else {
+          tsPanel.classList.add('d-none');
+        }
+      }
+
+      // Hentikan polling jika sudah selesai/gagal
+      if (data.last_sync_status !== 'in_progress') {
+        clearInterval(gsSyncPollingInterval);
+        gsSyncPollingInterval = null;
+      }
+    } catch (error) {
+      console.error('Polling error:', error);
+    }
+  }, 2500);
+}
+
+// Panggil polling saat halaman di-load jika statusnya sedang berjalan
+document.addEventListener('DOMContentLoaded', () => {
+  const currentStatus = '{{ $setting->last_sync_status ?? "" }}';
+  if (currentStatus === 'in_progress') {
+    startGsSyncPolling();
   }
 });
 </script>

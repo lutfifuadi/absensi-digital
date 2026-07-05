@@ -98,7 +98,15 @@ class GoogleSheetsService
         $columnMapping = $config['column_mapping'] ?? [];
 
         if (empty($columnMapping)) {
-            return ['success' => false, 'imported' => 0, 'failed' => 0, 'errors' => ['Mapping kolom belum dikonfigurasi. Silakan atur mapping kolom terlebih dahulu.']];
+            return [
+                'success' => false,
+                'imported' => 0,
+                'failed' => 0,
+                'errors' => ['Mapping kolom belum dikonfigurasi. Silakan atur mapping kolom terlebih dahulu.'],
+                'total' => 0,
+                'offset' => $offset,
+                'more' => false,
+            ];
         }
 
         $imported = 0;
@@ -137,6 +145,17 @@ class GoogleSheetsService
                     $mappedData = [];
                     foreach ($columnMapping as $field => $column) {
                         $mappedData[$field] = $row[$column] ?? '';
+                    }
+
+                    // Mapping alias tambahan untuk kompatibilitas dengan SyncService
+                    if (empty($mappedData['username'])) {
+                        $mappedData['username'] = ! empty($mappedData['nisn']) ? trim($mappedData['nisn']) : (! empty($mappedData['nis']) ? trim($mappedData['nis']) : '');
+                    }
+                    if (empty($mappedData['kelas_nama']) && ! empty($mappedData['kelas'])) {
+                        $mappedData['kelas_nama'] = trim($mappedData['kelas']);
+                    }
+                    if (empty($mappedData['tahun_akademik_nama']) && ! empty($mappedData['tahun_ajaran'])) {
+                        $mappedData['tahun_akademik_nama'] = trim($mappedData['tahun_ajaran']);
                     }
 
                     $syncService->syncSiswa($mappedData);

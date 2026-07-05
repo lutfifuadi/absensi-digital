@@ -6,14 +6,27 @@ use App\Http\Controllers\Controller;
 use App\Jobs\GoogleSheetsSyncJob;
 use App\Models\GoogleSheetSetting;
 use App\Services\GoogleSheetsService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class GoogleSheetsSettingController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $setting = GoogleSheetSetting::first() ?? new GoogleSheetSetting;
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'id' => $setting->id,
+                'last_sync_at' => $setting->last_sync_at ? Carbon::parse($setting->last_sync_at)->format('d M Y H:i:s') : '-',
+                'last_sync_status' => $setting->last_sync_status,
+                'status_badge_text' => $setting->status_badge_text,
+                'last_sync_message' => $setting->last_sync_message,
+                'sync_total_rows' => $setting->sync_total_rows,
+                'sync_processed_rows' => $setting->sync_processed_rows,
+            ]);
+        }
 
         return view('admin.pengaturan.google-sheets', compact('setting'));
     }
@@ -70,8 +83,6 @@ class GoogleSheetsSettingController extends Controller
 
         if ($request->filled('credentials_json')) {
             $rules['credentials_json'] = 'json';
-        } elseif (! $setting || empty($setting->credentials_json)) {
-            $rules['credentials_json'] = 'required';
         }
 
         $validated = $request->validate($rules);
@@ -83,7 +94,7 @@ class GoogleSheetsSettingController extends Controller
         if (empty($credentialsJson)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Credentials belum dikonfigurasi. Silakan isi Service Account JSON terlebih dahulu.',
+                'message' => 'Credentials JSON tidak valid atau rusak (kemungkinan karena perubahan kunci aplikasi APP_KEY). Silakan isi/upload ulang Service Account JSON Anda.',
             ], 422);
         }
 
@@ -121,6 +132,17 @@ class GoogleSheetsSettingController extends Controller
             }
 
             return back()->with('sync_error', 'Konfigurasi Google Sheets belum diatur atau tidak aktif.');
+        }
+
+        if (empty($setting->credentials_json)) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menjadwalkan sinkronisasi: Credentials JSON rusak atau tidak dikonfigurasi. Silakan upload kembali Service Account JSON di halaman pengaturan.',
+                ], 422);
+            }
+
+            return back()->with('sync_error', 'Gagal menjadwalkan sinkronisasi: Credentials JSON rusak atau tidak dikonfigurasi. Silakan upload kembali Service Account JSON di halaman pengaturan.');
         }
 
         if ($setting->last_sync_status === 'in_progress') {

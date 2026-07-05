@@ -782,6 +782,10 @@ class SiswaController extends Controller
             return response()->json(['success' => false, 'message' => 'Konfigurasi Google Sheets belum diatur atau tidak aktif.']);
         }
 
+        if (empty($setting->credentials_json)) {
+            return response()->json(['success' => false, 'message' => 'Gagal menjadwalkan sinkronisasi: Credentials JSON rusak atau tidak dikonfigurasi. Silakan upload kembali Service Account JSON di halaman pengaturan.']);
+        }
+
         if (empty($setting->column_mapping)) {
             return response()->json(['success' => false, 'message' => 'Mapping kolom Google Sheets belum dikonfigurasi.']);
         }
