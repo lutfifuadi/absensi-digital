@@ -62,6 +62,9 @@
       </div>
 
       <div class="das-hero__actions">
+        <a href="{{ route('admin.pengaturan.google-sheets-guru.index') }}" class="btn das-btn --secondary">
+          <i class="ti tabler-file-spreadsheet me-1"></i> Google Sheets Sync
+        </a>
         <button type="button" class="btn das-btn --secondary" data-bs-toggle="modal" data-bs-target="#importModal">
           <i class="ti tabler-file-import me-1"></i> Import
         </button>

@@ -68,17 +68,28 @@ class GoogleSheetsSyncJob implements ShouldQueue
             $service = new GoogleSheetsService;
             $chunkSize = GoogleSheetSetting::CHUNK_SIZE;
 
-            $result = $service->syncSiswa(
-                [
-                    'spreadsheet_id' => $setting->spreadsheet_id,
-                    'sheet_range' => $setting->sheet_range,
-                    'credentials_json' => $setting->credentials_json,
-                    'column_mapping' => $setting->column_mapping ?? [],
-                ],
-                $this->settingId,
-                $this->offset,
-                $chunkSize
-            );
+            $config = [
+                'spreadsheet_id' => $setting->spreadsheet_id,
+                'sheet_range' => $setting->sheet_range,
+                'credentials_json' => $setting->credentials_json,
+                'column_mapping' => $setting->column_mapping ?? [],
+            ];
+
+            if (($setting->type ?? 'siswa') === 'guru') {
+                $result = $service->syncGuru(
+                    $config,
+                    $this->settingId,
+                    $this->offset,
+                    $chunkSize
+                );
+            } else {
+                $result = $service->syncSiswa(
+                    $config,
+                    $this->settingId,
+                    $this->offset,
+                    $chunkSize
+                );
+            }
 
             if (isset($result['more']) && $result['more']) {
                 GoogleSheetsSyncJob::dispatch($this->settingId, $result['offset'])

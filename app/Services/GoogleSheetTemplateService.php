@@ -35,62 +35,103 @@ class GoogleSheetTemplateService
     ];
 
     /**
+     * Kolom standar untuk guru.
+     */
+    protected array $guruColumns = [
+        'nip',
+        'nama_lengkap',
+        'jenis_kelamin',
+        'mata_pelajaran',
+        'jabatan',
+        'no_hp',
+    ];
+
+    /**
      * Dapatkan daftar kolom standar.
      */
-    public function getStandardColumns(): array
+    public function getStandardColumns(string $type = 'siswa'): array
     {
-        return $this->standardColumns;
+        return $type === 'guru' ? $this->guruColumns : $this->standardColumns;
     }
 
     /**
-     * Download template Excel (.xlsx) dengan 13 kolom standar + 2 baris data sampel.
-     * Semua sel diformat sebagai text agar NIS/NISN tidak berubah format.
+     * Download template Excel (.xlsx) dengan kolom standar + 2 baris data sampel.
+     * Semua sel diformat sebagai text agar NIS/NISN atau NIP tidak berubah format.
      */
-    public function downloadTemplate(): BinaryFileResponse
+    public function downloadTemplate(string $type = 'siswa'): BinaryFileResponse
     {
         $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Template Siswa');
+        
+        $columns = $type === 'guru' ? $this->guruColumns : $this->standardColumns;
+
+        if ($type === 'guru') {
+            $sheet->setTitle('Template Guru');
+        } else {
+            $sheet->setTitle('Template Siswa');
+        }
 
         // Header
-        $sheet->fromArray($this->standardColumns, null, 'A1');
+        $sheet->fromArray($columns, null, 'A1');
 
         // Set header bold
-        $headerCount = count($this->standardColumns);
+        $headerCount = count($columns);
         $lastColumn = Coordinate::stringFromColumnIndex($headerCount);
         $sheet->getStyle("A1:{$lastColumn}1")->getFont()->setBold(true);
 
-        // Data sampel baris 1
-        $sheet->fromArray([
-            '1234567890',   // nis
-            'Ali Ahmad',    // nama_lengkap
-            '0012345678',   // nisn
-            'Jakarta',      // tempat_lahir
-            '01-01-2010',   // tanggal_lahir
-            'L',            // jenis_kelamin
-            'Jl. Merdeka No. 1, Jakarta', // alamat
-            '081234567890', // no_hp
-            '087654321098', // no_hp_ortu
-            'X-A',          // kelas_nama
-            '2025/2026',    // tahun_akademik_nama
-        ], null, 'A2');
+        if ($type === 'guru') {
+            // Data sampel baris 1 untuk guru
+            $sheet->fromArray([
+                '198501012010011001',   // nip
+                'Ahmad Sanusi, S.Pd',    // nama_lengkap
+                'L',                     // jenis_kelamin
+                'Matematika',            // mata_pelajaran
+                'Guru Mapel',            // jabatan
+                '081234567890',          // no_hp
+            ], null, 'A2');
 
-        // Data sampel baris 2
-        $sheet->fromArray([
-            '1234567891',   // nis
-            'Budi Santoso', // nama_lengkap
-            '0012345679',   // nisn
-            'Bandung',      // tempat_lahir
-            '15-06-2010',   // tanggal_lahir
-            'L',            // jenis_kelamin
-            'Jl. Sudirman No. 5, Bandung', // alamat
-            '081987654321', // no_hp
-            '082223344556', // no_hp_ortu
-            'X-A',          // kelas_nama
-            '2025/2026',    // tahun_akademik_nama
-        ], null, 'A3');
+            // Data sampel baris 2 untuk guru
+            $sheet->fromArray([
+                '199002022015022002',   // nip
+                'Siti Aminah, M.Pd',     // nama_lengkap
+                'P',                     // jenis_kelamin
+                'Bahasa Indonesia',      // mata_pelajaran
+                'Wali Kelas',            // jabatan
+                '081234567891',          // no_hp
+            ], null, 'A3');
+        } else {
+            // Data sampel baris 1
+            $sheet->fromArray([
+                '1234567890',   // nis
+                'Ali Ahmad',    // nama_lengkap
+                '0012345678',   // nisn
+                'Jakarta',      // tempat_lahir
+                '01-01-2010',   // tanggal_lahir
+                'L',            // jenis_kelamin
+                'Jl. Merdeka No. 1, Jakarta', // alamat
+                '081234567890', // no_hp
+                '087654321098', // no_hp_ortu
+                'X-A',          // kelas_nama
+                '2025/2026',    // tahun_akademik_nama
+            ], null, 'A2');
 
-        // FORMAT SEMUA KOLOM DATA SEBAGAI TEXT (kunci utama agar NIS panjang tidak berubah scientific notation)
+            // Data sampel baris 2
+            $sheet->fromArray([
+                '1234567891',   // nis
+                'Budi Santoso', // nama_lengkap
+                '0012345679',   // nisn
+                'Bandung',      // tempat_lahir
+                '15-06-2010',   // tanggal_lahir
+                'L',            // jenis_kelamin
+                'Jl. Sudirman No. 5, Bandung', // alamat
+                '081987654321', // no_hp
+                '082223344556', // no_hp_ortu
+                'X-A',          // kelas_nama
+                '2025/2026',    // tahun_akademik_nama
+            ], null, 'A3');
+        }
+
+        // FORMAT SEMUA KOLOM DATA SEBAGAI TEXT (kunci utama agar NIS/NIP panjang tidak berubah scientific notation)
         $sheet->getStyle("A2:{$lastColumn}3")
             ->getNumberFormat()
             ->setFormatCode(NumberFormat::FORMAT_TEXT);
@@ -102,7 +143,8 @@ class GoogleSheetTemplateService
 
         // Simpan ke file sementara
         $timestamp = now()->format('Y-m-d_H-i-s');
-        $fileName = "template_siswa_{$timestamp}.xlsx";
+        $fileName = $type === 'guru' ? "template_guru_{$timestamp}.xlsx" : "template_siswa_{$timestamp}.xlsx";
+        $downloadName = $type === 'guru' ? 'template_guru.xlsx' : 'template_siswa.xlsx';
         $tempDir = 'temp';
         $filePath = "{$tempDir}/{$fileName}";
 
@@ -123,7 +165,7 @@ class GoogleSheetTemplateService
             'file' => $fileName,
         ]);
 
-        return response()->download($fullPath, 'template_siswa.xlsx', [
+        return response()->download($fullPath, $downloadName, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ])->deleteFileAfterSend(true);
     }
@@ -133,16 +175,21 @@ class GoogleSheetTemplateService
      *
      * @param  array  $credentials  Konfigurasi credentials Google API
      * @param  string|null  $spreadsheetId  Jika diberikan, gunakan spreadsheet yang sudah ada
+     * @param  string  $type  Tipe data: 'siswa' atau 'guru'
      * @return array ['spreadsheet_id' => '...', 'url' => '...']
      *
      * @throws \RuntimeException Jika gagal membuat/mengisi spreadsheet
      */
-    public function createGoogleSheet(array $credentials, ?string $spreadsheetId = null): array
+    public function createGoogleSheet(array $credentials, ?string $spreadsheetId = null, string $type = 'siswa'): array
     {
         try {
             $googleSheetsService = new GoogleSheetsService;
             $client = $googleSheetsService->getClient($credentials, false);
             $service = new Sheets($client);
+
+            $columns = $type === 'guru' ? $this->guruColumns : $this->standardColumns;
+            $defaultTitle = $type === 'guru' ? 'Template Data Guru - ' . now()->format('d/m/Y') : 'Template Data Siswa - ' . now()->format('d/m/Y');
+            $sheetNamePrefix = $type === 'guru' ? 'Template Data Guru' : 'Template Data Siswa';
 
             if ($spreadsheetId) {
                 // Update spreadsheet yang sudah ada
@@ -152,14 +199,14 @@ class GoogleSheetTemplateService
                 // Buat spreadsheet baru
                 $spreadsheet = new GoogleSpreadsheet([
                     'properties' => [
-                        'title' => 'Template Data Siswa - '.now()->format('d/m/Y'),
+                        'title' => $defaultTitle,
                     ],
                 ]);
                 $spreadsheet = $service->spreadsheets->create($spreadsheet, [
                     'fields' => 'spreadsheetId,spreadsheetUrl',
                 ]);
                 $spreadsheetId = $spreadsheet->getSpreadsheetId();
-                $spreadsheetTitle = 'Template Data Siswa';
+                $spreadsheetTitle = $sheetNamePrefix;
                 $spreadsheet = $service->spreadsheets->get($spreadsheetId);
             }
 
@@ -170,17 +217,17 @@ class GoogleSheetTemplateService
             $firstSheetId = $firstSheet ? $firstSheet->getProperties()->getSheetId() : 0;
 
             // Siapkan data header (baris pertama)
-            $headerRow = [$this->standardColumns];
+            $headerRow = [$columns];
 
             $valueRange = new ValueRange([
                 'values' => $headerRow,
-                'range' => $firstSheetTitle.'!A1:'.Coordinate::stringFromColumnIndex(count($this->standardColumns)).'1',
+                'range' => $firstSheetTitle.'!A1:'.Coordinate::stringFromColumnIndex(count($columns)).'1',
             ]);
 
             // Tulis header ke sheet pertama
             $service->spreadsheets_values->update(
                 $spreadsheetId,
-                $firstSheetTitle.'!A1:'.Coordinate::stringFromColumnIndex(count($this->standardColumns)).'1',
+                $firstSheetTitle.'!A1:'.Coordinate::stringFromColumnIndex(count($columns)).'1',
                 $valueRange,
                 ['valueInputOption' => 'RAW']
             );
@@ -194,7 +241,7 @@ class GoogleSheetTemplateService
                             'startRowIndex' => 0,
                             'endRowIndex' => 1,
                             'startColumnIndex' => 0,
-                            'endColumnIndex' => count($this->standardColumns),
+                            'endColumnIndex' => count($columns),
                         ],
                         'cell' => [
                             'userEnteredFormat' => [

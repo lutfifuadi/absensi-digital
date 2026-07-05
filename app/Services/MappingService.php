@@ -5,10 +5,19 @@ namespace App\Services;
 class MappingService
 {
     /**
-     * Daftar kolom database yang didukung.
-     * Format: 'nama_kolom' => ['variasi_header_yang_dikenali', ...]
+     * Tipe entitas yang aktif ('siswa' atau 'guru').
      */
-    protected $supportedColumns = [
+    protected string $type;
+
+    /**
+     * Daftar kolom database yang didukung saat ini (berdasarkan $type).
+     */
+    protected array $supportedColumns = [];
+
+    /**
+     * Daftar kolom database yang didukung untuk siswa.
+     */
+    protected array $supportedColumnsSiswa = [
         'nis' => ['nis', 'nipd', 'no induk', 'nomor induk', 'no.induk', 'nomorinduk', 'nis siswa', 'no induk siswa', 'nomor induk siswa'],
         'nama_lengkap' => ['nama', 'nama lengkap', 'nama siswa', 'namalengkap', 'nama_lengkap', 'fullname', 'full name', 'nama_siswa'],
         'nisn' => ['nisn', 'no nisn', 'nomor nisn', 'nisn siswa', 'no induk nasional'],
@@ -24,11 +33,35 @@ class MappingService
     ];
 
     /**
+     * Daftar kolom database yang didukung untuk guru.
+     */
+    protected array $supportedColumnsGuru = [
+        'nip' => ['nip', 'no induk', 'nomor induk', 'no.induk', 'nomorinduk', 'nip guru', 'no induk guru', 'nomor induk guru'],
+        'nama_lengkap' => ['nama', 'nama lengkap', 'nama guru', 'namalengkap', 'nama_lengkap', 'fullname', 'full name', 'nama_guru'],
+        'username' => ['username', 'id', 'user name', 'nama pengguna'],
+        'email' => ['email', 'e-mail', 'alamat email', 'email address', 'surel'],
+        'jenis_kelamin' => ['jenis kelamin', 'jk', 'kelamin', 'gender', 'jenis_kelamin', 'jeniskelamin', 'l/p'],
+        'mata_pelajaran' => ['mapel', 'mata pelajaran', 'subjek', 'subject', 'mata_pelajaran', 'matapelajaran'],
+        'jabatan' => ['jabatan', 'posisi', 'role', 'position'],
+        'no_hp' => ['no telp', 'no_telp', 'telp', 'telepon', 'phone', 'no hp', 'nohp', 'nomor hp', 'nomor telepon', 'nomorhp', 'no. telp', 'no_hp', 'no telepon'],
+        'status' => ['status', 'keaktifan', 'status keaktifan', 'status guru'],
+    ];
+
+    /**
+     * Constructor untuk inisialisasi tipe entitas.
+     */
+    public function __construct(string $type = 'siswa')
+    {
+        $this->type = $type;
+        $this->supportedColumns = $type === 'guru' ? $this->supportedColumnsGuru : $this->supportedColumnsSiswa;
+    }
+
+    /**
      * Dapatkan daftar kolom yang didukung (static).
      */
-    public static function getSupportedColumns(): array
+    public static function getSupportedColumns(?string $type = 'siswa'): array
     {
-        return (new self)->supportedColumns;
+        return (new self($type ?? 'siswa'))->supportedColumns;
     }
 
     /**

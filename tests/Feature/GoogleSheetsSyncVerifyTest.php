@@ -131,4 +131,30 @@ class GoogleSheetsSyncVerifyTest extends TestCase
         $this->assertEquals(1, $siswa->ortu()->count());
         $this->assertEquals($siswa->ortu_user_id, $siswa->ortu()->first()->id);
     }
+
+    public function test_read_sheet_headers_range_parsing()
+    {
+        $service = new GoogleSheetsService();
+
+        $testCases = [
+            'siswa!A:Z' => 'siswa!A1:Z1',
+            'siswa!A1:Z10' => 'siswa!A1:Z1',
+            'Siswa' => 'Siswa!A1:Z1',
+            'siswa!A1:A:Z1' => 'siswa!A1:Z1',
+            'Siswa Kelas 10!A:D' => "'Siswa Kelas 10'!A1:D1",
+            "'Siswa Kelas 10'!B2:H9" => "'Siswa Kelas 10'!B1:H1",
+            'Sheet1!C:C' => 'Sheet1!C1:Z1',
+            'A:Z' => 'Sheet1!A1:Z1',
+            '' => 'Sheet1!A1:Z1',
+            '   ' => 'Sheet1!A1:Z1',
+            'siswa!' => 'siswa!A1:Z1',
+            'siswa!1:100' => 'siswa!A1:Z1',
+            'siswa!A1' => 'siswa!A1:Z1',
+        ];
+
+        foreach ($testCases as $input => $expected) {
+            $parsed = $service->parseHeaderRange($input);
+            $this->assertEquals($expected, $parsed, "Failed asserting that range parsing for '{$input}' returns '{$expected}', got '{$parsed}'");
+        }
+    }
 }

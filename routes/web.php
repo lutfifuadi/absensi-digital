@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\EkskulAbsensiController;
 use App\Http\Controllers\Admin\EkskulAnggotaController;
 use App\Http\Controllers\Admin\EkskulController;
 use App\Http\Controllers\Admin\GoogleSheetsSettingController;
+use App\Http\Controllers\Admin\GoogleSheetsGuruSettingController;
 use App\Http\Controllers\Admin\GuideCategoryController;
 use App\Http\Controllers\Admin\GuruController;
 use App\Http\Controllers\Admin\IdCardTemplateController;
@@ -748,6 +749,35 @@ Route::middleware([
             ->middleware('role:super_admin,admin_sekolah');
         Route::post('pengaturan/google-sheets/preview-mapping', [GoogleSheetsSettingController::class, 'previewMapping'])
             ->name('admin.pengaturan.google-sheets.preview-mapping')
+            ->middleware('role:super_admin,admin_sekolah');
+
+        // Google Sheets Guru Settings
+        Route::get('pengaturan/google-sheets-guru', [GoogleSheetsGuruSettingController::class, 'index'])
+            ->name('admin.pengaturan.google-sheets-guru.index')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pengaturan/google-sheets-guru', [GoogleSheetsGuruSettingController::class, 'update'])
+            ->name('admin.pengaturan.google-sheets-guru.update')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pengaturan/google-sheets-guru/test', [GoogleSheetsGuruSettingController::class, 'testConnection'])
+            ->name('admin.pengaturan.google-sheets-guru.test')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pengaturan/google-sheets-guru/sync-now', [GoogleSheetsGuruSettingController::class, 'syncNow'])
+            ->name('admin.pengaturan.google-sheets-guru.sync-now')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pengaturan/google-sheets-guru/process-queue', [GoogleSheetsGuruSettingController::class, 'processQueue'])
+            ->name('admin.pengaturan.google-sheets-guru.process-queue')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pengaturan/google-sheets-guru/reset-antrian', [GoogleSheetsGuruSettingController::class, 'resetAntrian'])
+            ->name('admin.pengaturan.google-sheets-guru.reset-antrian')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::get('pengaturan/google-sheets-guru/template/download', [GoogleSheetsGuruSettingController::class, 'downloadTemplate'])
+            ->name('admin.pengaturan.google-sheets-guru.template.download')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pengaturan/google-sheets-guru/template/create', [GoogleSheetsGuruSettingController::class, 'createSheetTemplate'])
+            ->name('admin.pengaturan.google-sheets-guru.template.create')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pengaturan/google-sheets-guru/preview-mapping', [GoogleSheetsGuruSettingController::class, 'previewMapping'])
+            ->name('admin.pengaturan.google-sheets-guru.preview-mapping')
             ->middleware('role:super_admin,admin_sekolah');
 
         // AI Chat
