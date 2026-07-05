@@ -10,16 +10,15 @@ class MappingService
      */
     protected $supportedColumns = [
         'nis' => ['nis', 'nipd', 'no induk', 'nomor induk', 'no.induk', 'nomorinduk', 'nis siswa', 'no induk siswa', 'nomor induk siswa'],
-        'nama' => ['nama', 'nama lengkap', 'nama siswa', 'namalengkap', 'nama_lengkap', 'fullname', 'full name', 'nama_siswa'],
+        'nama_lengkap' => ['nama', 'nama lengkap', 'nama siswa', 'namalengkap', 'nama_lengkap', 'fullname', 'full name', 'nama_siswa'],
         'nisn' => ['nisn', 'no nisn', 'nomor nisn', 'nisn siswa', 'no induk nasional'],
         'tempat_lahir' => ['tempat lahir', 'tempatlahir', 'tmp lahir', 'tpl', 'birthplace', 'birth place', 'tempat_lahir'],
         'tanggal_lahir' => ['tanggal lahir', 'tgl lahir', 'tanggallahir', 'tgllahir', 'birthdate', 'birth date', 'tanggal_lahir', 'ttl'],
         'jenis_kelamin' => ['jenis kelamin', 'jk', 'kelamin', 'gender', 'jenis_kelamin', 'jeniskelamin', 'l/p'],
-        'agama' => ['agama', 'religion'],
         'alamat' => ['alamat', 'address', 'alamat rumah', 'alamatrumah', 'alamat_rumah'],
-        'no_telp' => ['no telp', 'no_telp', 'telp', 'telepon', 'phone', 'no hp', 'nohp', 'nomor hp', 'nomor telepon', 'nomorhp', 'no. telp', 'no_hp', 'no telepon'],
-        'nama_ayah' => ['nama ayah', 'ayah', 'namaayah', 'nama_ayah', 'father name', 'fathername'],
-        'nama_ibu' => ['nama ibu', 'ibu', 'namaibu', 'nama_ibu', 'mother name', 'mothername'],
+        'no_hp' => ['no telp', 'no_telp', 'telp', 'telepon', 'phone', 'no hp', 'nohp', 'nomor hp', 'nomor telepon', 'nomorhp', 'no. telp', 'no_hp', 'no telepon'],
+        'no_hp_ortu' => ['no hp ortu', 'no_hp_ortu', 'nohportu', 'nomor hp ortu', 'no hp orang tua', 'no_hp_orangtua', 'no hp wali', 'ortu no hp', 'telepon ortu', 'telp ortu'],
+        'email' => ['email', 'e-mail', 'alamat email', 'email address'],
         'kelas_nama' => ['kelas', 'nama kelas', 'kelas_nama', 'kelasnama', 'class', 'class name', 'kelas saat ini'],
         'tahun_akademik_nama' => ['tahun akademik', 'tahunakademik', 'tahun_akademik_nama', 'ta', 'academic year', 'tahun_ajaran', 'tahunajaran', 'tahun_akademik', 'tahun ajaran'],
     ];

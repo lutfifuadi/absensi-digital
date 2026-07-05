@@ -9,12 +9,24 @@ use Illuminate\Support\Facades\Log;
 
 class GoogleSheetsService
 {
-    public function getClient(array $config): Client
+    public function getClient(array $config, bool $readOnly = true): Client
     {
+        if (empty($config['credentials_json'])) {
+            throw new \InvalidArgumentException('Credentials JSON rusak, kosong, atau tidak valid. Silakan upload Service Account JSON di halaman pengaturan.');
+        }
+
+        $credentials = json_decode($config['credentials_json'], true);
+        if (! is_array($credentials) || empty($credentials)) {
+            throw new \InvalidArgumentException('Credentials JSON rusak, kosong, atau tidak valid. Silakan upload Service Account JSON di halaman pengaturan.');
+        }
+
         $client = new Client;
         $client->setApplicationName('Absensi Pusat');
-        $client->setScopes([Sheets::SPREADSHEETS_READONLY]);
-        $client->setAuthConfig(json_decode($config['credentials_json'], true));
+
+        $scope = $readOnly ? Sheets::SPREADSHEETS_READONLY : Sheets::SPREADSHEETS;
+        $client->setScopes([$scope]);
+
+        $client->setAuthConfig($credentials);
         $client->setAccessType('offline');
 
         $cacert = 'D:\Project\xampp\php\extras\ssl\cacert.pem';
@@ -107,7 +119,10 @@ class GoogleSheetsService
             // Force hanya membaca baris pertama
             if (preg_match('/!/', $range)) {
                 $parts = explode('!', $range);
-                $range = $parts[0].'!A1:'.preg_replace('/\d/', '', $parts[1]).'1';
+                $sheetName = $parts[0];
+                $rangeColumns = $parts[1] ?? 'A:Z';
+                $endCol = preg_replace('/\d/', '', explode(':', $rangeColumns)[1] ?? 'Z');
+                $range = $sheetName.'!A1:'.$endCol.'1';
             } else {
                 $range = 'Sheet1!A1:Z1';
             }
@@ -308,8 +323,8 @@ class GoogleSheetsService
                 $rowIndex = $offset + $index;
                 try {
                     $mappedData = [];
-                    foreach ($columnMapping as $field => $column) {
-                        $mappedData[$field] = $row[$column] ?? '';
+                    foreach ($columnMapping as $header => $dbField) {
+                        $mappedData[$dbField] = $row[$header] ?? '';
                     }
 
                     // Mapping alias tambahan untuk kompatibilitas dengan SyncService
@@ -321,6 +336,19 @@ class GoogleSheetsService
                     }
                     if (empty($mappedData['tahun_akademik_nama']) && ! empty($mappedData['tahun_ajaran'])) {
                         $mappedData['tahun_akademik_nama'] = trim($mappedData['tahun_ajaran']);
+                    }
+
+                    // Alias: nama -> nama_lengkap
+                    if (empty($mappedData['nama_lengkap']) && ! empty($mappedData['nama'])) {
+                        $mappedData['nama_lengkap'] = trim($mappedData['nama']);
+                    }
+                    // Alias: no_telp -> no_hp
+                    if (empty($mappedData['no_hp']) && ! empty($mappedData['no_telp'])) {
+                        $mappedData['no_hp'] = trim($mappedData['no_telp']);
+                    }
+                    // Alias: no_telepon -> no_hp
+                    if (empty($mappedData['no_hp']) && ! empty($mappedData['no_telepon'])) {
+                        $mappedData['no_hp'] = trim($mappedData['no_telepon']);
                     }
 
                     $syncService->syncSiswa($mappedData);

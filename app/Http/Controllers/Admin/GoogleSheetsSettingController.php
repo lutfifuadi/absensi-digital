@@ -9,6 +9,7 @@ use App\Services\GoogleSheetsService;
 use App\Services\GoogleSheetTemplateService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 
 class GoogleSheetsSettingController extends Controller
@@ -37,7 +38,6 @@ class GoogleSheetsSettingController extends Controller
         $rules = [
             'spreadsheet_id' => 'required|string|max:255',
             'sheet_range' => 'required|string|max:50',
-            'column_mapping' => 'nullable|json',
         ];
 
         $setting = GoogleSheetSetting::first();
@@ -57,10 +57,6 @@ class GoogleSheetsSettingController extends Controller
 
         if ($request->filled('credentials_json')) {
             $data['credentials_json'] = $validated['credentials_json'];
-        }
-
-        if ($request->filled('column_mapping')) {
-            $data['column_mapping'] = json_decode($validated['column_mapping'], true);
         }
 
         if ($setting) {
@@ -186,6 +182,45 @@ class GoogleSheetsSettingController extends Controller
             }
 
             return back()->with('sync_error', 'Sinkronisasi gagal. Silakan periksa log sistem untuk detail lebih lanjut.');
+        }
+    }
+
+    /**
+     * Proses antrian queue sinkronisasi.
+     * Menjalankan queue worker satu kali untuk memproses job yang tertunda.
+     */
+    public function processQueue(Request $request)
+    {
+        abort_if(! $request->ajax(), 403);
+
+        try {
+            Artisan::call('queue:work', [
+                'connection' => 'database',
+                '--once' => true,
+                '--queue' => 'syncs',
+            ]);
+
+            $output = Artisan::output();
+
+            // Refresh setting untuk cek status terbaru
+            $setting = GoogleSheetSetting::first();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Antrian berhasil diproses.',
+                'output' => $output,
+                'last_sync_status' => $setting?->last_sync_status,
+                'last_sync_message' => $setting?->last_sync_message,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Gagal memproses antrian queue', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memproses antrian: '.$e->getMessage(),
+            ], 500);
         }
     }
 

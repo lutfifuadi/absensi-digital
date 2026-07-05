@@ -209,7 +209,7 @@ class GoogleSheetsDecryptTest extends TestCase
 
         // 4. Pastikan status di-update menjadi failed dengan pesan error mapping kolom
         $this->assertEquals('failed', $setting->last_sync_status);
-        $this->assertStringContainsString('Mapping kolom belum dikonfigurasi', $setting->last_sync_message);
+        $this->assertStringContainsString('Tidak ada kolom yang dikenal di header sheet', $setting->last_sync_message);
     }
 
     public function test_case_8_settings_page_returns_json_when_requested_via_ajax()

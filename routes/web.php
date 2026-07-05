@@ -734,6 +734,9 @@ Route::middleware([
         Route::post('pengaturan/google-sheets/sync-now', [GoogleSheetsSettingController::class, 'syncNow'])
             ->name('admin.pengaturan.google-sheets.sync-now')
             ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pengaturan/google-sheets/process-queue', [GoogleSheetsSettingController::class, 'processQueue'])
+            ->name('admin.pengaturan.google-sheets.process-queue')
+            ->middleware('role:super_admin,admin_sekolah');
         Route::get('pengaturan/google-sheets/template/download', [GoogleSheetsSettingController::class, 'downloadTemplate'])
             ->name('admin.pengaturan.google-sheets.template.download')
             ->middleware('role:super_admin,admin_sekolah');

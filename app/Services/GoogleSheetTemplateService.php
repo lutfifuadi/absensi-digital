@@ -22,16 +22,14 @@ class GoogleSheetTemplateService
      */
     protected array $standardColumns = [
         'nis',
-        'nama',
+        'nama_lengkap',
         'nisn',
         'tempat_lahir',
         'tanggal_lahir',
         'jenis_kelamin',
-        'agama',
         'alamat',
-        'no_telp',
-        'nama_ayah',
-        'nama_ibu',
+        'no_hp',
+        'no_hp_ortu',
         'kelas_nama',
         'tahun_akademik_nama',
     ];
@@ -65,16 +63,14 @@ class GoogleSheetTemplateService
         // Data sampel baris 1
         $sheet->fromArray([
             '1234567890',   // nis
-            'Ali Ahmad',    // nama
+            'Ali Ahmad',    // nama_lengkap
             '0012345678',   // nisn
             'Jakarta',      // tempat_lahir
             '01-01-2010',   // tanggal_lahir
             'L',            // jenis_kelamin
-            'Islam',        // agama
             'Jl. Merdeka No. 1, Jakarta', // alamat
-            '081234567890', // no_telp
-            'Ahmad Supriyanto', // nama_ayah
-            'Siti Aminah',  // nama_ibu
+            '081234567890', // no_hp
+            '087654321098', // no_hp_ortu
             'X-A',          // kelas_nama
             '2025/2026',    // tahun_akademik_nama
         ], null, 'A2');
@@ -82,16 +78,14 @@ class GoogleSheetTemplateService
         // Data sampel baris 2
         $sheet->fromArray([
             '1234567891',   // nis
-            'Budi Santoso', // nama
+            'Budi Santoso', // nama_lengkap
             '0012345679',   // nisn
             'Bandung',      // tempat_lahir
             '15-06-2010',   // tanggal_lahir
             'L',            // jenis_kelamin
-            'Islam',        // agama
             'Jl. Sudirman No. 5, Bandung', // alamat
-            '081987654321', // no_telp
-            'Bambang Santoso', // nama_ayah
-            'Dewi Sartika', // nama_ibu
+            '081987654321', // no_hp
+            '082223344556', // no_hp_ortu
             'X-A',          // kelas_nama
             '2025/2026',    // tahun_akademik_nama
         ], null, 'A3');
@@ -147,7 +141,7 @@ class GoogleSheetTemplateService
     {
         try {
             $googleSheetsService = new GoogleSheetsService;
-            $client = $googleSheetsService->getClient($credentials);
+            $client = $googleSheetsService->getClient($credentials, false);
             $service = new Sheets($client);
 
             if ($spreadsheetId) {
@@ -166,20 +160,27 @@ class GoogleSheetTemplateService
                 ]);
                 $spreadsheetId = $spreadsheet->getSpreadsheetId();
                 $spreadsheetTitle = 'Template Data Siswa';
+                $spreadsheet = $service->spreadsheets->get($spreadsheetId);
             }
+
+            // Dapatkan sheet pertama
+            $sheets = $spreadsheet->getSheets();
+            $firstSheet = ! empty($sheets) ? $sheets[0] : null;
+            $firstSheetTitle = $firstSheet ? $firstSheet->getProperties()->getTitle() : 'Sheet1';
+            $firstSheetId = $firstSheet ? $firstSheet->getProperties()->getSheetId() : 0;
 
             // Siapkan data header (baris pertama)
             $headerRow = [$this->standardColumns];
 
             $valueRange = new ValueRange([
                 'values' => $headerRow,
-                'range' => 'Sheet1!A1:'.Coordinate::stringFromColumnIndex(count($this->standardColumns)).'1',
+                'range' => $firstSheetTitle.'!A1:'.Coordinate::stringFromColumnIndex(count($this->standardColumns)).'1',
             ]);
 
             // Tulis header ke sheet pertama
             $service->spreadsheets_values->update(
                 $spreadsheetId,
-                'Sheet1!A1:'.Coordinate::stringFromColumnIndex(count($this->standardColumns)).'1',
+                $firstSheetTitle.'!A1:'.Coordinate::stringFromColumnIndex(count($this->standardColumns)).'1',
                 $valueRange,
                 ['valueInputOption' => 'RAW']
             );
@@ -189,7 +190,7 @@ class GoogleSheetTemplateService
                 new Request([
                     'repeatCell' => [
                         'range' => [
-                            'sheetId' => 0,
+                            'sheetId' => $firstSheetId,
                             'startRowIndex' => 0,
                             'endRowIndex' => 1,
                             'startColumnIndex' => 0,

@@ -509,6 +509,27 @@
 </div>
 
 {{-- ─────────────────────────────
+     PROSES ANTRIAN PANEL
+───────────────────────────── --}}
+<div class="sync-now-panel mt-3" style="border-color: rgba(0, 207, 232, 0.25);">
+  <div class="sync-now-panel__inner" style="background: linear-gradient(90deg, rgba(0, 207, 232, 0.06) 0%, transparent 60%);">
+    <div class="sync-now-panel__info">
+      <div class="sync-now-panel__icon" style="background: rgba(0, 207, 232, 0.15); color: var(--das-info);">
+        <i class="ti tabler-player-play"></i>
+      </div>
+      <div>
+        <div class="sync-now-panel__title">Proses Antrian</div>
+        <div class="sync-now-panel__sub">Jalankan worker untuk memproses job sinkronisasi yang tertunda di antrian.</div>
+      </div>
+    </div>
+    <button type="button" class="sync-now-btn" style="background: var(--das-info); color: #fff;" id="gsProcessQueueBtn" onclick="processGsQueue()">
+      <i class="ti tabler-player-play"></i>
+      <span>Proses Antrian</span>
+    </button>
+  </div>
+</div>
+
+{{-- ─────────────────────────────
      TEST CONNECTION PANEL
 ───────────────────────────── --}}
 <div class="sync-now-panel mt-4" style="border-color: rgba(0, 207, 232, 0.25);">
@@ -1007,6 +1028,143 @@ textarea.set-input { resize: vertical; padding: 0.6rem 0.5rem; }
   color: #64748b;
   font-style: italic;
 }
+
+/* ── SweetAlert2 Dark Theme Premium ── */
+.das-swal-popup {
+  width: 420px !important;
+  padding: 2rem 1.5rem !important;
+  background: rgba(22, 29, 49, 0.96) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 16px !important;
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.das-swal-icon-success {
+  position: relative;
+  width: 64px !important;
+  height: 64px !important;
+  margin: 0 auto 1rem !important;
+  border-color: #28c76f !important;
+  animation: das-glow-pulse 2s ease-in-out infinite;
+}
+
+.das-swal-icon-success::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(40, 199, 111, 0.15) 0%, transparent 70%);
+  animation: das-glow-pulse-ring 2s ease-in-out infinite;
+}
+
+@keyframes das-glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(40, 199, 111, 0.3); }
+  50% { box-shadow: 0 0 0 12px rgba(40, 199, 111, 0); }
+}
+
+@keyframes das-glow-pulse-ring {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.15); opacity: 0; }
+}
+
+.das-swal-icon-success .swal2-success-ring {
+  border-color: #28c76f !important;
+}
+
+.das-swal-icon-success [class^='swal2-success-line'] {
+  background-color: #28c76f !important;
+}
+
+.das-swal-title {
+  color: #fff !important;
+  font-size: 1.35rem !important;
+  font-weight: 700 !important;
+  padding: 0 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.das-swal-html {
+  color: rgba(255, 255, 255, 0.65) !important;
+  font-size: 0.85rem !important;
+  line-height: 1.6 !important;
+  max-width: 320px !important;
+  margin: 0 auto !important;
+}
+
+.das-swal-actions {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.625rem !important;
+  margin-top: 1.25rem !important;
+  width: 100% !important;
+}
+
+.das-swal-confirm-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  width: 100% !important;
+  padding: 0.7rem 1.25rem !important;
+  background: linear-gradient(135deg, #28c76f, #1f9d57) !important;
+  color: #fff !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  border: none !important;
+  border-radius: 10px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 4px 16px rgba(40, 199, 111, 0.25) !important;
+  text-decoration: none !important;
+}
+
+.das-swal-confirm-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 24px rgba(40, 199, 111, 0.35) !important;
+  background: linear-gradient(135deg, #3ddb84, #28c76f) !important;
+}
+
+.das-swal-cancel-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  width: 100% !important;
+  padding: 0.65rem 1.25rem !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 10px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  text-decoration: none !important;
+}
+
+.das-swal-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Error popup variants */
+.das-swal-popup-error {
+  border-color: rgba(234, 84, 85, 0.2) !important;
+}
+
+.das-swal-icon-error {
+  border-color: #ea5455 !important;
+}
+
+.das-swal-icon-error .swal2-x-mark-line-left,
+.das-swal-icon-error .swal2-x-mark-line-right {
+  background-color: #ea5455 !important;
+}
 </style>
 
 <style>
@@ -1113,6 +1271,94 @@ function showGsDynamicToast(type, message) {
     }, 5000);
   } else {
     alert(message);
+  }
+}
+
+/**
+ * Proses antrian queue sinkronisasi via AJAX.
+ */
+async function processGsQueue() {
+  const btn = document.getElementById('gsProcessQueueBtn');
+  const originalHtml = btn.innerHTML;
+  
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti tabler-loader-2 animate-spin"></i> <span>Memproses...</span>';
+  
+  try {
+    const response = await fetch('{{ route("admin.pengaturan.google-sheets.process-queue") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({})
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      // Refresh status sinkronisasi
+      await refreshGsSyncStatus();
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Antrian Diproses!',
+        html: 'Job sinkronisasi berhasil diproses. <br> Status: <strong>' + (result.last_sync_status || '-') + '</strong>',
+        confirmButtonText: '<i class="ti tabler-check"></i> OK',
+        buttonsStyling: false,
+        customClass: {
+          popup: 'das-swal-popup',
+          title: 'das-swal-title',
+          htmlContainer: 'das-swal-html',
+          confirmButton: 'das-swal-cancel-btn',
+          icon: 'das-swal-icon-success'
+        }
+      });
+    } else {
+      showGsDynamicToast('danger', result.message || 'Gagal memproses antrian.');
+    }
+  } catch (error) {
+    console.error('Process queue error:', error);
+    showGsDynamicToast('danger', 'Gagal menghubungi server. Silakan coba lagi.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHtml;
+  }
+}
+
+/**
+ * Refresh panel status sinkronisasi via AJAX.
+ */
+async function refreshGsSyncStatus() {
+  try {
+    const response = await fetch('{{ route("admin.pengaturan.google-sheets.index") }}', {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      }
+    });
+    const result = await response.json();
+    
+    if (result.last_sync_at) {
+      document.getElementById('sync-last-time').textContent = result.last_sync_at;
+    }
+    if (result.status_badge_text) {
+      const badge = document.getElementById('sync-status-badge');
+      badge.textContent = result.status_badge_text;
+      // Update badge class - you may need to map this properly
+      badge.className = 'badge ' + (result.last_sync_status === 'success' ? 'badge-success' : 
+                                     result.last_sync_status === 'in_progress' ? 'badge-warning' : 
+                                     result.last_sync_status === 'failed' ? 'badge-danger' : 'badge-secondary');
+    }
+    if (result.last_sync_message) {
+      const msgContainer = document.getElementById('sync-message-container');
+      msgContainer.classList.remove('d-none');
+      document.getElementById('sync-message-text').textContent = result.last_sync_message;
+    }
+  } catch (e) {
+    console.warn('Failed to refresh sync status:', e);
   }
 }
 
@@ -1324,22 +1570,54 @@ async function createGsSheetTemplate() {
         inputEl.value = result.spreadsheet_id;
       }
 
-      // SweetAlert2 sukses
+      // SweetAlert2 sukses — premium theme
       Swal.fire({
         icon: 'success',
         title: 'Template Berhasil Dibuat!',
-        html: 'Google Sheet template telah berhasil dibuat. <br><br>' +
-              '<a href="' + (result.url || '#') + '" target="_blank" class="btn btn-sm btn-success">' +
-              '<i class="ti tabler-external-link"></i> Buka Google Sheet</a>',
-        confirmButtonText: 'Selesai',
-        confirmButtonColor: '#28c76f'
+        html: '<div style="text-align:center">Google Sheet template telah berhasil dibuat dengan 11 kolom otomatis.</div>',
+        confirmButtonText: '<i class="ti tabler-check"></i> Selesai',
+        showCancelButton: true,
+        cancelButtonText: '<i class="ti tabler-external-link"></i> Buka Google Sheet',
+        cancelButtonColor: '#28c76f',
+        reverseButtons: false,
+        buttonsStyling: false,
+        customClass: {
+          popup: 'das-swal-popup',
+          title: 'das-swal-title',
+          htmlContainer: 'das-swal-html',
+          actions: 'das-swal-actions',
+          confirmButton: 'das-swal-cancel-btn',
+          cancelButton: 'das-swal-confirm-btn',
+          icon: 'das-swal-icon-success'
+        },
+        didOpen: () => {
+          // Link buka google sheet di cancel button
+          const cancelBtn = document.querySelector('.das-swal-confirm-btn');
+          if (cancelBtn && result.url) {
+            cancelBtn.addEventListener('click', () => {
+              window.open(result.url, '_blank');
+            });
+          }
+        }
+      }).then((resultSwal) => {
+        if (resultSwal.dismiss === Swal.DismissReason.cancel && result.url) {
+          window.open(result.url, '_blank');
+        }
       });
     } else {
       Swal.fire({
         icon: 'error',
         title: 'Gagal Membuat Template',
         text: result.message || 'Terjadi kesalahan saat membuat template Google Sheet.',
-        confirmButtonColor: '#ea5455'
+        confirmButtonText: '<i class="ti tabler-x"></i> Tutup',
+        buttonsStyling: false,
+        customClass: {
+          popup: 'das-swal-popup das-swal-popup-error',
+          title: 'das-swal-title',
+          htmlContainer: 'das-swal-html',
+          confirmButton: 'das-swal-cancel-btn',
+          icon: 'das-swal-icon-error'
+        }
       });
     }
   } catch (error) {
@@ -1348,7 +1626,15 @@ async function createGsSheetTemplate() {
       icon: 'error',
       title: 'Gagal Menghubungi Server',
       text: 'Terjadi kesalahan jaringan. Silakan coba lagi.',
-      confirmButtonColor: '#ea5455'
+      confirmButtonText: '<i class="ti tabler-x"></i> Tutup',
+      buttonsStyling: false,
+      customClass: {
+        popup: 'das-swal-popup das-swal-popup-error',
+        title: 'das-swal-title',
+        htmlContainer: 'das-swal-html',
+        confirmButton: 'das-swal-cancel-btn',
+        icon: 'das-swal-icon-error'
+      }
     });
   } finally {
     btn.disabled = false;
