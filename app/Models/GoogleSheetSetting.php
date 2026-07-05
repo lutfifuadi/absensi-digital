@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
@@ -45,9 +44,11 @@ class GoogleSheetSetting extends Model
             return null;
         }
         try {
-            return decrypt($value);
-        } catch (DecryptException $e) {
-            Log::error('GoogleSheetSetting: Gagal mendekripsi credentials_json. APP_KEY mungkin telah berubah.');
+            return decrypt($value, false);
+        } catch (\Throwable $e) {
+            Log::error('GoogleSheetSetting: Gagal mendekripsi credentials_json. APP_KEY mungkin telah berubah atau data corrupt.', [
+                'error' => $e->getMessage(),
+            ]);
 
             return null; // kembalikan null dengan aman, jangan biarkan aplikasi crash 500
         }
@@ -55,7 +56,7 @@ class GoogleSheetSetting extends Model
 
     public function setCredentialsJsonAttribute($value)
     {
-        $this->attributes['credentials_json'] = ! empty($value) ? encrypt($value) : null;
+        $this->attributes['credentials_json'] = ! empty($value) ? encrypt($value, false) : null;
     }
 
     public function getStatusBadgeTextAttribute(): string
