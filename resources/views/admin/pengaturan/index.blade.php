@@ -544,8 +544,6 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
       {{-- ══ TANDA TANGAN KEPALA SEKOLAH ══ --}}
       <div class="set-panel" style="margin-top: 2rem;">
@@ -650,18 +648,24 @@
       </div>
 
       {{-- ══ KOTA PENERBITAN ══ --}}
-      <div class="set-field" style="margin-top: 1.5rem;">
-        <label class="set-label">Kota Penerbitan Kartu</label>
-        <div class="set-input-group">
-          <span class="set-input-prefix"><i class="ti tabler-map-pin"></i></span>
-          <input type="text" class="set-input" name="kota_penerbitan"
-            value="{{ old('kota_penerbitan', $settings['kota_penerbitan'] ?? '') }}"
-            placeholder="Contoh: Bandung">
-        </div>
-        <div class="set-field-hint --info">
-          <i class="ti tabler-info-circle"></i> Nama kota untuk dicantumkan pada kartu identitas (contoh: "Bandung, 12 Juli 2026").
+      <div class="set-panel" style="margin-top: 1.5rem;">
+        <div class="set-panel__body">
+            <div class="set-field">
+              <label class="set-label">Kota Penerbitan Kartu</label>
+              <div class="set-input-group">
+                <span class="set-input-prefix"><i class="ti tabler-map-pin"></i></span>
+                <input type="text" class="set-input" name="kota_penerbitan"
+                  value="{{ old('kota_penerbitan', $settings['kota_penerbitan'] ?? '') }}"
+                  placeholder="Contoh: Bandung">
+              </div>
+              <div class="set-field-hint --info">
+                <i class="ti tabler-info-circle"></i> Nama kota untuk dicantumkan pada kartu identitas (contoh: "Bandung, 12 Juli 2026").
+              </div>
+            </div>
         </div>
       </div>
+
+      </div> {{-- Penutup div set-tab untuk tab-branding --}}
 
       {{-- ══ TAB 5: NOTIFIKASI ══ --}}
       <div class="set-tab" id="tab-notifikasi">
