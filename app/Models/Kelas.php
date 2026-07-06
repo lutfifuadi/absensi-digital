@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Guru;
 use App\Models\TahunAkademik;
 use App\Models\Siswa;
+use App\Models\ClassLeaderboard;
 
 class Kelas extends Model
 {
@@ -44,5 +45,10 @@ class Kelas extends Model
     public function siswa()
     {
         return $this->hasMany(Siswa::class, 'kelas_id');
+    }
+
+    public function classLeaderboard()
+    {
+        return $this->hasMany(ClassLeaderboard::class, 'kelas_id');
     }
 }

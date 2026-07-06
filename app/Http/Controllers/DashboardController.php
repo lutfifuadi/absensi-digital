@@ -13,9 +13,12 @@ use App\Models\Kelas;
 use App\Models\Pengaturan;
 use App\Models\Siswa;
 use App\Models\StaffTataUsaha;
+use App\Models\TahunAkademik;
 use App\Models\User;
+use App\Services\GamifikasiRekapService;
 use App\Support\QrScanLogger;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -746,7 +749,205 @@ private function superAdminData(): array
 
     public function gamifikasi(Request $request)
     {
-        return view('admin.gamifikasi.index');
+        $tahunAkademikList  = TahunAkademik::orderByDesc('is_aktif')->orderByDesc('id')->get();
+        $kelasList          = Kelas::orderBy('nama')->get(['id', 'nama', 'jurusan', 'tahun_akademik_id']);
+        $tahunAkademikAktif = TahunAkademik::where('is_aktif', true)->first();
+
+        return view('admin.gamifikasi.index', compact(
+            'tahunAkademikList',
+            'kelasList',
+            'tahunAkademikAktif'
+        ));
+    }
+
+    /**
+     * AJAX: Rekap Gamifikasi — mengembalikan data JSON untuk semua tab rekap.
+     */
+    public function gamifikasiRekap(Request $request): JsonResponse
+    {
+        try {
+            $filters = array_filter([
+                'kelas_id'          => $request->query('kelas_id'),
+                'bulan'             => $request->query('bulan'),
+                'tahun_akademik_id' => $request->query('tahun_akademik_id'),
+            ], fn ($v) => $v !== null && $v !== '');
+
+            /** @var GamifikasiRekapService $service */
+            $service = app(GamifikasiRekapService::class);
+
+            $tahunAkademikId = $filters['tahun_akademik_id'] ?? null;
+
+            $data = [
+                'summary' => $service->getSummaryStats($tahunAkademikId),
+                'siswa'   => $service->getRekapSiswa($filters)->toArray(),
+                'kelas'   => $service->getRekapKelas($filters)->toArray(),
+                'badge'   => $service->getRekapBadge($filters)->toArray(),
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data'    => $data,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('GamifikasiRekap error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mengambil data rekap gamifikasi.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Export CSV Rekap Gamifikasi.
+     *
+     * Query param: type = siswa | kelas | badge
+     */
+    public function gamifikasiRekapExport(Request $request)
+    {
+        try {
+            $type    = $request->query('type', 'siswa');
+            $filters = array_filter([
+                'kelas_id'          => $request->query('kelas_id'),
+                'bulan'             => $request->query('bulan'),
+                'tahun_akademik_id' => $request->query('tahun_akademik_id'),
+            ], fn ($v) => $v !== null && $v !== '');
+
+            /** @var GamifikasiRekapService $service */
+            $service = app(GamifikasiRekapService::class);
+
+            [$headers, $rows, $filename] = match ($type) {
+                'kelas' => $this->buildCsvKelas($service, $filters),
+                'badge' => $this->buildCsvBadge($service, $filters),
+                default => $this->buildCsvSiswa($service, $filters),
+            };
+
+            $callback = function () use ($headers, $rows) {
+                $handle = fopen('php://output', 'w');
+                // UTF-8 BOM agar Excel bisa membaca karakter Indonesia
+                fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+                fputcsv($handle, $headers);
+                foreach ($rows as $row) {
+                    fputcsv($handle, $row);
+                }
+                fclose($handle);
+            };
+
+            return response()->stream($callback, 200, [
+                'Content-Type'        => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Pragma'              => 'no-cache',
+                'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('GamifikasiRekapExport error: ' . $e->getMessage());
+            abort(500, 'Gagal mengekspor data rekap gamifikasi.');
+        }
+    }
+
+    // ── CSV Builder Helpers ──────────────────────────────────────────────────
+
+    private function buildCsvSiswa(GamifikasiRekapService $service, array $filters): array
+    {
+        $data = $service->getRekapSiswa($filters);
+
+        $headers = [
+            'No', 'Rank', 'Nama Lengkap', 'NIS', 'Kelas', 'Jurusan',
+            'Hadir', 'Terlambat', 'Sakit', 'Izin', 'Alpha',
+            'Total Absensi', 'Skor', 'Jumlah Badge', 'Daftar Badge',
+        ];
+
+        $rows = $data->map(function ($item, $index) {
+            $badgeNames = collect($item['badge_list'])->pluck('name')->implode(', ');
+            return [
+                $index + 1,
+                $item['rank'] ?? '-',
+                $item['nama_lengkap'],
+                $item['nis'],
+                $item['kelas'],
+                $item['jurusan'],
+                $item['total_hadir'],
+                $item['total_terlambat'],
+                $item['total_sakit'],
+                $item['total_izin'],
+                $item['total_alpha'],
+                $item['total_absensi'],
+                $item['skor'] ?? '-',
+                $item['jumlah_badge'],
+                $badgeNames,
+            ];
+        })->toArray();
+
+        $filename = 'rekap-gamifikasi-siswa-' . now()->format('Ymd-His') . '.csv';
+        return [$headers, $rows, $filename];
+    }
+
+    private function buildCsvKelas(GamifikasiRekapService $service, array $filters): array
+    {
+        $data = $service->getRekapKelas($filters);
+
+        $headers = [
+            'No', 'Rank', 'Nama Kelas', 'Jurusan', 'Total Siswa',
+            'Total Kehadiran', 'Total Hadir', 'Persentase (%)', 'Jumlah Badge Diraih',
+        ];
+
+        $rows = $data->map(function ($item, $index) {
+            return [
+                $index + 1,
+                $item['rank'] ?? '-',
+                $item['nama'],
+                $item['jurusan'],
+                $item['total_siswa'],
+                $item['total_kehadiran'],
+                $item['total_present'],
+                $item['percentage'],
+                $item['jumlah_badge_diraih'],
+            ];
+        })->toArray();
+
+        $filename = 'rekap-gamifikasi-kelas-' . now()->format('Ymd-His') . '.csv';
+        return [$headers, $rows, $filename];
+    }
+
+    private function buildCsvBadge(GamifikasiRekapService $service, array $filters): array
+    {
+        $data = $service->getRekapBadge($filters);
+
+        $headers = [
+            'No', 'Nama Badge', 'Tipe', 'Total Penerima',
+            'Nama Siswa', 'Kelas', 'Tanggal Diterima',
+        ];
+
+        $rows = [];
+        $no   = 1;
+        foreach ($data as $badge) {
+            if (empty($badge['penerima'])) {
+                $rows[] = [
+                    $no++,
+                    $badge['name'],
+                    $badge['badge_type'] ?? '-',
+                    $badge['total_penerima'],
+                    '-', '-', '-',
+                ];
+            } else {
+                foreach ($badge['penerima'] as $i => $penerima) {
+                    $rows[] = [
+                        $i === 0 ? $no++ : '',
+                        $i === 0 ? $badge['name'] : '',
+                        $i === 0 ? ($badge['badge_type'] ?? '-') : '',
+                        $i === 0 ? $badge['total_penerima'] : '',
+                        $penerima['nama'],
+                        $penerima['kelas'],
+                        $penerima['earned_at'] ?? '-',
+                    ];
+                }
+            }
+        }
+
+        $filename = 'rekap-gamifikasi-badge-' . now()->format('Ymd-His') . '.csv';
+        return [$headers, $rows, $filename];
     }
 
     public function reminderSettings(Request $request)

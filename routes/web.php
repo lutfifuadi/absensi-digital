@@ -866,6 +866,15 @@ Route::middleware([
             ->name('admin.gamifikasi.index')
             ->middleware('role:super_admin,admin_sekolah');
 
+        // Gamifikasi Rekapitulasi
+        Route::get('gamifikasi/rekap', [DashboardController::class, 'gamifikasiRekap'])
+            ->name('admin.gamifikasi.rekap')
+            ->middleware('role:super_admin,admin_sekolah');
+
+        Route::get('gamifikasi/rekap/export', [DashboardController::class, 'gamifikasiRekapExport'])
+            ->name('admin.gamifikasi.rekap.export')
+            ->middleware('role:super_admin,admin_sekolah');
+
         // Reminder Settings
         Route::get('reminder-settings', [DashboardController::class, 'reminderSettings'])
             ->name('admin.reminder-settings.index')

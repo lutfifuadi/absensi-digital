@@ -181,6 +181,511 @@
   </div>
 </div>
 
+{{-- =====================================================================
+     SECTION: REKAPITULASI (PRD-004)
+     ===================================================================== --}}
+<div class="das-panel mt-4"
+     x-data="{
+       kelasId: '',
+       bulan: '{{ now()->format('Y-m') }}',
+       activeSubTab: 'siswa',
+       loading: false,
+       loaded: false,
+       error: null,
+       exportOpen: false,
+       summary: {},
+       siswadata: [],
+       kelasdata: [],
+       badgedata: [],
+       sortSiswaCol: 'rank',
+       sortSiswaDir: 'asc',
+       sortKelasCol: 'rank',
+       sortKelasDir: 'asc',
+       expandedBadge: null,
+
+       async fetchRekap() {
+         this.loading = true;
+         this.error = null;
+         try {
+           const params = new URLSearchParams();
+           if (this.kelasId) params.append('kelas_id', this.kelasId);
+           if (this.bulan) params.append('bulan', this.bulan);
+           const res = await fetch('/admin/gamifikasi/rekap?' + params.toString(), {
+             headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+           });
+           if (!res.ok) throw new Error('Gagal memuat data rekap (HTTP ' + res.status + ')');
+           const json = await res.json();
+           if (!json.success) throw new Error(json.message || 'Respons tidak valid');
+           this.summary   = json.data.summary  || {};
+           this.siswadata = json.data.siswa    || [];
+           this.kelasdata = json.data.kelas    || [];
+           this.badgedata = json.data.badge    || [];
+           this.loaded = true;
+         } catch (e) {
+           this.error = e.message;
+         } finally {
+           this.loading = false;
+         }
+       },
+
+       resetFilter() {
+         this.kelasId   = '';
+         this.bulan     = '{{ now()->format('Y-m') }}';
+         this.loaded    = false;
+         this.error     = null;
+         this.summary   = {};
+         this.siswadata = [];
+         this.kelasdata = [];
+         this.badgedata = [];
+         this.expandedBadge = null;
+       },
+
+       sortSiswa(col) {
+         if (this.sortSiswaCol === col) {
+           this.sortSiswaDir = this.sortSiswaDir === 'asc' ? 'desc' : 'asc';
+         } else {
+           this.sortSiswaCol = col;
+           this.sortSiswaDir = 'asc';
+         }
+         this.siswadata = [...this.siswadata].sort((a, b) => {
+           let av = a[col], bv = b[col];
+           if (typeof av === 'string') av = av.toLowerCase();
+           if (typeof bv === 'string') bv = bv.toLowerCase();
+           if (av < bv) return this.sortSiswaDir === 'asc' ? -1 : 1;
+           if (av > bv) return this.sortSiswaDir === 'asc' ?  1 : -1;
+           return 0;
+         });
+       },
+
+       sortKelas(col) {
+         if (this.sortKelasCol === col) {
+           this.sortKelasDir = this.sortKelasDir === 'asc' ? 'desc' : 'asc';
+         } else {
+           this.sortKelasCol = col;
+           this.sortKelasDir = 'asc';
+         }
+         this.kelasdata = [...this.kelasdata].sort((a, b) => {
+           let av = a[col], bv = b[col];
+           if (typeof av === 'string') av = av.toLowerCase();
+           if (typeof bv === 'string') bv = bv.toLowerCase();
+           if (av < bv) return this.sortKelasDir === 'asc' ? -1 : 1;
+           if (av > bv) return this.sortKelasDir === 'asc' ?  1 : -1;
+           return 0;
+         });
+       },
+
+       exportUrl(type) {
+         const params = new URLSearchParams({ type });
+         if (this.kelasId) params.append('kelas_id', this.kelasId);
+         if (this.bulan) params.append('bulan', this.bulan);
+         return '/admin/gamifikasi/rekap/export?' + params.toString();
+       },
+
+       sortIcon(col, active) {
+         if (active !== col) return 'tabler-arrows-sort';
+         return active === col && this['sort' + (active === this.sortSiswaCol ? 'Siswa' : 'Kelas') + 'Dir'] === 'asc'
+           ? 'tabler-sort-ascending' : 'tabler-sort-descending';
+       }
+     }"
+>
+  {{-- ── PANEL HEADER ─────────────────────────────────────────────────── --}}
+  <div class="das-panel__head">
+    <div class="das-panel__title">
+      <span class="das-panel__icon-dot --primary"></span>
+      Rekapitulasi
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      {{-- Export Dropdown --}}
+      <div class="position-relative" x-data>
+        <button class="das-btn das-btn--ghost-sm d-flex align-items-center gap-1"
+                @click="exportOpen = !exportOpen"
+                @click.outside="exportOpen = false"
+                :disabled="!loaded">
+          <i class="ti tabler-file-export"></i>
+          <span>Export</span>
+          <i class="ti tabler-chevron-down" style="font-size:.75rem;"></i>
+        </button>
+        <div x-show="exportOpen"
+             x-transition:enter="transition ease-out duration-100"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-75"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="position-absolute end-0 mt-1 rounded shadow-lg border"
+             style="min-width:220px;z-index:50;background:var(--das-card-bg,#1e2433);border-color:rgba(255,255,255,.08)!important;">
+          <a :href="exportUrl('siswa')"
+             class="d-flex align-items-center gap-2 px-3 py-2 text-white small text-decoration-none"
+             style="transition:background .15s;"
+             @mouseenter="$el.style.background='rgba(255,255,255,.05)'"
+             @mouseleave="$el.style.background='transparent'">
+            <i class="ti tabler-users" style="font-size:.95rem;"></i> Export Rekap Siswa (.csv)
+          </a>
+          <a :href="exportUrl('kelas')"
+             class="d-flex align-items-center gap-2 px-3 py-2 text-white small text-decoration-none"
+             style="transition:background .15s;"
+             @mouseenter="$el.style.background='rgba(255,255,255,.05)'"
+             @mouseleave="$el.style.background='transparent'">
+            <i class="ti tabler-school" style="font-size:.95rem;"></i> Export Rekap Kelas (.csv)
+          </a>
+          <a :href="exportUrl('badge')"
+             class="d-flex align-items-center gap-2 px-3 py-2 text-white small text-decoration-none"
+             style="transition:background .15s;"
+             @mouseenter="$el.style.background='rgba(255,255,255,.05)'"
+             @mouseleave="$el.style.background='transparent'">
+            <i class="ti tabler-award" style="font-size:.95rem;"></i> Export Rekap Badge (.csv)
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="das-panel__body">
+
+    {{-- ── FILTER BAR ──────────────────────────────────────────────────── --}}
+    <div class="row g-2 align-items-end mb-4 p-3 rounded"
+         style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);">
+      <div class="col-sm-4 col-md-3">
+        <label class="form-label text-white-50 small fw-bold mb-1">PILIH KELAS</label>
+        <select x-model="kelasId" class="form-select form-select-sm bg-dark border-0 text-white">
+          <option value="">Semua Kelas</option>
+          @foreach($kelasList ?? [] as $kls)
+            <option value="{{ $kls->id }}">{{ $kls->nama }}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="col-sm-4 col-md-3">
+        <label class="form-label text-white-50 small fw-bold mb-1">PILIH BULAN</label>
+        <input type="month"
+               x-model="bulan"
+               class="form-control form-control-sm bg-dark border-0 text-white"
+               style="color-scheme:dark;">
+      </div>
+      <div class="col-sm-4 col-md-auto d-flex gap-2">
+        <button class="das-btn das-btn--primary das-btn--sm"
+                @click="fetchRekap()"
+                :disabled="loading">
+          <span x-show="!loading"><i class="ti tabler-search"></i> Tampilkan Rekap</span>
+          <span x-show="loading" class="d-flex align-items-center gap-1">
+            <span class="spinner-border spinner-border-sm"></span> Memuat...
+          </span>
+        </button>
+        <button class="das-btn das-btn--secondary das-btn--sm" @click="resetFilter()">
+          <i class="ti tabler-x"></i> Reset
+        </button>
+      </div>
+    </div>
+
+    {{-- ── ERROR STATE ─────────────────────────────────────────────────── --}}
+    <div x-show="error" x-cloak
+         class="alert d-flex align-items-center gap-2 mb-3"
+         style="background:rgba(220,53,69,.1);border:1px solid rgba(220,53,69,.3);color:#f87171;border-radius:8px;">
+      <i class="ti tabler-alert-circle fs-5"></i>
+      <span x-text="error"></span>
+    </div>
+
+    {{-- ── EMPTY / INITIAL STATE ───────────────────────────────────────── --}}
+    <div x-show="!loaded && !loading && !error" x-cloak
+         class="text-center py-5 text-muted">
+      <i class="ti tabler-chart-bar-off" style="font-size:2.5rem;opacity:.3;"></i>
+      <p class="mt-2 small opacity-50">Klik <strong>Tampilkan Rekap</strong> untuk memuat data.</p>
+    </div>
+
+    {{-- ── LOADING STATE ───────────────────────────────────────────────── --}}
+    <div x-show="loading" x-cloak class="text-center py-5 text-muted">
+      <div class="spinner-border text-primary mb-2"></div>
+      <p class="small opacity-50">Memuat data rekapitulasi...</p>
+    </div>
+
+    {{-- ── DATA LOADED ─────────────────────────────────────────────────── --}}
+    <div x-show="loaded && !loading" x-cloak>
+
+      {{-- ── SUMMARY CARDS ─────────────────────────────────────────────── --}}
+      <div class="row mb-4">
+        <div class="col-6 col-md-3">
+          <div class="das-stat-card das-stat-card--primary">
+            <div class="das-stat-card__icon"><i class="ti tabler-users"></i></div>
+            <div class="das-stat-card__body">
+              <div class="das-stat-card__val" x-text="summary.total_siswa_aktif ?? 0"></div>
+              <div class="das-stat-card__label">Siswa Aktif Gamifikasi</div>
+            </div>
+            <div class="das-stat-card__arrow"><i class="ti tabler-chevron-right"></i></div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="das-stat-card das-stat-card--warning">
+            <div class="das-stat-card__icon"><i class="ti tabler-award"></i></div>
+            <div class="das-stat-card__body">
+              <div class="das-stat-card__val" x-text="summary.total_badge_diraih ?? 0"></div>
+              <div class="das-stat-card__label">Total Badge Diraih</div>
+            </div>
+            <div class="das-stat-card__arrow"><i class="ti tabler-chevron-right"></i></div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="das-stat-card das-stat-card--success">
+            <div class="das-stat-card__icon"><i class="ti tabler-school"></i></div>
+            <div class="das-stat-card__body">
+              <div class="das-stat-card__val" x-text="summary.total_kelas_aktif ?? 0"></div>
+              <div class="das-stat-card__label">Kelas Aktif</div>
+            </div>
+            <div class="das-stat-card__arrow"><i class="ti tabler-chevron-right"></i></div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="das-stat-card das-stat-card--info" style="--das-info:#06b6d4;">
+            <div class="das-stat-card__icon"><i class="ti tabler-percentage"></i></div>
+            <div class="das-stat-card__body">
+              <div class="das-stat-card__val" x-text="(summary.avg_kehadiran_persen ?? 0) + '%'"></div>
+              <div class="das-stat-card__label">Rata-rata Kehadiran</div>
+            </div>
+            <div class="das-stat-card__arrow"><i class="ti tabler-chevron-right"></i></div>
+          </div>
+        </div>
+      </div>
+
+      {{-- ── SUB-TABS NAVIGATION ────────────────────────────────────────── --}}
+      <div class="d-flex align-items-center gap-1 mb-3 pb-2"
+           style="border-bottom:1px solid rgba(255,255,255,.07);">
+        <button class="das-btn das-btn--sm"
+                :class="activeSubTab === 'siswa'
+                  ? 'das-btn--primary'
+                  : 'das-btn--ghost-sm'"
+                @click="activeSubTab = 'siswa'">
+          <i class="ti tabler-users"></i> Rekap Siswa
+        </button>
+        <button class="das-btn das-btn--sm"
+                :class="activeSubTab === 'kelas'
+                  ? 'das-btn--primary'
+                  : 'das-btn--ghost-sm'"
+                @click="activeSubTab = 'kelas'">
+          <i class="ti tabler-school"></i> Rekap Kelas
+        </button>
+        <button class="das-btn das-btn--sm"
+                :class="activeSubTab === 'badge'
+                  ? 'das-btn--primary'
+                  : 'das-btn--ghost-sm'"
+                @click="activeSubTab = 'badge'">
+          <i class="ti tabler-award"></i> Rekap Badge
+        </button>
+      </div>
+
+      {{-- ── SUB-TAB: REKAP SISWA ─────────────────────────────────────── --}}
+      <div x-show="activeSubTab === 'siswa'" x-cloak>
+        <div x-show="siswadata.length === 0" class="text-center py-4 text-muted opacity-50 small">
+          Tidak ada data siswa untuk filter ini.
+        </div>
+        <div x-show="siswadata.length > 0" class="table-responsive">
+          <table class="das-table">
+            <thead>
+              <tr>
+                <th class="text-center" style="cursor:pointer;" @click="sortSiswa('rank')">
+                  RANK <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                </th>
+                <th style="cursor:pointer;" @click="sortSiswa('nama_lengkap')">
+                  NAMA SISWA <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                </th>
+                <th>KELAS</th>
+                <th class="text-center" style="cursor:pointer;" @click="sortSiswa('total_hadir')">
+                  HADIR <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                </th>
+                <th class="text-center" style="cursor:pointer;" @click="sortSiswa('total_alpha')">
+                  ALPHA <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                </th>
+                <th class="text-center" style="cursor:pointer;" @click="sortSiswa('skor')">
+                  SKOR <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                </th>
+                <th class="text-center">BADGE</th>
+                <th class="text-center">AKSI</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(item, idx) in siswadata" :key="idx">
+                <tr>
+                  <td class="text-center fw-bold fs-5">
+                    <span x-text="item.rank === 1 ? '🥇' : item.rank === 2 ? '🥈' : item.rank === 3 ? '🥉' : item.rank"></span>
+                  </td>
+                  <td>
+                    <div class="fw-bold text-white" style="font-size:.82rem;" x-text="item.nama_lengkap || '-'"></div>
+                    <div class="text-muted" style="font-size:.65rem;" x-text="'NIS: ' + (item.nis || '-')"></div>
+                  </td>
+                  <td>
+                    <span class="badge bg-label-secondary" style="font-size:.65rem;" x-text="item.kelas?.nama || '-'"></span>
+                  </td>
+                  <td class="text-center fw-semibold" style="color:var(--das-success);" x-text="item.total_hadir ?? 0"></td>
+                  <td class="text-center fw-semibold" style="color:#f87171;" x-text="item.total_alpha ?? 0"></td>
+                  <td class="text-center">
+                    <span class="fw-bold" style="color:#ffd700;" x-text="item.skor ?? 0"></span>
+                  </td>
+                  <td class="text-center">
+                    <div class="d-flex align-items-center justify-content-center gap-1" style="min-width:80px;">
+                      <template x-if="item.badge_list && item.badge_list.length > 0">
+                        <div class="d-flex align-items-center gap-1">
+                          <template x-for="(b, bi) in item.badge_list.slice(0,3)" :key="bi">
+                            <span class="das-stat-card__icon"
+                                  :title="b.name"
+                                  style="width:22px;height:22px;background:rgba(255,215,0,.1);color:#ffd700;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;">
+                              <i :class="'ti ' + (b.icon || 'tabler-award')"></i>
+                            </span>
+                          </template>
+                          <span x-show="item.badge_list.length > 3"
+                                class="text-muted"
+                                style="font-size:.65rem;"
+                                x-text="'+' + (item.badge_list.length - 3)"></span>
+                        </div>
+                      </template>
+                      <template x-if="!item.badge_list || item.badge_list.length === 0">
+                        <span class="text-muted" style="font-size:.65rem;">-</span>
+                      </template>
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    <a :href="'/admin/siswa/' + (item.nis || '')"
+                       class="das-btn das-btn--ghost-sm p-1"
+                       title="Lihat Detail">
+                      <i class="ti tabler-eye" style="font-size:.85rem;"></i>
+                    </a>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {{-- ── SUB-TAB: REKAP KELAS ──────────────────────────────────────── --}}
+      <div x-show="activeSubTab === 'kelas'" x-cloak>
+        <div x-show="kelasdata.length === 0" class="text-center py-4 text-muted opacity-50 small">
+          Tidak ada data kelas untuk filter ini.
+        </div>
+        <div x-show="kelasdata.length > 0" class="table-responsive">
+          <table class="das-table">
+            <thead>
+              <tr>
+                <th class="text-center" style="cursor:pointer;" @click="sortKelas('rank')">
+                  RANK <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                </th>
+                <th style="cursor:pointer;" @click="sortKelas('nama')">
+                  KELAS <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                </th>
+                <th>JURUSAN</th>
+                <th class="text-center" style="cursor:pointer;" @click="sortKelas('total_siswa')">
+                  TOTAL SISWA <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                </th>
+                <th class="text-center" style="cursor:pointer;" @click="sortKelas('percentage')">
+                  % KEHADIRAN <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                </th>
+                <th class="text-center" style="cursor:pointer;" @click="sortKelas('jumlah_badge_diraih')">
+                  BADGE DIRAIH <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(item, idx) in kelasdata" :key="idx">
+                <tr>
+                  <td class="text-center fw-bold fs-5">
+                    <span x-text="item.rank === 1 ? '🏆' : item.rank === 2 ? '🥈' : item.rank === 3 ? '🥉' : item.rank"></span>
+                  </td>
+                  <td>
+                    <div class="fw-bold text-white" style="font-size:.85rem;" x-text="item.nama || '-'"></div>
+                  </td>
+                  <td>
+                    <span class="badge bg-label-info" style="font-size:.65rem;" x-text="item.jurusan || '-'"></span>
+                  </td>
+                  <td class="text-center" x-text="item.total_siswa ?? 0"></td>
+                  <td class="text-center">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                      <div class="progress w-px-75" style="height:6px;background:rgba(255,255,255,.05);">
+                        <div class="progress-bar"
+                             :class="parseFloat(item.percentage) > 85 ? 'bg-success' : (parseFloat(item.percentage) > 70 ? 'bg-warning' : 'bg-danger')"
+                             :style="'width:' + (item.percentage || 0) + '%'"></div>
+                      </div>
+                      <span class="fw-bold" x-text="parseFloat(item.percentage || 0).toFixed(1) + '%'"></span>
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    <span class="das-chip --warning" x-text="item.jumlah_badge_diraih ?? 0"></span>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {{-- ── SUB-TAB: REKAP BADGE ──────────────────────────────────────── --}}
+      <div x-show="activeSubTab === 'badge'" x-cloak>
+        <div x-show="badgedata.length === 0" class="text-center py-4 text-muted opacity-50 small">
+          Tidak ada data badge untuk filter ini.
+        </div>
+        <div class="d-flex flex-column gap-2">
+          <template x-for="(badge, bi) in badgedata" :key="bi">
+            <div class="rounded" style="border:1px solid rgba(255,255,255,.07);overflow:hidden;">
+              {{-- Accordion Header --}}
+              <div class="d-flex align-items-center gap-3 p-3"
+                   style="background:rgba(255,255,255,.03);cursor:pointer;"
+                   @click="expandedBadge = expandedBadge === bi ? null : bi">
+                <div class="das-stat-card__icon"
+                     style="width:38px;height:38px;background:rgba(255,215,0,.1);color:#ffd700;flex-shrink:0;">
+                  <i :class="'ti ' + (badge.icon || 'tabler-award')"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="fw-bold text-white small" x-text="badge.name || '-'"></div>
+                  <div class="text-muted" style="font-size:.7rem;" x-text="badge.description || ''"></div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="das-chip --success" style="font-size:.65rem;"
+                        x-text="(badge.total_penerima ?? 0) + ' penerima'"></span>
+                  <i class="ti"
+                     :class="expandedBadge === bi ? 'tabler-chevron-up' : 'tabler-chevron-down'"
+                     style="font-size:.85rem;color:#999;"></i>
+                </div>
+              </div>
+              {{-- Accordion Body --}}
+              <div x-show="expandedBadge === bi"
+                   x-transition:enter="transition ease-out duration-150"
+                   x-transition:enter-start="opacity-0 -translate-y-1"
+                   x-transition:enter-end="opacity-100 translate-y-0"
+                   style="border-top:1px solid rgba(255,255,255,.05);">
+                <div x-show="!badge.penerima || badge.penerima.length === 0"
+                     class="text-center py-3 text-muted opacity-50 small">
+                  Belum ada penerima badge ini.
+                </div>
+                <div x-show="badge.penerima && badge.penerima.length > 0" class="table-responsive">
+                  <table class="das-table" style="font-size:.78rem;">
+                    <thead>
+                      <tr>
+                        <th>NAMA SISWA</th>
+                        <th>KELAS</th>
+                        <th class="text-center">TANGGAL DIRAIH</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <template x-for="(penerima, pi) in badge.penerima" :key="pi">
+                        <tr>
+                          <td class="fw-semibold text-white" x-text="penerima.nama_lengkap || '-'"></td>
+                          <td>
+                            <span class="badge bg-label-secondary" style="font-size:.65rem;"
+                                  x-text="penerima.kelas || '-'"></span>
+                          </td>
+                          <td class="text-center text-muted"
+                              x-text="penerima.earned_at ? new Date(penerima.earned_at).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'}) : '-'">
+                          </td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+    </div>{{-- end x-show loaded --}}
+  </div>{{-- end das-panel__body --}}
+</div>{{-- end das-panel Rekapitulasi --}}
+
 {{-- Modal Badge Style --}}
 <div class="modal fade" id="badgeModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
