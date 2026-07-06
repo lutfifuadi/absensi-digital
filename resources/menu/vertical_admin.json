@@ -296,6 +296,13 @@
       "slug": "admin.deploy.index",
       "url": "/admin/deploy",
       "roles": ["super_admin"]
+    },
+    {
+      "name": "Log Sistem",
+      "icon": "menu-icon ti tabler-terminal-2",
+      "slug": "admin.system-logs.index",
+      "url": "/admin/system-logs",
+      "roles": ["super_admin"]
     }
   ]
 }

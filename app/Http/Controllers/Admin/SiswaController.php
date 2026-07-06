@@ -471,14 +471,15 @@ class SiswaController extends Controller
         try {
             $deletedCount = 0;
             $deletedUserIds = [];
+            $deletedOrtuUserIds = [];
             $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
 
-            $query = Siswa::with('user');
+            $query = Siswa::with(['user', 'ortu']);
             if ($tahunAjaranId) {
                 $query->where('tahun_akademik_id', $tahunAjaranId);
             }
 
-            $query->chunkById(100, function ($siswaBatch) use (&$deletedCount, &$deletedUserIds) {
+            $query->chunkById(100, function ($siswaBatch) use (&$deletedCount, &$deletedUserIds, &$deletedOrtuUserIds) {
                 foreach ($siswaBatch as $siswa) {
                     $user = $siswa->user;
                     $siswa->delete(); // This triggers Siswa model observers (absensi, etc.)
@@ -488,8 +489,23 @@ class SiswaController extends Controller
                         $deletedUserIds[] = $user->id;
                         $user->delete();
                     }
+
+                    // Kumpulkan user orang tua untuk dihapus setelah batch
+                    foreach ($siswa->ortu as $ortu) {
+                        $deletedOrtuUserIds[] = $ortu->id;
+                    }
                 }
             });
+
+            // Hapus user orang tua yang sudah dikumpulkan (unique)
+            $deletedOrtuUserIds = array_unique($deletedOrtuUserIds);
+            if (! empty($deletedOrtuUserIds)) {
+                User::whereIn('id', $deletedOrtuUserIds)->chunkById(100, function ($ortuUsers) {
+                    foreach ($ortuUsers as $ortuUser) {
+                        $ortuUser->delete();
+                    }
+                });
+            }
 
             // Optional: Hapus akun user siswa yang mungkin sudah tidak punya entitas Siswa terkait
             // Hanya lakukan jika tidak memfilter per tahun ajaran, atau sesuaikan logikanya
@@ -507,7 +523,8 @@ class SiswaController extends Controller
             }
 
             $userCount = count($deletedUserIds);
-            ActivityLog::record('delete', 'siswa', "Hapus semua siswa ({$deletedCount} siswa, {$userCount} user)", null, ['count' => $deletedCount]);
+            $ortuCount = count($deletedOrtuUserIds);
+            ActivityLog::record('delete', 'siswa', "Hapus semua siswa ({$deletedCount} siswa, {$userCount} user siswa, {$ortuCount} user orang tua)", null, ['count' => $deletedCount]);
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -627,36 +644,6 @@ class SiswaController extends Controller
             return $service->renderKartuSiswa(collect([$siswa]), $template, "kartu-pelajar-{$siswa->nisn}");
         } catch (\Exception $e) {
             Log::error('Gagal generate kartu siswa: ' . $e->getMessage());
-            return back()->with('error', 'Gagal mencetak kartu: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Cetak kartu pilihan siswa berdasarkan checkbox IDs.
-     */
-    public function cetakKartuPilihan(Request $request)
-    {
-        $request->validate([
-            'ids'   => 'required|array|min:1',
-            'ids.*' => 'integer|exists:siswa,id',
-        ]);
-
-        $siswaList = Siswa::with(['kelas', 'tahunAkademik'])
-            ->whereIn('id', $request->ids)
-            ->orderBy('nama_lengkap')
-            ->get();
-
-        $template = IdCardTemplate::where('type', 'siswa')->active()->first();
-
-        if (! $template) {
-            return back()->with('error', 'Template ID Card untuk Siswa belum diaktifkan. Silakan buat dan aktifkan template terlebih dahulu di menu ID Card Templates.');
-        }
-
-        try {
-            $service = new IdCardPdfService();
-            return $service->renderKartuSiswa($siswaList, $template, 'kartu-pelajar-pilihan');
-        } catch (\Exception $e) {
-            Log::error('Gagal cetak kartu pilihan siswa: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return back()->with('error', 'Gagal mencetak kartu: ' . $e->getMessage());
         }
     }

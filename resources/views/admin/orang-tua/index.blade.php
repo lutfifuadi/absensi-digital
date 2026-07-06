@@ -95,7 +95,52 @@
             outline: none;
             box-shadow: none;
         }
+
+        /* SWEETALERT2 CUSTOM PREMIUM */
+        .das-swal-popup {
+            background: rgba(26, 26, 46, 0.95) !important;
+            backdrop-filter: blur(16px) saturate(180%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        .das-swal-title {
+            color: #fff !important;
+            font-weight: 700 !important;
+            font-size: 1.5rem !important;
+        }
+
+        .das-swal-html {
+            color: rgba(255, 255, 255, 0.7) !important;
+            font-size: 0.95rem !important;
+        }
+
+        .das-swal-confirm {
+            padding: 10px 24px !important;
+            font-weight: 600 !important;
+            border-radius: 10px !important;
+            font-size: 0.875rem !important;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(234, 84, 85, 0.3) !important;
+        }
+
+        .das-swal-cancel {
+            padding: 10px 24px !important;
+            font-weight: 600 !important;
+            border-radius: 10px !important;
+            font-size: 0.875rem !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: #fff !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .das-swal-icon {
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
     </style>
+    @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
 @endsection
 
 @section('content')
@@ -126,6 +171,12 @@
             </div>
 
             <div class="das-hero__actions">
+                <button type="button" class="btn das-btn --warning" id="btnSyncOrtu">
+                    <i class="ti tabler-refresh me-1"></i> Sinkronisasi Data
+                </button>
+                <button type="button" class="btn das-btn --danger" data-bs-toggle="modal" data-bs-target="#deleteAllModal">
+                    <i class="ti tabler-trash me-1"></i> Hapus Semua
+                </button>
                 <a href="{{ route('admin.orang-tua.create') }}" class="btn das-btn --primary">
                     <i class="ti tabler-plus me-1"></i> Tambah Orang Tua
                 </a>
@@ -164,6 +215,33 @@
         </div>
     </div>
 
+    <!-- Modal Delete All -->
+    <div class="modal fade" id="deleteAllModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <form id="deleteAllForm" action="{{ route('admin.orang-tua.destroy-all') }}" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <div class="modal-header">
+                        <h5 class="modal-title text-danger"><i class="ti tabler-alert-triangle me-2"></i>Konfirmasi Hapus Semua</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Apakah Anda yakin ingin menghapus <strong>semua data Orang Tua</strong>?</p>
+                        <ul class="text-danger">
+                            <li>Semua akun orang tua akan dihapus dari sistem.</li>
+                            <li>Relasi wali di tabel Siswa akan dikosongkan.</li>
+                            <li>Tindakan ini tidak dapat dibatalkan!</li>
+                        </ul>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-danger">Ya, Hapus Semua</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('vendor-script')
@@ -173,6 +251,178 @@
 @section('page-script')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Delete All Logic
+            const deleteAllForm = document.getElementById('deleteAllForm');
+            if (deleteAllForm) {
+                deleteAllForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const btnSubmit = this.querySelector('button[type="submit"]');
+                    btnSubmit.disabled = true;
+                    btnSubmit.innerHTML = '<i class="ti tabler-loader animate-spin me-1"></i> Menghapus...';
+                    
+                    fetch(this.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: new FormData(this)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Tutup modal
+                        const modalEl = document.getElementById('deleteAllModal');
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+                        
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: data.message,
+                                customClass: {
+                                    popup: 'das-swal-popup',
+                                    title: 'das-swal-title',
+                                    htmlContainer: 'das-swal-html',
+                                    confirmButton: 'btn btn-primary das-swal-confirm'
+                                }
+                            }).then(() => {
+                                fetchData(1); // Refresh data table
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: data.message || 'Terjadi kesalahan!',
+                                customClass: {
+                                    popup: 'das-swal-popup',
+                                    title: 'das-swal-title',
+                                    htmlContainer: 'das-swal-html',
+                                    confirmButton: 'btn btn-primary das-swal-confirm'
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        const modalEl = document.getElementById('deleteAllModal');
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'Gagal terhubung ke server.',
+                            customClass: {
+                                popup: 'das-swal-popup',
+                                title: 'das-swal-title',
+                                htmlContainer: 'das-swal-html',
+                                confirmButton: 'btn btn-primary das-swal-confirm'
+                            }
+                        });
+                    })
+                    .finally(() => {
+                        btnSubmit.disabled = false;
+                        btnSubmit.innerHTML = 'Ya, Hapus Semua';
+                    });
+                });
+            }
+
+            // Sync Logic
+            const btnSync = document.getElementById('btnSyncOrtu');
+            if (btnSync) {
+                btnSync.addEventListener('click', function() {
+                    Swal.fire({
+                        title: 'Sinkronisasi Data?',
+                        text: "Aksi ini akan membuat akun orang tua otomatis untuk siswa yang belum punya wali, dan merapikan relasinya.",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, Sinkronkan',
+                        cancelButtonText: 'Batal',
+                        customClass: {
+                            popup: 'das-swal-popup',
+                            title: 'das-swal-title',
+                            htmlContainer: 'das-swal-html',
+                            confirmButton: 'btn btn-warning text-dark das-swal-confirm me-2', // khusus sync pake btn-warning
+                            cancelButton: 'btn das-swal-cancel',
+                            icon: 'das-swal-icon'
+                        },
+                        buttonsStyling: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({
+                                title: 'Sinkronisasi berjalan...',
+                                text: 'Mohon tunggu, jangan tutup halaman ini.',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                allowEnterKey: false,
+                                customClass: {
+                                    popup: 'das-swal-popup',
+                                    title: 'das-swal-title',
+                                    htmlContainer: 'das-swal-html'
+                                },
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+
+                            fetch("{{ route('admin.orang-tua.sync') }}", {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Sinkronisasi Selesai!',
+                                        text: data.message,
+                                        customClass: {
+                                            popup: 'das-swal-popup',
+                                            title: 'das-swal-title',
+                                            htmlContainer: 'das-swal-html',
+                                            confirmButton: 'btn btn-primary das-swal-confirm'
+                                        }
+                                    }).then(() => {
+                                        fetchData(1);
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Gagal!',
+                                        text: data.message || 'Gagal mensinkronkan data.',
+                                        customClass: {
+                                            popup: 'das-swal-popup',
+                                            title: 'das-swal-title',
+                                            htmlContainer: 'das-swal-html',
+                                            confirmButton: 'btn btn-primary das-swal-confirm'
+                                        }
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error!',
+                                    text: 'Terjadi kesalahan sistem.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-primary das-swal-confirm'
+                                    }
+                                });
+                            });
+                        }
+                    });
+                });
+            }
+
             const container = document.getElementById('ortuTableContainer');
             const searchInput = document.getElementById('searchInput');
             const perPageSelect = document.getElementById('perPageSelect');
@@ -250,9 +500,12 @@
                         confirmButtonText: 'Ya, Hapus!',
                         cancelButtonText: 'Batal',
                         customClass: {
-                            popup: 'das-modal border-0 shadow-lg text-white',
-                            confirmButton: 'btn btn-danger',
-                            cancelButton: 'btn btn-secondary ms-2'
+                            popup: 'das-swal-popup',
+                            title: 'das-swal-title',
+                            htmlContainer: 'das-swal-html',
+                            confirmButton: 'btn btn-danger das-swal-confirm me-2',
+                            cancelButton: 'btn das-swal-cancel',
+                            icon: 'das-swal-icon'
                         },
                         buttonsStyling: false
                     }).then((result) => {

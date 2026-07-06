@@ -174,4 +174,133 @@ class OrangTuaController extends Controller
             return back()->with('error', 'Gagal menghapus data Orang Tua. ' . $e->getMessage());
         }
     }
+
+    public function syncData(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            // Ambil domain dari pengaturan atau default
+            $domain = \App\Models\Pengaturan::where('key', 'website_lembaga')->value('value');
+            // Jika berisi URL lengkap, ambil host-nya
+            if ($domain && filter_var($domain, FILTER_VALIDATE_URL)) {
+                $domain = parse_url($domain, PHP_URL_HOST);
+            }
+            if (!$domain) {
+                $domain = 'madrasah.sch.id';
+            }
+
+            $siswaTanpaOrtu = Siswa::whereNull('ortu_user_id')->get();
+            $jumlahSiswaDiupdate = 0;
+            $jumlahOrtuDibuat = 0;
+
+            foreach ($siswaTanpaOrtu as $siswa) {
+                $identifier = $siswa->nisn ?? $siswa->nis;
+                if (!$identifier) {
+                    continue; // Skip jika tidak ada nisn dan nis
+                }
+
+                $username = 'ortu.' . $identifier;
+                $email = 'ortu.' . $identifier . '@' . $domain;
+                $namaWali = 'Wali Murid ' . $siswa->nama_lengkap;
+                $password = $siswa->nisn ? Hash::make($siswa->nisn) : Hash::make('password123');
+
+                // Cek apakah user ortu dengan username ini sudah ada (mungkin beda siswa tapi identifier sama, jarang terjadi tapi mungkin)
+                $ortu = User::where('username', $username)->first();
+
+                if (!$ortu) {
+                    $ortu = User::create([
+                        'name' => $namaWali,
+                        'email' => $email,
+                        'username' => $username,
+                        'password' => $password,
+                        'is_active' => true,
+                    ]);
+                    $ortu->assignRole('orang_tua');
+                    $jumlahOrtuDibuat++;
+                }
+
+                // Update siswa
+                $siswa->ortu_user_id = $ortu->id;
+                $siswa->save();
+                
+                // Sync pivot
+                $siswa->ortu()->syncWithoutDetaching([$ortu->id]);
+                
+                $jumlahSiswaDiupdate++;
+            }
+
+            // Perbaikan relasi: siswa yang sudah punya ortu_user_id tapi belum ada di pivot
+            $siswaDenganOrtu = Siswa::whereNotNull('ortu_user_id')->get();
+            $jumlahRelasiDiperbaiki = 0;
+            foreach ($siswaDenganOrtu as $siswa) {
+                $pivotExists = DB::table('siswa_ortu')
+                    ->where('siswa_id', $siswa->id)
+                    ->where('ortu_user_id', $siswa->ortu_user_id)
+                    ->exists();
+                    
+                if (!$pivotExists) {
+                    $siswa->ortu()->syncWithoutDetaching([$siswa->ortu_user_id]);
+                    $jumlahRelasiDiperbaiki++;
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil membuat $jumlahOrtuDibuat akun baru, mensinkronkan $jumlahSiswaDiupdate siswa, dan memperbaiki $jumlahRelasiDiperbaiki relasi."
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat sinkronisasi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function destroyAll(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            // Ambil semua user dengan role orang_tua
+            $ortuIds = User::withRole(User::ROLE_ORANG_TUA)->pluck('id')->toArray();
+
+            if (empty($ortuIds)) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => true, 'message' => 'Tidak ada data Orang Tua untuk dihapus.']);
+                }
+                return redirect()->route('admin.orang-tua.index')
+                    ->with('info', 'Tidak ada data Orang Tua untuk dihapus.');
+            }
+
+            // Update siswa: set ortu_user_id null
+            Siswa::whereIn('ortu_user_id', $ortuIds)->update(['ortu_user_id' => null]);
+
+            // Hapus relasi di tabel pivot siswa_ortu
+            DB::table('siswa_ortu')->whereIn('ortu_user_id', $ortuIds)->delete();
+
+            // Hapus user ortu
+            User::whereIn('id', $ortuIds)->delete();
+
+            DB::commit();
+
+            $message = 'Berhasil menghapus semua data Orang Tua dan mereset relasi pada Siswa.';
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => $message]);
+            }
+            return redirect()->route('admin.orang-tua.index')->with('success', $message);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $errorMsg = 'Gagal menghapus semua data Orang Tua. ' . $e->getMessage();
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $errorMsg], 500);
+            }
+            return back()->with('error', $errorMsg);
+        }
+    }
 }

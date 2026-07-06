@@ -248,6 +248,14 @@ Route::middleware([
     Route::middleware('role:super_admin')->group(function () {
         Route::get('/admin/impersonate/{user}', [ImpersonateController::class, 'loginAs'])
             ->name('admin.impersonate.login-as');
+        
+        // System & Developer Logs routes
+        Route::get('/admin/system-logs', [\App\Http\Controllers\Admin\SystemLogController::class, 'index'])
+            ->name('admin.system-logs.index');
+        Route::get('/admin/system-logs/data', [\App\Http\Controllers\Admin\SystemLogController::class, 'getLogs'])
+            ->name('admin.system-logs.data');
+        Route::post('/admin/system-logs/clear', [\App\Http\Controllers\Admin\SystemLogController::class, 'clearLog'])
+            ->name('admin.system-logs.clear');
     });
     // ────────────────────────────────────────────────────────────────────────────
 
@@ -523,6 +531,14 @@ Route::middleware([
             ->names('admin.siswa')
             ->except(['show'])
             ->middleware('role:super_admin,admin_sekolah,operator');
+
+        Route::post('orang-tua-sync', [OrangTuaController::class, 'syncData'])
+            ->name('admin.orang-tua.sync')
+            ->middleware('role:super_admin,admin_sekolah');
+
+        Route::delete('orang-tua-destroy-all', [OrangTuaController::class, 'destroyAll'])
+            ->name('admin.orang-tua.destroy-all')
+            ->middleware('role:super_admin,admin_sekolah');
 
         Route::resource('orang-tua', OrangTuaController::class)
             ->names('admin.orang-tua')
