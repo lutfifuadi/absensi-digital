@@ -80,46 +80,6 @@
       background: rgba(255, 255, 255, 0.2);
     }
 
-    .btn-clear-log {
-      background-color: rgba(234, 84, 85, 0.12);
-      border: 1px solid rgba(234, 84, 85, 0.3);
-      color: #ea5455;
-      padding: 6px 14px;
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 0.8rem;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .btn-clear-log:hover {
-      background-color: #ea5455;
-      color: #ffffff;
-      box-shadow: 0 4px 12px rgba(234, 84, 85, 0.3);
-      transform: translateY(-1px);
-    }
-
-    /* Dropdown kustom premium */
-    .custom-select-log {
-      background-color: #242435 !important;
-      border: 1px solid rgba(255, 255, 255, 0.15) !important;
-      color: #ffffff !important;
-      border-radius: 8px;
-      padding: 7px 14px;
-      font-size: 0.85rem;
-      outline: none;
-      transition: all 0.2s ease;
-    }
-
-    .custom-select-log:focus {
-      border-color: rgba(115, 103, 240, 0.5) !important;
-      box-shadow: 0 0 8px rgba(115, 103, 240, 0.2);
-    }
-
     /* SWEETALERT2 CUSTOM PREMIUM */
     .das-swal-popup {
       background: rgba(26, 26, 46, 0.95) !important;
@@ -169,68 +129,60 @@
 
 @section('content')
   {{-- HERO HEADER --}}
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card border-0 text-white overflow-hidden shadow-lg"
-        style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border-radius: 12px;">
-        <div class="card-body p-4">
-          <div class="row align-items-center">
-            <div class="col-md-7">
-              <div class="d-flex align-items-center gap-3">
-                <div class="rounded d-flex align-items-center justify-content-center shadow-sm"
-                  style="width:52px;height:52px;border-radius:12px !important;background:rgba(0,207,232,0.2);border:1px solid rgba(0,207,232,0.4);">
-                  <i class="ti tabler-terminal-2 text-info fs-3"></i>
-                </div>
-                <div>
-                  <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-1" style="font-size:0.72rem;opacity:0.6;">
-                      <li class="breadcrumb-item">
-                        <span class="text-white opacity-50">Sistem</span>
-                      </li>
-                      <li class="breadcrumb-item active text-white">Log Sistem</li>
-                    </ol>
-                  </nav>
-                  <h4 class="mb-0 text-white fw-bold" style="letter-spacing:-0.5px;">Log Sistem</h4>
-                  <p class="mb-0 text-white opacity-60 small">Monitor aktivitas server dan scan QR Code presensi secara langsung.</p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-5 text-md-end mt-3 mt-md-0">
-              <div class="d-inline-flex align-items-center gap-2">
-                <select id="logFileSelect" class="custom-select-log">
-                  @foreach($logFiles as $file)
-                    <option value="{{ $file }}" {{ $file === 'qr-scan.log' ? 'selected' : '' }}>{{ $file }}</option>
-                  @endforeach
-                </select>
-                <button type="button" class="btn btn-info d-flex align-items-center gap-1 shadow-sm" id="btnRefresh" style="border-radius: 8px; padding: 8px 16px;">
-                  <i class="ti tabler-refresh fs-5"></i> Refresh
-                </button>
-              </div>
-            </div>
+  <div class="das-hero mb-4">
+    <div class="das-hero__bg"></div>
+    <div class="das-hero__glass"></div>
+    <div class="das-hero__grid-lines"></div>
+
+    <div class="das-hero__inner">
+      <div class="das-hero__identity">
+        <div class="das-hero__logo-wrapper">
+          <div class="das-hero__logo-placeholder">
+            <i class="ti tabler-terminal-2 text-info"></i>
           </div>
+          <div class="das-hero__logo-glow"></div>
         </div>
+
+        <div class="das-hero__meta">
+          <div class="das-hero__badge">
+            <span class="pulse-dot"></span>
+            Sistem / Log
+          </div>
+          <h4 class="das-hero__title text-gradient-gold">Log Sistem & Server</h4>
+          <p class="das-hero__subtitle">Pantau aktivitas server dan proses scan QR secara realtime.</p>
+        </div>
+      </div>
+
+      <div class="das-hero__actions d-flex align-items-center gap-2">
+        <select id="logFileSelect" class="form-select border-0 text-white w-auto"
+          style="background: rgba(255, 255, 255, 0.05); height:38px; font-size:0.85rem; cursor:pointer; min-width: 180px;">
+          @foreach($logFiles as $file)
+            <option value="{{ $file }}" {{ $file === 'qr-scan.log' ? 'selected' : '' }} style="background:#1a1a2e;">{{ $file }}</option>
+          @endforeach
+        </select>
+        <button type="button" class="btn das-btn --info m-0" id="btnRefresh" style="height:38px; display: inline-flex; align-items: center;">
+          <i class="ti tabler-refresh me-1"></i> Refresh
+        </button>
       </div>
     </div>
   </div>
 
   {{-- TERMINAL BODY --}}
-  <div class="row">
-    <div class="col-12">
-      <div class="terminal-container">
-        <div class="terminal-header">
-          <div class="terminal-dots">
-            <div class="terminal-dot terminal-dot-red"></div>
-            <div class="terminal-dot terminal-dot-yellow"></div>
-            <div class="terminal-dot terminal-dot-green"></div>
-          </div>
-          <div class="terminal-title" id="terminalTitle">terminal - qr-scan.log</div>
-          <div>
-            <button type="button" class="btn-clear-log" id="btnClearLog">
-              <i class="ti tabler-trash fs-6"></i>
-              Clear Log
-            </button>
-          </div>
-        </div>
+  <div class="das-panel">
+    <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between"
+      style="border-color:rgba(255,255,255,0.08) !important;">
+      <h6 class="das-panel__title mb-0 d-flex align-items-center gap-2">
+        <i class="ti tabler-terminal text-info"></i> Console Log: <span id="terminalTitle" class="text-white-50">qr-scan.log</span>
+      </h6>
+      <div>
+        <button type="button" class="btn das-btn --danger btn-sm" id="btnClearLog">
+          <i class="ti tabler-trash me-1"></i> Clear Log
+        </button>
+      </div>
+    </div>
+    
+    <div class="das-panel__body p-0">
+      <div class="terminal-container" style="border:none; border-radius:0; height:550px;">
         <div class="terminal-body" id="terminalBody">Memuat data log...</div>
       </div>
     </div>
@@ -253,7 +205,7 @@
       // Fungsi mengambil isi Log
       function loadLogData() {
         const selectedFile = logFileSelect.value;
-        terminalTitle.textContent = `terminal - ${selectedFile}`;
+        terminalTitle.textContent = selectedFile;
         terminalBody.textContent = 'Memuat log dari server...';
 
         fetch(`{{ route('admin.system-logs.data') }}?file=${selectedFile}`)
