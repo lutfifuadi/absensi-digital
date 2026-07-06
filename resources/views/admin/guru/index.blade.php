@@ -212,7 +212,7 @@
               @endphp
               <tr class="guru-row-hover">
                 <td class="ps-4 text-white-50 small">{{ $loop->iteration }}</td>
-                <td>
+                <td class="text-nowrap">
                   <div class="d-flex align-items-center gap-3">
                     <div class="avatar avatar-md">
                       <span class="avatar-initial rounded-circle bg-label-info" style="font-size:0.85rem;">
