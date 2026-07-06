@@ -460,6 +460,10 @@ Route::middleware([
             ->name('admin.guru.download-sample')
             ->middleware('role:super_admin,admin_sekolah,operator');
 
+        Route::delete('guru-destroy-all', [GuruController::class, 'destroyAll'])
+            ->name('admin.guru.destroy-all')
+            ->middleware('role:super_admin,admin_sekolah');
+
         Route::resource('guru', GuruController::class)
             ->names('admin.guru')
             ->except(['show'])
@@ -712,9 +716,9 @@ Route::middleware([
             ->name('admin.pwa.update')
             ->middleware('role:super_admin,admin_sekolah');
 
-        Route::get('pengaturan/api-source', [ApiSourceSettingsController::class, 'index'])
-            ->name('admin.pengaturan.api-source.index')
-            ->middleware('role:super_admin,admin_sekolah');
+        Route::get('pengaturan/api-source', function () {
+            return redirect()->route('admin.pengaturan.index');
+        })->name('admin.pengaturan.api-source.index')->middleware('role:super_admin,admin_sekolah');
         Route::post('pengaturan/api-source', [ApiSourceSettingsController::class, 'update'])
             ->name('admin.pengaturan.api-source.update')
             ->middleware('role:super_admin,admin_sekolah');
@@ -723,9 +727,9 @@ Route::middleware([
             ->middleware('role:super_admin,admin_sekolah');
 
         // Google Sheets Settings
-        Route::get('pengaturan/google-sheets', [GoogleSheetsSettingController::class, 'index'])
-            ->name('admin.pengaturan.google-sheets.index')
-            ->middleware('role:super_admin,admin_sekolah');
+        Route::get('pengaturan/google-sheets', function () {
+            return redirect()->route('admin.pengaturan.index');
+        })->name('admin.pengaturan.google-sheets.index')->middleware('role:super_admin,admin_sekolah');
         Route::post('pengaturan/google-sheets', [GoogleSheetsSettingController::class, 'update'])
             ->name('admin.pengaturan.google-sheets.update')
             ->middleware('role:super_admin,admin_sekolah');
@@ -752,9 +756,9 @@ Route::middleware([
             ->middleware('role:super_admin,admin_sekolah');
 
         // Google Sheets Guru Settings
-        Route::get('pengaturan/google-sheets-guru', [GoogleSheetsGuruSettingController::class, 'index'])
-            ->name('admin.pengaturan.google-sheets-guru.index')
-            ->middleware('role:super_admin,admin_sekolah');
+        Route::get('pengaturan/google-sheets-guru', function () {
+            return redirect()->route('admin.pengaturan.index');
+        })->name('admin.pengaturan.google-sheets-guru.index')->middleware('role:super_admin,admin_sekolah');
         Route::post('pengaturan/google-sheets-guru', [GoogleSheetsGuruSettingController::class, 'update'])
             ->name('admin.pengaturan.google-sheets-guru.update')
             ->middleware('role:super_admin,admin_sekolah');

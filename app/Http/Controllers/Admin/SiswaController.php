@@ -162,7 +162,7 @@ class SiswaController extends Controller
     {
         // Validasi file dan ukurannya (max 20MB = 20480KB)
         $request->validate([
-            'import_file' => 'required|file|mimes:xlsx|max:20480',
+            'import_file' => 'required|file|mimes:xlsx,xls,csv,txt|max:20480',
         ]);
 
         $originalFileName = $request->file('import_file')->getClientOriginalName();

@@ -17,9 +17,10 @@ class GoogleSheetsSettingController extends Controller
 {
     public function index(Request $request)
     {
-        $setting = GoogleSheetSetting::first() ?? new GoogleSheetSetting;
+        $setting = GoogleSheetSetting::where('type', 'siswa')->first() ?? GoogleSheetSetting::whereNull('type')->first() ?? new GoogleSheetSetting;
 
-        if ($request->wantsJson() || $request->ajax()) {
+        // Force return JSON if ajax/expectsJson/wantsJson or any XMLHttpRequest/json accept header is present
+        if ($request->wantsJson() || $request->ajax() || $request->expectsJson() || str_contains($request->headers->get('Accept') ?? '', 'application/json') || $request->header('X-Requested-With') === 'XMLHttpRequest' || str_contains($request->header('Accept') ?? '', 'application/json') || $request->has('ajax') || $request->ajax() || str_contains($request->headers->get('X-Requested-With') ?? '', 'XMLHttpRequest') || $request->isXmlHttpRequest() || str_contains($request->headers->get('accept') ?? '', 'application/json') || $request->query('ajax') == 1) {
             return response()->json([
                 'id' => $setting->id,
                 'last_sync_at' => $setting->last_sync_at ? Carbon::parse($setting->last_sync_at)->format('d M Y H:i:s') : '-',
@@ -31,7 +32,7 @@ class GoogleSheetsSettingController extends Controller
             ]);
         }
 
-        return view('admin.pengaturan.google-sheets', compact('setting'));
+        return redirect()->route('admin.pengaturan.index', ['tab' => 'google-sheets-siswa']);
     }
 
     public function update(Request $request)
@@ -227,18 +228,58 @@ class GoogleSheetsSettingController extends Controller
 
     /**
      * Reset antrian sinkronisasi Google Sheets.
-     * Menghapus semua job di queue 'syncs' dan mereset status di settings ke default/idle.
+     * Menghapus job di queue 'syncs' yang terkait dengan setting siswa saja,
+     * agar tidak menghapus job milik setting guru.
      */
     public function resetAntrian(Request $request)
     {
         abort_if(! $request->ajax(), 403);
 
         try {
-            // 1. Hapus semua job di queue 'syncs'
-            $deletedJobsCount = DB::table('jobs')->where('queue', 'syncs')->delete();
+            // 1. Ambil semua setting siswa (type != 'guru' atau type = null/siswa)
+            $siswaSetting = GoogleSheetSetting::where(function ($query) {
+                $query->where('type', 'siswa')
+                    ->orWhereNull('type')
+                    ->orWhere('type', '!=', 'guru');
+            })->get();
 
-            // 2. Reset status sinkronisasi di model GoogleSheetSetting
-            $setting = GoogleSheetSetting::first();
+            $siswaSettingIds = $siswaSetting->pluck('id')->toArray();
+            $deletedJobsCount = 0;
+
+            if (! empty($siswaSettingIds)) {
+                // Baca semua job di queue 'syncs'
+                $jobs = DB::table('jobs')
+                    ->where('queue', 'syncs')
+                    ->get(['id', 'payload']);
+
+                // Filter hanya job yang merujuk ke setting_id milik siswa
+                $jobIdsToDelete = [];
+                foreach ($jobs as $job) {
+                    $payload = json_decode($job->payload, true);
+                    if (! empty($payload['data']['command'])) {
+                        // Ekstrak settingId dari serialized PHP command object
+                        if (preg_match('/settingId\";i:(\d+);/', $payload['data']['command'], $matches)) {
+                            if (in_array((int) $matches[1], $siswaSettingIds)) {
+                                $jobIdsToDelete[] = $job->id;
+                            }
+                        }
+                    }
+                }
+
+                if (! empty($jobIdsToDelete)) {
+                    $deletedJobsCount = DB::table('jobs')
+                        ->whereIn('id', $jobIdsToDelete)
+                        ->delete();
+                }
+            }
+
+            // 2. Reset status sinkronisasi di model GoogleSheetSetting (type siswa)
+            $setting = GoogleSheetSetting::where(function ($query) {
+                $query->where('type', 'siswa')
+                    ->orWhereNull('type')
+                    ->orWhere('type', '!=', 'guru');
+            })->first();
+
             if ($setting) {
                 $setting->update([
                     'last_sync_status' => null,
@@ -249,8 +290,9 @@ class GoogleSheetsSettingController extends Controller
                 ]);
             }
 
-            Log::info('Google Sheets sync queue and status reset by admin.', [
+            Log::info('Google Sheets Siswa sync queue and status reset by admin.', [
                 'deleted_jobs' => $deletedJobsCount,
+                'siswa_setting_ids' => $siswaSettingIds,
             ]);
 
             return response()->json([
@@ -261,7 +303,7 @@ class GoogleSheetsSettingController extends Controller
                 'last_sync_message' => 'Sinkronisasi dibatalkan dan antrian di-reset.',
             ]);
         } catch (\Exception $e) {
-            Log::error('Gagal mereset antrian Google Sheets', [
+            Log::error('Gagal mereset antrian Google Sheets Siswa', [
                 'error' => $e->getMessage(),
             ]);
 

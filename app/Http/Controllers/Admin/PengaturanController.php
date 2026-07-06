@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pengaturan;
+use App\Models\GoogleSheetSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
@@ -135,7 +136,10 @@ class PengaturanController extends Controller
         $currentVersion = $this->updateService->getCurrentVersion();
         $updateInfo = $this->updateService->getCachedUpdateInfo();
 
-        return view('admin.pengaturan.index', compact('settings', 'currentVersion', 'updateInfo'));
+        $setting = GoogleSheetSetting::where('type', 'siswa')->first() ?? GoogleSheetSetting::whereNull('type')->first() ?? new GoogleSheetSetting(['type' => 'siswa']);
+        $guruSetting = GoogleSheetSetting::where('type', 'guru')->first() ?? new GoogleSheetSetting(['type' => 'guru']);
+
+        return view('admin.pengaturan.index', compact('settings', 'currentVersion', 'updateInfo', 'setting', 'guruSetting'));
     }
 
     public function update(Request $request)

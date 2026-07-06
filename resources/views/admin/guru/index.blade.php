@@ -29,6 +29,62 @@
       transform: translateY(-2px);
       background: rgba(255, 255, 255, 0.1);
     }
+
+    /* Custom Soft & Outline Buttons for Dark Mode */
+    .das-btn--purple-soft {
+      background: rgba(115, 103, 240, 0.12) !important;
+      border: 1px solid rgba(115, 103, 240, 0.25) !important;
+      color: #a5a2f7 !important;
+    }
+    .das-btn--purple-soft:hover {
+      background: rgba(115, 103, 240, 0.25) !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 12px rgba(115, 103, 240, 0.2);
+    }
+
+    .das-btn--info-soft {
+      background: rgba(0, 207, 232, 0.12) !important;
+      border: 1px solid rgba(0, 207, 232, 0.25) !important;
+      color: #00cfe8 !important;
+    }
+    .das-btn--info-soft:hover {
+      background: rgba(0, 207, 232, 0.25) !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 12px rgba(0, 207, 232, 0.2);
+    }
+
+    .das-btn--success-soft {
+      background: rgba(40, 199, 111, 0.12) !important;
+      border: 1px solid rgba(40, 199, 111, 0.25) !important;
+      color: #28c76f !important;
+    }
+    .das-btn--success-soft:hover {
+      background: rgba(40, 199, 111, 0.25) !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 12px rgba(40, 199, 111, 0.2);
+    }
+
+    .das-btn--warning-soft {
+      background: rgba(255, 159, 67, 0.12) !important;
+      border: 1px solid rgba(255, 159, 67, 0.25) !important;
+      color: #ff9f43 !important;
+    }
+    .das-btn--warning-soft:hover {
+      background: rgba(255, 159, 67, 0.25) !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 12px rgba(255, 159, 67, 0.2);
+    }
+
+    .das-btn--danger-outline {
+      background: rgba(234, 84, 85, 0.05) !important;
+      border: 1px solid rgba(234, 84, 85, 0.4) !important;
+      color: #ea5455 !important;
+    }
+    .das-btn--danger-outline:hover {
+      background: #ea5455 !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 15px rgba(234, 84, 85, 0.4);
+    }
   </style>
 @endsection
 
@@ -62,14 +118,14 @@
       </div>
 
       <div class="das-hero__actions">
-        <a href="{{ route('admin.pengaturan.google-sheets-guru.index') }}" class="btn das-btn --secondary">
-          <i class="ti tabler-file-spreadsheet me-1"></i> Google Sheets Sync
+        <a href="{{ route('admin.pengaturan.google-sheets-guru.index') }}" class="btn das-btn das-btn--purple-soft">
+          <i class="ti tabler-file-spreadsheet me-1"></i> GSheets Sync
         </a>
-        <button type="button" class="btn das-btn --secondary" data-bs-toggle="modal" data-bs-target="#importModal">
+        <button type="button" class="btn das-btn das-btn--info-soft" data-bs-toggle="modal" data-bs-target="#importModal">
           <i class="ti tabler-file-import me-1"></i> Import
         </button>
         <div class="btn-group">
-          <button type="button" class="btn das-btn --success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+          <button type="button" class="btn das-btn das-btn--success-soft dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="ti tabler-download me-1"></i> Export
           </button>
           <ul class="dropdown-menu dropdown-menu-end das-modal border-0 shadow-lg" style="min-width: 200px;">
@@ -81,11 +137,14 @@
             </li>
           </ul>
         </div>
-        <a href="{{ route('admin.guru.cetak-qr') }}" class="btn das-btn --info">
-          <i class="ti tabler-qrcode me-1"></i> Cetak QR Massal
+        <a href="{{ route('admin.guru.cetak-qr') }}" class="btn das-btn das-btn--warning-soft">
+          <i class="ti tabler-qrcode me-1"></i> Cetak QR
         </a>
+        <button type="button" class="btn das-btn das-btn--danger-outline" data-bs-toggle="modal" data-bs-target="#deleteAllGuruModal">
+          <i class="ti tabler-trash me-1"></i> Hapus Semua
+        </button>
         <a href="{{ route('admin.guru.create') }}" class="btn das-btn --primary">
-          <i class="ti tabler-plus me-1"></i> Tambah Guru
+          <i class="ti tabler-plus me-1"></i> Tambah
         </a>
       </div>
     </div>
@@ -218,7 +277,7 @@
                       </a>
                       <button type="button" class="action-btn text-danger" title="Hapus" data-bs-toggle="tooltip"
                         aria-label="Hapus {{ $displayName }}"
-                        onclick='openHapusModal({{ $profile->id }}, "{{ addslashes($profile->nama_lengkap) }}", "{{ $profile->nip }}")'>
+                        onclick="openHapusModal('{{ $profile->id }}', '{{ addslashes($profile->nama_lengkap) }}', '{{ $profile->nip }}')">
                         <i class="ti tabler-trash fs-5"></i>
                       </button>
                     @else
@@ -338,6 +397,57 @@
     </div>
   </div>
 
+  <!-- Modal Hapus Semua Guru -->
+  <div class="modal fade" id="deleteAllGuruModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+      <div class="modal-content das-modal shadow-lg">
+        <div class="das-modal-head d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-3">
+            <div style="width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(234,84,85,0.2);border:1px solid rgba(234,84,85,0.35);">
+              <i class="ti tabler-alert-triangle text-danger fs-5"></i>
+            </div>
+            <div>
+              <h5 class="das-modal-title text-white fw-bold">Hapus Semua Guru</h5>
+              <small class="text-white-50">Tindakan destruktif & tidak dapat dibatalkan.</small>
+            </div>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="deleteAllGuruCancelBtn"></button>
+        </div>
+        <form id="deleteAllGuruForm" action="{{ route('admin.guru.destroy-all') }}" method="POST">
+          @csrf
+          @method('DELETE')
+          <div class="das-modal-body">
+            <p class="mb-3 text-white-50">Tindakan ini akan menghapus <strong>seluruh data guru</strong> dari database, termasuk akun user terkait. Silakan lakukan konfirmasi berikut untuk melanjutkan:</p>
+            
+            <div class="mb-3">
+              <label class="form-label text-white-50 mb-2" for="confirm_text">Silakan ketik kata kunci konfirmasi di bawah ini:</label>
+              <div class="mb-3">
+                <strong class="text-danger bg-label-danger px-2 py-1 rounded animate-pulse" style="font-size: 1.1rem; letter-spacing: 1px; display: inline-block;">HAPUS SEMUA GURU</strong>
+              </div>
+              <input type="text" id="confirm_text" name="konfirmasi" class="form-control bg-dark border-secondary text-white" placeholder='Ketik "HAPUS SEMUA GURU"' autocomplete="off">
+              <div class="form-text text-white-50 small mt-2">Ketik secara tepat (Case-sensitive) untuk mengaktifkan tombol hapus.</div>
+            </div>
+
+            <div id="deleteAllGuruProgress" class="d-none mt-3">
+              <div class="progress" style="height:8px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-danger" style="width:100%"></div>
+              </div>
+              <small class="text-white-50 mt-2 d-block text-center">Memproses penghapusan data...</small>
+            </div>
+          </div>
+          <div class="px-4 pb-4 pt-2 d-flex gap-2">
+            <button type="button" class="btn btn-label-secondary w-100" data-bs-dismiss="modal" id="deleteAllGuruCloseBtn">
+              <i class="ti tabler-x me-1"></i> Batal
+            </button>
+            <button type="submit" id="deleteAllGuruSubmitBtn" class="btn btn-secondary w-100" disabled>
+              <i class="ti tabler-trash me-1"></i> Hapus Sekarang
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
 @endsection
 
 @section('page-script')
@@ -371,5 +481,67 @@
       document.getElementById('formHapusGuru').action = '{{ url("admin/guru") }}/' + id;
       new bootstrap.Modal(document.getElementById('modalHapusGuru')).show();
     }
+
+    // Modal Hapus Semua Guru
+    document.addEventListener('DOMContentLoaded', function() {
+      const deleteAllForm = document.getElementById('deleteAllGuruForm');
+      const confirmText = document.getElementById('confirm_text');
+      const submitBtn = document.getElementById('deleteAllGuruSubmitBtn');
+      const cancelBtn = document.getElementById('deleteAllGuruCancelBtn');
+      const closeBtn = document.getElementById('deleteAllGuruCloseBtn');
+      const progressArea = document.getElementById('deleteAllGuruProgress');
+
+      function validateInputs() {
+        const isTextValid = confirmText.value === 'HAPUS SEMUA GURU';
+
+        if (isTextValid) {
+          submitBtn.removeAttribute('disabled');
+          submitBtn.classList.remove('btn-secondary');
+          submitBtn.classList.add('btn-danger');
+        } else {
+          submitBtn.setAttribute('disabled', 'true');
+          submitBtn.classList.remove('btn-danger');
+          submitBtn.classList.add('btn-secondary');
+        }
+      }
+
+      if (confirmText) {
+        confirmText.addEventListener('input', validateInputs);
+      }
+
+      if (deleteAllForm) {
+        deleteAllForm.addEventListener('submit', function(e) {
+          // Disable buttons & show loading state
+          submitBtn.setAttribute('disabled', 'true');
+          cancelBtn.setAttribute('disabled', 'true');
+          closeBtn.setAttribute('disabled', 'true');
+          
+          // Ganti text & icon
+          submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Memproses...';
+          
+          // Tampilkan progress bar
+          if (progressArea) {
+            progressArea.classList.remove('d-none');
+          }
+        });
+      }
+
+      // Reset modal on hide
+      const deleteAllModalEl = document.getElementById('deleteAllGuruModal');
+      if (deleteAllModalEl) {
+        deleteAllModalEl.addEventListener('hidden.bs.modal', function() {
+          deleteAllForm.reset();
+          validateInputs();
+          if (progressArea) {
+            progressArea.classList.add('d-none');
+          }
+          submitBtn.innerHTML = '<i class="ti tabler-trash me-1"></i> Hapus Sekarang';
+          submitBtn.removeAttribute('disabled');
+          cancelBtn.removeAttribute('disabled');
+          closeBtn.removeAttribute('disabled');
+          validateInputs();
+        });
+      }
+    });
   </script>
 @endsection

@@ -15,6 +15,7 @@ class GoogleSheetSetting extends Model
     protected $fillable = [
         'spreadsheet_id',
         'sheet_range',
+        'type',
         'credentials_json',
         'column_mapping',
         'last_sync_at',

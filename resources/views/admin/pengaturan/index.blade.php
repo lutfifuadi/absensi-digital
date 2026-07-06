@@ -65,51 +65,44 @@
   </div>
 @endif
 
-@if(auth()->user()->isSuperAdmin())
-<div class="mb-4 d-flex justify-content-end">
-  <a href="{{ route('admin.pengaturan.api-source.index') }}" class="btn btn-outline-info">
-    <i class="ti tabler-api me-1"></i>
-    Buka Pengaturan API Sumber Data
-  </a>
-</div>
-@endif
-
 {{-- ── MAIN LAYOUT ── --}}
-<form action="{{ route('admin.pengaturan.update') }}" method="POST" enctype="multipart/form-data" id="formPengaturan">
-  @csrf
+{{-- ─────────────────────────────
+     HORIZONTAL TAB BAR
+───────────────────────────── --}}
+<div class="set-tabbar-wrap">
+  <div class="set-tabbar" id="set-nav-tabs">
+    @php
+      $navItems = [
+        ['id' => 'lembaga',    'icon' => 'tabler-building-arch',  'label' => 'Identitas Lembaga'],
+        ['id' => 'waktu',      'icon' => 'tabler-clock',           'label' => 'Waktu & Absensi'],
+        ['id' => 'keamanan',   'icon' => 'tabler-shield-lock',     'label' => 'Keamanan & Lokasi'],
+        ['id' => 'branding',   'icon' => 'tabler-photo',           'label' => 'Logo & Branding'],
+        ['id' => 'notifikasi', 'icon' => 'tabler-bell-ringing',    'label' => 'Integrasi & Notifikasi'],
+        ['id' => 'ai',         'icon' => 'tabler-brain',           'label' => 'Kecerdasan Buatan (AI)'],
+        ['id' => 'api-source', 'icon' => 'tabler-api',             'label' => 'API Source'],
+        ['id' => 'google-sheets-siswa', 'icon' => 'tabler-file-spreadsheet', 'label' => 'Google Sheets (Siswa)'],
+        ['id' => 'google-sheets-guru', 'icon' => 'tabler-file-spreadsheet', 'label' => 'Google Sheets (Guru)'],
+      ];
 
-  {{-- ─────────────────────────────
-       HORIZONTAL TAB BAR
-  ───────────────────────────── --}}
-  <div class="set-tabbar-wrap">
-    <div class="set-tabbar" id="set-nav-tabs">
-      @php
-        $navItems = [
-          ['id' => 'lembaga',    'icon' => 'tabler-building-arch',  'label' => 'Identitas Lembaga'],
-          ['id' => 'waktu',      'icon' => 'tabler-clock',           'label' => 'Waktu & Absensi'],
-          ['id' => 'keamanan',   'icon' => 'tabler-shield-lock',     'label' => 'Keamanan & Lokasi'],
-          ['id' => 'branding',   'icon' => 'tabler-photo',           'label' => 'Logo & Branding'],
-          ['id' => 'notifikasi', 'icon' => 'tabler-bell-ringing',    'label' => 'Integrasi & Notifikasi'],
-          ['id' => 'ai',         'icon' => 'tabler-brain',           'label' => 'Kecerdasan Buatan (AI)'],
-        ];
-
-        if (auth()->user()->isSuperAdmin()) {
-          $navItems[] = ['id' => 'update', 'icon' => 'tabler-cloud-download', 'label' => 'Pembaruan GitHub'];
-        }
-      @endphp
-      @foreach ($navItems as $i => $nav)
-        <button type="button"
-          class="set-tab-btn {{ $i === 0 ? 'active' : '' }}"
-          data-tab="{{ $nav['id'] }}">
-          <i class="ti {{ $nav['icon'] }} set-tab-btn__icon"></i>
-          <span class="set-tab-btn__label">{{ $nav['label'] }}</span>
-        </button>
-      @endforeach
-    </div>
-    <div class="set-tabbar__indicator"></div>
+      if (auth()->user()->isSuperAdmin()) {
+        $navItems[] = ['id' => 'update', 'icon' => 'tabler-cloud-download', 'label' => 'Pembaruan GitHub'];
+      }
+    @endphp
+    @foreach ($navItems as $i => $nav)
+      <button type="button"
+        class="set-tab-btn {{ $i === 0 ? 'active' : '' }}"
+        data-tab="{{ $nav['id'] }}">
+        <i class="ti {{ $nav['icon'] }} set-tab-btn__icon"></i>
+        <span class="set-tab-btn__label">{{ $nav['label'] }}</span>
+      </button>
+    @endforeach
   </div>
+  <div class="set-tabbar__indicator"></div>
+</div>
 
-  <div class="set-content">
+<div class="set-content">
+  <form action="{{ route('admin.pengaturan.update') }}" method="POST" enctype="multipart/form-data" id="formPengaturan">
+    @csrf
 
     {{-- ─────────────────────────────
          CONTENT AREA
@@ -945,16 +938,21 @@
       </div>
       @endif
 
-      {{-- Bottom Save Button --}}
-      <div class="set-footer-save">
-        <button type="submit" class="set-save-btn" id="footerSaveBtn">
-          <i class="ti tabler-device-floppy"></i>
-          <span>Simpan Semua Konfigurasi</span>
-        </button>
-      </div>
+  </form>
 
+  @include('admin.pengaturan.partials.api-source')
+  @include('admin.pengaturan.partials.google-sheets-siswa')
+  @include('admin.pengaturan.partials.google-sheets-guru')
+
+  {{-- Bottom Save Button --}}
+  <div class="set-footer-save">
+    <button type="button" class="set-save-btn" id="footerSaveBtn" onclick="submitActiveTabForm()">
+      <i class="ti tabler-device-floppy"></i>
+      <span>Simpan Semua Konfigurasi</span>
+    </button>
   </div>
-</form>
+
+</div>
 
 @endsection
 
@@ -1623,6 +1621,133 @@ select.set-input { padding-right: 0.5rem; cursor: pointer; }
   animation: spin 1s linear infinite;
   display: inline-block;
 }
+
+/* Modal Confirmation Styles */
+.sync-confirm-modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  z-index: 1100;
+  pointer-events: none;
+}
+.sync-confirm-modal[hidden] {
+  display: none !important;
+}
+.sync-confirm-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(4px);
+}
+.sync-confirm-modal__content {
+  position: relative;
+  z-index: 1;
+  width: min(520px, 100%);
+  background: var(--das-surface);
+  border: 1px solid var(--das-border);
+  border-radius: var(--das-radius);
+  padding: 1.5rem;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+}
+.sync-confirm-modal__header { display: grid; gap: 0.8rem; }
+.sync-confirm-modal__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #f6c90e;
+  background: rgba(255, 159, 67, 0.15);
+  font-size: 1.35rem;
+}
+.sync-confirm-modal__header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+.sync-confirm-modal__header p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+.sync-confirm-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.4rem;
+  flex-wrap: wrap;
+}
+.sync-confirm-modal__cancel-btn,
+.sync-confirm-modal__confirm-btn {
+  min-width: 120px;
+  border-radius: var(--das-radius-sm);
+  border: none;
+  padding: 0.75rem 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.sync-confirm-modal__cancel-btn {
+  background: rgba(255,255,255,0.08);
+  color: #cbd5e1;
+}
+.sync-confirm-modal__cancel-btn:hover { background: rgba(255,255,255,0.14); }
+.sync-confirm-modal__confirm-btn {
+  background: var(--das-warning);
+  color: #1a1a1a;
+}
+.sync-confirm-modal__confirm-btn:hover { background: #f0920a; }
+
+/* SUCCESS MODAL SPECIFIC */
+.sync-confirm-modal__content--success {
+  border-color: rgba(40, 199, 111, 0.3);
+  background: linear-gradient(180deg, var(--das-surface) 0%, rgba(40, 199, 111, 0.05) 100%);
+}
+.sync-success-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+.sync-success-icon-ring {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 2px solid rgba(40, 199, 111, 0.2);
+  animation: ringPulse 2s infinite;
+}
+.sync-success-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--das-success);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  box-shadow: 0 0 20px rgba(40, 199, 111, 0.4);
+}
+.text-gradient-success {
+  background: linear-gradient(to right, #fff, #28c76f);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.sync-confirm-modal__confirm-btn--success {
+  background: var(--das-success);
+  color: #fff;
+  width: 100%;
+}
+.sync-confirm-modal__confirm-btn--success:hover {
+  background: #23ad60;
+  box-shadow: 0 8px 20px rgba(40, 199, 111, 0.3);
+}
 </style>
 @endsection
 
@@ -1756,6 +1881,42 @@ function triggerSyncPusat() {
     form.appendChild(csrf);
     document.body.appendChild(form);
     form.submit();
+  }
+}
+
+function submitActiveTabForm() {
+  const activeTabBtn = document.querySelector('.set-tab-btn.active');
+  if (!activeTabBtn) return;
+  const activeTabId = activeTabBtn.dataset.tab;
+  
+  if (['lembaga', 'waktu', 'keamanan', 'branding', 'notifikasi', 'ai', 'update'].includes(activeTabId)) {
+    const form = document.getElementById('formPengaturan');
+    if (form) {
+      if (form.reportValidity()) {
+        form.submit();
+      }
+    }
+  } else if (activeTabId === 'api-source') {
+    const form = document.getElementById('formApiSource');
+    if (form) {
+      if (form.reportValidity()) {
+        form.submit();
+      }
+    }
+  } else if (activeTabId === 'google-sheets-siswa') {
+    const form = document.getElementById('gsUpdateFormSiswa');
+    if (form) {
+      if (form.reportValidity()) {
+        form.submit();
+      }
+    }
+  } else if (activeTabId === 'google-sheets-guru') {
+    const form = document.getElementById('gsUpdateFormGuru');
+    if (form) {
+      if (form.reportValidity()) {
+        form.submit();
+      }
+    }
   }
 }
 </script>

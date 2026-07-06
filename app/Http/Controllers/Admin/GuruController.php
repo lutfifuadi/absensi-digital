@@ -297,4 +297,50 @@ class GuruController extends Controller
             "Expires"             => "0"
         ]);
     }
+
+    public function destroyAll(Request $request)
+    {
+        $request->validate([
+            'konfirmasi' => 'required|string|in:HAPUS SEMUA GURU',
+        ], [
+            'konfirmasi.in' => 'Konfirmasi harus persis "HAPUS SEMUA GURU".',
+        ]);
+
+        try {
+            DB::transaction(function () {
+                // Ambil daftar ID guru dan ID user guru terkait
+                $guruList = Guru::all();
+                $guruIds = $guruList->pluck('id')->toArray();
+                $userIds = $guruList->pluck('user_id')->filter()->toArray();
+
+                // Set NULL pada: kelas (wali_kelas_id), jadwal_pelajaran (guru_id), ekskul_absensi (pembina_id)
+                \App\Models\Kelas::whereIn('wali_kelas_id', $guruIds)->update(['wali_kelas_id' => null]);
+                \App\Models\JadwalPelajaran::whereIn('guru_id', $guruIds)->update(['guru_id' => null]);
+                \App\Models\EkskulAbsensi::whereIn('pembina_id', $guruIds)->update(['pembina_id' => null]);
+
+                // Hapus relasi: absensi_guru, ekskul_pembina, assignments, dan izin_sakit
+                \App\Models\AbsensiGuru::whereIn('guru_id', $guruIds)->delete();
+                \App\Models\EkskulPembina::whereIn('guru_id', $guruIds)->delete();
+                \App\Models\Assignment::whereIn('guru_id', $guruIds)->delete();
+                \App\Models\IzinSakit::where('tipe', 'guru')->whereIn('reference_id', $guruIds)->delete();
+
+                // Hapus entitas Guru dan model User terkait
+                Guru::whereIn('id', $guruIds)->delete();
+                if (!empty($userIds)) {
+                    User::whereIn('id', $userIds)->delete();
+                }
+
+                // Simpan catatan log aktivitas admin
+                \App\Models\ActivityLog::record(
+                    'DELETE_ALL',
+                    'Guru',
+                    'Menghapus semua data guru beserta akun user dan relasi terkait (' . count($guruIds) . ' guru).'
+                );
+            });
+
+            return redirect()->route('admin.guru.index')->with('success', 'Semua data guru berhasil dihapus.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menghapus semua data guru: ' . $e->getMessage());
+        }
+    }
 }

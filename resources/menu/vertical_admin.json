@@ -223,12 +223,6 @@
       "url": "/admin/pwa"
     },
     {
-      "name": "API Source",
-      "icon": "menu-icon ti tabler-api",
-      "slug": "admin.pengaturan.api-source.index",
-      "url": "/admin/pengaturan/api-source"
-    },
-    {
       "name": "WA Gateway",
       "icon": "menu-icon ti tabler-brand-whatsapp",
       "slug": "admin.wa-gateway.index",
@@ -239,12 +233,6 @@
       "icon": "menu-icon ti tabler-bell",
       "slug": "admin.notification-templates.index",
       "url": "/admin/notification-templates"
-    },
-    {
-      "name": "Google Sheets",
-      "icon": "menu-icon ti tabler-file-spreadsheet",
-      "slug": "admin.pengaturan.google-sheets.index",
-      "url": "/admin/pengaturan/google-sheets"
     },
     {
       "name": "Perangkat Terdaftar",

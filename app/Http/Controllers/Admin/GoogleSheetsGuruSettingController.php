@@ -196,6 +196,45 @@ class GoogleSheetsGuruSettingController extends Controller
         abort_if(! $request->ajax(), 403);
 
         try {
+            // Pastikan setting guru ada
+            $guruSetting = GoogleSheetSetting::where('type', 'guru')->first();
+
+            if (! $guruSetting) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada pengaturan Google Sheets Guru.',
+                ], 404);
+            }
+
+            // Cek apakah ada job di queue 'syncs' yang terkait dengan setting guru
+            $pendingJobs = DB::table('jobs')
+                ->where('queue', 'syncs')
+                ->get(['payload']);
+
+            $hasGuruJob = false;
+            foreach ($pendingJobs as $job) {
+                $payload = json_decode($job->payload, true);
+                if (! empty($payload['data']['command'])) {
+                    // Ekstrak settingId dari serialized PHP command object
+                    if (preg_match('/settingId";i:(\d+);/', $payload['data']['command'], $matches)) {
+                        if ((int) $matches[1] === $guruSetting->id) {
+                            $hasGuruJob = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (! $hasGuruJob) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Tidak ada antrian sinkronisasi Guru yang perlu diproses.',
+                    'output' => '',
+                    'last_sync_status' => $guruSetting->last_sync_status,
+                    'last_sync_message' => $guruSetting->last_sync_message,
+                ]);
+            }
+
             Artisan::call('queue:work', [
                 'connection' => 'database',
                 '--once' => true,
@@ -204,7 +243,7 @@ class GoogleSheetsGuruSettingController extends Controller
 
             $output = Artisan::output();
 
-            // Refresh setting untuk cek status terbaru
+            // Refresh setting untuk cek status terbaru (pastikan ambil yang type guru)
             $setting = GoogleSheetSetting::where('type', 'guru')->first();
 
             return response()->json([
@@ -235,10 +274,38 @@ class GoogleSheetsGuruSettingController extends Controller
         abort_if(! $request->ajax(), 403);
 
         try {
-            // 1. Hapus semua job di queue 'syncs'
-            $deletedJobsCount = DB::table('jobs')->where('queue', 'syncs')->delete();
+            // 1. Hapus job di queue 'syncs' yang terkait dengan setting guru saja
+            $guruSetting = GoogleSheetSetting::where('type', 'guru')->first();
+            $deletedJobsCount = 0;
 
-            // 2. Reset status sinkronisasi di model GoogleSheetSetting
+            if ($guruSetting) {
+                // Baca semua job di queue 'syncs'
+                $jobs = DB::table('jobs')
+                    ->where('queue', 'syncs')
+                    ->get(['id', 'payload']);
+
+                // Filter hanya job yang merujuk ke setting_id milik guru
+                $jobIdsToDelete = [];
+                foreach ($jobs as $job) {
+                    $payload = json_decode($job->payload, true);
+                    if (! empty($payload['data']['command'])) {
+                        // Ekstrak settingId dari serialized PHP command object
+                        if (preg_match('/settingId";i:(\d+);/', $payload['data']['command'], $matches)) {
+                            if ((int) $matches[1] === $guruSetting->id) {
+                                $jobIdsToDelete[] = $job->id;
+                            }
+                        }
+                    }
+                }
+
+                if (! empty($jobIdsToDelete)) {
+                    $deletedJobsCount = DB::table('jobs')
+                        ->whereIn('id', $jobIdsToDelete)
+                        ->delete();
+                }
+            }
+
+            // 2. Reset status sinkronisasi di model GoogleSheetSetting (type guru)
             $setting = GoogleSheetSetting::where('type', 'guru')->first();
             if ($setting) {
                 $setting->update([
