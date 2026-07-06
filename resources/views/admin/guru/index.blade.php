@@ -196,7 +196,6 @@
               <th class="py-3">Mata Pelajaran</th>
               <th class="py-3 text-center">Status</th>
               <th class="py-3 d-none d-lg-table-cell">Role</th>
-              <th class="py-3 d-none d-xl-table-cell">Email Login</th>
               <th class="py-3 pe-4 text-end">Aksi</th>
             </tr>
           </thead>
@@ -254,9 +253,6 @@
                     -
                   @endif
                 </td>
-                <td class="d-none d-xl-table-cell small text-white-50">
-                  {{ $item->email ?? '-' }}
-                </td>
                 <td class="pe-4 text-end">
                   <div class="d-flex justify-content-end gap-1">
                     @if($profile)
@@ -297,7 +293,7 @@
               </tr>
             @empty
               <tr>
-                <td colspan="8" class="text-center py-5">
+                <td colspan="7" class="text-center py-5">
                   <div class="d-flex flex-column align-items-center gap-2 opacity-50">
                     <i class="ti tabler-users-minus" style="font-size:2.5rem;"></i>
                     <span class="small">Belum ada data guru.</span>
