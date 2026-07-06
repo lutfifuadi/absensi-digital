@@ -17,6 +17,7 @@ use App\Models\Siswa;
 use App\Models\TahunAkademik;
 use App\Models\User;
 use App\Services\SiswaService;
+use App\Services\IdCardPdfService;
 use App\Support\QrCodeGenerator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\QueryException;
@@ -580,7 +581,7 @@ class SiswaController extends Controller
         }
 
         if ($kelasId === 'semua') {
-            $siswaList = Siswa::with('kelas')
+            $siswaList = Siswa::with(['kelas', 'tahunAkademik'])
                 ->where('status', 'aktif')
                 ->where(function ($q) use ($tahunAjaranId) {
                     if ($tahunAjaranId) {
@@ -592,7 +593,8 @@ class SiswaController extends Controller
             $namaKelas = 'Semua Kelas';
         } else {
             $kelas = Kelas::findOrFail($kelasId);
-            $siswaList = Siswa::where('kelas_id', $kelasId)
+            $siswaList = Siswa::with(['kelas', 'tahunAkademik'])
+                ->where('kelas_id', $kelasId)
                 ->where('status', 'aktif')
                 ->orderBy('nama_lengkap')
                 ->get();
@@ -601,28 +603,13 @@ class SiswaController extends Controller
 
         $template = IdCardTemplate::where('type', 'siswa')->active()->first();
 
-        if (! $template) {
-            // Fallback to legacy if no active template
-            $qrImages = $siswaList->mapWithKeys(function (Siswa $s) {
-                $this->ensureQrCode($s);
-
-                return [
-                    $s->id => QrCodeGenerator::renderDataUri($s->qr_code, 160),
-                ];
-            });
-            $namaSekolah = Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
-
-            return Pdf::loadView('admin.siswa.kartu-qr-pdf', compact('siswaList', 'namaSekolah', 'namaKelas', 'qrImages'))
-                ->setPaper('a4', 'portrait')
-                ->download("kartu-qr-siswa-{$namaKelas}.pdf");
+        try {
+            $service = new IdCardPdfService();
+            return $service->renderKartuSiswa($siswaList, $template, "kartu-pelajar-{$namaKelas}");
+        } catch (\Exception $e) {
+            Log::error('Gagal cetak kartu siswa: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->with('error', 'Gagal mencetak kartu: ' . $e->getMessage());
         }
-
-        $config = $template->config;
-        $entities = $siswaList;
-
-        return Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'entities'))
-            ->setPaper([0, 0, $config['canvas']['width'], $config['canvas']['height']])
-            ->download("kartu-pelajar-{$namaKelas}.pdf");
     }
 
     /**
@@ -631,24 +618,47 @@ class SiswaController extends Controller
     public function generateQrSatu(Siswa $siswa)
     {
         $this->ensureQrCode($siswa);
+        $siswa->load(['kelas', 'tahunAkademik']);
+
+        $template = IdCardTemplate::where('type', 'siswa')->active()->first();
+
+        try {
+            $service = new IdCardPdfService();
+            return $service->renderKartuSiswa(collect([$siswa]), $template, "kartu-pelajar-{$siswa->nisn}");
+        } catch (\Exception $e) {
+            Log::error('Gagal generate kartu siswa: ' . $e->getMessage());
+            return back()->with('error', 'Gagal mencetak kartu: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Cetak kartu pilihan siswa berdasarkan checkbox IDs.
+     */
+    public function cetakKartuPilihan(Request $request)
+    {
+        $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'integer|exists:siswa,id',
+        ]);
+
+        $siswaList = Siswa::with(['kelas', 'tahunAkademik'])
+            ->whereIn('id', $request->ids)
+            ->orderBy('nama_lengkap')
+            ->get();
 
         $template = IdCardTemplate::where('type', 'siswa')->active()->first();
 
         if (! $template) {
-            $namaSekolah = Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
-            $qrImage = QrCodeGenerator::renderDataUri($siswa->qr_code, 200);
-
-            return Pdf::loadView('admin.siswa.kartu-qr-satu-pdf', compact('siswa', 'namaSekolah', 'qrImage'))
-                ->setPaper([0, 0, 226.77, 283.46])
-                ->download("kartu-pelajar-{$siswa->nisn}.pdf");
+            return back()->with('error', 'Template ID Card untuk Siswa belum diaktifkan. Silakan buat dan aktifkan template terlebih dahulu di menu ID Card Templates.');
         }
 
-        $config = $template->config;
-        $entities = collect([$siswa]);
-
-        return Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'entities'))
-            ->setPaper([0, 0, $config['canvas']['width'], $config['canvas']['height']])
-            ->download("kartu-pelajar-{$siswa->nisn}.pdf");
+        try {
+            $service = new IdCardPdfService();
+            return $service->renderKartuSiswa($siswaList, $template, 'kartu-pelajar-pilihan');
+        } catch (\Exception $e) {
+            Log::error('Gagal cetak kartu pilihan siswa: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->with('error', 'Gagal mencetak kartu: ' . $e->getMessage());
+        }
     }
 
     private function ensureQrCode(Siswa $siswa): void

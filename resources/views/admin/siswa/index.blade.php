@@ -184,6 +184,21 @@
         .extra-small {
             font-size: 0.7rem;
         }
+
+        .das-btn.--purple {
+            background: rgba(115, 103, 240, 0.15);
+            border-color: rgba(115, 103, 240, 0.35);
+            color: #a5a2f7;
+        }
+        .das-btn.--purple:hover {
+            background: rgba(115, 103, 240, 0.3);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(115, 103, 240, 0.2);
+        }
+
+        .text-purple {
+            color: #a5a2f7 !important;
+        }
     </style>
     @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
 @endsection
@@ -252,6 +267,9 @@
                 <a href="{{ route('admin.siswa.cetak-qr') }}" class="btn das-btn --info">
                     <i class="ti tabler-qrcode me-1"></i> Cetak QR
                 </a>
+                <button type="button" class="btn das-btn --purple" id="cetakKartuBtn" onclick="$('#cetakKartuForm').toggleClass('d-none')">
+                    <i class="ti tabler-id me-1"></i> Cetak Kartu
+                </button>
                 <button type="button" class="btn das-btn --danger" data-bs-toggle="modal" data-bs-target="#deleteAllModal">
                     <i class="ti tabler-trash me-1"></i> Hapus Siswa
                 </button>
@@ -328,6 +346,20 @@
         </div>
         <div class="das-panel__body p-0">
             <div id="siswaTableContainer">
+                <form id="cetakKartuForm" method="POST" action="{{ route('admin.siswa.cetak-kartu-pilihan') }}" class="d-none mb-3">
+                    @csrf
+                    <div class="d-flex align-items-center gap-2 px-3 py-2 rounded-3" style="background: rgba(115, 103, 240, 0.1); border: 1px solid rgba(115, 103, 240, 0.2);">
+                        <i class="ti tabler-id text-purple fs-5"></i>
+                        <span class="small text-white-50">Dipilih: <strong id="selectedCount">0</strong> siswa</span>
+                        <span class="text-white-50 mx-1">|</span>
+                        <button type="button" class="btn btn-sm btn-label-secondary" onclick="$('.siswa-checkbox').prop('checked', false).trigger('change');">
+                            <i class="ti tabler-x"></i> Batal
+                        </button>
+                        <button type="submit" class="btn btn-sm btn-label-primary ms-auto">
+                            <i class="ti tabler-printer me-1"></i> Cetak Kartu Pilihan
+                        </button>
+                    </div>
+                </form>
                 @include('admin.siswa.table')
             </div>
         </div>
@@ -1144,6 +1176,20 @@
                     document.querySelectorAll('#importFormBody > div:not(#importProgressArea)').forEach(el => el.style.display = '');
                 });
             }
+
+            // ─── Cetak Kartu Checkbox Logic ───────────────────────────────────
+            $(function() {
+                // Select All
+                $('#checkAllSiswa').on('change', function() {
+                    $('.siswa-checkbox').prop('checked', $(this).is(':checked')).trigger('change');
+                });
+
+                // Update counter
+                $(document).on('change', '.siswa-checkbox', function() {
+                    var count = $('.siswa-checkbox:checked').length;
+                    $('#selectedCount').text(count);
+                });
+            });
 
             // initial tooltips
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));

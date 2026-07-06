@@ -140,6 +140,9 @@
         <a href="{{ route('admin.guru.cetak-qr') }}" class="btn das-btn das-btn--warning-soft">
           <i class="ti tabler-qrcode me-1"></i> Cetak QR
         </a>
+        <button type="button" class="btn das-btn das-btn--purple-soft" onclick="$('#cetakKartuGuruForm').toggleClass('d-none')">
+          <i class="ti tabler-id me-1"></i> Cetak Kartu
+        </button>
         <button type="button" class="btn das-btn das-btn--danger-outline" data-bs-toggle="modal" data-bs-target="#deleteAllGuruModal">
           <i class="ti tabler-trash me-1"></i> Hapus Semua
         </button>
@@ -185,12 +188,27 @@
       </div>
     </div>
     <div class="das-panel__body p-0">
+      <form id="cetakKartuGuruForm" method="POST" action="{{ route('admin.guru.cetak-kartu-pilihan') }}" class="d-none mb-3 px-3 pt-3">
+        @csrf
+        <div class="d-flex align-items-center gap-2 px-3 py-2 rounded-3" style="background: rgba(115, 103, 240, 0.1); border: 1px solid rgba(115, 103, 240, 0.2);">
+          <i class="ti tabler-id text-purple fs-5"></i>
+          <span class="small text-white-50">Dipilih: <strong id="guruSelectedCount">0</strong> guru</span>
+          <span class="text-white-50 mx-1">|</span>
+          <button type="button" class="btn btn-sm btn-label-secondary" onclick="$('.guru-checkbox').prop('checked', false).trigger('change');">
+            <i class="ti tabler-x"></i> Batal
+          </button>
+          <button type="submit" class="btn btn-sm btn-label-primary ms-auto">
+            <i class="ti tabler-printer me-1"></i> Cetak Kartu Pilihan
+          </button>
+        </div>
+      </form>
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0" style="color:inherit;">
           <thead
             style="background:rgba(255,255,255,0.04);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;opacity:0.7;">
             <tr>
-              <th class="ps-4 py-3" style="width:46px;">#</th>
+              <th class="ps-2 py-3" style="width:40px;"><input type="checkbox" id="checkAllGuru" class="form-check-input"></th>
+              <th class="ps-2 py-3" style="width:46px;">#</th>
               <th class="py-3">Informasi Guru</th>
               <th class="py-3 d-none d-md-table-cell">NIP</th>
               <th class="py-3">Mata Pelajaran</th>
@@ -211,6 +229,7 @@
                 $statusClass = $profile ? ($profile->status === 'aktif' ? 'success' : 'danger') : 'secondary';
               @endphp
               <tr class="guru-row-hover">
+                <td class="ps-2"><input type="checkbox" name="ids[]" value="{{ $profile->id ?? $item->id }}" class="form-check-input guru-checkbox"></td>
                 <td class="ps-4 text-white-50 small">{{ $loop->iteration }}</td>
                 <td class="text-nowrap">
                   <div class="d-flex align-items-center gap-3">
@@ -266,6 +285,11 @@
                         aria-label="Unduh QR {{ $displayName }}">
                         <i class="ti tabler-qrcode fs-5"></i>
                       </a>
+                      <a href="{{ route('admin.guru.cetak-qr', ['guru_id' => $profile->id]) }}" class="action-btn text-purple"
+                        title="Cetak Kartu" data-bs-toggle="tooltip"
+                        aria-label="Cetak Kartu {{ $displayName }}">
+                        <i class="ti tabler-id fs-5"></i>
+                      </a>
                       <a href="{{ route('admin.guru.edit', $profile->id) }}" class="action-btn text-warning"
                         title="Ubah" data-bs-toggle="tooltip"
                         aria-label="Ubah {{ $displayName }}">
@@ -293,7 +317,7 @@
               </tr>
             @empty
               <tr>
-                <td colspan="7" class="text-center py-5">
+                <td colspan="8" class="text-center py-5">
                   <div class="d-flex flex-column align-items-center gap-2 opacity-50">
                     <i class="ti tabler-users-minus" style="font-size:2.5rem;"></i>
                     <span class="small">Belum ada data guru.</span>
@@ -453,6 +477,20 @@
       const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
       tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+
+      // ─── Cetak Kartu Checkbox Logic ───────────────────────────────────
+      $(function() {
+        // Select All
+        $('#checkAllGuru').on('change', function() {
+          $('.guru-checkbox').prop('checked', $(this).is(':checked')).trigger('change');
+        });
+
+        // Update counter
+        $(document).on('change', '.guru-checkbox', function() {
+          var count = $('.guru-checkbox:checked').length;
+          $('#guruSelectedCount').text(count);
+        });
       });
 
       // Simple Search Filter

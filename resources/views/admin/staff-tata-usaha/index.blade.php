@@ -29,6 +29,21 @@
       transform: translateY(-2px);
       background: rgba(255, 255, 255, 0.1);
     }
+
+    .das-btn.--purple {
+      background: rgba(115, 103, 240, 0.15);
+      border-color: rgba(115, 103, 240, 0.35);
+      color: #a5a2f7;
+    }
+    .das-btn.--purple:hover {
+      background: rgba(115, 103, 240, 0.3);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(115, 103, 240, 0.2);
+    }
+
+    .text-purple {
+      color: #a5a2f7 !important;
+    }
   </style>
 @endsection
 
@@ -65,6 +80,9 @@
         <a href="{{ route('admin.staff-tata-usaha.cetak-qr') }}" class="btn das-btn --info">
           <i class="ti tabler-qrcode me-1"></i> Cetak QR Massal
         </a>
+        <button type="button" class="btn das-btn --purple" onclick="$('#cetakKartuStaffForm').toggleClass('d-none')">
+          <i class="ti tabler-id me-1"></i> Cetak Kartu
+        </button>
         <a href="{{ route('admin.staff-tata-usaha.create') }}" class="btn das-btn --primary">
           <i class="ti tabler-plus me-1"></i> Tambah Staff
         </a>
@@ -92,12 +110,27 @@
       <span class="das-chip --info">{{ count($staff) }} Staff</span>
     </div>
     <div class="das-panel__body p-0">
+      <form id="cetakKartuStaffForm" method="POST" action="{{ route('admin.staff-tata-usaha.cetak-kartu-pilihan') }}" class="d-none mb-3 px-3 pt-3">
+        @csrf
+        <div class="d-flex align-items-center gap-2 px-3 py-2 rounded-3" style="background: rgba(115, 103, 240, 0.1); border: 1px solid rgba(115, 103, 240, 0.2);">
+          <i class="ti tabler-id text-purple fs-5"></i>
+          <span class="small text-white-50">Dipilih: <strong id="staffSelectedCount">0</strong> staff</span>
+          <span class="text-white-50 mx-1">|</span>
+          <button type="button" class="btn btn-sm btn-label-secondary" onclick="$('.staff-checkbox').prop('checked', false).trigger('change');">
+            <i class="ti tabler-x"></i> Batal
+          </button>
+          <button type="submit" class="btn btn-sm btn-label-primary ms-auto">
+            <i class="ti tabler-printer me-1"></i> Cetak Kartu Pilihan
+          </button>
+        </div>
+      </form>
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0" style="color:inherit;">
           <thead
             style="background:rgba(255,255,255,0.04);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;opacity:0.7;">
             <tr>
-              <th class="ps-4 py-3" style="width:46px;">#</th>
+              <th class="ps-2 py-3" style="width:40px;"><input type="checkbox" id="checkAllStaff" class="form-check-input"></th>
+              <th class="ps-2 py-3" style="width:46px;">#</th>
               <th class="py-3">Informasi Staff</th>
               <th class="py-3 d-none d-md-table-cell">NIP</th>
               <th class="py-3">Jabatan</th>
@@ -110,6 +143,7 @@
           <tbody>
             @forelse($staff as $item)
               <tr class="staff-row-hover">
+                <td class="ps-2"><input type="checkbox" name="ids[]" value="{{ $item->id }}" class="form-check-input staff-checkbox"></td>
                 <td class="ps-4 text-white-50 small">{{ $loop->iteration }}</td>
                 <td>
                   <div class="d-flex align-items-center gap-3">
@@ -149,6 +183,10 @@
                       title="Unduh QR" data-bs-toggle="tooltip">
                       <i class="ti tabler-qrcode fs-5"></i>
                     </a>
+                    <a href="{{ route('admin.staff-tata-usaha.cetak-qr', ['staff_id' => $item->id]) }}" class="action-btn text-purple"
+                      title="Cetak Kartu" data-bs-toggle="tooltip">
+                      <i class="ti tabler-id fs-5"></i>
+                    </a>
                     <a href="{{ route('admin.staff-tata-usaha.edit', $item) }}" class="action-btn text-warning"
                       title="Ubah" data-bs-toggle="tooltip">
                       <i class="ti tabler-pencil fs-5"></i>
@@ -165,7 +203,7 @@
               </tr>
             @empty
               <tr>
-                <td colspan="8" class="text-center py-5">
+                <td colspan="9" class="text-center py-5">
                   <div class="d-flex flex-column align-items-center gap-2 opacity-50">
                     <i class="ti tabler-users-minus" style="font-size:2.5rem;"></i>
                     <span class="small">Belum ada data staff TU.</span>
@@ -190,6 +228,20 @@
       const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
       tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+
+      // ─── Cetak Kartu Checkbox Logic ───────────────────────────────────
+      $(function() {
+        // Select All
+        $('#checkAllStaff').on('change', function() {
+          $('.staff-checkbox').prop('checked', $(this).is(':checked')).trigger('change');
+        });
+
+        // Update counter
+        $(document).on('change', '.staff-checkbox', function() {
+          var count = $('.staff-checkbox:checked').length;
+          $('#staffSelectedCount').text(count);
+        });
       });
     });
   </script>

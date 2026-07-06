@@ -547,6 +547,122 @@
         </div>
       </div>
 
+      {{-- ══ TANDA TANGAN KEPALA SEKOLAH ══ --}}
+      <div class="set-panel" style="margin-top: 2rem;">
+        <div class="set-panel__head">
+          <div class="set-panel__title-wrap">
+            <div class="set-panel__icon --warning"><i class="ti tabler-signature"></i></div>
+            <div>
+              <div class="set-panel__title">Tanda Tangan Kepala Sekolah</div>
+              <div class="set-panel__sub">Upload gambar tanda tangan digital untuk dicetak di kartu identitas.</div>
+            </div>
+          </div>
+        </div>
+        <div class="set-panel__body">
+          <div class="set-branding-wrap">
+            <!-- Preview TTD -->
+            <div class="set-logo-preview" id="ttdPreviewWrap">
+              @php
+                $ttdSrc = null;
+                if (!empty($settings['tanda_tangan_kepala_sekolah'])) {
+                  $ttdSrc = asset('uploads/ttd/' . $settings['tanda_tangan_kepala_sekolah']);
+                }
+              @endphp
+              @if ($ttdSrc)
+                <img src="{{ $ttdSrc }}" id="ttdPreviewImg" alt="Tanda Tangan Kepala Sekolah" class="set-logo-preview__img" style="max-height: 80px; object-fit: contain;">
+              @else
+                <div class="set-logo-preview__empty" id="ttdPreviewEmpty">
+                  <i class="ti tabler-signature-off"></i>
+                  <span>Belum ada tanda tangan</span>
+                </div>
+                <img src="" id="ttdPreviewImg" alt="" class="set-logo-preview__img d-none" style="max-height: 80px; object-fit: contain;">
+              @endif
+            </div>
+            <!-- Upload Zone TTD -->
+            <div class="set-logo-uploader">
+              <div class="set-upload-zone" id="ttdUploadZone">
+                <div class="set-upload-zone__icon"><i class="ti tabler-cloud-upload"></i></div>
+                <p class="set-upload-zone__title">Klik atau seret file ke sini</p>
+                <p class="set-upload-zone__sub">PNG, JPG · Background transparan disarankan · Maks 1MB</p>
+                <label class="set-btn set-btn--warning" for="upload_ttd">
+                  <i class="ti tabler-file-upload"></i> Pilih File
+                </label>
+                <input type="file" id="upload_ttd" name="tanda_tangan_kepala_sekolah" class="d-none" accept="image/png,image/jpeg,image/jpg">
+              </div>
+              <div class="set-upload-hints">
+                <div class="set-upload-hint-item"><i class="ti tabler-check text-success"></i> Gunakan latar transparan (PNG) untuk hasil terbaik</div>
+                <div class="set-upload-hint-item"><i class="ti tabler-check text-success"></i> Tanda tangan akan muncul di kartu identitas cetak</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {{-- ══ CAP/STEMPEL SEKOLAH ══ --}}
+      <div class="set-panel" style="margin-top: 1.5rem;">
+        <div class="set-panel__head">
+          <div class="set-panel__title-wrap">
+            <div class="set-panel__icon --danger"><i class="ti tabler-circle"></i></div>
+            <div>
+              <div class="set-panel__title">Cap / Stempel Sekolah</div>
+              <div class="set-panel__sub">Upload gambar cap/stempel resmi untuk dokumen kartu identitas.</div>
+            </div>
+          </div>
+        </div>
+        <div class="set-panel__body">
+          <div class="set-branding-wrap">
+            <!-- Preview Cap -->
+            <div class="set-logo-preview" id="capPreviewWrap">
+              @php
+                $capSrc = null;
+                if (!empty($settings['cap_sekolah'])) {
+                  $capSrc = asset('uploads/cap/' . $settings['cap_sekolah']);
+                }
+              @endphp
+              @if ($capSrc)
+                <img src="{{ $capSrc }}" id="capPreviewImg" alt="Cap Sekolah" class="set-logo-preview__img" style="max-height: 100px; object-fit: contain;">
+              @else
+                <div class="set-logo-preview__empty" id="capPreviewEmpty">
+                  <i class="ti tabler-circle-off"></i>
+                  <span>Belum ada cap/stempel</span>
+                </div>
+                <img src="" id="capPreviewImg" alt="" class="set-logo-preview__img d-none" style="max-height: 100px; object-fit: contain;">
+              @endif
+            </div>
+            <!-- Upload Zone Cap -->
+            <div class="set-logo-uploader">
+              <div class="set-upload-zone" id="capUploadZone">
+                <div class="set-upload-zone__icon"><i class="ti tabler-cloud-upload"></i></div>
+                <p class="set-upload-zone__title">Klik atau seret file ke sini</p>
+                <p class="set-upload-zone__sub">PNG, JPG · Resolusi min. 200×200px · Maks 2MB</p>
+                <label class="set-btn set-btn--danger" for="upload_cap">
+                  <i class="ti tabler-file-upload"></i> Pilih File
+                </label>
+                <input type="file" id="upload_cap" name="cap_sekolah" class="d-none" accept="image/png,image/jpeg,image/jpg">
+              </div>
+              <div class="set-upload-hints">
+                <div class="set-upload-hint-item"><i class="ti tabler-check text-success"></i> Bulat/lingkaran untuk cap instansi</div>
+                <div class="set-upload-hint-item"><i class="ti tabler-check text-success"></i> Stempel akan muncul di kartu identitas cetak</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {{-- ══ KOTA PENERBITAN ══ --}}
+      <div class="set-field" style="margin-top: 1.5rem;">
+        <label class="set-label">Kota Penerbitan Kartu</label>
+        <div class="set-input-group">
+          <span class="set-input-prefix"><i class="ti tabler-map-pin"></i></span>
+          <input type="text" class="set-input" name="kota_penerbitan"
+            value="{{ old('kota_penerbitan', $settings['kota_penerbitan'] ?? '') }}"
+            placeholder="Contoh: Bandung">
+        </div>
+        <div class="set-field-hint --info">
+          <i class="ti tabler-info-circle"></i> Nama kota untuk dicantumkan pada kartu identitas (contoh: "Bandung, 12 Juli 2026").
+        </div>
+      </div>
+
       {{-- ══ TAB 5: NOTIFIKASI ══ --}}
       <div class="set-tab" id="tab-notifikasi">
         <div class="set-panel">

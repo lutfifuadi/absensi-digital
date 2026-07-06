@@ -90,6 +90,11 @@ class PengaturanController extends Controller
         // Integrasi PMBM (Webhook Masuk)
         'pmbm_incoming_api_key' => '',
         
+        // Kartu ID
+        'tanda_tangan_kepala_sekolah' => '',
+        'cap_sekolah'                 => '',
+        'kota_penerbitan'             => '',
+
         // Legacy
         'logo_sekolah'         => '',
         'logo_url'            => '',
@@ -144,7 +149,7 @@ class PengaturanController extends Controller
 
     public function update(Request $request)
     {
-        $data = $request->except(['_token', 'logo_sekolah', 'logo_url']);
+        $data = $request->except(['_token', 'logo_sekolah', 'logo_url', 'tanda_tangan_kepala_sekolah', 'cap_sekolah']);
         
         // Hash password scan QR jika diisi, atau hapus dari $data jika kosong
         if (!empty($data['password_unlock_scan_qr'])) {
@@ -170,6 +175,54 @@ class PengaturanController extends Controller
             $data['logo_url'] = '';
         }
         
+        // Handle tanda_tangan_kepala_sekolah upload — simpan ke public/uploads/ttd/
+        if ($request->hasFile('tanda_tangan_kepala_sekolah')) {
+            try {
+                $file = $request->file('tanda_tangan_kepala_sekolah');
+                $file->validate(['mimes' => 'png,jpg,jpeg', 'max' => 2048]);
+
+                $ttdDir = public_path('uploads/ttd');
+                if (! is_dir($ttdDir)) {
+                    mkdir($ttdDir, 0775, true);
+                }
+
+                $old = Pengaturan::where('key', 'tanda_tangan_kepala_sekolah')->value('value');
+                if ($old) {
+                    @unlink($ttdDir . '/' . $old);
+                }
+
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move($ttdDir, $filename);
+                $data['tanda_tangan_kepala_sekolah'] = $filename;
+            } catch (\Exception $e) {
+                return back()->withInput()->with('error', 'Gagal upload tanda tangan: ' . $e->getMessage());
+            }
+        }
+
+        // Handle cap_sekolah upload — simpan ke public/uploads/cap/
+        if ($request->hasFile('cap_sekolah')) {
+            try {
+                $file = $request->file('cap_sekolah');
+                $file->validate(['mimes' => 'png,jpg,jpeg', 'max' => 2048]);
+
+                $capDir = public_path('uploads/cap');
+                if (! is_dir($capDir)) {
+                    mkdir($capDir, 0775, true);
+                }
+
+                $old = Pengaturan::where('key', 'cap_sekolah')->value('value');
+                if ($old) {
+                    @unlink($capDir . '/' . $old);
+                }
+
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move($capDir, $filename);
+                $data['cap_sekolah'] = $filename;
+            } catch (\Exception $e) {
+                return back()->withInput()->with('error', 'Gagal upload cap sekolah: ' . $e->getMessage());
+            }
+        }
+
         // Handle logo dari URL/S3 - simpan URL terus
         $logoUrl = $request->input('logo_url');
         if (!empty($logoUrl)) {

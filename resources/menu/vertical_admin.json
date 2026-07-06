@@ -75,6 +75,12 @@
       "url": "/admin/staff-tata-usaha"
     },
     {
+      "name": "Cetak Kartu",
+      "icon": "menu-icon ti tabler-id",
+      "slug": "admin.cetak-kartu.index",
+      "url": "/admin/cetak-kartu"
+    },
+    {
       "name": "Alumni",
       "icon": "menu-icon ti tabler-academic-cap",
       "slug": "admin.alumni.index",

@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\AiChatController;
 use App\Http\Controllers\Admin\AlumniController;
 use App\Http\Controllers\Admin\ApiIntegrationController;
+use App\Http\Controllers\Admin\CetakKartuController;
 use App\Http\Controllers\Admin\ApiSourceSettingsController;
 use App\Http\Controllers\Admin\DeployController;
 use App\Http\Controllers\Admin\DeviceManagementController;
@@ -444,6 +445,11 @@ Route::middleware([
             ->name('admin.guru.cetak-qr')
             ->middleware('role:super_admin,admin_sekolah,operator');
 
+        // Cetak Kartu Guru Massal dengan Pilihan IDs (POST — checkbox)
+        Route::post('guru/cetak-kartu-pilihan', [GuruController::class, 'cetakKartuPilihan'])
+            ->name('admin.guru.cetak-kartu-pilihan')
+            ->middleware('role:super_admin,admin_sekolah');
+
         Route::get('guru/{guru}/generate-qr', [GuruController::class, 'generateQrSatu'])
             ->name('admin.guru.generate-qr')
             ->middleware('role:super_admin,admin_sekolah,operator');
@@ -490,6 +496,11 @@ Route::middleware([
         Route::get('staff-tata-usaha/cetak-qr', [StaffTataUsahaController::class, 'cetakQr'])
             ->name('admin.staff-tata-usaha.cetak-qr')
             ->middleware('role:super_admin,admin_sekolah,operator');
+
+        // Cetak Kartu Staff Massal dengan Pilihan IDs (POST — checkbox)
+        Route::post('staff-tata-usaha/cetak-kartu-pilihan', [StaffTataUsahaController::class, 'cetakKartuPilihan'])
+            ->name('admin.staff-tata-usaha.cetak-kartu-pilihan')
+            ->middleware('role:super_admin,admin_sekolah');
 
         Route::get('staff-tata-usaha/{staff_tata_usaha}/generate-qr', [StaffTataUsahaController::class, 'generateQrSatu'])
             ->name('admin.staff-tata-usaha.generate-qr')
@@ -540,6 +551,11 @@ Route::middleware([
 
         Route::get('siswa/cetak-qr', [SiswaController::class, 'cetakQrKelas'])
             ->name('admin.siswa.cetak-qr')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+
+        // Cetak Kartu Massal dengan Pilihan IDs (POST — checkbox)
+        Route::post('siswa/cetak-kartu-pilihan', [SiswaController::class, 'cetakKartuPilihan'])
+            ->name('admin.siswa.cetak-kartu-pilihan')
             ->middleware('role:super_admin,admin_sekolah,operator');
 
         Route::get('siswa/{siswa}/generate-qr', [SiswaController::class, 'generateQrSatu'])
@@ -914,6 +930,12 @@ Route::middleware([
         Route::delete('alumni/{siswa}', [AlumniController::class, 'destroy'])
             ->name('admin.alumni.destroy')
             ->middleware('role:super_admin');
+
+        // ── CETAK KARTU IDENTITAS ALL-IN-ONE (PRD-006) ─────────────────────
+        Route::prefix('cetak-kartu')->name('admin.cetak-kartu.')->middleware('role:super_admin,admin_sekolah,operator')->group(function () {
+            Route::get('/', [CetakKartuController::class, 'index'])->name('index');
+            Route::post('/download', [CetakKartuController::class, 'download'])->name('download');
+        });
     });
 });
 

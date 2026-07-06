@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Guru;
+use App\Models\IdCardTemplate;
 use App\Models\Pengaturan;
 use App\Models\User;
+use App\Services\IdCardPdfService;
 use App\Support\QrCodeGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use App\Exports\GuruExport;
 use App\Imports\GuruImport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -177,25 +180,15 @@ class GuruController extends Controller
             ->orderBy('nama_lengkap')
             ->get();
 
-        $template = \App\Models\IdCardTemplate::where('type', 'guru')->active()->first();
+        $template = IdCardTemplate::where('type', 'guru')->active()->first();
 
-        if (!$template) {
-            // Generate QR data URI per guru
-            $qrImages = $guruList->mapWithKeys(fn (Guru $g) => [
-                $g->id => QrCodeGenerator::renderDataUri($g->qr_code ?? QrCodeGenerator::generate('GURU'), 160),
-            ]);
-            $namaSekolah = \App\Models\Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
-            return \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.guru.kartu-qr-pdf', compact('guruList', 'namaSekolah', 'qrImages'))
-                      ->setPaper('a4', 'portrait')
-                      ->download("kartu-qr-guru-semua.pdf");
+        try {
+            $service = new IdCardPdfService();
+            return $service->renderKartuGuru($guruList, $template, 'kartu-identitas-guru-semua');
+        } catch (\Exception $e) {
+            Log::error('Gagal cetak kartu guru: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->with('error', 'Gagal mencetak kartu: ' . $e->getMessage());
         }
-
-        $config = $template->config;
-        $entities = $guruList;
-
-        return \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'entities'))
-                  ->setPaper([0, 0, $config['canvas']['width'], $config['canvas']['height']])
-                  ->download("kartu-identitas-guru-semua.pdf");
     }
 
     /**
@@ -203,26 +196,48 @@ class GuruController extends Controller
      */
     public function generateQrSatu(Guru $guru)
     {
-        if (!$guru->qr_code) {
+        if (! $guru->qr_code) {
             $guru->update(['qr_code' => QrCodeGenerator::generate('GURU')]);
         }
 
-        $template = \App\Models\IdCardTemplate::where('type', 'guru')->active()->first();
+        $template = IdCardTemplate::where('type', 'guru')->active()->first();
 
-        if (!$template) {
-            $namaSekolah = \App\Models\Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
-            $qrImage = QrCodeGenerator::renderDataUri($guru->qr_code, 200);
-            return \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.guru.kartu-qr-satu-pdf', compact('guru', 'namaSekolah', 'qrImage'))
-                      ->setPaper([0, 0, 226.77, 283.46]) // 8x10 cm
-                      ->download("kartu-qr-{$guru->nip}.pdf");
+        try {
+            $service = new IdCardPdfService();
+            return $service->renderKartuGuru(collect([$guru]), $template, "kartu-identitas-{$guru->nip}");
+        } catch (\Exception $e) {
+            Log::error('Gagal generate kartu guru: ' . $e->getMessage());
+            return back()->with('error', 'Gagal mencetak kartu: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Cetak kartu pilihan guru berdasarkan checkbox IDs.
+     */
+    public function cetakKartuPilihan(Request $request)
+    {
+        $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'integer|exists:guru,id',
+        ]);
+
+        $guruList = Guru::whereIn('id', $request->ids)
+            ->orderBy('nama_lengkap')
+            ->get();
+
+        $template = IdCardTemplate::where('type', 'guru')->active()->first();
+
+        if (! $template) {
+            return back()->with('error', 'Template ID Card untuk Guru belum diaktifkan. Silakan buat dan aktifkan template terlebih dahulu di menu ID Card Templates.');
         }
 
-        $config = $template->config;
-        $entities = collect([$guru]);
-
-        return \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'entities'))
-                  ->setPaper([0, 0, $config['canvas']['width'], $config['canvas']['height']])
-                  ->download("kartu-identitas-{$guru->nip}.pdf");
+        try {
+            $service = new IdCardPdfService();
+            return $service->renderKartuGuru($guruList, $template, 'kartu-identitas-guru-pilihan');
+        } catch (\Exception $e) {
+            Log::error('Gagal cetak kartu pilihan guru: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->with('error', 'Gagal mencetak kartu: ' . $e->getMessage());
+        }
     }
     public function importStore(Request $request)
     {

@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\IdCardTemplate;
 use App\Models\Pengaturan;
 use App\Models\StaffTataUsaha;
 use App\Models\User;
+use App\Services\IdCardPdfService;
 use App\Support\QrCodeGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class StaffTataUsahaController extends Controller
 {
@@ -126,40 +129,71 @@ class StaffTataUsahaController extends Controller
             ->orderBy('nama_lengkap')
             ->get();
 
-        $template = \App\Models\IdCardTemplate::where('type', 'staff')->active()->first();
+        $template = IdCardTemplate::where('type', 'staff')->active()->first();
 
-        if (!$template) {
-            return back()->with('error', 'Silakan buat dan aktifkan template ID Card untuk Staff terlebih dahulu.');
+        if (! $template) {
+            return back()->with('error', 'Template ID Card untuk Staff belum diaktifkan. Silakan buat dan aktifkan template terlebih dahulu di menu ID Card Templates.');
         }
 
-        $config = $template->config;
-        $entities = $staffList;
-
-        return \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'entities'))
-                  ->setPaper([0, 0, $config['canvas']['width'], $config['canvas']['height']])
-                  ->download("kartu-identitas-staff-semua.pdf");
+        try {
+            $service = new IdCardPdfService();
+            return $service->renderKartuStaff($staffList, $template, 'kartu-identitas-staff-semua');
+        } catch (\Exception $e) {
+            Log::error('Gagal cetak kartu staff: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->with('error', 'Gagal mencetak kartu: ' . $e->getMessage());
+        }
     }
 
     /**
      * Generate & download kartu QR untuk satu staff.
      */
-    public function generateQrSatu(StaffTataUsaha $staff)
+    public function generateQrSatu(StaffTataUsaha $staffTataUsaha)
     {
-        if (!$staff->qr_code) {
-            $staff->update(['qr_code' => QrCodeGenerator::generate('STAFF')]);
+        if (! $staffTataUsaha->qr_code) {
+            $staffTataUsaha->update(['qr_code' => QrCodeGenerator::generate('STAFF')]);
         }
 
-        $template = \App\Models\IdCardTemplate::where('type', 'staff')->active()->first();
+        $template = IdCardTemplate::where('type', 'staff')->active()->first();
 
-        if (!$template) {
-            return back()->with('error', 'Silakan buat dan aktifkan template ID Card untuk Staff terlebih dahulu.');
+        if (! $template) {
+            return back()->with('error', 'Template ID Card untuk Staff belum diaktifkan. Silakan buat dan aktifkan template terlebih dahulu di menu ID Card Templates.');
         }
 
-        $config = $template->config;
-        $entities = collect([$staff]);
+        try {
+            $service = new IdCardPdfService();
+            return $service->renderKartuStaff(collect([$staffTataUsaha]), $template, "kartu-identitas-{$staffTataUsaha->nip}");
+        } catch (\Exception $e) {
+            Log::error('Gagal generate kartu staff: ' . $e->getMessage());
+            return back()->with('error', 'Gagal mencetak kartu: ' . $e->getMessage());
+        }
+    }
 
-        return \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'entities'))
-                  ->setPaper([0, 0, $config['canvas']['width'], $config['canvas']['height']])
-                  ->download("kartu-identitas-{$staff->nip}.pdf");
+    /**
+     * Cetak kartu pilihan staff berdasarkan checkbox IDs.
+     */
+    public function cetakKartuPilihan(Request $request)
+    {
+        $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'integer|exists:staff_tata_usaha,id',
+        ]);
+
+        $staffList = StaffTataUsaha::whereIn('id', $request->ids)
+            ->orderBy('nama_lengkap')
+            ->get();
+
+        $template = IdCardTemplate::where('type', 'staff')->active()->first();
+
+        if (! $template) {
+            return back()->with('error', 'Template ID Card untuk Staff belum diaktifkan. Silakan buat dan aktifkan template terlebih dahulu di menu ID Card Templates.');
+        }
+
+        try {
+            $service = new IdCardPdfService();
+            return $service->renderKartuStaff($staffList, $template, 'kartu-identitas-staff-pilihan');
+        } catch (\Exception $e) {
+            Log::error('Gagal cetak kartu pilihan staff: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->with('error', 'Gagal mencetak kartu: ' . $e->getMessage());
+        }
     }
 }
