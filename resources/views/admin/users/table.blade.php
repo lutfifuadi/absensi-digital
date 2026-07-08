@@ -3,9 +3,27 @@
     <thead>
       <tr>
         <th class="text-center" width="60">#</th>
-        <th>Informasi User</th>
+        <th class="sortable cursor-pointer" data-sort="name">
+          <div class="d-flex align-items-center gap-1">
+            Informasi User
+            @if (request('sort_by', 'name') === 'name')
+              <i class="ti tabler-chevron-{{ request('sort_direction', 'asc') === 'asc' ? 'up' : 'down' }} fs-6 text-primary"></i>
+            @else
+              <i class="ti tabler-selector text-muted fs-6"></i>
+            @endif
+          </div>
+        </th>
         <th class="text-center">Hak Akses (Role)</th>
-        <th class="text-center d-none d-md-table-cell">Tanggal Join</th>
+        <th class="text-center d-none d-md-table-cell sortable cursor-pointer" data-sort="created_at">
+          <div class="d-flex align-items-center justify-content-center gap-1">
+            Tanggal Join
+            @if (request('sort_by') === 'created_at')
+              <i class="ti tabler-chevron-{{ request('sort_direction', 'asc') === 'asc' ? 'up' : 'down' }} fs-6 text-primary"></i>
+            @else
+              <i class="ti tabler-selector text-muted fs-6"></i>
+            @endif
+          </div>
+        </th>
         <th class="text-end px-4">Aksi</th>
       </tr>
     </thead>
@@ -100,3 +118,5 @@
     {{ $users->links('vendor.pagination.users') }}
   </div>
 @endif
+
+<input type="hidden" id="ajaxTotalCount" value="{{ $users->total() }}">

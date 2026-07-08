@@ -771,6 +771,103 @@ class SiswaController extends Controller
         ));
     }
 
+    public function generateOrtuMassal(Request $request)
+    {
+        // 1. Get the list of student IDs who don't have a parent account yet
+        if ($request->has('get_ids')) {
+            try {
+                $siswaIds = Siswa::whereNull('ortu_user_id')
+                    ->where(function($q) {
+                        $q->whereNotNull('nisn')->orWhereNotNull('nis');
+                    })
+                    ->pluck('id');
+
+                return response()->json([
+                    'success' => true,
+                    'ids' => $siswaIds
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mengambil data siswa: ' . $e->getMessage()
+                ], 500);
+            }
+        }
+
+        // 2. Process batch of student IDs
+        $siswaIds = $request->input('siswa_ids');
+        DB::beginTransaction();
+        try {
+            // Ambil domain dari pengaturan atau default
+            $domain = Pengaturan::where('key', 'website_lembaga')->value('value');
+            if ($domain && filter_var($domain, FILTER_VALIDATE_URL)) {
+                $domain = parse_url($domain, PHP_URL_HOST);
+            }
+            if (!$domain) {
+                $domain = 'madrasah.sch.id';
+            }
+
+            // If siswa_ids parameter is provided, only process those. Otherwise process all.
+            if ($siswaIds) {
+                $siswaTanpaOrtu = Siswa::whereIn('id', $siswaIds)->whereNull('ortu_user_id')->get();
+            } else {
+                $siswaTanpaOrtu = Siswa::whereNull('ortu_user_id')->get();
+            }
+
+            $jumlahOrtuDibuat = 0;
+            $jumlahSiswaDiupdate = 0;
+
+            foreach ($siswaTanpaOrtu as $siswa) {
+                $identifier = $siswa->nisn ?? $siswa->nis;
+                if (!$identifier) {
+                    continue;
+                }
+
+                $username = 'ortu.' . $identifier;
+                $email = 'ortu.' . $identifier . '@' . $domain;
+                $namaWali = 'Wali Murid ' . $siswa->nama_lengkap;
+                $password = $siswa->nisn ? Hash::make($siswa->nisn) : Hash::make('password123');
+
+                $ortu = User::where('username', $username)->first();
+
+                if (!$ortu) {
+                    $ortu = User::create([
+                        'name' => $namaWali,
+                        'email' => $email,
+                        'username' => $username,
+                        'password' => $password,
+                        'is_active' => true,
+                        'role' => User::ROLE_ORANG_TUA,
+                        'roles' => [User::ROLE_ORANG_TUA],
+                    ]);
+                    $jumlahOrtuDibuat++;
+                }
+
+                $siswa->ortu_user_id = $ortu->id;
+                $siswa->save();
+
+                $siswa->ortu()->syncWithoutDetaching([$ortu->id]);
+                $jumlahSiswaDiupdate++;
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'created' => $jumlahOrtuDibuat,
+                'updated' => $jumlahSiswaDiupdate,
+                'message' => "Berhasil memproses " . count($siswaTanpaOrtu) . " siswa."
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat generate akun: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function syncGoogleSheet(Request $request)
     {
         $setting = GoogleSheetSetting::first();

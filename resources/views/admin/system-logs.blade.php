@@ -93,6 +93,10 @@
       color: #fff !important;
       font-weight: 700 !important;
       font-size: 1.35rem !important;
+      text-align: center !important;
+      width: 100% !important;
+      max-width: none !important;
+      max-inline-size: none !important;
     }
 
     .das-swal-html {

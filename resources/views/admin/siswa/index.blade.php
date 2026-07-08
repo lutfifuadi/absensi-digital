@@ -136,6 +136,10 @@
             color: #fff !important;
             font-weight: 700 !important;
             font-size: 1.5rem !important;
+            text-align: center !important;
+            width: 100% !important;
+            max-width: none !important;
+            max-inline-size: none !important;
         }
 
         .das-swal-html {
@@ -236,6 +240,9 @@
             </div>
 
             <div class="das-hero__actions">
+                <button type="button" class="btn das-btn --purple" id="generateOrtuBtn">
+                    <i class="ti tabler-key me-1"></i> Generate Ortu
+                </button>
                 <button type="button" class="btn das-btn --warning" id="syncGoogleSheetBtn">
                     <i class="ti tabler-refresh me-1"></i> Google Sheet
                 </button>
@@ -264,9 +271,6 @@
                         </li>
                     </ul>
                 </div>
-                <a href="{{ route('admin.siswa.cetak-qr') }}" class="btn das-btn --info">
-                    <i class="ti tabler-qrcode me-1"></i> Cetak QR
-                </a>
                 <button type="button" class="btn das-btn --danger" data-bs-toggle="modal" data-bs-target="#deleteAllModal">
                     <i class="ti tabler-trash me-1"></i> Hapus Siswa
                 </button>
@@ -866,6 +870,228 @@
             }
             if (exportCsvBtn) {
                 exportCsvBtn.addEventListener('click', () => handleExport('csv'));
+            }
+
+            // Generate Ortu Massal
+            const generateOrtuBtn = document.getElementById('generateOrtuBtn');
+            if (generateOrtuBtn) {
+                generateOrtuBtn.addEventListener('click', function() {
+                    Swal.fire({
+                        title: 'Generate Akun Orang Tua?',
+                        html: '<div class="text-center px-2">' +
+                              '  <p class="text-white-50 mb-3" style="font-size:0.92rem; line-height:1.6;">' +
+                              '    Sistem akan mendeteksi seluruh siswa yang belum memiliki wali murid, lalu membuatkan akun akses orang tua secara otomatis.' +
+                              '  </p>' +
+                              '  <div class="d-flex align-items-center justify-content-center gap-2 p-2 rounded mb-2" style="background: rgba(115, 103, 240, 0.08); border: 1px dashed rgba(115, 103, 240, 0.2);">' +
+                              '    <i class="ti tabler-shield-check text-purple fs-4 animate-pulse"></i>' +
+                              '    <span class="text-purple extra-small fw-semibold">Proses aman, data login otomatis diselaraskan</span>' +
+                              '  </div>' +
+                              '</div>',
+                        iconHtml: '<div class="rounded-circle d-flex align-items-center justify-content-center" style="width:70px; height:70px; background: rgba(115, 103, 240, 0.15); border: 2px solid rgba(115, 103, 240, 0.3); box-shadow: 0 0 15px rgba(115, 103, 240, 0.4);"><i class="ti tabler-key text-purple fs-1" style="font-size: 2.5rem !important;"></i></div>',
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="ti tabler-bolt me-1"></i> Mulai Proses',
+                        cancelButtonText: 'Batal',
+                        customClass: {
+                            popup: 'das-swal-popup',
+                            title: 'das-swal-title',
+                            htmlContainer: 'das-swal-html',
+                            confirmButton: 'btn das-btn --purple px-4 py-2 me-3',
+                            cancelButton: 'btn das-btn das-swal-cancel px-4 py-2',
+                            icon: 'border-0'
+                        },
+                        buttonsStyling: false,
+                        showClass: {
+                            popup: 'animate__animated animate__fadeInUp animate__faster'
+                        },
+                        hideClass: {
+                            popup: 'animate__animated animate__fadeOutDown animate__faster'
+                        },
+                        background: 'transparent',
+                        backdrop: `rgba(0,0,10,0.4)`,
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
+
+                        // 1. Tampilkan modal loading awal / deteksi
+                        Swal.fire({
+                            title: 'Mendeteksi Data...',
+                            html: '<div class="text-center px-2">' +
+                                  '  <p class="text-white-50 mb-3" style="font-size:0.92rem;">Sedang mencari siswa tanpa akun orang tua...</p>' +
+                                  '  <div class="d-flex align-items-center justify-content-center gap-2 p-2 rounded" style="background: rgba(115, 103, 240, 0.08); border: 1px dashed rgba(115, 103, 240, 0.2);">' +
+                                  '    <i class="ti tabler-loader spinner text-purple fs-4"></i>' +
+                                  '    <span class="text-purple extra-small fw-semibold">Mohon tunggu sebentar...</span>' +
+                                  '  </div>' +
+                                  '</div>',
+                            iconHtml: '<div class="rounded-circle d-flex align-items-center justify-content-center" style="width:70px; height:70px; background: rgba(115, 103, 240, 0.15); border: 2px solid rgba(115, 103, 240, 0.3);"><i class="ti tabler-loader spinner text-purple fs-1" style="font-size: 2.5rem !important;"></i></div>',
+                            showConfirmButton: false,
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            customClass: {
+                                popup: 'das-swal-popup',
+                                title: 'das-swal-title',
+                                htmlContainer: 'das-swal-html',
+                                icon: 'border-0'
+                            },
+                            buttonsStyling: false,
+                            background: 'transparent',
+                            backdrop: `rgba(0,0,10,0.45)`,
+                        });
+
+                        // 2. Tarik daftar ID siswa yang belum punya ortu
+                        fetch('{{ route('admin.siswa.generate-ortu-massal') }}?get_ids=1', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (!data.success) {
+                                throw new Error(data.message || 'Gagal memuat data siswa.');
+                            }
+
+                            const ids = data.ids || [];
+                            if (ids.length === 0) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Sudah Sinkron!',
+                                    text: 'Semua siswa yang memiliki NISN/NIS sudah terhubung dengan akun orang tua.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-success das-swal-confirm'
+                                    },
+                                    background: 'transparent',
+                                    buttonsStyling: false
+                                });
+                                return;
+                            }
+
+                            // 3. Tampilkan modal progress interaktif
+                            const total = ids.length;
+                            let processed = 0;
+                            const batchSize = 10;
+
+                            Swal.fire({
+                                title: 'Memproses Akun...',
+                                html: '<div class="text-center px-2">' +
+                                      '  <p id="progress-text" class="text-white-50 mb-3" style="font-size:0.92rem;">Memulai pembuatan akun untuk ' + total + ' siswa...</p>' +
+                                      '  <div class="progress mb-3" style="height: 12px; background: rgba(255, 255, 255, 0.08); border-radius: 6px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.05);">' +
+                                      '    <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%; height: 100%; background: linear-gradient(45deg, #7367f0, #9e95f5); transition: width 0.4s ease; border-radius: 6px;"></div>' +
+                                      '  </div>' +
+                                      '  <div class="d-flex align-items-center justify-content-center gap-2 p-2 rounded mb-2" style="background: rgba(115, 103, 240, 0.08); border: 1px dashed rgba(115, 103, 240, 0.2);">' +
+                                      '    <i class="ti tabler-loader spinner text-purple fs-4"></i>' +
+                                      '    <span class="text-purple extra-small fw-semibold">Mohon jangan menutup atau memuat ulang halaman ini.</span>' +
+                                      '  </div>' +
+                                      '</div>',
+                                iconHtml: '<div class="rounded-circle d-flex align-items-center justify-content-center" style="width:70px; height:70px; background: rgba(115, 103, 240, 0.15); border: 2px solid rgba(115, 103, 240, 0.3); box-shadow: 0 0 15px rgba(115, 103, 240, 0.4);"><i class="ti tabler-key text-purple fs-1" style="font-size: 2.5rem !important;"></i></div>',
+                                showConfirmButton: false,
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                customClass: {
+                                    popup: 'das-swal-popup',
+                                    title: 'das-swal-title',
+                                    htmlContainer: 'das-swal-html',
+                                    icon: 'border-0'
+                                },
+                                buttonsStyling: false,
+                                background: 'transparent',
+                                backdrop: `rgba(0,0,10,0.45)`,
+                            });
+
+                            // 4. Fungsi rekursif untuk eksekusi batch
+                            function processNextBatch() {
+                                if (processed >= total) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Selesai!',
+                                        text: 'Berhasil memproses semua akun orang tua untuk ' + total + ' siswa.',
+                                        customClass: {
+                                            popup: 'das-swal-popup',
+                                            title: 'das-swal-title',
+                                            htmlContainer: 'das-swal-html',
+                                            confirmButton: 'btn btn-success das-swal-confirm'
+                                        },
+                                        background: 'transparent',
+                                        buttonsStyling: false
+                                    }).then(() => {
+                                        window.location.reload();
+                                    });
+                                    return;
+                                }
+
+                                const batch = ids.slice(processed, processed + batchSize);
+
+                                fetch('{{ route('admin.siswa.generate-ortu-massal') }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json'
+                                    },
+                                    body: JSON.stringify({ siswa_ids: batch })
+                                })
+                                .then(res => res.json())
+                                .then(resData => {
+                                    if (!resData.success) {
+                                        throw new Error(resData.message || 'Terjadi kesalahan saat memproses.');
+                                    }
+
+                                    processed += batch.length;
+                                    const percent = Math.round((processed / total) * 100);
+
+                                    const pBar = document.getElementById('progress-bar');
+                                    const pText = document.getElementById('progress-text');
+
+                                    if (pBar) pBar.style.width = percent + '%';
+                                    if (pText) {
+                                        pText.innerHTML = 'Memproses data <strong>' + processed + '</strong> dari <strong>' + total + '</strong> siswa (' + percent + '%)';
+                                    }
+
+                                    setTimeout(processNextBatch, 100);
+                                })
+                                .catch(err => {
+                                    console.error('Batch generation error:', err);
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Gagal!',
+                                        text: err.message || 'Terjadi kesalahan koneksi saat memproses batch data.',
+                                        customClass: {
+                                            popup: 'das-swal-popup',
+                                            title: 'das-swal-title',
+                                            htmlContainer: 'das-swal-html',
+                                            confirmButton: 'btn btn-primary das-swal-confirm'
+                                        },
+                                        background: 'transparent',
+                                        buttonsStyling: false
+                                    });
+                                });
+                            }
+
+                            // Mulai loop batching
+                            processNextBatch();
+                        })
+                        .catch(err => {
+                            console.error('Initial ID fetch error:', err);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal!',
+                                text: err.message || 'Terjadi kesalahan koneksi atau inisialisasi proses.',
+                                customClass: {
+                                    popup: 'das-swal-popup',
+                                    title: 'das-swal-title',
+                                    htmlContainer: 'das-swal-html',
+                                    confirmButton: 'btn btn-primary das-swal-confirm'
+                                },
+                                background: 'transparent',
+                                buttonsStyling: false
+                            });
+                        });
+                    });
+                });
             }
 
             // Sync Google Sheet

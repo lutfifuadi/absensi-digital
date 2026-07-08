@@ -171,6 +171,10 @@
         font-size: 1.25rem !important;
         font-weight: 700 !important;
         margin-bottom: 0.75rem !important;
+        text-align: center !important;
+        width: 100% !important;
+        max-width: none !important;
+        max-inline-size: none !important;
     }
     .das-swal-icon {
         margin: 1.25rem auto 0.75rem auto !important;

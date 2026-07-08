@@ -561,6 +561,10 @@ Route::middleware([
             ->name('admin.siswa.sync-google-sheet')
             ->middleware('role:super_admin,admin_sekolah,operator');
 
+        Route::post('siswa/generate-ortu-massal', [SiswaController::class, 'generateOrtuMassal'])
+            ->name('admin.siswa.generate-ortu-massal')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+
         Route::get('siswa/sync-progress', [SiswaController::class, 'syncProgress'])
             ->name('admin.siswa.sync-progress')
             ->middleware('role:super_admin,admin_sekolah,operator');

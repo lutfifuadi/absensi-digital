@@ -15,13 +15,43 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $search = $request->query('search');
+        $role = $request->query('role');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+
+        $sortBy = $request->query('sort_by', 'name'); // default sorting by name
+        $sortDirection = $request->query('sort_direction', 'asc'); // default asc
+
+        // Whitelist columns to avoid SQL Injection
+        $allowedSortColumns = ['name', 'created_at'];
+        if (!in_array($sortBy, $allowedSortColumns)) {
+            $sortBy = 'name';
+        }
+        if (!in_array($sortDirection, ['asc', 'desc'])) {
+            $sortDirection = 'asc';
+        }
+
         $perPage = $request->query('per_page', 10);
 
-        $users = User::when($search, function ($query, $search) {
-                return $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+        $users = User::query()
+            ->when($search, function ($query, $search) {
+                return $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('username', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+                });
             })
-            ->orderBy('name')
+            ->when($role, function ($query, $role) {
+                // Memfilter berdasarkan kolom role JSON atau relasi
+                return $query->where(function($q) use ($role) {
+                    $q->where('role', $role)
+                      ->orWhereJsonContains('roles', $role);
+                });
+            })
+            ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+                return $query->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+            })
+            ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage)
             ->withQueryString();
 
@@ -29,7 +59,9 @@ class UserController extends Controller
             return view('admin.users.table', compact('users'))->render();
         }
 
-        return view('admin.users.index', compact('users'));
+        $roles = $this->roleOptions();
+
+        return view('admin.users.index', compact('users', 'roles'));
     }
 
     public function create()

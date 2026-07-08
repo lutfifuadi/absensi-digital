@@ -362,15 +362,15 @@
       pointer-events: none;
     }
 
-    /* SEARCH INPUT */
+    /* SEARCH & FILTER INPUTS */
     #searchInput::placeholder { color: rgba(255,255,255,0.3); }
-    #searchInput:focus {
+    #searchInput:focus, #roleSelect:focus, #startDateInput:focus, #endDateInput:focus {
       outline: none;
       box-shadow: none;
       background: rgba(255,255,255,0.08) !important;
       border-color: rgba(115,103,240,0.5) !important;
     }
-    #perPageSelect option { background: #1a1a2e; color: #ccc; }
+    #perPageSelect option, #roleSelect option { background: #1a1a2e; color: #ccc; }
     #perPageSelect:focus { outline: none; box-shadow: none; }
   </style>
 @endsection
@@ -432,14 +432,8 @@
         Daftar Pengguna Sistem
       </div>
       
-      <div class="d-flex align-items-center gap-3 flex-grow-1 justify-content-md-end">
-        <div class="position-relative flex-grow-1 flex-md-grow-0" style="max-width: 300px;">
-          <i class="ti tabler-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size:0.85rem; pointer-events:none;"></i>
-          <input type="text" id="searchInput" class="form-control border-0 text-white" 
-                 placeholder="Cari nama atau email..." 
-                 style="background: rgba(255,255,255,0.05); height: 38px; font-size: 0.82rem; padding-left: 2.4rem;">
-        </div>
-
+      <div class="d-flex align-items-center gap-3 ms-auto">
+        <label for="perPageSelect" class="text-muted small d-none d-sm-inline">Tampilkan:</label>
         <select id="perPageSelect" class="form-select border-0 text-white w-auto" 
                 style="background: rgba(255,255,255,0.05); height: 38px; font-size: 0.82rem; cursor: pointer;">
           <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
@@ -448,7 +442,50 @@
           <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
         </select>
 
-        <span class="das-chip das-chip--info d-none d-sm-inline-flex" id="totalCount">{{ $users->total() }} Total</span>
+        <span class="das-chip das-chip--info" id="totalCount">{{ $users->total() }} Total</span>
+      </div>
+    </div>
+
+    <!-- Filter Panel -->
+    <div class="px-4 py-3 border-bottom" style="border-color: var(--das-border) !important; background: rgba(255, 255, 255, 0.01);">
+      <div class="row g-3">
+        <!-- Search Input -->
+        <div class="col-12 col-md-4">
+          <label for="searchInput" class="form-label text-muted small uppercase font-monospace mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Cari User</label>
+          <div class="position-relative">
+            <i class="ti tabler-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size:0.85rem; pointer-events:none;"></i>
+            <input type="text" id="searchInput" name="search" class="form-control border-0 text-white" 
+                   value="{{ request('search') }}"
+                   placeholder="Cari nama, username, email..." 
+                   style="background: rgba(255,255,255,0.05); height: 38px; font-size: 0.82rem; padding-left: 2.4rem;">
+          </div>
+        </div>
+
+        <!-- Role Dropdown -->
+        <div class="col-12 col-md-3">
+          <label for="roleSelect" class="form-label text-muted small uppercase font-monospace mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Hak Akses (Role)</label>
+          <select id="roleSelect" name="role" class="form-select border-0 text-white" 
+                  style="background: rgba(255,255,255,0.05); height: 38px; font-size: 0.82rem; cursor: pointer;">
+            <option value="">Semua Hak Akses</option>
+            @foreach ($roles as $val => $label)
+              <option value="{{ $val }}" {{ request('role') == $val ? 'selected' : '' }}>{{ $label }}</option>
+            @endforeach
+          </select>
+        </div>
+
+        <!-- Date Range -->
+        <div class="col-12 col-md-5">
+          <label class="form-label text-muted small uppercase font-monospace mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Tanggal Join (Mulai - Sampai)</label>
+          <div class="d-flex align-items-center gap-2">
+            <input type="date" id="startDateInput" name="start_date" class="form-control border-0 text-white" 
+                   value="{{ request('start_date') }}"
+                   style="background: rgba(255,255,255,0.05); height: 38px; font-size: 0.82rem; cursor: pointer; color-scheme: dark;">
+            <span class="text-muted small">s/d</span>
+            <input type="date" id="endDateInput" name="end_date" class="form-control border-0 text-white" 
+                   value="{{ request('end_date') }}"
+                   style="background: rgba(255,255,255,0.05); height: 38px; font-size: 0.82rem; cursor: pointer; color-scheme: dark;">
+          </div>
+        </div>
       </div>
     </div>
 
@@ -519,13 +556,34 @@
     document.addEventListener('DOMContentLoaded', function() {
       const container = document.getElementById('userTableContainer');
       const searchInput = document.getElementById('searchInput');
+      const roleSelect = document.getElementById('roleSelect');
+      const startDateInput = document.getElementById('startDateInput');
+      const endDateInput = document.getElementById('endDateInput');
       const perPageSelect = document.getElementById('perPageSelect');
+      
+      let sortBy = "{{ request('sort_by', 'name') }}";
+      let sortDirection = "{{ request('sort_direction', 'asc') }}";
       let searchTimeout;
 
-      function fetchData(page = 1) {
+      function fetchData(page = 1, pushToHistory = true) {
         const search = searchInput.value;
+        const role = roleSelect.value;
+        const startDate = startDateInput.value;
+        const endDate = endDateInput.value;
         const perPage = perPageSelect.value;
-        const url = `{{ route('admin.users.index') }}?page=${page}&search=${search}&per_page=${perPage}`;
+
+        // Build query string
+        const params = new URLSearchParams();
+        params.append('page', page);
+        if (search) params.append('search', search);
+        if (role) params.append('role', role);
+        if (startDate) params.append('start_date', startDate);
+        if (endDate) params.append('end_date', endDate);
+        if (sortBy) params.append('sort_by', sortBy);
+        if (sortDirection) params.append('sort_direction', sortDirection);
+        if (perPage) params.append('per_page', perPage);
+
+        const url = `{{ route('admin.users.index') }}?${params.toString()}`;
 
         // Add loading state
         container.style.opacity = '0.5';
@@ -542,14 +600,23 @@
           container.style.opacity = '1';
           container.style.pointerEvents = 'auto';
           
-          // Re-initialize markers/tooltips
+          // Update URL in browser
+          if (pushToHistory) {
+            history.pushState({ page, search, role, startDate, endDate, sortBy, sortDirection, perPage }, '', url);
+          }
+          
+          // Re-initialize tooltips
           const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
           tooltipTriggerList.map(function(tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
           });
           
-          // Update total from header if needed (could extract from HTML or send JSON)
-          // For now we just let the table update
+          // Update total count
+          const ajaxTotalCount = document.getElementById('ajaxTotalCount');
+          if (ajaxTotalCount) {
+            const totalVal = ajaxTotalCount.value;
+            document.getElementById('totalCount').textContent = totalVal + ' Total';
+          }
         })
         .catch(error => {
           console.error('Error fetching data:', error);
@@ -557,6 +624,22 @@
           container.style.pointerEvents = 'auto';
         });
       }
+
+      // Handle popstate for browser back/forward buttons
+      window.addEventListener('popstate', function(event) {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        searchInput.value = urlParams.get('search') || '';
+        roleSelect.value = urlParams.get('role') || '';
+        startDateInput.value = urlParams.get('start_date') || '';
+        endDateInput.value = urlParams.get('end_date') || '';
+        perPageSelect.value = urlParams.get('per_page') || '10';
+        sortBy = urlParams.get('sort_by') || 'name';
+        sortDirection = urlParams.get('sort_direction') || 'asc';
+        
+        const page = urlParams.get('page') || 1;
+        fetchData(page, false);
+      });
 
       // Live search with debounce
       searchInput.addEventListener('input', function() {
@@ -566,28 +649,57 @@
         }, 500);
       });
 
+      // Dropdown role change
+      roleSelect.addEventListener('change', function() {
+        fetchData(1);
+      });
+
+      // Date range change
+      startDateInput.addEventListener('change', function() {
+        fetchData(1);
+      });
+      endDateInput.addEventListener('change', function() {
+        fetchData(1);
+      });
+
       // Per page change
       perPageSelect.addEventListener('change', function() {
         fetchData(1);
       });
 
-      // Pagination click handling
+      // Click handling for table (sorting headers & pagination links)
       container.addEventListener('click', function(e) {
+        // Pagination link click handling
         const link = e.target.closest('a.das-page-btn');
         if (link) {
           e.preventDefault();
           const page = link.dataset.page || new URL(link.href).searchParams.get('page') || 1;
           fetchData(page);
+          return;
+        }
+
+        // Sorting header click handling
+        const th = e.target.closest('th.sortable');
+        if (th) {
+          e.preventDefault();
+          const field = th.dataset.sort;
+          if (sortBy === field) {
+            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+          } else {
+            sortBy = field;
+            sortDirection = 'asc';
+          }
+          fetchData(1);
         }
       });
 
-      // Tooltips
+      // Tooltips initial load
       const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
       tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
       });
 
-      // Impersonate
+      // Impersonate modal
       const impModal = document.getElementById('impersonateModal');
       if (impModal) {
         impModal.addEventListener('show.bs.modal', function(event) {
@@ -597,7 +709,7 @@
         });
       }
 
-      // Delete
+      // Delete modal
       const delModal = document.getElementById('deleteModal');
       if (delModal) {
         delModal.addEventListener('show.bs.modal', function(event) {

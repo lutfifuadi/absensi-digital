@@ -214,8 +214,9 @@ class OrangTuaController extends Controller
                         'username' => $username,
                         'password' => $password,
                         'is_active' => true,
+                        'role' => User::ROLE_ORANG_TUA,
+                        'roles' => [User::ROLE_ORANG_TUA],
                     ]);
-                    $ortu->assignRole('orang_tua');
                     $jumlahOrtuDibuat++;
                 }
 
