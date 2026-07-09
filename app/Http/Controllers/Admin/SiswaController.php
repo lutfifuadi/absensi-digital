@@ -438,14 +438,15 @@ class SiswaController extends Controller
             ]);
         }
 
-        if ($siswa->ortu) {
-            $siswa->ortu->update([
+        $parentUser = $siswa->ortu_user_id ? User::find($siswa->ortu_user_id) : null;
+        if ($parentUser) {
+            $parentUser->update([
                 'name' => 'Wali Murid '.$data['nama_lengkap'],
                 'username' => 'ortu.'.$identifier,
                 'email' => 'ortu.'.$identifier.'@'.$domainEmail,
             ]);
             $siswa->ortu()->syncWithoutDetaching([$siswa->ortu_user_id]);
-        } elseif (! $siswa->ortu_user_id) {
+        } else {
             $emailOrtu = 'ortu.'.$identifier.'@'.$domainEmail;
             $usernameOrtu = 'ortu.'.$identifier;
             $userOrtu = User::firstOrCreate(
@@ -455,6 +456,7 @@ class SiswaController extends Controller
                     'email' => $emailOrtu,
                     'password' => Hash::make($data['nisn'] ?? $data['nis'] ?? 'password123'),
                     'role' => User::ROLE_ORANG_TUA,
+                    'roles' => [User::ROLE_ORANG_TUA],
                 ]
             );
             $siswa->update(['ortu_user_id' => $userOrtu->id]);
