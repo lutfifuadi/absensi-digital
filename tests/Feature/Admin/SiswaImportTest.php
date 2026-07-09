@@ -87,6 +87,7 @@ class SiswaImportTest extends TestCase
         $this->assertDatabaseHas('users', [
             'username' => 'ortu.0012345678',
             'role' => User::ROLE_ORANG_TUA,
+            'no_hp' => '08123456780',
         ]);
     }
 

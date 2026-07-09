@@ -85,9 +85,15 @@ class ApiSourceSettingsController extends Controller
                 @set_time_limit(0);
             }
 
-            SyncMasterDataJob::dispatch();
+            $tahunAkademikId = $request->input('tahun_akademik_id');
+            $kelasId = $request->input('kelas_id');
 
-            Log::info('Sinkronisasi manual telah dijadwalkan oleh admin.');
+            SyncMasterDataJob::dispatch($tahunAkademikId, $kelasId);
+
+            Log::info('Sinkronisasi manual telah dijadwalkan oleh admin.', [
+                'tahun_akademik_id' => $tahunAkademikId,
+                'kelas_id' => $kelasId
+            ]);
 
             if ($request->wantsJson()) {
                 return response()->json([

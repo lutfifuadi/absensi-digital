@@ -144,7 +144,15 @@ class PengaturanController extends Controller
         $setting = GoogleSheetSetting::where('type', 'siswa')->first() ?? GoogleSheetSetting::whereNull('type')->first() ?? new GoogleSheetSetting(['type' => 'siswa']);
         $guruSetting = GoogleSheetSetting::where('type', 'guru')->first() ?? new GoogleSheetSetting(['type' => 'guru']);
 
-        return view('admin.pengaturan.index', compact('settings', 'currentVersion', 'updateInfo', 'setting', 'guruSetting'));
+        $tahunAkademikList = \App\Models\TahunAkademik::orderBy('nama', 'desc')
+            ->orderBy('tanggal_mulai', 'desc')
+            ->get();
+
+        $kelasList = \App\Models\Kelas::orderBy('tingkat', 'asc')
+            ->orderBy('nama', 'asc')
+            ->get();
+
+        return view('admin.pengaturan.index', compact('settings', 'currentVersion', 'updateInfo', 'setting', 'guruSetting', 'tahunAkademikList', 'kelasList'));
     }
 
     public function update(Request $request)

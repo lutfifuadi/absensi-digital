@@ -61,7 +61,7 @@
           </div>
 
           {{-- Waktu sinkronisasi — hanya tampil saat mode otomatis --}}
-          <div class="set-field" id="field-sync-time" style="{{ old('master_db_sync_mode', $settings['master_db_sync_mode'] ?? 'otomatis') === 'manual' ? 'display:none;' : '' }}">
+          <div class="set-field" id="field-sync-time" style="{{ old('master_db_sync_mode', $settings['master_db_sync_mode'] ?? 'otomatis') === 'manual' ? 'display: none;' : 'display: block;' }}">
             <label class="set-label" for="master_db_sync_time">Waktu Sinkronisasi Otomatis</label>
             <div class="set-input-group">
               <span class="set-input-prefix"><i class="ti tabler-clock"></i></span>
@@ -117,28 +117,37 @@
   </form>
 
   {{-- TOMBOL SINKRON SEKARANG --}}
-  <div class="sync-now-panel mt-4">
-    <div class="sync-now-panel__inner">
-      <div class="sync-now-panel__info">
-        <div class="sync-now-panel__icon"><i class="ti tabler-refresh"></i></div>
-        <div>
-          <div class="sync-now-panel__title">Sinkronisasi Sekarang</div>
-          <div class="sync-now-panel__sub">Jalankan sinkronisasi data master dari API eksternal secara langsung tanpa menunggu jadwal otomatis.</div>
-        </div>
+  <div class="set-panel mt-4">
+      <div class="set-panel__head">
+          <div class="set-panel__title-wrap">
+              <div class="set-panel__icon --primary"><i class="ti tabler-refresh"></i></div>
+              <div>
+                  <div class="set-panel__title">Picu Sinkronisasi Manual</div>
+                  <div class="set-panel__sub">Jalankan sinkronisasi data master secara instan dari API eksternal.</div>
+              </div>
+          </div>
       </div>
-      <form action="{{ route('admin.pengaturan.api-source.sync-now') }}" method="POST" id="syncNowForm">
-        @csrf
-        <button type="button" class="sync-now-btn" id="openSyncConfirmButton" onclick="openSyncConfirmModal()">
-          <i class="ti tabler-refresh"></i>
-          <span>Sinkron Sekarang</span>
-        </button>
-      </form>
-    </div>
+      <div class="set-panel__body">
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+              <div style="max-width: 500px;">
+                  <p class="text-white-50 mb-0" style="font-size: 0.8rem; line-height: 1.5;">
+                      Tindakan ini akan menarik data siswa, guru, staff, dan pengaturan lembaga dari server pusat. Anda dapat mengarahkan data siswa hasil sinkronisasi ini ke Tahun Akademik dan Kelas tertentu melalui dialog konfirmasi berikutnya.
+                  </p>
+              </div>
+              <form action="{{ route('admin.pengaturan.api-source.sync-now') }}" method="POST" id="syncNowForm">
+                  @csrf
+                  <button type="button" class="set-btn set-btn--primary" id="openSyncConfirmButton" onclick="openSyncConfirmModal()" style="padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 600;">
+                      <i class="ti tabler-refresh fs-5"></i>
+                      <span>Sinkron Sekarang</span>
+                  </button>
+              </form>
+          </div>
+      </div>
   </div>
 
   <div id="syncConfirmModal" class="sync-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="syncConfirmTitle" aria-describedby="syncConfirmDescription" hidden>
     <div class="sync-confirm-modal__backdrop" onclick="closeSyncConfirmModal()" tabindex="-1"></div>
-    <div class="sync-confirm-modal__content" role="document">
+    <div class="sync-confirm-modal__content" role="document" style="max-width: 550px;">
       <div class="sync-confirm-modal__header">
         <div class="sync-confirm-modal__icon"><i class="ti tabler-alert-circle"></i></div>
         <div>
@@ -146,7 +155,44 @@
           <p id="syncConfirmDescription">Apakah Anda yakin ingin menjalankan sinkronisasi data master sekarang? Proses ini dapat memakan beberapa saat dan akan menarik data dari API eksternal.</p>
         </div>
       </div>
-      <div class="sync-confirm-modal__actions">
+      
+      {{-- Form Filter untuk Sinkronisasi --}}
+      <div class="sync-confirm-modal__body mt-3 px-1">
+        <div class="set-form-grid" style="grid-template-columns: repeat(2, 1fr); gap: 1rem; display: grid;">
+          {{-- Dropdown Tahun Akademik --}}
+          <div class="set-field">
+            <label class="set-label" for="sync_tahun_akademik_id">Tahun Akademik <span class="text-danger">*</span></label>
+            <div class="set-input-group mt-1">
+              <span class="set-input-prefix"><i class="ti tabler-calendar-stats"></i></span>
+              <select class="set-input" id="sync_tahun_akademik_id" style="background-color: rgba(15, 23, 42, 0.4); border-radius: var(--das-radius-sm); border: 1px solid var(--das-border);">
+                @foreach($tahunAkademikList ?? [] as $ta)
+                  <option value="{{ $ta->id }}" {{ $ta->is_aktif ? 'selected' : '' }} style="background-color: #0f172a; color: #e2e8f0;">
+                    {{ $ta->nama }}
+                  </option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+
+          {{-- Dropdown Kelas --}}
+          <div class="set-field">
+            <label class="set-label" for="sync_kelas_id">Kelas</label>
+            <div class="set-input-group mt-1">
+              <span class="set-input-prefix"><i class="ti tabler-school"></i></span>
+              <select class="set-input" id="sync_kelas_id" style="background-color: rgba(15, 23, 42, 0.4); border-radius: var(--das-radius-sm); border: 1px solid var(--das-border);">
+                <option value="" style="background-color: #0f172a; color: #e2e8f0;">-- Default dari API --</option>
+                @foreach($kelasList ?? [] as $kls)
+                  <option value="{{ $kls->id }}" style="background-color: #0f172a; color: #e2e8f0;">
+                    {{ $kls->nama }}
+                  </option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sync-confirm-modal__actions mt-4">
         <button type="button" class="sync-confirm-modal__cancel-btn" onclick="closeSyncConfirmModal()">Batal</button>
         <button type="button" class="sync-confirm-modal__confirm-btn" id="syncConfirmButton" onclick="submitSyncNow()">
           <span id="syncBtnText">Konfirmasi</span>
@@ -177,6 +223,21 @@
   </div>
 
   <style>
+  /* Premium styling for API Source elements */
+  #syncConfirmModal .sync-confirm-modal__content {
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.95) 100%);
+    border: 1px solid rgba(115, 103, 240, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(115, 103, 240, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  
+  #syncConfirmModal .set-input-group:focus-within {
+    border-color: var(--das-primary);
+    box-shadow: 0 0 0 3px rgba(115, 103, 240, 0.2);
+  }
+
   .sync-mode-card {
     display: flex;
     align-items: center;
@@ -275,6 +336,10 @@
     const btnSpinner = document.getElementById('syncBtnSpinner');
     const url = form.action;
 
+    // Ambil nilai filter dropdown
+    const tahunAkademikId = document.getElementById('sync_tahun_akademik_id')?.value || null;
+    const kelasId = document.getElementById('sync_kelas_id')?.value || null;
+
     // Loading state
     btn.disabled = true;
     btnText.style.display = 'none';
@@ -288,7 +353,10 @@
           'X-CSRF-TOKEN': '{{ csrf_token() }}',
           'Accept': 'application/json'
         },
-        body: JSON.stringify({})
+        body: JSON.stringify({
+          tahun_akademik_id: tahunAkademikId,
+          kelas_id: kelasId
+        })
       });
 
       const result = await response.json();

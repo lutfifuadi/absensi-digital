@@ -18,7 +18,7 @@ class SyncMasterData extends Command
      *
      * @var string
      */
-    protected $signature = 'sync:master-siswa';
+    protected $signature = 'sync:master-siswa {--tahun_akademik_id=} {--kelas_id=}';
 
     /**
      * The console command description.
@@ -41,6 +41,9 @@ class SyncMasterData extends Command
     public function handle()
     {
         $this->info('Memulai sinkronisasi data siswa dan user dari API eksternal...');
+
+        $forcedTahunAkademikId = $this->option('tahun_akademik_id');
+        $forcedKelasId = $this->option('kelas_id');
 
         $syncEnabled = Pengaturan::where('key', 'master_db_sync_enabled')->value('value') ?? 'Ya';
         if (strtolower($syncEnabled) === 'tidak') {
@@ -134,11 +137,12 @@ class SyncMasterData extends Command
                 ->value('nama');
 
             foreach ($listSiswa as $dataSiswa) {
-                // Syarat sinkronisasi ke absensi: status=lulus/lulus_cadangan DAN daftar_ulang_selesai=true
+                // Syarat sinkronisasi ke absensi: status=lulus/lulus_cadangan DAN daftar_ulang_selesai=true DAN wawancara_selesai=true
                 $statusPmbm          = strtolower(trim($dataSiswa['status'] ?? ''));
                 $daftarUlangSelesai  = (bool) ($dataSiswa['daftar_ulang_selesai'] ?? false);
+                $wawancaraSelesai    = (bool) ($dataSiswa['wawancara_selesai'] ?? false);
 
-                if (!in_array($statusPmbm, ['lulus', 'lulus_cadangan']) || !$daftarUlangSelesai) {
+                if (!in_array($statusPmbm, ['lulus', 'lulus_cadangan']) || !$daftarUlangSelesai || !$wawancaraSelesai) {
                     $countSkip++;
                     continue;
                 }
@@ -178,6 +182,8 @@ class SyncMasterData extends Command
                         'tahun_akademik_id_default' => $tahunAkademikDefault,
                         // lulus/lulus_cadangan dari PMBM = siswa diterima/baru masuk → aktif
                         'status' => 'aktif',
+                        'forced_tahun_akademik_id' => $forcedTahunAkademikId,
+                        'forced_kelas_id' => $forcedKelasId,
                     ];
 
                     $siswa = $this->syncService->syncSiswa($syncPayload);

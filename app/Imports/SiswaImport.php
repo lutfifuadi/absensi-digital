@@ -123,8 +123,15 @@ class SiswaImport implements SkipsEmptyRows, ToModel, WithHeadingRow, WithValida
                     'email' => $emailOrtu,
                     'password' => Hash::make($nisn ?: $nis),
                     'role' => User::ROLE_ORANG_TUA,
+                    'no_hp' => trim($row['no_hp_ortu'] ?? ''),
                 ]
             );
+
+            // Jika user orang tua sudah ada tetapi no_hp kosong/berubah, update no_hp-nya
+            if ($userOrtu->no_hp !== trim($row['no_hp_ortu'] ?? '')) {
+                $userOrtu->no_hp = trim($row['no_hp_ortu'] ?? '');
+                $userOrtu->save();
+            }
 
             // ── Upsert Siswa (berdasarkan NISN agar idempotent) ─────────────────
             $siswa = Siswa::updateOrCreate(

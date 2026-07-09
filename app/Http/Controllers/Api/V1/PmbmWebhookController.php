@@ -38,7 +38,7 @@ class PmbmWebhookController extends BaseSyncController
             'nomor_hp_wali'        => 'nullable|string|max:20',
             'status'               => 'nullable|string|in:aktif,lulus,lulus_cadangan,pindah,keluar',
             'daftar_ulang_selesai' => 'nullable|boolean',
-            'wawancara_selesai'    => 'nullable|boolean',
+            'wawancara_selesai'    => 'required|boolean',
             'nomor_pendaftaran'    => 'nullable|string|max:100',
         ]);
 
@@ -48,15 +48,17 @@ class PmbmWebhookController extends BaseSyncController
 
         $data = $validator->validated();
 
-        // Syarat sinkronisasi ke sistem absensi: status=lulus/lulus_cadangan DAN daftar_ulang_selesai=true
+        // Syarat sinkronisasi ke sistem absensi: status=lulus/lulus_cadangan DAN daftar_ulang_selesai=true DAN wawancara_selesai=true
         $statusPmbm         = strtolower(trim($data['status'] ?? ''));
         $daftarUlangSelesai = (bool) ($data['daftar_ulang_selesai'] ?? false);
+        $wawancaraSelesai   = (bool) ($data['wawancara_selesai'] ?? false);
 
-        if (!in_array($statusPmbm, ['lulus', 'lulus_cadangan']) || !$daftarUlangSelesai) {
+        if (!in_array($statusPmbm, ['lulus', 'lulus_cadangan']) || !$daftarUlangSelesai || !$wawancaraSelesai) {
             Log::info('PMBM Webhook: Data siswa dilewati — belum memenuhi syarat sinkronisasi.', [
                 'nisn'                 => $data['nisn'],
                 'status'               => $statusPmbm,
                 'daftar_ulang_selesai' => $daftarUlangSelesai,
+                'wawancara_selesai'    => $wawancaraSelesai,
             ]);
             return $this->sendResponse(
                 ['nisn' => $data['nisn']],

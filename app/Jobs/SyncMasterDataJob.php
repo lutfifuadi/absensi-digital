@@ -21,6 +21,18 @@ class SyncMasterDataJob implements ShouldQueue
      */
     public $timeout = 3600;
 
+    protected $tahunAkademikId;
+    protected $kelasId;
+
+    /**
+     * Create a new job instance.
+     */
+    public function __construct($tahunAkademikId = null, $kelasId = null)
+    {
+        $this->tahunAkademikId = $tahunAkademikId;
+        $this->kelasId = $kelasId;
+    }
+
     /**
      * Execute the job.
      */
@@ -30,7 +42,10 @@ class SyncMasterDataJob implements ShouldQueue
             @set_time_limit(0);
         }
 
-        Artisan::call('sync:master-siswa');
+        Artisan::call('sync:master-siswa', [
+            '--tahun_akademik_id' => $this->tahunAkademikId,
+            '--kelas_id' => $this->kelasId,
+        ]);
     }
 
     public function failed(\Throwable $exception): void

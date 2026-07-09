@@ -35,6 +35,9 @@ class SyncService
                 }
                 $user->name = $userData['name'];
                 $user->email = $userData['email'];
+                if (array_key_exists('no_hp', $userData)) {
+                    $user->no_hp = $userData['no_hp'];
+                }
                 $user->save();
             }
             // Jika role berbeda, kembalikan user yang ada tanpa modifikasi
@@ -48,6 +51,7 @@ class SyncService
                     'email' => $userData['email'],
                     'password' => Hash::make($userData['password'] ?? 'password123'),
                     'role' => $role,
+                    'no_hp' => $userData['no_hp'] ?? null,
                 ]);
                 DB::statement('RELEASE SAVEPOINT save_user_create');
             } catch (QueryException $e) {
@@ -124,11 +128,14 @@ class SyncService
                 'username' => $usernameOrtu,
                 'email' => $emailOrtu,
                 'password' => $data['password'] ?? null,
+                'no_hp' => $data['no_hp_ortu'] ?? null,
             ], User::ROLE_ORANG_TUA);
 
             // 2. Sync Kelas (jika diberikan)
             $kelasId = null;
-            if (! empty($data['kelas_nama'])) {
+            if (! empty($data['forced_kelas_id'])) {
+                $kelasId = $data['forced_kelas_id'];
+            } elseif (! empty($data['kelas_nama'])) {
                 $kelas = Kelas::where('nama', $data['kelas_nama'])->first();
                 if ($kelas) {
                     $kelasId = $kelas->id;
@@ -136,8 +143,8 @@ class SyncService
             }
 
             // 3. Sync Tahun Akademik (jika diberikan)
-            $tahunAkademikId = $data['tahun_akademik_id_default'] ?? null;
-            if (! empty($data['tahun_akademik_nama'])) {
+            $tahunAkademikId = $data['forced_tahun_akademik_id'] ?? $data['tahun_akademik_id_default'] ?? null;
+            if (empty($data['forced_tahun_akademik_id']) && ! empty($data['tahun_akademik_nama'])) {
                 $ta = TahunAkademik::where('nama', $data['tahun_akademik_nama'])->first();
                 if ($ta) {
                     $tahunAkademikId = $ta->id;

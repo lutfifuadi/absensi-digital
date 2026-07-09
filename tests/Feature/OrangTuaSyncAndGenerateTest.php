@@ -59,7 +59,8 @@ class OrangTuaSyncAndGenerateTest extends TestCase
             'kelas_id' => $this->kelas->id,
             'tahun_akademik_id' => $this->tahunAkademik->id,
             'status' => 'aktif',
-            'ortu_user_id' => null
+            'ortu_user_id' => null,
+            'no_hp_ortu' => '08123456789',
         ]);
 
         $siswa2 = Siswa::create([
@@ -72,7 +73,8 @@ class OrangTuaSyncAndGenerateTest extends TestCase
             'kelas_id' => $this->kelas->id,
             'tahun_akademik_id' => $this->tahunAkademik->id,
             'status' => 'aktif',
-            'ortu_user_id' => null
+            'ortu_user_id' => null,
+            'no_hp_ortu' => '08123456788',
         ]);
 
         // Buat pengaturan domain
@@ -97,6 +99,7 @@ class OrangTuaSyncAndGenerateTest extends TestCase
             'email' => 'ortu.1234567890@mansaba.sch.id',
             'name' => 'Wali Murid Siswa Test Satu',
             'role' => User::ROLE_ORANG_TUA,
+            'no_hp' => '08123456789', // no_hp_ortu terisi dari generate
         ]);
 
         $this->assertDatabaseHas('users', [

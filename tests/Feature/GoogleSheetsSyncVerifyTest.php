@@ -123,6 +123,7 @@ class GoogleSheetsSyncVerifyTest extends TestCase
             'username' => 'ortu.0099887766',
             'name' => 'Wali Murid Test Siswa Google Sheet',
             'role' => User::ROLE_ORANG_TUA,
+            'no_hp' => '08122334456',
         ]);
 
         // 9. Pastikan relasi pivot siswa dengan ortu terhubung
