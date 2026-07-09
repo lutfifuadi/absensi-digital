@@ -945,7 +945,20 @@
                                 'Accept': 'application/json'
                             }
                         })
-                        .then(res => res.json())
+                        .then(res => {
+                            if (!res.ok) {
+                                return res.text().then(text => {
+                                    throw new Error(text || `HTTP error! status: ${res.status}`);
+                                });
+                            }
+                            const contentType = res.headers.get('content-type');
+                            if (!contentType || !contentType.includes('application/json')) {
+                                return res.text().then(text => {
+                                    throw new Error('Respon server bukan JSON yang valid: ' + text.substring(0, 200));
+                                });
+                            }
+                            return res.json();
+                        })
                         .then(data => {
                             if (!data.success) {
                                 throw new Error(data.message || 'Gagal memuat data siswa.');
@@ -957,6 +970,9 @@
                                     icon: 'success',
                                     title: 'Sudah Sinkron!',
                                     text: 'Semua siswa yang memiliki NISN/NIS sudah terhubung dengan akun orang tua.',
+                                    showConfirmButton: true,
+                                    allowOutsideClick: true,
+                                    allowEscapeKey: true,
                                     customClass: {
                                         popup: 'das-swal-popup',
                                         title: 'das-swal-title',
@@ -1008,6 +1024,9 @@
                                         icon: 'success',
                                         title: 'Selesai!',
                                         text: 'Berhasil memproses semua akun orang tua untuk ' + total + ' siswa.',
+                                        showConfirmButton: true,
+                                        allowOutsideClick: true,
+                                        allowEscapeKey: true,
                                         customClass: {
                                             popup: 'das-swal-popup',
                                             title: 'das-swal-title',
@@ -1034,7 +1053,20 @@
                                     },
                                     body: JSON.stringify({ siswa_ids: batch })
                                 })
-                                .then(res => res.json())
+                                .then(res => {
+                                    if (!res.ok) {
+                                        return res.text().then(text => {
+                                            throw new Error(text || `HTTP error! status: ${res.status}`);
+                                        });
+                                    }
+                                    const contentType = res.headers.get('content-type');
+                                    if (!contentType || !contentType.includes('application/json')) {
+                                        return res.text().then(text => {
+                                            throw new Error('Respon server bukan JSON yang valid: ' + text.substring(0, 200));
+                                        });
+                                    }
+                                    return res.json();
+                                })
                                 .then(resData => {
                                     if (!resData.success) {
                                         throw new Error(resData.message || 'Terjadi kesalahan saat memproses.');
@@ -1059,6 +1091,9 @@
                                         icon: 'error',
                                         title: 'Gagal!',
                                         text: err.message || 'Terjadi kesalahan koneksi saat memproses batch data.',
+                                        showConfirmButton: true,
+                                        allowOutsideClick: true,
+                                        allowEscapeKey: true,
                                         customClass: {
                                             popup: 'das-swal-popup',
                                             title: 'das-swal-title',
@@ -1080,6 +1115,9 @@
                                 icon: 'error',
                                 title: 'Gagal!',
                                 text: err.message || 'Terjadi kesalahan koneksi atau inisialisasi proses.',
+                                showConfirmButton: true,
+                                allowOutsideClick: true,
+                                allowEscapeKey: true,
                                 customClass: {
                                     popup: 'das-swal-popup',
                                     title: 'das-swal-title',

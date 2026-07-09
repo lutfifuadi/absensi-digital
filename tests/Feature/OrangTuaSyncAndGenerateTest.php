@@ -183,4 +183,56 @@ class OrangTuaSyncAndGenerateTest extends TestCase
             'ortu_user_id' => $ortu->id
         ]);
     }
+
+    /** @test */
+    public function it_can_generate_ortu_massal_from_siswa_controller()
+    {
+        // 1. Arrange: Buat siswa tanpa orang tua
+        $siswa = Siswa::create([
+            'nama_lengkap' => 'Siswa Massal Test',
+            'nisn' => '1234509876',
+            'nis' => '12309',
+            'jenis_kelamin' => 'L',
+            'tempat_lahir' => 'Bandung',
+            'tanggal_lahir' => '2010-05-05',
+            'kelas_id' => $this->kelas->id,
+            'tahun_akademik_id' => $this->tahunAkademik->id,
+            'status' => 'aktif',
+            'ortu_user_id' => null,
+            'no_hp_ortu' => '08123456789'
+        ]);
+
+        // 2. Act: Ambil ID siswa
+        $responseGetIds = $this->actingAs($this->admin)
+            ->postJson(route('admin.siswa.generate-ortu-massal', ['get_ids' => 1]));
+
+        $responseGetIds->assertStatus(200);
+        $responseGetIds->assertJson([
+            'success' => true,
+        ]);
+        
+        $ids = $responseGetIds->json('ids');
+        $this->assertContains($siswa->id, $ids);
+
+        // 3. Act: Jalankan generate untuk ID tersebut
+        $responseGenerate = $this->actingAs($this->admin)
+            ->postJson(route('admin.siswa.generate-ortu-massal'), [
+                'siswa_ids' => [$siswa->id]
+            ]);
+
+        $responseGenerate->assertStatus(200);
+        $responseGenerate->assertJson([
+            'success' => true,
+        ]);
+
+        // 4. Assert: Pastikan user orang tua dibuat dengan no_hp tersinkronisasi
+        $this->assertDatabaseHas('users', [
+            'username' => 'ortu.1234509876',
+            'role' => User::ROLE_ORANG_TUA,
+            'no_hp' => '08123456789'
+        ]);
+
+        $siswaFresh = $siswa->fresh();
+        $this->assertNotNull($siswaFresh->ortu_user_id);
+    }
 }

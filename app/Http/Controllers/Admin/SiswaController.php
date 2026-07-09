@@ -841,8 +841,15 @@ class SiswaController extends Controller
                         'is_active' => true,
                         'role' => User::ROLE_ORANG_TUA,
                         'roles' => [User::ROLE_ORANG_TUA],
+                        'no_hp' => $siswa->no_hp_ortu,
                     ]);
                     $jumlahOrtuDibuat++;
+                } else {
+                    if (empty($ortu->no_hp) && !empty($siswa->no_hp_ortu)) {
+                        $ortu->update([
+                            'no_hp' => $siswa->no_hp_ortu
+                        ]);
+                    }
                 }
 
                 $siswa->ortu_user_id = $ortu->id;
