@@ -236,10 +236,29 @@ class UpdateService
                 ['value' => $info['latest_version'], 'group' => 'update']
             );
             
-            Artisan::call('migrate', ['--force' => true]);
-            Artisan::call('cache:clear');
-            Artisan::call('config:clear');
-            Artisan::call('view:clear');
+            try {
+                Artisan::call('migrate', ['--force' => true]);
+            } catch (\Throwable $e) {
+                Log::warning('Update Warning: Gagal migrate database - ' . $e->getMessage());
+            }
+
+            try {
+                Artisan::call('cache:clear');
+            } catch (\Throwable $e) {
+                Log::warning('Update Warning: Gagal cache:clear - ' . $e->getMessage());
+            }
+
+            try {
+                Artisan::call('config:clear');
+            } catch (\Throwable $e) {
+                Log::warning('Update Warning: Gagal config:clear - ' . $e->getMessage());
+            }
+
+            try {
+                Artisan::call('view:clear');
+            } catch (\Throwable $e) {
+                Log::warning('Update Warning: Gagal view:clear - ' . $e->getMessage());
+            }
 
             $this->clearUpdateInfo();
 
