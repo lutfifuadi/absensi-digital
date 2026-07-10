@@ -49,6 +49,11 @@ class RolePermissionSeeder extends Seeder
                 'email' => 'siswa@madrasah.test',
                 'role' => User::ROLE_SISWA,
             ],
+            [
+                'name' => 'Guru Piket Sample',
+                'email' => 'piket@madrasah.test',
+                'role' => User::ROLE_PIKET,
+            ],
         ];
 
         foreach ($sampleUsers as $userData) {

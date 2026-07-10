@@ -43,6 +43,7 @@ class DashboardController extends Controller
             if ($role === User::ROLE_GURU) return redirect()->route('guru.dashboard');
             if ($role === User::ROLE_WALI_KELAS) return redirect()->route('wali-kelas.dashboard');
             if ($role === User::ROLE_ORANG_TUA) return redirect()->route('ortu.dashboard');
+            if ($role === User::ROLE_PIKET || $user->isPiket()) return redirect()->route('piket.dashboard');
             if ($role === User::ROLE_SUPER_ADMIN || $role === User::ROLE_ADMIN_SEKOLAH) return view('dashboards.super-admin', array_merge(['user' => $user, 'pageTitle' => 'Admin Panel'], $this->superAdminData()));
         }
 
@@ -55,6 +56,7 @@ class DashboardController extends Controller
             User::ROLE_STAFF_TU       => 'dashboards.staff-tu',
             User::ROLE_SISWA          => 'dashboards.siswa',
             User::ROLE_ORANG_TUA      => 'dashboards.orang-tua',
+            User::ROLE_PIKET          => 'dashboards.piket',
         ];
 
         $titleMap = [
@@ -66,6 +68,7 @@ class DashboardController extends Controller
             User::ROLE_STAFF_TU       => 'Portal Staff',
             User::ROLE_SISWA          => 'Portal Siswa',
             User::ROLE_ORANG_TUA      => 'Portal Orang Tua',
+            User::ROLE_PIKET          => 'Portal Guru Piket',
         ];
 
         $view = $viewMap[$role] ?? 'dashboards.default';
@@ -91,6 +94,8 @@ class DashboardController extends Controller
             $data = array_merge($data, $this->orangTuaData($user));
         } elseif ($role === User::ROLE_SISWA) {
             $data = array_merge($data, $this->siswaData($user));
+        } elseif ($role === User::ROLE_PIKET || $user->isPiket()) {
+            $data = array_merge($data, $this->piketData());
         }
 
         return view($view, $data);
@@ -674,6 +679,49 @@ private function superAdminData(): array
         ];
     }
 
+    private function piketData(): array
+    {
+        $today = Carbon::today();
+        $tahunId = session('tahun_akademik_id');
+
+        // Ambil data statistik dasar untuk guru piket hari ini
+        $totalSiswa = Siswa::where('tahun_akademik_id', $tahunId)->count();
+        
+        $totalAbsensiSiswa = AbsensiSiswa::whereDate('tanggal', $today)->count();
+        $totalIzinPending = IzinSakit::where('status', 'pending')->count();
+        
+        $statusHariIni = AbsensiSiswa::whereDate('tanggal', $today)
+            ->select('status')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->toArray();
+
+        $hadirCount = $statusHariIni['hadir'] ?? 0;
+        $sakitCount = $statusHariIni['sakit'] ?? 0;
+        $izinCount = $statusHariIni['izin'] ?? 0;
+        $alphaCount = $statusHariIni['alpha'] ?? 0;
+        $terlambatCount = $statusHariIni['terlambat'] ?? 0;
+        
+        // Log aktivitas piket terakhir
+        $recentLogs = ActivityLog::where('action', 'scan')
+            ->orderBy('id', 'desc')
+            ->limit(5)
+            ->get();
+
+        return compact(
+            'totalSiswa',
+            'totalAbsensiSiswa',
+            'totalIzinPending',
+            'hadirCount',
+            'sakitCount',
+            'izinCount',
+            'alphaCount',
+            'terlambatCount',
+            'recentLogs'
+        );
+    }
+
     private function siswaData($user): array
     {
         $siswa = Siswa::where('user_id', $user->id)->first();
@@ -993,7 +1041,16 @@ private function superAdminData(): array
             }
 
             // Send via Http Facade
-            $response = Http::withoutVerifying()->withHeaders(['Content-Type' => 'application/json'])
+            $url = 'https://api.fonnte.com/send';
+            $data = [
+                'target' => $headmasterNumber,
+                'message' => $message,
+                'countryCode' => '62',
+            ];
+            $response = Http::withoutVerifying()
+                ->withHeaders([
+                    'Authorization' => $apiKey,
+                ])
                 ->post($url, $data);
 
             $result = $response->json();

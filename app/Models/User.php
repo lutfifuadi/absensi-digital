@@ -31,6 +31,7 @@ class User extends Authenticatable
     public const ROLE_STAFF_TU = 'staff_tu';
     public const ROLE_SISWA = 'siswa';
     public const ROLE_ORANG_TUA = 'orang_tua';
+    public const ROLE_PIKET = 'piket';
 
     /**
      * The attributes that are mass assignable.
@@ -112,6 +113,11 @@ class User extends Authenticatable
     public function isSuperAdmin(): bool
     {
         return $this->isRole(self::ROLE_SUPER_ADMIN);
+    }
+
+    public function isPiket(): bool
+    {
+        return $this->isRole(self::ROLE_PIKET);
     }
 
     public function scopeWithRole($query, string $role)

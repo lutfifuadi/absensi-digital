@@ -60,6 +60,8 @@ use App\Http\Controllers\PortalSiswaController;
 use App\Http\Controllers\PublicPagesController;
 use App\Http\Controllers\PublicPelepasanController;
 use App\Http\Controllers\PublicQrScanController;
+use App\Http\Controllers\PiketScannerController;
+use App\Http\Controllers\PublicKegiatanController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -119,6 +121,15 @@ Route::prefix('scan-qr')->name('public.scan-qr.')->group(function () {
     Route::get('/stats', [PublicQrScanController::class, 'scanStats'])->name('stats');
     Route::get('/search', [PublicQrScanController::class, 'searchSiswaGuru'])
         ->name('search');
+});
+
+// Scan absensi kegiatan publik ber-password tanpa lock device
+Route::prefix('kegiatan/scan-publik')->name('public.kegiatan.')->group(function () {
+    Route::get('/', [PublicKegiatanController::class, 'index'])->name('index');
+    Route::post('/auth', [PublicKegiatanController::class, 'auth'])->name('auth')->middleware('throttle:5,15');
+    Route::get('/scan', [PublicKegiatanController::class, 'scan'])->name('scan');
+    Route::post('/process', [PublicKegiatanController::class, 'process'])->name('process')->middleware('throttle:60,1');
+    Route::post('/logout', [PublicKegiatanController::class, 'logout'])->name('logout');
 });
 
 Route::get('/device-unauthorized', function () {
@@ -239,6 +250,16 @@ Route::middleware([
         Route::get('/pengaturan', [PortalOrangTuaController::class, 'pengaturan'])->name('ortu.pengaturan');
         Route::put('/pengaturan/profil', [PortalOrangTuaController::class, 'updateProfil'])->name('ortu.pengaturan.profil');
         Route::put('/pengaturan/password', [PortalOrangTuaController::class, 'updatePassword'])->name('ortu.pengaturan.password');
+    });
+
+    // ── PORTAL PIKET ──────────────────────────────────────────────────────────
+    Route::prefix('piket')->middleware('role:piket')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('piket.dashboard');
+        Route::get('/scanner', [PiketScannerController::class, 'index'])->name('piket.scanner');
+        Route::post('/scanner/process', [PiketScannerController::class, 'process'])->name('piket.scanner.process');
+        Route::get('/scanner/stats', [PiketScannerController::class, 'stats'])->name('piket.scanner.stats');
+        Route::get('/rekap', [PiketScannerController::class, 'rekap'])->name('piket.rekap');
+        Route::post('/rekap/update', [PiketScannerController::class, 'updateRekap'])->name('piket.rekap.update');
     });
 
     // ── Impersonation routes ────────────────────────────────────────────────────
