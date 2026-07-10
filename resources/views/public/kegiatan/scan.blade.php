@@ -118,23 +118,25 @@
         }
 
         .mob-header__logout {
-            color: #ea5455 !important;
-            background: none;
-            border: none;
+            color: #ffffff !important;
+            background: #ea5455 !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 44px;
-            height: 44px;
-            min-width: 44px;
-            min-height: 44px;
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            min-height: 40px;
             border-radius: 8px;
-            font-size: 1.4rem;
-            transition: background 0.2s, transform 0.2s;
+            font-size: 1.2rem;
+            box-shadow: 0 0 12px rgba(234, 84, 85, 0.45);
+            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
         }
         .mob-header__logout:hover {
-            background: rgba(234, 84, 85, 0.1);
+            background: #ff4d4f !important;
+            box-shadow: 0 0 18px rgba(234, 84, 85, 0.7);
             transform: scale(1.05);
         }
         .mob-header__logout:active {
