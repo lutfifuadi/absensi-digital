@@ -321,6 +321,7 @@
     ['icon'=>'tabler-calendar-check',   'color'=>'success', 'title'=>'Input Absensi', 'desc'=>'Input harian per kelas.',           'route'=>route('admin.absensi-siswa.index')],
     ['icon'=>'tabler-report-analytics', 'color'=>'info',    'title'=>'Laporan',        'desc'=>'Rekap bulanan & export.',           'route'=>route('admin.laporan.index')],
     ['icon'=>'tabler-file-heart',       'color'=>'danger',  'title'=>'Izin & Sakit',   'desc'=>'Tinjau pengajuan izin.',            'route'=>route('admin.izin-sakit.index')],
+    ['icon'=>'tabler-scan', 'color'=>'warning', 'title'=>'Scan Kegiatan Publik', 'desc'=>'Halaman scan tanpa lock device.', 'route'=>route('public.kegiatan.index')],
   ];
 @endphp
 

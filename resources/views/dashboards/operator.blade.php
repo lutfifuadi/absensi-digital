@@ -157,6 +157,18 @@
         </div>
       </div>
     </div>
+    <div class="col-md-3">
+      <div class="card glass-card h-100">
+        <div class="card-body p-4 text-center">
+            <div class="avatar avatar-lg bg-label-danger mx-auto mb-3">
+                <span class="avatar-initial rounded"><i class="ti tabler-scan fs-2"></i></span>
+            </div>
+            <h5 class="fw-bold">Scan Kegiatan Publik</h5>
+            <p class="small text-muted">Scan tanpa lock device.</p>
+            <a href="{{ route('public.kegiatan.index') }}" target="_blank" class="btn btn-danger w-100">Scan Publik</a>
+        </div>
+      </div>
+    </div>
   </div>
 @endsection
 

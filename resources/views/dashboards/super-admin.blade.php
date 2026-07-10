@@ -354,6 +354,12 @@
                       'route' => route('admin.update.index'),
                       'color' => 'primary',
                   ],
+                  [
+                      'icon' => 'tabler-scan',
+                      'title' => 'Scan Publik',
+                      'route' => route('public.kegiatan.index'),
+                      'color' => 'danger',
+                  ],
               ];
             @endphp
             @foreach ($quickLinks as $link)
