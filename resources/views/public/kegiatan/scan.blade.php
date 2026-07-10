@@ -837,11 +837,11 @@
                 <div class="mob-header__sub">Absensi Kegiatan Khusus — MAN 1 Kota Bandung</div>
             </div>
         </div>
-        <form action="{{ route('public.kegiatan.logout') }}" method="POST" id="logoutForm" style="display:inline;">
+        <button type="submit" form="logoutForm" class="mob-header__logout" title="Keluar Sesi">
+            <i class="ti tabler-logout"></i>
+        </button>
+        <form action="{{ route('public.kegiatan.logout') }}" method="POST" id="logoutForm" style="display:none;">
             @csrf
-            <button type="submit" class="mob-header__logout" title="Keluar Sesi">
-                <i class="ti tabler-logout"></i>
-            </button>
         </form>
     </div>
 
