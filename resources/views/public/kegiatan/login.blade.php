@@ -268,7 +268,19 @@
             <button type="button" id="togglePasswordBtn" 
               style="position: absolute; right: 12px; background: none; border: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; outline: none; transition: color 0.2s;" 
               title="Lihat password">
-              <i class="ti tabler-eye" id="eyeIcon" style="font-size: 1.25rem;"></i>
+              <!-- Eye SVG -->
+              <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+                <path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" />
+              </svg>
+              <!-- Eye Off SVG -->
+              <svg id="eyeOffIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none; display: none;">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M3 3l18 18" />
+                <path d="M19 19a12 12 0 0 1 -18 -7a12 12 0 0 1 18 0" />
+                <path d="M14 14a2 2 0 1 1 -4 -4" />
+              </svg>
             </button>
           </div>
           @error('password')
@@ -287,21 +299,24 @@
       const togglePasswordBtn = document.getElementById('togglePasswordBtn');
       const passwordInput = document.getElementById('password');
       const eyeIcon = document.getElementById('eyeIcon');
+      const eyeOffIcon = document.getElementById('eyeOffIcon');
 
       togglePasswordBtn.addEventListener('click', function() {
         const isPassword = passwordInput.getAttribute('type') === 'password';
         passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
         
         if (isPassword) {
-          eyeIcon.className = 'ti tabler-eye-off';
+          eyeIcon.style.display = 'none';
+          eyeOffIcon.style.display = 'block';
           togglePasswordBtn.setAttribute('title', 'Sembunyikan password');
         } else {
-          eyeIcon.className = 'ti tabler-eye';
+          eyeIcon.style.display = 'block';
+          eyeOffIcon.style.display = 'none';
           togglePasswordBtn.setAttribute('title', 'Lihat password');
         }
       });
 
-      // Hover effect via JS or CSS
+      // Hover effect
       togglePasswordBtn.addEventListener('mouseenter', () => {
         togglePasswordBtn.style.color = '#fff';
       });
