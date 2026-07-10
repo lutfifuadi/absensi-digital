@@ -117,6 +117,30 @@
             background: rgba(255,255,255,0.05);
         }
 
+        .mob-header__logout {
+            color: #ea5455 !important;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
+            border-radius: 8px;
+            font-size: 1.4rem;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .mob-header__logout:hover {
+            background: rgba(234, 84, 85, 0.1);
+            transform: scale(1.05);
+        }
+        .mob-header__logout:active {
+            transform: scale(0.95);
+        }
+
         /* ── KEGIATAN SELECTOR ───────────────────────────── */
         .kegiatan-selector {
             flex-shrink: 0;
@@ -815,7 +839,7 @@
         </div>
         <form action="{{ route('public.kegiatan.logout') }}" method="POST" id="logoutForm" style="display:inline;">
             @csrf
-            <button type="submit" class="mob-header__back" style="background:none; border:none; color:inherit; cursor:pointer;" title="Keluar Sesi">
+            <button type="submit" class="mob-header__logout" title="Keluar Sesi">
                 <i class="ti tabler-logout"></i>
             </button>
         </form>
