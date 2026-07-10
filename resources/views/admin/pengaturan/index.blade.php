@@ -1043,7 +1043,7 @@
             <div class="set-section-label">Konfigurasi Repositori</div>
 
 
-            <div class="set-form-grid">
+            <div class="set-form-grid mb-4">
               <div class="set-field">
                 <label class="set-label">GitHub Username / Owner</label>
                 <div class="set-input-group">
@@ -1073,6 +1073,29 @@
                 <div class="set-field-hint --info"><i class="ti tabler-info-circle"></i> Versi ini akan digunakan untuk membandingkan dengan rilisan terbaru di GitHub.</div>
               </div>
             </div>
+
+            <div class="set-section-label">Pembersihan Cache Sistem</div>
+            <div class="card bg-transparent border-0">
+              <div class="card-body p-0">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: rgba(234, 84, 85, 0.05); border: 1px solid rgba(234, 84, 85, 0.15); border-radius: 12px; padding: 1.5rem;">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="clear-cache-icon" style="width: 50px; height: 50px; background: rgba(234, 84, 85, 0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #ea5455;">
+                      <i class="ti tabler-trash-x fs-2"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-1" style="color: #fff;">Clear Cache Aplikasi & Browser</h6>
+                      <p class="mb-0 text-muted small">Membersihkan cache Laravel (config, view, route, data cache) dan cache service worker/PWA di browser.</p>
+                    </div>
+                  </div>
+                  <div>
+                    <button type="button" class="set-btn btn-danger" id="clearCacheBtn" data-bs-toggle="modal" data-bs-target="#modalClearCache" style="background-color: #ea5455; color: #fff;">
+                      <i class="ti tabler-trash-x me-1"></i>
+                      <span>Bersihkan Cache Aplikasi & Browser</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1084,6 +1107,81 @@
   @include('admin.pengaturan.partials.google-sheets-siswa')
   @include('admin.pengaturan.partials.google-sheets-guru')
   @include('admin.pengaturan.partials.google-drive')
+
+  {{-- ══════════════════════════════════════════════ --}}
+  {{-- MODAL CLEAR CACHE SYSTEM ── --}}
+  {{-- ══════════════════════════════════════════════ --}}
+  <div class="modal fade" id="modalClearCache" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+      <div class="modal-content shadow-lg">
+        <div class="modal-header">
+          <div class="d-flex align-items-center gap-3 w-100">
+            <div class="modal-icon-header" style="background: rgba(255, 159, 67, 0.15); border: 1px solid rgba(255, 159, 67, 0.25);">
+              <i class="ti tabler-refresh-alert text-warning fs-4"></i>
+            </div>
+            <div class="flex-grow-1">
+              <h5 class="modal-title mb-1 text-white fw-bold lh-sm">Bersihkan Cache</h5>
+              <small class="d-block text-white-50">Tindakan ini akan mereset cache server & browser.</small>
+            </div>
+            <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+        </div>
+        <div class="modal-body text-center py-4 px-5">
+          <div class="mb-3 text-white-50 small">Anda akan membersihkan cache sistem.</div>
+          <div class="alert alert-warning d-flex align-items-center gap-2 border-0 py-2 px-3 justify-content-center" style="background: rgba(255, 159, 67, 0.12); color: #ff9f43; border-radius: 6px; font-size: 0.75rem;">
+            <i class="ti tabler-alert-triangle fs-6"></i>
+            <span>Sistem akan memuat ulang halaman secara otomatis setelah selesai.</span>
+          </div>
+        </div>
+        <div class="modal-footer justify-content-end p-3 gap-2">
+          <button type="button" class="btn btn-label-secondary px-4" data-bs-dismiss="modal">
+            <i class="ti tabler-x me-1"></i> Batal
+          </button>
+          <button type="button" id="confirmClearCacheBtn" class="btn btn-warning fw-semibold px-4 shadow-sm">
+            <i class="ti tabler-refresh me-1"></i> Bersihkan
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{-- ══════════════════════════════════════════════ --}}
+  {{-- MODAL LOADING CLEAR CACHE --}}
+  {{-- ══════════════════════════════════════════════ --}}
+  <div class="modal fade" id="modalLoadingCache" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:380px;">
+      <div class="modal-content shadow-lg">
+        <div class="modal-body text-center py-4 px-5">
+          <div class="d-flex flex-column align-items-center gap-3">
+            <div class="spinner-border text-warning" role="status" style="width: 3rem; height: 3rem;">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <h5 class="fw-bold text-white mb-1">Sedang membersihkan cache...</h5>
+            <p class="text-white-50 small mb-0">Mohon tunggu sebentar, sistem sedang memproses permintaan Anda.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{-- ══════════════════════════════════════════════ --}}
+  {{-- MODAL SUKSES CLEAR CACHE --}}
+  {{-- ══════════════════════════════════════════════ --}}
+  <div class="modal fade" id="modalSuksesCache" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:380px;">
+      <div class="modal-content shadow-lg">
+        <div class="modal-body text-center py-4 px-5">
+          <div class="d-flex flex-column align-items-center gap-3">
+            <div class="modal-icon-header mb-2" style="width: 60px; height: 60px; border-radius: 50%; background: rgba(40, 199, 111, 0.15); border: 1px solid rgba(40, 199, 111, 0.25); color: #28c76f; display: flex; align-items: center; justify-content: center;">
+              <i class="ti tabler-circle-check text-success fs-2"></i>
+            </div>
+            <h5 class="fw-bold text-white mb-1">Berhasil!</h5>
+            <p class="text-white-50 small mb-0" id="suksesCacheMessage">Cache berhasil dibersihkan!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   {{-- Bottom Save Button --}}
   <div class="set-footer-save">
@@ -1100,6 +1198,37 @@
 
 @section('page-style')
 <style>
+/* ── Custom Modal Clear Cache Styling ── */
+#modalClearCache .modal-content,
+#modalLoadingCache .modal-content,
+#modalSuksesCache .modal-content {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #1e1e2d;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+#modalClearCache .modal-header {
+  background: linear-gradient(135deg, #2d241a 0%, #3d2a0f 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.25rem 1.5rem;
+}
+
+#modalClearCache .modal-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.modal-icon-header {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 /* ── Custom Select2 Vuexy Theme Integration ── */
 .select2-wrapper {
   position: relative;
@@ -2094,6 +2223,72 @@ document.addEventListener('DOMContentLoaded', function () {
               });
           });
       }
+  });
+
+  /* ── CLEAR CACHE SYSTEM ── */
+  $('#confirmClearCacheBtn').on('click', function(e) {
+      e.preventDefault();
+      
+      var modalClearEl = document.getElementById('modalClearCache');
+      var modalClear = bootstrap.Modal.getInstance(modalClearEl) || new bootstrap.Modal(modalClearEl);
+      modalClear.hide();
+      
+      var modalLoadingEl = document.getElementById('modalLoadingCache');
+      var modalLoading = new bootstrap.Modal(modalLoadingEl);
+      modalLoading.show();
+      
+      // POST request to backend
+      $.ajax({
+          url: '{{ route("admin.pengaturan.clear-cache") }}',
+          type: 'POST',
+          headers: {
+              'X-CSRF-TOKEN': '{{ csrf_token() }}'
+          },
+          success: function(response) {
+              modalLoading.hide();
+              
+              if (response.success) {
+                  // Clear PWA / Browser Cache
+                  if ('caches' in window) {
+                      caches.keys().then(function(names) {
+                          for (let name of names) {
+                              caches.delete(name);
+                          }
+                      });
+                  }
+                  if (navigator.serviceWorker) {
+                      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                          for(let registration of registrations) {
+                              registration.unregister();
+                          }
+                      });
+                  }
+ 
+                  if (response.message) {
+                      $('#suksesCacheMessage').text(response.message);
+                  }
+
+                  var modalSuksesEl = document.getElementById('modalSuksesCache');
+                  var modalSukses = new bootstrap.Modal(modalSuksesEl);
+                  modalSukses.show();
+ 
+                  // Reload page after 1.5s
+                  setTimeout(function() {
+                      window.location.reload();
+                  }, 1500);
+              } else {
+                  alert(response.message || 'Terjadi kesalahan saat membersihkan cache.');
+              }
+          },
+          error: function(xhr) {
+              modalLoading.hide();
+              var errorMessage = 'Gagal membersihkan cache.';
+              if (xhr.responseJSON && xhr.responseJSON.message) {
+                  errorMessage = xhr.responseJSON.message;
+              }
+              alert(errorMessage);
+          }
+      });
   });
 
 });

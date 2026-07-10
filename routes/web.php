@@ -725,6 +725,9 @@ Route::middleware([
         Route::post('pengaturan', [PengaturanController::class, 'update'])
             ->name('admin.pengaturan.update')
             ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pengaturan/clear-cache', [PengaturanController::class, 'clearCache'])
+            ->name('admin.pengaturan.clear-cache')
+            ->middleware('role:super_admin');
 
         // Update Sistem
         Route::get('update', [UpdateController::class, 'index'])

@@ -164,6 +164,27 @@ class PengaturanController extends Controller
         return view('admin.pengaturan.index', compact('settings', 'currentVersion', 'updateInfo', 'setting', 'guruSetting', 'tahunAkademikList', 'kelasList'));
     }
 
+    public function clearCache(Request $request)
+    {
+        try {
+            \Illuminate\Support\Facades\Artisan::call('cache:clear');
+            \Illuminate\Support\Facades\Artisan::call('config:clear');
+            \Illuminate\Support\Facades\Artisan::call('view:clear');
+            \Illuminate\Support\Facades\Artisan::call('route:clear');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cache aplikasi berhasil dibersihkan!'
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Gagal membersihkan cache: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membersihkan cache: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function update(Request $request)
     {
         $data = $request->except(['_token', 'logo_sekolah', 'logo_url', 'tanda_tangan_kepala_sekolah', 'cap_sekolah', 'google_drive_credentials_file']);
