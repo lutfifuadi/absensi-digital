@@ -42,6 +42,19 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+
+  // Jangan intervensi request untuk rute-rute admin, guru, ortu, siswa, piket
+  if (
+    url.pathname.startsWith('/admin') ||
+    url.pathname.startsWith('/guru') ||
+    url.pathname.startsWith('/ortu') ||
+    url.pathname.startsWith('/siswa') ||
+    url.pathname.startsWith('/piket')
+  ) {
+    return;
+  }
+
   if (event.request.method !== 'GET') return;
 
   event.respondWith(

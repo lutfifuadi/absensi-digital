@@ -181,12 +181,17 @@ class SiswaService
 
         foreach ($kelasAsalList as $kelas) {
             $tingkatSekarang = $kelas->tingkat;
-            $nextTingkat = match ($tingkatSekarang) {
-                'X' => 'XI',
-                'XI' => 'XII',
-                'XII' => null,
-                default => null,
-            };
+            
+            $activeJenjang = \App\Helpers\JenjangHelper::getActiveJenjang();
+            $tingkatOptions = \App\Helpers\JenjangHelper::getTingkatOptions($activeJenjang);
+            
+            $currentIndex = array_search($tingkatSekarang, $tingkatOptions);
+            
+            if ($currentIndex !== false && isset($tingkatOptions[$currentIndex + 1])) {
+                $nextTingkat = $tingkatOptions[$currentIndex + 1];
+            } else {
+                $nextTingkat = null;
+            }
 
             $siswaCount = $activeSiswaCounts[$kelas->id] ?? 0;
 
@@ -269,12 +274,17 @@ class SiswaService
 
         foreach ($kelasAsalList as $kelas) {
             $tingkatSekarang = $kelas->tingkat;
-            $nextTingkat = match ($tingkatSekarang) {
-                'X' => 'XI',
-                'XI' => 'XII',
-                'XII' => null,
-                default => null,
-            };
+            
+            $activeJenjang = \App\Helpers\JenjangHelper::getActiveJenjang();
+            $tingkatOptions = \App\Helpers\JenjangHelper::getTingkatOptions($activeJenjang);
+            
+            $currentIndex = array_search($tingkatSekarang, $tingkatOptions);
+            
+            if ($currentIndex !== false && isset($tingkatOptions[$currentIndex + 1])) {
+                $nextTingkat = $tingkatOptions[$currentIndex + 1];
+            } else {
+                $nextTingkat = null;
+            }
 
             $siswaIds = Siswa::where('kelas_id', $kelas->id)
                 ->where('status', 'aktif')

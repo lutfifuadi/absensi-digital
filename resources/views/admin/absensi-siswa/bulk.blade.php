@@ -161,10 +161,15 @@
                         id="a-{{ $s->id }}" value="alpha" autocomplete="off" onchange="updateSummary()">
                       <label class="btn btn-sm btn-outline-danger rounded-pill px-3" for="a-{{ $s->id }}" title="Alpha">A</label>
  
-                      {{-- TERLAMBAT --}}
-                      <input type="radio" class="btn-check" name="absensi[{{ $index }}][status]" 
-                        id="t-{{ $s->id }}" value="terlambat" autocomplete="off" onchange="updateSummary()">
-                      <label class="btn btn-sm btn-outline-primary rounded-pill px-3" for="t-{{ $s->id }}" title="Terlambat">T</label>
+                      @php
+                        $activeJenjang = \App\Helpers\JenjangHelper::getActiveJenjang();
+                      @endphp
+                      @if(!in_array($activeJenjang, ['SD/MI', 'SMP/MTs']))
+                        {{-- TERLAMBAT --}}
+                        <input type="radio" class="btn-check" name="absensi[{{ $index }}][status]" 
+                          id="t-{{ $s->id }}" value="terlambat" autocomplete="off" onchange="updateSummary()">
+                        <label class="btn btn-sm btn-outline-primary rounded-pill px-3" for="t-{{ $s->id }}" title="Terlambat">T</label>
+                      @endif
                     </div>
                   </td>
                   <td class="pe-4 text-end">
@@ -178,13 +183,17 @@
         <div class="card-footer border-top p-4" style="background:rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.08) !important;">
           <div class="row align-items-center">
             <div class="col-md-9 mb-3 mb-md-0">
-               <div class="d-flex flex-wrap gap-4 fs-6 fw-bold" id="summary-badge">
-                 <div class="text-success d-flex align-items-center gap-1"><i class="ti tabler-circle-check fs-5"></i> <span id="sum-h">0</span> Hadir</div>
-                 <div class="text-info d-flex align-items-center gap-1"><i class="ti tabler-stethoscope fs-5"></i> <span id="sum-s">0</span> Sakit</div>
-                 <div class="text-warning d-flex align-items-center gap-1"><i class="ti tabler-file-description fs-5"></i> <span id="sum-i">0</span> Izin</div>
-                 <div class="text-danger d-flex align-items-center gap-1"><i class="ti tabler-x fs-5"></i> <span id="sum-a">0</span> Alpha</div>
-                 <div class="text-primary d-flex align-items-center gap-1"><i class="ti tabler-clock fs-5"></i> <span id="sum-t">0</span> Telat</div>
-               </div>
+                 <div class="d-flex flex-wrap gap-4 fs-6 fw-bold" id="summary-badge">
+                  <div class="text-success d-flex align-items-center gap-1"><i class="ti tabler-circle-check fs-5"></i> <span id="sum-h">0</span> Hadir</div>
+                  <div class="text-info d-flex align-items-center gap-1"><i class="ti tabler-stethoscope fs-5"></i> <span id="sum-s">0</span> Sakit</div>
+                  <div class="text-warning d-flex align-items-center gap-1"><i class="ti tabler-file-description fs-5"></i> <span id="sum-i">0</span> Izin</div>
+                  <div class="text-danger d-flex align-items-center gap-1"><i class="ti tabler-x fs-5"></i> <span id="sum-a">0</span> Alpha</div>
+                  @if(!in_array($activeJenjang, ['SD/MI', 'SMP/MTs']))
+                    <div class="text-primary d-flex align-items-center gap-1"><i class="ti tabler-clock fs-5"></i> <span id="sum-t">0</span> Telat</div>
+                  @else
+                    <div class="d-none"><span id="sum-t">0</span></div>
+                  @endif
+                </div>
             </div>
             <div class="col-md-3 text-md-end">
                <button type="submit" class="btn btn-info px-4 py-2 fw-bold shadow-sm">
@@ -222,11 +231,17 @@
     const a = document.querySelectorAll('input[value="alpha"]:checked').length;
     const t = document.querySelectorAll('input[value="terlambat"]:checked').length;
 
-    document.getElementById('sum-h').innerText = h;
-    document.getElementById('sum-s').innerText = s;
-    document.getElementById('sum-i').innerText = i;
-    document.getElementById('sum-a').innerText = a;
-    document.getElementById('sum-t').innerText = t;
+    const sumH = document.getElementById('sum-h');
+    const sumS = document.getElementById('sum-s');
+    const sumI = document.getElementById('sum-i');
+    const sumA = document.getElementById('sum-a');
+    const sumT = document.getElementById('sum-t');
+
+    if(sumH) sumH.innerText = h;
+    if(sumS) sumS.innerText = s;
+    if(sumI) sumI.innerText = i;
+    if(sumA) sumA.innerText = a;
+    if(sumT) sumT.innerText = t;
   }
 
   function markAll(status) {

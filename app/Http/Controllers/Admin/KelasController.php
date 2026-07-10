@@ -53,8 +53,9 @@ class KelasController extends Controller
             ->get();
         $tahunAkademikOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
         $tahunAkademikList = TahunAkademik::orderBy('nama', 'desc')->orderBy('semester', 'desc')->get();
+        $tingkatOptions = \App\Helpers\JenjangHelper::getTingkatOptions();
 
-        return view('admin.kelas.index', compact('kelas', 'guruOptions', 'tahunAkademikOptions', 'tahunAkademikList', 'tingkat'));
+        return view('admin.kelas.index', compact('kelas', 'guruOptions', 'tahunAkademikOptions', 'tahunAkademikList', 'tingkat', 'tingkatOptions'));
     }
 
     public function create()
@@ -73,9 +74,10 @@ class KelasController extends Controller
 
     public function store(Request $request)
     {
+        $tingkatOptions = \App\Helpers\JenjangHelper::getTingkatOptions();
         $data = $request->validate([
             'nama' => 'required|string|max:255',
-            'tingkat' => 'required|in:X,XI,XII',
+            'tingkat' => ['required', Rule::in($tingkatOptions)],
             'jurusan' => 'required|string|max:255',
             'wali_kelas_id' => ['nullable', 'integer', Rule::exists('guru', 'id')],
             'tahun_akademik_id' => 'required|exists:tahun_akademik,id',
@@ -113,9 +115,10 @@ class KelasController extends Controller
 
     public function update(Request $request, Kelas $kelas)
     {
+        $tingkatOptions = \App\Helpers\JenjangHelper::getTingkatOptions();
         $data = $request->validate([
             'nama' => 'required|string|max:255',
-            'tingkat' => 'required|in:X,XI,XII',
+            'tingkat' => ['required', Rule::in($tingkatOptions)],
             'jurusan' => 'required|string|max:255',
             'wali_kelas_id' => ['nullable', 'integer', Rule::exists('guru', 'id')],
             'tahun_akademik_id' => 'required|exists:tahun_akademik,id',

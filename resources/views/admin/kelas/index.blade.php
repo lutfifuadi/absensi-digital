@@ -125,6 +125,7 @@
     #modalHapusKelas .modal-header {
       background: linear-gradient(135deg, #2d1a1a 0%, #3d0f0f 100%);
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 1.25rem 1.5rem;
     }
 
     #modalHapusKelas .modal-footer {
@@ -298,15 +299,11 @@
           <button type="button" class="btn tingkat-tab-btn {{ $tingkat === null || $tingkat === '' ? 'active' : '' }}" data-tingkat="">
             Semua
           </button>
-          <button type="button" class="btn tingkat-tab-btn {{ $tingkat === 'X' ? 'active' : '' }}" data-tingkat="X">
-            Tingkat X
-          </button>
-          <button type="button" class="btn tingkat-tab-btn {{ $tingkat === 'XI' ? 'active' : '' }}" data-tingkat="XI">
-            Tingkat XI
-          </button>
-          <button type="button" class="btn tingkat-tab-btn {{ $tingkat === 'XII' ? 'active' : '' }}" data-tingkat="XII">
-            Tingkat XII
-          </button>
+          @foreach ($tingkatOptions as $opt)
+            <button type="button" class="btn tingkat-tab-btn {{ $tingkat === $opt ? 'active' : '' }}" data-tingkat="{{ $opt }}">
+              Tingkat {{ $opt }}
+            </button>
+          @endforeach
         </div>
       </div>
 
@@ -319,9 +316,9 @@
         <!-- Filter Dropdown (Mobile fallback) -->
         <select id="tingkatSelect" class="form-select border-0 text-white w-auto d-md-none" style="background: rgba(255,255,255,0.05); height:38px; font-size:0.85rem; cursor:pointer;">
           <option value="" {{ $tingkat === null || $tingkat === '' ? 'selected' : '' }}>Semua Tingkat</option>
-          <option value="X" {{ $tingkat == 'X' ? 'selected' : '' }}>Tingkat X</option>
-          <option value="XI" {{ $tingkat == 'XI' ? 'selected' : '' }}>Tingkat XI</option>
-          <option value="XII" {{ $tingkat == 'XII' ? 'selected' : '' }}>Tingkat XII</option>
+          @foreach ($tingkatOptions as $opt)
+            <option value="{{ $opt }}" {{ $tingkat == $opt ? 'selected' : '' }}>Tingkat {{ $opt }}</option>
+          @endforeach
         </select>
 
         <select id="perPageSelect" class="form-select border-0 text-white w-auto" style="background: rgba(255,255,255,0.05); height:38px; font-size:0.85rem; cursor:pointer;">
@@ -404,9 +401,9 @@
                 <select id="modal_tingkat" name="tingkat" class="form-select @error('tingkat') is-invalid @enderror"
                   required>
                   <option value="">Pilih</option>
-                  <option value="X" {{ old('tingkat') === 'X' ? 'selected' : '' }}>X</option>
-                  <option value="XI" {{ old('tingkat') === 'XI' ? 'selected' : '' }}>XI</option>
-                  <option value="XII" {{ old('tingkat') === 'XII' ? 'selected' : '' }}>XII</option>
+                  @foreach ($tingkatOptions as $opt)
+                    <option value="{{ $opt }}" {{ old('tingkat') === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                  @endforeach
                 </select>
                 @error('tingkat')
                   <div class="invalid-feedback">{{ $message }}</div>
@@ -521,29 +518,32 @@
     <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
       <div class="modal-content shadow-lg">
         <div class="modal-header">
-          <div class="d-flex align-items-center gap-3">
-            <div
-              style="width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(234,84,85,0.2);border:1px solid rgba(234,84,85,0.35);">
-              <i class="ti tabler-alert-triangle text-danger fs-5"></i>
+          <div class="d-flex align-items-center gap-3 w-100">
+            <div class="modal-icon-header" style="background: rgba(234, 84, 85, 0.15); border: 1px solid rgba(234, 84, 85, 0.25);">
+              <i class="ti tabler-alert-triangle text-danger fs-4"></i>
             </div>
-            <div>
-              <h5 class="modal-title mb-0 text-white fw-bold">Konfirmasi Hapus</h5>
-              <small class="text-white-50">Tindakan ini tidak dapat dibatalkan.</small>
+            <div class="flex-grow-1">
+              <h5 class="modal-title mb-1 text-white fw-bold lh-sm">Konfirmasi Hapus</h5>
+              <small class="d-block text-white-50">Tindakan ini tidak dapat dibatalkan.</small>
             </div>
+            <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body text-center py-4">
-          <p class="mb-1 text-white-50">Yakin ingin menghapus kelas:</p>
-          <p class="fw-bold text-info fs-6 mb-0" id="hapusKelasNama">—</p>
+        <div class="modal-body text-center py-4 px-5">
+          <div class="mb-3 text-white-50 small">Anda akan menghapus data kelas:</div>
+          <h5 class="fw-bold text-info mb-4" id="hapusKelasNama">—</h5>
+          <div class="alert alert-warning d-flex align-items-center gap-2 border-0 py-2 px-3 justify-content-center" style="background: rgba(255, 159, 67, 0.12); color: #ff9f43; border-radius: 6px; font-size: 0.75rem;">
+            <i class="ti tabler-alert-triangle fs-6"></i>
+            <span>Siswa di kelas ini akan kehilangan asosiasi kelas mereka.</span>
+          </div>
         </div>
-        <div class="modal-footer gap-2 justify-content-center">
-          <button type="button" class="btn btn-label-secondary px-4" data-bs-dismiss="modal">
-            <i class="ti tabler-x me-1"></i> Batal
-          </button>
-          <form id="formHapusKelas" method="POST">
+        <div class="modal-footer justify-content-end p-3">
+          <form id="formHapusKelas" method="POST" class="d-flex align-items-center gap-2 m-0">
             @csrf
             @method('DELETE')
+            <button type="button" class="btn btn-label-secondary px-4" data-bs-dismiss="modal">
+              <i class="ti tabler-x me-1"></i> Batal
+            </button>
             <button type="submit" class="btn btn-danger fw-semibold px-4 shadow-sm">
               <i class="ti tabler-trash me-1"></i> Hapus
             </button>

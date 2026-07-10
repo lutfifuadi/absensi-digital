@@ -84,9 +84,9 @@
                 </label>
                 <select id="tingkat" name="tingkat" class="form-select @error('tingkat') is-invalid @enderror" required>
                   <option value="">Pilih tingkat</option>
-                  <option value="X" {{ old('tingkat', $kelas->tingkat) === 'X' ? 'selected' : '' }}>X</option>
-                  <option value="XI" {{ old('tingkat', $kelas->tingkat) === 'XI' ? 'selected' : '' }}>XI</option>
-                  <option value="XII" {{ old('tingkat', $kelas->tingkat) === 'XII' ? 'selected' : '' }}>XII</option>
+                  @foreach(\App\Helpers\JenjangHelper::getTingkatOptions() as $tingkat)
+                    <option value="{{ $tingkat }}" {{ old('tingkat', $kelas->tingkat) === $tingkat ? 'selected' : '' }}>{{ $tingkat }}</option>
+                  @endforeach
                 </select>
                 @error('tingkat')
                   <div class="invalid-feedback">{{ $message }}</div>

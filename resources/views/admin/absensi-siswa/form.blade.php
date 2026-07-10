@@ -136,7 +136,14 @@
                   <i class="ti tabler-circle-check me-1 text-info"></i> Status <span class="text-danger">*</span>
                 </label>
                 <select id="status" name="status" class="form-select" required>
-                  @foreach (['hadir', 'sakit', 'izin', 'alpha', 'terlambat'] as $status)
+                  @php
+                    $activeJenjang = \App\Helpers\JenjangHelper::getActiveJenjang();
+                    $statuses = ['hadir', 'sakit', 'izin', 'alpha'];
+                    if (!in_array($activeJenjang, ['SD/MI', 'SMP/MTs'])) {
+                        $statuses[] = 'terlambat';
+                    }
+                  @endphp
+                  @foreach ($statuses as $status)
                     <option value="{{ $status }}"
                       {{ old('status', $absensiSiswa->status ?? '') === $status ? 'selected' : '' }}>
                       {{ ucfirst($status) }}</option>

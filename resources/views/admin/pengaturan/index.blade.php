@@ -2,6 +2,18 @@
 
 @section('title', 'Pengaturan Sistem')
 
+@section('vendor-style')
+  @vite([
+    'resources/assets/vendor/libs/select2/select2.scss'
+  ])
+@endsection
+
+@section('vendor-script')
+  @vite([
+    'resources/assets/vendor/libs/select2/select2.js'
+  ])
+@endsection
+
 @section('content')
 
 {{-- ═══════════════════════════════════════════════════
@@ -161,11 +173,21 @@
 
               <div class="set-field">
                 <label class="set-label">Status Akreditasi</label>
-                <div class="set-input-group">
-                  <span class="set-input-prefix"><i class="ti tabler-certificate"></i></span>
-                  <select class="set-input" name="status_akreditasi">
+                <div class="select2-wrapper" style="position: relative;">
+                  <select class="select2 form-select" name="status_akreditasi">
                     @foreach(['Akreditasi A','Akreditasi B','Akreditasi C','Belum Terakreditasi'] as $akr)
                       <option value="{{ $akr }}" {{ ($settings['status_akreditasi'] ?? '') == $akr ? 'selected' : '' }}>{{ $akr }}</option>
+                    @endforeach
+                  </select>
+                </div>
+              </div>
+
+              <div class="set-field">
+                <label class="set-label">Jenjang Lembaga</label>
+                <div class="select2-wrapper" style="position: relative;">
+                  <select class="select2 form-select" name="jenjang" id="jenjangSelect">
+                    @foreach(\App\Helpers\JenjangHelper::getJenjangOptions() as $key => $label)
+                      <option value="{{ $key }}" {{ ($settings['jenjang'] ?? 'SMA/MA/SMK') == $key ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                   </select>
                 </div>
@@ -175,7 +197,7 @@
                 <label class="set-label">Jumlah Tahun Belajar</label>
                 <div class="set-input-group">
                   <span class="set-input-prefix"><i class="ti tabler-calendar"></i></span>
-                  <input type="number" class="set-input" name="jumlah_tahun_sekolah"
+                  <input type="number" class="set-input" name="jumlah_tahun_sekolah" id="jumlahTahunSekolah"
                     value="{{ old('jumlah_tahun_sekolah', $settings['jumlah_tahun_sekolah'] ?? '3') }}"
                     min="1" max="6">
                   <span class="set-input-suffix">Tahun</span>
@@ -344,9 +366,8 @@
 
               <div class="set-field set-field--full">
                 <label class="set-label">Zona Waktu Lokal</label>
-                <div class="set-input-group">
-                  <span class="set-input-prefix"><i class="ti tabler-globe"></i></span>
-                  <select class="set-input" name="zona_waktu">
+                <div class="select2-wrapper" style="position: relative;">
+                  <select class="select2 form-select" name="zona_waktu">
                     @foreach(['Asia/Jakarta (WIB)','Asia/Makassar (WITA)','Asia/Jayapura (WIT)'] as $tz)
                       <option value="{{ $tz }}" {{ ($settings['zona_waktu'] ?? '') == $tz ? 'selected' : '' }}>{{ $tz }}</option>
                     @endforeach
@@ -687,9 +708,8 @@
             <div class="set-form-grid mb-4">
               <div class="set-field">
                 <label class="set-label">Platform Notifikasi Orang Tua</label>
-                <div class="set-input-group">
-                  <span class="set-input-prefix"><i class="ti tabler-send"></i></span>
-                  <select class="set-input" name="jenis_notifikasi_ortu">
+                <div class="select2-wrapper" style="position: relative;">
+                  <select class="select2 form-select" name="jenis_notifikasi_ortu">
                     @foreach(['WhatsApp (WA)' => 'WhatsApp Gateway', 'Telegram' => 'Telegram Bot API', 'Matikan' => 'Disabled (Matikan)'] as $val => $label)
                       <option value="{{ $val }}" {{ ($settings['jenis_notifikasi_ortu'] ?? '') == $val ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
@@ -698,9 +718,8 @@
               </div>
               <div class="set-field">
                 <label class="set-label">Mode Feedback Scanner QR</label>
-                <div class="set-input-group">
-                  <span class="set-input-prefix"><i class="ti tabler-volume"></i></span>
-                  <select class="set-input" name="mode_notifikasi_scan_qr">
+                <div class="select2-wrapper" style="position: relative;">
+                  <select class="select2 form-select" name="mode_notifikasi_scan_qr">
                     <option value="Mode Audio" {{ ($settings['mode_notifikasi_scan_qr'] ?? '') == 'Mode Audio' ? 'selected' : '' }}>Mode Audio (Suara Berhasil)</option>
                     <option value="Mode Tulisan" {{ ($settings['mode_notifikasi_scan_qr'] ?? '') == 'Mode Tulisan' ? 'selected' : '' }}>Mode Visual Saja (Toast)</option>
                   </select>
@@ -709,9 +728,8 @@
 
               <div class="set-field">
                 <label class="set-label">Varian Notifikasi Suara</label>
-                <div class="set-input-group">
-                  <span class="set-input-prefix"><i class="ti tabler-music"></i></span>
-                  <select class="set-input" name="varian_notifikasi_suara">
+                <div class="select2-wrapper" style="position: relative;">
+                  <select class="select2 form-select" name="varian_notifikasi_suara">
                     @foreach([
                       'default'   => 'Default (Bel + Terima Kasih)',
                       'beep'      => 'Beep Standar',
@@ -728,9 +746,8 @@
 
               <div class="set-field">
                 <label class="set-label">Aktifkan Bunyi Notifikasi Absensi Mandiri</label>
-                <div class="set-input-group">
-                  <span class="set-input-prefix"><i class="ti tabler-speakerphone"></i></span>
-                  <select class="set-input" name="aktifkan_bunyi_notif_absensi">
+                <div class="select2-wrapper" style="position: relative;">
+                  <select class="select2 form-select" name="aktifkan_bunyi_notif_absensi">
                     <option value="Ya" {{ ($settings['aktifkan_bunyi_notif_absensi'] ?? 'Ya') == 'Ya' ? 'selected' : '' }}>Aktif</option>
                     <option value="Tidak" {{ ($settings['aktifkan_bunyi_notif_absensi'] ?? 'Ya') == 'Tidak' ? 'selected' : '' }}>Nonaktif</option>
                   </select>
@@ -1083,9 +1100,74 @@
 
 @section('page-style')
 <style>
+/* ── Custom Select2 Vuexy Theme Integration ── */
+.select2-wrapper {
+  position: relative;
+  width: 100% !important;
+}
+.select2-wrapper .select2-container {
+  width: 100% !important;
+}
+.select2-wrapper .select2-container .select2-selection--single {
+  background: rgba(15, 23, 42, 0.5) !important;
+  border: 1px solid var(--das-border) !important;
+  height: 40px !important;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  color: #e2e8f0;
+  border-radius: var(--das-radius-sm) !important;
+}
+.select2-wrapper .select2-container--default .select2-selection--single .select2-selection__rendered {
+  color: #e2e8f0 !important;
+  padding-left: 0.75rem;
+  font-size: 0.85rem;
+}
+.select2-wrapper .select2-container--default .select2-selection--single .select2-selection__arrow {
+  height: 38px;
+  right: 12px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.select2-wrapper .select2-container--default .select2-selection--single .select2-selection__arrow b {
+  border-color: #888 transparent transparent transparent;
+}
+.select2-wrapper .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+  border-color: transparent transparent #888 transparent;
+}
+
+.select2-dropdown {
+  background-color: #2f3349 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #fff !important;
+  z-index: 10000 !important;
+}
+.select2-container--default .select2-results__option[aria-selected=true] {
+  background-color: rgba(115, 103, 240, 0.2) !important;
+  color: #fff !important;
+}
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+  background-color: #7367f0 !important;
+  color: #fff !important;
+}
+.select2-container--default .select2-search--dropdown {
+  padding: 6px !important;
+}
+.select2-container--default .select2-search--dropdown .select2-search__field {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+  border-radius: 4px;
+  padding: 6px 10px !important;
+}
+
 /* ═══════════════════════════════════════
    CSS VARIABLES (konsisten dengan dashboard)
-═══════════════════════════════════════ */
+   ═══════════════════════════════════════ */
 :root {
   --das-primary:      #7367f0;
   --das-primary-soft: rgba(115,103,240,0.12);
@@ -1382,6 +1464,10 @@
 }
 .set-input::placeholder { color: #334155; }
 select.set-input { padding-right: 0.5rem; cursor: pointer; }
+select.set-input option {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
 .set-input-eye {
   padding: 0 0.75rem; background: transparent;
   border: none; color: #475569; cursor: pointer;
@@ -1981,6 +2067,33 @@ document.addEventListener('DOMContentLoaded', function () {
     btn.addEventListener('click', function () {
       this.closest('.set-toast')?.remove();
     });
+  });
+
+  /* ── AUTO UPDATE TAHUN BELAJAR BERDASARKAN JENJANG ── */
+  const jenjangSelect = $('#jenjangSelect');
+  const jumlahTahunInput = document.getElementById('jumlahTahunSekolah');
+  if (jenjangSelect.length && jumlahTahunInput) {
+    jenjangSelect.on('select2:select change', function (e) {
+      if (this.value === 'SD/MI') {
+        jumlahTahunInput.value = 6;
+      } else {
+        jumlahTahunInput.value = 3;
+      }
+    });
+  }
+
+  /* ── INITIALIZE SELECT2 FOR DROP DOWNS ── */
+  $(window).on('load', function() {
+      if ($.fn.select2) {
+          $('.select2').each(function() {
+              var $this = $(this);
+              $this.wrap('<div class="position-relative"></div>').select2({
+                  placeholder: 'Pilih opsi',
+                  dropdownParent: $this.parent(),
+                  width: '100%'
+              });
+          });
+      }
   });
 
 });

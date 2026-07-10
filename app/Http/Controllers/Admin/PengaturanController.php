@@ -18,6 +18,7 @@ class PengaturanController extends Controller
         'nama_lembaga' => 'Sistem Absensi',
         'nama_sekolah' => 'Sistem Absensi',
         'status_akreditasi' => 'Akreditasi A',
+        'jenjang' => 'SMA/MA/SMK',
         'jumlah_tahun_sekolah' => '3',
         'website_lembaga' => 'man1kotabandung.sch.id',
         'nama_kepala_lembaga' => 'YAYAN R JAYA, S.Pd., S.E., M.M',

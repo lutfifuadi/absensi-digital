@@ -70,8 +70,9 @@ class PublicPelepasanController extends Controller
 
         $taId = TahunAkademik::where('is_aktif', true)->value('id');
 
-        $totalSiswa = Siswa::whereHas('kelas', function ($q) {
-                $q->where('tingkat', 'XII');
+        $kelasAkhir = \App\Helpers\JenjangHelper::getKelasAkhir();
+        $totalSiswa = Siswa::whereHas('kelas', function ($q) use ($kelasAkhir) {
+                $q->where('tingkat', $kelasAkhir);
             })
             ->where('tahun_akademik_id', $taId)
             ->count();
@@ -111,8 +112,9 @@ class PublicPelepasanController extends Controller
             return response()->json(['success' => false, 'message' => 'Kartu siswa tidak terdaftar!'], 404);
         }
 
-        if (!$siswa->kelas || $siswa->kelas->tingkat !== 'XII') {
-            return response()->json(['success' => false, 'message' => 'Siswa bukan peserta Kelas XII!'], 403);
+        $kelasAkhir = \App\Helpers\JenjangHelper::getKelasAkhir();
+        if (!$siswa->kelas || $siswa->kelas->tingkat !== $kelasAkhir) {
+            return response()->json(['success' => false, 'message' => 'Siswa bukan peserta Kelas ' . $kelasAkhir . '!'], 403);
         }
 
         $already = AbsensiKegiatan::where('kegiatan_id', $kegiatan->id)
@@ -141,7 +143,7 @@ class PublicPelepasanController extends Controller
                     $message = $template ? $template->content : '';
 
                     if (empty($message)) {
-                        $message = "Assalamu'alaikum Wr. Wb. Yth. Orang Tua/Wali dari *{$siswa->nama_lengkap}* ({$siswa->kelas->nama}), kami menginfokan bahwa putra/putri Anda telah hadir di acara *Pelepasan Kelas XII* pada pukul " . $waktuAbsen->format('H:i') . " WIB. Terima kasih.";
+                        $message = "Assalamu'alaikum Wr. Wb. Yth. Orang Tua/Wali dari *{$siswa->nama_lengkap}* ({$siswa->kelas->nama}), kami menginfokan bahwa putra/putri Anda telah hadir di acara *Pelepasan Kelas {$kelasAkhir}* pada pukul " . $waktuAbsen->format('H:i') . " WIB. Terima kasih.";
                     } else {
                         $replacements = [
                             '{nama}'     => $siswa->nama_lengkap,
@@ -213,13 +215,14 @@ class PublicPelepasanController extends Controller
         }
 
         // Prioritas 2: Cari berdasarkan nama yang mengandung "Pelepasan"
-        $kegiatan = Kegiatan::where('nama_kegiatan', 'like', '%Pelepasan%Kelas%XII%')
+        $kelasAkhir = \App\Helpers\JenjangHelper::getKelasAkhir();
+        $kegiatan = Kegiatan::where('nama_kegiatan', 'like', '%Pelepasan%Kelas%' . $kelasAkhir . '%')
             ->where('tahun_akademik_id', $taId)
             ->first();
 
         if (!$kegiatan) {
             // Fallback: cari nama versi lama
-            $kegiatan = Kegiatan::where('nama_kegiatan', 'Pelepasan Kelas XII Angkatan 2026')
+            $kegiatan = Kegiatan::where('nama_kegiatan', "Pelepasan Kelas {$kelasAkhir} Angkatan 2026")
                 ->where('tahun_akademik_id', $taId)
                 ->first();
         }
@@ -230,16 +233,16 @@ class PublicPelepasanController extends Controller
             $tahun = $ta ? $ta->nama : date('Y');
 
             $kegiatan = Kegiatan::create([
-                'nama_kegiatan'       => "Pelepasan Kelas XII Angkatan {$tahun}",
+                'nama_kegiatan'       => "Pelepasan Kelas {$kelasAkhir} Angkatan {$tahun}",
                 'jenis'               => 'LAINNYA',
                 'tanggal_pelaksanaan' => date('Y-m-d'),
                 'waktu_mulai'         => '07:00:00',
                 'waktu_selesai'       => '13:00:00',
                 'lokasi'              => 'AULA UTAMA',
-                'keterangan'          => 'Absensi khusus wisuda & pelepasan siswa kelas XII',
+                'keterangan'          => "Absensi khusus wisuda & pelepasan siswa kelas {$kelasAkhir}",
                 'qr_code_kegiatan'    => 'KGT-PELEPASAN-' . date('Y'),
                 'is_wajib'            => true,
-                'target_peserta'      => ['XII'],
+                'target_peserta'      => [$kelasAkhir],
                 'tahun_akademik_id'   => $taId,
             ]);
         }

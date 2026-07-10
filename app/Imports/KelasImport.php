@@ -38,9 +38,15 @@ class KelasImport implements ToModel, WithHeadingRow, WithValidation, SkipsEmpty
 
     public function rules(): array
     {
+        $tingkatOptions = \App\Helpers\JenjangHelper::getTingkatOptions();
+        $tingkatValid = array_merge(
+            array_map('strtoupper', $tingkatOptions),
+            array_map('strtolower', $tingkatOptions)
+        );
+
         return [
             'nama' => ['required', 'string', 'max:255'],
-            'tingkat' => ['required', Rule::in(['X', 'XI', 'XII', 'x', 'xi', 'xii'])],
+            'tingkat' => ['required', Rule::in($tingkatValid)],
             'jurusan' => ['required', 'string', 'max:255'],
             'tahun_akademik' => ['required', 'string', 'exists:tahun_akademik,nama'],
         ];
@@ -48,9 +54,10 @@ class KelasImport implements ToModel, WithHeadingRow, WithValidation, SkipsEmpty
 
     public function customValidationMessages(): array
     {
+        $tingkatOptions = implode(', ', \App\Helpers\JenjangHelper::getTingkatOptions());
         return [
             'tahun_akademik.exists' => 'Tahun akademik tidak ditemukan. Pastikan nama sesuai dengan master data.',
-            'tingkat.in' => 'Tingkat harus salah satu dari: X, XI, XII.',
+            'tingkat.in' => 'Tingkat harus salah satu dari: ' . $tingkatOptions . '.',
         ];
     }
 }

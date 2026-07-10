@@ -51,6 +51,11 @@ class AbsensiSiswaController extends Controller
             return back()->withInput()->withErrors(['tanggal' => 'Absensi siswa ini sudah tercatat untuk tanggal tersebut.']);
         }
 
+        $activeJenjang = \App\Helpers\JenjangHelper::getActiveJenjang();
+        if (in_array($activeJenjang, ['SD/MI', 'SMP/MTs']) && $data['status'] === 'terlambat') {
+            $data['status'] = 'hadir';
+        }
+
         AbsensiSiswa::create($data);
 
         return redirect()->route('admin.absensi-siswa.index')->with('success', 'Absensi siswa berhasil disimpan.');
@@ -78,6 +83,11 @@ class AbsensiSiswaController extends Controller
             'guru_id' => 'nullable|exists:guru,id',
             'metode' => 'required|in:manual,qr,rfid',
         ]);
+
+        $activeJenjang = \App\Helpers\JenjangHelper::getActiveJenjang();
+        if (in_array($activeJenjang, ['SD/MI', 'SMP/MTs']) && $data['status'] === 'terlambat') {
+            $data['status'] = 'hadir';
+        }
 
         $absensiSiswa->update($data);
 
@@ -179,6 +189,11 @@ class AbsensiSiswaController extends Controller
             }
         }
 
+        $activeJenjang = \App\Helpers\JenjangHelper::getActiveJenjang();
+        if (in_array($activeJenjang, ['SD/MI', 'SMP/MTs']) && $status === 'terlambat') {
+            $status = 'hadir';
+        }
+
         AbsensiSiswa::create([
             'siswa_id'   => $siswa->id,
             'kelas_id'   => $siswa->kelas_id,
@@ -234,10 +249,16 @@ class AbsensiSiswaController extends Controller
         $kelasId = $request->kelas_id;
         $count = 0;
 
+        $activeJenjang = \App\Helpers\JenjangHelper::getActiveJenjang();
+
         foreach ($request->absensi as $item) {
             // Jika status tidak dipilih (fallback ke hadir)
             $status = $item['status'] ?? 'hadir';
             
+            if (in_array($activeJenjang, ['SD/MI', 'SMP/MTs']) && $status === 'terlambat') {
+                $status = 'hadir';
+            }
+
             AbsensiSiswa::updateOrCreate(
                 [
                     'siswa_id' => $item['siswa_id'],

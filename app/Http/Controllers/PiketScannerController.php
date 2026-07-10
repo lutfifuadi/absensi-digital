@@ -145,6 +145,11 @@ class PiketScannerController extends Controller
             $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i');
             $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
 
+            $activeJenjang = \App\Helpers\JenjangHelper::getActiveJenjang();
+            if (in_array($activeJenjang, ['SD/MI', 'SMP/MTs']) && $status === 'terlambat') {
+                $status = 'hadir';
+            }
+
             try {
                 AbsensiSiswa::create([
                     'siswa_id'    => $siswa->id,

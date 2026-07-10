@@ -36,9 +36,10 @@ class PelepasanController extends Controller
         }
 
         // Ambil semua siswa kelas XII
+        $kelasAkhir = \App\Helpers\JenjangHelper::getKelasAkhir();
         $siswaList = Siswa::with('kelas')
-            ->whereHas('kelas', function ($q) {
-                $q->where('tingkat', 'XII');
+            ->whereHas('kelas', function ($q) use ($kelasAkhir) {
+                $q->where('tingkat', $kelasAkhir);
             })
             ->where('tahun_akademik_id', $taId)
             ->orderBy('kelas_id')
@@ -46,7 +47,7 @@ class PelepasanController extends Controller
             ->get();
 
         if ($siswaList->isEmpty()) {
-            return back()->with('error', 'Tidak ada data siswa kelas XII untuk dicetak.');
+            return back()->with('error', 'Tidak ada data siswa kelas ' . $kelasAkhir . ' untuk dicetak.');
         }
 
         $config = $template->config;
@@ -99,13 +100,14 @@ class PelepasanController extends Controller
         }
 
         // Prioritas 2: Cari berdasarkan nama yang mengandung "Pelepasan"
-        $kegiatan = Kegiatan::where('nama_kegiatan', 'like', '%Pelepasan%Kelas%XII%')
+        $kelasAkhir = \App\Helpers\JenjangHelper::getKelasAkhir();
+        $kegiatan = Kegiatan::where('nama_kegiatan', 'like', '%Pelepasan%Kelas%' . $kelasAkhir . '%')
             ->where('tahun_akademik_id', $taId)
             ->first();
 
         if (!$kegiatan) {
             // Fallback: cari nama versi lama
-            $kegiatan = Kegiatan::where('nama_kegiatan', 'Pelepasan Kelas XII Angkatan 2026')
+            $kegiatan = Kegiatan::where('nama_kegiatan', "Pelepasan Kelas {$kelasAkhir} Angkatan 2026")
                 ->where('tahun_akademik_id', $taId)
                 ->first();
         }
@@ -116,16 +118,16 @@ class PelepasanController extends Controller
             $tahun = $ta ? $ta->nama : date('Y');
 
             $kegiatan = Kegiatan::create([
-                'nama_kegiatan' => "Pelepasan Kelas XII Angkatan {$tahun}",
+                'nama_kegiatan' => "Pelepasan Kelas {$kelasAkhir} Angkatan {$tahun}",
                 'jenis' => 'LAINNYA',
                 'tanggal_pelaksanaan' => date('Y-m-d'),
                 'waktu_mulai' => '07:00:00',
                 'waktu_selesai' => '13:00:00',
                 'lokasi' => 'AULA UTAMA',
-                'keterangan' => 'Absensi khusus wisuda & pelepasan siswa kelas XII',
+                'keterangan' => "Absensi khusus wisuda & pelepasan siswa kelas {$kelasAkhir}",
                 'qr_code_kegiatan' => 'KGT-PELEPASAN-' . date('Y'),
                 'is_wajib' => true,
-                'target_peserta' => ['XII'],
+                'target_peserta' => [$kelasAkhir],
                 'tahun_akademik_id' => $taId
             ]);
         }
@@ -165,10 +167,11 @@ class PelepasanController extends Controller
         $taId = session('tahun_akademik_id') ?? TahunAkademik::where('is_aktif', true)->value('id');
         $kegiatan = $this->getOrCreatePelepasanKegiatan($taId);
 
-        // Cari semua siswa kelas XII
+        // Cari semua siswa kelas akhir
+        $kelasAkhir = \App\Helpers\JenjangHelper::getKelasAkhir();
         $siswaQuery = Siswa::with('kelas')
-            ->whereHas('kelas', function ($q) {
-                $q->where('tingkat', 'XII');
+            ->whereHas('kelas', function ($q) use ($kelasAkhir) {
+                $q->where('tingkat', $kelasAkhir);
             })
             ->where('tahun_akademik_id', $taId);
 
@@ -190,8 +193,8 @@ class PelepasanController extends Controller
         $siswaList = Siswa::with(['kelas', 'absensiKegiatan' => function ($q) use ($kegiatan) {
                 $q->where('kegiatan_id', $kegiatan->id);
             }])
-            ->whereHas('kelas', function ($q) {
-                $q->where('tingkat', 'XII');
+            ->whereHas('kelas', function ($q) use ($kelasAkhir) {
+                $q->where('tingkat', $kelasAkhir);
             })
             ->where('tahun_akademik_id', $taId)
             ->when($search, function ($q) use ($search) {
@@ -227,8 +230,9 @@ class PelepasanController extends Controller
         $taId = session('tahun_akademik_id') ?? TahunAkademik::where('is_aktif', true)->value('id');
         $kegiatan = $this->getOrCreatePelepasanKegiatan($taId);
 
-        $totalSiswa = Siswa::whereHas('kelas', function ($q) {
-                $q->where('tingkat', 'XII');
+        $kelasAkhir = \App\Helpers\JenjangHelper::getKelasAkhir();
+        $totalSiswa = Siswa::whereHas('kelas', function ($q) use ($kelasAkhir) {
+                $q->where('tingkat', $kelasAkhir);
             })
             ->where('tahun_akademik_id', $taId)
             ->count();
@@ -250,8 +254,9 @@ class PelepasanController extends Controller
         $taId = session('tahun_akademik_id') ?? TahunAkademik::where('is_aktif', true)->value('id');
         $kegiatan = $this->getOrCreatePelepasanKegiatan($taId);
 
-        $totalSiswa = Siswa::whereHas('kelas', function ($q) {
-                $q->where('tingkat', 'XII');
+        $kelasAkhir = \App\Helpers\JenjangHelper::getKelasAkhir();
+        $totalSiswa = Siswa::whereHas('kelas', function ($q) use ($kelasAkhir) {
+                $q->where('tingkat', $kelasAkhir);
             })
             ->where('tahun_akademik_id', $taId)
             ->count();
@@ -266,8 +271,9 @@ class PelepasanController extends Controller
         $taId = session('tahun_akademik_id') ?? TahunAkademik::where('is_aktif', true)->value('id');
         $kegiatan = $this->getOrCreatePelepasanKegiatan($taId);
 
-        $totalSiswa = Siswa::whereHas('kelas', function ($q) {
-                $q->where('tingkat', 'XII');
+        $kelasAkhir = \App\Helpers\JenjangHelper::getKelasAkhir();
+        $totalSiswa = Siswa::whereHas('kelas', function ($q) use ($kelasAkhir) {
+                $q->where('tingkat', $kelasAkhir);
             })
             ->where('tahun_akademik_id', $taId)
             ->count();
@@ -322,9 +328,10 @@ class PelepasanController extends Controller
             return response()->json(['success' => false, 'message' => 'Kartu Siswa tidak terdaftar!'], 404);
         }
 
-        // Pastikan kelas XII
-        if (!$siswa->kelas || $siswa->kelas->tingkat !== 'XII') {
-            return response()->json(['success' => false, 'message' => 'Siswa bukan peserta kelulusan Kelas XII!'], 403);
+        // Pastikan kelas akhir
+        $kelasAkhir = \App\Helpers\JenjangHelper::getKelasAkhir();
+        if (!$siswa->kelas || $siswa->kelas->tingkat !== $kelasAkhir) {
+            return response()->json(['success' => false, 'message' => 'Siswa bukan peserta kelulusan Kelas ' . $kelasAkhir . '!'], 403);
         }
 
         // Check duplicate scan today
@@ -357,7 +364,7 @@ class PelepasanController extends Controller
 
                     if (empty($message)) {
                         // Fallback jika template tidak ditemukan
-                        $message = "Assalamu'alaikum Wr. Wb. Yth. Orang Tua/Wali dari *{$siswa->nama_lengkap}* ({$siswa->kelas->nama}), kami menginfokan bahwa putra/putri Anda telah hadir di acara *Pelepasan Kelas XII MAN 1 Kota Bandung* pada pukul " . $waktuAbsen->format('H:i') . " WIB. Terima kasih.";
+                        $message = "Assalamu'alaikum Wr. Wb. Yth. Orang Tua/Wali dari *{$siswa->nama_lengkap}* ({$siswa->kelas->nama}), kami menginfokan bahwa putra/putri Anda telah hadir di acara *Pelepasan Kelas {$kelasAkhir} MAN 1 Kota Bandung* pada pukul " . $waktuAbsen->format('H:i') . " WIB. Terima kasih.";
                     } else {
                         // Replace variabel template
                         $replacements = [
@@ -402,11 +409,12 @@ class PelepasanController extends Controller
         $taId = session('tahun_akademik_id') ?? TahunAkademik::where('is_aktif', true)->value('id');
         $kegiatan = $this->getOrCreatePelepasanKegiatan($taId);
 
+        $kelasAkhir = \App\Helpers\JenjangHelper::getKelasAkhir();
         $siswaList = Siswa::with(['kelas', 'absensiKegiatan' => function ($q) use ($kegiatan) {
                 $q->where('kegiatan_id', $kegiatan->id);
             }])
-            ->whereHas('kelas', function ($q) {
-                $q->where('tingkat', 'XII');
+            ->whereHas('kelas', function ($q) use ($kelasAkhir) {
+                $q->where('tingkat', $kelasAkhir);
             })
             ->where('tahun_akademik_id', $taId)
             ->orderBy('kelas_id')
@@ -443,7 +451,7 @@ class PelepasanController extends Controller
             fclose($file);
         };
 
-        $filename = 'rekap_absensi_pelepasan_xii_' . date('Y-m-d') . '.csv';
+        $filename = 'rekap_absensi_pelepasan_' . strtolower($kelasAkhir) . '_' . date('Y-m-d') . '.csv';
 
         return response()->stream($callback, 200, [
             'Content-type' => 'text/csv',

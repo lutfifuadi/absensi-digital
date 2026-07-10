@@ -22,13 +22,14 @@ function runTest() {
     echo "=========================================\n";
 
     // 1. Check if Grade XII classes and imported students exist
-    $kelasCount = Kelas::where('tingkat', 'XII')->count();
-    $siswaCount = Siswa::whereHas('kelas', function($q) {
-        $q->where('tingkat', 'XII');
+    $kelasAkhir = \App\Helpers\JenjangHelper::getKelasAkhir();
+    $kelasCount = Kelas::where('tingkat', $kelasAkhir)->count();
+    $siswaCount = Siswa::whereHas('kelas', function($q) use ($kelasAkhir) {
+        $q->where('tingkat', $kelasAkhir);
     })->count();
 
-    echo "Kelas XII count in DB: $kelasCount (XII-F.1 to XII-F.12)\n";
-    echo "Siswa XII count in DB: $siswaCount / 420\n";
+    echo "Kelas $kelasAkhir count in DB: $kelasCount (XII-F.1 to XII-F.12)\n";
+    echo "Siswa $kelasAkhir count in DB: $siswaCount / 420\n";
 
     if ($siswaCount === 0) {
         echo "WARNING: Import command is still running or hasn't imported any students yet. Let's wait or look up one student.\n";
@@ -36,12 +37,12 @@ function runTest() {
 
     // Find a student to test scan
     $testStudent = Siswa::with('kelas')
-        ->whereHas('kelas', function($q) {
-            $q->where('tingkat', 'XII');
+        ->whereHas('kelas', function($q) use ($kelasAkhir) {
+            $q->where('tingkat', $kelasAkhir);
         })->first();
 
     if (!$testStudent) {
-        echo "FAIL: No student in Class XII found in DB. Test aborted.\n";
+        echo "FAIL: No student in Class $kelasAkhir found in DB. Test aborted.\n";
         return;
     }
 
@@ -51,7 +52,7 @@ function runTest() {
     $taId = session('tahun_akademik_id') ?? TahunAkademik::where('is_aktif', true)->value('id');
     
     // Clear any existing attendance for this student in Pelepasan just in case
-    $kegiatan = Kegiatan::where('nama_kegiatan', 'Pelepasan Kelas XII Angkatan 2026')
+    $kegiatan = Kegiatan::where('nama_kegiatan', "Pelepasan Kelas {$kelasAkhir} Angkatan 2026")
         ->where('tahun_akademik_id', $taId)
         ->first();
     
