@@ -18,6 +18,7 @@
             width: {{ $config['canvas']['width'] }}pt;
             height: {{ $config['canvas']['height'] }}pt;
             overflow: hidden;
+            border-radius: 9pt;
             page-break-after: always;
         }
         .background {
@@ -49,9 +50,17 @@
     <div class="id-card">
         @php
             $bgBase64 = '';
-            if($template->background_path && file_exists(storage_path('app/public/' . $template->background_path))) {
-                $bgData = file_get_contents(storage_path('app/public/' . $template->background_path));
-                $bgBase64 = 'data:image/' . pathinfo($template->background_path, PATHINFO_EXTENSION) . ';base64,' . base64_encode($bgData);
+            if ($template->background_path) {
+                if (strlen($template->background_path) > 30) {
+                    try {
+                        $bgBase64 = app(\App\Services\GoogleDriveService::class)->getPhotoBase64($template->background_path);
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('IdCardTemplate PDF: Gagal load background dari Google Drive: ' . $e->getMessage());
+                    }
+                } else if (file_exists(storage_path('app/public/' . $template->background_path))) {
+                    $bgData = file_get_contents(storage_path('app/public/' . $template->background_path));
+                    $bgBase64 = 'data:image/' . pathinfo($template->background_path, PATHINFO_EXTENSION) . ';base64,' . base64_encode($bgData);
+                }
             }
         @endphp
 
@@ -124,6 +133,48 @@
             color: {{ $elements['id_number']['color'] }};
         ">
             {{ is_array($entity) ? ($entity['id_number'] ?? '') : ($entity->nis ?? $entity->nip  ?? '') }}
+        </div>
+        @endif
+
+        <!-- NIS (Siswa) -->
+        @if(isset($elements['nis']) && $elements['nis']['show'])
+        <div class="element text" style="
+            left: {{ ($elements['nis']['align'] ?? 'center') == 'center' ? 0 : $elements['nis']['x'] . 'pt' }}; 
+            top: {{ $elements['nis']['y'] }}pt;
+            width: {{ ($elements['nis']['align'] ?? 'center') == 'center' ? '100%' : 'auto' }};
+            text-align: {{ $elements['nis']['align'] ?? 'center' }};
+            font-size: {{ $elements['nis']['size'] ?? 12 }}pt;
+            color: {{ $elements['nis']['color'] ?? '#555555' }};
+        ">
+            {{ is_array($entity) ? ($entity['nis'] ?? '') : ($entity->_nis ?? $entity->nis ?? '') }}
+        </div>
+        @endif
+
+        <!-- NISN (Siswa) -->
+        @if(isset($elements['nisn']) && $elements['nisn']['show'])
+        <div class="element text" style="
+            left: {{ ($elements['nisn']['align'] ?? 'center') == 'center' ? 0 : $elements['nisn']['x'] . 'pt' }}; 
+            top: {{ $elements['nisn']['y'] }}pt;
+            width: {{ ($elements['nisn']['align'] ?? 'center') == 'center' ? '100%' : 'auto' }};
+            text-align: {{ $elements['nisn']['align'] ?? 'center' }};
+            font-size: {{ $elements['nisn']['size'] ?? 12 }}pt;
+            color: {{ $elements['nisn']['color'] ?? '#555555' }};
+        ">
+            {{ is_array($entity) ? ($entity['nisn'] ?? '') : ($entity->_nisn ?? $entity->nisn ?? '') }}
+        </div>
+        @endif
+
+        <!-- NIP (Guru/Staff) -->
+        @if(isset($elements['nip']) && $elements['nip']['show'])
+        <div class="element text" style="
+            left: {{ ($elements['nip']['align'] ?? 'center') == 'center' ? 0 : $elements['nip']['x'] . 'pt' }}; 
+            top: {{ $elements['nip']['y'] }}pt;
+            width: {{ ($elements['nip']['align'] ?? 'center') == 'center' ? '100%' : 'auto' }};
+            text-align: {{ $elements['nip']['align'] ?? 'center' }};
+            font-size: {{ $elements['nip']['size'] ?? 12 }}pt;
+            color: {{ $elements['nip']['color'] ?? '#555555' }};
+        ">
+            {{ is_array($entity) ? ($entity['nip'] ?? '') : ($entity->_nip ?? $entity->nip ?? '') }}
         </div>
         @endif
 

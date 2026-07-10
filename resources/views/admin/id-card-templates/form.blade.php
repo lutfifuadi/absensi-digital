@@ -6,11 +6,12 @@
 <style>
     #id-card-preview-container {
         position: relative;
-        background-color: #f8f9fa;
-        border: 2px dashed #dee2e6;
+        background-color: #ffffff;
+        border: 2px dashed #cbd5e1;
         margin: 0 auto;
         overflow: hidden;
         box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+        border-radius: 9px; /* Rounded ISO CR80 corners */
     }
     #id-card-canvas {
         position: relative;
@@ -21,28 +22,108 @@
     }
     .draggable-element {
         position: absolute;
-        border: 1px dashed transparent;
+        border: 1px dashed rgba(115, 103, 240, 0.2);
         cursor: move;
         user-select: none;
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
+        border-radius: 4px;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     }
     .draggable-element:hover {
         border-color: #7367f0;
-        background: rgba(115, 103, 240, 0.1);
+        background: rgba(115, 103, 240, 0.25);
+        box-shadow: 0 0 8px rgba(115, 103, 240, 0.6);
     }
-    .element-photo { background: #eee; border: 1px solid #ccc; }
-    .element-qr { background: #fff; border: 1px solid #000; }
+    .element-photo { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; }
+    .element-qr { background: #ffffff; border: 1px solid #000000; color: #000000; }
+    .element-logo_lembaga, .element-ttd_kepala_sekolah, .element-cap_lembaga { background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 10px; }
     .element-text { white-space: nowrap; font-weight: bold; }
+
+    /* Custom premium dark theme form fields */
+    .card-body .form-control,
+    .card-body .form-select {
+        background: rgba(15, 23, 42, 0.4) !important;
+        color: white !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+    }
+    .card-body .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.4) !important;
+    }
+    .card-body .form-control:focus,
+    .card-body .form-select:focus {
+        border-color: rgba(115, 103, 240, 0.6) !important;
+        box-shadow: 0 0 0 0.2rem rgba(115, 103, 240, 0.25) !important;
+        background: rgba(15, 23, 42, 0.6) !important;
+    }
+    .card-body .form-control-color {
+        padding: 0.3rem 0.5rem !important;
+    }
+    .form-check-input {
+        background-color: rgba(15, 23, 42, 0.4) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+    }
+    .form-check-input:checked {
+        background-color: #7367f0 !important;
+        border-color: #7367f0 !important;
+    }
+
+    /* Accordion Custom Styling */
+    #elementAccordion .accordion-item {
+        background: transparent !important;
+        border-color: rgba(255,255,255,0.08) !important;
+    }
+    #elementAccordion .accordion-button.collapsed {
+        background: transparent !important;
+        color: #fff !important;
+    }
+    #elementAccordion .accordion-button:not(.collapsed) {
+        background: rgba(115, 103, 240, 0.1) !important;
+        color: #7367f0 !important;
+        box-shadow: none !important;
+    }
+    #elementAccordion .accordion-button::after {
+        filter: invert(1);
+    }
+    #elementAccordion .accordion-body {
+        background: transparent !important;
+    }
+    #elementAccordion .accordion-body label {
+        color: rgba(255, 255, 255, 0.6) !important;
+    }
 </style>
 @endsection
 
 @section('content')
-<h4 class="fw-bold py-3 mb-4">
-    <span class="text-muted fw-light">Smart Card /</span> {{ $isEdit ? 'Edit' : 'Buat' }} Template
-</h4>
+{{-- HERO HEADER --}}
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card border-0 text-white overflow-hidden shadow-lg"
+      style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border-radius: 4px;">
+      <div class="card-body p-4">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded d-flex align-items-center justify-content-center shadow-sm"
+            style="width:52px;height:52px;border-radius:12px !important;background:rgba(115,103,240,0.2);border:1px solid rgba(115,103,240,0.4);">
+            <i class="ti {{ $isEdit ? 'tabler-pencil' : 'tabler-plus' }} text-primary fs-3"></i>
+          </div>
+          <div>
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb mb-1" style="font-size:0.72rem;opacity:0.6;">
+                <li class="breadcrumb-item"><a href="{{ route('admin.id-card-templates.index') }}" class="text-white text-decoration-none">Template ID Card</a></li>
+                <li class="breadcrumb-item active text-white">{{ $isEdit ? 'Ubah' : 'Buat' }}</li>
+              </ol>
+            </nav>
+            <h4 class="mb-0 text-white fw-bold" style="letter-spacing:-0.5px;">
+              {{ $isEdit ? 'Ubah Template ID Card' : 'Buat Template Baru' }}
+            </h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <form action="{{ $isEdit ? route('admin.id-card-templates.update', $template->id) : route('admin.id-card-templates.store') }}" method="POST" enctype="multipart/form-data" id="templateForm">
     @csrf
@@ -51,17 +132,18 @@
     <div class="row">
         <!-- Sidebar Controls -->
         <div class="col-xl-4 col-lg-5 col-md-12">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Konfigurasi Template</h5>
+            <div class="card mb-4" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08) !important;">
+                <div class="card-header border-bottom py-3 d-flex align-items-center gap-2" style="border-color:rgba(255,255,255,0.08) !important;background:transparent;">
+                    <i class="ti tabler-settings text-primary"></i>
+                    <h5 class="card-title mb-0 text-white">Konfigurasi Template</h5>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Nama Template</label>
+                    <div class="mb-3 mt-3">
+                        <label class="form-label text-white-50 small">Nama Template</label>
                         <input type="text" name="name" class="form-control" value="{{ old('name', $template->name) }}" placeholder="Contoh: Kartu Siswa Biru" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Tipe Kartu</label>
+                        <label class="form-label text-white-50 small">Tipe Kartu</label>
                         <select name="type" class="form-select" required id="cardType">
                             <option value="siswa" {{ old('type', $template->type) == 'siswa' ? 'selected' : '' }}>Siswa</option>
                             <option value="guru" {{ old('type', $template->type) == 'guru' ? 'selected' : '' }}>Guru</option>
@@ -70,28 +152,66 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Background Kartu (PNG/JPG)</label>
+                        <label class="form-label text-white-50 small">Background Kartu (PNG/JPG)</label>
                         <input type="file" name="background" class="form-control" id="bgInput" accept="image/*">
                         @if($template->background_path)
-                            <small class="text-muted">Current: {{ basename($template->background_path) }}</small>
+                            <small class="text-white-50 d-block mt-1">Current: {{ basename($template->background_path) }}</small>
                         @endif
                     </div>
                     <div class="form-check form-switch mb-3">
                         <input class="form-check-input" type="checkbox" name="is_active" id="isActive" {{ old('is_active', $template->is_active) ? 'checked' : '' }}>
-                        <label class="form-check-label" for="isActive">Jadikan Template Aktif</label>
+                        <label class="form-check-label text-white small" for="isActive">Jadikan Template Aktif</label>
                     </div>
 
                     <input type="hidden" name="config" id="configInput">
 
-                    <hr>
+                    <hr style="border-color: rgba(255,255,255,0.08) !important;">
                     
                     <div class="accordion" id="elementAccordion">
                         <!-- Navigation for elements -->
-                        @foreach(['photo', 'qr', 'name', 'id_number', 'class'] as $el)
+                        @foreach(['photo', 'qr', 'name', 'nis', 'nisn', 'nip', 'class', 'gender', 'ttl', 'masa_berlaku', 'logo_lembaga', 'nama_lembaga', 'alamat_lembaga', 'tempat_tanggal_terbit', 'ttd_kepala_sekolah', 'cap_lembaga', 'nama_kepala_sekolah', 'nip_kepala_sekolah'] as $el)
                         <div class="accordion-item">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ $el }}">
-                                    {{ ucfirst(str_replace('_', ' ', $el)) }}
+                                    @if($el === 'photo')
+                                        Foto
+                                    @elseif($el === 'qr')
+                                        QR Code
+                                    @elseif($el === 'name')
+                                        Nama Lengkap
+                                    @elseif($el === 'nis')
+                                        NIS (Siswa)
+                                    @elseif($el === 'nisn')
+                                        NISN (Siswa)
+                                    @elseif($el === 'nip')
+                                        NIP (Guru/Staff)
+                                    @elseif($el === 'class')
+                                        Kelas / Jabatan
+                                    @elseif($el === 'gender')
+                                        Jenis Kelamin
+                                    @elseif($el === 'ttl')
+                                        Tempat Tanggal Lahir
+                                    @elseif($el === 'masa_berlaku')
+                                        Masa Berlaku
+                                    @elseif($el === 'logo_lembaga')
+                                        Logo Lembaga
+                                    @elseif($el === 'nama_lembaga')
+                                        Nama Lembaga
+                                    @elseif($el === 'alamat_lembaga')
+                                        Alamat Lembaga
+                                    @elseif($el === 'tempat_tanggal_terbit')
+                                        Tempat Tanggal Terbit
+                                    @elseif($el === 'ttd_kepala_sekolah')
+                                        TTD Kepala Sekolah
+                                    @elseif($el === 'cap_lembaga')
+                                        Cap Lembaga / Stempel
+                                    @elseif($el === 'nama_kepala_sekolah')
+                                        Nama Kepala Sekolah
+                                    @elseif($el === 'nip_kepala_sekolah')
+                                        NIP Kepala Sekolah
+                                    @else
+                                        {{ ucfirst(str_replace('_', ' ', $el)) }}
+                                    @endif
                                 </button>
                             </h2>
                             <div id="collapse{{ $el }}" class="accordion-collapse collapse" data-bs-parent="#elementAccordion">
@@ -105,7 +225,7 @@
                                             <label class="small">Posisi Y</label>
                                             <input type="number" class="form-control form-control-sm config-sync" data-el="{{ $el }}" data-prop="y">
                                         </div>
-                                        @if(in_array($el, ['photo', 'qr']))
+                                        @if(in_array($el, ['photo', 'qr', 'logo_lembaga', 'ttd_kepala_sekolah', 'cap_lembaga']))
                                         <div class="col-6">
                                             <label class="small">Lebar (W)</label>
                                             <input type="number" class="form-control form-control-sm config-sync" data-el="{{ $el }}" data-prop="w">
@@ -135,7 +255,7 @@
                                         <div class="col-12 mt-2">
                                             <div class="form-check">
                                                 <input class="form-check-input config-sync" type="checkbox" data-el="{{ $el }}" data-prop="show" checked>
-                                                <label class="form-check-label small">Tampilkan Elemen</label>
+                                                <label class="form-check-label text-white-50 small">Tampilkan Elemen</label>
                                             </div>
                                         </div>
                                     </div>
@@ -145,8 +265,10 @@
                         @endforeach
                     </div>
                 </div>
-                <div class="card-footer">
-                    <button type="submit" class="btn btn-primary w-100">Simpan Template</button>
+                <div class="card-footer border-top py-3" style="border-color:rgba(255,255,255,0.08) !important; background:transparent;">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="ti tabler-device-floppy me-1"></i> Simpan Template
+                    </button>
                     <a href="{{ route('admin.id-card-templates.index') }}" class="btn btn-label-secondary w-100 mt-2">Batal</a>
                 </div>
             </div>
@@ -154,22 +276,35 @@
 
         <!-- Designer Preview -->
         <div class="col-xl-8 col-lg-7 col-md-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between">
-                    <h5 class="mb-0">Live Preview (Skala 1:1)</h5>
+            <div class="card" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08) !important;">
+                <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center" style="border-color:rgba(255,255,255,0.08) !important; background:transparent;">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="ti tabler-eye text-primary"></i>
+                        <h5 class="card-title mb-0 text-white">Live Preview (Skala 1:1)</h5>
+                    </div>
                     <div class="btn-group btn-group-sm">
-                        <button type="button" class="btn btn-outline-secondary" id="btnPortrait">Portrait</button>
+                        <button type="button" class="btn btn-outline-secondary text-white" id="btnPortrait">Portrait</button>
                         <button type="button" class="btn btn-outline-primary active" id="btnLandscape">Landscape</button>
                     </div>
                 </div>
-                <div class="card-body py-5 overflow-auto bg-lighter">
+                <div class="card-body py-5 overflow-auto" style="background: #f1f5f9;">
                     <div id="id-card-preview-container">
-                        <div id="id-card-canvas" style="background-image: url('{{ $template->background_path ? Storage::url($template->background_path) : '' }}')">
+                        @php
+                          $bgUrl = '';
+                          if ($template->background_path) {
+                              if (strlen($template->background_path) > 30) {
+                                  $bgUrl = 'https://drive.google.com/thumbnail?id=' . $template->background_path . '&sz=w800';
+                              } else {
+                                  $bgUrl = Storage::url($template->background_path);
+                              }
+                          }
+                        @endphp
+                        <div id="id-card-canvas" style="background-image: url('{{ $bgUrl }}')">
                             <!-- Elements will be rendered here via JS -->
                         </div>
                     </div>
-                    <div class="text-center mt-3">
-                        <p class="text-muted small"><i class="ti tabler-info-circle me-1"></i> Geser elemen di preview untuk memindahkan posisi secara instan.</p>
+                    <div class="text-center mt-4">
+                        <p class="text-secondary small mb-0"><i class="ti tabler-info-circle me-1 text-primary"></i> Geser elemen di preview untuk memindahkan posisi secara instan.</p>
                     </div>
                 </div>
             </div>
@@ -180,6 +315,9 @@
 
 @push('scripts')
 <script>
+const samples = @json($samples ?? []);
+const lembaga = @json($lembaga ?? []);
+
 document.addEventListener('DOMContentLoaded', function() {
     // Initial Config from PHP
     let config = @json($template->config);
@@ -196,20 +334,63 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderElements() {
         canvas.innerHTML = '';
+        const cardType = document.getElementById('cardType').value;
+        let sample = null;
+        if (cardType === 'siswa' || cardType === 'pelepasan') {
+            sample = samples.siswa;
+        } else if (cardType === 'guru') {
+            sample = samples.guru;
+        } else if (cardType === 'staff') {
+            sample = samples.staff;
+        }
+
         Object.keys(config.elements).forEach(key => {
             const el = config.elements[key];
             if (!el.show) return;
 
             const div = document.createElement('div');
-            div.className = 'draggable-element element-' + (['photo', 'qr'].includes(key) ? key : 'text');
+            const isImageEl = ['photo', 'qr', 'logo_lembaga', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(key);
+            div.className = 'draggable-element element-' + (isImageEl ? key : 'text');
             div.id = 'el-' + key;
             div.style.left = el.x + 'px';
             div.style.top = el.y + 'px';
 
-            if (['photo', 'qr'].includes(key)) {
+            if (isImageEl) {
                 div.style.width = el.w + 'px';
                 div.style.height = el.h + 'px';
-                div.innerHTML = key === 'photo' ? '<i class="ti tabler-user"></i> FOTO' : '<i class="ti tabler-qrcode"></i> QR';
+                if (key === 'photo') {
+                    if (sample && sample.photo) {
+                        div.innerHTML = `<img src="${sample.photo}" style="width:100%; height:100%; object-fit:cover;">`;
+                    } else {
+                        div.innerHTML = '<i class="ti tabler-user"></i> FOTO';
+                    }
+                } else if (key === 'qr') {
+                    // Determine the QR data from sample (nisn for students, nip for guru/staff, fallback to 'ABSENSI')
+                    let qrData = 'ABSENSI_PREVIEW';
+                    if (sample) {
+                        qrData = sample.nisn || sample.nip || 'ABSENSI';
+                    }
+                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}`;
+                    div.innerHTML = `<img src="${qrUrl}" style="width:100%; height:100%; object-fit:contain; background:#fff; padding:2px;">`;
+                } else if (key === 'logo_lembaga') {
+                    if (lembaga && lembaga.logo_base64) {
+                        div.innerHTML = `<img src="${lembaga.logo_base64}" style="width:100%; height:100%; object-fit:contain;">`;
+                    } else {
+                        div.innerHTML = '<i class="ti tabler-school"></i> LOGO';
+                    }
+                } else if (key === 'ttd_kepala_sekolah') {
+                    if (lembaga && lembaga.ttd_base64) {
+                        div.innerHTML = `<img src="${lembaga.ttd_base64}" style="width:100%; height:100%; object-fit:contain;">`;
+                    } else {
+                        div.innerHTML = '<i class="ti tabler-writing-sign"></i> TTD KEPSEK';
+                    }
+                } else if (key === 'cap_lembaga') {
+                    if (lembaga && lembaga.cap_base64) {
+                        div.innerHTML = `<img src="${lembaga.cap_base64}" style="width:100%; height:100%; object-fit:contain;">`;
+                    } else {
+                        div.innerHTML = '<i class="ti tabler-stamp"></i> STEMPEL';
+                    }
+                }
             } else {
                 div.style.fontSize = el.size + 'px';
                 div.style.color = el.color;
@@ -232,9 +413,30 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function getLabelFor(key) {
-        if(key === 'name') return 'NAMA LENGKAP SISWA';
-        if(key === 'id_number') return 'NISN: 0012345678';
-        if(key === 'class') return 'KELAS: XII IPA 1';
+        const cardType = document.getElementById('cardType').value;
+        let sample = null;
+        if (cardType === 'siswa' || cardType === 'pelepasan') {
+            sample = samples.siswa;
+        } else if (cardType === 'guru') {
+            sample = samples.guru;
+        } else if (cardType === 'staff') {
+            sample = samples.staff;
+        }
+
+        if(key === 'name') return sample ? sample.name : 'NAMA LENGKAP';
+        if(key === 'nis') return sample ? 'NIS: ' + sample.nis : 'NIS: -';
+        if(key === 'nisn') return sample ? 'NISN: ' + sample.nisn : 'NISN: -';
+        if(key === 'nip') return sample ? 'NIP: ' + sample.nip : 'NIP: -';
+        if(key === 'id_number') return sample ? 'NISN: ' + sample.nisn : 'NISN: -';
+        if(key === 'class') return sample ? 'KELAS/JABATAN: ' + sample.class : 'KELAS/JABATAN: -';
+        if(key === 'gender') return sample ? sample.gender : '-';
+        if(key === 'ttl') return sample ? sample.ttl : '-';
+        if(key === 'masa_berlaku') return sample ? sample.masa_berlaku : 'Selama menjadi anggota aktif';
+        if(key === 'nama_lembaga') return lembaga.nama_sekolah || 'NAMA SEKOLAH';
+        if(key === 'alamat_lembaga') return lembaga.alamat_lembaga || 'Alamat Sekolah';
+        if(key === 'tempat_tanggal_terbit') return (lembaga.kota_penerbitan || 'Kota') + ', ' + new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'});
+        if(key === 'nama_kepala_sekolah') return lembaga.nama_kepala_lembaga || 'Nama Kepala Sekolah';
+        if(key === 'nip_kepala_sekolah') return lembaga.nip_kepala_lembaga ? 'NIP. ' + lembaga.nip_kepala_lembaga : 'NIP. -';
         return key.toUpperCase();
     }
 
@@ -272,7 +474,8 @@ document.addEventListener('DOMContentLoaded', function() {
             ny = Math.max(0, Math.min(ny, config.canvas.height - el.offsetHeight));
 
             // Snap to grid if name/id/class is center aligned
-            if(!['photo', 'qr'].includes(key) && config.elements[key].align === 'center') {
+            const isImageEl = ['photo', 'qr', 'logo_lembaga', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(key);
+            if(!isImageEl && config.elements[key].align === 'center') {
                 nx = 0;
             }
 
@@ -305,7 +508,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('btnPortrait').addEventListener('click', () => {
-        config.canvas = { width: 350, height: 500 };
+        config.canvas = { width: 153, height: 243 };
         document.getElementById('btnPortrait').classList.add('active', 'btn-outline-primary');
         document.getElementById('btnLandscape').classList.remove('active', 'btn-outline-primary');
         updateCanvasSize();
@@ -313,7 +516,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('btnLandscape').addEventListener('click', () => {
-        config.canvas = { width: 500, height: 350 };
+        config.canvas = { width: 243, height: 153 };
         document.getElementById('btnLandscape').classList.add('active', 'btn-outline-primary');
         document.getElementById('btnPortrait').classList.remove('active', 'btn-outline-primary');
         updateCanvasSize();
@@ -328,6 +531,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             reader.readAsDataURL(this.files[0]);
         }
+    });
+
+    document.getElementById('cardType').addEventListener('change', () => {
+        renderElements();
     });
 
     // Initial Load

@@ -77,8 +77,22 @@
     {
       "name": "Cetak Kartu",
       "icon": "menu-icon ti tabler-id",
-      "slug": "admin.cetak-kartu.index",
-      "url": "/admin/cetak-kartu"
+      "slug": ["admin.cetak-kartu.index", "admin.id-card-templates.index"],
+      "url": "/admin/cetak-kartu",
+      "submenu": [
+        {
+          "name": "Cetak ID Card",
+          "icon": "menu-icon ti tabler-printer",
+          "slug": "admin.cetak-kartu.index",
+          "url": "/admin/cetak-kartu"
+        },
+        {
+          "name": "Template ID Card",
+          "icon": "menu-icon ti tabler-palette",
+          "slug": "admin.id-card-templates.index",
+          "url": "/admin/id-card-templates"
+        }
+      ]
     },
     {
       "name": "Alumni",

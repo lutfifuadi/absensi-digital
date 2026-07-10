@@ -62,7 +62,8 @@
         <div class="card-body p-4">
           <form
             action="{{ isset($siswa) && $siswa->exists ? route('admin.siswa.update', $siswa) : route('admin.siswa.store') }}"
-            method="POST">
+            method="POST"
+            enctype="multipart/form-data">
             @csrf
             @if (isset($siswa) && $siswa->exists)
               @method('PUT')
@@ -205,6 +206,33 @@
                   <option value="alumni" {{ old('status', $siswa->status ?? '') === 'alumni' ? 'selected' : '' }}>Alumni
                   </option>
                 </select>
+              </div>
+
+              {{-- Foto Siswa --}}
+              <div class="col-md-12">
+                <label class="form-label fw-semibold small" for="foto">
+                  <i class="ti tabler-photo me-1 text-info"></i> Foto Siswa (JPEG/PNG, Maks. 2MB)
+                </label>
+                <input id="foto" name="foto" type="file" class="form-control @error('foto') is-invalid @enderror" accept="image/*">
+                @error('foto')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                
+                {{-- Preview Current Photo --}}
+                @if(isset($siswa) && $siswa->foto)
+                  <div class="mt-2">
+                    <span class="d-block text-white-50 small mb-1">Foto Saat Ini:</span>
+                    @php
+                      // Check if it's a google drive ID or local path
+                      $photoUrl = '';
+                      if (strlen($siswa->foto) > 30) {
+                          // Google Drive ID
+                          $photoUrl = 'https://drive.google.com/thumbnail?id=' . $siswa->foto . '&sz=w200';
+                      } else {
+                          $photoUrl = asset('storage/' . $siswa->foto);
+                      }
+                    @endphp
+                    <img src="{{ $photoUrl }}" alt="Foto Siswa" class="rounded shadow-sm" style="max-width: 120px; max-height: 160px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1);">
+                  </div>
+                @endif
               </div>
             </div>
 

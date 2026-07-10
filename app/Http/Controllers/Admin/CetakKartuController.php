@@ -45,13 +45,12 @@ class CetakKartuController extends Controller
      */
     public function download(Request $request)
     {
-        // Validasi parameter wajib
         $validated = $request->validate([
             'tipe'       => 'required|in:siswa,guru,staff',
             'template_id' => 'required|exists:id_card_templates,id',
             'opsi_cetak' => 'required|in:semua,kelas,individu',
-            'kelas_id'   => 'required_if:opsi_cetak,kelas|exists:kelas,id',
-            'entitas_id' => 'required_if:opsi_cetak,individu|integer',
+            'kelas_id'   => 'required_if:opsi_cetak,kelas|nullable|exists:kelas,id',
+            'entitas_id' => 'required_if:opsi_cetak,individu|nullable|integer',
         ]);
 
         $tipe       = $validated['tipe'];

@@ -841,6 +841,22 @@ Route::middleware([
             ->name('admin.pengaturan.google-sheets-guru.preview-mapping')
             ->middleware('role:super_admin,admin_sekolah');
 
+        // Google Drive settings & Auth OAuth
+        Route::get('pengaturan/google-drive/status', [\App\Http\Controllers\Admin\GoogleAuthController::class, 'checkGoogleStatus'])
+            ->name('admin.google.status')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::get('pengaturan/google-drive/redirect', [\App\Http\Controllers\Admin\GoogleAuthController::class, 'redirectToGoogle'])
+            ->name('admin.google.redirect')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::get('pengaturan/google-drive/callback', [\App\Http\Controllers\Admin\GoogleAuthController::class, 'handleGoogleCallback'])
+            ->name('admin.google.callback');
+        Route::post('pengaturan/google-drive/revoke', [\App\Http\Controllers\Admin\GoogleAuthController::class, 'revokeGoogleAccess'])
+            ->name('admin.google.revoke')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pengaturan/google-drive/settings', [\App\Http\Controllers\Admin\GoogleAuthController::class, 'updateSettings'])
+            ->name('admin.google.update-settings')
+            ->middleware('role:super_admin,admin_sekolah');
+
         // AI Chat
         Route::get('ai-chat', [AiChatController::class, 'index'])
             ->name('admin.ai-chat.index')

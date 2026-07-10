@@ -11,7 +11,17 @@
   <div class="das-hero__inner">
     <div class="das-hero__identity">
       <div class="das-hero__logo-wrapper">
-        <img class="das-hero__logo" src="https://ui-avatars.com/api/?name={{ urlencode($siswa->nama_lengkap) }}&size=120&background=7367f0&color=fff" alt="Avatar">
+        @php
+          $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($siswa->nama_lengkap) . '&size=120&background=7367f0&color=fff';
+          if ($siswa->foto) {
+              if (strlen($siswa->foto) > 30) {
+                  $avatarUrl = 'https://drive.google.com/thumbnail?id=' . $siswa->foto . '&sz=w200';
+              } else {
+                  $avatarUrl = asset('storage/' . $siswa->foto);
+              }
+          }
+        @endphp
+        <img class="das-hero__logo" src="{{ $avatarUrl }}" alt="Avatar" style="object-fit: cover;">
         <div class="das-hero__logo-glow"></div>
       </div>
       <div class="das-hero__meta">

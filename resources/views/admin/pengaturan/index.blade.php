@@ -77,6 +77,7 @@
         ['id' => 'waktu',      'icon' => 'tabler-clock',           'label' => 'Waktu & Absensi'],
         ['id' => 'keamanan',   'icon' => 'tabler-shield-lock',     'label' => 'Keamanan & Lokasi'],
         ['id' => 'branding',   'icon' => 'tabler-photo',           'label' => 'Logo & Branding'],
+        ['id' => 'google-drive', 'icon' => 'tabler-brand-google-drive', 'label' => 'Google Drive (Foto)'],
         ['id' => 'notifikasi', 'icon' => 'tabler-bell-ringing',    'label' => 'Integrasi & Notifikasi'],
         ['id' => 'ai',         'icon' => 'tabler-brain',           'label' => 'Kecerdasan Buatan (AI)'],
         ['id' => 'api-source', 'icon' => 'tabler-api',             'label' => 'API Source'],
@@ -666,6 +667,8 @@
       </div>
 
       </div> {{-- Penutup div set-tab untuk tab-branding --}}
+      
+      {{-- Tab: Google Drive dipindahkan ke luar form utama agar form mandiri tidak nested --}}
 
       {{-- ══ TAB 5: NOTIFIKASI ══ --}}
       <div class="set-tab" id="tab-notifikasi">
@@ -1063,6 +1066,7 @@
   @include('admin.pengaturan.partials.api-source')
   @include('admin.pengaturan.partials.google-sheets-siswa')
   @include('admin.pengaturan.partials.google-sheets-guru')
+  @include('admin.pengaturan.partials.google-drive')
 
   {{-- Bottom Save Button --}}
   <div class="set-footer-save">
@@ -2011,6 +2015,15 @@ function submitActiveTabForm() {
   
   if (['lembaga', 'waktu', 'keamanan', 'branding', 'notifikasi', 'ai', 'update'].includes(activeTabId)) {
     const form = document.getElementById('formPengaturan');
+    if (form) {
+      if (form.reportValidity()) {
+        form.submit();
+      }
+    }
+  } else if (activeTabId === 'google-drive') {
+    const formDisconnected = document.getElementById('formGoogleDrive');
+    const formConnected = document.getElementById('formGoogleDriveConnected');
+    const form = formDisconnected || formConnected;
     if (form) {
       if (form.reportValidity()) {
         form.submit();

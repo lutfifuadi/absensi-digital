@@ -44,4 +44,9 @@ return [
         'model' => env('GEMINI_MODEL', 'gemini-3-flash-preview'),
     ],
 
+    'google_drive' => [
+        'credentials_path' => env('GOOGLE_DRIVE_CREDENTIALS_PATH', storage_path('app/google-service-account.json')),
+        'folder_id' => env('GOOGLE_DRIVE_FOLDER_ID'),
+    ],
+
 ];

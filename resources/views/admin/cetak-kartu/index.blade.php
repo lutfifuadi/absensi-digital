@@ -325,14 +325,135 @@
 
 /* ════════════════════════════════════════════════════════════
    INDIVIDU SEARCH (Chip + List)
-════════════════════════════════════════════════════════════ */
-.individu-search-results {
-  max-height: 230px;
-  overflow-y: auto;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px;
+   ════════════════════════════════════════════════════════════ */
+#searchIndividu {
+  width: 100% !important;
+  max-width: 100% !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+  font-family: inherit;
+  transition: all 0.25s ease-in-out;
+  border-radius: 8px !important;
+  padding: 0.75rem 1.25rem 0.75rem 3rem !important; /* Spacing top/bottom, right, left for prefix */
+  margin: 0 !important;
+}
+
+#searchIndividu:focus {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: #7367f0 !important;
+  box-shadow: 0 0 12px rgba(115, 103, 240, 0.3) !important;
+  color: #fff !important;
+}
+
+#kelas_id, #template_id {
+  width: 100% !important;
+  max-width: 100% !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+  font-family: inherit;
+  transition: all 0.25s ease-in-out;
+  border-radius: 8px !important;
+  padding: 0.75rem 1.25rem 0.75rem 3rem !important; /* Spacing top/bottom, right, left for prefix */
+  margin: 0 !important;
+  appearance: none; /* remove default native dropdown arrow if needed, but styling is fine */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+#kelas_id:focus, #template_id:focus {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: #7367f0 !important;
+  box-shadow: 0 0 12px rgba(115, 103, 240, 0.3) !important;
+  color: #fff !important;
+  outline: none;
+}
+
+#kelas_id option, #template_id option {
+  background-color: #1e1e2f !important;
+  color: #fff !important;
+}
+
+#filterKelasSection .set-input-group,
+#step3Section .set-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100% !important;
   margin-top: 0.5rem;
-  background: rgba(10,15,30,0.6);
+  margin-bottom: 0.5rem;
+}
+
+#filterKelasSection .set-input-prefix,
+#step3Section .set-input-prefix {
+  position: absolute;
+  left: 1.15rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.35);
+  transition: color 0.25s ease;
+  z-index: 5;
+  pointer-events: none;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+#filterKelasSection .set-input-group:focus-within .set-input-prefix,
+#step3Section .set-input-group:focus-within .set-input-prefix {
+  color: #7367f0;
+}
+
+#filterIndividuSection .set-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100% !important;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+#filterIndividuSection .set-input-prefix {
+  position: absolute;
+  left: 1.15rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.35);
+  transition: color 0.25s ease;
+  z-index: 5;
+  pointer-events: none;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+#filterIndividuSection .set-input-group:focus-within .set-input-prefix {
+  color: #7367f0;
+}
+
+#filterIndividuSection .set-field-hint {
+  color: rgba(255, 255, 255, 0.4) !important;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+#filterIndividuSection .set-field-hint i {
+  color: #7367f0 !important;
+  font-size: 0.85rem;
+}
+
+.individu-search-results {
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  margin-top: 0.65rem !important;
+  width: 100% !important;
+  background: rgba(15, 23, 42, 0.85) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 
 .individu-search-results:empty {
@@ -342,31 +463,59 @@
 .search-result-item {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.55rem 0.8rem;
+  gap: 0.85rem;
+  padding: 0.65rem 1rem;
   cursor: pointer;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  transition: background 0.15s ease;
-  font-size: 0.82rem;
-  color: rgba(255,255,255,0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease-in-out;
+  font-size: 0.83rem;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .search-result-item:last-child { border-bottom: none; }
 
 .search-result-item:hover {
-  background: rgba(115,103,240,0.15);
+  background: rgba(115, 103, 240, 0.08) !important;
+  border-left-color: #7367f0 !important;
   color: #fff;
 }
 
-.search-result-item .sri-name { font-weight: 600; flex: 1; }
-.search-result-item .sri-nip  { font-size: 0.7rem; color: rgba(255,255,255,0.35); }
-.search-result-item .sri-icon { color: rgba(255,255,255,0.2); font-size: 0.85rem; }
+.search-result-item .sri-name { 
+  font-weight: 600; 
+  flex: 1; 
+  color: #fff;
+}
+
+.search-result-item .sri-nip  { 
+  font-size: 0.73rem; 
+  color: rgba(255, 255, 255, 0.45); 
+  font-family: monospace;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.search-result-item .avatar-initials-mini {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7367f0, #00cfe8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: #fff;
+  font-weight: bold;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(115, 103, 240, 0.3);
+}
 
 .search-empty-msg {
   text-align: center;
-  padding: 1rem;
+  padding: 1.5rem;
   font-size: 0.8rem;
-  color: rgba(255,255,255,0.3);
+  color: rgba(255, 255, 255, 0.35);
 }
 
 /* Selected chip */
@@ -374,32 +523,41 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
   min-height: 0;
 }
 
 .selected-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.3rem 0.75rem;
-  border-radius: 20px;
-  background: rgba(115,103,240,0.2);
-  border: 1px solid rgba(115,103,240,0.4);
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  background: rgba(115, 103, 240, 0.08) !important;
+  border: 1px solid rgba(115, 103, 240, 0.25) !important;
   color: #c8c4f8;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 600;
+  box-shadow: 0 4px 12px rgba(115, 103, 240, 0.1);
 }
 
 .selected-chip .chip-remove {
   cursor: pointer;
-  opacity: 0.55;
-  font-size: 0.7rem;
-  transition: opacity 0.15s;
+  opacity: 0.6;
+  font-size: 0.8rem;
+  transition: all 0.2s ease-in-out;
   line-height: 1;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.selected-chip .chip-remove:hover { opacity: 1; }
+.selected-chip .chip-remove:hover { 
+  opacity: 1; 
+  color: #ff4d4f; 
+  background: rgba(255, 77, 79, 0.15);
+}
 
 /* ════════════════════════════════════════════════════════════
    STEP 3 — TEMPLATE & DOWNLOAD
@@ -1082,8 +1240,9 @@ function renderSearchResults(term) {
   list.innerHTML = filtered.map(item => {
     const name = getItemLabel(item);
     const sub  = getItemSub(item);
+    const initial = name.charAt(0).toUpperCase();
     return `<div class="search-result-item" data-id="${item.id}" data-name="${escHtml(name)}" data-sub="${escHtml(sub)}" onclick="selectIndividu(this)">
-      <span class="sri-icon"><i class="ti tabler-user-circle"></i></span>
+      <div class="avatar-initials-mini">${escHtml(initial)}</div>
       <span class="sri-name">${escHtml(name)}</span>
       ${sub ? `<span class="sri-nip">${escHtml(sub)}</span>` : ''}
     </div>`;
@@ -1105,7 +1264,7 @@ function selectIndividu(el) {
   const chipWrap = document.getElementById('selectedChipWrap');
   if (chipWrap) {
     chipWrap.innerHTML = `<div class="selected-chip">
-      <i class="ti tabler-user" style="font-size:0.8rem;"></i>
+      <div class="avatar-initials-mini" style="background: linear-gradient(135deg, #28c76f, #81ebb2); box-shadow: 0 2px 8px rgba(40, 199, 111, 0.3);">${escHtml(name.charAt(0).toUpperCase())}</div>
       <span>${escHtml(name)}${sub ? ' — ' + escHtml(sub) : ''}</span>
       <span class="chip-remove" onclick="clearSelectedIndividu()" title="Hapus pilihan">✕</span>
     </div>`;

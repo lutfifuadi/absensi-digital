@@ -112,6 +112,14 @@ class PengaturanController extends Controller
 
         // AI Configuration
         'gemini_api_key' => '',
+
+        // Google Drive Configuration
+        'google_drive_folder_id' => '',
+        'google_drive_credentials_json' => '',
+        'google_drive_auth_type' => 'service_account',
+        'google_drive_client_id' => '',
+        'google_drive_client_secret' => '',
+        'google_drive_refresh_token' => '',
     ];
 
     protected \App\Services\UpdateService $updateService;
@@ -157,8 +165,33 @@ class PengaturanController extends Controller
 
     public function update(Request $request)
     {
-        $data = $request->except(['_token', 'logo_sekolah', 'logo_url', 'tanda_tangan_kepala_sekolah', 'cap_sekolah']);
+        $data = $request->except(['_token', 'logo_sekolah', 'logo_url', 'tanda_tangan_kepala_sekolah', 'cap_sekolah', 'google_drive_credentials_file']);
         
+        // Handle Google Drive Credentials JSON Upload
+        if ($request->hasFile('google_drive_credentials_file')) {
+            try {
+                $file = $request->file('google_drive_credentials_file');
+                $request->validate([
+                    'google_drive_credentials_file' => 'required|file',
+                ]);
+                // Read the JSON file content and validate it is valid json
+                $jsonContent = file_get_contents($file->getRealPath());
+                $decoded = json_decode($jsonContent, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    return back()->withInput()->with('error', 'File credentials Google Drive harus berupa file JSON yang valid.');
+                }
+                
+                // Encrypt and store
+                $encryptedContent = encrypt($jsonContent, false);
+                $data['google_drive_credentials_json'] = $encryptedContent;
+            } catch (\Exception $e) {
+                return back()->withInput()->with('error', 'Gagal upload credentials Google Drive: ' . $e->getMessage());
+            }
+        }
+
+        // Clean up oauth credentials space to avoid storing unexpected values
+        // Note: they are simple text fields, so they are part of $data and will be saved automatically by the loop.
+
         // Hash password scan QR jika diisi, atau hapus dari $data jika kosong
         if (!empty($data['password_unlock_scan_qr'])) {
             $data['password_unlock_scan_qr'] = Hash::make($data['password_unlock_scan_qr']);

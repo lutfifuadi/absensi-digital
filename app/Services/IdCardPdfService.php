@@ -165,6 +165,8 @@ class IdCardPdfService
             $fotoBase64  = $this->fotoToBase64($siswa->foto ?? '');
             $qrBase64    = QrCodeGenerator::renderDataUri($siswa->qr_code, 200);
 
+            $siswa->_nis = $siswa->nis;
+            $siswa->_nisn = $siswa->nisn;
             $siswa->_masa_berlaku = $masaBerlaku;
             $siswa->_foto_base64  = $fotoBase64;
             $siswa->_qr_base64    = $qrBase64;
@@ -218,6 +220,7 @@ class IdCardPdfService
                 $guru->refresh();
             }
 
+            $guru->_nip = $guru->nip;
             $guru->_masa_berlaku = $masaBerlakuDefault;
             $guru->_foto_base64  = $this->fotoToBase64($guru->foto ?? '');
             $guru->_qr_base64    = QrCodeGenerator::renderDataUri($guru->qr_code, 200);
@@ -260,6 +263,7 @@ class IdCardPdfService
                 $staff->refresh();
             }
 
+            $staff->_nip = $staff->nip;
             $staff->_masa_berlaku = $masaBerlakuDefault;
             $staff->_foto_base64  = $this->fotoToBase64($staff->foto ?? '');
             $staff->_qr_base64    = QrCodeGenerator::renderDataUri($staff->qr_code, 200);
@@ -286,6 +290,16 @@ class IdCardPdfService
     {
         if (empty($fotoPath)) {
             return '';
+        }
+
+        // Check if Google Drive File ID
+        if (strlen($fotoPath) > 30) {
+            try {
+                return app(\App\Services\GoogleDriveService::class)->getPhotoBase64($fotoPath);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('IdCardPdfService: Gagal mengambil base64 dari Google Drive: ' . $e->getMessage());
+                return '';
+            }
         }
 
         $fullPath = storage_path('app/public/' . $fotoPath);

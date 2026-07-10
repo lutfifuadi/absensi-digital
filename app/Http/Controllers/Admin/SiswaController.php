@@ -17,6 +17,7 @@ use App\Models\Siswa;
 use App\Models\TahunAkademik;
 use App\Models\User;
 use App\Services\SiswaService;
+use App\Services\GoogleDriveService;
 use App\Services\IdCardPdfService;
 use App\Support\QrCodeGenerator;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -36,7 +37,12 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class SiswaController extends Controller
 {
-    public function __construct(protected SiswaService $siswaService) {}
+    protected $googleDriveService;
+
+    public function __construct(protected SiswaService $siswaService, GoogleDriveService $googleDriveService)
+    {
+        $this->googleDriveService = $googleDriveService;
+    }
 
     public function index(Request $request)
     {
@@ -108,6 +114,7 @@ class SiswaController extends Controller
             'kelas_id' => 'required|exists:kelas,id',
             'tahun_akademik_id' => 'required|exists:tahun_akademik,id',
             'status' => 'required|in:aktif,nonaktif,alumni',
+            'foto' => 'nullable|image|max:2048',
         ]);
 
         $domainEmail = Pengaturan::where('key', 'website_lembaga')->value('value') ?? 'madrasah.sch.id';
@@ -137,6 +144,11 @@ class SiswaController extends Controller
                 'role' => User::ROLE_ORANG_TUA,
             ]
         );
+
+        if ($request->hasFile('foto')) {
+            $fileId = $this->googleDriveService->uploadPhoto($request->file('foto'));
+            $data['foto'] = $fileId;
+        }
 
         $siswa = Siswa::create(array_merge($data, [
             'qr_code' => $data['nisn'],
@@ -418,12 +430,20 @@ class SiswaController extends Controller
             'kelas_id' => 'required|exists:kelas,id',
             'tahun_akademik_id' => 'required|exists:tahun_akademik,id',
             'status' => 'required|in:aktif,nonaktif,alumni',
+            'foto' => 'nullable|image|max:2048',
         ]);
 
         $domainEmail = Pengaturan::where('key', 'website_lembaga')->value('value') ?? 'madrasah.sch.id';
         $identifier = strtolower(trim($data['nisn']));
         $email = $identifier.'@'.$domainEmail;
         $username = $data['nisn'];
+
+        if ($request->hasFile('foto')) {
+            // check if there is an old photo and pass it for deletion
+            $oldFileId = (strlen($siswa->foto) > 30) ? $siswa->foto : null;
+            $newFileId = $this->googleDriveService->uploadPhoto($request->file('foto'), $oldFileId);
+            $data['foto'] = $newFileId;
+        }
 
         $old = $siswa->toArray();
         $siswa->update(array_merge($data, [
