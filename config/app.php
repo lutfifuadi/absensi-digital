@@ -14,7 +14,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
-    'version' => env('APP_VERSION', '1.10.3'),
+    'version' => env('APP_VERSION', '1.10.5'),
     'multipurpose_mode' => env('APP_MULTIPURPOSE_MODE', 'standalone'),
 
     /*
