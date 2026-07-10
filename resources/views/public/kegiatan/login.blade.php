@@ -27,27 +27,29 @@
       --muted: #64748b;
     }
 
-    body {
+    html, body {
       background: var(--bg);
       font-family: 'Product Sans', sans-serif;
       color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
     }
 
     /* ── LAYOUT ─────────────────────────────────────────── */
     .authentication-wrapper {
       width: 100%;
-      min-height: 100vh;
+      height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
       background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.18), transparent 40%),
         linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
-      padding: 1.5rem;
+      padding: 1rem;
       position: relative;
+      overflow: hidden;
     }
 
     /* Top-left Logo Strip */
