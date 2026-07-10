@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Scan Absensi Kegiatan — Akses Publik</title>
   <link rel="stylesheet" href="{{ asset('assets/css/local-fonts.css') }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
   <style>
     *,
     *::before,
@@ -257,11 +258,19 @@
 
       <form action="{{ route('public.kegiatan.auth') }}" method="POST">
         @csrf
-        <div class="mb-4">
+        <div class="mb-4" style="margin-bottom: 1.5rem;">
           <label for="password" class="form-label">Password Scan</label>
-          <input id="password" type="password" name="password"
-            class="form-control {{ $errors->has('password') ? 'is-invalid' : '' }}"
-            placeholder="Masukkan password scan..." autofocus autocomplete="current-password">
+          <div class="password-input-wrapper" style="position: relative; display: flex; align-items: center;">
+            <input id="password" type="password" name="password"
+              class="form-control {{ $errors->has('password') ? 'is-invalid' : '' }}"
+              placeholder="Masukkan password scan..." autofocus autocomplete="current-password"
+              style="padding-right: 2.75rem; width: 100%;">
+            <button type="button" id="togglePasswordBtn" 
+              style="position: absolute; right: 12px; background: none; border: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; outline: none; transition: color 0.2s;" 
+              title="Lihat password">
+              <i class="ti tabler-eye" id="eyeIcon" style="font-size: 1.25rem;"></i>
+            </button>
+          </div>
           @error('password')
             <div class="invalid-feedback" style="color:var(--danger); font-size:0.75rem; margin-top:0.4rem;">{{ $message }}</div>
           @enderror
@@ -272,5 +281,34 @@
       <p class="footer-note">Password diatur oleh admin sekolah.</p>
     </div>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+      const passwordInput = document.getElementById('password');
+      const eyeIcon = document.getElementById('eyeIcon');
+
+      togglePasswordBtn.addEventListener('click', function() {
+        const isPassword = passwordInput.getAttribute('type') === 'password';
+        passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+        
+        if (isPassword) {
+          eyeIcon.className = 'ti tabler-eye-off';
+          togglePasswordBtn.setAttribute('title', 'Sembunyikan password');
+        } else {
+          eyeIcon.className = 'ti tabler-eye';
+          togglePasswordBtn.setAttribute('title', 'Lihat password');
+        }
+      });
+
+      // Hover effect via JS or CSS
+      togglePasswordBtn.addEventListener('mouseenter', () => {
+        togglePasswordBtn.style.color = '#fff';
+      });
+      togglePasswordBtn.addEventListener('mouseleave', () => {
+        togglePasswordBtn.style.color = 'var(--muted)';
+      });
+    });
+  </script>
 </body>
 </html>
