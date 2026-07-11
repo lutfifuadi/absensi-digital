@@ -135,16 +135,30 @@
           </li>
           <li class="dropdown-notifications-list scrollable-container" style="max-height:300px;overflow-y:auto;">
             @forelse($unreadNotifs as $notif)
-              @php $data = $notif->data; @endphp
+              @php
+                $data = $notif->data;
+                $jenis = $data['jenis'] ?? '';
+                $icon = 'tabler-bell';
+                $bg = 'info';
+
+                if ($jenis === 'sakit') {
+                    $bg = 'warning';
+                    $icon = 'tabler-first-aid-kit';
+                } elseif ($jenis === 'izin') {
+                    $bg = 'info';
+                    $icon = 'tabler-calendar-off';
+                } elseif (isset($data['icon'])) {
+                    $bg = $data['color'] ?? 'info';
+                    $icon = 'tabler-' . $data['icon'];
+                }
+              @endphp
               <ul class="list-group list-group-flush">
                 <li class="list-group-item list-group-item-action dropdown-notifications-item">
                   <div class="d-flex">
                     <div class="flex-shrink-0 me-3">
                       <div class="avatar">
-                        <span
-                          class="avatar-initial rounded-circle bg-label-{{ $data['jenis'] === 'sakit' ? 'warning' : 'info' }}">
-                          <i
-                            class="icon-base ti {{ $data['jenis'] === 'sakit' ? 'tabler-first-aid-kit' : 'tabler-calendar-off' }} icon-sm"></i>
+                        <span class="avatar-initial rounded-circle bg-label-{{ $bg }}">
+                          <i class="icon-base ti {{ $icon }} icon-sm"></i>
                         </span>
                       </div>
                     </div>
