@@ -63,7 +63,7 @@ class ProcessZipImport implements ShouldQueue
             return;
         }
 
-        $zipPath = storage_path('app/' . $batch->file_zip);
+        $zipPath = Storage::disk('local')->path($batch->file_zip);
 
         // Cek file ZIP di batch->file_zip (path di local storage)
         if (!file_exists($zipPath)) {
@@ -75,8 +75,8 @@ class ProcessZipImport implements ShouldQueue
             return;
         }
 
-        // Buat folder temporary extraction: storage/app/temp/uploads/{batchId}/
-        $tempPath = storage_path('app/temp/uploads/' . $this->batchId);
+        // Buat folder temporary extraction: storage/app/private/temp/uploads/{batchId}/
+        $tempPath = Storage::disk('local')->path('temp/uploads/' . $this->batchId);
         File::ensureDirectoryExists($tempPath);
 
         // Gunakan PHP ZipArchive untuk mengekstrak file ZIP ke folder temp tersebut
@@ -142,7 +142,7 @@ class ProcessZipImport implements ShouldQueue
         foreach ($imageFiles as $file) {
             $originalFilename = $file->getFilename();
             $targetRelativePath = 'uploads/batch/' . $this->batchId . '/' . $originalFilename;
-            $targetFullPath = storage_path('app/' . $targetRelativePath);
+            $targetFullPath = Storage::disk('local')->path($targetRelativePath);
 
             // Pastikan direktori tujuan ada
             File::ensureDirectoryExists(dirname($targetFullPath));

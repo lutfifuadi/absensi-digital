@@ -78,7 +78,7 @@ class UploadPhotoToGoogleDrive implements ShouldQueue
         $item->markAsProcessing();
 
         // Ambil path file fisik di stored_path
-        $filePath = storage_path('app/' . $item->stored_path);
+        $filePath = Storage::disk('local')->path($item->stored_path);
 
         // Cek apakah file fisik ada. Jika tidak ada -> mark as failed
         if (!file_exists($filePath)) {
@@ -115,8 +115,8 @@ class UploadPhotoToGoogleDrive implements ShouldQueue
                 }
 
                 // Hapus file lokal di stored_path untuk menghemat disk space
-                if (Storage::exists($item->stored_path)) {
-                    Storage::delete($item->stored_path);
+                if (Storage::disk('local')->exists($item->stored_path)) {
+                    Storage::disk('local')->delete($item->stored_path);
                 }
 
                 // Panggil updateProgress()
@@ -155,8 +155,8 @@ class UploadPhotoToGoogleDrive implements ShouldQueue
             ]);
 
             // Hapus file lokal di stored_path agar tidak tertinggal
-            if (Storage::exists($item->stored_path)) {
-                Storage::delete($item->stored_path);
+            if (Storage::disk('local')->exists($item->stored_path)) {
+                Storage::disk('local')->delete($item->stored_path);
             }
 
             // Panggil $item->batch->updateProgress()
