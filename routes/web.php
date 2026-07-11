@@ -1008,6 +1008,7 @@ Route::middleware([
             Route::get('/batches/{batch}/progress', [\App\Http\Controllers\Admin\UploadMassalController::class, 'batchProgress'])->name('batches.progress');
             Route::post('/batches/{batch}/retry', [\App\Http\Controllers\Admin\UploadMassalController::class, 'retryBatch'])->name('batches.retry');
             Route::post('/batches/{batch}/cancel', [\App\Http\Controllers\Admin\UploadMassalController::class, 'cancelBatch'])->name('batches.cancel');
+            Route::delete('/batches/reset-all', [\App\Http\Controllers\Admin\UploadMassalController::class, 'resetAllBatches'])->name('batches.reset-all');
             Route::get('/check-student/{nisn}', [\App\Http\Controllers\Admin\UploadMassalController::class, 'checkStudent'])->name('check-student');
         });
     });

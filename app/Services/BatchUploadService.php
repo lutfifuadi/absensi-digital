@@ -223,6 +223,68 @@ class BatchUploadService
     }
 
     /**
+     * Reset all batch logs — hapus batch records, items, dan file lokal.
+     * Super Admin: hapus SEMUA batch. Admin Sekolah: hapus batch miliknya saja.
+     * File Google Drive TIDAK dihapus.
+     *
+     * @param User $user
+     * @return int Jumlah batch yang dihapus
+     * @throws \Exception
+     */
+    public function resetAllBatches(User $user): int
+    {
+        return DB::transaction(function () use ($user) {
+            // Tentukan query batch berdasarkan role
+            $query = UploadBatch::query();
+
+            if (!$user->isSuperAdmin()) {
+                // Admin Sekolah: hanya batch miliknya
+                $query->where('user_id', $user->id);
+            }
+
+            $batches = $query->get();
+            $totalBatches = $batches->count();
+
+            if ($totalBatches === 0) {
+                return 0;
+            }
+
+            // Hapus file lokal setiap batch
+            foreach ($batches as $batch) {
+                // Hapus folder uploads/batch/{batchId} jika ada
+                $batchPath = "uploads/batch/{$batch->id}";
+                if (Storage::disk('local')->exists($batchPath)) {
+                    Storage::disk('local')->deleteDirectory($batchPath);
+                }
+
+                // Hapus file ZIP jika ada (untuk batch sumber ZIP)
+                if ($batch->file_zip && Storage::disk('local')->exists($batch->file_zip)) {
+                    Storage::disk('local')->delete($batch->file_zip);
+                }
+
+                // Hapus file-file lokal di setiap item (redundan, tapi aman)
+                foreach ($batch->items as $item) {
+                    if ($item->stored_path && Storage::disk('local')->exists($item->stored_path)) {
+                        Storage::disk('local')->delete($item->stored_path);
+                    }
+                }
+
+                // Hapus items batch (cascade seharusnya, tapi kita explicit)
+                $batch->items()->delete();
+            }
+
+            // Hapus semua batch records
+            if (!$user->isSuperAdmin()) {
+                UploadBatch::where('user_id', $user->id)->delete();
+            } else {
+                UploadBatch::query()->delete();
+            }
+
+            return $totalBatches;
+        });
+    }
+
+    /**
      * Detect student information from filename.
      *
      * @param string $filename

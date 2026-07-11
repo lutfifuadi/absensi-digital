@@ -3,6 +3,7 @@
 @section('title', 'Riwayat Batch Upload Massal')
 
 @section('page-style')
+@vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
 <style>
   .batch-row-hover {
     transition: background 0.15s ease;
@@ -55,7 +56,10 @@
       </div>
     </div>
     
-    <div class="das-hero__actions">
+    <div class="das-hero__actions d-flex gap-2 flex-wrap justify-content-end">
+      <button type="button" id="btnResetAllBatches" class="btn das-btn --danger">
+        <i class="ti tabler-trash me-1"></i> Reset Semua Log
+      </button>
       <a href="{{ route('admin.upload-massal.index') }}" class="btn das-btn --primary">
         <i class="ti tabler-plus me-1"></i> Buat Upload Baru
       </a>
@@ -223,6 +227,7 @@
 @endsection
 
 @push('scripts')
+@vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.js'])
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     // Inisialisasi tooltip Bootstrap jika ada
@@ -230,6 +235,109 @@
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
       return new bootstrap.Tooltip(tooltipTriggerEl);
     });
+
+    // ── RESET SEMUA LOG ──────────────────────────────────────────────────
+    const resetBtn = document.getElementById('btnResetAllBatches');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+
+        Swal.fire({
+          title: '<span class="text-danger">⚠️ Reset Semua Log Batch?</span>',
+          html: `
+            <div class="text-start px-2">
+              <p class="mb-2"><strong>Apakah Anda yakin ingin menghapus semua riwayat batch upload?</strong></p>
+              <ul class="text-start mb-0" style="font-size:0.9rem;">
+                <li class="mb-1">Semua data batch dan item akan <strong>dihapus permanen</strong> dari database.</li>
+                <li class="mb-1">File foto siswa di <strong>Google Drive TIDAK</strong> akan terhapus.</li>
+                <li class="mb-1">File temporary lokal di storage akan dihapus.</li>
+                <li class="text-danger fw-bold">Tindakan ini tidak dapat dibatalkan!</li>
+              </ul>
+              <hr>
+              <div class="mb-1">Ketik <strong>"RESET"</strong> untuk konfirmasi:</div>
+              <input type="text" id="resetConfirmInput" class="form-control text-center fw-bold" placeholder="Ketik RESET" autocomplete="off">
+            </div>
+          `,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, Reset Semua!',
+          cancelButtonText: 'Batal',
+          confirmButtonColor: '#d44c4d',
+          cancelButtonColor: '#6c757d',
+          customClass: {
+            confirmButton: 'btn das-btn --danger px-4 py-2 me-3',
+            cancelButton: 'btn das-btn --secondary px-4 py-2',
+          },
+          buttonsStyling: false,
+          didOpen: () => {
+            // Focus ke input setelah modal terbuka
+            const inputEl = document.getElementById('resetConfirmInput');
+            if (inputEl) {
+              inputEl.focus();
+              // Listen untuk enter key
+              inputEl.addEventListener('keydown', function(ev) {
+                if (ev.key === 'Enter') {
+                  Swal.clickConfirm();
+                }
+              });
+            }
+          },
+          preConfirm: () => {
+            const inputVal = document.getElementById('resetConfirmInput').value;
+            if (inputVal !== 'RESET') {
+              Swal.showValidationMessage('Anda harus mengetik "RESET" untuk konfirmasi.');
+              return false;
+            }
+            return true;
+          },
+          allowOutsideClick: () => !Swal.isLoading(),
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Kirim request DELETE
+            fetch('{{ route('admin.upload-massal.batches.reset-all') }}', {
+              method: 'DELETE',
+              headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+            })
+            .then(response => {
+              return response.json().then(data => ({
+                status: response.status,
+                ok: response.ok,
+                data: data,
+              }));
+            })
+            .then(({ status, ok, data }) => {
+              if (ok && data.success) {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Berhasil!',
+                  text: data.message || 'Semua log batch berhasil direset.',
+                  confirmButtonColor: '#28a745',
+                  confirmButtonText: 'OK',
+                }).then(() => {
+                  window.location.reload();
+                });
+              } else {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Gagal!',
+                  text: data.message || 'Terjadi kesalahan saat mereset batch.',
+                  confirmButtonColor: '#d44c4d',
+                  confirmButtonText: 'Tutup',
+                });
+              }
+            })
+            .catch(() => {
+              // Fallback: reload jika ada error jaringan
+              window.location.reload();
+            });
+          }
+        });
+      });
+    }
   });
 </script>
 @endpush

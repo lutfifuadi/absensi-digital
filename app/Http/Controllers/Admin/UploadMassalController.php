@@ -286,6 +286,51 @@ class UploadMassalController extends Controller
     }
 
     /**
+     * Reset all batch logs (hapus semua batch records + item + file lokal).
+     * Super Admin: hapus semua. Admin Sekolah: hapus batch miliknya saja.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+     */
+    public function resetAllBatches(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
+        try {
+            $deletedCount = $this->batchUploadService->resetAllBatches($user);
+
+            $message = $deletedCount > 0
+                ? "Berhasil mereset {$deletedCount} batch. Semua data batch dan file lokal telah dihapus. File Google Drive tetap aman."
+                : 'Tidak ada data batch yang perlu direset.';
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'deleted_count' => $deletedCount,
+                ]);
+            }
+
+            return redirect()->back()->with(
+                $deletedCount > 0 ? 'success' : 'info',
+                $message
+            );
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Reset All Batches Error: ' . $e->getMessage());
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mereset batch: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Gagal mereset batch: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Check student data by NISN.
      *
      * @param string $nisn
