@@ -145,24 +145,52 @@ class GoogleDriveService
                 'name' => $originalName,
             ]);
 
-            if ($this->folderId) {
-                $fileMetadata->setParents([$this->folderId]);
-            }
-
             // Read content
             $content = file_get_contents($uploadPath);
 
-            // Upload
-            $uploadedFile = $driveService->files->create($fileMetadata, [
-                'data' => $content,
-                'mimeType' => $mimeType,
-                'uploadType' => 'multipart',
-                'fields' => 'id',
-                'supportsAllDrives' => true,
-                'supportsTeamDrives' => true,
-            ]);
+            $fileId = null;
+            $updateSuccess = false;
 
-            $fileId = $uploadedFile->id;
+            // Jika oldFileId tidak null, coba lakukan update konten file yang sudah ada
+            if ($oldFileId) {
+                try {
+                    $updatedFile = $driveService->files->update($oldFileId, $fileMetadata, [
+                        'data' => $content,
+                        'mimeType' => $mimeType,
+                        'uploadType' => 'multipart',
+                        'fields' => 'id',
+                        'supportsAllDrives' => true,
+                        'supportsTeamDrives' => true,
+                    ]);
+
+                    if ($updatedFile && $updatedFile->id) {
+                        $fileId = $updatedFile->id;
+                        $updateSuccess = true;
+                        Log::info("GoogleDriveService: Berhasil melakukan in-place update konten file pada ID: {$fileId}");
+                    }
+                } catch (\Exception $updateException) {
+                    Log::warning("GoogleDriveService: Gagal memperbarui file dengan ID {$oldFileId}, beralih ke pembuatan file baru. Error: " . $updateException->getMessage());
+                }
+            }
+
+            // Jika update tidak berhasil atau oldFileId bernilai null
+            if (!$updateSuccess) {
+                if ($this->folderId) {
+                    $fileMetadata->setParents([$this->folderId]);
+                }
+
+                // Upload baru
+                $uploadedFile = $driveService->files->create($fileMetadata, [
+                    'data' => $content,
+                    'mimeType' => $mimeType,
+                    'uploadType' => 'multipart',
+                    'fields' => 'id',
+                    'supportsAllDrives' => true,
+                    'supportsTeamDrives' => true,
+                ]);
+
+                $fileId = $uploadedFile->id;
+            }
 
             // Clean up temp file if created
             if ($tempFileCreated && file_exists($uploadPath)) {
@@ -187,8 +215,8 @@ class GoogleDriveService
                 Log::warning('GoogleDriveService: Gagal menyetel file permission ke public: ' . $e->getMessage());
             }
 
-            // Delete old file if provided
-            if ($oldFileId) {
+            // HANYA hapus oldFileId jika disuplai dan proses update in-place gagal (fallback ke create baru)
+            if ($oldFileId && !$updateSuccess) {
                 $this->deletePhoto($oldFileId);
             }
 

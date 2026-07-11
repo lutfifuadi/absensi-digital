@@ -104,10 +104,10 @@ class UploadPhotoToGoogleDrive implements ShouldQueue
                     'error_message' => null,
                 ]);
 
-                // Jika item memiliki siswa_id, ambil model Siswa dan update field foto dengan $fileId
+                // Jika item memiliki siswa_id, ambil model Siswa dan update field foto dengan $fileId (hanya jika ada perubahan)
                 if ($item->siswa_id) {
                     $siswa = Siswa::find($item->siswa_id);
-                    if ($siswa) {
+                    if ($siswa && $siswa->foto !== $fileId) {
                         $siswa->update([
                             'foto' => $fileId,
                         ]);
