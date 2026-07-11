@@ -3,7 +3,6 @@
 @section('title', 'Riwayat Batch Upload Massal')
 
 @section('page-style')
-@vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
 <style>
   .batch-row-hover {
     transition: background 0.15s ease;
@@ -224,118 +223,171 @@
     @endif
   </div>
 </div>
+
+{{-- MODAL RESET SEMUA BATCH --}}
+<div class="modal fade" id="modalResetBatches" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg" style="background: #1e1e2d;">
+      {{-- Header: close button only --}}
+      <div class="modal-header border-0 pb-0">
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+
+      {{-- Body: icon, title, description, input konfirmasi --}}
+      <div class="modal-body text-center pt-0">
+        <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4 shadow-sm shadow-danger"
+             style="width:80px; height:80px; background: rgba(234,84,85,0.1); border: 2px solid rgba(234,84,85,0.2);">
+          <i class="ti tabler-trash-x text-danger" style="font-size:80px; line-height:1;"></i>
+        </div>
+        <h4 class="mb-2 text-white">Reset Semua Log Batch?</h4>
+        <p class="text-white-50 mb-3 px-2">
+          Apakah Anda yakin ingin menghapus semua riwayat batch upload? File foto siswa di Google Drive <strong>TIDAK</strong> akan terhapus. Tindakan ini tidak dapat dibatalkan.
+        </p>
+        <div class="mb-2 text-white-50 small">Ketik <strong class="text-white">RESET</strong> untuk konfirmasi:</div>
+        <input type="text" id="resetConfirmInput"
+               class="form-control text-center fw-bold bg-transparent text-white mt-2"
+               style="border-color:rgba(255,255,255,0.1); max-width:240px; margin:0 auto;"
+               placeholder="Ketik RESET" autocomplete="off">
+      </div>
+
+      {{-- Footer: tombol aksi --}}
+      <div class="modal-footer justify-content-center border-0 pb-4 mt-3">
+        <button type="button" class="btn btn-label-secondary border-0 px-4" data-bs-dismiss="modal">Batal</button>
+        <button type="button" id="btnConfirmReset" class="btn das-btn --danger px-4 shadow-sm" disabled>
+          Ya, Reset Semua!
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 @endsection
 
 @push('scripts')
-@vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.js'])
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Inisialisasi tooltip Bootstrap jika ada
+    // ── TOOLTIP BOOTSTRAP ──────────────────────────────────────────────────
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
       return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 
-    // ── RESET SEMUA LOG ──────────────────────────────────────────────────
+    // ── RESET SEMUA LOG ── Bootstrap Modal ─────────────────────────────────
     const resetBtn = document.getElementById('btnResetAllBatches');
-    if (resetBtn) {
+    const modalEl = document.getElementById('modalResetBatches');
+    const confirmInput = document.getElementById('resetConfirmInput');
+    const confirmBtn = document.getElementById('btnConfirmReset');
+
+    if (resetBtn && modalEl) {
+      // Buka modal saat tombol diklik
       resetBtn.addEventListener('click', function(e) {
         e.preventDefault();
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
 
-        Swal.fire({
-          title: '<span class="text-danger">⚠️ Reset Semua Log Batch?</span>',
-          html: `
-            <div class="text-start px-2">
-              <p class="mb-2"><strong>Apakah Anda yakin ingin menghapus semua riwayat batch upload?</strong></p>
-              <ul class="text-start mb-0" style="font-size:0.9rem;">
-                <li class="mb-1">Semua data batch dan item akan <strong>dihapus permanen</strong> dari database.</li>
-                <li class="mb-1">File foto siswa di <strong>Google Drive TIDAK</strong> akan terhapus.</li>
-                <li class="mb-1">File temporary lokal di storage akan dihapus.</li>
-                <li class="text-danger fw-bold">Tindakan ini tidak dapat dibatalkan!</li>
-              </ul>
-              <hr>
-              <div class="mb-1">Ketik <strong>"RESET"</strong> untuk konfirmasi:</div>
-              <input type="text" id="resetConfirmInput" class="form-control text-center fw-bold" placeholder="Ketik RESET" autocomplete="off">
-            </div>
-          `,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Ya, Reset Semua!',
-          cancelButtonText: 'Batal',
-          confirmButtonColor: '#d44c4d',
-          cancelButtonColor: '#6c757d',
-          customClass: {
-            confirmButton: 'btn das-btn --danger px-4 py-2 me-3',
-            cancelButton: 'btn das-btn --secondary px-4 py-2',
-          },
-          buttonsStyling: false,
-          didOpen: () => {
-            // Focus ke input setelah modal terbuka
-            const inputEl = document.getElementById('resetConfirmInput');
-            if (inputEl) {
-              inputEl.focus();
-              // Listen untuk enter key
-              inputEl.addEventListener('keydown', function(ev) {
-                if (ev.key === 'Enter') {
-                  Swal.clickConfirm();
-                }
-              });
-            }
-          },
-          preConfirm: () => {
-            const inputVal = document.getElementById('resetConfirmInput').value;
-            if (inputVal !== 'RESET') {
-              Swal.showValidationMessage('Anda harus mengetik "RESET" untuk konfirmasi.');
-              return false;
-            }
-            return true;
-          },
-          allowOutsideClick: () => !Swal.isLoading(),
-        }).then((result) => {
-          if (result.isConfirmed) {
-            // Kirim request DELETE
-            fetch('{{ route('admin.upload-massal.batches.reset-all') }}', {
-              method: 'DELETE',
-              headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-              },
-            })
-            .then(response => {
-              return response.json().then(data => ({
-                status: response.status,
-                ok: response.ok,
-                data: data,
-              }));
-            })
-            .then(({ status, ok, data }) => {
-              if (ok && data.success) {
-                Swal.fire({
-                  icon: 'success',
-                  title: 'Berhasil!',
-                  text: data.message || 'Semua log batch berhasil direset.',
-                  confirmButtonColor: '#28a745',
-                  confirmButtonText: 'OK',
-                }).then(() => {
-                  window.location.reload();
-                });
-              } else {
-                Swal.fire({
-                  icon: 'error',
-                  title: 'Gagal!',
-                  text: data.message || 'Terjadi kesalahan saat mereset batch.',
-                  confirmButtonColor: '#d44c4d',
-                  confirmButtonText: 'Tutup',
-                });
-              }
-            })
-            .catch(() => {
-              // Fallback: reload jika ada error jaringan
-              window.location.reload();
-            });
+        // Reset state modal setelah terbuka
+        modalEl.addEventListener('shown.bs.modal', function onShown() {
+          if (confirmInput) {
+            confirmInput.value = '';
+            confirmInput.focus();
           }
+          if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = 'Ya, Reset Semua!';
+          }
+          modalEl.removeEventListener('shown.bs.modal', onShown);
         });
+      });
+    }
+
+    // Validasi input konfirmasi
+    if (confirmInput && confirmBtn) {
+      confirmInput.addEventListener('input', function() {
+        confirmBtn.disabled = this.value !== 'RESET';
+      });
+
+      // Enter key → submit otomatis
+      confirmInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && this.value === 'RESET') {
+          e.preventDefault();
+          confirmBtn.click();
+        }
+      });
+    }
+
+    // Kirim request DELETE
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', function() {
+        const originalText = confirmBtn.innerHTML;
+        // Loading state
+        confirmBtn.innerHTML =
+          '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Memproses...';
+        confirmBtn.disabled = true;
+
+        fetch('{{ route('admin.upload-massal.batches.reset-all') }}', {
+          method: 'DELETE',
+          headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        })
+        .then(response => {
+          return response.json().then(data => ({
+            status: response.status,
+            ok: response.ok,
+            data: data,
+          }));
+        })
+        .then(({ status, ok, data }) => {
+          // Tutup modal
+          const modal = bootstrap.Modal.getInstance(modalEl);
+          if (modal) modal.hide();
+
+          if (ok && data.success) {
+            // Reload halaman — flash session dari server akan muncul
+            window.location.reload();
+          } else {
+            // Tampilkan error alert di halaman
+            const errorMsg = data.message || 'Terjadi kesalahan saat mereset batch.';
+            const panel = document.querySelector('.das-panel');
+            if (panel && panel.parentNode) {
+              const alertEl = document.createElement('div');
+              alertEl.className =
+                'alert alert-danger alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm';
+              alertEl.style.borderRadius = '8px';
+              alertEl.setAttribute('role', 'alert');
+              alertEl.innerHTML =
+                '<i class="ti tabler-alert-circle fs-5"></i><span>' +
+                errorMsg +
+                '</span><button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>';
+              panel.parentNode.insertBefore(alertEl, panel);
+            }
+          }
+        })
+        .catch(function() {
+          const modal = bootstrap.Modal.getInstance(modalEl);
+          if (modal) modal.hide();
+          // Fallback reload
+          window.location.reload();
+        })
+        .finally(function() {
+          confirmBtn.innerHTML = originalText;
+          confirmBtn.disabled = true;
+        });
+      });
+    }
+
+    // Reset state modal saat ditutup (termasuk klik backdrop / tekan Escape)
+    const modalElForReset = document.getElementById('modalResetBatches');
+    if (modalElForReset) {
+      modalElForReset.addEventListener('hidden.bs.modal', function() {
+        const inp = document.getElementById('resetConfirmInput');
+        const btn = document.getElementById('btnConfirmReset');
+        if (inp) inp.value = '';
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = 'Ya, Reset Semua!';
+        }
       });
     }
   });
