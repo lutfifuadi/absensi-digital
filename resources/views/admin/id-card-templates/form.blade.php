@@ -293,7 +293,7 @@
                           $bgUrl = '';
                           if ($template->background_path) {
                               if (strlen($template->background_path) > 30) {
-                                  $bgUrl = 'https://drive.google.com/thumbnail?id=' . $template->background_path . '&sz=w800';
+                                  $bgUrl = 'https://drive.google.com/thumbnail?id=' . $template->background_path . '&sz=w800&_t=' . time();
                               } else {
                                   $bgUrl = Storage::url($template->background_path);
                               }

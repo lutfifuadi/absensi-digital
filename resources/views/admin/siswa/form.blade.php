@@ -225,7 +225,7 @@
                       $photoUrl = '';
                       if (strlen($siswa->foto) > 30) {
                           // Google Drive ID
-                          $photoUrl = 'https://drive.google.com/thumbnail?id=' . $siswa->foto . '&sz=w200';
+                          $photoUrl = 'https://drive.google.com/thumbnail?id=' . $siswa->foto . '&sz=w200&_t=' . time();
                       } else {
                           $photoUrl = asset('storage/' . $siswa->foto);
                       }

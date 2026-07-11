@@ -15,7 +15,7 @@
           $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($siswa->nama_lengkap) . '&size=120&background=7367f0&color=fff';
           if ($siswa->foto) {
               if (strlen($siswa->foto) > 30) {
-                  $avatarUrl = 'https://drive.google.com/thumbnail?id=' . $siswa->foto . '&sz=w200';
+                  $avatarUrl = 'https://drive.google.com/thumbnail?id=' . $siswa->foto . '&sz=w200&_t=' . time();
               } else {
                   $avatarUrl = asset('storage/' . $siswa->foto);
               }
