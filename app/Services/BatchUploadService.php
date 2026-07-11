@@ -293,7 +293,7 @@ class BatchUploadService
     public function detectStudentFromFilename(string $filename): ?array
     {
         // Ambil NISN dari nama file menggunakan regex: preg_match('/\b(\d{10})\b/', $filename, $matches)
-        if (preg_match('/\b(\d{10})\b/', $filename, $matches)) {
+        if (preg_match('/\b(\d{10})\d*/', $filename, $matches)) {
             // Cari model Siswa berdasarkan nisn = $matches[1]
             $siswa = Siswa::where('nisn', $matches[1])->first();
             if ($siswa) {

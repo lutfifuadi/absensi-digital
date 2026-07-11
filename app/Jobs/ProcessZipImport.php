@@ -154,7 +154,7 @@ class ProcessZipImport implements ShouldQueue
             $siswaId = null;
             $oldFileId = null;
 
-            if (preg_match('/\b(\d{10})\b/', $originalFilename, $matches)) {
+            if (preg_match('/\b(\d{10})\d*/', $originalFilename, $matches)) {
                 $nisn = $matches[1];
                 $siswa = Siswa::where('nisn', $nisn)->first();
                 if ($siswa) {
