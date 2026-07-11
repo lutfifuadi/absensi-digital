@@ -39,7 +39,7 @@
     {
       "name": "Siswa",
       "icon": "menu-icon ti tabler-users-group",
-      "slug": "admin.siswa.index",
+      "slug": ["admin.siswa.index", "admin.upload-massal.index", "admin.siswa.naik-kelas-massal"],
       "url": "/admin/siswa",
       "submenu": [
         {
@@ -53,6 +53,12 @@
           "icon": "menu-icon ti tabler-trending-up",
           "slug": "admin.siswa.naik-kelas-massal",
           "url": "/admin/siswa/naik-kelas-massal"
+        },
+        {
+          "name": "Upload Massal Foto",
+          "icon": "menu-icon ti tabler-cloud-upload",
+          "slug": "admin.upload-massal.index",
+          "url": "/admin/upload-massal"
         }
       ]
     },

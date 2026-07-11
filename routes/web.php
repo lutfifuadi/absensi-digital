@@ -996,6 +996,20 @@ Route::middleware([
             Route::get('/', [CetakKartuController::class, 'index'])->name('index');
             Route::post('/download', [CetakKartuController::class, 'download'])->name('download');
         });
+
+        // ── UPLOAD MASSAL FOTO GOOGLE DRIVE ──────────────────────────────────
+        Route::prefix('upload-massal')->name('admin.upload-massal.')->middleware('role:super_admin,admin_sekolah')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\UploadMassalController::class, 'index'])->name('index');
+            Route::post('/upload', [\App\Http\Controllers\Admin\UploadMassalController::class, 'upload'])->name('upload');
+            Route::post('/import-zip', [\App\Http\Controllers\Admin\UploadMassalController::class, 'importZip'])->name('import-zip');
+            Route::get('/batches', [\App\Http\Controllers\Admin\UploadMassalController::class, 'batches'])->name('batches');
+            Route::get('/batches/{batch}', [\App\Http\Controllers\Admin\UploadMassalController::class, 'showBatch'])->name('batches.show');
+            Route::get('/batches/{batch}/items', [\App\Http\Controllers\Admin\UploadMassalController::class, 'batchItems'])->name('batches.items');
+            Route::get('/batches/{batch}/progress', [\App\Http\Controllers\Admin\UploadMassalController::class, 'batchProgress'])->name('batches.progress');
+            Route::post('/batches/{batch}/retry', [\App\Http\Controllers\Admin\UploadMassalController::class, 'retryBatch'])->name('batches.retry');
+            Route::post('/batches/{batch}/cancel', [\App\Http\Controllers\Admin\UploadMassalController::class, 'cancelBatch'])->name('batches.cancel');
+            Route::get('/check-student/{nisn}', [\App\Http\Controllers\Admin\UploadMassalController::class, 'checkStudent'])->name('check-student');
+        });
     });
 });
 
@@ -1006,3 +1020,6 @@ Route::get('/download/app/{token}', [DownloadController::class, 'downloadApp'])
 Route::get('/download/manual', [DownloadController::class, 'manualDownload'])
     ->name('download.manual');
 // ─────────────────────────────────────────────────────────────────────────────
+
+
+
