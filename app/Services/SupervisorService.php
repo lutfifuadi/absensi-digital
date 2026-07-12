@@ -3,6 +3,9 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Log;
+use PhpXmlRpc\Client;
+use PhpXmlRpc\Encoder;
+use PhpXmlRpc\Request;
 
 class SupervisorService
 {
@@ -11,6 +14,7 @@ class SupervisorService
     protected string $username;
     protected string $password;
     protected string $program;
+    protected ?Client $client = null;
 
     public function __construct()
     {
@@ -19,6 +23,20 @@ class SupervisorService
         $this->username = config('supervisor.username', 'supervisor_api');
         $this->password = config('supervisor.password', '');
         $this->program = config('supervisor.program', 'laravel-worker');
+    }
+
+    /**
+     * Dapatkan instance XML-RPC Client (lazy-loaded).
+     */
+    protected function getClient(): Client
+    {
+        if ($this->client === null) {
+            $url = "http://{$this->host}:{$this->port}/RPC2";
+            $this->client = new Client($url);
+            $this->client->setCredentials($this->username, $this->password);
+            $this->client->setOption('timeout', 5);
+        }
+        return $this->client;
     }
 
     /**
@@ -31,32 +49,24 @@ class SupervisorService
      */
     protected function call(string $method, array $params = []): array
     {
-        $url = "http://{$this->host}:{$this->port}/RPC2";
+        $client = $this->getClient();
+        $encoder = new Encoder();
 
-        $request = xmlrpc_encode_request($method, $params);
-
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'POST',
-                'header' => "Content-Type: text/xml\r\nAuthorization: Basic " . base64_encode("{$this->username}:{$this->password}"),
-                'content' => $request,
-                'timeout' => 5,
-            ],
-        ]);
-
-        $response = @file_get_contents($url, false, $context);
-
-        if ($response === false) {
-            throw new \Exception('Tidak dapat terhubung ke Supervisor API');
+        // Encode params ke Value objects
+        $encodedParams = [];
+        foreach ($params as $param) {
+            $encodedParams[] = $encoder->encode($param);
         }
 
-        $result = xmlrpc_decode($response);
+        $req = new Request($method, $encodedParams);
+        $resp = $client->send($req);
 
-        if (is_array($result) && isset($result['faultCode'])) {
-            throw new \Exception("Supervisor API error: {$result['faultString']}");
+        if ($resp->faultCode()) {
+            throw new \Exception("Supervisor API error: " . $resp->faultString());
         }
 
-        return (array) $result;
+        $val = $resp->value();
+        return $encoder->decode($val);
     }
 
     /**
