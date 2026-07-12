@@ -10,9 +10,9 @@ return [
     | Digunakan oleh SupervisorService untuk mengontrol queue worker.
     |
     */
-    'host' => env('SUPERVISOR_HOST', '127.0.0.1'),
-    'port' => env('SUPERVISOR_PORT', 9001),
-    'username' => env('SUPERVISOR_USERNAME', 'supervisor_api'),
+    'host' => env('SUPERVISOR_API_HOST', env('SUPERVISOR_HOST', '127.0.0.1')),
+    'port' => env('SUPERVISOR_API_PORT', env('SUPERVISOR_PORT', 9001)),
+    'username' => env('SUPERVISOR_API_USERNAME', env('SUPERVISOR_USERNAME', 'supervisor_api')),
     'password' => env('SUPERVISOR_API_PASSWORD', ''),
-    'program' => env('SUPERVISOR_PROGRAM', 'laravel-worker'),
+    'program' => env('SUPERVISOR_PROGRAM_NAME', env('SUPERVISOR_PROGRAM', 'laravel-worker')),
 ];

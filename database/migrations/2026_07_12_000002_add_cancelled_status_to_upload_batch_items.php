@@ -14,7 +14,9 @@ return new class extends Migration
     {
         // MySQL ENUM cannot be modified directly via Laravel Schema builder
         // Using raw SQL to modify the enum
-        DB::statement("ALTER TABLE `upload_batch_items` MODIFY COLUMN `status` ENUM('pending', 'processing', 'success', 'failed', 'cancelled') NOT NULL DEFAULT 'pending'");
+        if (config('database.default') !== 'sqlite') {
+            DB::statement("ALTER TABLE `upload_batch_items` MODIFY COLUMN `status` ENUM('pending', 'processing', 'success', 'failed', 'cancelled') NOT NULL DEFAULT 'pending'");
+        }
     }
 
     /**
@@ -22,6 +24,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE `upload_batch_items` MODIFY COLUMN `status` ENUM('pending', 'processing', 'success', 'failed') NOT NULL DEFAULT 'pending'");
+        if (config('database.default') !== 'sqlite') {
+            DB::statement("ALTER TABLE `upload_batch_items` MODIFY COLUMN `status` ENUM('pending', 'processing', 'success', 'failed') NOT NULL DEFAULT 'pending'");
+        }
     }
 };
