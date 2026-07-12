@@ -34,6 +34,7 @@ class UploadBatch extends Model
         'failed_count',
         'status',
         'metadata',
+        'failed_reason',
     ];
 
     /**

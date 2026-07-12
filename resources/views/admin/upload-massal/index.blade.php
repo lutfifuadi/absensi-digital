@@ -142,6 +142,84 @@
     </div>
   </template>
 
+  {{-- QUEUE STATUS BANNER: Inactive --}}
+  <template x-if="queueStatus.status === 'inactive'">
+    <div class="alert d-flex align-items-start gap-3 mb-4 border-0 shadow-sm animate__animated animate__fadeIn" role="alert" style="background: rgba(234, 84, 85, 0.1); border: 1px solid rgba(234, 84, 85, 0.25) !important; border-radius: 8px; color: #fff;">
+      <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 mt-0" style="width: 36px; height: 36px;">
+        <i class="ti tabler-alert-triangle fs-4"></i>
+      </div>
+      <div class="flex-grow-1">
+        <strong class="text-white">Queue Upload Tidak Aktif</strong>
+        <p class="mb-0 text-white-50 small">
+          Batch upload tidak akan diproses sampai queue worker dihidupkan.
+          <template x-if="queueStatus.lastHeartbeat">
+            <span class="d-block mt-1">
+              <i class="ti tabler-clock me-1"></i>Heartbeat terakhir: <span x-text="queueStatus.lastHeartbeat"></span>
+            </span>
+          </template>
+        </p>
+        <div class="mt-2 d-flex gap-2">
+          {{-- Tombol Hidupkan Queue --}}
+          <button type="button" class="btn btn-sm btn-danger fw-semibold d-inline-flex align-items-center gap-1" @click="queueAction('start')" :disabled="queueActionLoading">
+            <template x-if="queueActionLoading && queueActionType === 'start'">
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            </template>
+            <template x-if="!(queueActionLoading && queueActionType === 'start')">
+              <i class="ti tabler-player-play fs-5"></i>
+            </template>
+            Hidupkan Queue
+          </button>
+          {{-- Tombol Restart Queue --}}
+          <button type="button" class="btn btn-sm btn-outline-danger fw-semibold d-inline-flex align-items-center gap-1" @click="queueAction('restart')" :disabled="queueActionLoading">
+            <template x-if="queueActionLoading && queueActionType === 'restart'">
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            </template>
+            <template x-if="!(queueActionLoading && queueActionType === 'restart')">
+              <i class="ti tabler-refresh fs-5"></i>
+            </template>
+            Restart Queue
+          </button>
+        </div>
+      </div>
+      <button type="button" class="btn-close btn-close-white ms-auto flex-shrink-0" @click="queueStatus.status = 'active'"></button>
+    </div>
+  </template>
+
+  {{-- QUEUE STATUS BANNER: Active (brief notification) --}}
+  <template x-if="showActiveBanner">
+    <div class="alert d-flex align-items-start gap-3 mb-4 border-0 shadow-sm animate__animated animate__fadeIn" role="alert" style="background: rgba(40, 199, 111, 0.1); border: 1px solid rgba(40, 199, 111, 0.25) !important; border-radius: 8px; color: #fff;">
+      <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 mt-0" style="width: 36px; height: 36px;">
+        <i class="ti tabler-circle-check fs-4"></i>
+      </div>
+      <div class="flex-grow-1">
+        <strong class="text-white">Queue Upload Aktif</strong>
+        <p class="mb-0 text-white-50 small">Queue upload aktif — semua batch akan diproses.</p>
+        <div class="mt-2 d-flex gap-2">
+          {{-- Tombol Restart Queue --}}
+          <button type="button" class="btn btn-sm btn-success fw-semibold d-inline-flex align-items-center gap-1" @click="queueAction('restart')" :disabled="queueActionLoading">
+            <template x-if="queueActionLoading && queueActionType === 'restart'">
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            </template>
+            <template x-if="!(queueActionLoading && queueActionType === 'restart')">
+              <i class="ti tabler-refresh fs-5"></i>
+            </template>
+            Restart Queue
+          </button>
+          {{-- Tombol Matikan Queue --}}
+          <button type="button" class="btn btn-sm btn-outline-success fw-semibold d-inline-flex align-items-center gap-1" @click="queueAction('stop')" :disabled="queueActionLoading">
+            <template x-if="queueActionLoading && queueActionType === 'stop'">
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            </template>
+            <template x-if="!(queueActionLoading && queueActionType === 'stop')">
+              <i class="ti tabler-player-stop fs-5"></i>
+            </template>
+            Matikan Queue
+          </button>
+        </div>
+      </div>
+    </div>
+  </template>
+
   <div class="row">
     {{-- FORM PANEL UTAMA --}}
     <div class="col-lg-8 mb-4">
@@ -414,10 +492,27 @@
         message: ''
       },
 
+      // Queue Status
+      queueStatus: {
+        status: 'active',
+        lastHeartbeat: null,
+        pendingBatches: 0,
+        checking: true
+      },
+      showActiveBanner: false,
+
+      // Queue Actions
+      queueActionLoading: false,
+      queueActionType: '',
+
       init() {
         if (this.driveConnected) {
           this.fetchDriveStatus();
         }
+        this.fetchQueueStatus();
+        setInterval(() => {
+          this.fetchQueueStatus();
+        }, 30000);
       },
 
       fetchDriveStatus() {
@@ -449,6 +544,65 @@
             this.driveConnected = false;
             this.driveInfo.connected = false;
           });
+      },
+
+      fetchQueueStatus() {
+        fetch('/admin/queue-status')
+          .then(res => res.json())
+          .then(data => {
+            const prevStatus = this.queueStatus.status;
+            const wasChecking = this.queueStatus.checking;
+            this.queueStatus.checking = false;
+            this.queueStatus.status = data.status;
+            this.queueStatus.lastHeartbeat = data.last_heartbeat;
+            this.queueStatus.pendingBatches = data.pending_batches;
+
+            // Show active banner briefly on first load or when recovering from inactive
+            if (data.status === 'active' && (wasChecking || prevStatus === 'inactive')) {
+              this.showActiveBanner = true;
+              setTimeout(() => { this.showActiveBanner = false; }, 5000);
+            }
+          })
+          .catch(err => {
+            console.error('Queue status fetch error:', err);
+            this.queueStatus.checking = false;
+          });
+      },
+
+      async queueAction(action) {
+        this.queueActionLoading = true;
+        this.queueActionType = action;
+
+        const actionLabels = {
+          start: 'menghidupkan',
+          stop: 'mematikan',
+          restart: 'merestart'
+        };
+
+        try {
+          const res = await fetch(`/admin/queue/${action}`, {
+            method: 'POST',
+            headers: {
+              'X-CSRF-TOKEN': this.csrfToken,
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+          const data = await res.json();
+
+          if (data.success) {
+            this.showAlert('success', data.message || `Queue berhasil ${actionLabels[action] || action}.`);
+            // Refresh status queue otomatis
+            this.fetchQueueStatus();
+          } else {
+            this.showAlert('danger', data.message || `Gagal ${actionLabels[action] || action} queue.`);
+          }
+        } catch (err) {
+          this.showAlert('danger', `Terjadi kesalahan koneksi saat ${actionLabels[action] || action} queue.`);
+        } finally {
+          this.queueActionLoading = false;
+          this.queueActionType = '';
+        }
       },
 
       showAlert(type, message) {

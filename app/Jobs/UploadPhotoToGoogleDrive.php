@@ -10,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
 
@@ -63,6 +64,11 @@ class UploadPhotoToGoogleDrive implements ShouldQueue
      */
     public function handle(): void
     {
+        // ── Cache Heartbeat untuk monitoring queue worker ────────────────
+        Cache::put('queue_uploads_heartbeat', now()->format('Y-m-d H:i:s'), 180);
+        Cache::put('queue_uploads_last_processed_at', now()->format('Y-m-d H:i:s'), 180);
+        // ─────────────────────────────────────────────────────────────────
+
         $item = UploadBatchItem::find($this->itemId);
 
         if (!$item) {

@@ -23,6 +23,11 @@ Schedule::call(function () {
     \Illuminate\Support\Facades\Cache::put('queue_heartbeat', now(), 120);
 })->everyMinute()->description('Queue Heartbeat');
 
+// Jadwal: setiap 5 menit cek batch upload yang stuck karena queue worker mati
+Schedule::command(\App\Console\Commands\CheckQueueHealth::class)
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
+
 Schedule::command('model:prune', ['--model' => \App\Models\DeployLog::class])->daily();
 
 if (file_exists(storage_path('installed'))) {

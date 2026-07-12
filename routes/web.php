@@ -34,6 +34,7 @@ use App\Http\Controllers\Admin\PelepasanController;
 use App\Http\Controllers\Admin\PembelianLisensiController;
 use App\Http\Controllers\Admin\PengaturanController;
 use App\Http\Controllers\Admin\PwaSettingsController;
+use App\Http\Controllers\Admin\QueueControlController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\ScanQrController;
 use App\Http\Controllers\Admin\SiswaController;
@@ -995,6 +996,22 @@ Route::middleware([
         Route::prefix('cetak-kartu')->name('admin.cetak-kartu.')->middleware('role:super_admin,admin_sekolah,operator')->group(function () {
             Route::get('/', [CetakKartuController::class, 'index'])->name('index');
             Route::post('/download', [CetakKartuController::class, 'download'])->name('download');
+        });
+
+        // ── QUEUE WORKER HEALTH CHECK & CONTROL ──────────────────────────
+        Route::get('queue-status', [\App\Http\Controllers\Admin\QueueStatusController::class, 'index'])
+            ->name('admin.queue-status')
+            ->middleware('role:super_admin,admin_sekolah');
+
+        Route::prefix('queue')->name('admin.queue.control.')->middleware('role:super_admin,admin_sekolah')->group(function () {
+            Route::get('status', [\App\Http\Controllers\Admin\QueueControlController::class, 'status'])
+                ->name('status');
+            Route::post('start', [\App\Http\Controllers\Admin\QueueControlController::class, 'start'])
+                ->name('start');
+            Route::post('stop', [\App\Http\Controllers\Admin\QueueControlController::class, 'stop'])
+                ->name('stop');
+            Route::post('restart', [\App\Http\Controllers\Admin\QueueControlController::class, 'restart'])
+                ->name('restart');
         });
 
         // ── UPLOAD MASSAL FOTO GOOGLE DRIVE ──────────────────────────────────
