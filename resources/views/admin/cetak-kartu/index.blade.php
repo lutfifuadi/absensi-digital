@@ -3,6 +3,7 @@
 @section('title', 'Cetak Kartu Identitas')
 
 @section('page-style')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 /* ════════════════════════════════════════════════════════════
    STEP WIZARD
@@ -995,6 +996,11 @@
           <span id="btnDownloadText">Download PDF Kartu</span>
         </button>
 
+        <button type="button" class="btn das-btn --info w-100 mt-2 d-none" id="btnPreviewGambar">
+            <i class="ti tabler-eye me-1" style="font-size:1.2rem;"></i>
+            <span>Pratinjau & Cetak Gambar</span>
+        </button>
+
         {{-- Tombol Reset --}}
         <div class="text-center mt-2">
           <button type="button" class="btn das-btn --secondary px-3 py-1" id="btnReset" style="font-size:0.8rem;">
@@ -1005,6 +1011,42 @@
       </div>{{-- /step3Section --}}
 
     </form>
+  </div>
+</div>
+
+<!-- Modal Preview ID Card -->
+<div class="modal fade" id="modalPreviewGambar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Pratinjau & Cetak Gambar ID Card</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" style="background: #f5f5f9; overflow-y: auto; max-height: 70vh;">
+        <!-- Loader -->
+        <div id="previewLoader" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2 text-muted">Sedang memproses template ID Card...</p>
+        </div>
+        <!-- Area Kartu -->
+        <div id="previewCardArea" class="d-flex flex-column align-items-center gap-4 py-3 d-none">
+          <!-- Kartu HTML yang di-render di sini -->
+        </div>
+      </div>
+      <div class="modal-footer justify-content-between">
+        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Tutup</button>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-primary" id="btnDownloadPNG">
+            <i class="ti tabler-download me-1"></i> Unduh PNG
+          </button>
+          <button type="button" class="btn btn-info" id="btnDownloadJPG">
+            <i class="ti tabler-download me-1"></i> Unduh JPG
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1396,7 +1438,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Template select
   const templateEl = document.getElementById('template_id');
-  if (templateEl) templateEl.addEventListener('change', updatePreviewBar);
+  if (templateEl) {
+    templateEl.addEventListener('change', function() {
+      updatePreviewBar();
+      const btnPreview = document.getElementById('btnPreviewGambar');
+      if (this.value) {
+        btnPreview?.classList.remove('d-none');
+      } else {
+        btnPreview?.classList.add('d-none');
+      }
+    });
+  }
 
   // Search individu
   const searchEl = document.getElementById('searchIndividu');
@@ -1495,6 +1547,9 @@ document.addEventListener('DOMContentLoaded', function() {
       const btnText = document.getElementById('btnDownloadText');
       if (btn) btn.disabled = false;
       if (btnText) btnText.textContent = 'Download PDF Kartu';
+
+      const btnPreview = document.getElementById('btnPreviewGambar');
+      if (btnPreview) btnPreview.classList.add('d-none');
     });
   }
 
@@ -1508,10 +1563,173 @@ document.addEventListener('DOMContentLoaded', function() {
     if (oldOpsi) {
       onOpsiChange();
     }
+    const templateEl = document.getElementById('template_id');
+    const btnPreview = document.getElementById('btnPreviewGambar');
+    if (templateEl && templateEl.value && btnPreview) {
+      btnPreview.classList.remove('d-none');
+    }
   }
 
   updateStepIndicator(oldTipe ? (oldOpsi ? 2 : 1) : 0);
   updatePreviewBar();
+
+  // ── Preview & Download Image logic ──
+  const btnPreviewGambar = document.getElementById('btnPreviewGambar');
+  const modalPreviewGambarEl = document.getElementById('modalPreviewGambar');
+  let modalPreviewGambar = null;
+  if (modalPreviewGambarEl) {
+    modalPreviewGambar = new bootstrap.Modal(modalPreviewGambarEl);
+  }
+
+  if (btnPreviewGambar) {
+    btnPreviewGambar.addEventListener('click', function() {
+      const tipe = getCheckedVal('tipe');
+      const opsi = getCheckedVal('opsi_cetak');
+      const template = document.getElementById('template_id')?.value;
+      const kelas = document.getElementById('kelas_id')?.value;
+      const entitas = document.getElementById('entitas_id_hidden')?.value;
+
+      const errors = [];
+      if (!tipe) errors.push('Pilih tipe entitas terlebih dahulu.');
+      if (!opsi) errors.push('Pilih opsi cetak terlebih dahulu.');
+      if (!template) errors.push('Pilih template kartu.');
+      if (opsi === 'kelas' && !kelas) errors.push('Pilih kelas terlebih dahulu.');
+      if (opsi === 'individu' && !entitas) errors.push('Pilih individu terlebih dahulu.');
+
+      if (errors.length > 0) {
+        alert('Mohon lengkapi form:\n• ' + errors.join('\n• '));
+        return;
+      }
+
+      // Show modal
+      modalPreviewGambar.show();
+
+      // Show loader
+      const loader = document.getElementById('previewLoader');
+      const cardArea = document.getElementById('previewCardArea');
+      if (loader) loader.classList.remove('d-none');
+      if (cardArea) {
+        cardArea.classList.add('d-none');
+        cardArea.innerHTML = '';
+      }
+
+      // Prepare request data
+      const formData = new FormData();
+      formData.append('tipe', tipe);
+      formData.append('opsi_cetak', opsi);
+      formData.append('template_id', template);
+      if (kelas) formData.append('kelas_id', kelas);
+      if (entitas) formData.append('entitas_id', entitas);
+      formData.append('_token', '{{ csrf_token() }}');
+
+      fetch('{{ route("admin.cetak-kartu.preview") }}', {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Gagal memproses template');
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.success && data.html) {
+          if (loader) loader.classList.add('d-none');
+          if (cardArea) {
+            cardArea.classList.remove('d-none');
+            cardArea.innerHTML = data.html;
+
+            // Remove any absolute page breaks or styling that breaks vertical stacking inside the preview card area if needed
+            cardArea.querySelectorAll('.page-break').forEach(el => el.remove());
+          }
+        } else {
+          alert(data.message || 'Terjadi kesalahan saat memproses data.');
+          modalPreviewGambar.hide();
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Gagal menghubungi server. Silakan coba lagi.');
+        modalPreviewGambar.hide();
+      });
+    });
+  }
+
+  // Helper function to download canvas as image
+  function downloadImage(format) {
+    const cards = document.querySelectorAll('#previewCardArea .id-card');
+    if (cards.length === 0) {
+      alert('Tidak ada ID Card untuk diunduh.');
+      return;
+    }
+
+    // Disable buttons during render
+    const btnPNG = document.getElementById('btnDownloadPNG');
+    const btnJPG = document.getElementById('btnDownloadJPG');
+    if (btnPNG) btnPNG.disabled = true;
+    if (btnJPG) btnJPG.disabled = true;
+
+    let index = 0;
+    const processNextCard = () => {
+      if (index >= cards.length) {
+        if (btnPNG) btnPNG.disabled = false;
+        if (btnJPG) btnJPG.disabled = false;
+        return;
+      }
+
+      const card = cards[index];
+      
+      // Ambil nama dan NIS/NIP dari id-card element attributes/data attributes
+      // Jika id-card memiliki dataset khusus
+      const name = card.getAttribute('data-name') || card.querySelector('.name, .nama, .entity-name')?.textContent?.trim() || 'ID_Card';
+      const code = card.getAttribute('data-code') || card.querySelector('.nis, .nip, .entity-code')?.textContent?.trim() || 'Code';
+      const cleanName = name.replace(/[^a-zA-Z0-9]/g, '_');
+      const cleanCode = code.replace(/[^a-zA-Z0-9]/g, '_');
+      
+      html2canvas(card, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null
+      }).then(canvas => {
+        const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
+        const fileExt = format === 'png' ? 'png' : 'jpg';
+        const filename = `ID_Card_${cleanName}_${cleanCode}.${fileExt}`;
+        
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = canvas.toDataURL(mimeType, 0.95);
+        link.click();
+        
+        index++;
+        // Delay slight to prevent browser from blocking concurrent downloads
+        setTimeout(processNextCard, 500);
+      }).catch(err => {
+        console.error('Html2canvas error:', err);
+        index++;
+        processNextCard();
+      });
+    };
+
+    processNextCard();
+  }
+
+  const btnPNG = document.getElementById('btnDownloadPNG');
+  if (btnPNG) {
+    btnPNG.addEventListener('click', function() {
+      downloadImage('png');
+    });
+  }
+
+  const btnJPG = document.getElementById('btnDownloadJPG');
+  if (btnJPG) {
+    btnJPG.addEventListener('click', function() {
+      downloadImage('jpg');
+    });
+  }
 
 }); // end DOMContentLoaded
 </script>

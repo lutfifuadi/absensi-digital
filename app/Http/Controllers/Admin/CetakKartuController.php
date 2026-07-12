@@ -127,4 +127,133 @@ class CetakKartuController extends Controller
             default => back()->with('error', 'Tipe kartu tidak dikenali.'),
         };
     }
+
+    /**
+     * Tampilkan pratinjau ID Card sebagai HTML response JSON.
+     */
+    public function preview(Request $request)
+    {
+        $validated = $request->validate([
+            'tipe'       => 'required|in:siswa,guru,staff',
+            'template_id' => 'required|exists:id_card_templates,id',
+            'opsi_cetak' => 'required|in:semua,kelas,individu',
+            'kelas_id'   => 'required_if:opsi_cetak,kelas|nullable|exists:kelas,id',
+            'entitas_id' => 'required_if:opsi_cetak,individu|nullable|integer',
+        ]);
+
+        $tipe       = $validated['tipe'];
+        $opsiCetak  = $validated['opsi_cetak'];
+        $templateId = $validated['template_id'];
+
+        /** @var Collection $entities */
+        $entities = collect();
+
+        // ── AMBIL ENTITAS BERDASARKAN TIPE & OPSI CETAK ─────────────────────
+        if ($tipe === 'siswa') {
+            if ($opsiCetak === 'semua') {
+                $entities = Siswa::where('status', 'aktif')
+                    ->with('kelas', 'tahunAkademik')
+                    ->get();
+            } elseif ($opsiCetak === 'kelas') {
+                $kelasId = $validated['kelas_id'];
+                $entities = Siswa::where('kelas_id', $kelasId)
+                    ->where('status', 'aktif')
+                    ->with('kelas', 'tahunAkademik')
+                    ->get();
+            } elseif ($opsiCetak === 'individu') {
+                $entities = Siswa::where('id', $validated['entitas_id'])
+                    ->where('status', 'aktif')
+                    ->with('kelas', 'tahunAkademik')
+                    ->get();
+            }
+        } elseif ($tipe === 'guru') {
+            if ($opsiCetak === 'semua') {
+                $entities = Guru::where('status', 'aktif')->get();
+            } elseif ($opsiCetak === 'individu') {
+                $entities = Guru::where('id', $validated['entitas_id'])
+                    ->where('status', 'aktif')
+                    ->get();
+            }
+        } elseif ($tipe === 'staff') {
+            if ($opsiCetak === 'semua') {
+                $entities = StaffTataUsaha::where('status', 'aktif')->get();
+            } elseif ($opsiCetak === 'individu') {
+                $entities = StaffTataUsaha::where('id', $validated['entitas_id'])
+                    ->where('status', 'aktif')
+                    ->get();
+            }
+        }
+
+        if ($entities->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'Tidak ada data yang ditemukan untuk dicetak.'], 404);
+        }
+
+        $template = IdCardTemplate::findOrFail($templateId);
+        $service = app(\App\Services\IdCardPdfService::class);
+        $lembaga = $service->getLembagaData();
+        $jumlahTahun = $lembaga['jumlah_tahun_sekolah'];
+        $masaBerlakuDefault = \App\Models\Pengaturan::where('key', 'masa_berlaku_kartu')->value('value') ?? 'Selama aktif';
+        
+        $entities = $entities->map(function ($entity) use ($service, $jumlahTahun, $masaBerlakuDefault, $tipe) {
+            if (!$entity->qr_code) {
+                $entity->qr_code = \App\Support\QrCodeGenerator::generate(strtoupper($tipe));
+                $entity->save();
+            }
+            $entity->_qr_base64 = \App\Support\QrCodeGenerator::renderDataUri($entity->qr_code, 200);
+            
+            if ($tipe === 'siswa') {
+                $entity->_nis = $entity->nis;
+                $entity->_nisn = $entity->nisn;
+                $entity->_masa_berlaku = $service->hitungMasaBerlakuSiswa($entity, $jumlahTahun);
+                $entity->_foto_base64 = $this->fotoToBase64Helper($entity->foto ?? '');
+            } else {
+                $entity->_nip = $entity->nip;
+                $entity->_masa_berlaku = $masaBerlakuDefault;
+                $entity->_foto_base64 = $this->fotoToBase64Helper($entity->foto ?? '');
+                $entity->_posisi = $tipe === 'guru' ? ($entity->jabatan ?? ('Guru ' . $entity->mata_pelajaran)) : ($entity->jabatan ?? 'Staff Tata Usaha');
+            }
+            return $entity;
+        });
+        
+        $config = $template->config;
+        $html = view('admin.id-card-templates.pdf', compact('template', 'config', 'entities', 'lembaga'))->render();
+        return response()->json(['success' => true, 'html' => $html]);
+    }
+
+    /**
+     * Helper local untuk konversi foto ke base64 (menyalin logic IdCardPdfService).
+     */
+    private function fotoToBase64Helper(string $fotoPath): string
+    {
+        if (empty($fotoPath)) {
+            return '';
+        }
+
+        // Check if Google Drive File ID
+        if (strlen($fotoPath) > 30) {
+            try {
+                return app(\App\Services\GoogleDriveService::class)->getPhotoBase64($fotoPath);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('CetakKartuController: Gagal mengambil base64 dari Google Drive: ' . $e->getMessage());
+                return '';
+            }
+        }
+
+        $fullPath = storage_path('app/public/' . $fotoPath);
+        $data     = @file_get_contents($fullPath);
+
+        if ($data === false) {
+            return '';
+        }
+
+        $ext  = strtolower(pathinfo($fotoPath, PATHINFO_EXTENSION));
+        $mime = match ($ext) {
+            'png'         => 'image/png',
+            'jpg', 'jpeg' => 'image/jpeg',
+            'gif'         => 'image/gif',
+            default       => 'image/jpeg',
+        };
+
+        return "data:{$mime};base64," . base64_encode($data);
+    }
 }

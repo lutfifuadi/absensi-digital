@@ -996,6 +996,7 @@ Route::middleware([
         Route::prefix('cetak-kartu')->name('admin.cetak-kartu.')->middleware('role:super_admin,admin_sekolah,operator')->group(function () {
             Route::get('/', [CetakKartuController::class, 'index'])->name('index');
             Route::post('/download', [CetakKartuController::class, 'download'])->name('download');
+            Route::post('/preview', [CetakKartuController::class, 'preview'])->name('preview');
         });
 
         // ── QUEUE WORKER HEALTH CHECK & CONTROL ──────────────────────────

@@ -67,6 +67,15 @@ class PortalTest extends TestCase
         $response->assertSee('Siswa Test');
     }
 
+    public function test_siswa_can_access_kartu_pelajar_preview()
+    {
+        $response = $this->actingAs($this->userSiswa)->get(route('siswa.download-kartu'));
+
+        $response->assertStatus(200);
+        $response->assertSee('html2canvas');
+        $response->assertSee('Kartu_Pelajar_');
+    }
+
     public function test_siswa_cannot_view_other_student_profile()
     {
         $otherUser = User::factory()->create(['role' => User::ROLE_SISWA, 'username' => 'other']);
