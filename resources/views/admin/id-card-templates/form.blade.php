@@ -146,6 +146,21 @@
     @csrf
     @if($isEdit) @method('PUT') @endif
 
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171;">
+            <div class="d-flex align-items-center mb-2">
+                <i class="ti tabler-ban me-2" style="font-size: 1.25rem;"></i>
+                <strong class="text-white">Terjadi kesalahan validasi!</strong>
+            </div>
+            <ul class="mb-0 ps-3">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <div class="row">
         <!-- Sidebar Controls -->
         <div class="col-xl-4 col-lg-5 col-md-12">
@@ -798,7 +813,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const borderValueBadge = document.getElementById('borderRadiusValue');
     
     function updateBorderRadius(val) {
-        const br = parseInt(val) || 5;
+        const br = isNaN(parseInt(val)) ? 5 : parseInt(val);
         config.canvas.border_radius = br;
         container.style.setProperty('--border-radius', br + 'px');
         container.style.borderRadius = br + 'px';
@@ -852,6 +867,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial Load
     updateCanvasSize();
     renderElements();
+
+    const templateForm = document.getElementById('templateForm');
+    if (templateForm) {
+        templateForm.addEventListener('submit', function(e) {
+            // Pastikan config diserialkan ke input hidden sebelum submit
+            configInput.value = JSON.stringify(config);
+        });
+    }
 });
 </script>
 @endpush
