@@ -142,7 +142,7 @@
   </div>
 </div>
 
-<form action="{{ $isEdit ? route('admin.id-card-templates.update', $template->id) : route('admin.id-card-templates.store') }}" method="POST" enctype="multipart/form-data" id="templateForm">
+<form action="{{ $isEdit ? route('admin.id-card-templates.update', $template->id) : route('admin.id-card-templates.store') }}" method="POST" enctype="multipart/form-data" id="templateForm" novalidate>
     @csrf
     @if($isEdit) @method('PUT') @endif
 
@@ -655,8 +655,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const prop = input.dataset.prop;
             if(config.elements[el]) {
                 const val = config.elements[el][prop];
-                if(input.type === 'checkbox') input.checked = val;
-                else input.value = val;
+                if(input.type === 'checkbox') {
+                    input.checked = !!val;
+                } else {
+                    input.value = (val === undefined || val === null) ? '' : val;
+                }
             }
         });
     }

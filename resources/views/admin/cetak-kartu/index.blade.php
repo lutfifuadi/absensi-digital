@@ -4,6 +4,7 @@
 
 @section('page-style')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 /* ════════════════════════════════════════════════════════════
    STEP WIZARD
@@ -682,6 +683,81 @@
   .step-wizard { gap: 0; }
   .opsi-card { min-width: 100%; }
 }
+
+/* Custom premium dark theme for preview modals */
+#modalPreviewGambar .modal-content,
+#modalPreviewA4 .modal-content {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.5) !important;
+  border-radius: 12px !important;
+}
+#modalPreviewGambar .modal-header,
+#modalPreviewA4 .modal-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 1.25rem 1.5rem !important;
+}
+#modalPreviewGambar .modal-title,
+#modalPreviewA4 .modal-title {
+  font-weight: 700 !important;
+  color: #f8fafc !important;
+  letter-spacing: -0.025em !important;
+}
+#modalPreviewGambar .btn-close,
+#modalPreviewA4 .btn-close {
+  filter: invert(1) grayscale(1) brightness(2) !important;
+}
+#modalPreviewGambar .modal-body,
+#modalPreviewA4 .modal-body {
+  background: #0f172a !important; /* Slate 900 */
+  padding: 2.5rem 1.5rem !important;
+  border-radius: 0 !important;
+}
+#modalPreviewGambar .modal-footer,
+#modalPreviewA4 .modal-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: #1e293b !important;
+  padding: 1rem 1.5rem !important;
+  border-bottom-left-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+}
+#modalPreviewGambar .id-card {
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7) !important;
+  transition: transform 0.2s ease-in-out !important;
+  margin: 0 auto !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+#modalPreviewGambar .id-card:hover {
+  transform: scale(1.02) !important;
+}
+
+/* Styling A4 sheets inside the preview modal */
+.a4-page-sheet {
+  width: 595.28px;
+  height: 841.89px;
+  background: #ffffff;
+  position: relative;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+  margin-bottom: 2rem;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.a4-page-sheet::after {
+  content: 'Halaman ' attr(data-page);
+  position: absolute;
+  bottom: 12px;
+  right: 18px;
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+.a4-card-preview {
+  position: absolute;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
 </style>
 @endsection
 
@@ -1022,7 +1098,7 @@
         <h5 class="modal-title">Pratinjau & Cetak Gambar ID Card</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body" style="background: #f5f5f9; overflow-y: auto; max-height: 70vh;">
+      <div class="modal-body" style="overflow-y: auto; max-height: 70vh;">
         <!-- Loader -->
         <div id="previewLoader" class="text-center py-5">
           <div class="spinner-border text-primary" role="status">
@@ -1045,6 +1121,37 @@
             <i class="ti tabler-download me-1"></i> Unduh JPG
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Preview A4 Grid -->
+<div class="modal fade" id="modalPreviewA4" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Pratinjau Tata Letak Kertas A4 (Siap Cetak)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" style="overflow-y: auto; max-height: 70vh;">
+        <!-- Loader A4 -->
+        <div id="a4Loader" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2 text-muted">Sedang merender kartu ke lembar A4...</p>
+        </div>
+        <!-- Pages Wrapper -->
+        <div id="a4PagesArea" class="d-flex flex-column align-items-center gap-4 py-3 d-none">
+          <!-- Rendered A4 Page Sheets will go here -->
+        </div>
+      </div>
+      <div class="modal-footer justify-content-between">
+        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Tutup</button>
+        <button type="button" class="btn btn-primary" id="btnDownloadA4PDF">
+          <i class="ti tabler-download me-1"></i> Unduh PDF A4
+        </button>
       </div>
     </div>
   </div>
@@ -1465,44 +1572,304 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // ── Form validation & submit ──
+  // ── Form validation & submit A4 Preview / jsPDF ──
   const form = document.getElementById('formCetakKartu');
+  const modalPreviewA4El = document.getElementById('modalPreviewA4');
+  let modalPreviewA4 = null;
+  if (modalPreviewA4El) {
+    modalPreviewA4 = new bootstrap.Modal(modalPreviewA4El);
+  }
+
+  // Create temporary hidden workspace container
+  const tempWorkspace = document.createElement('div');
+  tempWorkspace.id = 'a4TempWorkspace';
+  tempWorkspace.style.position = 'fixed';
+  tempWorkspace.style.top = '0';
+  tempWorkspace.style.left = '0';
+  tempWorkspace.style.zIndex = '-9999';
+  tempWorkspace.style.opacity = '0';
+  tempWorkspace.style.pointerEvents = 'none';
+  tempWorkspace.style.overflow = 'hidden';
+  document.body.appendChild(tempWorkspace);
+
+  let renderedCardImages = []; // Stores base64 images of all cards
+  let activeCardConfig = null; // Stores template width/height config
+
   if (form) {
     form.addEventListener('submit', function(e) {
+      e.preventDefault(); // Stop normal post request to server
+
       const tipe = getCheckedVal('tipe');
       const opsi = getCheckedVal('opsi_cetak');
-      const template = document.getElementById('template_id');
-      const errors = [];
+      const template = document.getElementById('template_id')?.value;
+      const kelas = document.getElementById('kelas_id')?.value;
+      const entitas = document.getElementById('entitas_id_hidden')?.value;
 
+      const errors = [];
       if (!tipe) errors.push('Pilih tipe entitas terlebih dahulu.');
       if (!opsi) errors.push('Pilih opsi cetak terlebih dahulu.');
-      if (!template || !template.value) errors.push('Pilih template kartu.');
-
-      if (opsi === 'kelas') {
-        const kelas = document.getElementById('kelas_id');
-        if (!kelas || !kelas.value) errors.push('Pilih kelas terlebih dahulu.');
-      }
-
-      if (opsi === 'individu') {
-        const hidden = document.getElementById('entitas_id_hidden');
-        if (!hidden || !hidden.value) errors.push('Pilih individu terlebih dahulu (cari dan klik nama).');
-      }
+      if (!template) errors.push('Pilih template kartu.');
+      if (opsi === 'kelas' && !kelas) errors.push('Pilih kelas terlebih dahulu.');
+      if (opsi === 'individu' && !entitas) errors.push('Pilih individu terlebih dahulu (cari dan klik nama).');
 
       if (errors.length > 0) {
-        e.preventDefault();
-        // Gunakan alert sederhana atau bisa diganti dengan toast
         alert('Mohon lengkapi form:\n• ' + errors.join('\n• '));
-        return false;
+        return;
       }
 
-      // Loading state
-      const btn = document.getElementById('btnDownload');
-      const btnText = document.getElementById('btnDownloadText');
-      if (btn) {
-        btn.disabled = true;
-        if (btnText) btnText.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Memproses...';
-        else btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Memproses...';
+      // Show A4 Modal
+      modalPreviewA4.show();
+
+      // Show Loader
+      const a4Loader = document.getElementById('a4Loader');
+      const a4PagesArea = document.getElementById('a4PagesArea');
+      a4Loader.classList.remove('d-none');
+      a4PagesArea.classList.add('d-none');
+      a4PagesArea.innerHTML = '';
+      tempWorkspace.innerHTML = '';
+
+      // Prepare request data
+      const formData = new FormData();
+      formData.append('tipe', tipe);
+      formData.append('opsi_cetak', opsi);
+      formData.append('template_id', template);
+      if (kelas) formData.append('kelas_id', kelas);
+      if (entitas) formData.append('entitas_id', entitas);
+      formData.append('_token', '{{ csrf_token() }}');
+
+      fetch('{{ route("admin.cetak-kartu.preview") }}', {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Gagal memproses template');
+        return response.json();
+      })
+      .then(data => {
+        if (data.success && data.html) {
+          tempWorkspace.innerHTML = data.html;
+
+          const cards = tempWorkspace.querySelectorAll('.id-card');
+          if (cards.length === 0) {
+            alert('Tidak ada kartu yang ditemukan untuk dicetak.');
+            modalPreviewA4.hide();
+            return;
+          }
+
+          const firstCard = cards[0];
+          const computedStyle = window.getComputedStyle(firstCard);
+          let wPx = parseFloat(computedStyle.width) || 204;
+          let hPx = parseFloat(computedStyle.height) || 324;
+          
+          // Konversi dari pixel ke point (1 px = 0.75 pt)
+          let w = wPx * 0.75;
+          let h = hPx * 0.75;
+          activeCardConfig = { width: w, height: h };
+
+          renderedCardImages = [];
+          
+          // Wait for all images inside tempWorkspace to load
+          const imgs = tempWorkspace.querySelectorAll('img');
+          const promises = Array.from(imgs).map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise(resolve => {
+              img.onload = resolve;
+              img.onerror = resolve;
+            });
+          });
+
+          // Wait also for background images if loaded via CSS
+          const bgElements = tempWorkspace.querySelectorAll('.id-card');
+          bgElements.forEach(el => {
+            const bgUrl = window.getComputedStyle(el).backgroundImage;
+            if (bgUrl && bgUrl !== 'none') {
+              const url = bgUrl.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
+              const img = new Image();
+              img.src = url;
+              promises.push(new Promise(resolve => {
+                if (img.complete) resolve();
+                else {
+                  img.onload = resolve;
+                  img.onerror = resolve;
+                }
+              }));
+            }
+          });
+
+          Promise.all(promises).then(() => {
+            let index = 0;
+            const renderNextCard = () => {
+              if (index >= cards.length) {
+                buildA4PreviewPages();
+                return;
+              }
+
+              html2canvas(cards[index], {
+                scale: 3, // High resolution render
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: null
+              }).then(canvas => {
+                renderedCardImages.push(canvas.toDataURL('image/png'));
+                index++;
+                renderNextCard();
+              }).catch(err => {
+                console.error('Error rendering card to image:', err);
+                renderedCardImages.push('');
+                index++;
+                renderNextCard();
+              });
+            };
+
+            renderNextCard();
+          });
+        } else {
+          alert(data.message || 'Terjadi kesalahan saat memproses data.');
+          modalPreviewA4.hide();
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Gagal menghubungi server. Silakan coba lagi.');
+        modalPreviewA4.hide();
+      });
+    });
+  }
+
+  function buildA4PreviewPages() {
+    const a4PagesArea = document.getElementById('a4PagesArea');
+    const a4Loader = document.getElementById('a4Loader');
+    a4PagesArea.innerHTML = '';
+
+    const w = activeCardConfig.width;
+    const h = activeCardConfig.height;
+
+    // Grid layout calculation
+    let cols = 3;
+    let rows = 3;
+    let gapX = 15;
+    let gapY = 15;
+
+    if (w >= h) {
+      // Landscape layout
+      cols = 2;
+      rows = 5;
+      gapX = 15;
+      gapY = 12;
+    }
+
+    const cardsPerPage = cols * rows;
+    const totalPages = Math.ceil(renderedCardImages.length / cardsPerPage);
+
+    const leftMargin = (595.28 - (cols * w + (cols - 1) * gapX)) / 2;
+    const topMargin = (841.89 - (rows * h + (rows - 1) * gapY)) / 2;
+
+    for (let pageNum = 0; pageNum < totalPages; pageNum++) {
+      const pageSheet = document.createElement('div');
+      pageSheet.className = 'a4-page-sheet';
+      pageSheet.setAttribute('data-page', (pageNum + 1));
+
+      for (let i = 0; i < cardsPerPage; i++) {
+        const cardIndex = pageNum * cardsPerPage + i;
+        if (cardIndex >= renderedCardImages.length) break;
+
+        const imgData = renderedCardImages[cardIndex];
+        if (!imgData) continue;
+
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+
+        const cardX = leftMargin + col * (w + gapX);
+        const cardY = topMargin + row * (h + gapY);
+
+        const cardImg = document.createElement('img');
+        cardImg.className = 'a4-card-preview';
+        cardImg.src = imgData;
+        cardImg.style.left = cardX + 'px';
+        cardImg.style.top = cardY + 'px';
+        cardImg.style.width = w + 'px';
+        cardImg.style.height = h + 'px';
+
+        pageSheet.appendChild(cardImg);
       }
+
+      a4PagesArea.appendChild(pageSheet);
+    }
+
+    a4Loader.classList.add('d-none');
+    a4PagesArea.classList.remove('d-none');
+  }
+
+  // Handle PDF Download inside Modal
+  const btnDownloadA4PDF = document.getElementById('btnDownloadA4PDF');
+  if (btnDownloadA4PDF) {
+    btnDownloadA4PDF.addEventListener('click', function() {
+      if (renderedCardImages.length === 0 || !activeCardConfig) {
+        alert('Tidak ada data kartu untuk diunduh.');
+        return;
+      }
+
+      btnDownloadA4PDF.disabled = true;
+      btnDownloadA4PDF.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Membuat PDF...';
+
+      const w = activeCardConfig.width;
+      const h = activeCardConfig.height;
+
+      let cols = 3;
+      let rows = 3;
+      let gapX = 15;
+      let gapY = 15;
+
+      if (w >= h) {
+        cols = 2;
+        rows = 5;
+        gapX = 15;
+        gapY = 12;
+      }
+
+      const cardsPerPage = cols * rows;
+      const leftMargin = (595.28 - (cols * w + (cols - 1) * gapX)) / 2;
+      const topMargin = (841.89 - (rows * h + (rows - 1) * gapY)) / 2;
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({
+        orientation: 'p',
+        unit: 'pt',
+        format: 'a4'
+      });
+
+      const totalPages = Math.ceil(renderedCardImages.length / cardsPerPage);
+
+      for (let pageNum = 0; pageNum < totalPages; pageNum++) {
+        if (pageNum > 0) {
+          pdf.addPage();
+        }
+
+        for (let i = 0; i < cardsPerPage; i++) {
+          const cardIndex = pageNum * cardsPerPage + i;
+          if (cardIndex >= renderedCardImages.length) break;
+
+          const imgData = renderedCardImages[cardIndex];
+          if (!imgData) continue;
+
+          const col = i % cols;
+          const row = Math.floor(i / cols);
+
+          const cardX = leftMargin + col * (w + gapX);
+          const cardY = topMargin + row * (h + gapY);
+
+          pdf.addImage(imgData, 'PNG', cardX, cardY, w, h);
+        }
+      }
+
+      const dateStr = new Date().toISOString().slice(0, 10);
+      pdf.save(`Cetak_ID_Card_A4_${dateStr}.pdf`);
+
+      btnDownloadA4PDF.disabled = false;
+      btnDownloadA4PDF.innerHTML = '<i class="ti tabler-download me-1"></i> Unduh PDF A4';
     });
   }
 

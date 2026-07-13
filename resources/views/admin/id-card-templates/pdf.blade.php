@@ -7,7 +7,7 @@
             margin: 0;
             padding: 0;
         }
-        body {
+        body.pdf-body {
             margin: 0;
             padding: 0;
             font-family: 'Helvetica', sans-serif;
@@ -49,7 +49,7 @@
         }
     </style>
 </head>
-<body>
+<body class="pdf-body">
     @foreach($entities as $entity)
     <div class="id-card">
         @php
@@ -130,14 +130,14 @@
         @endif
 
         <!-- ID Card (NIS/NIP) -->
-        @if($elements['id_number']['show'])
+        @if(isset($elements['id_number']) && $elements['id_number']['show'])
         <div class="element text" style="
-            left: {{ $elements['id_number']['align'] == 'center' ? 0 : $elements['id_number']['x'] . 'pt' }}; 
-            top: {{ $elements['id_number']['y'] }}pt;
-            width: {{ $elements['id_number']['align'] == 'center' ? '100%' : 'auto' }};
-            text-align: {{ $elements['id_number']['align'] }};
-            font-size: {{ $elements['id_number']['size'] }}pt;
-            color: {{ $elements['id_number']['color'] }};
+            left: {{ ($elements['id_number']['align'] ?? 'center') == 'center' ? 0 : ($elements['id_number']['x'] ?? 0) . 'pt' }}; 
+            top: {{ $elements['id_number']['y'] ?? 0 }}pt;
+            width: {{ ($elements['id_number']['align'] ?? 'center') == 'center' ? '100%' : 'auto' }};
+            text-align: {{ $elements['id_number']['align'] ?? 'center' }};
+            font-size: {{ $elements['id_number']['size'] ?? 8 }}pt;
+            color: {{ $elements['id_number']['color'] ?? '#000000' }};
             font-weight: {{ ($elements['id_number']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['id_number']['italic'] ?? false) ? 'italic' : 'normal' }};
             text-transform: {{ $elements['id_number']['transform'] ?? 'none' }};
@@ -215,11 +215,11 @@
         @endif
 
         {{-- EXTRA FIELDS FOR PELEPASAN --}}
-        @if($template->type === 'pelepasan')
-            <div class="element text" style="left: {{ $elements['id_number']['x'] }}pt; top: {{ ($elements['id_number']['y'] + 15) }}pt; font-size: {{ ($elements['id_number']['size'] - 1) }}pt; color: {{ $elements['id_number']['color'] }};">
+        @if(isset($elements['id_number']) && $template->type === 'pelepasan')
+            <div class="element text" style="left: {{ $elements['id_number']['x'] ?? 0 }}pt; top: {{ ($elements['id_number']['y'] ?? 0) + 15 }}pt; font-size: {{ ($elements['id_number']['size'] ?? 8) - 1 }}pt; color: {{ $elements['id_number']['color'] ?? '#000000' }};">
                 {{ is_array($entity) ? ($entity['nis'] ?? '') : '' }}
             </div>
-            <div class="element text" style="left: {{ $elements['id_number']['x'] }}pt; top: {{ ($elements['id_number']['y'] + 28) }}pt; font-size: {{ ($elements['id_number']['size'] - 1) }}pt; color: {{ $elements['id_number']['color'] }};">
+            <div class="element text" style="left: {{ $elements['id_number']['x'] ?? 0 }}pt; top: {{ ($elements['id_number']['y'] ?? 0) + 28 }}pt; font-size: {{ ($elements['id_number']['size'] ?? 8) - 1 }}pt; color: {{ $elements['id_number']['color'] ?? '#000000' }};">
                 {{ is_array($entity) ? ($entity['gender'] ?? '') : '' }}
             </div>
         @endif
