@@ -846,6 +846,37 @@ Route::middleware([
             ->middleware('role:super_admin,admin_sekolah');
 
         // Google Drive settings & Auth OAuth
+        Route::get('debug-gdrive', function() {
+            $setting = \App\Models\GoogleDriveSetting::first();
+            $config = \App\Services\GoogleDriveConfigService::getConfig();
+            
+            // Mask sensitive configs
+            $maskedConfig = array_map(function($val) {
+                return empty($val) ? 'empty' : 'filled (' . strlen((string)$val) . ' chars)';
+            }, $config);
+
+            $error = null;
+            $isEnabled = false;
+            try {
+                $service = new \App\Services\GoogleDriveService();
+                $isEnabled = $service->isEnabled();
+            } catch (\Throwable $e) {
+                $error = [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ];
+            }
+
+            return response()->json([
+                'has_setting_record' => !empty($setting),
+                'is_connected_db' => $setting?->is_connected ?? false,
+                'config_check' => $maskedConfig,
+                'service_is_enabled' => $isEnabled,
+                'constructor_error' => $error,
+            ]);
+        })->middleware(['auth', 'role:super_admin,admin_sekolah']);
+
         Route::get('pengaturan/google-drive/status', [\App\Http\Controllers\Admin\GoogleAuthController::class, 'checkGoogleStatus'])
             ->name('admin.google.status')
             ->middleware('role:super_admin,admin_sekolah');
