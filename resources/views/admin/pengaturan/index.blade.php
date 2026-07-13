@@ -580,12 +580,17 @@
         </div>
         <div class="set-panel__body">
           <div class="set-branding-wrap">
-            <!-- Preview TTD -->
+             <!-- Preview TTD -->
             <div class="set-logo-preview" id="ttdPreviewWrap">
               @php
                 $ttdSrc = null;
                 if (!empty($settings['tanda_tangan_kepala_sekolah'])) {
-                  $ttdSrc = asset('uploads/ttd/' . $settings['tanda_tangan_kepala_sekolah']);
+                  $value = $settings['tanda_tangan_kepala_sekolah'];
+                  if (strlen($value) > 30) {
+                    $ttdSrc = 'https://drive.google.com/thumbnail?id=' . $value . '&sz=w200';
+                  } else {
+                    $ttdSrc = asset('uploads/ttd/' . $value);
+                  }
                 }
               @endphp
               @if ($ttdSrc)
@@ -631,12 +636,17 @@
         </div>
         <div class="set-panel__body">
           <div class="set-branding-wrap">
-            <!-- Preview Cap -->
+             <!-- Preview Cap -->
             <div class="set-logo-preview" id="capPreviewWrap">
               @php
                 $capSrc = null;
                 if (!empty($settings['cap_sekolah'])) {
-                  $capSrc = asset('uploads/cap/' . $settings['cap_sekolah']);
+                  $value = $settings['cap_sekolah'];
+                  if (strlen($value) > 30) {
+                    $capSrc = 'https://drive.google.com/thumbnail?id=' . $value . '&sz=w200';
+                  } else {
+                    $capSrc = asset('uploads/cap/' . $value);
+                  }
                 }
               @endphp
               @if ($capSrc)

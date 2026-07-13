@@ -50,20 +50,28 @@ class PortalSiswaController extends Controller
         $ttdPath = Pengaturan::where('key', 'tanda_tangan_kepala_sekolah')->value('value');
         $ttdBase64 = null;
         if ($ttdPath) {
-            $fullTtdPath = public_path('uploads/ttd/' . $ttdPath);
-            if (!file_exists($fullTtdPath)) {
-                $fullTtdPath = public_path('storage/' . $ttdPath);
-            }
-            if (file_exists($fullTtdPath)) {
-                $ext = strtolower(pathinfo($fullTtdPath, PATHINFO_EXTENSION));
-                $mime = match($ext) {
-                    'png' => 'image/png',
-                    'jpg', 'jpeg' => 'image/jpeg',
-                    default => 'image/png',
-                };
-                $imageData = @file_get_contents($fullTtdPath);
-                if ($imageData !== false) {
-                    $ttdBase64 = 'data:' . $mime . ';base64,' . base64_encode($imageData);
+            if (strlen($ttdPath) > 30) {
+                try {
+                    $ttdBase64 = app(\App\Services\GoogleDriveService::class)->getPhotoBase64($ttdPath);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('PortalSiswaController: Gagal mengambil base64 ttd dari Google Drive: ' . $e->getMessage());
+                }
+            } else {
+                $fullTtdPath = public_path('uploads/ttd/' . $ttdPath);
+                if (!file_exists($fullTtdPath)) {
+                    $fullTtdPath = public_path('storage/' . $ttdPath);
+                }
+                if (file_exists($fullTtdPath)) {
+                    $ext = strtolower(pathinfo($fullTtdPath, PATHINFO_EXTENSION));
+                    $mime = match($ext) {
+                        'png' => 'image/png',
+                        'jpg', 'jpeg' => 'image/jpeg',
+                        default => 'image/png',
+                    };
+                    $imageData = @file_get_contents($fullTtdPath);
+                    if ($imageData !== false) {
+                        $ttdBase64 = 'data:' . $mime . ';base64,' . base64_encode($imageData);
+                    }
                 }
             }
         }
@@ -71,20 +79,28 @@ class PortalSiswaController extends Controller
         $capPath = Pengaturan::where('key', 'cap_sekolah')->value('value');
         $capBase64 = null;
         if ($capPath) {
-            $fullCapPath = public_path('uploads/cap/' . $capPath);
-            if (!file_exists($fullCapPath)) {
-                $fullCapPath = public_path('storage/' . $capPath);
-            }
-            if (file_exists($fullCapPath)) {
-                $ext = strtolower(pathinfo($fullCapPath, PATHINFO_EXTENSION));
-                $mime = match($ext) {
-                    'png' => 'image/png',
-                    'jpg', 'jpeg' => 'image/jpeg',
-                    default => 'image/png',
-                };
-                $imageData = @file_get_contents($fullCapPath);
-                if ($imageData !== false) {
-                    $capBase64 = 'data:' . $mime . ';base64,' . base64_encode($imageData);
+            if (strlen($capPath) > 30) {
+                try {
+                    $capBase64 = app(\App\Services\GoogleDriveService::class)->getPhotoBase64($capPath);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('PortalSiswaController: Gagal mengambil base64 cap dari Google Drive: ' . $e->getMessage());
+                }
+            } else {
+                $fullCapPath = public_path('uploads/cap/' . $capPath);
+                if (!file_exists($fullCapPath)) {
+                    $fullCapPath = public_path('storage/' . $capPath);
+                }
+                if (file_exists($fullCapPath)) {
+                    $ext = strtolower(pathinfo($fullCapPath, PATHINFO_EXTENSION));
+                    $mime = match($ext) {
+                        'png' => 'image/png',
+                        'jpg', 'jpeg' => 'image/jpeg',
+                        default => 'image/png',
+                    };
+                    $imageData = @file_get_contents($fullCapPath);
+                    if ($imageData !== false) {
+                        $capBase64 = 'data:' . $mime . ';base64,' . base64_encode($imageData);
+                    }
                 }
             }
         }

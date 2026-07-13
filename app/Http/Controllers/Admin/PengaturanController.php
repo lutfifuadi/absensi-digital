@@ -187,6 +187,11 @@ class PengaturanController extends Controller
 
     public function update(Request $request)
     {
+        $request->validate([
+            'tanda_tangan_kepala_sekolah' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'cap_sekolah'                 => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+        ]);
+
         $data = $request->except(['_token', 'logo_sekolah', 'logo_url', 'tanda_tangan_kepala_sekolah', 'cap_sekolah', 'google_drive_credentials_file']);
         
         // Handle Google Drive Credentials JSON Upload
@@ -238,49 +243,69 @@ class PengaturanController extends Controller
             $data['logo_url'] = '';
         }
         
-        // Handle tanda_tangan_kepala_sekolah upload — simpan ke public/uploads/ttd/
+        // Handle tanda_tangan_kepala_sekolah upload
         if ($request->hasFile('tanda_tangan_kepala_sekolah')) {
             try {
                 $file = $request->file('tanda_tangan_kepala_sekolah');
-                $file->validate(['mimes' => 'png,jpg,jpeg', 'max' => 2048]);
-
-                $ttdDir = public_path('uploads/ttd');
-                if (! is_dir($ttdDir)) {
-                    mkdir($ttdDir, 0775, true);
-                }
-
                 $old = Pengaturan::where('key', 'tanda_tangan_kepala_sekolah')->value('value');
-                if ($old) {
-                    @unlink($ttdDir . '/' . $old);
-                }
+                $googleDriveService = app(\App\Services\GoogleDriveService::class);
 
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $file->move($ttdDir, $filename);
-                $data['tanda_tangan_kepala_sekolah'] = $filename;
+                if ($googleDriveService->isEnabled()) {
+                    $oldFileId = ($old && strlen($old) > 30) ? $old : null;
+                    $newFileId = $googleDriveService->uploadPhoto($file, $oldFileId);
+                    if ($newFileId) {
+                        $data['tanda_tangan_kepala_sekolah'] = $newFileId;
+                    } else {
+                        throw new \Exception('Gagal upload tanda tangan ke Google Drive.');
+                    }
+                } else {
+                    $ttdDir = public_path('uploads/ttd');
+                    if (! is_dir($ttdDir)) {
+                        mkdir($ttdDir, 0775, true);
+                    }
+
+                    if ($old && strlen($old) <= 30) {
+                        @unlink($ttdDir . '/' . $old);
+                    }
+
+                    $filename = time() . '_' . $file->getClientOriginalName();
+                    $file->move($ttdDir, $filename);
+                    $data['tanda_tangan_kepala_sekolah'] = $filename;
+                }
             } catch (\Exception $e) {
                 return back()->withInput()->with('error', 'Gagal upload tanda tangan: ' . $e->getMessage());
             }
         }
 
-        // Handle cap_sekolah upload — simpan ke public/uploads/cap/
+        // Handle cap_sekolah upload
         if ($request->hasFile('cap_sekolah')) {
             try {
                 $file = $request->file('cap_sekolah');
-                $file->validate(['mimes' => 'png,jpg,jpeg', 'max' => 2048]);
-
-                $capDir = public_path('uploads/cap');
-                if (! is_dir($capDir)) {
-                    mkdir($capDir, 0775, true);
-                }
-
                 $old = Pengaturan::where('key', 'cap_sekolah')->value('value');
-                if ($old) {
-                    @unlink($capDir . '/' . $old);
-                }
+                $googleDriveService = app(\App\Services\GoogleDriveService::class);
 
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $file->move($capDir, $filename);
-                $data['cap_sekolah'] = $filename;
+                if ($googleDriveService->isEnabled()) {
+                    $oldFileId = ($old && strlen($old) > 30) ? $old : null;
+                    $newFileId = $googleDriveService->uploadPhoto($file, $oldFileId);
+                    if ($newFileId) {
+                        $data['cap_sekolah'] = $newFileId;
+                    } else {
+                        throw new \Exception('Gagal upload cap sekolah ke Google Drive.');
+                    }
+                } else {
+                    $capDir = public_path('uploads/cap');
+                    if (! is_dir($capDir)) {
+                        mkdir($capDir, 0775, true);
+                    }
+
+                    if ($old && strlen($old) <= 30) {
+                        @unlink($capDir . '/' . $old);
+                    }
+
+                    $filename = time() . '_' . $file->getClientOriginalName();
+                    $file->move($capDir, $filename);
+                    $data['cap_sekolah'] = $filename;
+                }
             } catch (\Exception $e) {
                 return back()->withInput()->with('error', 'Gagal upload cap sekolah: ' . $e->getMessage());
             }

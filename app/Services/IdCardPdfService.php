@@ -69,6 +69,15 @@ class IdCardPdfService
             return '';
         }
 
+        if (strlen($filename) > 30) {
+            try {
+                return app(\App\Services\GoogleDriveService::class)->getPhotoBase64($filename);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('IdCardPdfService toBase64: Gagal mengambil base64 dari Google Drive: ' . $e->getMessage());
+                return '';
+            }
+        }
+
         $path = public_path("uploads/{$folder}/{$filename}");
         $data = @file_get_contents($path);
 

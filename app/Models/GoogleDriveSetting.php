@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class GoogleDriveSetting extends Model
 {
@@ -38,8 +39,65 @@ class GoogleDriveSetting extends Model
     protected $casts = [
         'is_connected' => 'boolean',
         'google_token_expires_at' => 'datetime',
-        'google_client_secret' => 'encrypted',
-        'google_access_token' => 'encrypted',
-        'google_refresh_token' => 'encrypted',
     ];
+
+    public function getGoogleClientSecretAttribute($value)
+    {
+        if (empty($value)) {
+            return null;
+        }
+        try {
+            return decrypt($value);
+        } catch (\Throwable $e) {
+            Log::warning('GoogleDriveSetting: Gagal mendekripsi google_client_secret. APP_KEY mungkin berubah.', [
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    public function setGoogleClientSecretAttribute($value)
+    {
+        $this->attributes['google_client_secret'] = !empty($value) ? encrypt($value) : null;
+    }
+
+    public function getGoogleAccessTokenAttribute($value)
+    {
+        if (empty($value)) {
+            return null;
+        }
+        try {
+            return decrypt($value);
+        } catch (\Throwable $e) {
+            Log::warning('GoogleDriveSetting: Gagal mendekripsi google_access_token. APP_KEY mungkin berubah.', [
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    public function setGoogleAccessTokenAttribute($value)
+    {
+        $this->attributes['google_access_token'] = !empty($value) ? encrypt($value) : null;
+    }
+
+    public function getGoogleRefreshTokenAttribute($value)
+    {
+        if (empty($value)) {
+            return null;
+        }
+        try {
+            return decrypt($value);
+        } catch (\Throwable $e) {
+            Log::warning('GoogleDriveSetting: Gagal mendekripsi google_refresh_token. APP_KEY mungkin berubah.', [
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    public function setGoogleRefreshTokenAttribute($value)
+    {
+        $this->attributes['google_refresh_token'] = !empty($value) ? encrypt($value) : null;
+    }
 }

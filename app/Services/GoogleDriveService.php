@@ -82,6 +82,11 @@ class GoogleDriveService
         }
     }
 
+    public function isEnabled(): bool
+    {
+        return $this->isEnabled && $this->driveService !== null;
+    }
+
     /**
      * Get the Google Client instance.
      */
