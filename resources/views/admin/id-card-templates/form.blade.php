@@ -273,14 +273,23 @@
                                             <input type="color" class="form-control form-control-sm form-control-color w-100 config-sync" data-el="{{ $el }}" data-prop="color">
                                         </div>
                                         <div class="col-12">
-                                            <label class="small">Align</label>
-                                            <select class="form-select form-select-sm config-sync" data-el="{{ $el }}" data-prop="align">
-                                                <option value="left">Left</option>
-                                                <option value="center">Center</option>
-                                                <option value="right">Right</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-6 mt-2">
+                                             <label class="small">Align</label>
+                                             <select class="form-select form-select-sm config-sync" data-el="{{ $el }}" data-prop="align">
+                                                 <option value="left">Left</option>
+                                                 <option value="center">Center</option>
+                                                 <option value="right">Right</option>
+                                             </select>
+                                         </div>
+                                         <div class="col-12 mt-2">
+                                             <label class="small">Kapitalisasi (Case)</label>
+                                             <select class="form-select form-select-sm config-sync" data-el="{{ $el }}" data-prop="transform">
+                                                 <option value="none">Default (Asli)</option>
+                                                 <option value="uppercase">UPPERCASE</option>
+                                                 <option value="lowercase">lowercase</option>
+                                                 <option value="capitalize">Capitalize Each Word</option>
+                                             </select>
+                                         </div>
+                                         <div class="col-6 mt-2">
                                             <div class="form-check">
                                                 <input class="form-check-input config-sync" type="checkbox" data-el="{{ $el }}" data-prop="bold">
                                                 <label class="form-check-label text-white-50 small">Bold</label>
@@ -452,6 +461,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Formatting Bold & Italic
                 div.style.fontWeight = el.bold ? 'bold' : 'normal';
                 div.style.fontStyle = el.italic ? 'italic' : 'normal';
+                
+                // Formatting transform
+                div.style.textTransform = el.transform || 'none';
                 
                 // Adjust width for center/right align
                 if(el.align === 'center') {

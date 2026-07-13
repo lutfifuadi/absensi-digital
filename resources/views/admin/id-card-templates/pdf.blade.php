@@ -123,8 +123,9 @@
             color: {{ $elements['name']['color'] }};
             font-weight: {{ ($elements['name']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['name']['italic'] ?? false) ? 'italic' : 'normal' }};
+            text-transform: {{ $elements['name']['transform'] ?? 'uppercase' }};
         ">
-            {{ is_array($entity) ? ($entity['name'] ?? '') : strtoupper($entity->nama_lengkap) }}
+            {{ is_array($entity) ? ($entity['name'] ?? '') : $entity->nama_lengkap }}
         </div>
         @endif
 
@@ -139,6 +140,7 @@
             color: {{ $elements['id_number']['color'] }};
             font-weight: {{ ($elements['id_number']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['id_number']['italic'] ?? false) ? 'italic' : 'normal' }};
+            text-transform: {{ $elements['id_number']['transform'] ?? 'none' }};
         ">
             {{ is_array($entity) ? ($entity['id_number'] ?? '') : ($entity->nis ?? $entity->nip  ?? '') }}
         </div>
@@ -155,6 +157,7 @@
             color: {{ $elements['nis']['color'] ?? '#555555' }};
             font-weight: {{ ($elements['nis']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['nis']['italic'] ?? false) ? 'italic' : 'normal' }};
+            text-transform: {{ $elements['nis']['transform'] ?? 'none' }};
         ">
             {{ is_array($entity) ? ($entity['nis'] ?? '') : ($entity->_nis ?? $entity->nis ?? '') }}
         </div>
@@ -171,6 +174,7 @@
             color: {{ $elements['nisn']['color'] ?? '#555555' }};
             font-weight: {{ ($elements['nisn']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['nisn']['italic'] ?? false) ? 'italic' : 'normal' }};
+            text-transform: {{ $elements['nisn']['transform'] ?? 'none' }};
         ">
             {{ is_array($entity) ? ($entity['nisn'] ?? '') : ($entity->_nisn ?? $entity->nisn ?? '') }}
         </div>
@@ -187,6 +191,7 @@
             color: {{ $elements['nip']['color'] ?? '#555555' }};
             font-weight: {{ ($elements['nip']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['nip']['italic'] ?? false) ? 'italic' : 'normal' }};
+            text-transform: {{ $elements['nip']['transform'] ?? 'none' }};
         ">
             {{ is_array($entity) ? ($entity['nip'] ?? '') : ($entity->_nip ?? $entity->nip ?? '') }}
         </div>
@@ -203,6 +208,7 @@
             color: {{ $elements['class']['color'] }};
             font-weight: {{ ($elements['class']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['class']['italic'] ?? false) ? 'italic' : 'normal' }};
+            text-transform: {{ $elements['class']['transform'] ?? 'none' }};
         ">
             {{ is_array($entity) ? ($entity['class'] ?? '') : ($entity->kelas->nama ?? $entity->jabatan ?? '') }}
         </div>
@@ -263,6 +269,7 @@
             color: {{ $elements['nama_lembaga']['color'] ?? '#000000' }};
             font-weight: {{ ($elements['nama_lembaga']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['nama_lembaga']['italic'] ?? false) ? 'italic' : 'normal' }};
+            text-transform: {{ $elements['nama_lembaga']['transform'] ?? 'none' }};
         ">
             {{ $lembagaData['nama_sekolah'] ?? '' }}
         </div>
@@ -279,6 +286,7 @@
             color: {{ $elements['alamat_lembaga']['color'] ?? '#333333' }};
             font-weight: {{ ($elements['alamat_lembaga']['bold'] ?? false) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['alamat_lembaga']['italic'] ?? false) ? 'italic' : 'normal' }};
+            text-transform: {{ $elements['alamat_lembaga']['transform'] ?? 'none' }};
         ">
             {{ $lembagaData['alamat_lembaga'] ?? '' }}
         </div>
@@ -303,6 +311,7 @@
             color: {{ $elements['gender']['color'] ?? '#000000' }};
             font-weight: {{ ($elements['gender']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['gender']['italic'] ?? false) ? 'italic' : 'normal' }};
+            text-transform: {{ $elements['gender']['transform'] ?? 'none' }};
         ">
             {{ $genderText }}
         </div>
@@ -327,6 +336,7 @@
             color: {{ $elements['ttl']['color'] ?? '#333333' }};
             font-weight: {{ ($elements['ttl']['bold'] ?? false) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['ttl']['italic'] ?? false) ? 'italic' : 'normal' }};
+            text-transform: {{ $elements['ttl']['transform'] ?? 'none' }};
         ">
             {{ $ttlText }}
         </div>
@@ -352,6 +362,7 @@
             color: {{ $elements['masa_berlaku']['color'] ?? '#333333' }};
             font-weight: {{ ($elements['masa_berlaku']['bold'] ?? false) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['masa_berlaku']['italic'] ?? false) ? 'italic' : 'normal' }};
+            text-transform: {{ $elements['masa_berlaku']['transform'] ?? 'none' }};
         ">
             {{ $masaBerlakuText }}
         </div>
@@ -368,6 +379,7 @@
             color: {{ $elements['tempat_tanggal_terbit']['color'] ?? '#333333' }};
             font-weight: {{ ($elements['tempat_tanggal_terbit']['bold'] ?? false) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['tempat_tanggal_terbit']['italic'] ?? false) ? 'italic' : 'normal' }};
+            text-transform: {{ $elements['tempat_tanggal_terbit']['transform'] ?? 'none' }};
         ">
             {{ ($lembagaData['kota_penerbitan'] ?? '') . (($lembagaData['kota_penerbitan'] ?? '') ? ', ' : '') . now()->locale('id')->isoFormat('D MMMM Y') }}
         </div>
@@ -408,6 +420,7 @@
             color: {{ $elements['nama_kepala_sekolah']['color'] ?? '#000000' }};
             font-weight: {{ ($elements['nama_kepala_sekolah']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['nama_kepala_sekolah']['italic'] ?? false) ? 'italic' : 'normal' }};
+            text-transform: {{ $elements['nama_kepala_sekolah']['transform'] ?? 'none' }};
         ">
             {{ $lembagaData['nama_kepala_lembaga'] ?? '' }}
         </div>
@@ -424,6 +437,7 @@
             color: {{ $elements['nip_kepala_sekolah']['color'] ?? '#333333' }};
             font-weight: {{ ($elements['nip_kepala_sekolah']['bold'] ?? false) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['nip_kepala_sekolah']['italic'] ?? false) ? 'italic' : 'normal' }};
+            text-transform: {{ $elements['nip_kepala_sekolah']['transform'] ?? 'none' }};
         ">
             NIP. {{ $lembagaData['nip_kepala_lembaga'] ?? '' }}
         </div>
@@ -442,6 +456,7 @@
             color: {{ $elements['custom_text_1']['color'] ?? '#000000' }};
             font-weight: {{ ($elements['custom_text_1']['bold'] ?? false) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['custom_text_1']['italic'] ?? false) ? 'italic' : 'normal' }};
+            text-transform: {{ $elements['custom_text_1']['transform'] ?? 'none' }};
         ">
             {{ $elements['custom_text_1']['content'] ?? 'Teks Kustom 1' }}
         </div>
@@ -458,6 +473,7 @@
             color: {{ $elements['custom_text_2']['color'] ?? '#000000' }};
             font-weight: {{ ($elements['custom_text_2']['bold'] ?? false) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['custom_text_2']['italic'] ?? false) ? 'italic' : 'normal' }};
+            text-transform: {{ $elements['custom_text_2']['transform'] ?? 'none' }};
         ">
             {{ $elements['custom_text_2']['content'] ?? 'Teks Kustom 2' }}
         </div>
@@ -474,6 +490,7 @@
             color: {{ $elements['custom_text_3']['color'] ?? '#000000' }};
             font-weight: {{ ($elements['custom_text_3']['bold'] ?? false) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['custom_text_3']['italic'] ?? false) ? 'italic' : 'normal' }};
+            text-transform: {{ $elements['custom_text_3']['transform'] ?? 'none' }};
         ">
             {{ $elements['custom_text_3']['content'] ?? 'Teks Kustom 3' }}
         </div>
