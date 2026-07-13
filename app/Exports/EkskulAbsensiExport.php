@@ -9,11 +9,13 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class EkskulAbsensiExport implements FromCollection, WithHeadings, WithMapping, WithTitle, ShouldAutoSize, WithStyles
+class EkskulAbsensiExport implements FromCollection, WithHeadings, WithMapping, WithTitle, ShouldAutoSize, WithStyles, WithColumnFormatting
 {
     protected int $ekskulId;
     protected int $bulan;
@@ -44,7 +46,7 @@ class EkskulAbsensiExport implements FromCollection, WithHeadings, WithMapping, 
 
         return [
             $no,
-            $row->siswa->nis ?? '-',
+            (string) ($row->siswa->nis ?? '-'),
             $row->siswa->nama_lengkap ?? '-',
             $row->siswa->kelas->nama ?? '-',
             $row->hadir,
@@ -70,6 +72,16 @@ class EkskulAbsensiExport implements FromCollection, WithHeadings, WithMapping, 
     public function title(): string
     {
         return "Rekap {$this->namaEkskul}";
+    }
+
+    /**
+     * Format kolom NIS (B) sebagai TEXT agar Excel tidak auto-format.
+     */
+    public function columnFormats(): array
+    {
+        return [
+            'B' => NumberFormat::FORMAT_TEXT,
+        ];
     }
 
     public function styles(Worksheet $sheet)

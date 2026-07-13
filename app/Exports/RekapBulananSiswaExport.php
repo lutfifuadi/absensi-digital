@@ -5,8 +5,11 @@ namespace App\Exports;
 use App\Models\AbsensiSiswa;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class RekapBulananSiswaExport implements FromCollection, WithHeadings
+class RekapBulananSiswaExport implements FromCollection, WithHeadings, WithMapping, WithColumnFormatting
 {
     protected int $bulan;
     protected int $tahun;
@@ -21,27 +24,41 @@ class RekapBulananSiswaExport implements FromCollection, WithHeadings
 
     public function collection()
     {
-        $query = AbsensiSiswa::with(['siswa', 'kelas', 'guru'])
+        return AbsensiSiswa::with(['siswa', 'kelas', 'guru'])
             ->when($this->kelasId, fn ($q) => $q->where('kelas_id', $this->kelasId))
             ->whereYear('tanggal', $this->tahun)
             ->whereMonth('tanggal', $this->bulan)
             ->orderBy('tanggal')
             ->get();
+    }
 
-        return $query->map(function (AbsensiSiswa $item) {
-            return [
-                'Tanggal' => $item->tanggal->format('Y-m-d'),
-                'Kelas' => $item->kelas?->nama,
-                'NIS' => $item->siswa?->nis,
-                'Nama Siswa' => $item->siswa?->nama_lengkap,
-                'Status' => $item->status,
-                'Jam Masuk' => $item->jam_masuk,
-                'Jam Pulang' => $item->jam_pulang,
-                'Guru' => $item->guru?->nama_lengkap,
-                'Metode' => $item->metode,
-                'Keterangan' => $item->keterangan,
-            ];
-        });
+    /**
+     * @param AbsensiSiswa $item
+     */
+    public function map($item): array
+    {
+        return [
+            $item->tanggal->format('Y-m-d'),
+            $item->kelas?->nama,
+            (string) $item->siswa?->nis,
+            $item->siswa?->nama_lengkap,
+            $item->status,
+            $item->jam_masuk,
+            $item->jam_pulang,
+            $item->guru?->nama_lengkap,
+            $item->metode,
+            $item->keterangan,
+        ];
+    }
+
+    /**
+     * Format kolom NIS (C) sebagai TEXT agar Excel tidak auto-format.
+     */
+    public function columnFormats(): array
+    {
+        return [
+            'C' => NumberFormat::FORMAT_TEXT,
+        ];
     }
 
     public function headings(): array
