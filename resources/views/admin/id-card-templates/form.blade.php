@@ -12,6 +12,9 @@
         overflow: hidden;
         box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
         border-radius: 9px; /* Rounded ISO CR80 corners */
+        transform: scale(var(--zoom-factor, 2));
+        transform-origin: center center;
+        transition: transform 0.2s ease-in-out;
     }
     #id-card-canvas {
         position: relative;
@@ -332,25 +335,39 @@
                         <i class="ti tabler-eye text-primary"></i>
                         <h5 class="card-title mb-0 text-white">Live Preview (Skala 1:1)</h5>
                     </div>
-                    <div class="btn-group btn-group-sm">
-                        <button type="button" class="btn btn-outline-secondary text-white" id="btnPortrait">Portrait</button>
-                        <button type="button" class="btn btn-outline-primary active" id="btnLandscape">Landscape</button>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="text-white-50 small mb-0">Zoom:</label>
+                            <select class="form-select form-select-sm" id="zoomSelect" style="width: auto; background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 0.2rem 0.5rem;">
+                                <option value="1">100% (Skala 1:1)</option>
+                                <option value="1.5">150%</option>
+                                <option value="2" selected>200% (Rekomendasi)</option>
+                                <option value="2.5">250%</option>
+                                <option value="3">300%</option>
+                            </select>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-secondary text-white" id="btnPortrait">Portrait</button>
+                            <button type="button" class="btn btn-outline-primary active" id="btnLandscape">Landscape</button>
+                        </div>
                     </div>
                 </div>
                 <div class="card-body py-5 overflow-auto" style="background: #f1f5f9;">
-                    <div id="id-card-preview-container">
-                        @php
-                          $bgUrl = '';
-                          if ($template->background_path) {
-                              if (strlen($template->background_path) > 30) {
-                                  $bgUrl = 'https://drive.google.com/thumbnail?id=' . $template->background_path . '&sz=w800&_t=' . time();
-                              } else {
-                                  $bgUrl = Storage::url($template->background_path);
+                    <div class="d-flex align-items-center justify-content-center p-3" style="min-height: 520px; overflow: auto; width: 100%;">
+                        <div id="id-card-preview-container">
+                            @php
+                              $bgUrl = '';
+                              if ($template->background_path) {
+                                  if (strlen($template->background_path) > 30) {
+                                      $bgUrl = 'https://drive.google.com/thumbnail?id=' . $template->background_path . '&sz=w800&_t=' . time();
+                                  } else {
+                                      $bgUrl = Storage::url($template->background_path);
+                                  }
                               }
-                          }
-                        @endphp
-                        <div id="id-card-canvas" style="background-image: url('{{ $bgUrl }}')">
-                            <!-- Elements will be rendered here via JS -->
+                            @endphp
+                            <div id="id-card-canvas" style="background-image: url('{{ $bgUrl }}')">
+                                <!-- Elements will be rendered here via JS -->
+                            </div>
                         </div>
                     </div>
                     <div class="text-center mt-4">
@@ -526,19 +543,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // Drag Logic
     function makeDraggable(el, key) {
         let isDragging = false;
-        let startX, startY;
+        let lastX, lastY;
 
         el.addEventListener('mousedown', e => {
             isDragging = true;
-            startX = e.clientX - el.offsetLeft;
-            startY = e.clientY - el.offsetTop;
+            lastX = e.clientX;
+            lastY = e.clientY;
             e.preventDefault();
         });
 
         document.addEventListener('mousemove', e => {
             if (!isDragging) return;
-            let nx = e.clientX - startX;
-            let ny = e.clientY - startY;
+            const zoomSelect = document.getElementById('zoomSelect');
+            const zoom = zoomSelect ? parseFloat(zoomSelect.value) : 1.0;
+
+            const dx = (e.clientX - lastX) / zoom;
+            const dy = (e.clientY - lastY) / zoom;
+
+            let nx = config.elements[key].x + dx;
+            let ny = config.elements[key].y + dy;
 
             // Bounds check
             nx = Math.max(0, Math.min(nx, config.canvas.width - el.offsetWidth));
@@ -556,7 +579,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             config.elements[key].x = nx;
             config.elements[key].y = ny;
-            
+
+            lastX = e.clientX;
+            lastY = e.clientY;
+
             updateControlInputs();
             configInput.value = JSON.stringify(config);
         });
@@ -608,6 +634,18 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('cardType').addEventListener('change', () => {
         renderElements();
     });
+
+    // Zoom Event Listener
+    const zoomSelect = document.getElementById('zoomSelect');
+    function updateZoom() {
+        if(zoomSelect && container) {
+            container.style.setProperty('--zoom-factor', zoomSelect.value);
+        }
+    }
+    if (zoomSelect) {
+        zoomSelect.addEventListener('change', updateZoom);
+        updateZoom(); // Set default 200% pada initial load
+    }
 
     // Initial Load
     updateCanvasSize();
