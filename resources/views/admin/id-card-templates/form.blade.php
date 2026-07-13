@@ -170,6 +170,16 @@
 
                     <hr style="border-color: rgba(255,255,255,0.08) !important;">
                     
+                    <div class="mb-4">
+                        <label class="form-label text-white-50 small mb-2 d-flex justify-content-between align-items-center">
+                            <span>Palet Elemen (Tarik ke Kartu)</span>
+                            <span class="badge bg-label-primary rounded-pill" style="font-size:0.65rem;">Drag & Drop</span>
+                        </label>
+                        <div id="element-palette" class="d-flex flex-wrap gap-2 p-3 rounded" style="background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.1); min-height: 50px;">
+                            <!-- Badge elemen draggable akan di-render dinamis via JS -->
+                        </div>
+                    </div>
+
                     <div class="accordion" id="elementAccordion">
                         <!-- Navigation for elements -->
                         @foreach(['photo', 'qr', 'name', 'nis', 'nisn', 'nip', 'class', 'gender', 'ttl', 'masa_berlaku', 'logo_lembaga', 'nama_lembaga', 'alamat_lembaga', 'tempat_tanggal_terbit', 'ttd_kepala_sekolah', 'cap_lembaga', 'nama_kepala_sekolah', 'nip_kepala_sekolah', 'custom_text_1', 'custom_text_2', 'custom_text_3', 'divider_1', 'divider_2'] as $el)
@@ -378,6 +388,12 @@
         </div>
     </div>
 </form>
+
+<div id="element-context-menu" class="dropdown-menu shadow py-1" style="display: none; position: absolute; z-index: 9999; background: #1e293b; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px;">
+    <button type="button" class="dropdown-item text-danger py-2" id="btn-delete-element" style="font-size: 0.8rem; font-weight: 600;">
+        <i class="ti tabler-trash me-1"></i> Hapus Elemen
+    </button>
+</div>
 @endsection
 
 @push('scripts')
@@ -392,6 +408,36 @@ document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('id-card-preview-container');
     const configInput = document.getElementById('configInput');
     const bgInput = document.getElementById('bgInput');
+    const palette = document.getElementById('element-palette');
+
+    function getFriendlyName(key) {
+        const names = {
+            'photo': 'Foto',
+            'qr': 'QR Code',
+            'name': 'Nama Lengkap',
+            'nis': 'NIS (Siswa)',
+            'nisn': 'NISN (Siswa)',
+            'nip': 'NIP (Guru/Staff)',
+            'class': 'Kelas / Jabatan',
+            'gender': 'Jenis Kelamin',
+            'ttl': 'Tempat Tanggal Lahir',
+            'masa_berlaku': 'Masa Berlaku',
+            'logo_lembaga': 'Logo Lembaga',
+            'nama_lembaga': 'Nama Lembaga',
+            'alamat_lembaga': 'Alamat Lembaga',
+            'tempat_tanggal_terbit': 'Tempat Tanggal Terbit',
+            'ttd_kepala_sekolah': 'TTD Kepala Sekolah',
+            'cap_lembaga': 'Cap Lembaga / Stempel',
+            'nama_kepala_sekolah': 'Nama Kepala Sekolah',
+            'nip_kepala_sekolah': 'NIP Kepala Sekolah',
+            'custom_text_1': 'Teks Kustom 1',
+            'custom_text_2': 'Teks Kustom 2',
+            'custom_text_3': 'Teks Kustom 3',
+            'divider_1': 'Garis Pembatas 1',
+            'divider_2': 'Garis Pembatas 2'
+        };
+        return names[key] || key.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
 
     // Update Dimensions
     function updateCanvasSize() {
@@ -401,6 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderElements() {
         canvas.innerHTML = '';
+        palette.innerHTML = '';
         const cardType = document.getElementById('cardType').value;
         let sample = null;
         if (cardType === 'siswa' || cardType === 'pelepasan') {
@@ -413,7 +460,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
         Object.keys(config.elements).forEach(key => {
             const el = config.elements[key];
-            if (!el.show) return;
+            if (!el.show) {
+                const badge = document.createElement('div');
+                badge.className = 'badge bg-label-secondary cursor-move p-2 border border-dashed border-secondary';
+                badge.draggable = true;
+                badge.innerText = getFriendlyName(key);
+                badge.dataset.el = key;
+                badge.addEventListener('dragstart', e => {
+                    e.dataTransfer.setData('text/plain', key);
+                });
+                palette.appendChild(badge);
+                return;
+            }
 
             const div = document.createElement('div');
             const isImageEl = ['photo', 'qr', 'logo_lembaga', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(key);
@@ -592,6 +650,47 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Dragover & Drop Events pada Canvas
+    canvas.addEventListener('dragover', e => {
+        e.preventDefault();
+        canvas.style.border = '2px dashed #7367f0';
+    });
+
+    canvas.addEventListener('dragleave', e => {
+        e.preventDefault();
+        canvas.style.border = '';
+    });
+
+    canvas.addEventListener('drop', e => {
+        e.preventDefault();
+        canvas.style.border = '';
+        const key = e.dataTransfer.getData('text/plain');
+        if (!key || !config.elements[key]) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const zoom = zoomSelect ? parseFloat(zoomSelect.value) : 1.0;
+
+        let rx = (e.clientX - rect.left) / zoom;
+        let ry = (e.clientY - rect.top) / zoom;
+
+        // Default dimensions offset center
+        let w = config.elements[key].w || 70;
+        let h = config.elements[key].h || 15;
+
+        let nx = rx - (w / 2);
+        let ny = ry - (h / 2);
+
+        // Bounds check
+        nx = Math.max(0, Math.min(nx, config.canvas.width - w));
+        ny = Math.max(0, Math.min(ny, config.canvas.height - h));
+
+        config.elements[key].x = Math.round(nx);
+        config.elements[key].y = Math.round(ny);
+        config.elements[key].show = true;
+
+        renderElements();
+    });
+
     // Event Listeners for Controls
     document.querySelectorAll('.config-sync').forEach(input => {
         input.addEventListener('input', e => {
@@ -646,6 +745,36 @@ document.addEventListener('DOMContentLoaded', function() {
         zoomSelect.addEventListener('change', updateZoom);
         updateZoom(); // Set default 200% pada initial load
     }
+
+    // Context Menu Logic
+    const contextMenu = document.getElementById('element-context-menu');
+    const deleteBtn = document.getElementById('btn-delete-element');
+    let activeElementKey = null;
+
+    canvas.addEventListener('contextmenu', e => {
+        const targetEl = e.target.closest('.draggable-element');
+        if (targetEl) {
+            e.preventDefault();
+            activeElementKey = targetEl.id.replace('el-', '');
+            contextMenu.style.left = e.pageX + 'px';
+            contextMenu.style.top = e.pageY + 'px';
+            contextMenu.style.display = 'block';
+        }
+    });
+
+    document.addEventListener('click', e => {
+        if (contextMenu.style.display === 'block') {
+            contextMenu.style.display = 'none';
+        }
+    });
+
+    deleteBtn.addEventListener('click', e => {
+        if (activeElementKey && config.elements[activeElementKey]) {
+            config.elements[activeElementKey].show = false;
+            renderElements();
+        }
+        contextMenu.style.display = 'none';
+    });
 
     // Initial Load
     updateCanvasSize();
