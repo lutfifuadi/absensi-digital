@@ -116,6 +116,7 @@
 <div class="set-content">
   <form action="{{ route('admin.pengaturan.update') }}" method="POST" enctype="multipart/form-data" id="formPengaturan">
     @csrf
+    <input type="text" name="dummy_username" autocomplete="username" style="display: none;" aria-hidden="true">
 
     {{-- ─────────────────────────────
          CONTENT AREA
@@ -988,7 +989,7 @@
                 <span class="set-input-prefix"><i class="ti tabler-key"></i></span>
                 <input type="password" class="set-input font-monospace" name="gemini_api_key"
                   value="{{ old('gemini_api_key', $settings['gemini_api_key'] ?? '') }}"
-                  placeholder="Masukkan API Key Gemini di sini...">
+                  placeholder="Masukkan API Key Gemini di sini..." autocomplete="new-password">
                 <button type="button" class="set-input-eye">
                   <i class="ti tabler-eye-off"></i>
                 </button>
@@ -1060,7 +1061,7 @@
                   <span class="set-input-prefix"><i class="ti tabler-user"></i></span>
                   <input type="password" class="set-input" name="github_repo_owner"
                     value="{{ old('github_repo_owner', $settings['github_repo_owner'] ?? '') }}"
-                    placeholder="Contoh: lutfifuadi" disabled>
+                    placeholder="Contoh: lutfifuadi" autocomplete="new-password" disabled>
                 </div>
               </div>
               <div class="set-field">
@@ -1069,7 +1070,7 @@
                   <span class="set-input-prefix"><i class="ti tabler-brand-github"></i></span>
                   <input type="password" class="set-input" name="github_repo_name"
                     value="{{ old('github_repo_name', $settings['github_repo_name'] ?? '') }}"
-                    placeholder="Contoh: absensi-klien" disabled>
+                    placeholder="Contoh: absensi-klien" autocomplete="new-password" disabled>
                 </div>
               </div>
               <div class="set-field set-field--full">

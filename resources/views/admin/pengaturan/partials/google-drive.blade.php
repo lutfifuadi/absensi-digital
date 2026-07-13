@@ -55,6 +55,7 @@
         {{-- Form Root Folder ID (POST) --}}
         <form action="{{ route('admin.google.update-settings') }}" method="POST" class="mb-4" id="formGoogleDriveConnected">
           @csrf
+          <input type="text" name="dummy_username" autocomplete="username" style="display: none;" aria-hidden="true">
           <div class="set-field set-field--full">
             <label class="set-label">Folder ID Google Drive</label>
             <div class="set-input-group">
@@ -105,6 +106,7 @@
         {{-- Form Save Configuration --}}
         <form action="{{ route('admin.google.update-settings') }}" method="POST" id="formGoogleDrive">
           @csrf
+          <input type="text" name="dummy_username" autocomplete="username" style="display: none;" aria-hidden="true">
           
           <div class="set-form-grid mb-4">
             <div class="set-field set-field--full mb-3">
@@ -123,7 +125,7 @@
                 <span class="set-input-prefix"><i class="ti tabler-lock"></i></span>
                 <input type="password" class="set-input font-monospace" name="google_client_secret"
                   value="{{ $driveSetting->google_client_secret ? '********' : '' }}"
-                  placeholder="Masukkan Google Client Secret">
+                  placeholder="Masukkan Google Client Secret" autocomplete="new-password">
               </div>
             </div>
 
