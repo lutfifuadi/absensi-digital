@@ -18,7 +18,7 @@
             width: {{ $config['canvas']['width'] }}pt;
             height: {{ $config['canvas']['height'] }}pt;
             overflow: hidden;
-            border-radius: 9pt;
+            border-radius: {{ $config['canvas']['border_radius'] ?? 5 }}pt;
             page-break-after: always;
         }
         .background {

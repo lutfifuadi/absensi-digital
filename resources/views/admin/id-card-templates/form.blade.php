@@ -11,7 +11,7 @@
         margin: 0 auto;
         overflow: hidden;
         box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
-        border-radius: 9px; /* Rounded ISO CR80 corners */
+        border-radius: var(--border-radius, 5px);
         transform: scale(var(--zoom-factor, 2));
         transform-origin: center center;
         transition: transform 0.2s ease-in-out;
@@ -167,6 +167,18 @@
                     </div>
 
                     <input type="hidden" name="config" id="configInput">
+
+                    <div class="mb-4">
+                        <label class="form-label text-white-50 small d-flex justify-content-between align-items-center">
+                            <span>Border Radius (Rounded Corner)</span>
+                            <span class="badge bg-label-primary rounded-pill" id="borderRadiusValue" style="font-size:0.7rem;">5px</span>
+                        </label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="range" id="borderRadiusSlider" class="form-range flex-grow-1" min="0" max="5" step="1" value="5" style="height:6px;">
+                            <span class="text-white-50 small" style="min-width:24px;text-align:right;" id="borderRadiusLabel">5</span>
+                        </div>
+                        <small class="text-white-50 d-block mt-1" style="font-size:0.65rem;">Atur tingkat kelengkungan sudut kartu (0 = kotak, 5 = maksimal rounded)</small>
+                    </div>
 
                     <hr style="border-color: rgba(255,255,255,0.08) !important;">
                     
@@ -439,10 +451,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return names[key] || key.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
     }
 
-    // Update Dimensions
+    // Update Dimensions & Border Radius
     function updateCanvasSize() {
         container.style.width = config.canvas.width + 'px';
         container.style.height = config.canvas.height + 'px';
+        const br = config.canvas.border_radius ?? 5;
+        container.style.setProperty('--border-radius', br + 'px');
+        container.style.borderRadius = br + 'px';
     }
 
     function renderElements() {
@@ -705,7 +720,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('btnPortrait').addEventListener('click', () => {
-        config.canvas = { width: 153, height: 243 };
+        const currentBr = config.canvas.border_radius ?? 5;
+        config.canvas = { width: 153, height: 243, border_radius: currentBr };
         document.getElementById('btnPortrait').classList.add('active', 'btn-outline-primary');
         document.getElementById('btnLandscape').classList.remove('active', 'btn-outline-primary');
         updateCanvasSize();
@@ -713,7 +729,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('btnLandscape').addEventListener('click', () => {
-        config.canvas = { width: 243, height: 153 };
+        const currentBr = config.canvas.border_radius ?? 5;
+        config.canvas = { width: 243, height: 153, border_radius: currentBr };
         document.getElementById('btnLandscape').classList.add('active', 'btn-outline-primary');
         document.getElementById('btnPortrait').classList.remove('active', 'btn-outline-primary');
         updateCanvasSize();
@@ -744,6 +761,33 @@ document.addEventListener('DOMContentLoaded', function() {
     if (zoomSelect) {
         zoomSelect.addEventListener('change', updateZoom);
         updateZoom(); // Set default 200% pada initial load
+    }
+
+    // Border Radius Slider
+    const borderSlider = document.getElementById('borderRadiusSlider');
+    const borderLabel = document.getElementById('borderRadiusLabel');
+    const borderValueBadge = document.getElementById('borderRadiusValue');
+    
+    function updateBorderRadius(val) {
+        const br = parseInt(val) || 5;
+        config.canvas.border_radius = br;
+        container.style.setProperty('--border-radius', br + 'px');
+        container.style.borderRadius = br + 'px';
+        borderLabel.textContent = br;
+        borderValueBadge.textContent = br + 'px';
+        configInput.value = JSON.stringify(config);
+    }
+    
+    if (borderSlider) {
+        // Set initial value from config
+        const initBr = config.canvas.border_radius ?? 5;
+        borderSlider.value = initBr;
+        borderLabel.textContent = initBr;
+        borderValueBadge.textContent = initBr + 'px';
+        
+        borderSlider.addEventListener('input', function() {
+            updateBorderRadius(this.value);
+        });
     }
 
     // Context Menu Logic

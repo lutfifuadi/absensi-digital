@@ -29,7 +29,7 @@ class IdCardTemplateController extends Controller
     public function create()
     {
         $defaultConfig = [
-            'canvas' => ['width' => 153, 'height' => 243],
+            'canvas' => ['width' => 153, 'height' => 243, 'border_radius' => 5],
             'elements' => [
                 'photo' => ['x' => 39, 'y' => 50, 'w' => 75, 'h' => 100, 'show' => true],
                 'qr' => ['x' => 49, 'y' => 165, 'w' => 55, 'h' => 55, 'show' => true],
@@ -114,6 +114,12 @@ class IdCardTemplateController extends Controller
         $data['config'] = json_decode($request->config, true);
         $data['is_active'] = $request->has('is_active');
 
+        // Validate border_radius range 0-5
+        $borderRadius = $data['config']['canvas']['border_radius'] ?? 5;
+        if (!is_int($borderRadius) || $borderRadius < 0 || $borderRadius > 5) {
+            $data['config']['canvas']['border_radius'] = 5;
+        }
+
         if ($request->hasFile('background')) {
             $fileId = $this->googleDriveService->uploadPhoto($request->file('background'));
             $data['background_path'] = $fileId;
@@ -170,7 +176,7 @@ class IdCardTemplateController extends Controller
         // Backward Compatibility Merge
         $config = $idCardTemplate->config;
         $defaultConfig = [
-            'canvas' => ['width' => 153, 'height' => 243],
+            'canvas' => ['width' => 153, 'height' => 243, 'border_radius' => 5],
             'elements' => [
                 'photo' => ['x' => 39, 'y' => 50, 'w' => 75, 'h' => 100, 'show' => true],
                 'qr' => ['x' => 49, 'y' => 165, 'w' => 55, 'h' => 55, 'show' => true],
@@ -200,6 +206,16 @@ class IdCardTemplateController extends Controller
 
         if (!isset($config['elements'])) {
             $config['elements'] = [];
+        }
+
+        // Merge canvas properties for backward compatibility
+        if (!isset($config['canvas'])) {
+            $config['canvas'] = [];
+        }
+        foreach ($defaultConfig['canvas'] as $prop => $propVal) {
+            if (!isset($config['canvas'][$prop])) {
+                $config['canvas'][$prop] = $propVal;
+            }
         }
 
         foreach ($defaultConfig['elements'] as $key => $defaultEl) {
@@ -236,6 +252,12 @@ class IdCardTemplateController extends Controller
         $data = $request->only(['name', 'type', 'is_active']);
         $data['config'] = json_decode($request->config, true);
         $data['is_active'] = $request->has('is_active');
+
+        // Validate border_radius range 0-5
+        $borderRadius = $data['config']['canvas']['border_radius'] ?? 5;
+        if (!is_int($borderRadius) || $borderRadius < 0 || $borderRadius > 5) {
+            $data['config']['canvas']['border_radius'] = 5;
+        }
 
         if ($request->hasFile('background')) {
             $oldFileId = (strlen($idCardTemplate->background_path) > 30) ? $idCardTemplate->background_path : null;
