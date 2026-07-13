@@ -753,6 +753,10 @@
   color: #94a3b8;
   font-weight: 600;
 }
+.a4-page-sheet.landscape-page {
+  width: 841.89px !important;
+  height: 595.28px !important;
+}
 .a4-card-preview {
   position: absolute;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
@@ -1128,10 +1132,17 @@
 
 <!-- Modal Preview A4 Grid -->
 <div class="modal fade" id="modalPreviewA4" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Pratinjau Tata Letak Kertas A4 (Siap Cetak)</h5>
+      <div class="modal-header d-flex justify-content-between align-items-center">
+        <h5 class="modal-title mb-0">Pratinjau Tata Letak Kertas A4 (Siap Cetak)</h5>
+        <div class="d-flex align-items-center gap-2 me-4">
+          <label for="a4Orientation" class="text-white-50 small mb-0" style="white-space: nowrap;">Orientasi Kertas:</label>
+          <select id="a4Orientation" class="form-select form-select-sm" style="width: auto; background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 0.2rem 0.5rem;">
+            <option value="p" selected>A4 Potret (Vertikal)</option>
+            <option value="l">A4 Lanskap (Horizontal)</option>
+          </select>
+        </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body" style="overflow-y: auto; max-height: 70vh;">
@@ -1739,6 +1750,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Listen for orientation change
+  const a4OrientationSelect = document.getElementById('a4Orientation');
+  if (a4OrientationSelect) {
+    a4OrientationSelect.addEventListener('change', function() {
+      if (renderedCardImages.length > 0 && activeCardConfig) {
+        buildA4PreviewPages();
+      }
+    });
+  }
+
   function buildA4PreviewPages() {
     const a4PagesArea = document.getElementById('a4PagesArea');
     const a4Loader = document.getElementById('a4Loader');
@@ -1746,6 +1767,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const w = activeCardConfig.width;
     const h = activeCardConfig.height;
+    const paperOrient = document.getElementById('a4Orientation')?.value || 'p';
+
+    const pageWidth = paperOrient === 'p' ? 595.28 : 841.89;
+    const pageHeight = paperOrient === 'p' ? 841.89 : 595.28;
 
     // Grid layout calculation
     let cols = 3;
@@ -1753,23 +1778,43 @@ document.addEventListener('DOMContentLoaded', function() {
     let gapX = 15;
     let gapY = 15;
 
-    if (w >= h) {
-      // Landscape layout
-      cols = 2;
-      rows = 5;
-      gapX = 15;
-      gapY = 12;
+    if (w < h) {
+      // Portrait card
+      if (paperOrient === 'p') {
+        cols = 3;
+        rows = 3;
+        gapX = 15;
+        gapY = 15;
+      } else {
+        cols = 5;
+        rows = 2;
+        gapX = 12;
+        gapY = 15;
+      }
+    } else {
+      // Landscape card
+      if (paperOrient === 'p') {
+        cols = 2;
+        rows = 5;
+        gapX = 15;
+        gapY = 12;
+      } else {
+        cols = 3;
+        rows = 3;
+        gapX = 25;
+        gapY = 25;
+      }
     }
 
     const cardsPerPage = cols * rows;
     const totalPages = Math.ceil(renderedCardImages.length / cardsPerPage);
 
-    const leftMargin = (595.28 - (cols * w + (cols - 1) * gapX)) / 2;
-    const topMargin = (841.89 - (rows * h + (rows - 1) * gapY)) / 2;
+    const leftMargin = (pageWidth - (cols * w + (cols - 1) * gapX)) / 2;
+    const topMargin = (pageHeight - (rows * h + (rows - 1) * gapY)) / 2;
 
     for (let pageNum = 0; pageNum < totalPages; pageNum++) {
       const pageSheet = document.createElement('div');
-      pageSheet.className = 'a4-page-sheet';
+      pageSheet.className = 'a4-page-sheet' + (paperOrient === 'l' ? ' landscape-page' : '');
       pageSheet.setAttribute('data-page', (pageNum + 1));
 
       for (let i = 0; i < cardsPerPage; i++) {
@@ -1817,26 +1862,49 @@ document.addEventListener('DOMContentLoaded', function() {
 
       const w = activeCardConfig.width;
       const h = activeCardConfig.height;
+      const paperOrient = document.getElementById('a4Orientation')?.value || 'p';
+
+      const pageWidth = paperOrient === 'p' ? 595.28 : 841.89;
+      const pageHeight = paperOrient === 'p' ? 841.89 : 595.28;
 
       let cols = 3;
       let rows = 3;
       let gapX = 15;
       let gapY = 15;
 
-      if (w >= h) {
-        cols = 2;
-        rows = 5;
-        gapX = 15;
-        gapY = 12;
+      if (w < h) {
+        if (paperOrient === 'p') {
+          cols = 3;
+          rows = 3;
+          gapX = 15;
+          gapY = 15;
+        } else {
+          cols = 5;
+          rows = 2;
+          gapX = 12;
+          gapY = 15;
+        }
+      } else {
+        if (paperOrient === 'p') {
+          cols = 2;
+          rows = 5;
+          gapX = 15;
+          gapY = 12;
+        } else {
+          cols = 3;
+          rows = 3;
+          gapX = 25;
+          gapY = 25;
+        }
       }
 
       const cardsPerPage = cols * rows;
-      const leftMargin = (595.28 - (cols * w + (cols - 1) * gapX)) / 2;
-      const topMargin = (841.89 - (rows * h + (rows - 1) * gapY)) / 2;
+      const leftMargin = (pageWidth - (cols * w + (cols - 1) * gapX)) / 2;
+      const topMargin = (pageHeight - (rows * h + (rows - 1) * gapY)) / 2;
 
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({
-        orientation: 'p',
+        orientation: paperOrient,
         unit: 'pt',
         format: 'a4'
       });
