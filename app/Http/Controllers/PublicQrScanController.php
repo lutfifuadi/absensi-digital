@@ -481,11 +481,12 @@ class PublicQrScanController extends Controller
         $toleransi    = (int)($settings['toleransi_terlambat'] ?? 15);
         $announcement = $settings['announcement_text']   ?? null;
 
-        [$leaderboardAwal, $leaderboardAkhir, $stats] = $this->getLeaderboardData();
+        [$leaderboardAwal, $leaderboardTerbaru, $stats] = $this->getLeaderboardData();
+        $totalKapasitasSiswa = Siswa::count();
 
         return view('public.live-board', compact(
             'namaSekolah', 'jamMasukCfg', 'toleransi', 'announcement',
-            'leaderboardAwal', 'leaderboardAkhir', 'stats'
+            'leaderboardAwal', 'leaderboardTerbaru', 'stats', 'totalKapasitasSiswa'
         ));
     }
 
@@ -660,7 +661,7 @@ class PublicQrScanController extends Controller
      */
     public function liveBoardLeaderboard()
     {
-        [$awal, $akhir, $stats] = $this->getLeaderboardData();
+        [$awal, $terbaru, $stats] = $this->getLeaderboardData();
 
         $mapRow = fn($obj, $rank) => [
             'rank'  => $rank,
@@ -671,9 +672,9 @@ class PublicQrScanController extends Controller
         ];
 
         return response()->json([
-            'awal'  => collect($awal)->values()->map(fn($r, $i) => $mapRow($r, $i + 1)),
-            'akhir' => collect($akhir)->values()->map(fn($r, $i) => $mapRow($r, $i + 11)),
-            'stats' => $stats,
+            'awal'    => collect($awal)->values()->map(fn($r, $i) => $mapRow($r, $i + 1)),
+            'terbaru' => collect($terbaru)->values()->map(fn($r, $i) => $mapRow($r, $i + 1)),
+            'stats'   => $stats,
         ]);
     }
 
@@ -723,11 +724,12 @@ class PublicQrScanController extends Controller
             ]);
         }
 
-        // 4. Sortir berdasarkan Jam Masuk ASC
-        $sorted = $all->sortBy('jam')->values();
+        // 4. Sortir berdasarkan Jam Masuk ASC untuk awal, DESC untuk terbaru
+        $sortedAwal = $all->sortBy('jam')->values();
+        $sortedTerbaru = $all->sortByDesc('jam')->values();
 
-        $awal  = $sorted->slice(0, 10);
-        $akhir = $sorted->slice(10, 10);
+        $awal    = $sortedAwal->slice(0, 10);
+        $terbaru = $sortedTerbaru->slice(0, 10);
 
 
 
@@ -746,6 +748,6 @@ class PublicQrScanController extends Controller
             'total'    => array_sum($rawStats),
         ];
 
-        return [$awal, $akhir, $stats];
+        return [$awal, $terbaru, $stats];
     }
 }

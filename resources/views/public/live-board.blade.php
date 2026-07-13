@@ -65,7 +65,7 @@
     .live-badge {
       display: flex; align-items: center; gap: 0.4rem;
       background: rgba(234,84,85,.15); border: 1px solid rgba(234,84,85,.4);
-      border-radius: 99px; padding: 4px 12px; font-size: 0.72rem; font-weight: 700; color: var(--danger);
+      border-radius: 5px; padding: 4px 12px; font-size: 0.72rem; font-weight: 700; color: var(--danger);
     }
     .live-dot { width: 7px; height: 7px; background: var(--danger); border-radius: 50%; animation: pulse 1.4s ease-in-out infinite; }
     @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.4; transform:scale(1.4); } }
@@ -106,10 +106,16 @@
 
     /* ─── STAT CHIPS ─────────────────────────────────────── */
     .stat-chips { display: flex; gap: 0.4rem; flex-wrap: wrap; padding: 0.6rem 1.1rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .scanner-area .stat-chips { border-bottom: none; justify-content: center; margin: 1rem 0; padding: 0; flex-wrap: nowrap; gap: 0.3rem; }
     .stat-chip {
       display: flex; align-items: center; gap: 0.35rem;
       background: rgba(255,255,255,.05); border: 1px solid var(--border);
-      border-radius: 99px; padding: 3px 10px; font-size: 0.72rem; font-weight: 600;
+      border-radius: 5px; padding: 3px 10px; font-size: 0.72rem; font-weight: 600;
+    }
+    .scanner-area .stat-chip {
+      padding: 3px 6px;
+      font-size: 0.68rem;
+      flex-shrink: 0;
     }
     .stat-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
 
@@ -138,7 +144,7 @@
     .jam-late  { color: var(--warning); }
     .status-col { width: 115px; }
     .status-badge {
-      display: inline-block; border-radius: 99px; padding: 2px 9px;
+      display: inline-block; border-radius: 5px; padding: 2px 9px;
       font-size: 0.66rem; font-weight: 700; white-space: nowrap;
     }
     .badge-hadir { background: rgba(40,199,111,.15); color: var(--success); }
@@ -156,51 +162,141 @@
     .scanner-panel { display: flex; flex-direction: column; gap: 0; }
 
     .scanner-area {
-      position: relative; aspect-ratio: 4/3; background: #000;
-      border-radius: 0; overflow: hidden; flex-shrink: 0;
+      position: relative;
+      background: linear-gradient(135deg, #0e1726 0%, #152238 100%);
+      border-radius: 4px;
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+      border: 1px dashed rgba(115, 103, 240, 0.25);
     }
-    #video { width: 100%; height: 100%; object-fit: cover; display: none; }
-    #canvas-hidden { display: none; }
 
-    .scanner-overlay {
-      position: absolute; inset: 0; pointer-events: none;
-      display: flex; align-items: center; justify-content: center;
+    /* Counter Besar Futuristik */
+    .counter-widget {
+      text-align: center;
+      margin-bottom: 2rem;
+      position: relative;
     }
-    .scan-frame {
-      width: 280px; height: 280px; position: relative;
+    .counter-widget .counter-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 0.5rem;
     }
-    .scan-frame::before, .scan-frame::after,
-    .scan-frame .corner-br, .scan-frame .corner-bl {
-      content: ''; position: absolute;
-      width: 28px; height: 28px; border-color: var(--primary); border-style: solid;
+    .counter-value {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 3rem;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(115, 103, 240, 0.6), 0 0 20px rgba(115, 103, 240, 0.4);
+      letter-spacing: -1px;
+      line-height: 1;
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 0.25rem;
     }
-    .scan-frame::before { top: 0; left: 0; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
-    .scan-frame::after  { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
-    .scan-frame .corner-br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
-    .scan-frame .corner-bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
-    .scan-line {
-      position: absolute; left: 4px; right: 4px; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--primary), transparent);
-      box-shadow: 0 0 8px var(--primary);
-      animation: scanLine 2.4s ease-in-out infinite;
+    .counter-value .current {
+      color: #7367f0;
+      font-size: 3.5rem;
     }
-    @keyframes scanLine { 0% { top: 4px; } 50% { top: calc(100% - 6px); } 100% { top: 4px; } }
+    .counter-value .slash {
+      color: var(--muted);
+      font-size: 2.2rem;
+      opacity: 0.5;
+    }
+    .counter-value .total-cap {
+      color: var(--muted);
+      font-size: 2rem;
+    }
+    .counter-value .unit {
+      font-size: 1rem;
+      color: var(--muted);
+      margin-left: 0.5rem;
+      font-weight: 700;
+    }
 
-    .scanner-idle {
-      position: absolute; inset: 0; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 1rem;
-      background: rgba(8,12,20,.85); backdrop-filter: blur(4px);
+    /* Animasi RFID Melayang */
+    .rfid-animation {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
     }
-    .scanner-idle .idle-icon { font-size: 3rem; }
-    .scanner-idle p { font-size: 0.8rem; color: var(--muted); text-align: center; max-width: 200px; }
-    #start-cam-btn {
-      background: var(--primary); border: none; border-radius: 4px; color: #fff;
-      padding: 0.65rem 1.5rem; font-weight: 700; font-size: 0.85rem; cursor: pointer;
-      display: flex; align-items: center; gap: 0.5rem;
-      box-shadow: 0 6px 20px rgba(115,103,240,.5); transition: all .2s;
+    .rfid-card {
+      width: 90px;
+      height: 60px;
+      background: linear-gradient(135deg, #7367f0 0%, #a78bfa 100%);
+      border-radius: 5px;
+      box-shadow: 0 10px 25px rgba(115, 103, 240, 0.4), 0 0 15px rgba(115, 103, 240, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 2rem;
+      animation: floatCard 4s ease-in-out infinite;
+      position: relative;
+      z-index: 2;
     }
-    #start-cam-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(115,103,240,.6); }
-    #start-cam-btn:disabled { opacity: .5; transform: none; cursor: not-allowed; }
+    .rfid-card .wifi-icon {
+      transform: rotate(90deg);
+    }
+    .rfid-scanner-base {
+      position: absolute;
+      bottom: 20px;
+      width: 110px;
+      height: 10px;
+      background: #1e293b;
+      border-radius: 99px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+    .rfid-scanner-base::after {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 2px;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+      animation: basePulse 2s infinite;
+    }
+    .rfid-glow-ring {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      border: 2px solid rgba(115, 103, 240, 0.15);
+      border-radius: 50%;
+      animation: ripple 2.5s linear infinite;
+    }
+    .rfid-glow-ring:nth-child(2) {
+      animation-delay: 1.25s;
+    }
+
+    @keyframes floatCard {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-12px) rotate(2deg); }
+    }
+    @keyframes basePulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+    @keyframes ripple {
+      0% { transform: scale(0.6); opacity: 1; }
+      100% { transform: scale(1.4); opacity: 0; }
+    }
 
     /* ─── RESULT TOAST ───────────────────────────────────── */
     .result-toast {
@@ -453,17 +549,9 @@
   <div class="panel">
     <div class="panel-header">
       <div class="panel-title">
-        🏆 <span>10 Data Paling Awal</span>
+        🏆 <span>10 Siswa Hadir Paling Awal</span>
       </div>
       <div style="font-size:.7rem; color:var(--muted);">{{ \Carbon\Carbon::today()->translatedFormat('d F Y') }}</div>
-    </div>
-
-    <div class="stat-chips" id="stat-chips">
-      <div class="stat-chip"><span class="dot" style="background:var(--success)"></span> Hadir: <strong id="s-hadir">{{ $stats['hadir'] }}</strong></div>
-      <div class="stat-chip"><span class="dot" style="background:var(--info)"></span> Sakit: <strong id="s-sakit">{{ $stats['sakit'] }}</strong></div>
-      <div class="stat-chip"><span class="dot" style="background:var(--warning)"></span> Izin: <strong id="s-izin">{{ $stats['izin'] }}</strong></div>
-      <div class="stat-chip"><span class="dot" style="background:var(--danger)"></span> Alpha: <strong id="s-alpha">{{ $stats['alpha'] }}</strong></div>
-      <div class="stat-chip"><span class="dot" style="background:#a78bfa"></span> Terlambat: <strong id="s-terlambat">{{ $stats['terlambat'] }}</strong></div>
     </div>
 
     <div class="panel-body">
@@ -506,13 +594,13 @@
     </div>
   </div>
 
-  <!-- ── PANEL 2: 10 PALING AKHIR ────────────────────────────────── -->
+  <!-- ── PANEL 2: RIWAYAT SCAN TERBARU ────────────────────────── -->
   <div class="panel">
     <div class="panel-header">
       <div class="panel-title">
-        🕐 <span>Urutan 11 s/d 20</span>
+        🕐 <span>Riwayat Scan Terbaru</span>
       </div>
-      <div style="font-size:.7rem; color: var(--muted);">Siswa yang hadir berikutnya</div>
+      <div style="font-size:.7rem; color: var(--muted);">Urutan scan dari yang paling baru</div>
     </div>
 
     <div class="panel-body">
@@ -524,7 +612,7 @@
           <th class="status-col">Status</th>
         </tr></thead>
         <tbody id="tbody-akhir">
-          @forelse($leaderboardAkhir as $i => $abs)
+          @forelse($leaderboardTerbaru as $i => $abs)
             @php
               $jamMasukSetting = \Carbon\Carbon::createFromTimeString($jamMasukCfg ?? '07:00');
               $jamSiswa   = \Carbon\Carbon::createFromTimeString($abs->jam);
@@ -532,7 +620,7 @@
               $isLate     = $selisih > $toleransi;
             @endphp
             <tr class="{{ $isLate ? 'late-row' : '' }}">
-              <td class="rank-cell" style="color:var(--muted);">{{ $i+11 }}</td>
+              <td class="rank-cell" style="color:var(--muted);">{{ $i+1 }}</td>
               <td class="name-cell">
                 <div class="name">{{ $abs->nama }}</div>
                 <div class="kelas-badge">{{ $abs->kelas }}</div>
@@ -548,45 +636,56 @@
               </td>
             </tr>
           @empty
-            <tr><td colspan="4"><div class="empty-state"><span class="icon">🌙</span><p>Belum ada data akhir hari ini</p></div></td></tr>
+            <tr><td colspan="4"><div class="empty-state"><span class="icon">🌙</span><p>Belum ada data scan terbaru hari ini</p></div></td></tr>
           @endforelse
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- ── PANEL 3: QR SCANNER ──────────────────────────────────────── -->
+  <!-- ── PANEL 3: PUSAT KONTROL & COUNTER SCANNER ────────────────── -->
   <div class="panel scanner-col" style="position:relative; overflow:hidden;">
     <div class="panel-header">
-      <div class="panel-title">📷 <span>Scan QR Absensi</span></div>
+      <div class="panel-title">🔌 <span>Pusat Kontrol &amp; Counter Scanner</span></div>
       <div style="display:flex;align-items:center;gap:.5rem;">
-        <span id="hw-indicator" title="Status alat scanner fisik" style="font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(255,255,255,.07);color:var(--muted);border:1px solid var(--border);">🔌 HW: Standby</span>
-        <div id="scan-status-dot" style="width:8px;height:8px;border-radius:50%;background:var(--muted);"></div>
+        <span id="hw-indicator" title="Status alat scanner fisik" style="font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:5px;background:rgba(40,199,111,.15);color:var(--success);border:1px solid rgba(40,199,111,.4);">🔌 Scanner Piket: AKTIF & Siap</span>
       </div>
     </div>
 
-    <!-- Camera viewfinder -->
+    <!-- Scanner Area (Hardware Only) -->
     <div class="scanner-area">
-      <video id="video" playsinline muted autoplay></video>
-      <canvas id="canvas-hidden"></canvas>
-
-      <!-- Overlay crosshair (shown when camera is running) -->
-      <div class="scanner-overlay" id="scanner-overlay" style="display:none;">
-        <div class="scan-frame">
-          <div class="corner-br"></div>
-          <div class="corner-bl"></div>
-          <div class="scan-line"></div>
+      <!-- Widget Counter Besar Futuristik -->
+      <div class="counter-widget">
+        <div class="counter-title">Total Siswa Hadir Hari Ini</div>
+        <div class="counter-value">
+          <span class="current" id="s-hadir-large">{{ $stats['hadir'] }}</span>
+          <span class="slash">/</span>
+          <span class="total-cap" id="large-total-kapasitas">{{ $totalKapasitasSiswa }}</span>
+          <span class="unit">Siswa</span>
         </div>
       </div>
 
-      <!-- Idle state -->
-      <div class="scanner-idle" id="scanner-idle">
-        <span class="idle-icon">📷</span>
-        <p>Klik tombol di bawah untuk mengaktifkan kamera dan mulai scan QR siswa</p>
-        <button id="start-cam-btn">
-          <span>📷</span> Aktifkan Kamera
-        </button>
-        <p id="cam-error" style="color:var(--danger);font-size:.75rem;display:none;text-align:center;padding:0 1rem;"></p>
+      <div class="stat-chips" id="stat-chips">
+        <div class="stat-chip"><span class="dot" style="background:var(--success)"></span> Hadir: <strong id="s-hadir">{{ $stats['hadir'] }}</strong></div>
+        <div class="stat-chip"><span class="dot" style="background:var(--info)"></span> Sakit: <strong id="s-sakit">{{ $stats['sakit'] }}</strong></div>
+        <div class="stat-chip"><span class="dot" style="background:var(--warning)"></span> Izin: <strong id="s-izin">{{ $stats['izin'] }}</strong></div>
+        <div class="stat-chip"><span class="dot" style="background:var(--danger)"></span> Alpha: <strong id="s-alpha">{{ $stats['alpha'] }}</strong></div>
+        <div class="stat-chip"><span class="dot" style="background:#a78bfa"></span> Terlambat: <strong id="s-terlambat">{{ $stats['terlambat'] }}</strong></div>
+      </div>
+
+      <!-- RFID Animation -->
+      <div class="rfid-animation">
+        <div class="rfid-glow-ring"></div>
+        <div class="rfid-glow-ring"></div>
+        <div class="rfid-card">
+          <span class="wifi-icon">📶</span>
+        </div>
+        <div class="rfid-scanner-base"></div>
+      </div>
+
+      <div style="text-align:center; color: var(--muted); font-size: 0.85rem; max-width: 280px; line-height: 1.4;">
+        <p style="color: #fff; font-weight: 700; margin-bottom: 0.25rem;">SIAP SCANNING</p>
+        <p>Silakan tap kartu RFID atau scan QR-Code siswa pada scanner</p>
       </div>
 
       <!-- Result toast -->
@@ -603,7 +702,6 @@
       </div>
     </div>
 
-    <!-- ── PIKET SCANNER STATUS BAR ────────────────────────────── -->
     <!-- Input off-screen: tidak terlihat, selalu fokus, menangkap ketikan scanner fisik -->
     <input
       id="hw-scanner-input"
@@ -614,19 +712,11 @@
       aria-hidden="true"
       style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;"
     >
-    <div id="scanner-status-bar" style="padding:.55rem 1rem;border-top:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:.5rem;">
-      <div style="display:flex;align-items:center;gap:.6rem;">
-        <span id="hw-pulse" style="width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 0 0 rgba(40,199,111,.4);animation:hwPulse 2s infinite;"></span>
-        <span id="hw-status-text" style="font-size:.72rem;font-weight:700;color:var(--success);">🔌 Scanner Piket: AKTIF &amp; Siap</span>
-      </div>
-      <div style="font-size:.62rem;color:var(--muted);text-align:right;">Colok alat &rarr; langsung scan</div>
-    </div>
 
-    <div class="scan-info">
-      <div class="scan-count-wrap">Scan hari ini:&nbsp;<span id="scan-count">0</span></div>
+    <div class="scan-info" style="border-top:1px solid var(--border);">
+      <div class="scan-count-wrap">Scan Sesi Ini:&nbsp;<span id="scan-count">0</span></div>
       <div style="display:flex;gap:.5rem;align-items:center;">
-        <button id="toggle-sound-btn" title="Toggle suara" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 8px;color:var(--muted);cursor:pointer;font-size:1rem;" onclick="toggleSound()">🔊</button>
-        <button id="stop-cam-btn" onclick="stopCamera()" style="display:none;background:none;border:1px solid var(--border);border-radius:8px;padding:4px 8px;color:var(--muted);cursor:pointer;font-size:.72rem;">■ Stop</button>
+        <button id="toggle-sound-btn" title="Toggle suara" style="background:none;border:1px solid var(--border);border-radius:5px;padding:4px 8px;color:var(--muted);cursor:pointer;font-size:1rem;" onclick="toggleSound()">🔊</button>
       </div>
     </div>
 
@@ -737,83 +827,11 @@ function beep(type = 'success') {
 }
 
 // ─── SCANNER VARS ─────────────────────────────────────────────────────────
-let stream = null, animFrame = null, scannerActive = false;
 let isProcessing = false, lastQR = '', lastQRTime = 0, scanCount = 0;
-
-const video       = document.getElementById('video');
-const canvas      = document.getElementById('canvas-hidden');
-const ctx         = canvas.getContext('2d', { willReadFrequently: true });
-const scannerIdle = document.getElementById('scanner-idle');
-const scanOverlay = document.getElementById('scanner-overlay');
-const startBtn    = document.getElementById('start-cam-btn');
-const stopBtn     = document.getElementById('stop-cam-btn');
-const statusDot   = document.getElementById('scan-status-dot');
-const camError    = document.getElementById('cam-error');
-
-// ─── START CAMERA ─────────────────────────────────────────────────────────
-startBtn.addEventListener('click', async () => {
-  startBtn.disabled = true;
-  startBtn.innerHTML = '⏳ Memulai...';
-  camError.style.display = 'none';
-  try {
-    try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width:{ideal:1280}, height:{ideal:720} } }); }
-    catch(_) { stream = await navigator.mediaDevices.getUserMedia({ video: true }); }
-    video.srcObject = stream;
-    await video.play();
-    scannerActive = true;
-    scannerIdle.style.display = 'none';
-    video.style.display = 'block';
-    scanOverlay.style.display = 'flex';
-    stopBtn.style.display = 'block';
-    statusDot.style.background = 'var(--success)';
-    animFrame = requestAnimationFrame(tick);
-  } catch(err) {
-    startBtn.disabled = false;
-    startBtn.innerHTML = '📷 Coba Lagi';
-    let msg = 'Tidak dapat memulai kamera.';
-    if (['NotAllowedError','PermissionDeniedError'].includes(err.name)) msg = 'Izin kamera ditolak. Izinkan akses kamera di pengaturan browser.';
-    else if (['NotFoundError','DevicesNotFoundError'].includes(err.name)) msg = 'Kamera tidak ditemukan di perangkat ini.';
-    else if (err.name === 'NotReadableError') msg = 'Kamera sedang dipakai aplikasi lain.';
-    camError.textContent = msg; camError.style.display = 'block';
-    statusDot.style.background = 'var(--danger)';
-  }
-});
-
-function stopCamera() {
-  if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
-  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-  video.style.display = 'none';
-  scanOverlay.style.display = 'none';
-  scannerIdle.style.display = 'flex';
-  startBtn.innerHTML = '📷 Aktifkan Kamera'; startBtn.disabled = false;
-  stopBtn.style.display = 'none';
-  statusDot.style.background = 'var(--muted)';
-  scannerActive = false;
-}
-
-// ─── TICK / QR SCAN LOOP ───────────────────────────────────────────────────
-function tick() {
-  if (!stream) return;
-  if (video.readyState >= video.HAVE_ENOUGH_DATA) {
-    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
-    const img  = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
-    if (code && !isProcessing) {
-      const now = Date.now();
-      if (code.data !== lastQR || now - lastQRTime > DEBOUNCE_MS) {
-        lastQR = code.data; lastQRTime = now;
-        handleScan(code.data);
-      }
-    }
-  }
-  animFrame = requestAnimationFrame(tick);
-}
 
 // ─── HANDLE SCAN → SERVER ─────────────────────────────────────────────────
 async function handleScan(qrCode) {
   isProcessing = true;
-  if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
   try {
     const resp = await fetch(SCAN_URL, {
       method: 'POST',
@@ -862,7 +880,6 @@ function showToast(type, icon, siswa, msg) {
   toastTimer = setTimeout(() => {
     toast.classList.remove('show');
     isProcessing = false;
-    if (stream && !animFrame) animFrame = requestAnimationFrame(tick);
   }, DISMISS_MS);
 }
 
@@ -875,18 +892,20 @@ function renderRows(rows, colClass) {
     const [bh, bm] = [parseInt(jamMasuk[0]), parseInt(jamMasuk[1])];
     const diff = (h * 60 + m) - (bh * 60 + bm);
     const isLate = diff > TOLERANSI_MENIT;
-    const rank = r.rank || (i + 1 + (colClass === 'akhir' ? 10 : 0));
-    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+    const rank = r.rank || (i + 1);
+    const medal = colClass === 'awal' && rank === 1 ? '🥇' : colClass === 'awal' && rank === 2 ? '🥈' : colClass === 'awal' && rank === 3 ? '🥉' : rank;
     const badge = isLate
       ? `<span class="status-badge badge-terlambat">⏰ Terlambat</span><span class="late-minutes">+${diff} mnt</span>`
       : `<span class="status-badge badge-hadir">✅ Hadir</span>`;
-    return `<tr class="${rank<=3?'top-3':''} ${isLate?'late-row':''}">
+    return `<tr class="${colClass==='awal'&&rank<=3?'top-3':''} ${isLate?'late-row':''}">
       <td class="rank-cell">${medal}</td>
       <td class="name-cell"><div class="name">${r.nama}</div><div class="kelas-badge">${r.kelas}</div></td>
       <td><span class="jam-cell ${isLate?'jam-late':'jam-early'}">${r.jam}</span></td>
       <td class="status-col">${badge}</td>
     </tr>`;
-  }).join('') || `<tr><td colspan="4"><div class="empty-state"><span class="icon">🌅</span><p>Belum ada data</p></div></td></tr>`;
+  }).join('') || (colClass === 'awal' 
+    ? `<tr><td colspan="4"><div class="empty-state"><span class="icon">🌅</span><p>Belum ada siswa yang hadir hari ini</p></div></td></tr>`
+    : `<tr><td colspan="4"><div class="empty-state"><span class="icon">🌙</span><p>Belum ada data scan terbaru hari ini</p></div></td></tr>`);
 }
 
 async function refreshLeaderboard() {
@@ -894,9 +913,10 @@ async function refreshLeaderboard() {
     const resp = await fetch(LEADERBOARD_URL, { headers: { 'Accept': 'application/json' } });
     const data = await resp.json();
     document.getElementById('tbody-awal').innerHTML  = renderRows(data.awal, 'awal');
-    document.getElementById('tbody-akhir').innerHTML = renderRows(data.akhir, 'akhir');
+    document.getElementById('tbody-akhir').innerHTML = renderRows(data.terbaru, 'terbaru');
     if (data.stats) {
       document.getElementById('s-hadir').textContent     = data.stats.hadir     ?? 0;
+      document.getElementById('s-hadir-large').textContent = data.stats.hadir   ?? 0;
       document.getElementById('s-sakit').textContent     = data.stats.sakit     ?? 0;
       document.getElementById('s-izin').textContent      = data.stats.izin      ?? 0;
       document.getElementById('s-alpha').textContent     = data.stats.alpha     ?? 0;
@@ -905,14 +925,8 @@ async function refreshLeaderboard() {
   } catch(_) {}
 }
 
-// Auto-refresh leaderboard every 15s
+// Auto-refresh leaderboard every 3s (Real-time speed)
 setInterval(refreshLeaderboard, REFRESH_MS);
-
-// Visibility change: pause/resume scan tick
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) { if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; } }
-  else if (scannerActive && stream && !animFrame && !isProcessing) animFrame = requestAnimationFrame(tick);
-});
 </script>
 
 <style>
