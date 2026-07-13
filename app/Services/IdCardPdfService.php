@@ -27,9 +27,13 @@ class IdCardPdfService
             'nip_kepala_lembaga',
             'logo_sekolah',
             'logo_url',
+            'logo_dinas',
+            'logo_dinas_url',
             'kota_penerbitan',
             'tanda_tangan_kepala_sekolah',
+            'ttd_url',
             'cap_sekolah',
+            'cap_url',
             'jumlah_tahun_sekolah',
         ];
 
@@ -44,15 +48,20 @@ class IdCardPdfService
             'nip_kepala_lembaga'           => $rows['nip_kepala_lembaga'] ?? '',
             'logo_sekolah'                 => $rows['logo_sekolah'] ?? '',
             'logo_url'                     => $rows['logo_url'] ?? '',
+            'logo_dinas'                   => $rows['logo_dinas'] ?? '',
+            'logo_dinas_url'               => $rows['logo_dinas_url'] ?? '',
             'kota_penerbitan'              => $rows['kota_penerbitan'] ?? '',
             'tanda_tangan_kepala_sekolah'  => $rows['tanda_tangan_kepala_sekolah'] ?? '',
+            'ttd_url'                      => $rows['ttd_url'] ?? '',
             'cap_sekolah'                  => $rows['cap_sekolah'] ?? '',
+            'cap_url'                      => $rows['cap_url'] ?? '',
             'jumlah_tahun_sekolah'         => (int) ($rows['jumlah_tahun_sekolah'] ?? 3),
 
             // Base64 images
-            'logo_base64'  => $this->toBase64($rows['logo_sekolah'] ?? '', 'logo'),
-            'ttd_base64'   => $this->toBase64($rows['tanda_tangan_kepala_sekolah'] ?? '', 'ttd'),
-            'cap_base64'   => $this->toBase64($rows['cap_sekolah'] ?? '', 'cap'),
+            'logo_base64'       => $this->toBase64($rows['logo_sekolah'] ?? '', 'logo'),
+            'logo_dinas_base64' => $this->toBase64($rows['logo_dinas'] ?? '', 'logo'),
+            'ttd_base64'        => $this->toBase64($rows['tanda_tangan_kepala_sekolah'] ?? '', 'ttd'),
+            'cap_base64'        => $this->toBase64($rows['cap_sekolah'] ?? '', 'cap'),
         ];
     }
 

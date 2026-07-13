@@ -258,6 +258,21 @@
         @endif
         @endif
 
+        <!-- Logo Dinas -->
+        @if(isset($elements['logo_dinas']) && $elements['logo_dinas']['show'])
+        @php
+            $logoDinasBase64 = $lembagaData['logo_dinas_base64'] ?? '';
+            if (empty($logoDinasBase64) && !empty($lembagaData['logo_dinas_url'])) {
+                $logoDinasBase64 = $lembagaData['logo_dinas_url'];
+            }
+        @endphp
+        @if($logoDinasBase64)
+        <div class="element" style="left: {{ $elements['logo_dinas']['x'] }}pt; top: {{ $elements['logo_dinas']['y'] }}pt;">
+            <img src="{{ $logoDinasBase64 }}" style="width: {{ $elements['logo_dinas']['w'] ?? 40 }}pt; height: {{ $elements['logo_dinas']['h'] ?? 40 }}pt; object-fit: contain;">
+        </div>
+        @endif
+        @endif
+
         <!-- Nama Lembaga -->
         @if(isset($elements['nama_lembaga']) && $elements['nama_lembaga']['show'])
         <div class="element text" style="
@@ -389,10 +404,12 @@
         @if(isset($elements['ttd_kepala_sekolah']) && $elements['ttd_kepala_sekolah']['show'])
         @php
             $ttdBase64 = $lembagaData['ttd_base64'] ?? '';
+            $ttdUrl    = $lembagaData['ttd_url'] ?? '';
+            $ttdSrc    = !empty($ttdBase64) ? $ttdBase64 : (!empty($ttdUrl) ? $ttdUrl : '');
         @endphp
-        @if($ttdBase64)
+        @if($ttdSrc)
         <div class="element" style="left: {{ $elements['ttd_kepala_sekolah']['x'] }}pt; top: {{ $elements['ttd_kepala_sekolah']['y'] }}pt;">
-            <img src="{{ $ttdBase64 }}" style="width: {{ $elements['ttd_kepala_sekolah']['w'] ?? 60 }}pt; height: {{ $elements['ttd_kepala_sekolah']['h'] ?? 30 }}pt; object-fit: contain;">
+            <img src="{{ $ttdSrc }}" style="width: {{ $elements['ttd_kepala_sekolah']['w'] ?? 60 }}pt; height: {{ $elements['ttd_kepala_sekolah']['h'] ?? 30 }}pt; object-fit: contain;">
         </div>
         @endif
         @endif
@@ -401,10 +418,12 @@
         @if(isset($elements['cap_lembaga']) && $elements['cap_lembaga']['show'])
         @php
             $capBase64 = $lembagaData['cap_base64'] ?? '';
+            $capUrl    = $lembagaData['cap_url'] ?? '';
+            $capSrc    = !empty($capBase64) ? $capBase64 : (!empty($capUrl) ? $capUrl : '');
         @endphp
-        @if($capBase64)
+        @if($capSrc)
         <div class="element" style="left: {{ $elements['cap_lembaga']['x'] }}pt; top: {{ $elements['cap_lembaga']['y'] }}pt;">
-            <img src="{{ $capBase64 }}" style="width: {{ $elements['cap_lembaga']['w'] ?? 50 }}pt; height: {{ $elements['cap_lembaga']['h'] ?? 50 }}pt; object-fit: contain;">
+            <img src="{{ $capSrc }}" style="width: {{ $elements['cap_lembaga']['w'] ?? 50 }}pt; height: {{ $elements['cap_lembaga']['h'] ?? 50 }}pt; object-fit: contain;">
         </div>
         @endif
         @endif

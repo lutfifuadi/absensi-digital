@@ -93,8 +93,12 @@ class PengaturanController extends Controller
         
         // Kartu ID
         'tanda_tangan_kepala_sekolah' => '',
+        'ttd_url'                     => '',
         'cap_sekolah'                 => '',
+        'cap_url'                     => '',
         'kota_penerbitan'             => '',
+        'logo_dinas'                  => '',
+        'logo_dinas_url'              => '',
 
         // Legacy
         'logo_sekolah'         => '',
@@ -192,7 +196,7 @@ class PengaturanController extends Controller
             'cap_sekolah'                 => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
         ]);
 
-        $data = $request->except(['_token', 'logo_sekolah', 'logo_url', 'tanda_tangan_kepala_sekolah', 'cap_sekolah', 'google_drive_credentials_file']);
+        $data = $request->except(['_token', 'logo_sekolah', 'logo_url', 'logo_dinas', 'logo_dinas_url', 'tanda_tangan_kepala_sekolah', 'ttd_url', 'cap_sekolah', 'cap_url', 'google_drive_credentials_file']);
         
         // Handle Google Drive Credentials JSON Upload
         if ($request->hasFile('google_drive_credentials_file')) {
@@ -243,6 +247,23 @@ class PengaturanController extends Controller
             $data['logo_url'] = '';
         }
         
+        // Handle logo_dinas upload — simpan langsung ke public/uploads/logo/
+        if ($request->hasFile('logo_dinas')) {
+            $old = Pengaturan::where('key', 'logo_dinas')->value('value');
+            if ($old) {
+                $oldPath = public_path('uploads/logo/' . $old);
+                if (file_exists($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+            $file = $request->file('logo_dinas');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads/logo'), $filename);
+            $data['logo_dinas'] = $filename;
+            // Hapus logo_dinas_url jika ada, karena sudah pakai file lokal
+            $data['logo_dinas_url'] = '';
+        }
+        
         // Handle tanda_tangan_kepala_sekolah upload
         if ($request->hasFile('tanda_tangan_kepala_sekolah')) {
             try {
@@ -272,6 +293,8 @@ class PengaturanController extends Controller
                     $file->move($ttdDir, $filename);
                     $data['tanda_tangan_kepala_sekolah'] = $filename;
                 }
+                // Hapus ttd_url jika ada, karena sudah pakai file lokal
+                $data['ttd_url'] = '';
             } catch (\Exception $e) {
                 return back()->withInput()->with('error', 'Gagal upload tanda tangan: ' . $e->getMessage());
             }
@@ -306,6 +329,8 @@ class PengaturanController extends Controller
                     $file->move($capDir, $filename);
                     $data['cap_sekolah'] = $filename;
                 }
+                // Hapus cap_url jika ada, karena sudah pakai file lokal
+                $data['cap_url'] = '';
             } catch (\Exception $e) {
                 return back()->withInput()->with('error', 'Gagal upload cap sekolah: ' . $e->getMessage());
             }
@@ -318,6 +343,33 @@ class PengaturanController extends Controller
             if ($validatedUrl) {
                 // Simpan URL terus, jangan download
                 $data['logo_url'] = $validatedUrl;
+            }
+        }
+
+        // Handle logo_dinas dari URL/S3 - simpan URL terus
+        $logoDinasUrl = $request->input('logo_dinas_url');
+        if (!empty($logoDinasUrl)) {
+            $validatedUrl = filter_var($logoDinasUrl, FILTER_VALIDATE_URL);
+            if ($validatedUrl) {
+                $data['logo_dinas_url'] = $validatedUrl;
+            }
+        }
+
+        // Handle ttd_url - simpan URL terus
+        $ttdUrl = $request->input('ttd_url');
+        if (!empty($ttdUrl)) {
+            $validatedUrl = filter_var($ttdUrl, FILTER_VALIDATE_URL);
+            if ($validatedUrl) {
+                $data['ttd_url'] = $validatedUrl;
+            }
+        }
+
+        // Handle cap_url - simpan URL terus
+        $capUrl = $request->input('cap_url');
+        if (!empty($capUrl)) {
+            $validatedUrl = filter_var($capUrl, FILTER_VALIDATE_URL);
+            if ($validatedUrl) {
+                $data['cap_url'] = $validatedUrl;
             }
         }
 

@@ -568,6 +568,76 @@
             </div>
           </div>
 
+      {{-- ══ LOGO DINAS ══ --}}
+      <div class="set-panel" style="margin-top: 2rem;">
+        <div class="set-panel__head">
+          <div class="set-panel__title-wrap">
+            <div class="set-panel__icon --success"><i class="ti tabler-building-community"></i></div>
+            <div>
+              <div class="set-panel__title">Logo Dinas</div>
+              <div class="set-panel__sub">Upload logo dinas/pemerintah untuk ditampilkan di kartu identitas.</div>
+            </div>
+          </div>
+        </div>
+        <div class="set-panel__body">
+          <div class="set-branding-wrap">
+            <div class="set-logo-preview" id="logoDinasPreviewWrap">
+              @php
+                $logoSrc = null;
+                if (!empty($settings['logo_dinas'])) {
+                  $logoSrc = asset('uploads/logo/' . $settings['logo_dinas']);
+                } elseif (!empty($settings['logo_dinas_url'])) {
+                  $logoSrc = $settings['logo_dinas_url'];
+                }
+              @endphp
+              @if ($logoSrc)
+                <img src="{{ $logoSrc }}" id="logoDinasPreviewImg" alt="Logo Dinas" class="set-logo-preview__img">
+              @else
+                <div class="set-logo-preview__empty" id="logoDinasPreviewEmpty">
+                  <i class="ti tabler-photo-off"></i>
+                  <span>Belum ada logo dinas</span>
+                </div>
+                <img src="" id="logoDinasPreviewImg" alt="" class="set-logo-preview__img d-none">
+              @endif
+            </div>
+            <div class="set-logo-uploader">
+              <div class="set-upload-zone" id="uploadZoneDinas">
+                <div class="set-upload-zone__icon"><i class="ti tabler-cloud-upload"></i></div>
+                <p class="set-upload-zone__title">Klik atau seret file ke sini</p>
+                <p class="set-upload-zone__sub">JPG, PNG, GIF · Maks 1MB</p>
+                <label class="set-btn set-btn--primary" for="upload_logo_dinas">
+                  <i class="ti tabler-file-upload"></i> Pilih File
+                </label>
+                <input type="file" id="upload_logo_dinas" name="logo_dinas" class="d-none" accept="image/png,image/jpeg,image/jpg,image/gif">
+              </div>
+              <div class="set-upload-hints">
+                <div class="set-upload-hint-item"><i class="ti tabler-check text-success"></i> Resolusi disarankan min. 200×200px</div>
+                <div class="set-upload-hint-item"><i class="ti tabler-check text-success"></i> Background transparan (PNG) lebih baik</div>
+                <div class="set-upload-hint-item"><i class="ti tabler-check text-success"></i> Logo dinas muncul di cetak kartu ID</div>
+              </div>
+
+              <div class="set-url-upload mt-4">
+                <div class="set-url-upload__divider">
+                  <span class="set-url-upload__divider-text">atau</span>
+                </div>
+                <div class="set-field">
+                  <label class="set-label">Upload dari URL/S3</label>
+                  <div class="set-input-group">
+                    <span class="set-input-prefix"><i class="ti tabler-link"></i></span>
+                    <input type="url" class="set-input" name="logo_dinas_url" id="logoDinasUrlInput"
+                      value="{{ old('logo_dinas_url', $settings['logo_dinas_url'] ?? '') }}"
+                      placeholder="https://example.com/logo-dinas.png">
+                  </div>
+                </div>
+                <div class="set-field-hint --info">
+                  <i class="ti tabler-info-circle"></i> Contoh: URL dari S3 seperti https://ppdb-mansaba.s3.ap-southeast-1.amazonaws.com/logo_dinas.png
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {{-- ══ TANDA TANGAN KEPALA SEKOLAH ══ --}}
       <div class="set-panel" style="margin-top: 2rem;">
         <div class="set-panel__head">
@@ -581,7 +651,7 @@
         </div>
         <div class="set-panel__body">
           <div class="set-branding-wrap">
-             <!-- Preview TTD -->
+              <!-- Preview TTD -->
             <div class="set-logo-preview" id="ttdPreviewWrap">
               @php
                 $ttdSrc = null;
@@ -592,6 +662,8 @@
                   } else {
                     $ttdSrc = asset('uploads/ttd/' . $value);
                   }
+                } elseif (!empty($settings['ttd_url'])) {
+                  $ttdSrc = $settings['ttd_url'];
                 }
               @endphp
               @if ($ttdSrc)
@@ -618,6 +690,24 @@
               <div class="set-upload-hints">
                 <div class="set-upload-hint-item"><i class="ti tabler-check text-success"></i> Gunakan latar transparan (PNG) untuk hasil terbaik</div>
                 <div class="set-upload-hint-item"><i class="ti tabler-check text-success"></i> Tanda tangan akan muncul di kartu identitas cetak</div>
+              </div>
+
+              <div class="set-url-upload mt-4">
+                <div class="set-url-upload__divider">
+                  <span class="set-url-upload__divider-text">atau</span>
+                </div>
+                <div class="set-field">
+                  <label class="set-label">Upload dari URL Eksternal</label>
+                  <div class="set-input-group">
+                    <span class="set-input-prefix"><i class="ti tabler-link"></i></span>
+                    <input type="url" class="set-input" name="ttd_url" id="ttdUrlInput"
+                      value="{{ old('ttd_url', $settings['ttd_url'] ?? '') }}"
+                      placeholder="https://example.com/tanda-tangan.png">
+                  </div>
+                </div>
+                <div class="set-field-hint --info">
+                  <i class="ti tabler-info-circle"></i> URL gambar tanda tangan dari eksternal (Google Drive, S3, dll)
+                </div>
               </div>
             </div>
           </div>
@@ -648,6 +738,8 @@
                   } else {
                     $capSrc = asset('uploads/cap/' . $value);
                   }
+                } elseif (!empty($settings['cap_url'])) {
+                  $capSrc = $settings['cap_url'];
                 }
               @endphp
               @if ($capSrc)
@@ -674,6 +766,24 @@
               <div class="set-upload-hints">
                 <div class="set-upload-hint-item"><i class="ti tabler-check text-success"></i> Bulat/lingkaran untuk cap instansi</div>
                 <div class="set-upload-hint-item"><i class="ti tabler-check text-success"></i> Stempel akan muncul di kartu identitas cetak</div>
+              </div>
+
+              <div class="set-url-upload mt-4">
+                <div class="set-url-upload__divider">
+                  <span class="set-url-upload__divider-text">atau</span>
+                </div>
+                <div class="set-field">
+                  <label class="set-label">Upload dari URL Eksternal</label>
+                  <div class="set-input-group">
+                    <span class="set-input-prefix"><i class="ti tabler-link"></i></span>
+                    <input type="url" class="set-input" name="cap_url" id="capUrlInput"
+                      value="{{ old('cap_url', $settings['cap_url'] ?? '') }}"
+                      placeholder="https://example.com/cap-stempel.png">
+                  </div>
+                </div>
+                <div class="set-field-hint --info">
+                  <i class="ti tabler-info-circle"></i> URL gambar cap/stempel dari eksternal (Google Drive, S3, dll)
+                </div>
               </div>
             </div>
           </div>

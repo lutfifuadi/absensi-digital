@@ -42,7 +42,7 @@
     }
     .element-photo { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; }
     .element-qr { background: #ffffff; border: 1px solid #000000; color: #000000; }
-    .element-logo_lembaga, .element-ttd_kepala_sekolah, .element-cap_lembaga { background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 10px; }
+    .element-logo_lembaga, .element-logo_dinas, .element-ttd_kepala_sekolah, .element-cap_lembaga { background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 10px; }
     .element-text { white-space: nowrap; font-weight: bold; }
 
     /* Custom premium dark theme form fields */
@@ -194,7 +194,7 @@
 
                     <div class="accordion" id="elementAccordion">
                         <!-- Navigation for elements -->
-                        @foreach(['photo', 'qr', 'name', 'nis', 'nisn', 'nip', 'class', 'gender', 'ttl', 'masa_berlaku', 'logo_lembaga', 'nama_lembaga', 'alamat_lembaga', 'tempat_tanggal_terbit', 'ttd_kepala_sekolah', 'cap_lembaga', 'nama_kepala_sekolah', 'nip_kepala_sekolah', 'custom_text_1', 'custom_text_2', 'custom_text_3', 'divider_1', 'divider_2'] as $el)
+                        @foreach(['photo', 'qr', 'name', 'nis', 'nisn', 'nip', 'class', 'gender', 'ttl', 'masa_berlaku', 'logo_lembaga', 'logo_dinas', 'nama_lembaga', 'alamat_lembaga', 'tempat_tanggal_terbit', 'ttd_kepala_sekolah', 'cap_lembaga', 'nama_kepala_sekolah', 'nip_kepala_sekolah', 'custom_text_1', 'custom_text_2', 'custom_text_3', 'divider_1', 'divider_2'] as $el)
                         <div class="accordion-item">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ $el }}">
@@ -220,6 +220,8 @@
                                         Masa Berlaku
                                     @elseif($el === 'logo_lembaga')
                                         Logo Lembaga
+                                    @elseif($el === 'logo_dinas')
+                                        Logo Dinas
                                     @elseif($el === 'nama_lembaga')
                                         Nama Lembaga
                                     @elseif($el === 'alamat_lembaga')
@@ -260,7 +262,7 @@
                                             <label class="small">Posisi Y</label>
                                             <input type="number" class="form-control form-control-sm config-sync" data-el="{{ $el }}" data-prop="y">
                                         </div>
-                                        @if(in_array($el, ['photo', 'qr', 'logo_lembaga', 'ttd_kepala_sekolah', 'cap_lembaga']))
+                                        @if(in_array($el, ['photo', 'qr', 'logo_lembaga', 'logo_dinas', 'ttd_kepala_sekolah', 'cap_lembaga']))
                                         <div class="col-6">
                                             <label class="small">Lebar (W)</label>
                                             <input type="number" class="form-control form-control-sm config-sync" data-el="{{ $el }}" data-prop="w">
@@ -435,6 +437,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'ttl': 'Tempat Tanggal Lahir',
             'masa_berlaku': 'Masa Berlaku',
             'logo_lembaga': 'Logo Lembaga',
+            'logo_dinas': 'Logo Dinas',
             'nama_lembaga': 'Nama Lembaga',
             'alamat_lembaga': 'Alamat Lembaga',
             'tempat_tanggal_terbit': 'Tempat Tanggal Terbit',
@@ -489,7 +492,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const div = document.createElement('div');
-            const isImageEl = ['photo', 'qr', 'logo_lembaga', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(key);
+            const isImageEl = ['photo', 'qr', 'logo_lembaga', 'logo_dinas', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(key);
             const isDividerEl = ['divider_1', 'divider_2'].includes(key);
             
             if (isDividerEl) {
@@ -529,15 +532,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
                         div.innerHTML = '<i class="ti tabler-school"></i> LOGO';
                     }
+                } else if (key === 'logo_dinas') {
+                    if (lembaga && lembaga.logo_dinas_base64) {
+                        div.innerHTML = `<img src="${lembaga.logo_dinas_base64}" style="width:100%; height:100%; object-fit:contain;">`;
+                    } else {
+                        div.innerHTML = '<i class="ti tabler-building"></i> LOGO DINAS';
+                    }
                 } else if (key === 'ttd_kepala_sekolah') {
                     if (lembaga && lembaga.ttd_base64) {
                         div.innerHTML = `<img src="${lembaga.ttd_base64}" style="width:100%; height:100%; object-fit:contain;">`;
+                    } else if (lembaga && lembaga.ttd_url) {
+                        div.innerHTML = `<img src="${lembaga.ttd_url}" style="width:100%; height:100%; object-fit:contain;">`;
                     } else {
                         div.innerHTML = '<i class="ti tabler-writing-sign"></i> TTD KEPSEK';
                     }
                 } else if (key === 'cap_lembaga') {
                     if (lembaga && lembaga.cap_base64) {
                         div.innerHTML = `<img src="${lembaga.cap_base64}" style="width:100%; height:100%; object-fit:contain;">`;
+                    } else if (lembaga && lembaga.cap_url) {
+                        div.innerHTML = `<img src="${lembaga.cap_url}" style="width:100%; height:100%; object-fit:contain;">`;
                     } else {
                         div.innerHTML = '<i class="ti tabler-stamp"></i> STEMPEL';
                     }
@@ -641,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ny = Math.max(0, Math.min(ny, config.canvas.height - el.offsetHeight));
 
             // Snap to grid if name/id/class is center aligned
-            const isImageEl = ['photo', 'qr', 'logo_lembaga', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(key);
+            const isImageEl = ['photo', 'qr', 'logo_lembaga', 'logo_dinas', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(key);
             const isDividerEl = ['divider_1', 'divider_2'].includes(key);
             if(!isImageEl && !isDividerEl && config.elements[key].align === 'center') {
                 nx = 0;
