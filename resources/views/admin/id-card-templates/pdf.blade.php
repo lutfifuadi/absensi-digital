@@ -55,7 +55,7 @@
         @php
             $bgBase64 = '';
             if ($template->background_path) {
-                if (strlen($template->background_path) > 30) {
+                if (strlen($template->background_path) > 30 && !str_contains($template->background_path, '/')) {
                     try {
                         $bgBase64 = app(\App\Services\GoogleDriveService::class)->getPhotoBase64($template->background_path);
                     } catch (\Exception $e) {

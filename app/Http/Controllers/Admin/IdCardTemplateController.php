@@ -72,7 +72,7 @@ class IdCardTemplateController extends Controller
                 'gender' => $siswa->jenis_kelamin === 'L' ? 'Laki-laki' : ($siswa->jenis_kelamin === 'P' ? 'Perempuan' : '-'),
                 'ttl' => ($siswa->tempat_lahir && $siswa->tanggal_lahir) ? ($siswa->tempat_lahir . ', ' . $siswa->tanggal_lahir->isoFormat('D MMMM Y')) : '-',
                 'masa_berlaku' => $this->idCardPdfService->hitungMasaBerlakuSiswa($siswa, $lembagaData['jumlah_tahun_sekolah'] ?? 3),
-                'photo' => $siswa->foto ? (strlen($siswa->foto) > 30 ? 'https://drive.google.com/thumbnail?id=' . $siswa->foto . '&sz=w200' : asset('storage/' . $siswa->foto)) : null
+                'photo' => $siswa->foto ? ((strlen($siswa->foto) > 30 && !str_contains($siswa->foto, '/')) ? 'https://drive.google.com/thumbnail?id=' . $siswa->foto . '&sz=w200' : asset('storage/' . $siswa->foto)) : null
             ] : null,
             'guru' => $guru ? [
                 'name' => strtoupper($guru->nama_lengkap),
@@ -81,7 +81,7 @@ class IdCardTemplateController extends Controller
                 'gender' => $guru->jenis_kelamin === 'L' ? 'Laki-laki' : ($guru->jenis_kelamin === 'P' ? 'Perempuan' : '-'),
                 'ttl' => '-',
                 'masa_berlaku' => 'Selama menjadi guru aktif',
-                'photo' => $guru->foto ? (strlen($guru->foto) > 30 ? 'https://drive.google.com/thumbnail?id=' . $guru->foto . '&sz=w200' : asset('storage/' . $guru->foto)) : null
+                'photo' => $guru->foto ? ((strlen($guru->foto) > 30 && !str_contains($guru->foto, '/')) ? 'https://drive.google.com/thumbnail?id=' . $guru->foto . '&sz=w200' : asset('storage/' . $guru->foto)) : null
             ] : null,
             'staff' => $staff ? [
                 'name' => strtoupper($staff->nama_lengkap),
@@ -90,7 +90,7 @@ class IdCardTemplateController extends Controller
                 'gender' => $staff->jenis_kelamin === 'L' ? 'Laki-laki' : ($staff->jenis_kelamin === 'P' ? 'Perempuan' : '-'),
                 'ttl' => '-',
                 'masa_berlaku' => 'Selama menjadi staff aktif',
-                'photo' => $staff->foto ? (strlen($staff->foto) > 30 ? 'https://drive.google.com/thumbnail?id=' . $staff->foto . '&sz=w200' : asset('storage/' . $staff->foto)) : null
+                'photo' => $staff->foto ? ((strlen($staff->foto) > 30 && !str_contains($staff->foto, '/')) ? 'https://drive.google.com/thumbnail?id=' . $staff->foto . '&sz=w200' : asset('storage/' . $staff->foto)) : null
             ] : null
         ];
 
@@ -159,7 +159,7 @@ class IdCardTemplateController extends Controller
                 'gender' => $siswa->jenis_kelamin === 'L' ? 'Laki-laki' : ($siswa->jenis_kelamin === 'P' ? 'Perempuan' : '-'),
                 'ttl' => ($siswa->tempat_lahir && $siswa->tanggal_lahir) ? ($siswa->tempat_lahir . ', ' . $siswa->tanggal_lahir->isoFormat('D MMMM Y')) : '-',
                 'masa_berlaku' => $this->idCardPdfService->hitungMasaBerlakuSiswa($siswa, $lembagaData['jumlah_tahun_sekolah'] ?? 3),
-                'photo' => $siswa->foto ? (strlen($siswa->foto) > 30 ? 'https://drive.google.com/thumbnail?id=' . $siswa->foto . '&sz=w200' : asset('storage/' . $siswa->foto)) : null
+                'photo' => $siswa->foto ? ((strlen($siswa->foto) > 30 && !str_contains($siswa->foto, '/')) ? 'https://drive.google.com/thumbnail?id=' . $siswa->foto . '&sz=w200' : asset('storage/' . $siswa->foto)) : null
             ] : null,
             'guru' => $guru ? [
                 'name' => strtoupper($guru->nama_lengkap),
@@ -168,7 +168,7 @@ class IdCardTemplateController extends Controller
                 'gender' => $guru->jenis_kelamin === 'L' ? 'Laki-laki' : ($guru->jenis_kelamin === 'P' ? 'Perempuan' : '-'),
                 'ttl' => '-',
                 'masa_berlaku' => 'Selama menjadi guru aktif',
-                'photo' => $guru->foto ? (strlen($guru->foto) > 30 ? 'https://drive.google.com/thumbnail?id=' . $guru->foto . '&sz=w200' : asset('storage/' . $guru->foto)) : null
+                'photo' => $guru->foto ? ((strlen($guru->foto) > 30 && !str_contains($guru->foto, '/')) ? 'https://drive.google.com/thumbnail?id=' . $guru->foto . '&sz=w200' : asset('storage/' . $guru->foto)) : null
             ] : null,
             'staff' => $staff ? [
                 'name' => strtoupper($staff->nama_lengkap),
@@ -177,7 +177,7 @@ class IdCardTemplateController extends Controller
                 'gender' => $staff->jenis_kelamin === 'L' ? 'Laki-laki' : ($staff->jenis_kelamin === 'P' ? 'Perempuan' : '-'),
                 'ttl' => '-',
                 'masa_berlaku' => 'Selama menjadi staff aktif',
-                'photo' => $staff->foto ? (strlen($staff->foto) > 30 ? 'https://drive.google.com/thumbnail?id=' . $staff->foto . '&sz=w200' : asset('storage/' . $staff->foto)) : null
+                'photo' => $staff->foto ? ((strlen($staff->foto) > 30 && !str_contains($staff->foto, '/')) ? 'https://drive.google.com/thumbnail?id=' . $staff->foto . '&sz=w200' : asset('storage/' . $staff->foto)) : null
             ] : null
         ];
 
@@ -273,18 +273,18 @@ class IdCardTemplateController extends Controller
             $old = $idCardTemplate->background_path;
             
             if ($this->googleDriveService->isEnabled()) {
-                $oldFileId = ($old && strlen($old) > 30) ? $old : null;
+                $oldFileId = ($old && strlen($old) > 30 && !str_contains($old, '/')) ? $old : null;
                 $fileId = $this->googleDriveService->uploadPhoto($file, $oldFileId);
                 $data['background_path'] = $fileId;
                 
                 // Jika sebelumnya ada file lokal, hapus
-                if ($old && strlen($old) <= 30) {
+                if ($old && (strlen($old) <= 30 || str_contains($old, '/'))) {
                     Storage::disk('public')->delete($old);
                 }
             } else {
                 // Google Drive mati, hapus file lama (baik di Drive atau lokal)
                 if ($old) {
-                    if (strlen($old) > 30) {
+                    if (strlen($old) > 30 && !str_contains($old, '/')) {
                         $this->googleDriveService->deletePhoto($old);
                     } else {
                         Storage::disk('public')->delete($old);
@@ -311,7 +311,7 @@ class IdCardTemplateController extends Controller
     public function destroy(IdCardTemplate $idCardTemplate)
     {
         if ($idCardTemplate->background_path) {
-            if (strlen($idCardTemplate->background_path) > 30) {
+            if (strlen($idCardTemplate->background_path) > 30 && !str_contains($idCardTemplate->background_path, '/')) {
                 $this->googleDriveService->deletePhoto($idCardTemplate->background_path);
             } else {
                 Storage::disk('public')->delete($idCardTemplate->background_path);

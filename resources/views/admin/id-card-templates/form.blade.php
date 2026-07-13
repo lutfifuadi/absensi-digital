@@ -412,7 +412,7 @@
                             @php
                               $bgUrl = '';
                               if ($template->background_path) {
-                                  if (strlen($template->background_path) > 30) {
+                                  if (strlen($template->background_path) > 30 && !str_contains($template->background_path, '/')) {
                                       $bgUrl = 'https://drive.google.com/thumbnail?id=' . $template->background_path . '&sz=w800&_t=' . time();
                                   } else {
                                       $bgUrl = asset('storage/' . $template->background_path);
@@ -435,8 +435,12 @@
 </form>
 
 <div id="element-context-menu" class="dropdown-menu shadow py-1" style="display: none; position: absolute; z-index: 9999; background: #1e293b; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px;">
-    <button type="button" class="dropdown-item text-danger py-2" id="btn-delete-element" style="font-size: 0.8rem; font-weight: 600;">
-        <i class="ti tabler-trash me-1"></i> Hapus Elemen
+    <button type="button" class="dropdown-item text-white py-2 d-flex align-items-center gap-2" id="btn-edit-element" style="font-size: 0.8rem; font-weight: 600;">
+        <i class="ti tabler-pencil text-primary" style="font-size: 1rem;"></i> Edit Elemen
+    </button>
+    <div class="dropdown-divider my-1" style="border-color: rgba(255,255,255,0.08);"></div>
+    <button type="button" class="dropdown-item text-danger py-2 d-flex align-items-center gap-2" id="btn-delete-element" style="font-size: 0.8rem; font-weight: 600;">
+        <i class="ti tabler-trash" style="font-size: 1rem;"></i> Hapus Elemen
     </button>
 </div>
 @endsection
@@ -837,6 +841,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Context Menu Logic
     const contextMenu = document.getElementById('element-context-menu');
     const deleteBtn = document.getElementById('btn-delete-element');
+    const editBtn = document.getElementById('btn-edit-element');
     let activeElementKey = null;
 
     canvas.addEventListener('contextmenu', e => {
@@ -854,6 +859,40 @@ document.addEventListener('DOMContentLoaded', function() {
         if (contextMenu.style.display === 'block') {
             contextMenu.style.display = 'none';
         }
+    });
+
+    editBtn.addEventListener('click', e => {
+        if (activeElementKey) {
+            const collapseEl = document.getElementById('collapse' + activeElementKey);
+            if (collapseEl) {
+                const accordionButton = document.querySelector(`[data-bs-target="#collapse${activeElementKey}"]`);
+                if (accordionButton && accordionButton.classList.contains('collapsed')) {
+                    accordionButton.click();
+                }
+
+                setTimeout(() => {
+                    const accordionItem = collapseEl.closest('.accordion-item');
+                    if (accordionItem) {
+                        // Scroll to the accordion item
+                        accordionItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                        // Highlight effect
+                        accordionItem.style.transition = 'background-color 0.3s ease';
+                        accordionItem.style.backgroundColor = 'rgba(115, 103, 240, 0.2)';
+                        setTimeout(() => {
+                            accordionItem.style.backgroundColor = 'transparent';
+                        }, 1000);
+
+                        // Focus on the first configuration input
+                        const firstInput = accordionItem.querySelector('input, select');
+                        if (firstInput) {
+                            firstInput.focus();
+                        }
+                    }
+                }, 250);
+            }
+        }
+        contextMenu.style.display = 'none';
     });
 
     deleteBtn.addEventListener('click', e => {
