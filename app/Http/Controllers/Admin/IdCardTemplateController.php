@@ -122,8 +122,15 @@ class IdCardTemplateController extends Controller
         }
 
         if ($request->hasFile('background')) {
-            $fileId = $this->googleDriveService->uploadPhoto($request->file('background'));
-            $data['background_path'] = $fileId;
+            $file = $request->file('background');
+            if ($this->googleDriveService->isEnabled()) {
+                $fileId = $this->googleDriveService->uploadPhoto($file);
+                $data['background_path'] = $fileId;
+            } else {
+                // Fallback ke local storage (public disk)
+                $path = $file->store('backgrounds', 'public');
+                $data['background_path'] = $path;
+            }
         }
 
         // Deactivate others of same type if this is active
@@ -262,12 +269,31 @@ class IdCardTemplateController extends Controller
         }
 
         if ($request->hasFile('background')) {
-            $oldFileId = (strlen($idCardTemplate->background_path) > 30) ? $idCardTemplate->background_path : null;
-            $fileId = $this->googleDriveService->uploadPhoto($request->file('background'), $oldFileId);
-            $data['background_path'] = $fileId;
+            $file = $request->file('background');
+            $old = $idCardTemplate->background_path;
             
-            if (!$oldFileId && $idCardTemplate->background_path) {
-                Storage::disk('public')->delete($idCardTemplate->background_path);
+            if ($this->googleDriveService->isEnabled()) {
+                $oldFileId = ($old && strlen($old) > 30) ? $old : null;
+                $fileId = $this->googleDriveService->uploadPhoto($file, $oldFileId);
+                $data['background_path'] = $fileId;
+                
+                // Jika sebelumnya ada file lokal, hapus
+                if ($old && strlen($old) <= 30) {
+                    Storage::disk('public')->delete($old);
+                }
+            } else {
+                // Google Drive mati, hapus file lama (baik di Drive atau lokal)
+                if ($old) {
+                    if (strlen($old) > 30) {
+                        $this->googleDriveService->deletePhoto($old);
+                    } else {
+                        Storage::disk('public')->delete($old);
+                    }
+                }
+                
+                // Simpan secara lokal
+                $path = $file->store('backgrounds', 'public');
+                $data['background_path'] = $path;
             }
         }
 
