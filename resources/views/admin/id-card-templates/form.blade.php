@@ -169,7 +169,7 @@
                     
                     <div class="accordion" id="elementAccordion">
                         <!-- Navigation for elements -->
-                        @foreach(['photo', 'qr', 'name', 'nis', 'nisn', 'nip', 'class', 'gender', 'ttl', 'masa_berlaku', 'logo_lembaga', 'nama_lembaga', 'alamat_lembaga', 'tempat_tanggal_terbit', 'ttd_kepala_sekolah', 'cap_lembaga', 'nama_kepala_sekolah', 'nip_kepala_sekolah'] as $el)
+                        @foreach(['photo', 'qr', 'name', 'nis', 'nisn', 'nip', 'class', 'gender', 'ttl', 'masa_berlaku', 'logo_lembaga', 'nama_lembaga', 'alamat_lembaga', 'tempat_tanggal_terbit', 'ttd_kepala_sekolah', 'cap_lembaga', 'nama_kepala_sekolah', 'nip_kepala_sekolah', 'custom_text_1', 'custom_text_2', 'custom_text_3', 'divider_1', 'divider_2'] as $el)
                         <div class="accordion-item">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ $el }}">
@@ -209,6 +209,16 @@
                                         Nama Kepala Sekolah
                                     @elseif($el === 'nip_kepala_sekolah')
                                         NIP Kepala Sekolah
+                                    @elseif($el === 'custom_text_1')
+                                        Teks Kustom 1
+                                    @elseif($el === 'custom_text_2')
+                                        Teks Kustom 2
+                                    @elseif($el === 'custom_text_3')
+                                        Teks Kustom 3
+                                    @elseif($el === 'divider_1')
+                                        Garis Pembatas 1
+                                    @elseif($el === 'divider_2')
+                                        Garis Pembatas 2
                                     @else
                                         {{ ucfirst(str_replace('_', ' ', $el)) }}
                                     @endif
@@ -234,7 +244,26 @@
                                             <label class="small">Tinggi (H)</label>
                                             <input type="number" class="form-control form-control-sm config-sync" data-el="{{ $el }}" data-prop="h">
                                         </div>
+                                        @elseif(in_array($el, ['divider_1', 'divider_2']))
+                                        <div class="col-6">
+                                            <label class="small">Lebar (W)</label>
+                                            <input type="number" class="form-control form-control-sm config-sync" data-el="{{ $el }}" data-prop="w">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="small">Tinggi/Tebal (H)</label>
+                                            <input type="number" class="form-control form-control-sm config-sync" data-el="{{ $el }}" data-prop="h">
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="small">Warna</label>
+                                            <input type="color" class="form-control form-control-sm form-control-color w-100 config-sync" data-el="{{ $el }}" data-prop="color">
+                                        </div>
                                         @else
+                                        @if(in_array($el, ['custom_text_1', 'custom_text_2', 'custom_text_3']))
+                                        <div class="col-12">
+                                            <label class="small">Teks Konten</label>
+                                            <input type="text" class="form-control form-control-sm config-sync" data-el="{{ $el }}" data-prop="content">
+                                        </div>
+                                        @endif
                                         <div class="col-6">
                                             <label class="small">Ukuran Font</label>
                                             <input type="number" class="form-control form-control-sm config-sync" data-el="{{ $el }}" data-prop="size">
@@ -250,6 +279,18 @@
                                                 <option value="center">Center</option>
                                                 <option value="right">Right</option>
                                             </select>
+                                        </div>
+                                        <div class="col-6 mt-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input config-sync" type="checkbox" data-el="{{ $el }}" data-prop="bold">
+                                                <label class="form-check-label text-white-50 small">Bold</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 mt-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input config-sync" type="checkbox" data-el="{{ $el }}" data-prop="italic">
+                                                <label class="form-check-label text-white-50 small">Italic</label>
+                                            </div>
                                         </div>
                                         @endif
                                         <div class="col-12 mt-2">
@@ -350,12 +391,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const div = document.createElement('div');
             const isImageEl = ['photo', 'qr', 'logo_lembaga', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(key);
-            div.className = 'draggable-element element-' + (isImageEl ? key : 'text');
+            const isDividerEl = ['divider_1', 'divider_2'].includes(key);
+            
+            if (isDividerEl) {
+                div.className = 'draggable-element element-divider';
+            } else {
+                div.className = 'draggable-element element-' + (isImageEl ? key : 'text');
+            }
+            
             div.id = 'el-' + key;
             div.style.left = el.x + 'px';
             div.style.top = el.y + 'px';
 
-            if (isImageEl) {
+            if (isDividerEl) {
+                div.style.width = el.w + 'px';
+                div.style.height = el.h + 'px';
+                div.style.backgroundColor = el.color;
+            } else if (isImageEl) {
                 div.style.width = el.w + 'px';
                 div.style.height = el.h + 'px';
                 if (key === 'photo') {
@@ -397,6 +449,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 div.style.textAlign = el.align;
                 div.innerText = getLabelFor(key);
                 
+                // Formatting Bold & Italic
+                div.style.fontWeight = el.bold ? 'bold' : 'normal';
+                div.style.fontStyle = el.italic ? 'italic' : 'normal';
+                
                 // Adjust width for center/right align
                 if(el.align === 'center') {
                     div.style.width = config.canvas.width + 'px';
@@ -437,6 +493,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if(key === 'tempat_tanggal_terbit') return (lembaga.kota_penerbitan || 'Kota') + ', ' + new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'});
         if(key === 'nama_kepala_sekolah') return lembaga.nama_kepala_lembaga || 'Nama Kepala Sekolah';
         if(key === 'nip_kepala_sekolah') return lembaga.nip_kepala_lembaga ? 'NIP. ' + lembaga.nip_kepala_lembaga : 'NIP. -';
+        if(['custom_text_1', 'custom_text_2', 'custom_text_3'].includes(key)) {
+            return config.elements[key].content || 'Teks Kustom';
+        }
         return key.toUpperCase();
     }
 
@@ -475,7 +534,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Snap to grid if name/id/class is center aligned
             const isImageEl = ['photo', 'qr', 'logo_lembaga', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(key);
-            if(!isImageEl && config.elements[key].align === 'center') {
+            const isDividerEl = ['divider_1', 'divider_2'].includes(key);
+            if(!isImageEl && !isDividerEl && config.elements[key].align === 'center') {
                 nx = 0;
             }
 

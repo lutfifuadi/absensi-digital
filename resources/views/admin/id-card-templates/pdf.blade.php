@@ -41,7 +41,11 @@
             background: #fff;
         }
         .text {
-            font-weight: bold;
+            /* font-weight is managed via inline styles */
+        }
+        .element-divider {
+            position: absolute;
+            z-index: 9;
         }
     </style>
 </head>
@@ -117,6 +121,8 @@
             text-align: {{ $elements['name']['align'] }};
             font-size: {{ $elements['name']['size'] }}pt;
             color: {{ $elements['name']['color'] }};
+            font-weight: {{ ($elements['name']['bold'] ?? true) ? 'bold' : 'normal' }};
+            font-style: {{ ($elements['name']['italic'] ?? false) ? 'italic' : 'normal' }};
         ">
             {{ is_array($entity) ? ($entity['name'] ?? '') : strtoupper($entity->nama_lengkap) }}
         </div>
@@ -131,6 +137,8 @@
             text-align: {{ $elements['id_number']['align'] }};
             font-size: {{ $elements['id_number']['size'] }}pt;
             color: {{ $elements['id_number']['color'] }};
+            font-weight: {{ ($elements['id_number']['bold'] ?? true) ? 'bold' : 'normal' }};
+            font-style: {{ ($elements['id_number']['italic'] ?? false) ? 'italic' : 'normal' }};
         ">
             {{ is_array($entity) ? ($entity['id_number'] ?? '') : ($entity->nis ?? $entity->nip  ?? '') }}
         </div>
@@ -145,6 +153,8 @@
             text-align: {{ $elements['nis']['align'] ?? 'center' }};
             font-size: {{ $elements['nis']['size'] ?? 12 }}pt;
             color: {{ $elements['nis']['color'] ?? '#555555' }};
+            font-weight: {{ ($elements['nis']['bold'] ?? true) ? 'bold' : 'normal' }};
+            font-style: {{ ($elements['nis']['italic'] ?? false) ? 'italic' : 'normal' }};
         ">
             {{ is_array($entity) ? ($entity['nis'] ?? '') : ($entity->_nis ?? $entity->nis ?? '') }}
         </div>
@@ -159,6 +169,8 @@
             text-align: {{ $elements['nisn']['align'] ?? 'center' }};
             font-size: {{ $elements['nisn']['size'] ?? 12 }}pt;
             color: {{ $elements['nisn']['color'] ?? '#555555' }};
+            font-weight: {{ ($elements['nisn']['bold'] ?? true) ? 'bold' : 'normal' }};
+            font-style: {{ ($elements['nisn']['italic'] ?? false) ? 'italic' : 'normal' }};
         ">
             {{ is_array($entity) ? ($entity['nisn'] ?? '') : ($entity->_nisn ?? $entity->nisn ?? '') }}
         </div>
@@ -173,6 +185,8 @@
             text-align: {{ $elements['nip']['align'] ?? 'center' }};
             font-size: {{ $elements['nip']['size'] ?? 12 }}pt;
             color: {{ $elements['nip']['color'] ?? '#555555' }};
+            font-weight: {{ ($elements['nip']['bold'] ?? true) ? 'bold' : 'normal' }};
+            font-style: {{ ($elements['nip']['italic'] ?? false) ? 'italic' : 'normal' }};
         ">
             {{ is_array($entity) ? ($entity['nip'] ?? '') : ($entity->_nip ?? $entity->nip ?? '') }}
         </div>
@@ -187,6 +201,8 @@
             text-align: {{ $elements['class']['align'] }};
             font-size: {{ $elements['class']['size'] }}pt;
             color: {{ $elements['class']['color'] }};
+            font-weight: {{ ($elements['class']['bold'] ?? true) ? 'bold' : 'normal' }};
+            font-style: {{ ($elements['class']['italic'] ?? false) ? 'italic' : 'normal' }};
         ">
             {{ is_array($entity) ? ($entity['class'] ?? '') : ($entity->kelas->nama ?? $entity->jabatan ?? '') }}
         </div>
@@ -245,6 +261,8 @@
             text-align: {{ $elements['nama_lembaga']['align'] ?? 'left' }};
             font-size: {{ $elements['nama_lembaga']['size'] ?? 8 }}pt;
             color: {{ $elements['nama_lembaga']['color'] ?? '#000000' }};
+            font-weight: {{ ($elements['nama_lembaga']['bold'] ?? true) ? 'bold' : 'normal' }};
+            font-style: {{ ($elements['nama_lembaga']['italic'] ?? false) ? 'italic' : 'normal' }};
         ">
             {{ $lembagaData['nama_sekolah'] ?? '' }}
         </div>
@@ -259,6 +277,8 @@
             text-align: {{ $elements['alamat_lembaga']['align'] ?? 'left' }};
             font-size: {{ $elements['alamat_lembaga']['size'] ?? 7 }}pt;
             color: {{ $elements['alamat_lembaga']['color'] ?? '#333333' }};
+            font-weight: {{ ($elements['alamat_lembaga']['bold'] ?? false) ? 'bold' : 'normal' }};
+            font-style: {{ ($elements['alamat_lembaga']['italic'] ?? false) ? 'italic' : 'normal' }};
         ">
             {{ $lembagaData['alamat_lembaga'] ?? '' }}
         </div>
@@ -281,6 +301,8 @@
             text-align: {{ $elements['gender']['align'] ?? 'left' }};
             font-size: {{ $elements['gender']['size'] ?? 8 }}pt;
             color: {{ $elements['gender']['color'] ?? '#000000' }};
+            font-weight: {{ ($elements['gender']['bold'] ?? true) ? 'bold' : 'normal' }};
+            font-style: {{ ($elements['gender']['italic'] ?? false) ? 'italic' : 'normal' }};
         ">
             {{ $genderText }}
         </div>
@@ -303,6 +325,8 @@
             text-align: {{ $elements['ttl']['align'] ?? 'left' }};
             font-size: {{ $elements['ttl']['size'] ?? 7 }}pt;
             color: {{ $elements['ttl']['color'] ?? '#333333' }};
+            font-weight: {{ ($elements['ttl']['bold'] ?? false) ? 'bold' : 'normal' }};
+            font-style: {{ ($elements['ttl']['italic'] ?? false) ? 'italic' : 'normal' }};
         ">
             {{ $ttlText }}
         </div>
@@ -326,6 +350,8 @@
             text-align: {{ $elements['masa_berlaku']['align'] ?? 'left' }};
             font-size: {{ $elements['masa_berlaku']['size'] ?? 7 }}pt;
             color: {{ $elements['masa_berlaku']['color'] ?? '#333333' }};
+            font-weight: {{ ($elements['masa_berlaku']['bold'] ?? false) ? 'bold' : 'normal' }};
+            font-style: {{ ($elements['masa_berlaku']['italic'] ?? false) ? 'italic' : 'normal' }};
         ">
             {{ $masaBerlakuText }}
         </div>
@@ -340,6 +366,8 @@
             text-align: {{ $elements['tempat_tanggal_terbit']['align'] ?? 'left' }};
             font-size: {{ $elements['tempat_tanggal_terbit']['size'] ?? 7 }}pt;
             color: {{ $elements['tempat_tanggal_terbit']['color'] ?? '#333333' }};
+            font-weight: {{ ($elements['tempat_tanggal_terbit']['bold'] ?? false) ? 'bold' : 'normal' }};
+            font-style: {{ ($elements['tempat_tanggal_terbit']['italic'] ?? false) ? 'italic' : 'normal' }};
         ">
             {{ ($lembagaData['kota_penerbitan'] ?? '') . (($lembagaData['kota_penerbitan'] ?? '') ? ', ' : '') . now()->locale('id')->isoFormat('D MMMM Y') }}
         </div>
@@ -378,6 +406,8 @@
             text-align: {{ $elements['nama_kepala_sekolah']['align'] ?? 'center' }};
             font-size: {{ $elements['nama_kepala_sekolah']['size'] ?? 8 }}pt;
             color: {{ $elements['nama_kepala_sekolah']['color'] ?? '#000000' }};
+            font-weight: {{ ($elements['nama_kepala_sekolah']['bold'] ?? true) ? 'bold' : 'normal' }};
+            font-style: {{ ($elements['nama_kepala_sekolah']['italic'] ?? false) ? 'italic' : 'normal' }};
         ">
             {{ $lembagaData['nama_kepala_lembaga'] ?? '' }}
         </div>
@@ -392,9 +422,83 @@
             text-align: {{ $elements['nip_kepala_sekolah']['align'] ?? 'center' }};
             font-size: {{ $elements['nip_kepala_sekolah']['size'] ?? 7 }}pt;
             color: {{ $elements['nip_kepala_sekolah']['color'] ?? '#333333' }};
+            font-weight: {{ ($elements['nip_kepala_sekolah']['bold'] ?? false) ? 'bold' : 'normal' }};
+            font-style: {{ ($elements['nip_kepala_sekolah']['italic'] ?? false) ? 'italic' : 'normal' }};
         ">
             NIP. {{ $lembagaData['nip_kepala_lembaga'] ?? '' }}
         </div>
+        @endif
+
+        {{-- ===== ELEMEN BARU KUSTOMISASI ===== --}}
+        
+        <!-- Teks Kustom 1 -->
+        @if(isset($elements['custom_text_1']) && $elements['custom_text_1']['show'])
+        <div class="element text" style="
+            left: {{ ($elements['custom_text_1']['align'] ?? 'center') == 'center' ? 0 : $elements['custom_text_1']['x'] . 'pt' }};
+            top: {{ $elements['custom_text_1']['y'] }}pt;
+            width: {{ ($elements['custom_text_1']['align'] ?? 'center') == 'center' ? '100%' : 'auto' }};
+            text-align: {{ $elements['custom_text_1']['align'] ?? 'center' }};
+            font-size: {{ $elements['custom_text_1']['size'] ?? 8 }}pt;
+            color: {{ $elements['custom_text_1']['color'] ?? '#000000' }};
+            font-weight: {{ ($elements['custom_text_1']['bold'] ?? false) ? 'bold' : 'normal' }};
+            font-style: {{ ($elements['custom_text_1']['italic'] ?? false) ? 'italic' : 'normal' }};
+        ">
+            {{ $elements['custom_text_1']['content'] ?? 'Teks Kustom 1' }}
+        </div>
+        @endif
+
+        <!-- Teks Kustom 2 -->
+        @if(isset($elements['custom_text_2']) && $elements['custom_text_2']['show'])
+        <div class="element text" style="
+            left: {{ ($elements['custom_text_2']['align'] ?? 'center') == 'center' ? 0 : $elements['custom_text_2']['x'] . 'pt' }};
+            top: {{ $elements['custom_text_2']['y'] }}pt;
+            width: {{ ($elements['custom_text_2']['align'] ?? 'center') == 'center' ? '100%' : 'auto' }};
+            text-align: {{ $elements['custom_text_2']['align'] ?? 'center' }};
+            font-size: {{ $elements['custom_text_2']['size'] ?? 8 }}pt;
+            color: {{ $elements['custom_text_2']['color'] ?? '#000000' }};
+            font-weight: {{ ($elements['custom_text_2']['bold'] ?? false) ? 'bold' : 'normal' }};
+            font-style: {{ ($elements['custom_text_2']['italic'] ?? false) ? 'italic' : 'normal' }};
+        ">
+            {{ $elements['custom_text_2']['content'] ?? 'Teks Kustom 2' }}
+        </div>
+        @endif
+
+        <!-- Teks Kustom 3 -->
+        @if(isset($elements['custom_text_3']) && $elements['custom_text_3']['show'])
+        <div class="element text" style="
+            left: {{ ($elements['custom_text_3']['align'] ?? 'center') == 'center' ? 0 : $elements['custom_text_3']['x'] . 'pt' }};
+            top: {{ $elements['custom_text_3']['y'] }}pt;
+            width: {{ ($elements['custom_text_3']['align'] ?? 'center') == 'center' ? '100%' : 'auto' }};
+            text-align: {{ $elements['custom_text_3']['align'] ?? 'center' }};
+            font-size: {{ $elements['custom_text_3']['size'] ?? 8 }}pt;
+            color: {{ $elements['custom_text_3']['color'] ?? '#000000' }};
+            font-weight: {{ ($elements['custom_text_3']['bold'] ?? false) ? 'bold' : 'normal' }};
+            font-style: {{ ($elements['custom_text_3']['italic'] ?? false) ? 'italic' : 'normal' }};
+        ">
+            {{ $elements['custom_text_3']['content'] ?? 'Teks Kustom 3' }}
+        </div>
+        @endif
+
+        <!-- Divider 1 -->
+        @if(isset($elements['divider_1']) && $elements['divider_1']['show'])
+        <div class="element-divider" style="
+            left: {{ $elements['divider_1']['x'] }}pt;
+            top: {{ $elements['divider_1']['y'] }}pt;
+            width: {{ $elements['divider_1']['w'] }}pt;
+            height: {{ $elements['divider_1']['h'] }}pt;
+            background-color: {{ $elements['divider_1']['color'] }};
+        "></div>
+        @endif
+
+        <!-- Divider 2 -->
+        @if(isset($elements['divider_2']) && $elements['divider_2']['show'])
+        <div class="element-divider" style="
+            left: {{ $elements['divider_2']['x'] }}pt;
+            top: {{ $elements['divider_2']['y'] }}pt;
+            width: {{ $elements['divider_2']['w'] }}pt;
+            height: {{ $elements['divider_2']['h'] }}pt;
+            background-color: {{ $elements['divider_2']['color'] }};
+        "></div>
         @endif
 
     </div>

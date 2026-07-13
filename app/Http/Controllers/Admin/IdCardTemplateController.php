@@ -33,22 +33,27 @@ class IdCardTemplateController extends Controller
             'elements' => [
                 'photo' => ['x' => 39, 'y' => 50, 'w' => 75, 'h' => 100, 'show' => true],
                 'qr' => ['x' => 49, 'y' => 165, 'w' => 55, 'h' => 55, 'show' => true],
-                'name' => ['x' => 0, 'y' => 20, 'size' => 10, 'color' => '#000000', 'show' => true, 'align' => 'center'],
-                'nis' => ['x' => 0, 'y' => 32, 'size' => 7, 'color' => '#555555', 'show' => true, 'align' => 'center'],
-                'nisn' => ['x' => 0, 'y' => 40, 'size' => 7, 'color' => '#555555', 'show' => true, 'align' => 'center'],
-                'nip' => ['x' => 0, 'y' => 32, 'size' => 7, 'color' => '#555555', 'show' => true, 'align' => 'center'],
-                'class' => ['x' => 0, 'y' => 152, 'size' => 8, 'color' => '#555555', 'show' => true, 'align' => 'center'],
-                'gender' => ['x' => 0, 'y' => 222, 'size' => 6, 'color' => '#555555', 'show' => false, 'align' => 'center'],
-                'ttl' => ['x' => 0, 'y' => 228, 'size' => 6, 'color' => '#555555', 'show' => false, 'align' => 'center'],
-                'masa_berlaku' => ['x' => 0, 'y' => 234, 'size' => 6, 'color' => '#555555', 'show' => false, 'align' => 'center'],
+                'name' => ['x' => 0, 'y' => 20, 'size' => 10, 'color' => '#000000', 'show' => true, 'align' => 'center', 'bold' => true, 'italic' => false],
+                'nis' => ['x' => 0, 'y' => 32, 'size' => 7, 'color' => '#555555', 'show' => true, 'align' => 'center', 'bold' => true, 'italic' => false],
+                'nisn' => ['x' => 0, 'y' => 40, 'size' => 7, 'color' => '#555555', 'show' => true, 'align' => 'center', 'bold' => true, 'italic' => false],
+                'nip' => ['x' => 0, 'y' => 32, 'size' => 7, 'color' => '#555555', 'show' => true, 'align' => 'center', 'bold' => true, 'italic' => false],
+                'class' => ['x' => 0, 'y' => 152, 'size' => 8, 'color' => '#555555', 'show' => true, 'align' => 'center', 'bold' => true, 'italic' => false],
+                'gender' => ['x' => 0, 'y' => 222, 'size' => 6, 'color' => '#555555', 'show' => false, 'align' => 'center', 'bold' => true, 'italic' => false],
+                'ttl' => ['x' => 0, 'y' => 228, 'size' => 6, 'color' => '#555555', 'show' => false, 'align' => 'center', 'bold' => false, 'italic' => false],
+                'masa_berlaku' => ['x' => 0, 'y' => 234, 'size' => 6, 'color' => '#555555', 'show' => false, 'align' => 'center', 'bold' => false, 'italic' => false],
                 'logo_lembaga' => ['x' => 10, 'y' => 10, 'w' => 25, 'h' => 25, 'show' => false],
-                'nama_lembaga' => ['x' => 40, 'y' => 12, 'size' => 8, 'color' => '#000000', 'show' => false, 'align' => 'left'],
-                'alamat_lembaga' => ['x' => 40, 'y' => 22, 'size' => 5, 'color' => '#333333', 'show' => false, 'align' => 'left'],
-                'tempat_tanggal_terbit' => ['x' => 0, 'y' => 222, 'size' => 6, 'color' => '#333333', 'show' => false, 'align' => 'center'],
+                'nama_lembaga' => ['x' => 40, 'y' => 12, 'size' => 8, 'color' => '#000000', 'show' => false, 'align' => 'left', 'bold' => true, 'italic' => false],
+                'alamat_lembaga' => ['x' => 40, 'y' => 22, 'size' => 5, 'color' => '#333333', 'show' => false, 'align' => 'left', 'bold' => false, 'italic' => false],
+                'tempat_tanggal_terbit' => ['x' => 0, 'y' => 222, 'size' => 6, 'color' => '#333333', 'show' => false, 'align' => 'center', 'bold' => false, 'italic' => false],
                 'ttd_kepala_sekolah' => ['x' => 50, 'y' => 228, 'w' => 30, 'h' => 12, 'show' => false],
                 'cap_lembaga' => ['x' => 30, 'y' => 225, 'w' => 20, 'h' => 20, 'show' => false],
-                'nama_kepala_sekolah' => ['x' => 0, 'y' => 240, 'size' => 6, 'color' => '#000000', 'show' => false, 'align' => 'center'],
-                'nip_kepala_sekolah' => ['x' => 0, 'y' => 246, 'size' => 5, 'color' => '#333333', 'show' => false, 'align' => 'center'],
+                'nama_kepala_sekolah' => ['x' => 0, 'y' => 240, 'size' => 6, 'color' => '#000000', 'show' => false, 'align' => 'center', 'bold' => true, 'italic' => false],
+                'nip_kepala_sekolah' => ['x' => 0, 'y' => 246, 'size' => 5, 'color' => '#333333', 'show' => false, 'align' => 'center', 'bold' => false, 'italic' => false],
+                'custom_text_1' => ['x' => 10, 'y' => 140, 'size' => 8, 'color' => '#000000', 'show' => false, 'align' => 'center', 'content' => 'Teks Kustom 1', 'bold' => false, 'italic' => false],
+                'custom_text_2' => ['x' => 10, 'y' => 150, 'size' => 8, 'color' => '#000000', 'show' => false, 'align' => 'center', 'content' => 'Teks Kustom 2', 'bold' => false, 'italic' => false],
+                'custom_text_3' => ['x' => 10, 'y' => 160, 'size' => 8, 'color' => '#000000', 'show' => false, 'align' => 'center', 'content' => 'Teks Kustom 3', 'bold' => false, 'italic' => false],
+                'divider_1' => ['x' => 10, 'y' => 170, 'w' => 133, 'h' => 2, 'color' => '#cccccc', 'show' => false],
+                'divider_2' => ['x' => 10, 'y' => 180, 'w' => 133, 'h' => 2, 'color' => '#cccccc', 'show' => false],
             ]
         ];
 
@@ -161,6 +166,55 @@ class IdCardTemplateController extends Controller
                 'photo' => $staff->foto ? (strlen($staff->foto) > 30 ? 'https://drive.google.com/thumbnail?id=' . $staff->foto . '&sz=w200' : asset('storage/' . $staff->foto)) : null
             ] : null
         ];
+
+        // Backward Compatibility Merge
+        $config = $idCardTemplate->config;
+        $defaultConfig = [
+            'canvas' => ['width' => 153, 'height' => 243],
+            'elements' => [
+                'photo' => ['x' => 39, 'y' => 50, 'w' => 75, 'h' => 100, 'show' => true],
+                'qr' => ['x' => 49, 'y' => 165, 'w' => 55, 'h' => 55, 'show' => true],
+                'name' => ['x' => 0, 'y' => 20, 'size' => 10, 'color' => '#000000', 'show' => true, 'align' => 'center', 'bold' => true, 'italic' => false],
+                'nis' => ['x' => 0, 'y' => 32, 'size' => 7, 'color' => '#555555', 'show' => true, 'align' => 'center', 'bold' => true, 'italic' => false],
+                'nisn' => ['x' => 0, 'y' => 40, 'size' => 7, 'color' => '#555555', 'show' => true, 'align' => 'center', 'bold' => true, 'italic' => false],
+                'nip' => ['x' => 0, 'y' => 32, 'size' => 7, 'color' => '#555555', 'show' => true, 'align' => 'center', 'bold' => true, 'italic' => false],
+                'class' => ['x' => 0, 'y' => 152, 'size' => 8, 'color' => '#555555', 'show' => true, 'align' => 'center', 'bold' => true, 'italic' => false],
+                'gender' => ['x' => 0, 'y' => 222, 'size' => 6, 'color' => '#555555', 'show' => false, 'align' => 'center', 'bold' => true, 'italic' => false],
+                'ttl' => ['x' => 0, 'y' => 228, 'size' => 6, 'color' => '#555555', 'show' => false, 'align' => 'center', 'bold' => false, 'italic' => false],
+                'masa_berlaku' => ['x' => 0, 'y' => 234, 'size' => 6, 'color' => '#555555', 'show' => false, 'align' => 'center', 'bold' => false, 'italic' => false],
+                'logo_lembaga' => ['x' => 10, 'y' => 10, 'w' => 25, 'h' => 25, 'show' => false],
+                'nama_lembaga' => ['x' => 40, 'y' => 12, 'size' => 8, 'color' => '#000000', 'show' => false, 'align' => 'left', 'bold' => true, 'italic' => false],
+                'alamat_lembaga' => ['x' => 40, 'y' => 22, 'size' => 5, 'color' => '#333333', 'show' => false, 'align' => 'left', 'bold' => false, 'italic' => false],
+                'tempat_tanggal_terbit' => ['x' => 0, 'y' => 222, 'size' => 6, 'color' => '#333333', 'show' => false, 'align' => 'center', 'bold' => false, 'italic' => false],
+                'ttd_kepala_sekolah' => ['x' => 50, 'y' => 228, 'w' => 30, 'h' => 12, 'show' => false],
+                'cap_lembaga' => ['x' => 30, 'y' => 225, 'w' => 20, 'h' => 20, 'show' => false],
+                'nama_kepala_sekolah' => ['x' => 0, 'y' => 240, 'size' => 6, 'color' => '#000000', 'show' => false, 'align' => 'center', 'bold' => true, 'italic' => false],
+                'nip_kepala_sekolah' => ['x' => 0, 'y' => 246, 'size' => 5, 'color' => '#333333', 'show' => false, 'align' => 'center', 'bold' => false, 'italic' => false],
+                'custom_text_1' => ['x' => 10, 'y' => 140, 'size' => 8, 'color' => '#000000', 'show' => false, 'align' => 'center', 'content' => 'Teks Kustom 1', 'bold' => false, 'italic' => false],
+                'custom_text_2' => ['x' => 10, 'y' => 150, 'size' => 8, 'color' => '#000000', 'show' => false, 'align' => 'center', 'content' => 'Teks Kustom 2', 'bold' => false, 'italic' => false],
+                'custom_text_3' => ['x' => 10, 'y' => 160, 'size' => 8, 'color' => '#000000', 'show' => false, 'align' => 'center', 'content' => 'Teks Kustom 3', 'bold' => false, 'italic' => false],
+                'divider_1' => ['x' => 10, 'y' => 170, 'w' => 133, 'h' => 2, 'color' => '#cccccc', 'show' => false],
+                'divider_2' => ['x' => 10, 'y' => 180, 'w' => 133, 'h' => 2, 'color' => '#cccccc', 'show' => false],
+            ]
+        ];
+
+        if (!isset($config['elements'])) {
+            $config['elements'] = [];
+        }
+
+        foreach ($defaultConfig['elements'] as $key => $defaultEl) {
+            if (!isset($config['elements'][$key])) {
+                $config['elements'][$key] = $defaultEl;
+            } else {
+                // Key exists, let's merge properties like bold, italic, content
+                foreach ($defaultEl as $prop => $propVal) {
+                    if (!isset($config['elements'][$key][$prop])) {
+                        $config['elements'][$key][$prop] = $propVal;
+                    }
+                }
+            }
+        }
+        $idCardTemplate->config = $config;
 
         return view('admin.id-card-templates.form', [
             'template' => $idCardTemplate,
