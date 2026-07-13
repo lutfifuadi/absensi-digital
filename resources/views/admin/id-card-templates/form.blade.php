@@ -96,7 +96,21 @@
     #elementAccordion .accordion-body label {
         color: rgba(255, 255, 255, 0.6) !important;
     }
-</style>
+
+    /* Sticky Preview */
+    .sticky-preview-wrapper {
+        position: relative;
+    }
+    .sticky-preview-wrapper .sticky-preview-inner {
+        position: sticky;
+        top: 90px;
+        align-self: flex-start;
+    }
+    @media (max-width: 991.98px) {
+        .sticky-preview-wrapper .sticky-preview-inner {
+            position: static;
+        }
+    }</style>
 @endsection
 
 @section('content')
@@ -352,7 +366,8 @@
         </div>
 
         <!-- Designer Preview -->
-        <div class="col-xl-8 col-lg-7 col-md-12">
+        <div class="col-xl-8 col-lg-7 col-md-12 sticky-preview-wrapper">
+            <div class="sticky-preview-inner">
             <div class="card" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08) !important;">
                 <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center" style="border-color:rgba(255,255,255,0.08) !important; background:transparent;">
                     <div class="d-flex align-items-center gap-2">
@@ -399,6 +414,7 @@
                     </div>
                 </div>
             </div>
+            </div> <!-- sticky-preview-inner -->
         </div>
     </div>
 </form>
