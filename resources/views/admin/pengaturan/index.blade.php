@@ -116,7 +116,7 @@
 <div class="set-content">
   <form action="{{ route('admin.pengaturan.update') }}" method="POST" enctype="multipart/form-data" id="formPengaturan">
     @csrf
-    <input type="text" name="dummy_username" autocomplete="username" style="display: none;" aria-hidden="true">
+    <input type="text" name="dummy_username" autocomplete="username" style="position: absolute; left: -9999px; opacity: 0; width: 1px; height: 1px;" aria-hidden="true">
 
     {{-- ─────────────────────────────
          CONTENT AREA
@@ -1059,18 +1059,18 @@
                 <label class="set-label">GitHub Username / Owner</label>
                 <div class="set-input-group">
                   <span class="set-input-prefix"><i class="ti tabler-user"></i></span>
-                  <input type="password" class="set-input" name="github_repo_owner"
+                  <input type="text" class="set-input" name="github_repo_owner"
                     value="{{ old('github_repo_owner', $settings['github_repo_owner'] ?? '') }}"
-                    placeholder="Contoh: lutfifuadi" autocomplete="new-password" disabled>
+                    placeholder="Contoh: lutfifuadi" autocomplete="off" disabled>
                 </div>
               </div>
               <div class="set-field">
                 <label class="set-label">GitHub Repository Name</label>
                 <div class="set-input-group">
                   <span class="set-input-prefix"><i class="ti tabler-brand-github"></i></span>
-                  <input type="password" class="set-input" name="github_repo_name"
+                  <input type="text" class="set-input" name="github_repo_name"
                     value="{{ old('github_repo_name', $settings['github_repo_name'] ?? '') }}"
-                    placeholder="Contoh: absensi-klien" autocomplete="new-password" disabled>
+                    placeholder="Contoh: absensi-klien" autocomplete="off" disabled>
                 </div>
               </div>
               <div class="set-field set-field--full">

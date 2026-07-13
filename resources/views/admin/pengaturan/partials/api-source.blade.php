@@ -1,7 +1,7 @@
 <div class="set-tab" id="tab-api-source">
   <form action="{{ route('admin.pengaturan.api-source.update') }}" method="POST" id="formApiSource">
     @csrf
-    <input type="text" name="dummy_username" autocomplete="username" style="display: none;" aria-hidden="true">
+    <input type="text" name="dummy_username" autocomplete="username" style="position: absolute; left: -9999px; opacity: 0; width: 1px; height: 1px;" aria-hidden="true">
     <div class="set-panel mb-4">
       <div class="set-panel__head">
         <div class="set-panel__title-wrap">
