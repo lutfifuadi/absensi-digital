@@ -2191,6 +2191,94 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  /* ── TTD PREVIEW ── */
+  const ttdInput   = document.getElementById('upload_ttd');
+  const ttdImgEl   = document.getElementById('ttdPreviewImg');
+  const ttdEmpty   = document.getElementById('ttdPreviewEmpty');
+  const ttdUploadZone = document.getElementById('ttdUploadZone');
+
+  if (ttdInput) {
+    ttdInput.addEventListener('change', function () {
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          ttdImgEl.src = e.target.result;
+          ttdImgEl.classList.remove('d-none');
+          if (ttdEmpty) ttdEmpty.classList.add('d-none');
+        };
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+  }
+
+  // Drag-drop ttd zone
+  if (ttdUploadZone && ttdInput) {
+    ['dragenter','dragover'].forEach(ev => {
+      ttdUploadZone.addEventListener(ev, e => {
+        e.preventDefault();
+        ttdUploadZone.style.borderColor = 'var(--das-primary)';
+        ttdUploadZone.style.background  = 'var(--das-primary-soft)';
+      });
+    });
+    ['dragleave','drop'].forEach(ev => {
+      ttdUploadZone.addEventListener(ev, e => {
+        ttdUploadZone.style.borderColor = '';
+        ttdUploadZone.style.background  = '';
+      });
+    });
+    ttdUploadZone.addEventListener('drop', e => {
+      e.preventDefault();
+      if (e.dataTransfer.files.length) {
+        ttdInput.files = e.dataTransfer.files;
+        ttdInput.dispatchEvent(new Event('change'));
+      }
+    });
+  }
+
+  /* ── CAP PREVIEW ── */
+  const capInput   = document.getElementById('upload_cap');
+  const capImgEl   = document.getElementById('capPreviewImg');
+  const capEmpty   = document.getElementById('capPreviewEmpty');
+  const capUploadZone = document.getElementById('capUploadZone');
+
+  if (capInput) {
+    capInput.addEventListener('change', function () {
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          capImgEl.src = e.target.result;
+          capImgEl.classList.remove('d-none');
+          if (capEmpty) capEmpty.classList.add('d-none');
+        };
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+  }
+
+  // Drag-drop cap zone
+  if (capUploadZone && capInput) {
+    ['dragenter','dragover'].forEach(ev => {
+      capUploadZone.addEventListener(ev, e => {
+        e.preventDefault();
+        capUploadZone.style.borderColor = 'var(--das-primary)';
+        capUploadZone.style.background  = 'var(--das-primary-soft)';
+      });
+    });
+    ['dragleave','drop'].forEach(ev => {
+      capUploadZone.addEventListener(ev, e => {
+        capUploadZone.style.borderColor = '';
+        capUploadZone.style.background  = '';
+      });
+    });
+    capUploadZone.addEventListener('drop', e => {
+      e.preventDefault();
+      if (e.dataTransfer.files.length) {
+        capInput.files = e.dataTransfer.files;
+        capInput.dispatchEvent(new Event('change'));
+      }
+    });
+  }
+
   /* ── FORM SUBMIT LOADING STATE ── */
   const form = document.getElementById('formPengaturan');
   if (form) {
