@@ -41,6 +41,7 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      overscroll-behavior: none;
     }
 
     /* SCROLLBAR */
@@ -281,8 +282,8 @@
     .sidebar-header { padding: 1.5rem; border-bottom: 1px solid var(--das-border-color); }
     .sidebar-title { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; }
     
-    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); padding: 1rem; gap: 1rem; border-bottom: 1px solid var(--das-border-color); }
-    .stat-item { background: rgba(15, 23, 42, 0.4); border: 1px solid var(--das-border-color); padding: 1rem; border-radius: var(--das-radius); text-align: center; }
+    .stats-row { display: flex; padding: 1rem; gap: 1rem; border-bottom: 1px solid var(--das-border-color); }
+    .stat-item { flex: 1; min-width: 0; background: rgba(15, 23, 42, 0.4); border: 1px solid var(--das-border-color); padding: 1rem; border-radius: var(--das-radius); text-align: center; }
     .stat-num { font-size: 1.8rem; font-weight: 800; display: block; }
     .stat-label { font-size: 0.6rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-top: 5px; }
 
@@ -642,7 +643,7 @@
       <div class="sidebar-title">Rekap Scan Sesi Ini</div>
     </div>
 
-    <div class="stats-row" style="grid-template-columns: repeat(4, 1fr);">
+    <div class="stats-row">
       <div class="stat-item">
         <div class="stat-num" id="stat-success" style="color:var(--das-success);">0</div>
         <div class="stat-label">Hadir</div>
