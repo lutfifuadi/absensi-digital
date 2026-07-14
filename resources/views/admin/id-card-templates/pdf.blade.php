@@ -497,29 +497,19 @@
         @endif
         @endforeach
 
-        <!-- Divider 1 -->
-        @if(isset($elements['divider_1']) && $elements['divider_1']['show'])
+        {{-- Divider Dinamis --}}
+        @foreach($elements as $key => $elConfig)
+        @if(str_starts_with($key, 'divider_') && ($elConfig['show'] ?? false))
         <div class="element-divider" style="
-            left: {{ $elements['divider_1']['x'] }}pt;
-            top: {{ $elements['divider_1']['y'] }}pt;
-            width: {{ $elements['divider_1']['w'] }}pt;
-            height: {{ $elements['divider_1']['h'] }}pt;
-            background-color: {{ $elements['divider_1']['color'] }};
-            z-index: {{ $elements['divider_1']['z_index'] ?? 9 }};
+            left: {{ $elConfig['x'] ?? 0 }}pt;
+            top: {{ $elConfig['y'] ?? 0 }}pt;
+            width: {{ $elConfig['w'] ?? 100 }}pt;
+            height: {{ $elConfig['h'] ?? 2 }}pt;
+            background-color: {{ $elConfig['color'] ?? '#cccccc' }};
+            z-index: {{ $elConfig['z_index'] ?? 9 }};
         "></div>
         @endif
-
-        <!-- Divider 2 -->
-        @if(isset($elements['divider_2']) && $elements['divider_2']['show'])
-        <div class="element-divider" style="
-            left: {{ $elements['divider_2']['x'] }}pt;
-            top: {{ $elements['divider_2']['y'] }}pt;
-            width: {{ $elements['divider_2']['w'] }}pt;
-            height: {{ $elements['divider_2']['h'] }}pt;
-            background-color: {{ $elements['divider_2']['color'] }};
-            z-index: {{ $elements['divider_2']['z_index'] ?? 9 }};
-        "></div>
-        @endif
+        @endforeach
 
     </div>
     @endforeach

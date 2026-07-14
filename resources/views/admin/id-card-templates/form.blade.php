@@ -262,7 +262,18 @@
                                 }
                             }
                             sort($customTextKeys);
-                            $dividerKeys = ['divider_1', 'divider_2'];
+                            $dividerKeys = [];
+                            if (isset($template->config['elements'])) {
+                                foreach (array_keys($template->config['elements']) as $ek) {
+                                    if (str_starts_with($ek, 'divider_')) {
+                                        $dividerKeys[] = $ek;
+                                    }
+                                }
+                            }
+                            if (empty($dividerKeys)) {
+                                $dividerKeys = ['divider_1', 'divider_2'];
+                            }
+                            sort($dividerKeys);
                             $allEls = array_merge($orderedStandard, $customTextKeys, $dividerKeys);
                         @endphp
                         @foreach($allEls as $el)
@@ -311,16 +322,14 @@
                                         NIP Kepala Sekolah
                                     @elseif(str_starts_with($el, 'custom_text_'))
                                         Teks Kustom {{ str_replace('custom_text_', '', $el) }}
-                                    @elseif($el === 'divider_1')
-                                        Garis Pembatas 1
-                                    @elseif($el === 'divider_2')
-                                        Garis Pembatas 2
+                                    @elseif(str_starts_with($el, 'divider_'))
+                                        Garis Pembatas {{ str_replace('divider_', '', $el) }}
                                     @else
                                         {{ ucfirst(str_replace('_', ' ', $el)) }}
                                     @endif
                                 </button>
-                                @if(str_starts_with($el, 'custom_text_'))
-                                <button type="button" class="btn-remove-custom-text" data-el="{{ $el }}" title="Hapus teks kustom">
+                                @if(str_starts_with($el, 'custom_text_') || str_starts_with($el, 'divider_'))
+                                <button type="button" class="btn-remove-custom-text" data-el="{{ $el }}" title="Hapus elemen">
                                     <i class="ti tabler-x"></i>
                                 </button>
                                 @endif
@@ -349,7 +358,7 @@
                                             <label class="small">Tinggi (H)</label>
                                             <input type="number" class="form-control form-control-sm config-sync" data-el="{{ $el }}" data-prop="h">
                                         </div>
-                                        @elseif(in_array($el, ['divider_1', 'divider_2']))
+                                        @elseif(str_starts_with($el, 'divider_'))
                                         <div class="col-6">
                                             <label class="small">Lebar (W)</label>
                                             <input type="number" class="form-control form-control-sm config-sync" data-el="{{ $el }}" data-prop="w">
@@ -538,15 +547,18 @@ document.addEventListener('DOMContentLoaded', function() {
             'ttd_kepala_sekolah': 'TTD Kepala Sekolah',
             'cap_lembaga': 'Cap Lembaga / Stempel',
             'nama_kepala_sekolah': 'Nama Kepala Sekolah',
-            'nip_kepala_sekolah': 'NIP Kepala Sekolah',
-            'divider_1': 'Garis Pembatas 1',
-            'divider_2': 'Garis Pembatas 2'
+            'nip_kepala_sekolah': 'NIP Kepala Sekolah'
         };
         if (names[key]) return names[key];
         // Handle dynamic custom_text_N
-        const match = key.match(/^custom_text_(\d+)$/);
-        if (match) {
-            return 'Teks Kustom ' + match[1];
+        const matchText = key.match(/^custom_text_(\d+)$/);
+        if (matchText) {
+            return 'Teks Kustom ' + matchText[1];
+        }
+        // Handle dynamic divider_N
+        const matchDivider = key.match(/^divider_(\d+)$/);
+        if (matchDivider) {
+            return 'Garis Pembatas ' + matchDivider[1];
         }
         return key.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
     }
@@ -590,7 +602,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const div = document.createElement('div');
             const isImageEl = ['photo', 'qr', 'logo_lembaga', 'logo_dinas', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(key);
-            const isDividerEl = ['divider_1', 'divider_2'].includes(key);
+            const isDividerEl = key.startsWith('divider_');
             
             if (isDividerEl) {
                 div.className = 'draggable-element element-divider';
@@ -859,6 +871,58 @@ document.addEventListener('DOMContentLoaded', function() {
         return div;
     }
 
+    function createDividerAccordionItem(key, num) {
+        const div = document.createElement('div');
+        div.className = 'accordion-item';
+        div.innerHTML = `
+            <h2 class="accordion-header" style="position: relative;">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${key}">
+                    Garis Pembatas ${num}
+                </button>
+                <button type="button" class="btn-remove-custom-text" data-el="${key}" title="Hapus garis pembatas">
+                    <i class="ti tabler-x"></i>
+                </button>
+            </h2>
+            <div id="collapse${key}" class="accordion-collapse collapse" data-bs-parent="#elementAccordion">
+                <div class="accordion-body p-2">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="small">Posisi X</label>
+                            <input type="number" class="form-control form-control-sm config-sync" data-el="${key}" data-prop="x">
+                        </div>
+                        <div class="col-6">
+                            <label class="small">Posisi Y</label>
+                            <input type="number" class="form-control form-control-sm config-sync" data-el="${key}" data-prop="y">
+                        </div>
+                        <div class="col-12 mt-1">
+                            <label class="small">Z-Index</label>
+                            <input type="number" class="form-control form-control-sm config-sync" data-el="${key}" data-prop="z_index" min="1" default="1">
+                        </div>
+                        <div class="col-6">
+                            <label class="small">Lebar (W)</label>
+                            <input type="number" class="form-control form-control-sm config-sync" data-el="${key}" data-prop="w">
+                        </div>
+                        <div class="col-6">
+                            <label class="small">Tinggi/Tebal (H)</label>
+                            <input type="number" class="form-control form-control-sm config-sync" data-el="${key}" data-prop="h">
+                        </div>
+                        <div class="col-12">
+                            <label class="small">Warna</label>
+                            <input type="color" class="form-control form-control-sm form-control-color w-100 config-sync" data-el="${key}" data-prop="color">
+                        </div>
+                        <div class="col-12 mt-2">
+                            <div class="form-check">
+                                <input class="form-check-input config-sync" type="checkbox" data-el="${key}" data-prop="show" checked>
+                                <label class="form-check-label text-white-50 small">Tampilkan Elemen</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        return div;
+    }
+
     function updateControlInputs() {
         document.querySelectorAll('.config-sync').forEach(input => {
             const el = input.dataset.el;
@@ -911,7 +975,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Snap to grid if name/id/class is center aligned
             const isImageEl = ['photo', 'qr', 'logo_lembaga', 'logo_dinas', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(key);
-            const isDividerEl = ['divider_1', 'divider_2'].includes(key);
+            const isDividerEl = key.startsWith('divider_');
             if(!isImageEl && !isDividerEl && config.elements[key].align === 'center') {
                 nx = 0;
             }
@@ -1072,7 +1136,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Align center check (horizontal block jika align center untuk text)
         const isImageEl = ['photo', 'qr', 'logo_lembaga', 'logo_dinas', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(selectedElementKey);
-        const isDividerEl = ['divider_1', 'divider_2'].includes(selectedElementKey);
+        const isDividerEl = selectedElementKey.startsWith('divider_');
         if (!isImageEl && !isDividerEl && elConfig.align === 'center') {
             nx = 0;
         }
@@ -1297,8 +1361,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     config.elements[newKey].content = (sourceEl.content || 'Teks Kustom') + ' (Salin)';
                 }
 
+                // --- SISIPKAN ACCORDION ITEM BARU KE DOM ---
+                const accordion = document.getElementById('elementAccordion');
+                if (newKey.startsWith('custom_text_')) {
+                    const newNum = parseInt(newKey.replace('custom_text_', ''), 10);
+                    const newItem = createCustomTextAccordionItem(newKey, newNum);
+                    
+                    // Sisipkan sebelum divider_1 agar rapi
+                    const dividerItem = document.querySelector('[data-bs-target="#collapsedivider_1"]');
+                    if (dividerItem) {
+                        accordion.insertBefore(newItem, dividerItem.closest('.accordion-item'));
+                    } else {
+                        accordion.appendChild(newItem);
+                    }
+                } else if (newKey.startsWith('divider_')) {
+                    const newNum = parseInt(newKey.replace('divider_', ''), 10);
+                    const newItem = createDividerAccordionItem(newKey, newNum);
+                    accordion.appendChild(newItem);
+                }
+
                 // Render ulang elements agar sidebar accordion & canvas terupdate
                 renderElements();
+
+                // PENTING: Update input values agar form accordion baru terisi data config duplikatnya
+                updateControlInputs();
 
                 // Bonus UX: Expand accordion baru & scroll ke posisinya
                 setTimeout(() => {
