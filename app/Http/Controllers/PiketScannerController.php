@@ -64,7 +64,7 @@ class PiketScannerController extends Controller
         $jamAkhirPulang = $settings['jam_akhir_pulang'] ?? '17:00';
         $toleransi      = (int)($settings['toleransi_terlambat'] ?? 15);
 
-        $currentTime    = now()->format('H:i');
+        $currentTime    = now()->format('H:i:s');
         $tanggal        = now()->toDateString();
 
         // 1. Cek apakah ini Siswa
@@ -142,7 +142,7 @@ class PiketScannerController extends Controller
             }
 
             // Tentukan status (hadir vs terlambat)
-            $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i');
+            $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i:s');
             $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
 
             $activeJenjang = \App\Helpers\JenjangHelper::getActiveJenjang();
@@ -229,7 +229,7 @@ class PiketScannerController extends Controller
                 return response()->json(['success' => false, 'message' => 'Sesi scan masuk guru sudah ditutup.']);
             }
 
-            $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i');
+            $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i:s');
             $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
 
             try {
@@ -443,7 +443,7 @@ class PiketScannerController extends Controller
             ->whereDate('tanggal', $tanggal)
             ->first();
 
-        $currentTime = now()->format('H:i');
+        $currentTime = now()->format('H:i:s');
         $username    = request()->user() ? request()->user()->username : 'piket';
 
         if ($absensi) {

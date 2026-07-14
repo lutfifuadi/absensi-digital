@@ -62,7 +62,7 @@ class ScanQrController extends Controller
         }
 
         $tanggal = now()->toDateString();
-        $currentTime = now()->format('H:i');
+        $currentTime = now()->format('H:i:s');
         $settings = Pengaturan::whereIn('key', [
             'jam_masuk',
             'jam_batas_masuk',
@@ -104,7 +104,7 @@ class ScanQrController extends Controller
         }
 
         $status = 'hadir';
-        $limitHadir = Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i');
+        $limitHadir = Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i:s');
         if ($currentTime > $limitHadir) {
             $status = 'terlambat';
         }
@@ -132,7 +132,7 @@ class ScanQrController extends Controller
         }
 
         $tanggal = now()->toDateString();
-        $currentTime = now()->format('H:i');
+        $currentTime = now()->format('H:i:s');
         $jamMulaiPulang = Pengaturan::where('key', 'jam_mulai_pulang')->value('value') ?? '14:00';
 
         $absensi = AbsensiGuru::where('guru_id', $guru->id)
@@ -173,7 +173,7 @@ class ScanQrController extends Controller
         }
 
         $tanggal = now()->toDateString();
-        $currentTime = now()->format('H:i');
+        $currentTime = now()->format('H:i:s');
         $jamMulaiPulang = Pengaturan::where('key', 'jam_mulai_pulang')->value('value') ?? '14:00';
 
         $absensi = AbsensiStaff::where('staff_id', $staff->id)
