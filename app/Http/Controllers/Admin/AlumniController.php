@@ -73,6 +73,9 @@ class AlumniController extends Controller
         }
 
         DB::transaction(function () use ($siswa) {
+            // Ambil daftar orang tua terkait sebelum menghapus siswa
+            $parents = $siswa->ortu;
+
             // Hapus user jika ada
             if ($siswa->user) {
                 $siswa->user()->delete();
@@ -87,8 +90,16 @@ class AlumniController extends Controller
                 null
             );
 
-            // Hapus siswa (yang akan menicu cascade delete di database dan booted callback)
+            // Hapus siswa (yang akan memicu cascade delete di database dan booted callback)
             $siswa->delete();
+
+            // Loop untuk setiap orang tua
+            foreach ($parents as $parent) {
+                $hasOtherChildren = DB::table('siswa_ortu')->where('ortu_user_id', $parent->id)->exists();
+                if (!$hasOtherChildren) {
+                    $parent->delete();
+                }
+            }
         });
 
         if (request()->ajax() || request()->wantsJson()) {
@@ -115,6 +126,9 @@ class AlumniController extends Controller
 
         DB::transaction(function () use ($alumni) {
             $alumni->each(function ($siswa) {
+                // Ambil daftar orang tua terkait sebelum menghapus siswa
+                $parents = $siswa->ortu;
+
                 // Hapus user jika ada
                 if ($siswa->user) {
                     $siswa->user()->delete();
@@ -131,6 +145,14 @@ class AlumniController extends Controller
 
                 // Hapus siswa (yang akan memicu cascade delete di database dan booted callback)
                 $siswa->delete();
+
+                // Loop untuk setiap orang tua
+                foreach ($parents as $parent) {
+                    $hasOtherChildren = DB::table('siswa_ortu')->where('ortu_user_id', $parent->id)->exists();
+                    if (!$hasOtherChildren) {
+                        $parent->delete();
+                    }
+                }
             });
         });
 

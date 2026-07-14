@@ -382,6 +382,7 @@ class AlumniTest extends TestCase
         // Assert deleted from DB
         $this->assertDatabaseMissing('siswa', ['id' => $alumni->id]);
         $this->assertDatabaseMissing('users', ['id' => $userSiswa->id]);
+        $this->assertDatabaseMissing('users', ['id' => $userOrtu->id]);
         $this->assertDatabaseMissing('riwayat_kenaikan_kelas', ['id' => $riwayat->id]);
         $this->assertDatabaseMissing('siswa_ortu', ['siswa_id' => $alumni->id, 'ortu_user_id' => $userOrtu->id]);
 
@@ -417,6 +418,16 @@ class AlumniTest extends TestCase
             'user_id' => $userAlumni1->id,
         ]);
 
+        // Tambah Ortu 1 yang tidak punya anak lain (Orphan Parent Account)
+        $userOrtu1 = User::create([
+            'name' => 'Ortu Alumni 1',
+            'username' => 'ortu_alumni_1',
+            'email' => 'ortu_alumni_1@example.com',
+            'password' => bcrypt('password'),
+            'role' => User::ROLE_ORANG_TUA,
+        ]);
+        $alumni1->ortu()->sync([$userOrtu1->id]);
+
         $userAlumni2 = User::create([
             'name' => 'User Alumni 2',
             'username' => 'user_alumni_2',
@@ -438,6 +449,16 @@ class AlumniTest extends TestCase
             'status' => 'alumni',
             'user_id' => $userAlumni2->id,
         ]);
+
+        // Tambah Ortu 2 yang MASIH memiliki anak aktif lain (Kondisi B)
+        $userOrtu2 = User::create([
+            'name' => 'Ortu Alumni 2 (Shared)',
+            'username' => 'ortu_alumni_2',
+            'email' => 'ortu_alumni_2@example.com',
+            'password' => bcrypt('password'),
+            'role' => User::ROLE_ORANG_TUA,
+        ]);
+        $alumni2->ortu()->sync([$userOrtu2->id]);
 
         // 2. Buat 1 objek siswa aktif (status = 'aktif') untuk memastikan data siswa aktif TIDAK ikut terhapus.
         $userSiswaAktif = User::create([
@@ -462,6 +483,9 @@ class AlumniTest extends TestCase
             'user_id' => $userSiswaAktif->id,
         ]);
 
+        // Sambungkan ortu 2 ke siswa aktif
+        $siswaAktif->ortu()->sync([$userOrtu2->id]);
+
         // 3. Kirim HTTP DELETE request ke route('admin.alumni.destroy-all') sebagai Super Admin.
         $response = $this->actingAs($this->superAdmin)->delete(route('admin.alumni.destroy-all'));
 
@@ -474,6 +498,12 @@ class AlumniTest extends TestCase
         $this->assertDatabaseMissing('users', ['id' => $userAlumni1->id]);
         $this->assertDatabaseMissing('siswa', ['id' => $alumni2->id]);
         $this->assertDatabaseMissing('users', ['id' => $userAlumni2->id]);
+
+        // Assert parent dengan anak non-aktif (Orphan Parent) terhapus (Kondisi A)
+        $this->assertDatabaseMissing('users', ['id' => $userOrtu1->id]);
+
+        // Assert parent dengan anak aktif lain tetap ada di DB (Kondisi B)
+        $this->assertDatabaseHas('users', ['id' => $userOrtu2->id]);
 
         // 6. Assert database has untuk siswa aktif.
         $this->assertDatabaseHas('siswa', ['id' => $siswaAktif->id]);
