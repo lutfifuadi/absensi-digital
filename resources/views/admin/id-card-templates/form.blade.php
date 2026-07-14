@@ -40,6 +40,11 @@
         background: rgba(115, 103, 240, 0.25);
         box-shadow: 0 0 8px rgba(115, 103, 240, 0.6);
     }
+    .draggable-element.selected-element {
+        border: 2px solid #7367f0 !important;
+        box-shadow: 0 0 10px rgba(115, 103, 240, 0.8) !important;
+        background: rgba(115, 103, 240, 0.15);
+    }
     .element-photo { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; }
     .element-qr { background: #ffffff; border: 1px solid #000000; color: #000000; }
     .element-logo_lembaga, .element-logo_dinas, .element-ttd_kepala_sekolah, .element-cap_lembaga { background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 10px; }
@@ -110,6 +115,25 @@
         .sticky-preview-wrapper .sticky-preview-inner {
             position: static;
         }
+    }
+    .btn-remove-custom-text {
+        position: absolute;
+        right: 40px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #ef4444;
+        cursor: pointer;
+        padding: 4px 8px;
+        z-index: 5;
+        font-size: 18px;
+        line-height: 1;
+        border-radius: 4px;
+        transition: background 0.15s;
+    }
+    .btn-remove-custom-text:hover {
+        background: rgba(239, 68, 68, 0.15);
     }</style>
 @endsection
 
@@ -219,13 +243,31 @@
                         <div id="element-palette" class="d-flex flex-wrap gap-2 p-3 rounded" style="background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.1); min-height: 50px;">
                             <!-- Badge elemen draggable akan di-render dinamis via JS -->
                         </div>
+                        <div class="mt-2">
+                            <button type="button" id="addCustomTextBtn" class="btn btn-sm btn-outline-info w-100" style="border-style: dashed;">
+                                <i class="ti tabler-plus me-1"></i> Tambah Teks Kustom
+                            </button>
+                        </div>
                     </div>
 
                     <div class="accordion" id="elementAccordion">
-                        <!-- Navigation for elements -->
-                        @foreach(['photo', 'qr', 'name', 'nis', 'nisn', 'nip', 'class', 'gender', 'ttl', 'masa_berlaku', 'logo_lembaga', 'logo_dinas', 'nama_lembaga', 'alamat_lembaga', 'tempat_tanggal_terbit', 'ttd_kepala_sekolah', 'cap_lembaga', 'nama_kepala_sekolah', 'nip_kepala_sekolah', 'custom_text_1', 'custom_text_2', 'custom_text_3', 'divider_1', 'divider_2'] as $el)
+                        @php
+                            $orderedStandard = ['photo', 'qr', 'name', 'id_number', 'nis', 'nisn', 'nip', 'class', 'gender', 'ttl', 'masa_berlaku', 'logo_lembaga', 'logo_dinas', 'nama_lembaga', 'alamat_lembaga', 'tempat_tanggal_terbit', 'ttd_kepala_sekolah', 'cap_lembaga', 'nama_kepala_sekolah', 'nip_kepala_sekolah'];
+                            $customTextKeys = [];
+                            if (isset($template->config['elements'])) {
+                                foreach (array_keys($template->config['elements']) as $ek) {
+                                    if (str_starts_with($ek, 'custom_text_')) {
+                                        $customTextKeys[] = $ek;
+                                    }
+                                }
+                            }
+                            sort($customTextKeys);
+                            $dividerKeys = ['divider_1', 'divider_2'];
+                            $allEls = array_merge($orderedStandard, $customTextKeys, $dividerKeys);
+                        @endphp
+                        @foreach($allEls as $el)
                         <div class="accordion-item">
-                            <h2 class="accordion-header">
+                            <h2 class="accordion-header" style="position: relative;">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ $el }}">
                                     @if($el === 'photo')
                                         Foto
@@ -233,6 +275,8 @@
                                         QR Code
                                     @elseif($el === 'name')
                                         Nama Lengkap
+                                    @elseif($el === 'id_number')
+                                        ID Number (NIS/NIP)
                                     @elseif($el === 'nis')
                                         NIS (Siswa)
                                     @elseif($el === 'nisn')
@@ -265,12 +309,8 @@
                                         Nama Kepala Sekolah
                                     @elseif($el === 'nip_kepala_sekolah')
                                         NIP Kepala Sekolah
-                                    @elseif($el === 'custom_text_1')
-                                        Teks Kustom 1
-                                    @elseif($el === 'custom_text_2')
-                                        Teks Kustom 2
-                                    @elseif($el === 'custom_text_3')
-                                        Teks Kustom 3
+                                    @elseif(str_starts_with($el, 'custom_text_'))
+                                        Teks Kustom {{ str_replace('custom_text_', '', $el) }}
                                     @elseif($el === 'divider_1')
                                         Garis Pembatas 1
                                     @elseif($el === 'divider_2')
@@ -279,6 +319,11 @@
                                         {{ ucfirst(str_replace('_', ' ', $el)) }}
                                     @endif
                                 </button>
+                                @if(str_starts_with($el, 'custom_text_'))
+                                <button type="button" class="btn-remove-custom-text" data-el="{{ $el }}" title="Hapus teks kustom">
+                                    <i class="ti tabler-x"></i>
+                                </button>
+                                @endif
                             </h2>
                             <div id="collapse{{ $el }}" class="accordion-collapse collapse" data-bs-parent="#elementAccordion">
                                 <div class="accordion-body p-2">
@@ -290,6 +335,10 @@
                                         <div class="col-6">
                                             <label class="small">Posisi Y</label>
                                             <input type="number" class="form-control form-control-sm config-sync" data-el="{{ $el }}" data-prop="y">
+                                        </div>
+                                        <div class="col-12 mt-1">
+                                            <label class="small">Z-Index</label>
+                                            <input type="number" class="form-control form-control-sm config-sync" data-el="{{ $el }}" data-prop="z_index" min="1" default="1">
                                         </div>
                                         @if(in_array($el, ['photo', 'qr', 'logo_lembaga', 'logo_dinas', 'ttd_kepala_sekolah', 'cap_lembaga']))
                                         <div class="col-6">
@@ -314,7 +363,7 @@
                                             <input type="color" class="form-control form-control-sm form-control-color w-100 config-sync" data-el="{{ $el }}" data-prop="color">
                                         </div>
                                         @else
-                                        @if(in_array($el, ['custom_text_1', 'custom_text_2', 'custom_text_3']))
+                                        @if(str_starts_with($el, 'custom_text_'))
                                         <div class="col-12">
                                             <label class="small">Teks Konten</label>
                                             <input type="text" class="form-control form-control-sm config-sync" data-el="{{ $el }}" data-prop="content">
@@ -438,6 +487,12 @@
     <button type="button" class="dropdown-item text-white py-2 d-flex align-items-center gap-2" id="btn-edit-element" style="font-size: 0.8rem; font-weight: 600;">
         <i class="ti tabler-pencil text-primary" style="font-size: 1rem;"></i> Edit Elemen
     </button>
+    <button type="button" class="dropdown-item text-white py-2 d-flex align-items-center gap-2" id="btn-front-element" style="font-size: 0.8rem; font-weight: 600;">
+        <i class="ti tabler-chevron-up text-success" style="font-size: 1rem;"></i> Bawa ke Paling Depan
+    </button>
+    <button type="button" class="dropdown-item text-white py-2 d-flex align-items-center gap-2" id="btn-back-element" style="font-size: 0.8rem; font-weight: 600;">
+        <i class="ti tabler-chevron-down text-warning" style="font-size: 1rem;"></i> Kirim ke Paling Belakang
+    </button>
     <div class="dropdown-divider my-1" style="border-color: rgba(255,255,255,0.08);"></div>
     <button type="button" class="dropdown-item text-danger py-2 d-flex align-items-center gap-2" id="btn-delete-element" style="font-size: 0.8rem; font-weight: 600;">
         <i class="ti tabler-trash" style="font-size: 1rem;"></i> Hapus Elemen
@@ -453,6 +508,7 @@ const lembaga = @json($lembaga ?? []);
 document.addEventListener('DOMContentLoaded', function() {
     // Initial Config from PHP
     let config = @json($template->config);
+    let selectedElementKey = null; // Menyimpan elemen terpilih untuk navigasi keyboard
     const canvas = document.getElementById('id-card-canvas');
     const container = document.getElementById('id-card-preview-container');
     const configInput = document.getElementById('configInput');
@@ -480,13 +536,16 @@ document.addEventListener('DOMContentLoaded', function() {
             'cap_lembaga': 'Cap Lembaga / Stempel',
             'nama_kepala_sekolah': 'Nama Kepala Sekolah',
             'nip_kepala_sekolah': 'NIP Kepala Sekolah',
-            'custom_text_1': 'Teks Kustom 1',
-            'custom_text_2': 'Teks Kustom 2',
-            'custom_text_3': 'Teks Kustom 3',
             'divider_1': 'Garis Pembatas 1',
             'divider_2': 'Garis Pembatas 2'
         };
-        return names[key] || key.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+        if (names[key]) return names[key];
+        // Handle dynamic custom_text_N
+        const match = key.match(/^custom_text_(\d+)$/);
+        if (match) {
+            return 'Teks Kustom ' + match[1];
+        }
+        return key.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
     }
 
     // Update Dimensions & Border Radius
@@ -539,6 +598,11 @@ document.addEventListener('DOMContentLoaded', function() {
             div.id = 'el-' + key;
             div.style.left = el.x + 'px';
             div.style.top = el.y + 'px';
+            div.style.zIndex = el.z_index ?? 1;
+
+            if (selectedElementKey === key) {
+                div.classList.add('selected-element');
+            }
 
             if (isDividerEl) {
                 div.style.width = el.w + 'px';
@@ -630,11 +694,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if(key === 'name') return sample ? sample.name : 'NAMA LENGKAP';
-        if(key === 'nis') return sample ? 'NIS: ' + sample.nis : 'NIS: -';
-        if(key === 'nisn') return sample ? 'NISN: ' + sample.nisn : 'NISN: -';
-        if(key === 'nip') return sample ? 'NIP: ' + sample.nip : 'NIP: -';
+        if(key === 'nis') return sample ? sample.nis : '-';
+        if(key === 'nisn') return sample ? sample.nisn : '-';
+        if(key === 'nip') return sample ? sample.nip : '-';
         if(key === 'id_number') return sample ? 'NISN: ' + sample.nisn : 'NISN: -';
-        if(key === 'class') return sample ? 'KELAS/JABATAN: ' + sample.class : 'KELAS/JABATAN: -';
+        if(key === 'class') return sample ? sample.class : '-';
         if(key === 'gender') return sample ? sample.gender : '-';
         if(key === 'ttl') return sample ? sample.ttl : '-';
         if(key === 'masa_berlaku') return sample ? sample.masa_berlaku : 'Selama menjadi anggota aktif';
@@ -643,10 +707,153 @@ document.addEventListener('DOMContentLoaded', function() {
         if(key === 'tempat_tanggal_terbit') return (lembaga.kota_penerbitan || 'Kota') + ', ' + new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'});
         if(key === 'nama_kepala_sekolah') return lembaga.nama_kepala_lembaga || 'Nama Kepala Sekolah';
         if(key === 'nip_kepala_sekolah') return lembaga.nip_kepala_lembaga ? 'NIP. ' + lembaga.nip_kepala_lembaga : 'NIP. -';
-        if(['custom_text_1', 'custom_text_2', 'custom_text_3'].includes(key)) {
+        if(key.startsWith('custom_text_')) {
             return config.elements[key].content || 'Teks Kustom';
         }
         return key.toUpperCase();
+    }
+
+    // Fungsi untuk menambah custom text baru
+    function addCustomText() {
+        // Cari nomor custom text terbesar
+        let maxNum = 0;
+        Object.keys(config.elements).forEach(k => {
+            const m = k.match(/^custom_text_(\d+)$/);
+            if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
+        });
+        const newNum = maxNum + 1;
+        const newKey = 'custom_text_' + newNum;
+
+        // Default config untuk custom text baru
+        const defaultY = 140 + (newNum - 1) * 10;
+        config.elements[newKey] = {
+            x: 10,
+            y: defaultY,
+            size: 8,
+            color: '#000000',
+            show: true,
+            align: 'center',
+            content: 'Teks Kustom Baru',
+            bold: false,
+            italic: false,
+            transform: 'none'
+        };
+
+        // Buat accordion item baru dan sisipkan sebelum divider_1
+        const accordion = document.getElementById('elementAccordion');
+        const dividerItem = document.querySelector('[data-bs-target="#collapsedivider_1"]');
+        const newItem = createCustomTextAccordionItem(newKey, newNum);
+        if (dividerItem) {
+            accordion.insertBefore(newItem, dividerItem.closest('.accordion-item'));
+        } else {
+            accordion.appendChild(newItem);
+        }
+
+        // Re-render preview & palette
+        renderElements();
+
+        // Buka accordion item baru
+        setTimeout(() => {
+            const collapseEl = document.getElementById('collapse' + newKey);
+            if (collapseEl) {
+                const bsCollapse = new bootstrap.Collapse(collapseEl, { toggle: true });
+            }
+        }, 100);
+    }
+
+    // Fungsi untuk menghapus custom text
+    function removeCustomText(key) {
+        if (!confirm('Hapus teks kustom ini?')) return;
+        delete config.elements[key];
+        // Hapus accordion item dari DOM
+        const collapseEl = document.getElementById('collapse' + key);
+        if (collapseEl) {
+            const accordionItem = collapseEl.closest('.accordion-item');
+            if (accordionItem) accordionItem.remove();
+        }
+        renderElements();
+    }
+
+    // Helper untuk membuat HTML accordion item custom text
+    function createCustomTextAccordionItem(key, num) {
+        const div = document.createElement('div');
+        div.className = 'accordion-item';
+        div.innerHTML = `
+            <h2 class="accordion-header" style="position: relative;">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${key}">
+                    Teks Kustom ${num}
+                </button>
+                <button type="button" class="btn-remove-custom-text" data-el="${key}" title="Hapus teks kustom">
+                    <i class="ti tabler-x"></i>
+                </button>
+            </h2>
+            <div id="collapse${key}" class="accordion-collapse collapse" data-bs-parent="#elementAccordion">
+                <div class="accordion-body p-2">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="small">Posisi X</label>
+                            <input type="number" class="form-control form-control-sm config-sync" data-el="${key}" data-prop="x">
+                        </div>
+                        <div class="col-6">
+                            <label class="small">Posisi Y</label>
+                            <input type="number" class="form-control form-control-sm config-sync" data-el="${key}" data-prop="y">
+                        </div>
+                        <div class="col-12 mt-1">
+                            <label class="small">Z-Index</label>
+                            <input type="number" class="form-control form-control-sm config-sync" data-el="${key}" data-prop="z_index" min="1" default="1">
+                        </div>
+                        <div class="col-12">
+                            <label class="small">Teks Konten</label>
+                            <input type="text" class="form-control form-control-sm config-sync" data-el="${key}" data-prop="content">
+                        </div>
+                        <div class="col-6">
+                            <label class="small">Ukuran Font</label>
+                            <input type="number" class="form-control form-control-sm config-sync" data-el="${key}" data-prop="size">
+                        </div>
+                        <div class="col-6">
+                            <label class="small">Warna</label>
+                            <input type="color" class="form-control form-control-sm form-control-color w-100 config-sync" data-el="${key}" data-prop="color">
+                        </div>
+                        <div class="col-12">
+                            <label class="small">Align</label>
+                            <select class="form-select form-select-sm config-sync" data-el="${key}" data-prop="align">
+                                <option value="left">Left</option>
+                                <option value="center">Center</option>
+                                <option value="right">Right</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <label class="small">Kapitalisasi (Case)</label>
+                            <select class="form-select form-select-sm config-sync" data-el="${key}" data-prop="transform">
+                                <option value="none">Default (Asli)</option>
+                                <option value="uppercase">UPPERCASE</option>
+                                <option value="lowercase">lowercase</option>
+                                <option value="capitalize">Capitalize Each Word</option>
+                            </select>
+                        </div>
+                        <div class="col-6 mt-2">
+                            <div class="form-check">
+                                <input class="form-check-input config-sync" type="checkbox" data-el="${key}" data-prop="bold">
+                                <label class="form-check-label text-white-50 small">Bold</label>
+                            </div>
+                        </div>
+                        <div class="col-6 mt-2">
+                            <div class="form-check">
+                                <input class="form-check-input config-sync" type="checkbox" data-el="${key}" data-prop="italic">
+                                <label class="form-check-label text-white-50 small">Italic</label>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <div class="form-check">
+                                <input class="form-check-input config-sync" type="checkbox" data-el="${key}" data-prop="show" checked>
+                                <label class="form-check-label text-white-50 small">Tampilkan Elemen</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        return div;
     }
 
     function updateControlInputs() {
@@ -670,6 +877,14 @@ document.addEventListener('DOMContentLoaded', function() {
         let lastX, lastY;
 
         el.addEventListener('mousedown', e => {
+            if (e.button === 0) { // Klik kiri saja
+                // Hapus style select lama
+                document.querySelectorAll('.draggable-element').forEach(item => {
+                    item.classList.remove('selected-element');
+                });
+                selectedElementKey = key;
+                el.classList.add('selected-element');
+            }
             isDragging = true;
             lastX = e.clientX;
             lastY = e.clientY;
@@ -757,17 +972,21 @@ document.addEventListener('DOMContentLoaded', function() {
         renderElements();
     });
 
-    // Event Listeners for Controls
-    document.querySelectorAll('.config-sync').forEach(input => {
-        input.addEventListener('input', e => {
-            const el = input.dataset.el;
-            const prop = input.dataset.prop;
-            let val = input.type === 'checkbox' ? input.checked : input.value;
-            if(input.type === 'number') val = parseInt(val);
-            
-            config.elements[el][prop] = val;
-            renderElements();
-        });
+    // Event Listeners for Controls using Event Delegation (bind to #elementAccordion for custom element input sync)
+    document.getElementById('elementAccordion').addEventListener('input', e => {
+        const input = e.target.closest('.config-sync');
+        if (!input) return;
+        
+        const el = input.dataset.el;
+        const prop = input.dataset.prop;
+        let val = input.type === 'checkbox' ? input.checked : input.value;
+        if(input.type === 'number') val = parseInt(val);
+        
+        config.elements[el][prop] = val;
+        renderElements();
+        
+        // Also update hidden config input
+        configInput.value = JSON.stringify(config);
     });
 
     document.getElementById('btnPortrait').addEventListener('click', () => {
@@ -800,6 +1019,71 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('cardType').addEventListener('change', () => {
         renderElements();
+    });
+
+    // Tombol + Tambah Teks Kustom
+    document.getElementById('addCustomTextBtn').addEventListener('click', addCustomText);
+
+    // Event delegation untuk tombol × hapus custom text
+    document.getElementById('elementAccordion').addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn-remove-custom-text');
+        if (btn) {
+            e.stopPropagation();
+            const key = btn.dataset.el;
+            if (key) removeCustomText(key);
+        }
+    });
+
+    // Event listener keydown pada document untuk menggerakkan elemen terpilih
+    document.addEventListener('keydown', e => {
+        if (!selectedElementKey || !config.elements[selectedElementKey]) return;
+        
+        // Lewati jika user sedang mengetik di input field atau select
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+            return;
+        }
+
+        const arrowKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+        if (!arrowKeys.includes(e.key)) return;
+
+        e.preventDefault();
+
+        const step = e.shiftKey ? 10 : 1; // 10px jika Shift ditekan, 1px jika biasa
+        const elConfig = config.elements[selectedElementKey];
+        const domEl = document.getElementById('el-' + selectedElementKey);
+
+        if (!domEl) return;
+
+        let nx = elConfig.x;
+        let ny = elConfig.y;
+
+        if (e.key === 'ArrowUp') {
+            ny = Math.max(0, ny - step);
+        } else if (e.key === 'ArrowDown') {
+            ny = Math.min(config.canvas.height - domEl.offsetHeight, ny + step);
+        } else if (e.key === 'ArrowLeft') {
+            nx = Math.max(0, nx - step);
+        } else if (e.key === 'ArrowRight') {
+            nx = Math.min(config.canvas.width - domEl.offsetWidth, nx + step);
+        }
+
+        // Align center check (horizontal block jika align center untuk text)
+        const isImageEl = ['photo', 'qr', 'logo_lembaga', 'logo_dinas', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(selectedElementKey);
+        const isDividerEl = ['divider_1', 'divider_2'].includes(selectedElementKey);
+        if (!isImageEl && !isDividerEl && elConfig.align === 'center') {
+            nx = 0;
+        }
+
+        nx = Math.round(nx);
+        ny = Math.round(ny);
+
+        elConfig.x = nx;
+        elConfig.y = ny;
+        domEl.style.left = nx + 'px';
+        domEl.style.top = ny + 'px';
+
+        updateControlInputs();
+        configInput.value = JSON.stringify(config);
     });
 
     // Zoom Event Listener
@@ -841,10 +1125,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Klik di area canvas (bukan pada draggable-element) untuk deselect elemen
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.draggable-element') && !e.target.closest('#elementAccordion') && !e.target.closest('#element-palette') && !e.target.closest('#addCustomTextBtn') && !e.target.closest('#element-context-menu')) {
+            selectedElementKey = null;
+            document.querySelectorAll('.draggable-element').forEach(item => {
+                item.classList.remove('selected-element');
+            });
+        }
+    });
+
     // Context Menu Logic
     const contextMenu = document.getElementById('element-context-menu');
     const deleteBtn = document.getElementById('btn-delete-element');
     const editBtn = document.getElementById('btn-edit-element');
+    const frontBtn = document.getElementById('btn-front-element');
+    const backBtn = document.getElementById('btn-back-element');
     let activeElementKey = null;
 
     canvas.addEventListener('contextmenu', e => {
@@ -852,6 +1148,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (targetEl) {
             e.preventDefault();
             activeElementKey = targetEl.id.replace('el-', '');
+            
+            // Pilih juga elemen tersebut (agar sinkron dengan klik kiri)
+            selectedElementKey = activeElementKey;
+            document.querySelectorAll('.draggable-element').forEach(item => {
+                item.classList.remove('selected-element');
+            });
+            targetEl.classList.add('selected-element');
+
             contextMenu.style.left = e.pageX + 'px';
             contextMenu.style.top = e.pageY + 'px';
             contextMenu.style.display = 'block';
@@ -894,6 +1198,46 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }, 250);
             }
+        }
+        contextMenu.style.display = 'none';
+    });
+
+    frontBtn.addEventListener('click', e => {
+        if (activeElementKey && config.elements[activeElementKey]) {
+            // Cari z-index tertinggi dari semua elemen
+            let maxZ = 1;
+            Object.keys(config.elements).forEach(k => {
+                const z = parseInt(config.elements[k].z_index || 1);
+                if (z > maxZ) maxZ = z;
+            });
+            config.elements[activeElementKey].z_index = maxZ + 1;
+            renderElements();
+        }
+        contextMenu.style.display = 'none';
+    });
+
+    backBtn.addEventListener('click', e => {
+        if (activeElementKey && config.elements[activeElementKey]) {
+            // Cari z-index terendah dari semua elemen
+            let minZ = 1;
+            Object.keys(config.elements).forEach(k => {
+                const z = parseInt(config.elements[k].z_index || 1);
+                if (z < minZ) minZ = z;
+            });
+            
+            // Set ke minZ - 1 jika minZ > 1, jika tidak geser elemen lain naik dan set ini ke 1
+            if (minZ > 1) {
+                config.elements[activeElementKey].z_index = minZ - 1;
+            } else {
+                // Semua elemen lain dinaikkan z-indexnya
+                Object.keys(config.elements).forEach(k => {
+                    if (k !== activeElementKey) {
+                        config.elements[k].z_index = parseInt(config.elements[k].z_index || 1) + 1;
+                    }
+                });
+                config.elements[activeElementKey].z_index = 1;
+            }
+            renderElements();
         }
         contextMenu.style.display = 'none';
     });

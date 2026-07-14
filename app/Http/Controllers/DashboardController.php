@@ -157,7 +157,7 @@ class DashboardController extends Controller
             ->selectRaw('siswa_id, COUNT(*) as total_hadir')
             ->groupBy('siswa_id')
             ->orderByDesc('total_hadir')
-            ->limit(10)
+            ->limit(5)
             ->with('siswa.kelas')
             ->get();
 
@@ -396,6 +396,91 @@ private function superAdminData(): array
         $terlambatCount = $statusHariIni['terlambat'] ?? 0;
         $belumAbsen    = max(0, $totalSiswaWajibAbsen - $totalAbsensiHariIni);
 
+        $tingkatKehadiran = $totalSiswaWajibAbsen > 0 
+            ? round((($hadirCount + $terlambatCount) / $totalSiswaWajibAbsen) * 100, 1) 
+            : 0;
+
+        // ── Kehadiran per Kelas (hari ini) ──
+        $kehadiranPerKelas = Cache::remember('superadmin_kehadiran_per_kelas_'.$tahunId, 5, function() use ($today) {
+            return Kelas::where('tahun_akademik_id', session('tahun_akademik_id'))
+                ->withCount(['siswa' => fn($q) => $q->where('status', 'aktif')])
+                ->get()
+                ->map(function($k) use ($today) {
+                    $hadirCount = AbsensiSiswa::where('kelas_id', $k->id)
+                        ->whereDate('tanggal', $today)
+                        ->whereIn('status', ['hadir', 'terlambat'])
+                        ->count();
+                    return [
+                        'nama' => $k->nama,
+                        'total_siswa' => $k->siswa_count,
+                        'total_hadir' => $hadirCount,
+                        'percentage' => $k->siswa_count > 0 ? round(($hadirCount / $k->siswa_count) * 100, 1) : 0,
+                    ];
+                })
+                ->sortByDesc('percentage')
+                ->take(6)
+                ->values()
+                ->toArray();
+        });
+
+        // ── Statistik Bulanan (bulan ini) ──
+        $monthlyStats = Cache::remember('superadmin_monthly_stats_'.now()->format('Ym'), 30, function() {
+            $stats = AbsensiSiswa::whereMonth('tanggal', now()->month)
+                ->whereYear('tanggal', now()->year)
+                ->selectRaw("COUNT(*) as total,
+                    SUM(CASE WHEN status = 'sakit' THEN 1 ELSE 0 END) as sakit,
+                    SUM(CASE WHEN status = 'izin' THEN 1 ELSE 0 END) as izin,
+                    SUM(CASE WHEN status = 'alpha' THEN 1 ELSE 0 END) as alpha,
+                    SUM(CASE WHEN status = 'terlambat' THEN 1 ELSE 0 END) as terlambat")
+                ->first();
+            
+            return [
+                'total' => $stats->total ?? 0,
+                'sakit' => $stats->sakit ?? 0,
+                'izin' => $stats->izin ?? 0,
+                'alpha' => $stats->alpha ?? 0,
+                'terlambat' => $stats->terlambat ?? 0,
+            ];
+        });
+
+        // ── Metode Absensi (hari ini) ──
+        $metodeAbsensi = Cache::remember('superadmin_metode_absen_'.$today->toDateString(), 5, function() use ($today) {
+            $raw = AbsensiSiswa::whereDate('tanggal', $today)
+                ->selectRaw('metode, COUNT(*) as total')
+                ->groupBy('metode')
+                ->pluck('total', 'metode')
+                ->toArray();
+            
+            $labels = [
+                'qr' => 'Scan QR',
+                'manual' => 'Input Manual',
+                'face' => 'Face Recognition',
+                'fingerprint' => 'Fingerprint',
+                'kartu' => 'Kartu RFID',
+            ];
+            
+            $result = [];
+            foreach ($labels as $key => $label) {
+                $result[] = [
+                    'label' => $label,
+                    'key' => $key,
+                    'total' => $raw[$key] ?? 0,
+                ];
+            }
+            return $result;
+        });
+
+        // ── Log Absensi Real-time ──
+        $recentLogs = Cache::remember('superadmin_recent_logs_'.$today->toDateString(), 5, function() use ($today) {
+            return AbsensiSiswa::whereDate('tanggal', $today)
+                ->whereNotNull('jam_masuk')
+                ->orderBy('jam_masuk', 'desc')
+                ->limit(5)
+                ->with(['siswa' => fn($q) => $q->select('id', 'nama_lengkap', 'kelas_id')
+                    ->with('kelas:id,nama')])
+                ->get();
+        });
+
         // ── Bar chart: 7-day multi-series (optimasi: single query) ────────────────
         $chartDays   = [];
         $chartHadir  = [];
@@ -431,27 +516,36 @@ private function superAdminData(): array
             ->whereNotNull('jam_masuk')
             ->where('status', 'hadir')
             ->orderBy('jam_masuk', 'asc')
-            ->limit(10)
+            ->limit(5)
             ->with(['siswa' => fn($q) => $q->select('id', 'nama_lengkap', 'kelas_id')->with(['kelas' => fn($q2) => $q2->select('id', 'nama')])])
             ->get();
 
         $palingAkhir = AbsensiSiswa::whereDate('tanggal', $today)
             ->whereNotNull('jam_masuk')
             ->orderBy('jam_masuk', 'desc')
-            ->limit(10)
+            ->limit(5)
             ->with(['siswa' => fn($q) => $q->select('id', 'nama_lengkap', 'kelas_id')->with(['kelas' => fn($q2) => $q2->select('id', 'nama')])])
             ->get();
 
         // ── Pengaturan & Info ─────────────────────────────────────────────
         $pengaturanArr = Cache::remember('superadmin_pengaturan', 300, fn() => Pengaturan::pluck('value', 'key')->toArray());
 
+        // ── Tahun Akademik Aktif ──
+        $tahunAkademikAktif = Cache::remember('superadmin_ta_aktif', 300, function() {
+            return TahunAkademik::where('is_aktif', true)->first();
+        });
+
         return compact(
             'totalSiswa', 'totalGuru', 'totalStaff', 'totalKelas',
+            'totalSiswaWajibAbsen',
             'totalAbsensiHariIni', 'totalIzinPending',
             'hadirCount', 'sakitCount', 'izinCount', 'alphaCount', 'terlambatCount', 'belumAbsen',
+            'tingkatKehadiran',
             'chartDays', 'chartHadir', 'chartSakit', 'chartIzin', 'chartAlpha',
             'absensiGuruHariIni', 'absensiStaffHariIni',
-            'palingAwal', 'palingAkhir', 'pengaturanArr'
+            'palingAwal', 'palingAkhir', 'pengaturanArr',
+            'tahunAkademikAktif',
+            'kehadiranPerKelas', 'monthlyStats', 'metodeAbsensi', 'recentLogs'
         );
     }
 

@@ -22,6 +22,7 @@ class IdCardTemplateTest extends TestCase
         parent::setUp();
         
         $this->mockGoogleDriveService = Mockery::mock(GoogleDriveService::class);
+        $this->mockGoogleDriveService->shouldReceive('isEnabled')->andReturn(true);
         $this->app->instance(GoogleDriveService::class, $this->mockGoogleDriveService);
     }
 

@@ -370,6 +370,12 @@
       border: 0.5px solid rgba(96, 165, 250, 0.22);
     }
 
+    .s-alpha {
+      background: rgba(239, 68, 68, 0.12);
+      color: #f87171;
+      border: 0.5px solid rgba(239, 68, 68, 0.22);
+    }
+
     .recap-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -864,48 +870,85 @@
             <div class="hero-card-body">
               <div class="scan-section-label">Scan Terbaru</div>
 
-              <div class="scan-row">
-                <div class="scan-avatar" style="background: linear-gradient(135deg, #6c63ff, #22d3ee);">AR</div>
-                <div class="flex-grow-1">
-                  <div class="scan-name">Ahmad Ridwan</div>
-                  <div class="scan-class">XII IPA 1 &middot; 07:14 WIB</div>
-                </div>
-                <span class="scan-status s-hadir">Hadir</span>
-              </div>
+              @forelse($recentScans as $scan)
+                @php
+                  // Membuat inisial nama siswa
+                  $words = explode(' ', $scan->siswa->nama_lengkap ?? $scan->siswa->nama ?? 'Siswa');
+                  $initials = '';
+                  foreach ($words as $w) {
+                    $initials .= strtoupper(substr($w, 0, 1));
+                    if (strlen($initials) >= 2) break;
+                  }
+                  
+                  // Tentukan gradien avatar berdasarkan ID/nama secara acak tapi konsisten
+                  $gradients = [
+                    'linear-gradient(135deg, #6c63ff, #22d3ee)',
+                    'linear-gradient(135deg, #f59e0b, #ef4444)',
+                    'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                    'linear-gradient(135deg, #10b981, #059669)',
+                    'linear-gradient(135deg, #ec4899, #f43f5e)',
+                  ];
+                  $gradient = $gradients[($scan->siswa->id ?? 0) % count($gradients)];
 
-              <div class="scan-row">
-                <div class="scan-avatar" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">SF</div>
-                <div class="flex-grow-1">
-                  <div class="scan-name">Siti Fatimah</div>
-                  <div class="scan-class">XI IPS 2 &middot; 07:22 WIB</div>
+                  // Mapping class status
+                  $statusClass = 's-hadir';
+                  $statusLabel = 'Hadir';
+                  if (strtolower($scan->status) === 'terlambat') {
+                    $statusClass = 's-terlambat';
+                    $statusLabel = 'Terlambat';
+                  } elseif (strtolower($scan->status) === 'alpha') {
+                    $statusClass = 's-alpha';
+                    $statusLabel = 'Alpha';
+                  } elseif (in_array(strtolower($scan->status), ['izin', 'sakit'])) {
+                    $statusClass = 's-izin';
+                    $statusLabel = ucfirst($scan->status);
+                  }
+                  
+                  // Format waktu scan
+                  $waktuScan = '';
+                  if ($scan->jam_masuk) {
+                    try {
+                      $waktuScan = \Carbon\Carbon::createFromFormat('H:i:s', $scan->jam_masuk)->format('H:i') . ' WIB';
+                    } catch (\Exception $e) {
+                      $waktuScan = substr($scan->jam_masuk, 0, 5) . ' WIB';
+                    }
+                  } elseif ($scan->updated_at) {
+                    $waktuScan = $scan->updated_at->format('H:i') . ' WIB';
+                  }
+                @endphp
+                <div class="scan-row" style="{{ $loop->last ? 'margin-bottom:0;' : '' }}">
+                  <div class="scan-avatar" style="background: {{ $gradient }};">{{ $initials }}</div>
+                  <div class="flex-grow-1">
+                    <div class="scan-name">{{ $scan->siswa->nama_lengkap ?? 'Siswa' }}</div>
+                    <div class="scan-class">{{ $scan->kelas->nama ?? ($scan->siswa->kelas->nama ?? '-') }} &middot; {{ $waktuScan }}</div>
+                  </div>
+                  <span class="scan-status {{ $statusClass }}">{{ $statusLabel }}</span>
                 </div>
-                <span class="scan-status s-terlambat">Terlambat</span>
-              </div>
-
-              <div class="scan-row" style="margin-bottom:0;">
-                <div class="scan-avatar" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">MN</div>
-                <div class="flex-grow-1">
-                  <div class="scan-name">M. Naufal</div>
-                  <div class="scan-class">X MIPA 3 &middot; 07:30 WIB</div>
+              @empty
+                <div class="text-center py-4">
+                  <p class="text-muted mb-0" style="font-size: 12px;">Belum ada aktivitas scan hari ini.</p>
                 </div>
-                <span class="scan-status s-izin">Izin</span>
-              </div>
+              @endforelse
 
               {{-- Recap mini --}}
               <div class="scan-section-label mt-3 mb-2">Rekap Hari Ini</div>
               <div class="recap-grid">
                 <div class="recap-cell">
                   <div class="recap-val" style="color:#4ade80;">
-                    {{ $siswaCount }}
+                    {{ $recap['hadir'] ?? 0 }}
                   </div>
                   <div class="recap-label">Hadir</div>
                 </div>
                 <div class="recap-cell">
-                  <div class="recap-val" style="color:#fbbf24;">18</div>
+                  <div class="recap-val" style="color:#fbbf24;">
+                    {{ $recap['terlambat'] ?? 0 }}
+                  </div>
                   <div class="recap-label">Terlambat</div>
                 </div>
                 <div class="recap-cell">
-                  <div class="recap-val" style="color:#f87171;">7</div>
+                  <div class="recap-val" style="color:#f87171;">
+                    {{ $recap['alpha'] ?? 0 }}
+                  </div>
                   <div class="recap-label">Absen</div>
                 </div>
               </div>

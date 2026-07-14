@@ -30,7 +30,9 @@
       background: var(--bg);
       font-family: 'Product Sans', sans-serif;
       color: var(--text);
-      min-height: 100vh;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -39,7 +41,9 @@
     /* ── LAYOUT (Matching Login UI) ─────────────────────── */
     .authentication-wrapper {
       width: 100%;
-      min-height: 100vh;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -206,9 +210,117 @@
       margin-top: 1.5rem;
     }
 
+    .password-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .password-wrapper .form-control {
+      padding-right: 2.75rem;
+    }
+
+    .password-toggle-btn {
+      position: absolute;
+      right: 0.75rem;
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      color: var(--muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+    }
+
+    .password-toggle-btn:hover {
+      color: var(--text);
+    }
+
     @media (max-width: 480px) {
       .authentication-wrapper {
-        padding: 1.5rem 1rem;
+        padding: 1rem;
+      }
+
+      .auth-cover-brand {
+        top: 1rem;
+        left: 1rem;
+        gap: 0.4rem;
+      }
+
+      .auth-cover-brand .app-brand-logo {
+        width: 28px;
+        height: 28px;
+      }
+
+      .auth-cover-brand .app-brand-logo svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .auth-cover-brand .app-brand-text {
+        font-size: 0.85rem;
+      }
+
+      .auth-form-wrapper {
+        padding: 1.5rem 1.25rem;
+        max-width: 100%;
+        margin-top: 1.5rem;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+      }
+
+      .brand-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 1.35rem;
+        margin-bottom: 1rem;
+      }
+
+      .form-heading {
+        margin-bottom: 1.25rem;
+      }
+
+      .form-heading h4 {
+        font-size: 1.25rem;
+      }
+
+      .form-heading p {
+        font-size: 0.8rem;
+      }
+
+      .date-pill {
+        padding: 3px 10px;
+        font-size: 0.7rem;
+        margin-top: 0.35rem;
+      }
+
+      .form-label {
+        font-size: 0.8rem;
+        margin-bottom: 0.35rem;
+      }
+
+      .form-control {
+        padding: 0.65rem 0.85rem;
+        font-size: 0.9rem;
+      }
+
+      .btn-signin {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+        margin-top: 0.75rem;
+      }
+
+      .footer-note {
+        margin-top: 1rem;
+        font-size: 0.7rem;
+      }
+
+      .alert {
+        padding: 0.6rem 0.85rem;
+        font-size: 0.8rem;
+        margin-bottom: 1rem;
       }
     }
   </style>
@@ -246,11 +358,27 @@
 
       <form action="{{ route('public.scan-qr.auth') }}" method="POST">
         @csrf
-        <div class="mb-4">
+        <div class="mb-4" style="margin-bottom: 1rem;">
           <label for="password" class="form-label">Password Scan QR</label>
-          <input id="password" type="password" name="password"
-            class="form-control {{ $errors->has('password') ? 'is-invalid' : '' }}"
-            placeholder="Masukkan password..." autofocus autocomplete="current-password">
+          <div class="password-wrapper">
+            <input id="password" type="password" name="password"
+              class="form-control {{ $errors->has('password') ? 'is-invalid' : '' }}"
+              placeholder="Masukkan password..." autofocus autocomplete="current-password">
+            <button type="button" id="togglePassword" class="password-toggle-btn" aria-label="Tampilkan password">
+              <!-- Eye open icon (visible by default when type is password) -->
+              <svg id="eyeOpen" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <!-- Eye closed icon (hidden by default) -->
+              <svg id="eyeClosed" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+                <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+                <path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+                <line x1="2" y1="2" x2="22" y2="22"/>
+              </svg>
+            </button>
+          </div>
           @error('password')
             <div class="invalid-feedback" style="color:var(--danger); font-size:0.75rem; margin-top:0.4rem;">{{ $message }}</div>
           @enderror
@@ -276,6 +404,27 @@
         const uuid = 'DEV-' + Math.random().toString(36).substr(2, 9).toUpperCase() + '-' + Date.now().toString(36).toUpperCase();
         document.cookie = cookieName + "=" + uuid + "; path=/; max-age=" + (60 * 60 * 24 * 365 * 10);
         window.location.reload();
+      }
+
+      // Show/hide password handler
+      const togglePasswordBtn = document.getElementById('togglePassword');
+      const passwordInput = document.getElementById('password');
+      const eyeOpenIcon = document.getElementById('eyeOpen');
+      const eyeClosedIcon = document.getElementById('eyeClosed');
+
+      if (togglePasswordBtn && passwordInput && eyeOpenIcon && eyeClosedIcon) {
+        togglePasswordBtn.addEventListener('click', function() {
+          const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+          passwordInput.setAttribute('type', type);
+          
+          if (type === 'password') {
+            eyeOpenIcon.style.display = 'block';
+            eyeClosedIcon.style.display = 'none';
+          } else {
+            eyeOpenIcon.style.display = 'none';
+            eyeClosedIcon.style.display = 'block';
+          }
+        });
       }
     });
   </script>

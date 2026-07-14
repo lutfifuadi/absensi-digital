@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mymadrasah-cache-v1';
+const CACHE_NAME = 'mymadrasah-cache-v2';
 const OFFLINE_URL = '/pages/misc-error'; // We can change this to a custom offline page later
 
 const urlsToCache = [
@@ -50,7 +50,8 @@ self.addEventListener('fetch', event => {
     url.pathname.startsWith('/guru') ||
     url.pathname.startsWith('/ortu') ||
     url.pathname.startsWith('/siswa') ||
-    url.pathname.startsWith('/piket')
+    url.pathname.startsWith('/piket') ||
+    url.pathname.startsWith('/dashboard')
   ) {
     return;
   }
@@ -64,13 +65,18 @@ self.addEventListener('fetch', event => {
           return response;
         }
         return fetch(event.request).catch(err => {
-          // If network fails (offline), return cached offline page if navigating
+          // Fallback aman: cari offline page dari cache, kalau tidak ada return response minimal
           if (event.request.mode === 'navigate') {
             return caches.match(OFFLINE_URL).then(offlineResponse => {
-              return offlineResponse || Promise.reject(err);
+              return offlineResponse || new Response('Anda sedang offline. Silakan periksa koneksi internet Anda.', {
+                status: 503,
+                statusText: 'Service Unavailable',
+                headers: new Headers({ 'Content-Type': 'text/plain; charset=utf-8' })
+              });
             });
           }
-          return Promise.reject(err);
+          // Untuk resource non-navigate (gambar, CSS, JS), return response kosong 503
+          return new Response('', { status: 503, statusText: 'Service Unavailable' });
         });
       })
   );

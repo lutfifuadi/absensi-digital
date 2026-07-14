@@ -31,7 +31,6 @@
         }
         .element {
             position: absolute;
-            z-index: 10;
         }
         .photo {
             border: 1pt solid #ccc;
@@ -104,7 +103,7 @@
                 }
             }
         @endphp
-        <div class="element" style="left: {{ $elements['photo']['x'] }}pt; top: {{ $elements['photo']['y'] }}pt;">
+        <div class="element" style="left: {{ $elements['photo']['x'] }}pt; top: {{ $elements['photo']['y'] }}pt; z-index: {{ $elements['photo']['z_index'] ?? 10 }};">
             @if($fotoBase64)
             <img class="photo" src="{{ $fotoBase64 }}" 
                  style="width: {{ $elements['photo']['w'] }}pt; height: {{ $elements['photo']['h'] }}pt;">
@@ -124,8 +123,9 @@
             font-weight: {{ ($elements['name']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['name']['italic'] ?? false) ? 'italic' : 'normal' }};
             text-transform: {{ $elements['name']['transform'] ?? 'uppercase' }};
+            z-index: {{ $elements['name']['z_index'] ?? 10 }};
         ">
-            {{ is_array($entity) ? ($entity['name'] ?? '') : $entity->nama_lengkap }}
+            {{ is_array($entity) ? ($entity['name'] ?? '') : (is_object($entity) ? ($entity->nama_lengkap ?? '') : '') }}
         </div>
         @endif
 
@@ -141,8 +141,9 @@
             font-weight: {{ ($elements['id_number']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['id_number']['italic'] ?? false) ? 'italic' : 'normal' }};
             text-transform: {{ $elements['id_number']['transform'] ?? 'none' }};
+            z-index: {{ $elements['id_number']['z_index'] ?? 10 }};
         ">
-            {{ is_array($entity) ? ($entity['id_number'] ?? '') : ($entity->nis ?? $entity->nip  ?? '') }}
+            {{ is_array($entity) ? ($entity['id_number'] ?? '') : (is_object($entity) ? ($entity->nis ?? $entity->nip ?? '') : '') }}
         </div>
         @endif
 
@@ -154,12 +155,13 @@
             width: {{ ($elements['nis']['align'] ?? 'center') == 'center' ? '100%' : 'auto' }};
             text-align: {{ $elements['nis']['align'] ?? 'center' }};
             font-size: {{ $elements['nis']['size'] ?? 12 }}pt;
-            color: {{ $elements['nis']['color'] ?? '#555555' }};
+            color: {{ $elements['nisn']['color'] ?? '#555555' }};
             font-weight: {{ ($elements['nis']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['nis']['italic'] ?? false) ? 'italic' : 'normal' }};
             text-transform: {{ $elements['nis']['transform'] ?? 'none' }};
+            z-index: {{ $elements['nis']['z_index'] ?? 10 }};
         ">
-            {{ is_array($entity) ? ($entity['nis'] ?? '') : ($entity->_nis ?? $entity->nis ?? '') }}
+            {{ is_array($entity) ? ($entity['nis'] ?? '') : (is_object($entity) ? ($entity->_nis ?? $entity->nis ?? '') : '') }}
         </div>
         @endif
 
@@ -175,8 +177,9 @@
             font-weight: {{ ($elements['nisn']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['nisn']['italic'] ?? false) ? 'italic' : 'normal' }};
             text-transform: {{ $elements['nisn']['transform'] ?? 'none' }};
+            z-index: {{ $elements['nisn']['z_index'] ?? 10 }};
         ">
-            {{ is_array($entity) ? ($entity['nisn'] ?? '') : ($entity->_nisn ?? $entity->nisn ?? '') }}
+            {{ is_array($entity) ? ($entity['nisn'] ?? '') : (is_object($entity) ? ($entity->_nisn ?? $entity->nisn ?? '') : '') }}
         </div>
         @endif
 
@@ -192,8 +195,9 @@
             font-weight: {{ ($elements['nip']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['nip']['italic'] ?? false) ? 'italic' : 'normal' }};
             text-transform: {{ $elements['nip']['transform'] ?? 'none' }};
+            z-index: {{ $elements['nip']['z_index'] ?? 10 }};
         ">
-            {{ is_array($entity) ? ($entity['nip'] ?? '') : ($entity->_nip ?? $entity->nip ?? '') }}
+            {{ is_array($entity) ? ($entity['nip'] ?? '') : (is_object($entity) ? ($entity->_nip ?? $entity->nip ?? '') : '') }}
         </div>
         @endif
 
@@ -209,17 +213,18 @@
             font-weight: {{ ($elements['class']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['class']['italic'] ?? false) ? 'italic' : 'normal' }};
             text-transform: {{ $elements['class']['transform'] ?? 'none' }};
+            z-index: {{ $elements['class']['z_index'] ?? 10 }};
         ">
-            {{ is_array($entity) ? ($entity['class'] ?? '') : ($entity->kelas->nama ?? $entity->jabatan ?? '') }}
+            {{ is_array($entity) ? ($entity['class'] ?? '') : (is_object($entity) ? (($entity->kelas->nama ?? $entity->jabatan ?? '')) : '') }}
         </div>
         @endif
 
         {{-- EXTRA FIELDS FOR PELEPASAN --}}
         @if(isset($elements['id_number']) && $template->type === 'pelepasan')
-            <div class="element text" style="left: {{ $elements['id_number']['x'] ?? 0 }}pt; top: {{ ($elements['id_number']['y'] ?? 0) + 15 }}pt; font-size: {{ ($elements['id_number']['size'] ?? 8) - 1 }}pt; color: {{ $elements['id_number']['color'] ?? '#000000' }};">
+            <div class="element text" style="left: {{ $elements['id_number']['x'] ?? 0 }}pt; top: {{ ($elements['id_number']['y'] ?? 0) + 15 }}pt; font-size: {{ ($elements['id_number']['size'] ?? 8) - 1 }}pt; color: {{ $elements['id_number']['color'] ?? '#000000' }}; z-index: {{ $elements['id_number']['z_index'] ?? 10 }};">
                 {{ is_array($entity) ? ($entity['nis'] ?? '') : '' }}
             </div>
-            <div class="element text" style="left: {{ $elements['id_number']['x'] ?? 0 }}pt; top: {{ ($elements['id_number']['y'] ?? 0) + 28 }}pt; font-size: {{ ($elements['id_number']['size'] ?? 8) - 1 }}pt; color: {{ $elements['id_number']['color'] ?? '#000000' }};">
+            <div class="element text" style="left: {{ $elements['id_number']['x'] ?? 0 }}pt; top: {{ ($elements['id_number']['y'] ?? 0) + 28 }}pt; font-size: {{ ($elements['id_number']['size'] ?? 8) - 1 }}pt; color: {{ $elements['id_number']['color'] ?? '#000000' }}; z-index: {{ $elements['id_number']['z_index'] ?? 10 }};">
                 {{ is_array($entity) ? ($entity['gender'] ?? '') : '' }}
             </div>
         @endif
@@ -235,7 +240,7 @@
                 $qrData = \App\Support\QrCodeGenerator::renderDataUri($entity->qr_code ?? $entity->nisn, 200);
             }
         @endphp
-        <div class="element" style="left: {{ $elements['qr']['x'] }}pt; top: {{ $elements['qr']['y'] }}pt;">
+        <div class="element" style="left: {{ $elements['qr']['x'] }}pt; top: {{ $elements['qr']['y'] }}pt; z-index: {{ $elements['qr']['z_index'] ?? 10 }};">
             <img class="qr" src="{{ $qrData }}" style="width: {{ $elements['qr']['w'] }}pt; height: {{ $elements['qr']['h'] }}pt;">
         </div>
         @endif
@@ -252,7 +257,7 @@
             }
         @endphp
         @if($logoBase64)
-        <div class="element" style="left: {{ $elements['logo_lembaga']['x'] }}pt; top: {{ $elements['logo_lembaga']['y'] }}pt;">
+        <div class="element" style="left: {{ $elements['logo_lembaga']['x'] }}pt; top: {{ $elements['logo_lembaga']['y'] }}pt; z-index: {{ $elements['logo_lembaga']['z_index'] ?? 10 }};">
             <img src="{{ $logoBase64 }}" style="width: {{ $elements['logo_lembaga']['w'] ?? 40 }}pt; height: {{ $elements['logo_lembaga']['h'] ?? 40 }}pt; object-fit: contain;">
         </div>
         @endif
@@ -267,7 +272,7 @@
             }
         @endphp
         @if($logoDinasBase64)
-        <div class="element" style="left: {{ $elements['logo_dinas']['x'] }}pt; top: {{ $elements['logo_dinas']['y'] }}pt;">
+        <div class="element" style="left: {{ $elements['logo_dinas']['x'] }}pt; top: {{ $elements['logo_dinas']['y'] }}pt; z-index: {{ $elements['logo_dinas']['z_index'] ?? 10 }};">
             <img src="{{ $logoDinasBase64 }}" style="width: {{ $elements['logo_dinas']['w'] ?? 40 }}pt; height: {{ $elements['logo_dinas']['h'] ?? 40 }}pt; object-fit: contain;">
         </div>
         @endif
@@ -285,6 +290,7 @@
             font-weight: {{ ($elements['nama_lembaga']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['nama_lembaga']['italic'] ?? false) ? 'italic' : 'normal' }};
             text-transform: {{ $elements['nama_lembaga']['transform'] ?? 'none' }};
+            z-index: {{ $elements['nama_lembaga']['z_index'] ?? 10 }};
         ">
             {{ $lembagaData['nama_sekolah'] ?? '' }}
         </div>
@@ -302,6 +308,7 @@
             font-weight: {{ ($elements['alamat_lembaga']['bold'] ?? false) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['alamat_lembaga']['italic'] ?? false) ? 'italic' : 'normal' }};
             text-transform: {{ $elements['alamat_lembaga']['transform'] ?? 'none' }};
+            z-index: {{ $elements['alamat_lembaga']['z_index'] ?? 10 }};
         ">
             {{ $lembagaData['alamat_lembaga'] ?? '' }}
         </div>
@@ -327,6 +334,7 @@
             font-weight: {{ ($elements['gender']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['gender']['italic'] ?? false) ? 'italic' : 'normal' }};
             text-transform: {{ $elements['gender']['transform'] ?? 'none' }};
+            z-index: {{ $elements['gender']['z_index'] ?? 10 }};
         ">
             {{ $genderText }}
         </div>
@@ -352,6 +360,7 @@
             font-weight: {{ ($elements['ttl']['bold'] ?? false) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['ttl']['italic'] ?? false) ? 'italic' : 'normal' }};
             text-transform: {{ $elements['ttl']['transform'] ?? 'none' }};
+            z-index: {{ $elements['ttl']['z_index'] ?? 10 }};
         ">
             {{ $ttlText }}
         </div>
@@ -378,6 +387,7 @@
             font-weight: {{ ($elements['masa_berlaku']['bold'] ?? false) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['masa_berlaku']['italic'] ?? false) ? 'italic' : 'normal' }};
             text-transform: {{ $elements['masa_berlaku']['transform'] ?? 'none' }};
+            z-index: {{ $elements['masa_berlaku']['z_index'] ?? 10 }};
         ">
             {{ $masaBerlakuText }}
         </div>
@@ -395,6 +405,7 @@
             font-weight: {{ ($elements['tempat_tanggal_terbit']['bold'] ?? false) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['tempat_tanggal_terbit']['italic'] ?? false) ? 'italic' : 'normal' }};
             text-transform: {{ $elements['tempat_tanggal_terbit']['transform'] ?? 'none' }};
+            z-index: {{ $elements['tempat_tanggal_terbit']['z_index'] ?? 10 }};
         ">
             {{ ($lembagaData['kota_penerbitan'] ?? '') . (($lembagaData['kota_penerbitan'] ?? '') ? ', ' : '') . now()->locale('id')->isoFormat('D MMMM Y') }}
         </div>
@@ -408,7 +419,7 @@
             $ttdSrc    = !empty($ttdBase64) ? $ttdBase64 : (!empty($ttdUrl) ? $ttdUrl : '');
         @endphp
         @if($ttdSrc)
-        <div class="element" style="left: {{ $elements['ttd_kepala_sekolah']['x'] }}pt; top: {{ $elements['ttd_kepala_sekolah']['y'] }}pt;">
+        <div class="element" style="left: {{ $elements['ttd_kepala_sekolah']['x'] }}pt; top: {{ $elements['ttd_kepala_sekolah']['y'] }}pt; z-index: {{ $elements['ttd_kepala_sekolah']['z_index'] ?? 10 }};">
             <img src="{{ $ttdSrc }}" style="width: {{ $elements['ttd_kepala_sekolah']['w'] ?? 60 }}pt; height: {{ $elements['ttd_kepala_sekolah']['h'] ?? 30 }}pt; object-fit: contain;">
         </div>
         @endif
@@ -422,7 +433,7 @@
             $capSrc    = !empty($capBase64) ? $capBase64 : (!empty($capUrl) ? $capUrl : '');
         @endphp
         @if($capSrc)
-        <div class="element" style="left: {{ $elements['cap_lembaga']['x'] }}pt; top: {{ $elements['cap_lembaga']['y'] }}pt;">
+        <div class="element" style="left: {{ $elements['cap_lembaga']['x'] }}pt; top: {{ $elements['cap_lembaga']['y'] }}pt; z-index: {{ $elements['cap_lembaga']['z_index'] ?? 10 }};">
             <img src="{{ $capSrc }}" style="width: {{ $elements['cap_lembaga']['w'] ?? 50 }}pt; height: {{ $elements['cap_lembaga']['h'] ?? 50 }}pt; object-fit: contain;">
         </div>
         @endif
@@ -440,6 +451,7 @@
             font-weight: {{ ($elements['nama_kepala_sekolah']['bold'] ?? true) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['nama_kepala_sekolah']['italic'] ?? false) ? 'italic' : 'normal' }};
             text-transform: {{ $elements['nama_kepala_sekolah']['transform'] ?? 'none' }};
+            z-index: {{ $elements['nama_kepala_sekolah']['z_index'] ?? 10 }};
         ">
             {{ $lembagaData['nama_kepala_lembaga'] ?? '' }}
         </div>
@@ -457,6 +469,7 @@
             font-weight: {{ ($elements['nip_kepala_sekolah']['bold'] ?? false) ? 'bold' : 'normal' }};
             font-style: {{ ($elements['nip_kepala_sekolah']['italic'] ?? false) ? 'italic' : 'normal' }};
             text-transform: {{ $elements['nip_kepala_sekolah']['transform'] ?? 'none' }};
+            z-index: {{ $elements['nip_kepala_sekolah']['z_index'] ?? 10 }};
         ">
             NIP. {{ $lembagaData['nip_kepala_lembaga'] ?? '' }}
         </div>
@@ -464,56 +477,25 @@
 
         {{-- ===== ELEMEN BARU KUSTOMISASI ===== --}}
         
-        <!-- Teks Kustom 1 -->
-        @if(isset($elements['custom_text_1']) && $elements['custom_text_1']['show'])
+        {{-- Custom Text Dinamis --}}
+        @foreach($elements as $key => $elConfig)
+        @if(str_starts_with($key, 'custom_text_') && ($elConfig['show'] ?? false))
         <div class="element text" style="
-            left: {{ ($elements['custom_text_1']['align'] ?? 'center') == 'center' ? 0 : $elements['custom_text_1']['x'] . 'pt' }};
-            top: {{ $elements['custom_text_1']['y'] }}pt;
-            width: {{ ($elements['custom_text_1']['align'] ?? 'center') == 'center' ? '100%' : 'auto' }};
-            text-align: {{ $elements['custom_text_1']['align'] ?? 'center' }};
-            font-size: {{ $elements['custom_text_1']['size'] ?? 8 }}pt;
-            color: {{ $elements['custom_text_1']['color'] ?? '#000000' }};
-            font-weight: {{ ($elements['custom_text_1']['bold'] ?? false) ? 'bold' : 'normal' }};
-            font-style: {{ ($elements['custom_text_1']['italic'] ?? false) ? 'italic' : 'normal' }};
-            text-transform: {{ $elements['custom_text_1']['transform'] ?? 'none' }};
+            left: {{ ($elConfig['align'] ?? 'center') == 'center' ? 0 : ($elConfig['x'] ?? 0) . 'pt' }};
+            top: {{ $elConfig['y'] ?? 140 }}pt;
+            width: {{ ($elConfig['align'] ?? 'center') == 'center' ? '100%' : 'auto' }};
+            text-align: {{ $elConfig['align'] ?? 'center' }};
+            font-size: {{ $elConfig['size'] ?? 8 }}pt;
+            color: {{ $elConfig['color'] ?? '#000000' }};
+            font-weight: {{ ($elConfig['bold'] ?? false) ? 'bold' : 'normal' }};
+            font-style: {{ ($elConfig['italic'] ?? false) ? 'italic' : 'normal' }};
+            text-transform: {{ $elConfig['transform'] ?? 'none' }};
+            z-index: {{ $elConfig['z_index'] ?? 10 }};
         ">
-            {{ $elements['custom_text_1']['content'] ?? 'Teks Kustom 1' }}
+            {{ $elConfig['content'] ?? 'Teks Kustom' }}
         </div>
         @endif
-
-        <!-- Teks Kustom 2 -->
-        @if(isset($elements['custom_text_2']) && $elements['custom_text_2']['show'])
-        <div class="element text" style="
-            left: {{ ($elements['custom_text_2']['align'] ?? 'center') == 'center' ? 0 : $elements['custom_text_2']['x'] . 'pt' }};
-            top: {{ $elements['custom_text_2']['y'] }}pt;
-            width: {{ ($elements['custom_text_2']['align'] ?? 'center') == 'center' ? '100%' : 'auto' }};
-            text-align: {{ $elements['custom_text_2']['align'] ?? 'center' }};
-            font-size: {{ $elements['custom_text_2']['size'] ?? 8 }}pt;
-            color: {{ $elements['custom_text_2']['color'] ?? '#000000' }};
-            font-weight: {{ ($elements['custom_text_2']['bold'] ?? false) ? 'bold' : 'normal' }};
-            font-style: {{ ($elements['custom_text_2']['italic'] ?? false) ? 'italic' : 'normal' }};
-            text-transform: {{ $elements['custom_text_2']['transform'] ?? 'none' }};
-        ">
-            {{ $elements['custom_text_2']['content'] ?? 'Teks Kustom 2' }}
-        </div>
-        @endif
-
-        <!-- Teks Kustom 3 -->
-        @if(isset($elements['custom_text_3']) && $elements['custom_text_3']['show'])
-        <div class="element text" style="
-            left: {{ ($elements['custom_text_3']['align'] ?? 'center') == 'center' ? 0 : $elements['custom_text_3']['x'] . 'pt' }};
-            top: {{ $elements['custom_text_3']['y'] }}pt;
-            width: {{ ($elements['custom_text_3']['align'] ?? 'center') == 'center' ? '100%' : 'auto' }};
-            text-align: {{ $elements['custom_text_3']['align'] ?? 'center' }};
-            font-size: {{ $elements['custom_text_3']['size'] ?? 8 }}pt;
-            color: {{ $elements['custom_text_3']['color'] ?? '#000000' }};
-            font-weight: {{ ($elements['custom_text_3']['bold'] ?? false) ? 'bold' : 'normal' }};
-            font-style: {{ ($elements['custom_text_3']['italic'] ?? false) ? 'italic' : 'normal' }};
-            text-transform: {{ $elements['custom_text_3']['transform'] ?? 'none' }};
-        ">
-            {{ $elements['custom_text_3']['content'] ?? 'Teks Kustom 3' }}
-        </div>
-        @endif
+        @endforeach
 
         <!-- Divider 1 -->
         @if(isset($elements['divider_1']) && $elements['divider_1']['show'])
@@ -523,6 +505,7 @@
             width: {{ $elements['divider_1']['w'] }}pt;
             height: {{ $elements['divider_1']['h'] }}pt;
             background-color: {{ $elements['divider_1']['color'] }};
+            z-index: {{ $elements['divider_1']['z_index'] ?? 9 }};
         "></div>
         @endif
 
@@ -534,6 +517,7 @@
             width: {{ $elements['divider_2']['w'] }}pt;
             height: {{ $elements['divider_2']['h'] }}pt;
             background-color: {{ $elements['divider_2']['color'] }};
+            z-index: {{ $elements['divider_2']['z_index'] ?? 9 }};
         "></div>
         @endif
 
