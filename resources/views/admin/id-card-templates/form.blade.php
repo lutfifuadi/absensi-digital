@@ -210,7 +210,15 @@
                     <div class="mb-3">
                         <label class="form-label text-white-50 small">Background Kartu (PNG/JPG)</label>
                         <input type="file" name="background" class="form-control" id="bgInput" accept="image/*">
-                        @if($template->background_path)
+                        
+                        <div class="text-center my-2 text-white-50 small">— ATAU —</div>
+                        
+                        <label class="form-label text-white-50 small">Link Gambar Eksternal (URL)</label>
+                        <input type="url" name="background_url" class="form-control" id="bgUrlInput" 
+                               value="{{ old('background_url', (isset($template) && str_starts_with($template->background_path ?? '', 'http')) ? $template->background_path : '') }}" 
+                               placeholder="https://example.com/background.png">
+                        
+                        @if($template->background_path && !str_starts_with($template->background_path, 'http'))
                             <small class="text-white-50 d-block mt-1">Current: {{ basename($template->background_path) }}</small>
                         @endif
                     </div>
@@ -470,7 +478,9 @@
                             @php
                               $bgUrl = '';
                               if ($template->background_path) {
-                                  if (strlen($template->background_path) > 30 && !str_contains($template->background_path, '/')) {
+                                  if (str_starts_with($template->background_path, 'http://') || str_starts_with($template->background_path, 'https://')) {
+                                      $bgUrl = $template->background_path;
+                                  } elseif (strlen($template->background_path) > 30 && !str_contains($template->background_path, '/')) {
                                       $bgUrl = 'https://drive.google.com/thumbnail?id=' . $template->background_path . '&sz=w800&_t=' . time();
                                   } else {
                                       $bgUrl = asset('storage/' . $template->background_path);
@@ -1083,6 +1093,28 @@ document.addEventListener('DOMContentLoaded', function() {
             reader.readAsDataURL(this.files[0]);
         }
     });
+
+    const bgUrlInput = document.getElementById('bgUrlInput');
+    if (bgUrlInput) {
+        bgUrlInput.addEventListener('input', function() {
+            const val = this.value.trim();
+            if (val) {
+                canvas.style.backgroundImage = 'url(' + val + ')';
+            } else {
+                // Jika kosong, kembalikan ke file input
+                const fileInput = document.getElementById('bgInput');
+                if (fileInput && fileInput.files && fileInput.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        canvas.style.backgroundImage = 'url(' + e.target.result + ')';
+                    }
+                    reader.readAsDataURL(fileInput.files[0]);
+                } else {
+                    canvas.style.backgroundImage = '';
+                }
+            }
+        });
+    }
 
     document.getElementById('cardType').addEventListener('change', () => {
         renderElements();

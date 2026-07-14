@@ -108,6 +108,7 @@ class IdCardTemplateController extends Controller
             'name' => 'required|string|max:255',
             'type' => 'required|in:siswa,guru,staff',
             'background' => 'nullable|image|max:2048',
+            'background_url' => 'nullable|url|max:255',
             'config' => 'required|json',
         ]);
 
@@ -131,6 +132,8 @@ class IdCardTemplateController extends Controller
                 $path = $file->store('backgrounds', 'public');
                 $data['background_path'] = $path;
             }
+        } elseif ($request->filled('background_url')) {
+            $data['background_path'] = $request->background_url;
         }
 
         // Deactivate others of same type if this is active
@@ -255,6 +258,7 @@ class IdCardTemplateController extends Controller
             'name' => 'required|string|max:255',
             'type' => 'required|in:siswa,guru,staff',
             'background' => 'nullable|image|max:2048',
+            'background_url' => 'nullable|url|max:255',
             'config' => 'required|json',
         ]);
 
@@ -278,12 +282,12 @@ class IdCardTemplateController extends Controller
                 $data['background_path'] = $fileId;
                 
                 // Jika sebelumnya ada file lokal, hapus
-                if ($old && (strlen($old) <= 30 || str_contains($old, '/'))) {
+                if ($old && (strlen($old) <= 30 || str_contains($old, '/')) && !str_starts_with($old, 'http')) {
                     Storage::disk('public')->delete($old);
                 }
             } else {
                 // Google Drive mati, hapus file lama (baik di Drive atau lokal)
-                if ($old) {
+                if ($old && !str_starts_with($old, 'http')) {
                     if (strlen($old) > 30 && !str_contains($old, '/')) {
                         $this->googleDriveService->deletePhoto($old);
                     } else {
@@ -295,6 +299,17 @@ class IdCardTemplateController extends Controller
                 $path = $file->store('backgrounds', 'public');
                 $data['background_path'] = $path;
             }
+        } elseif ($request->filled('background_url')) {
+            $old = $idCardTemplate->background_path;
+            // Jika ada file lama (bukan URL), hapus
+            if ($old && !str_starts_with($old, 'http')) {
+                if (strlen($old) > 30 && !str_contains($old, '/')) {
+                    $this->googleDriveService->deletePhoto($old);
+                } else {
+                    Storage::disk('public')->delete($old);
+                }
+            }
+            $data['background_path'] = $request->background_url;
         }
 
         if ($data['is_active']) {
