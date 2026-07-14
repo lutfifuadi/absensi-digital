@@ -487,6 +487,9 @@
     <button type="button" class="dropdown-item text-white py-2 d-flex align-items-center gap-2" id="btn-edit-element" style="font-size: 0.8rem; font-weight: 600;">
         <i class="ti tabler-pencil text-primary" style="font-size: 1rem;"></i> Edit Elemen
     </button>
+    <button type="button" class="dropdown-item text-white py-2 d-flex align-items-center gap-2" id="btn-duplicate-element" style="font-size: 0.8rem; font-weight: 600;">
+        <i class="ti tabler-copy text-info" style="font-size: 1rem;"></i> Duplikat Elemen
+    </button>
     <button type="button" class="dropdown-item text-white py-2 d-flex align-items-center gap-2" id="btn-front-element" style="font-size: 0.8rem; font-weight: 600;">
         <i class="ti tabler-chevron-up text-success" style="font-size: 1rem;"></i> Bawa ke Paling Depan
     </button>
@@ -1139,6 +1142,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const contextMenu = document.getElementById('element-context-menu');
     const deleteBtn = document.getElementById('btn-delete-element');
     const editBtn = document.getElementById('btn-edit-element');
+    const duplicateBtn = document.getElementById('btn-duplicate-element');
     const frontBtn = document.getElementById('btn-front-element');
     const backBtn = document.getElementById('btn-back-element');
     let activeElementKey = null;
@@ -1155,6 +1159,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 item.classList.remove('selected-element');
             });
             targetEl.classList.add('selected-element');
+
+            // Tampilkan tombol duplikat hanya jika diawali custom_text_ atau divider_
+            if (activeElementKey.startsWith('custom_text_') || activeElementKey.startsWith('divider_')) {
+                duplicateBtn.style.display = 'flex';
+            } else {
+                duplicateBtn.style.display = 'none';
+            }
 
             contextMenu.style.left = e.pageX + 'px';
             contextMenu.style.top = e.pageY + 'px';
@@ -1246,6 +1257,71 @@ document.addEventListener('DOMContentLoaded', function() {
         if (activeElementKey && config.elements[activeElementKey]) {
             config.elements[activeElementKey].show = false;
             renderElements();
+        }
+        contextMenu.style.display = 'none';
+    });
+
+    duplicateBtn.addEventListener('click', e => {
+        if (activeElementKey && config.elements[activeElementKey]) {
+            let newKey = '';
+            if (activeElementKey.startsWith('custom_text_')) {
+                // Cari nomor custom text terbesar yang ada
+                let maxNum = 0;
+                Object.keys(config.elements).forEach(k => {
+                    const m = k.match(/^custom_text_(\d+)$/);
+                    if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
+                });
+                newKey = 'custom_text_' + (maxNum + 1);
+            } else if (activeElementKey.startsWith('divider_')) {
+                // Cari nomor divider terbesar yang ada
+                let maxNum = 0;
+                Object.keys(config.elements).forEach(k => {
+                    const m = k.match(/^divider_(\d+)$/);
+                    if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
+                });
+                newKey = 'divider_' + (maxNum + 1);
+            }
+
+            if (newKey) {
+                // Clone config dari elemen aktif
+                const sourceEl = config.elements[activeElementKey];
+                config.elements[newKey] = JSON.parse(JSON.stringify(sourceEl));
+
+                // Geser posisinya sedikit (misal x + 10, y + 10) agar tidak tumpang tindih persis
+                config.elements[newKey].x = Math.min(config.canvas.width - 20, config.elements[newKey].x + 10);
+                config.elements[newKey].y = Math.min(config.canvas.height - 20, config.elements[newKey].y + 10);
+                config.elements[newKey].show = true;
+
+                // Jika tipe custom_text, tambahkan string ' (Salin)' di kontennya
+                if (newKey.startsWith('custom_text_')) {
+                    config.elements[newKey].content = (sourceEl.content || 'Teks Kustom') + ' (Salin)';
+                }
+
+                // Render ulang elements agar sidebar accordion & canvas terupdate
+                renderElements();
+
+                // Bonus UX: Expand accordion baru & scroll ke posisinya
+                setTimeout(() => {
+                    const accordionButton = document.querySelector(`[data-bs-target="#collapse${newKey}"]`);
+                    if (accordionButton) {
+                        if (accordionButton.classList.contains('collapsed')) {
+                            accordionButton.click();
+                        }
+                        setTimeout(() => {
+                            const collapseEl = document.getElementById('collapse' + newKey);
+                            const accordionItem = collapseEl ? collapseEl.closest('.accordion-item') : null;
+                            if (accordionItem) {
+                                accordionItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                accordionItem.style.transition = 'background-color 0.3s ease';
+                                accordionItem.style.backgroundColor = 'rgba(115, 103, 240, 0.2)';
+                                setTimeout(() => {
+                                    accordionItem.style.backgroundColor = 'transparent';
+                                }, 1000);
+                            }
+                        }, 250);
+                    }
+                }, 100);
+            }
         }
         contextMenu.style.display = 'none';
     });
