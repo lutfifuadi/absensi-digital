@@ -706,7 +706,7 @@ class PublicQrScanController extends Controller
             $all->push((object)[
                 'nama'   => $as->siswa->nama_lengkap ?? '-',
                 'kelas'  => $as->siswa->kelas->nama  ?? '-',
-                'jam'    => $as->jam_masuk,
+                'jam'    => $as->created_at ? $as->created_at->format('H:i:s') : $as->jam_masuk,
                 'status' => $as->status,
                 'type'   => 'siswa',
                 'original' => $as
@@ -717,7 +717,7 @@ class PublicQrScanController extends Controller
             $all->push((object)[
                 'nama'   => $ag->guru->nama_lengkap ?? '-',
                 'kelas'  => 'GURU',
-                'jam'    => $ag->jam_masuk,
+                'jam'    => $ag->created_at ? $ag->created_at->format('H:i:s') : $ag->jam_masuk,
                 'status' => $ag->status,
                 'type'   => 'guru',
                 'original' => $ag
