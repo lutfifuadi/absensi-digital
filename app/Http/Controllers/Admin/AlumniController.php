@@ -101,4 +101,42 @@ class AlumniController extends Controller
         return redirect()->route('admin.alumni.index')
             ->with('success', 'Data alumni berhasil dihapus.');
     }
+
+    public function destroyAll()
+    {
+        $alumni = Siswa::where('status', 'alumni')->get();
+
+        if ($alumni->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada data alumni yang dapat dihapus.',
+            ], 404);
+        }
+
+        DB::transaction(function () use ($alumni) {
+            $alumni->each(function ($siswa) {
+                // Hapus user jika ada
+                if ($siswa->user) {
+                    $siswa->user()->delete();
+                }
+
+                // Record log sebelum dihapus
+                ActivityLog::record(
+                    'delete',
+                    'alumni',
+                    "Hapus alumni (Massal): {$siswa->nama_lengkap} (NISN: {$siswa->nisn})",
+                    $siswa->toArray(),
+                    null
+                );
+
+                // Hapus siswa (yang akan memicu cascade delete di database dan booted callback)
+                $siswa->delete();
+            });
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Semua data alumni berhasil dihapus.',
+        ]);
+    }
 }

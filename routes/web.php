@@ -1016,6 +1016,9 @@ Route::middleware([
         Route::get('alumni', [AlumniController::class, 'index'])
             ->name('admin.alumni.index')
             ->middleware('role:super_admin');
+        Route::delete('/alumni/destroy-all', [AlumniController::class, 'destroyAll'])
+            ->name('admin.alumni.destroy-all')
+            ->middleware('role:super_admin');
         Route::get('alumni/{siswa}/profil', [AlumniController::class, 'show'])
             ->name('admin.alumni.show')
             ->middleware('role:super_admin');

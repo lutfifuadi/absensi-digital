@@ -214,7 +214,10 @@
                 </div>
             </div>
 
-            <div class="das-hero__actions">
+            <div class="das-hero__actions d-flex gap-2">
+                <button type="button" class="btn btn-danger" id="btnHapusSemuaAlumni" data-url="{{ route('admin.alumni.destroy-all') }}" style="border-radius:var(--das-radius); padding: 0.5rem 1.25rem;">
+                    <i class="ti tabler-trash me-1"></i> Hapus Semua Alumni
+                </button>
                 <a href="{{ route('admin.siswa.index') }}" class="btn das-btn --primary">
                     <i class="ti tabler-arrow-left me-1"></i> Kembali ke Data Siswa
                 </a>
@@ -464,6 +467,110 @@
                         });
                 });
             });
+
+            // Bulk delete AJAX handler
+            const btnHapusSemua = document.getElementById('btnHapusSemuaAlumni');
+            if (btnHapusSemua) {
+                btnHapusSemua.addEventListener('click', function() {
+                    const url = btnHapusSemua.dataset.url;
+
+                    Swal.fire({
+                        title: 'Hapus SEMUA Alumni?',
+                        html: `<div class="mt-2 text-danger fw-bold">Peringatan Keras! Tindakan ini akan menghapus seluruh data siswa berstatus alumni beserta akun user dan riwayat absensi terkait secara permanen. Tindakan ini TIDAK dapat dibatalkan!</div>`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, Hapus Semua!',
+                        cancelButtonText: 'Batalkan',
+                        customClass: {
+                            popup: 'das-swal-popup',
+                            title: 'das-swal-title',
+                            htmlContainer: 'das-swal-html',
+                            confirmButton: 'btn btn-danger das-swal-confirm me-2',
+                            cancelButton: 'btn das-swal-cancel',
+                            icon: 'das-swal-icon'
+                        },
+                        buttonsStyling: false,
+                        showClass: {
+                            popup: 'animate__animated animate__fadeInUp animate__faster'
+                        },
+                        hideClass: {
+                            popup: 'animate__animated animate__fadeOutDown animate__faster'
+                        },
+                        background: 'transparent',
+                        backdrop: `rgba(0,0,10,0.4)`,
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
+
+                        btnHapusSemua.disabled = true;
+                        btnHapusSemua.innerHTML = '<i class="ti tabler-loader animate-spin me-1"></i> Memproses...';
+
+                        fetch(url, {
+                                method: 'DELETE',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector(
+                                        'meta[name="csrf-token"]').getAttribute('content'),
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json',
+                                }
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                btnHapusSemua.disabled = false;
+                                btnHapusSemua.innerHTML = '<i class="ti tabler-trash me-1"></i> Hapus Semua Alumni';
+
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil!',
+                                        text: data.message || 'Semua alumni berhasil dihapus.',
+                                        customClass: {
+                                            popup: 'das-swal-popup',
+                                            title: 'das-swal-title',
+                                            htmlContainer: 'das-swal-html',
+                                            confirmButton: 'btn btn-success das-swal-confirm'
+                                        },
+                                        timer: 2000,
+                                        showConfirmButton: false,
+                                        background: 'transparent',
+                                    });
+                                    fetchData(1);
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Gagal!',
+                                        text: data.message || 'Terjadi kesalahan.',
+                                        customClass: {
+                                            popup: 'das-swal-popup',
+                                            title: 'das-swal-title',
+                                            htmlContainer: 'das-swal-html',
+                                            confirmButton: 'btn btn-primary das-swal-confirm'
+                                        },
+                                        background: 'transparent',
+                                        buttonsStyling: false
+                                    });
+                                }
+                            })
+                            .catch(err => {
+                                btnHapusSemua.disabled = false;
+                                btnHapusSemua.innerHTML = '<i class="ti tabler-trash me-1"></i> Hapus Semua Alumni';
+                                console.error('Delete all alumni error:', err);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error!',
+                                    text: 'Terjadi kesalahan koneksi.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-primary das-swal-confirm'
+                                    },
+                                    background: 'transparent',
+                                    buttonsStyling: false
+                                });
+                            });
+                    });
+                });
+            }
         });
     </script>
 @endsection

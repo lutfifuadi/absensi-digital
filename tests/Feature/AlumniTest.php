@@ -391,4 +391,98 @@ class AlumniTest extends TestCase
             'module' => 'alumni',
         ]);
     }
+
+    public function test_super_admin_can_delete_all_alumni()
+    {
+        // 1. Buat 2 objek alumni beserta user terkait.
+        $userAlumni1 = User::create([
+            'name' => 'User Alumni 1',
+            'username' => 'user_alumni_1',
+            'email' => 'alumni1@example.com',
+            'password' => bcrypt('password'),
+            'role' => User::ROLE_SISWA,
+        ]);
+
+        $alumni1 = Siswa::create([
+            'nis' => '20001',
+            'nisn' => '0000000021',
+            'nama_lengkap' => 'Alumni Test 1',
+            'jenis_kelamin' => 'L',
+            'tempat_lahir' => 'Jakarta',
+            'tanggal_lahir' => '2006-05-05',
+            'no_hp_ortu' => '08123456791',
+            'kelas_id' => null,
+            'tahun_akademik_id' => null,
+            'status' => 'alumni',
+            'user_id' => $userAlumni1->id,
+        ]);
+
+        $userAlumni2 = User::create([
+            'name' => 'User Alumni 2',
+            'username' => 'user_alumni_2',
+            'email' => 'alumni2@example.com',
+            'password' => bcrypt('password'),
+            'role' => User::ROLE_SISWA,
+        ]);
+
+        $alumni2 = Siswa::create([
+            'nis' => '20002',
+            'nisn' => '0000000022',
+            'nama_lengkap' => 'Alumni Test 2',
+            'jenis_kelamin' => 'P',
+            'tempat_lahir' => 'Jakarta',
+            'tanggal_lahir' => '2006-06-06',
+            'no_hp_ortu' => '08123456792',
+            'kelas_id' => null,
+            'tahun_akademik_id' => null,
+            'status' => 'alumni',
+            'user_id' => $userAlumni2->id,
+        ]);
+
+        // 2. Buat 1 objek siswa aktif (status = 'aktif') untuk memastikan data siswa aktif TIDAK ikut terhapus.
+        $userSiswaAktif = User::create([
+            'name' => 'Siswa Aktif',
+            'username' => 'siswa_aktif',
+            'email' => 'siswa_aktif@example.com',
+            'password' => bcrypt('password'),
+            'role' => User::ROLE_SISWA,
+        ]);
+
+        $siswaAktif = Siswa::create([
+            'nis' => '30001',
+            'nisn' => '0000000031',
+            'nama_lengkap' => 'Active Student Test',
+            'jenis_kelamin' => 'L',
+            'tempat_lahir' => 'Jakarta',
+            'tanggal_lahir' => '2008-01-01',
+            'no_hp_ortu' => '08123456793',
+            'kelas_id' => $this->kelasTujuan->id,
+            'tahun_akademik_id' => $this->taTujuan->id,
+            'status' => 'aktif',
+            'user_id' => $userSiswaAktif->id,
+        ]);
+
+        // 3. Kirim HTTP DELETE request ke route('admin.alumni.destroy-all') sebagai Super Admin.
+        $response = $this->actingAs($this->superAdmin)->delete(route('admin.alumni.destroy-all'));
+
+        // 4. Assert respon status 200 dan respon JSON ['success' => true].
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        // 5. Assert database missing untuk data alumni & user alumni.
+        $this->assertDatabaseMissing('siswa', ['id' => $alumni1->id]);
+        $this->assertDatabaseMissing('users', ['id' => $userAlumni1->id]);
+        $this->assertDatabaseMissing('siswa', ['id' => $alumni2->id]);
+        $this->assertDatabaseMissing('users', ['id' => $userAlumni2->id]);
+
+        // 6. Assert database has untuk siswa aktif.
+        $this->assertDatabaseHas('siswa', ['id' => $siswaAktif->id]);
+        $this->assertDatabaseHas('users', ['id' => $userSiswaAktif->id]);
+
+        // 7. Assert activity_logs mencatat log 'delete' alumni.
+        $this->assertDatabaseHas('activity_logs', [
+            'action' => 'delete',
+            'module' => 'alumni',
+        ]);
+    }
 }
