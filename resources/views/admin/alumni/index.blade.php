@@ -180,7 +180,6 @@
             font-size: 0.7rem;
         }
     </style>
-    @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
 @endsection
 
 @section('content')
@@ -282,10 +281,48 @@
         </div>
     </div>
 
+    <!-- Modal Hapus Satu Alumni -->
+    <div class="modal fade" id="modalHapusAlumni" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content das-modal">
+                <div class="modal-header das-modal-head border-0">
+                    <h5 class="modal-title das-modal-title"><i class="ti tabler-alert-triangle text-danger me-2"></i> Hapus Alumni</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body das-modal-body text-white">
+                    Apakah Anda yakin ingin menghapus data alumni <b id="hapusAlumniNama" class="text-danger"></b> beserta seluruh riwayat absensinya? Tindakan ini tidak dapat dibatalkan.
+                </div>
+                <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-secondary px-3 py-2" data-bs-dismiss="modal" style="background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:var(--das-radius);">Batalkan</button>
+                    <button type="button" class="btn btn-danger px-4 py-2" id="btnConfirmHapus" style="border-radius:var(--das-radius);">Ya, Hapus Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Hapus Semua Alumni -->
+    <div class="modal fade" id="modalHapusSemuaAlumni" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content das-modal">
+                <div class="modal-header das-modal-head border-0">
+                    <h5 class="modal-title das-modal-title"><i class="ti tabler-alert-triangle text-danger me-2"></i> Hapus Semua Alumni</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body das-modal-body text-white">
+                    <p>Peringatan Keras! Tindakan ini akan menghapus seluruh data siswa berstatus alumni beserta akun user dan riwayat absensi terkait secara permanen.</p>
+                    <b class="text-danger">Tindakan ini TIDAK dapat dibatalkan!</b>
+                </div>
+                <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-secondary px-3 py-2" data-bs-dismiss="modal" style="background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:var(--das-radius);">Batalkan</button>
+                    <button type="button" class="btn btn-danger px-4 py-2" id="btnConfirmHapusSemua" style="border-radius:var(--das-radius);">Ya, Hapus Semua</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @section('vendor-script')
-    @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.js'])
 @endsection
 
 @section('page-script')
@@ -296,6 +333,9 @@
             const perPageSelect = document.getElementById('perPageSelect');
             const tahunLulusSelect = document.getElementById('tahunLulusSelect');
             let searchTimeout;
+
+            let deleteTargetUrl = '';
+            let deleteBtnElement = null;
 
             function fetchData(page = 1) {
                 const search = encodeURIComponent(searchInput.value || '');
@@ -355,220 +395,122 @@
                 }
             });
 
-            // Individual delete AJAX handler
+            // Individual delete handler (Show Modal)
             container.addEventListener('click', function(e) {
                 const btn = e.target.closest('.btn-hapus-alumni');
                 if (!btn) return;
 
-                const url = btn.dataset.url;
-                const nama = btn.dataset.nama || 'alumni ini';
+                deleteTargetUrl = btn.dataset.url;
+                deleteBtnElement = btn;
+                document.getElementById('hapusAlumniNama').textContent = btn.dataset.nama || 'alumni ini';
 
-                Swal.fire({
-                    title: 'Hapus Alumni?',
-                    html: `<div class="mt-2">Data <b class="text-danger">"${nama}"</b> akan dihapus secara permanen beserta data riwayat absensinya.</div>`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, Hapus Data',
-                    cancelButtonText: 'Batalkan',
-                    customClass: {
-                        popup: 'das-swal-popup',
-                        title: 'das-swal-title',
-                        htmlContainer: 'das-swal-html',
-                        confirmButton: 'btn btn-danger das-swal-confirm me-2',
-                        cancelButton: 'btn das-swal-cancel',
-                        icon: 'das-swal-icon'
-                    },
-                    buttonsStyling: false,
-                    showClass: {
-                        popup: 'animate__animated animate__fadeInUp animate__faster'
-                    },
-                    hideClass: {
-                        popup: 'animate__animated animate__fadeOutDown animate__faster'
-                    },
-                    background: 'transparent',
-                    backdrop: `rgba(0,0,10,0.4)`,
-                }).then((result) => {
-                    if (!result.isConfirmed) return;
+                new bootstrap.Modal(document.getElementById('modalHapusAlumni')).show();
+            });
 
-                    btn.disabled = true;
+            // Confirm individual delete action
+            const btnConfirmHapus = document.getElementById('btnConfirmHapus');
+            if (btnConfirmHapus) {
+                btnConfirmHapus.addEventListener('click', function() {
+                    if (!deleteTargetUrl) return;
 
-                    fetch(url, {
+                    if (deleteBtnElement) {
+                        deleteBtnElement.disabled = true;
+                    }
+                    btnConfirmHapus.disabled = true;
+                    btnConfirmHapus.textContent = 'Memproses...';
+
+                    fetch(deleteTargetUrl, {
                             method: 'DELETE',
                             headers: {
-                                'X-CSRF-TOKEN': document.querySelector(
-                                    'meta[name="csrf-token"]').getAttribute('content'),
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                                 'X-Requested-With': 'XMLHttpRequest',
                                 'Accept': 'application/json',
                             }
                         })
                         .then(res => res.json())
                         .then(data => {
+                            btnConfirmHapus.disabled = false;
+                            btnConfirmHapus.textContent = 'Ya, Hapus Data';
+                            if (deleteBtnElement) {
+                                deleteBtnElement.disabled = false;
+                            }
+
+                            const modalEl = document.getElementById('modalHapusAlumni');
+                            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                            if (modalInstance) {
+                                modalInstance.hide();
+                            }
+
                             if (data.success) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Berhasil!',
-                                    text: data.message || 'Alumni berhasil dihapus.',
-                                    customClass: {
-                                        popup: 'das-swal-popup',
-                                        title: 'das-swal-title',
-                                        htmlContainer: 'das-swal-html',
-                                        confirmButton: 'btn btn-success das-swal-confirm'
-                                    },
-                                    timer: 2000,
-                                    showConfirmButton: false,
-                                    background: 'transparent',
-                                });
                                 fetchData(1);
                             } else {
-                                btn.disabled = false;
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Gagal!',
-                                    text: data.message || 'Terjadi kesalahan.',
-                                    customClass: {
-                                        popup: 'das-swal-popup',
-                                        title: 'das-swal-title',
-                                        htmlContainer: 'das-swal-html',
-                                        confirmButton: 'btn btn-primary das-swal-confirm'
-                                    },
-                                    showClass: {
-                                        popup: 'animate__animated animate__shakeX animate__faster'
-                                    },
-                                    hideClass: {
-                                        popup: 'animate__animated animate__fadeOut animate__faster'
-                                    },
-                                    background: 'transparent',
-                                    buttonsStyling: false
-                                });
+                                alert(data.message || 'Terjadi kesalahan saat menghapus data.');
                             }
                         })
                         .catch(err => {
-                            btn.disabled = false;
+                            btnConfirmHapus.disabled = false;
+                            btnConfirmHapus.textContent = 'Ya, Hapus Data';
+                            if (deleteBtnElement) {
+                                deleteBtnElement.disabled = false;
+                            }
                             console.error('Delete alumni error:', err);
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error!',
-                                text: 'Terjadi kesalahan koneksi.',
-                                customClass: {
-                                    popup: 'das-swal-popup',
-                                    title: 'das-swal-title',
-                                    htmlContainer: 'das-swal-html',
-                                    confirmButton: 'btn btn-primary das-swal-confirm'
-                                },
-                                showClass: {
-                                    popup: 'animate__animated animate__shakeX animate__faster'
-                                },
-                                hideClass: {
-                                    popup: 'animate__animated animate__fadeOut animate__faster'
-                                },
-                                background: 'transparent',
-                                buttonsStyling: false
-                            });
+                            alert('Terjadi kesalahan koneksi.');
                         });
                 });
-            });
+            }
 
-            // Bulk delete AJAX handler
+            // Bulk delete handler (Show Modal)
             const btnHapusSemua = document.getElementById('btnHapusSemuaAlumni');
             if (btnHapusSemua) {
                 btnHapusSemua.addEventListener('click', function() {
+                    new bootstrap.Modal(document.getElementById('modalHapusSemuaAlumni')).show();
+                });
+            }
+
+            // Confirm bulk delete action
+            const btnConfirmHapusSemua = document.getElementById('btnConfirmHapusSemua');
+            if (btnConfirmHapusSemua) {
+                btnConfirmHapusSemua.addEventListener('click', function() {
+                    if (!btnHapusSemua) return;
                     const url = btnHapusSemua.dataset.url;
 
-                    Swal.fire({
-                        title: 'Hapus SEMUA Alumni?',
-                        html: `<div class="mt-2 text-danger fw-bold">Peringatan Keras! Tindakan ini akan menghapus seluruh data siswa berstatus alumni beserta akun user dan riwayat absensi terkait secara permanen. Tindakan ini TIDAK dapat dibatalkan!</div>`,
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonText: 'Ya, Hapus Semua!',
-                        cancelButtonText: 'Batalkan',
-                        customClass: {
-                            popup: 'das-swal-popup',
-                            title: 'das-swal-title',
-                            htmlContainer: 'das-swal-html',
-                            confirmButton: 'btn btn-danger das-swal-confirm me-2',
-                            cancelButton: 'btn das-swal-cancel',
-                            icon: 'das-swal-icon'
-                        },
-                        buttonsStyling: false,
-                        showClass: {
-                            popup: 'animate__animated animate__fadeInUp animate__faster'
-                        },
-                        hideClass: {
-                            popup: 'animate__animated animate__fadeOutDown animate__faster'
-                        },
-                        background: 'transparent',
-                        backdrop: `rgba(0,0,10,0.4)`,
-                    }).then((result) => {
-                        if (!result.isConfirmed) return;
+                    btnConfirmHapusSemua.disabled = true;
+                    btnConfirmHapusSemua.textContent = 'Memproses...';
+                    btnHapusSemua.disabled = true;
 
-                        btnHapusSemua.disabled = true;
-                        btnHapusSemua.innerHTML = '<i class="ti tabler-loader animate-spin me-1"></i> Memproses...';
+                    fetch(url, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            btnConfirmHapusSemua.disabled = false;
+                            btnConfirmHapusSemua.textContent = 'Ya, Hapus Semua';
+                            btnHapusSemua.disabled = false;
 
-                        fetch(url, {
-                                method: 'DELETE',
-                                headers: {
-                                    'X-CSRF-TOKEN': document.querySelector(
-                                        'meta[name="csrf-token"]').getAttribute('content'),
-                                    'X-Requested-With': 'XMLHttpRequest',
-                                    'Accept': 'application/json',
-                                }
-                            })
-                            .then(res => res.json())
-                            .then(data => {
-                                btnHapusSemua.disabled = false;
-                                btnHapusSemua.innerHTML = '<i class="ti tabler-trash me-1"></i> Hapus Semua Alumni';
+                            const modalEl = document.getElementById('modalHapusSemuaAlumni');
+                            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                            if (modalInstance) {
+                                modalInstance.hide();
+                            }
 
-                                if (data.success) {
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Berhasil!',
-                                        text: data.message || 'Semua alumni berhasil dihapus.',
-                                        customClass: {
-                                            popup: 'das-swal-popup',
-                                            title: 'das-swal-title',
-                                            htmlContainer: 'das-swal-html',
-                                            confirmButton: 'btn btn-success das-swal-confirm'
-                                        },
-                                        timer: 2000,
-                                        showConfirmButton: false,
-                                        background: 'transparent',
-                                    });
-                                    fetchData(1);
-                                } else {
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Gagal!',
-                                        text: data.message || 'Terjadi kesalahan.',
-                                        customClass: {
-                                            popup: 'das-swal-popup',
-                                            title: 'das-swal-title',
-                                            htmlContainer: 'das-swal-html',
-                                            confirmButton: 'btn btn-primary das-swal-confirm'
-                                        },
-                                        background: 'transparent',
-                                        buttonsStyling: false
-                                    });
-                                }
-                            })
-                            .catch(err => {
-                                btnHapusSemua.disabled = false;
-                                btnHapusSemua.innerHTML = '<i class="ti tabler-trash me-1"></i> Hapus Semua Alumni';
-                                console.error('Delete all alumni error:', err);
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error!',
-                                    text: 'Terjadi kesalahan koneksi.',
-                                    customClass: {
-                                        popup: 'das-swal-popup',
-                                        title: 'das-swal-title',
-                                        htmlContainer: 'das-swal-html',
-                                        confirmButton: 'btn btn-primary das-swal-confirm'
-                                    },
-                                    background: 'transparent',
-                                    buttonsStyling: false
-                                });
-                            });
-                    });
+                            if (data.success) {
+                                fetchData(1);
+                            } else {
+                                alert(data.message || 'Terjadi kesalahan saat menghapus semua data.');
+                            }
+                        })
+                        .catch(err => {
+                            btnConfirmHapusSemua.disabled = false;
+                            btnConfirmHapusSemua.textContent = 'Ya, Hapus Semua';
+                            btnHapusSemua.disabled = false;
+                            console.error('Delete all alumni error:', err);
+                            alert('Terjadi kesalahan koneksi.');
+                        });
                 });
             }
         });
