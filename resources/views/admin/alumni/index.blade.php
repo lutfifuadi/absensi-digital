@@ -287,7 +287,6 @@
             <div class="modal-content das-modal">
                 <div class="modal-header das-modal-head border-0">
                     <h5 class="modal-title das-modal-title"><i class="ti tabler-alert-triangle text-danger me-2"></i> Hapus Alumni</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body das-modal-body text-white">
                     Apakah Anda yakin ingin menghapus data alumni <b id="hapusAlumniNama" class="text-danger"></b> beserta seluruh riwayat absensinya? Tindakan ini tidak dapat dibatalkan.
@@ -306,7 +305,6 @@
             <div class="modal-content das-modal">
                 <div class="modal-header das-modal-head border-0">
                     <h5 class="modal-title das-modal-title"><i class="ti tabler-alert-triangle text-danger me-2"></i> Hapus Semua Alumni</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body das-modal-body text-white">
                     <p>Peringatan Keras! Tindakan ini akan menghapus seluruh data siswa berstatus alumni beserta akun user dan riwayat absensi terkait secara permanen.</p>
