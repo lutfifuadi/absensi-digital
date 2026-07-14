@@ -76,6 +76,10 @@ class AlumniController extends Controller
             // Ambil daftar orang tua terkait sebelum menghapus siswa
             $parents = $siswa->ortu;
 
+            // Detach pivot relasi orang tua dan null-kan direct foreign key untuk mencegah lock-wait di MySQL
+            $siswa->ortu()->detach();
+            $siswa->update(['ortu_user_id' => null]);
+
             // Hapus user jika ada
             if ($siswa->user) {
                 $siswa->user()->delete();
@@ -124,36 +128,76 @@ class AlumniController extends Controller
             ], 404);
         }
 
-        DB::transaction(function () use ($alumni) {
-            $alumni->each(function ($siswa) {
-                // Ambil daftar orang tua terkait sebelum menghapus siswa
-                $parents = $siswa->ortu;
+        $alumniIds = $alumni->pluck('id')->toArray();
+        $alumniUserIds = $alumni->whereNotNull('user_id')->pluck('user_id')->toArray();
 
-                // Hapus user jika ada
-                if ($siswa->user) {
-                    $siswa->user()->delete();
-                }
+        // Cari semua orang tua dari alumni tersebut
+        $parentUserIds = DB::table('siswa_ortu')
+            ->whereIn('siswa_id', $alumniIds)
+            ->pluck('ortu_user_id')
+            ->unique()
+            ->toArray();
 
-                // Record log sebelum dihapus
-                ActivityLog::record(
-                    'delete',
-                    'alumni',
-                    "Hapus alumni (Massal): {$siswa->nama_lengkap} (NISN: {$siswa->nisn})",
-                    $siswa->toArray(),
-                    null
-                );
+        // Tentukan orang tua mana yang tidak memiliki anak aktif/non-aktif lain selain alumni yang dihapus
+        $parentUserIdsToDelete = [];
+        if (!empty($parentUserIds)) {
+            $parentUserIdsToDelete = DB::table('users')
+                ->whereIn('id', $parentUserIds)
+                ->whereNotExists(function ($query) use ($alumniIds) {
+                    $query->select(DB::raw(1))
+                        ->from('siswa_ortu')
+                        ->whereColumn('siswa_ortu.ortu_user_id', 'users.id')
+                        ->whereNotIn('siswa_ortu.siswa_id', $alumniIds);
+                })
+                ->pluck('id')
+                ->toArray();
+        }
 
-                // Hapus siswa (yang akan memicu cascade delete di database dan booted callback)
-                $siswa->delete();
+        DB::transaction(function () use ($alumniIds, $alumniUserIds, $parentUserIdsToDelete) {
+            // 1. Detach/hapus relasi pivot di siswa_ortu
+            DB::table('siswa_ortu')->whereIn('siswa_id', $alumniIds)->delete();
 
-                // Loop untuk setiap orang tua
-                foreach ($parents as $parent) {
-                    $hasOtherChildren = DB::table('siswa_ortu')->where('ortu_user_id', $parent->id)->exists();
-                    if (!$hasOtherChildren) {
-                        $parent->delete();
-                    }
-                }
-            });
+            // 2. Hapus log aktivitas user jika ada (jika user didelete, agar FK tidak constraint)
+            $allUserIdsToDelete = array_merge($alumniUserIds, $parentUserIdsToDelete);
+            if (!empty($allUserIdsToDelete)) {
+                DB::table('activity_logs')->whereIn('user_id', $allUserIdsToDelete)->delete();
+            }
+
+            // 3. Hapus user siswa alumni dan user orang tua yang tidak memiliki anak lain
+            if (!empty($allUserIdsToDelete)) {
+                DB::table('users')->whereIn('id', $allUserIdsToDelete)->delete();
+            }
+
+            // 4. Hapus data absensi harian siswa
+            DB::table('absensi_siswa')->whereIn('siswa_id', $alumniIds)->delete();
+
+            // 5. Hapus data absensi kegiatan siswa
+            DB::table('absensi_kegiatan')->whereIn('siswa_id', $alumniIds)->delete();
+
+            // 6. Hapus izin sakit
+            DB::table('izin_sakit')->whereIn('reference_id', $alumniIds)->where('tipe', 'siswa')->delete();
+
+            // 7. Hapus riwayat kenaikan kelas
+            DB::table('riwayat_kenaikan_kelas')->whereIn('siswa_id', $alumniIds)->delete();
+
+            // 8. Hapus data ekskul, badges, leaderboards
+            DB::table('ekskul_anggota')->whereIn('siswa_id', $alumniIds)->delete();
+            DB::table('ekskul_absensi')->whereIn('siswa_id', $alumniIds)->delete();
+            DB::table('student_badges')->whereIn('siswa_id', $alumniIds)->delete();
+            DB::table('student_leaderboards')->whereIn('siswa_id', $alumniIds)->delete();
+            DB::table('upload_batch_items')->whereIn('siswa_id', $alumniIds)->update(['siswa_id' => null]);
+
+            // 9. Hapus siswa alumni
+            DB::table('siswa')->whereIn('id', $alumniIds)->delete();
+
+            // 10. Record single bulk activity log
+            ActivityLog::record(
+                'delete',
+                'alumni',
+                "Hapus massal alumni: Berhasil menghapus " . count($alumniIds) . " data alumni beserta akun terkait.",
+                null,
+                null
+            );
         });
 
         return response()->json([
