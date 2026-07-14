@@ -64,7 +64,7 @@
     },
     {
       "name": "Guru",
-      "icon": "menu-icon ti tabler-chalkboard-teacher",
+      "icon": "menu-icon ti tabler-presentation",
       "slug": "admin.guru.index",
       "url": "/admin/guru"
     },
@@ -102,7 +102,7 @@
     },
     {
       "name": "Alumni",
-      "icon": "menu-icon ti tabler-academic-cap",
+      "icon": "menu-icon ti tabler-school",
       "slug": "admin.alumni.index",
       "url": "/admin/alumni",
       "roles": ["super_admin"]
