@@ -30,19 +30,27 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        /* MODAL CUSTOM */
+        /* MODAL CUSTOM GLASSMORPHIC PREMIUM */
         .das-modal {
-            background: #1a1a2e !important;
+            background: rgba(26, 26, 46, 0.9) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
             border: 1px solid rgba(255, 255, 255, 0.08) !important;
-            border-radius: 12px !important;
+            border-radius: 16px !important;
             overflow: hidden;
-            backdrop-filter: blur(12px) saturate(180%);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
         }
 
         .das-modal-head {
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             background: rgba(115, 103, 240, 0.05);
             padding: 1.25rem;
+        }
+
+        .das-modal-head-clean {
+            border-bottom: none !important;
+            background: transparent !important;
+            padding: 1.5rem 1.5rem 0.5rem 1.5rem !important;
         }
 
         .das-modal-title {
@@ -54,6 +62,99 @@
 
         .das-modal-body {
             padding: 1.5rem;
+        }
+
+        .das-modal-icon-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: rgba(234, 84, 85, 0.1);
+            color: #ea5455;
+            margin-bottom: 1.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .das-modal-icon-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(234, 84, 85, 0.2) 0%, rgba(234, 84, 85, 0) 70%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .das-modal-badge-name {
+            display: inline-block;
+            background: rgba(234, 84, 85, 0.15);
+            color: #ff4d4f;
+            border: 1px solid rgba(234, 84, 85, 0.3);
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin: 6px 0;
+            box-shadow: 0 2px 10px rgba(234, 84, 85, 0.1);
+        }
+
+        .das-danger-warning-card {
+            background: rgba(234, 84, 85, 0.08);
+            border: 1px dashed rgba(234, 84, 85, 0.3);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-top: 1rem;
+            text-align: left;
+        }
+
+        .das-danger-warning-card p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        /* BUTTONS PREMIUM */
+        .das-btn-cancel {
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: rgba(255, 255, 255, 0.7) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+            padding: 10px 20px !important;
+            font-size: 0.875rem !important;
+            transition: all 0.25s ease !important;
+        }
+
+        .das-btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: #fff !important;
+            border-color: rgba(255, 255, 255, 0.25) !important;
+            transform: translateY(-1px);
+        }
+
+        .das-btn-danger-glow {
+            background: #ea5455 !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+            padding: 10px 24px !important;
+            font-size: 0.875rem !important;
+            transition: all 0.25s ease !important;
+            box-shadow: 0 4px 14px rgba(234, 84, 85, 0.3) !important;
+        }
+
+        .das-btn-danger-glow:hover {
+            background: #ff5c5c !important;
+            box-shadow: 0 6px 20px rgba(234, 84, 85, 0.5) !important;
+            transform: translateY(-1px);
         }
 
         /* PAGINATION */
@@ -285,15 +386,25 @@
     <div class="modal fade" id="modalHapusAlumni" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content das-modal">
-                <div class="modal-header das-modal-head border-0">
-                    <h5 class="modal-title das-modal-title"><i class="ti tabler-alert-triangle text-danger me-2"></i> Hapus Alumni</h5>
+                <div class="modal-header das-modal-head-clean d-flex justify-content-center position-relative">
+                    <h5 class="modal-title text-center text-white font-weight-bold fs-5 pt-3">Hapus Data Alumni</h5>
                 </div>
-                <div class="modal-body das-modal-body text-white">
-                    Apakah Anda yakin ingin menghapus data alumni <b id="hapusAlumniNama" class="text-danger"></b> beserta seluruh riwayat absensinya? Tindakan ini tidak dapat dibatalkan.
+                <div class="modal-body das-modal-body text-center text-white pt-2">
+                    <div class="das-modal-icon-wrapper">
+                        <i class="ti tabler-trash fs-1"></i>
+                        <div class="das-modal-icon-glow"></div>
+                    </div>
+                    <p class="mb-3" style="color: rgba(255,255,255,0.7); font-size: 0.95rem;">Apakah Anda yakin ingin menghapus data alumni berikut?</p>
+                    <div class="mb-3">
+                        <span id="hapusAlumniNama" class="das-modal-badge-name fs-6"></span>
+                    </div>
+                    <p class="mb-0 text-muted px-2" style="font-size: 0.8rem; line-height: 1.4;">
+                        Seluruh riwayat absensi terkait alumni ini akan dihapus secara permanen dari sistem. Tindakan ini tidak dapat dibatalkan.
+                    </p>
                 </div>
-                <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-secondary px-3 py-2" data-bs-dismiss="modal" style="background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:var(--das-radius);">Batalkan</button>
-                    <button type="button" class="btn btn-danger px-4 py-2" id="btnConfirmHapus" style="border-radius:var(--das-radius);">Ya, Hapus Data</button>
+                <div class="modal-footer border-0 pb-4 px-4 d-flex justify-content-center gap-3">
+                    <button type="button" class="btn das-btn-cancel px-4" data-bs-dismiss="modal">Batalkan</button>
+                    <button type="button" class="btn das-btn-danger-glow px-4" id="btnConfirmHapus">Ya, Hapus Data</button>
                 </div>
             </div>
         </div>
@@ -303,16 +414,37 @@
     <div class="modal fade" id="modalHapusSemuaAlumni" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content das-modal">
-                <div class="modal-header das-modal-head border-0">
-                    <h5 class="modal-title das-modal-title"><i class="ti tabler-alert-triangle text-danger me-2"></i> Hapus Semua Alumni</h5>
+                <div class="modal-header das-modal-head-clean d-flex justify-content-center position-relative">
+                    <h5 class="modal-title text-center text-white font-weight-bold fs-5 pt-3">Hapus Semua Alumni</h5>
                 </div>
-                <div class="modal-body das-modal-body text-white">
-                    <p>Peringatan Keras! Tindakan ini akan menghapus seluruh data siswa berstatus alumni beserta akun user dan riwayat absensi terkait secara permanen.</p>
-                    <b class="text-danger">Tindakan ini TIDAK dapat dibatalkan!</b>
+                <div class="modal-body das-modal-body text-center text-white pt-2">
+                    <div class="das-modal-icon-wrapper" style="background: rgba(234, 84, 85, 0.15); color: #ff4d4f;">
+                        <i class="ti tabler-alert-triangle fs-1"></i>
+                        <div class="das-modal-icon-glow" style="background: radial-gradient(circle, rgba(234, 84, 85, 0.25) 0%, rgba(234, 84, 85, 0) 70%);"></div>
+                    </div>
+                    <p class="mb-2" style="color: rgba(255,255,255,0.9); font-size: 1rem; font-weight: 600;">Apakah Anda yakin ingin mengosongkan seluruh data alumni?</p>
+                    <p class="mb-3 px-3 text-muted" style="font-size: 0.85rem; line-height: 1.4;">Tindakan pembersihan massal ini bersifat destruktif dan akan berdampak luas pada sistem.</p>
+                    
+                    <div class="das-danger-warning-card mx-2">
+                        <div class="d-flex gap-2">
+                            <i class="ti tabler-shield-alert text-danger fs-4 mt-1"></i>
+                            <div>
+                                <h6 class="text-danger mb-1 font-weight-bold" style="font-size: 0.85rem; letter-spacing: 0.3px;">PERINGATAN KERAS & TINDAKAN BERBAHAYA:</h6>
+                                <p style="font-size: 0.78rem; color: rgba(255, 255, 255, 0.75);">
+                                    • Menghapus seluruh data siswa berstatus alumni.<br>
+                                    • Menghapus seluruh akun user (login) alumni.<br>
+                                    • Menghapus riwayat absensi terkait alumni secara permanen.
+                                </p>
+                                <div class="mt-2 text-danger font-weight-bold" style="font-size: 0.78rem;">
+                                    Tindakan ini TIDAK dapat dibatalkan atau dipulihkan kembali!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-secondary px-3 py-2" data-bs-dismiss="modal" style="background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:var(--das-radius);">Batalkan</button>
-                    <button type="button" class="btn btn-danger px-4 py-2" id="btnConfirmHapusSemua" style="border-radius:var(--das-radius);">Ya, Hapus Semua</button>
+                <div class="modal-footer border-0 pb-4 px-4 d-flex justify-content-center gap-3">
+                    <button type="button" class="btn das-btn-cancel px-4" data-bs-dismiss="modal">Batalkan</button>
+                    <button type="button" class="btn das-btn-danger-glow px-4" id="btnConfirmHapusSemua">Ya, Hapus Semua</button>
                 </div>
             </div>
         </div>
