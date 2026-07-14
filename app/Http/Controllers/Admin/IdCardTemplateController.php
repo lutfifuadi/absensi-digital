@@ -70,7 +70,7 @@ class IdCardTemplateController extends Controller
                 'nisn' => $siswa->nisn ?? '-',
                 'class' => $siswa->kelas->nama ?? '-',
                 'gender' => $siswa->jenis_kelamin === 'L' ? 'Laki-laki' : ($siswa->jenis_kelamin === 'P' ? 'Perempuan' : '-'),
-                'ttl' => ($siswa->tempat_lahir && $siswa->tanggal_lahir) ? ($siswa->tempat_lahir . ', ' . $siswa->tanggal_lahir->isoFormat('D MMMM Y')) : '-',
+                'ttl' => ($siswa->tempat_lahir && $siswa->tanggal_lahir) ? ($siswa->tempat_lahir . ', ' . $siswa->tanggal_lahir->locale('id')->isoFormat('D MMMM Y')) : '-',
                 'masa_berlaku' => $this->idCardPdfService->hitungMasaBerlakuSiswa($siswa, $lembagaData['jumlah_tahun_sekolah'] ?? 3),
                 'photo' => $siswa->foto ? ((strlen($siswa->foto) > 30 && !str_contains($siswa->foto, '/')) ? 'https://drive.google.com/thumbnail?id=' . $siswa->foto . '&sz=w200' : asset('storage/' . $siswa->foto)) : null
             ] : null,
@@ -157,7 +157,7 @@ class IdCardTemplateController extends Controller
                 'nisn' => $siswa->nisn ?? '-',
                 'class' => $siswa->kelas->nama ?? '-',
                 'gender' => $siswa->jenis_kelamin === 'L' ? 'Laki-laki' : ($siswa->jenis_kelamin === 'P' ? 'Perempuan' : '-'),
-                'ttl' => ($siswa->tempat_lahir && $siswa->tanggal_lahir) ? ($siswa->tempat_lahir . ', ' . $siswa->tanggal_lahir->isoFormat('D MMMM Y')) : '-',
+                'ttl' => ($siswa->tempat_lahir && $siswa->tanggal_lahir) ? ($siswa->tempat_lahir . ', ' . $siswa->tanggal_lahir->locale('id')->isoFormat('D MMMM Y')) : '-',
                 'masa_berlaku' => $this->idCardPdfService->hitungMasaBerlakuSiswa($siswa, $lembagaData['jumlah_tahun_sekolah'] ?? 3),
                 'photo' => $siswa->foto ? ((strlen($siswa->foto) > 30 && !str_contains($siswa->foto, '/')) ? 'https://drive.google.com/thumbnail?id=' . $siswa->foto . '&sz=w200' : asset('storage/' . $siswa->foto)) : null
             ] : null,

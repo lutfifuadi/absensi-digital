@@ -345,7 +345,7 @@
         @php
             $ttlText = '';
             if (!is_array($entity) && isset($entity->tempat_lahir) && isset($entity->tanggal_lahir)) {
-                $ttlText = $entity->tempat_lahir . ', ' . \Carbon\Carbon::parse($entity->tanggal_lahir)->isoFormat('D MMMM Y');
+                $ttlText = $entity->tempat_lahir . ', ' . \Carbon\Carbon::parse($entity->tanggal_lahir)->locale('id')->isoFormat('D MMMM Y');
             } elseif (is_array($entity)) {
                 $ttlText = $entity['ttl'] ?? '';
             }
