@@ -1083,20 +1083,26 @@
     switchBtn.innerHTML = '<i class="ti tabler-camera-rotate"></i>';
   });
 
+  let lastScanAttempt = 0;
+  const SCAN_INTERVAL_MS = 150; // Scan 6-7 kali per detik saja, sudah terasa instan
+
   // ── Scan tick ──
   function tick() {
     if (!stream) return;
     if (video.readyState >= video.HAVE_ENOUGH_DATA) {
-      canvas.width  = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0);
-      const img  = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
-      if (code && !isProcessing) {
-        const now = Date.now();
-        if (code.data !== lastQR || now - lastQRTime > getDebounce()) {
-          lastQR = code.data; lastQRTime = now;
-          handleScan(code.data);
+      const now = Date.now();
+      if (now - lastScanAttempt >= SCAN_INTERVAL_MS) {
+        lastScanAttempt = now;
+        canvas.width  = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+        const img  = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+        if (code && !isProcessing) {
+          if (code.data !== lastQR || now - lastQRTime > getDebounce()) {
+            lastQR = code.data; lastQRTime = now;
+            handleScan(code.data);
+          }
         }
       }
     }

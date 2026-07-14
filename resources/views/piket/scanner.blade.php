@@ -609,19 +609,25 @@
       switchBtn.disabled = false;
     });
 
+    let lastScanAttempt = 0;
+    const SCAN_INTERVAL_MS = 150; // Scan 6-7 kali per detik saja, sudah terasa instan
+
     function tick() {
       if (!stream) return;
       if (video.readyState >= video.HAVE_ENOUGH_DATA) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0);
-        const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
-        if (code && !isProcessing) {
-          const now = Date.now();
-          if (code.data !== lastQR || now - lastQRTime > 3000) {
-            lastQR = code.data; lastQRTime = now;
-            handlePiketScan(code.data);
+        const now = Date.now();
+        if (now - lastScanAttempt >= SCAN_INTERVAL_MS) {
+          lastScanAttempt = now;
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0);
+          const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+          if (code && !isProcessing) {
+            if (code.data !== lastQR || now - lastQRTime > 3000) {
+              lastQR = code.data; lastQRTime = now;
+              handlePiketScan(code.data);
+            }
           }
         }
       }
