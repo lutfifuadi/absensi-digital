@@ -576,7 +576,7 @@
                 <div class="name">{{ $abs->nama }}</div>
                 <div class="kelas-badge">{{ $abs->kelas }}</div>
               </td>
-              <td class="jam-cell {{ $isLate ? 'jam-late' : 'jam-early' }}">{{ $abs->jam }}</td>
+              <td class="jam-cell {{ $isLate ? 'jam-late' : 'jam-early' }}">{{ \Carbon\Carbon::parse($abs->jam)->format('H:i:s') }}</td>
               <td>
                 @if($isLate)
                   <span class="status-badge badge-terlambat">⏰ Terlambat</span>
@@ -625,7 +625,7 @@
                 <div class="name">{{ $abs->nama }}</div>
                 <div class="kelas-badge">{{ $abs->kelas }}</div>
               </td>
-              <td class="jam-cell {{ $isLate ? 'jam-late' : '' }}">{{ $abs->jam }}</td>
+              <td class="jam-cell {{ $isLate ? 'jam-late' : '' }}">{{ \Carbon\Carbon::parse($abs->jam)->format('H:i:s') }}</td>
               <td>
                 @if($isLate)
                   <span class="status-badge badge-terlambat">⏰ Terlambat</span>
@@ -888,7 +888,12 @@ function showToast(type, icon, siswa, msg) {
 function renderRows(rows, colClass) {
   const jamMasuk = JAM_MASUK_CFG.split(':');
   return rows.map((r, i) => {
-    const [h, m] = (r.jam || '00:00').split(':').map(Number);
+    let jamVal = r.jam || '00:00:00';
+    const parts = jamVal.split(':');
+    if (parts.length === 2) {
+      jamVal += ':00';
+    }
+    const [h, m] = jamVal.split(':').map(Number);
     const [bh, bm] = [parseInt(jamMasuk[0]), parseInt(jamMasuk[1])];
     const diff = (h * 60 + m) - (bh * 60 + bm);
     const isLate = diff > TOLERANSI_MENIT;
@@ -900,7 +905,7 @@ function renderRows(rows, colClass) {
     return `<tr class="${colClass==='awal'&&rank<=3?'top-3':''} ${isLate?'late-row':''}">
       <td class="rank-cell">${medal}</td>
       <td class="name-cell"><div class="name">${r.nama}</div><div class="kelas-badge">${r.kelas}</div></td>
-      <td><span class="jam-cell ${isLate?'jam-late':'jam-early'}">${r.jam}</span></td>
+      <td><span class="jam-cell ${isLate?'jam-late':'jam-early'}">${jamVal}</span></td>
       <td class="status-col">${badge}</td>
     </tr>`;
   }).join('') || (colClass === 'awal' 
