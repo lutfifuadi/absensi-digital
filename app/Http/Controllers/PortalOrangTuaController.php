@@ -240,6 +240,14 @@ class PortalOrangTuaController extends Controller
             'alamat' => $request->alamat,
         ]);
 
+        // Sinkronisasi nomor WhatsApp ke field no_hp_ortu di tabel siswa agar notifikasi WA terkirim ke nomor baru
+        Siswa::where(function($query) use ($user) {
+            $query->where('ortu_user_id', $user->id)
+                  ->orWhereHas('ortu', function($q) use ($user) {
+                      $q->where('users.id', $user->id);
+                  });
+        })->update(['no_hp_ortu' => $request->no_hp]);
+
         return redirect()->route('ortu.pengaturan')
             ->with('success', 'Profil Anda berhasil diperbarui.');
     }
