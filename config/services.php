@@ -37,6 +37,8 @@ return [
 
     'github' => [
         'token' => env('GITHUB_TOKEN'),
+        'repo_owner' => env('GITHUB_REPO_OWNER'),
+        'repo_name' => env('GITHUB_REPO_NAME'),
     ],
 
     'gemini' => [

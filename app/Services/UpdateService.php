@@ -16,15 +16,15 @@ class UpdateService
         $dbVersion = Pengaturan::where('key', 'app_version')->value('value');
         if ($dbVersion) return $dbVersion;
         
-        return config('app.version', env('APP_VERSION', '1.0.0'));
+        return config('app.version', '1.0.0');
     }
 
     public function checkForUpdates(): array
     {
         $owner = Pengaturan::where('key', 'github_repo_owner')->value('value')
-               ?: env('GITHUB_REPO_OWNER');
+               ?: config('services.github.repo_owner');
         $repo = Pengaturan::where('key', 'github_repo_name')->value('value')
-              ?: env('GITHUB_REPO_NAME');
+              ?: config('services.github.repo_name');
 
         if (empty($owner) || empty($repo)) {
             return [
