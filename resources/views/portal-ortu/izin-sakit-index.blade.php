@@ -73,8 +73,8 @@
                                     <span class="avatar-initial rounded-circle bg-label-info">{{ substr($row->user->name, 0, 2) }}</span>
                                 </div>
                                 <div class="d-flex flex-column">
-                                    <span class="fw-bold text-white">{{ $row->user->name }}</span>
-                                    <small class="text-muted" style="font-size: 0.72rem;">Kelas: {{ $row->user->siswa->kelas->nama ?? '-' }}</small>
+                                    <span class="fw-bold text-white">{{ $row->user?->name }}</span>
+                                    <small class="text-muted" style="font-size: 0.72rem;">Kelas: {{ $row->user?->siswa?->kelas?->nama ?? '-' }}</small>
                                 </div>
                             </div>
                         </td>

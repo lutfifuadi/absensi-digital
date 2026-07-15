@@ -2,16 +2,31 @@
 
 @section('title', 'Ajukan Izin/Sakit Anak')
 
+@section('page-style')
+<style>
+    /* Premium Border Radius Constraint (Max 5px) */
+    .card, .btn, .badge, .rounded, .rounded-circle, .avatar, .avatar-initial, .form-select, .form-control {
+        border-radius: 5px !important;
+    }
+    
+    /* Elegant Form Card */
+    .izin-create-card {
+        background: linear-gradient(135deg, rgba(115, 103, 240, 0.03) 0%, rgba(30, 41, 59, 0.01) 100%);
+        border-top: 4px solid #7367f0 !important;
+    }
+</style>
+@endsection
+
 @section('content')
 <div class="row mb-4">
     <div class="col-12 text-white">
         <div class="card border-0 text-white overflow-hidden shadow-sm"
-            style="background: linear-gradient(135deg, #7367f0 0%, #4338ca 100%); border-radius: 12px;">
+            style="background: linear-gradient(135deg, #7367f0 0%, #4338ca 100%); border-radius: 5px !important;">
             <div class="card-body p-4">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="rounded d-flex align-items-center justify-content-center shadow-sm"
-                            style="width:52px;height:52px;border-radius:10px !important;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);">
+                        <div class="d-flex align-items-center justify-content-center shadow-sm"
+                            style="width:52px;height:52px;border-radius:5px !important;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);">
                             <i class="ti tabler-file-plus text-white fs-3"></i>
                         </div>
                         <div>
@@ -34,8 +49,8 @@
 </div>
 
 <div class="row">
-    <div class="col-md-8 col-12 mx-auto">
-        <div class="card border-0 shadow-sm mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm mb-4 izin-create-card">
             <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 fw-bold text-white"><i class="ti tabler-forms me-2 text-primary"></i>Form Pengajuan Izin/Sakit</h5>
             </div>
@@ -49,7 +64,7 @@
                             <option value="">-- Pilih Anak --</option>
                             @foreach($anakList as $anak)
                                 <option value="{{ $anak->id }}" {{ (request('siswa_id') == $anak->id || old('siswa_id') == $anak->id) ? 'selected' : '' }}>
-                                    {{ $anak->nama_lengkap }} ({{ $anak->kelas->nama ?? '-' }})
+                                    {{ $anak->nama_lengkap }} ({{ $anak->kelas?->nama ?? '-' }})
                                 </option>
                             @endforeach
                         </select>
@@ -105,5 +120,4 @@
         </div>
     </div>
 </div>
-@endsection
 @endsection

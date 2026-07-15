@@ -2,16 +2,43 @@
 
 @section('title', 'Profil Anak - ' . $anak->nama_lengkap)
 
+@section('page-style')
+<style>
+    /* Premium Border Radius Constraint (Max 5px) */
+    .card, .btn, .badge, .rounded, .rounded-circle, .avatar, .avatar-initial {
+        border-radius: 5px !important;
+    }
+    
+    /* Elegant Sidebar Card */
+    .profile-sidebar-card {
+        background: linear-gradient(135deg, rgba(115, 103, 240, 0.03) 0%, rgba(30, 41, 59, 0.01) 100%);
+        border-top: 4px solid #7367f0 !important;
+    }
+
+    /* Elegant Academic Card */
+    .academic-info-card {
+        background: linear-gradient(135deg, rgba(40, 199, 111, 0.03) 0%, rgba(30, 41, 59, 0.01) 100%);
+        border-top: 4px solid #28c76f !important;
+    }
+
+    /* Elegant Quick Action Card */
+    .quick-action-card {
+        background: linear-gradient(135deg, rgba(255, 159, 67, 0.03) 0%, rgba(30, 41, 59, 0.01) 100%);
+        border-top: 4px solid #ff9f43 !important;
+    }
+</style>
+@endsection
+
 @section('content')
 <div class="row mb-4">
     <div class="col-12">
         <div class="card border-0 text-white overflow-hidden shadow-sm"
-            style="background: linear-gradient(135deg, #7367f0 0%, #4338ca 100%); border-radius: 12px;">
+            style="background: linear-gradient(135deg, #7367f0 0%, #4338ca 100%); border-radius: 5px !important;">
             <div class="card-body p-4">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="rounded d-flex align-items-center justify-content-center shadow-sm"
-                            style="width:52px;height:52px;border-radius:10px !important;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);">
+                        <div class="d-flex align-items-center justify-content-center shadow-sm"
+                            style="width:52px;height:52px;border-radius:5px !important;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);">
                             <i class="ti tabler-user text-white fs-3"></i>
                         </div>
                         <div>
@@ -35,36 +62,40 @@
     <!-- User Sidebar -->
     <div class="col-xl-4 col-lg-5 col-md-5 order-1 order-md-0">
         <!-- User Card -->
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card border-0 shadow-sm mb-4 profile-sidebar-card">
             <div class="card-body">
                 <div class="user-avatar-section">
                     <div class="d-flex align-items-center flex-column">
-                        @if($anak->foto)
-                            <img class="img-fluid rounded mb-3 pt-1" src="{{ asset('storage/' . $anak->foto) }}" height="120" width="120" alt="User avatar" style="object-fit: cover; border: 3px solid rgba(115, 103, 240, 0.2);" />
-                        @else
-                            <div class="avatar avatar-xl mb-3" style="width: 100px; height: 100px;">
-                                <span class="avatar-initial rounded-circle bg-label-primary fs-2">{{ substr($anak->nama_lengkap, 0, 2) }}</span>
-                            </div>
-                        @endif
+                        @php
+                          $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($anak->nama_lengkap) . '&size=200&background=7367f0&color=fff';
+                          if ($anak->foto) {
+                              if (strlen($anak->foto) > 30) {
+                                  $avatarUrl = 'https://drive.google.com/thumbnail?id=' . $anak->foto . '&sz=300&_t=' . time();
+                              } else {
+                                  $avatarUrl = asset('storage/' . $anak->foto);
+                              }
+                          }
+                        @endphp
+                        <img class="mb-3 pt-1" src="{{ $avatarUrl }}" height="120" width="120" alt="User avatar" style="border-radius: 5px; object-fit: cover; border: 3px solid rgba(115, 103, 240, 0.2);" />
                         <div class="user-info text-center">
                             <h5 class="mb-1 fw-bold">{{ $anak->nama_lengkap }}</h5>
-                            <span class="badge bg-label-secondary px-3 py-1.5 rounded-pill text-capitalize" style="font-size: 0.75rem;">Siswa ({{ $anak->status }})</span>
+                            <span class="badge bg-label-secondary px-3 py-1.5 text-capitalize" style="font-size: 0.75rem;">Siswa ({{ $anak->status }})</span>
                         </div>
                     </div>
                 </div>
                 <div class="d-flex justify-content-around flex-wrap mt-4 py-2 border-top border-bottom">
                     <div class="d-flex align-items-center py-2 gap-2">
-                        <span class="badge bg-label-primary p-2 rounded-circle"><i class="ti tabler-number fs-6"></i></span>
+                        <span class="badge bg-label-primary p-2"><i class="ti tabler-number fs-6"></i></span>
                         <div>
                             <p class="mb-0 fw-bold small text-muted">NISN</p>
                             <small class="fw-bold">{{ $anak->nisn }}</small>
                         </div>
                     </div>
                     <div class="d-flex align-items-center py-2 gap-2">
-                        <span class="badge bg-label-success p-2 rounded-circle"><i class="ti tabler-door fs-6"></i></span>
+                        <span class="badge bg-label-success p-2"><i class="ti tabler-door fs-6"></i></span>
                         <div>
                             <p class="mb-0 fw-bold small text-muted">Kelas</p>
-                            <small class="fw-bold">{{ $anak->kelas->nama ?? '-' }}</small>
+                            <small class="fw-bold">{{ $anak->kelas?->nama ?? '-' }}</small>
                         </div>
                     </div>
                 </div>
@@ -100,7 +131,7 @@
     <!-- User Content -->
     <div class="col-xl-8 col-lg-7 col-md-7 order-0 order-md-1">
         <!-- User Tabs -->
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card border-0 shadow-sm mb-4 academic-info-card">
             <div class="card-header border-bottom py-3">
                 <h5 class="card-title mb-0 fw-bold"><i class="ti tabler-school me-2 text-primary"></i>Informasi Akademik</h5>
             </div>
@@ -108,17 +139,17 @@
                 <div class="row g-4">
                     <div class="col-md-6 col-12">
                         <label class="form-label text-muted small text-uppercase fw-semibold" style="letter-spacing: 0.5px;">Tahun Akademik</label>
-                        <p class="fw-bold mb-0 text-white">{{ $anak->tahunAkademik->tahun ?? '-' }} ({{ $anak->tahunAkademik->semester ?? '-' }})</p>
+                        <p class="fw-bold mb-0 text-white">{{ $anak->tahunAkademik?->nama ?? '-' }} ({{ $anak->tahunAkademik?->semester ?? '-' }})</p>
                     </div>
                     <div class="col-md-6 col-12">
                         <label class="form-label text-muted small text-uppercase fw-semibold" style="letter-spacing: 0.5px;">Wali Kelas</label>
-                        <p class="fw-bold text-primary mb-0"><i class="ti tabler-user-check me-1 fs-5"></i>{{ $anak->kelas->guru->nama ?? 'Belum Ditentukan' }}</p>
+                        <p class="fw-bold text-primary mb-0"><i class="ti tabler-user-check me-1 fs-5"></i>{{ $anak->kelas?->waliKelas?->nama ?? 'Belum Ditentukan' }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow-sm quick-action-card">
             <div class="card-header border-bottom py-3">
                 <h5 class="card-title mb-0 fw-bold"><i class="ti tabler-rocket me-2 text-warning"></i>Quick Action</h5>
             </div>
@@ -140,5 +171,4 @@
     </div>
     <!--/ User Content -->
 </div>
-@endsection
 @endsection

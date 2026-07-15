@@ -18,9 +18,14 @@ class PortalOrangTuaController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        $anak = Siswa::with(['kelas.guru', 'tahunAkademik'])
+        $anak = Siswa::with(['kelas.waliKelas', 'tahunAkademik'])
             ->where('id', $id)
-            ->where('ortu_user_id', $user->id)
+            ->where(function($query) use ($user) {
+                $query->where('ortu_user_id', $user->id)
+                      ->orWhereHas('ortu', function($q) use ($user) {
+                          $q->where('users.id', $user->id);
+                      });
+            })
             ->firstOrFail();
 
         return view('portal-ortu.profil-anak', compact('anak'));
@@ -34,7 +39,12 @@ class PortalOrangTuaController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
         $anak = Siswa::where('id', $id)
-            ->where('ortu_user_id', $user->id)
+            ->where(function($query) use ($user) {
+                $query->where('ortu_user_id', $user->id)
+                      ->orWhereHas('ortu', function($q) use ($user) {
+                          $q->where('users.id', $user->id);
+                      });
+            })
             ->firstOrFail();
 
         $month = $request->query('month', now()->month);

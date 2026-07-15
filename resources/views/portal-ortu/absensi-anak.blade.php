@@ -2,16 +2,31 @@
 
 @section('title', 'Riwayat Absensi - ' . $anak->nama_lengkap)
 
+@section('page-style')
+<style>
+    /* Premium Border Radius Constraint (Max 5px) */
+    .card, .btn, .badge, .rounded, .rounded-circle, .avatar, .avatar-initial, .form-select, .form-control {
+        border-radius: 5px !important;
+    }
+    
+    /* Elegant Sidebar Card */
+    .absensi-card {
+        background: linear-gradient(135deg, rgba(115, 103, 240, 0.03) 0%, rgba(30, 41, 59, 0.01) 100%);
+        border-top: 4px solid #7367f0 !important;
+    }
+</style>
+@endsection
+
 @section('content')
 <div class="row mb-4">
     <div class="col-12">
         <div class="card border-0 text-white overflow-hidden shadow-sm"
-            style="background: linear-gradient(135deg, #7367f0 0%, #4338ca 100%); border-radius: 12px;">
+            style="background: linear-gradient(135deg, #7367f0 0%, #4338ca 100%); border-radius: 5px !important;">
             <div class="card-body p-4">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="rounded d-flex align-items-center justify-content-center shadow-sm"
-                            style="width:52px;height:52px;border-radius:10px !important;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);">
+                        <div class="d-flex align-items-center justify-content-center shadow-sm"
+                            style="width:52px;height:52px;border-radius:5px !important;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);">
                             <i class="ti tabler-calendar-stats text-white fs-3"></i>
                         </div>
                         <div>
@@ -31,23 +46,23 @@
     </div>
 </div>
 
-<div class="card border-0 shadow-sm mb-4">
+<div class="card border-0 shadow-sm mb-4 absensi-card">
     <div class="card-header border-bottom py-3">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <h5 class="card-title mb-0 fw-bold text-white"><i class="ti tabler-list-check me-2 text-primary"></i>Absensi {{ $anak->nama_lengkap }}</h5>
             
-            <form action="{{ route('ortu.anak.absensi', $anak->id) }}" method="GET" class="d-flex gap-2">
-                <select name="month" class="form-select form-select-sm">
+            <form action="{{ route('ortu.anak.absensi', $anak->id) }}" method="GET" class="d-flex align-items-center gap-2">
+                <select name="month" class="form-select form-select-sm" style="height: 35px; min-width: 120px;">
                     @for($m=1; $m<=12; $m++)
                         <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>{{ \Carbon\Carbon::create(2000, $m, 1)->translatedFormat('F') }}</option>
                     @endfor
                 </select>
-                <select name="year" class="form-select form-select-sm">
+                <select name="year" class="form-select form-select-sm" style="height: 35px; min-width: 90px;">
                     @for($y=now()->year; $y>=now()->year-2; $y--)
                         <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
                     @endfor
                 </select>
-                <button type="submit" class="btn btn-sm btn-primary py-1 px-3">Filter</button>
+                <button type="submit" class="btn btn-sm btn-primary px-3 fw-semibold d-flex align-items-center justify-content-center" style="height: 35px;">Filter</button>
             </form>
         </div>
     </div>
@@ -57,6 +72,7 @@
                 <tr>
                     <th class="py-3">Tanggal</th>
                     <th class="py-3">Jam Masuk</th>
+                    <th class="py-3">Jam Pulang</th>
                     <th class="py-3">Status</th>
                     <th class="py-3">Metode</th>
                 </tr>
@@ -66,6 +82,7 @@
                     <tr>
                         <td class="fw-semibold text-white py-3">{{ \Carbon\Carbon::parse($row->tanggal)->translatedFormat('d M Y') }}</td>
                         <td class="text-white">{{ $row->jam_masuk ?? '-' }}</td>
+                        <td class="text-white">{{ $row->jam_pulang ?? '-' }}</td>
                         <td>
                             @php
                                 $badgeClass = match($row->status) {
@@ -83,7 +100,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="text-center py-5">
+                        <td colspan="5" class="text-center py-5">
                             <div class="d-flex flex-column align-items-center gap-2 opacity-50 text-white">
                                 <i class="ti tabler-calendar-off" style="font-size: 2.5rem;"></i>
                                 <span class="small">Tidak ada data absensi untuk bulan ini.</span>

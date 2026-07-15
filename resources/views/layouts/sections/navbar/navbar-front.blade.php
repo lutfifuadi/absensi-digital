@@ -97,7 +97,8 @@ $namaSekolah = \App\Models\Pengaturan::where('key', 'nama_lembaga')->value('valu
           <i class="ti tabler-school text-white fs-5"></i>
         </div>
       @endif
-      <span>{{ $namaSekolah }}</span>
+      <span class="d-none d-lg-inline">{{ $namaSekolah }}</span>
+      <span class="d-inline d-lg-none">E-Absensi</span>
     </a>
     
     <button class="navbar-toggler border-0 p-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
@@ -115,7 +116,7 @@ $namaSekolah = \App\Models\Pengaturan::where('key', 'nama_lembaga')->value('valu
          @elseif ($logoUrl)
            <img src="{{ $logoUrl }}" alt="Logo" style="height:40px;width:auto;margin-bottom:8px;border-radius:6px;object-fit:contain;">
          @endif
-         <span class="fw-bold text-primary fs-4">{{ $namaSekolah }}</span>
+         <span class="fw-bold text-primary fs-4">E-Absensi</span>
          <hr class="border-secondary opacity-25">
       </div>
 

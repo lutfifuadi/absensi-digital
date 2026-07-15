@@ -46,6 +46,51 @@
     .st-izin { background: rgba(255, 159, 67, 0.15) !important; color: #ff9f43 !important; }
     .st-alpha { background: rgba(234, 84, 85, 0.15) !important; color: #ea5455 !important; }
     .st-terlambat { background: rgba(168, 170, 174, 0.15) !important; color: #a8aaae !important; }
+
+    /* PAGINATION */
+    .das-page-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      height: 32px;
+      padding: 0 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: transparent;
+      color: #888;
+      text-decoration: none;
+      transition: all 0.18s ease;
+      cursor: pointer;
+      line-height: 1;
+      font-family: inherit;
+    }
+
+    .das-page-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .das-page-active {
+      background: #7367f0 !important;
+      color: #fff !important;
+      border-color: #7367f0 !important;
+    }
+
+    .das-page-dots {
+      border-color: transparent;
+      background: transparent;
+      color: #555;
+      pointer-events: none;
+    }
+
+    .page-item.disabled .das-page-btn {
+      opacity: 0.35;
+      pointer-events: none;
+    }
   </style>
 @endsection
 
@@ -106,7 +151,7 @@
           <select class="form-select form-select-sm" name="bulan" style="background: rgba(15, 23, 42, 0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
             @for ($m = 1; $m <= 12; $m++)
               <option value="{{ $m }}" @selected($filters['bulan'] == $m)>
-                {{ \Carbon\Carbon::createFromDate(null, $m)->translatedFormat('F') }}</option>
+                {{ \Carbon\Carbon::createFromDate(null, $m)->locale('id')->translatedFormat('F') }}</option>
             @endfor
           </select>
         </div>
@@ -246,7 +291,7 @@
         <h6 class="card-title mb-0 text-white">
           <i class="ti tabler-table text-info"></i> Tabel Rekap — 
           <span class="text-info">{{ $kelas->nama ?? 'Semua' }}</span> —
-          {{ \Carbon\Carbon::createFromDate($filters['tahun'], $filters['bulan'], 1)->translatedFormat('F Y') }}
+          {{ \Carbon\Carbon::createFromDate($filters['tahun'], $filters['bulan'], 1)->locale('id')->translatedFormat('F Y') }}
         </h6>
       </div>
       <div class="card-body p-0">
@@ -280,7 +325,7 @@
                   $cT = collect($pivot)->filter(fn($v) => $v === 'terlambat')->count();
                 @endphp
                 <tr>
-                  <td class="text-center sticky-col start-0 text-white-50" style="z-index:1; border-right: 1px solid rgba(255,255,255,0.08);">{{ $loop->iteration }}</td>
+                  <td class="text-center sticky-col start-0 text-white-50" style="z-index:1; border-right: 1px solid rgba(255,255,255,0.08);">{{ ($siswaList->currentPage() - 1) * $siswaList->perPage() + $loop->iteration }}</td>
                   <td class="sticky-col fw-semibold text-white" style="left:30px; z-index:1; border-right: 1px solid rgba(255,255,255,0.08);">{{ $siswa->nama_lengkap }}</td>
                   @foreach ($dates as $date)
                     @php $st = $pivot[$date] ?? null; @endphp
@@ -299,6 +344,16 @@
             </tbody>
           </table>
         </div>
+        @if ($siswaList instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator && $siswaList->hasPages())
+          <div class="card-footer border-top py-3 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3" style="background:transparent; border-color: rgba(255,255,255,0.08) !important;">
+            <div class="text-white-50 small">
+              Menampilkan {{ $siswaList->firstItem() }} sampai {{ $siswaList->lastItem() }} dari {{ $siswaList->total() }} siswa
+            </div>
+            <div>
+              {{ $siswaList->links('vendor.pagination.users') }}
+            </div>
+          </div>
+        @endif
       </div>
     </div>
   @else

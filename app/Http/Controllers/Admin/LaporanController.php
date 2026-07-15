@@ -24,7 +24,10 @@ class LaporanController extends Controller
 {
     public function index(Request $request)
     {
-        $kelasOptions = Kelas::orderBy('nama')->get();
+        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'))
+            ?? \App\Models\TahunAkademik::where('is_aktif', true)->value('id');
+
+        $kelasOptions = Kelas::where('tahun_akademik_id', $tahunAjaranId)->orderBy('nama')->get();
         $filters = [
             'kelas_id' => $request->input('kelas_id'),
             'bulan'    => (int) $request->input('bulan', now()->month),
@@ -38,8 +41,8 @@ class LaporanController extends Controller
         if ($filters['kelas_id']) {
             $siswaList = Siswa::where('kelas_id', $filters['kelas_id'])
                 ->orderBy('nama_lengkap')
-                ->limit(100)
-                ->get();
+                ->paginate(10)
+                ->withQueryString();
 
             if ($siswaList->isNotEmpty()) {
                 $daysInMonth = Carbon::createFromDate($filters['tahun'], $filters['bulan'], 1)->daysInMonth;
@@ -139,7 +142,10 @@ class LaporanController extends Controller
 
     public function rekapHarian(Request $request)
     {
-        $kelasOptions = Kelas::orderBy('nama')->get();
+        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'))
+            ?? \App\Models\TahunAkademik::where('is_aktif', true)->value('id');
+
+        $kelasOptions = Kelas::where('tahun_akademik_id', $tahunAjaranId)->orderBy('nama')->get();
         $tanggal = $request->input('tanggal', now()->toDateString());
         $kelasId = $request->input('kelas_id');
 

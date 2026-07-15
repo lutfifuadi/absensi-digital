@@ -238,6 +238,27 @@ Route::middleware([
     // ── PORTAL ORANG TUA ──────────────────────────────────────────────────────
     Route::prefix('ortu')->middleware('ortu')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('ortu.dashboard');
+        Route::get('/anak', function() {
+            /** @var \App\Models\User $user */
+            $user = auth()->user();
+            $activeSiswaId = session('active_siswa_id');
+            if (!$activeSiswaId) {
+                $firstAnak = \App\Models\Siswa::where(function($query) use ($user) {
+                    $query->where('ortu_user_id', $user->id)
+                          ->orWhereHas('ortu', function($q) use ($user) {
+                              $q->where('users.id', $user->id);
+                          });
+                })->first();
+                if ($firstAnak) {
+                    $activeSiswaId = $firstAnak->id;
+                    session(['active_siswa_id' => $activeSiswaId]);
+                }
+            }
+            if ($activeSiswaId) {
+                return redirect()->route('ortu.anak.profil', $activeSiswaId);
+            }
+            return redirect()->route('ortu.dashboard');
+        });
         Route::post('/switch-anak', [DashboardController::class, 'switchAnak'])->name('ortu.switch-anak');
         Route::get('/anak/{id}/profil', [PortalOrangTuaController::class, 'profilAnak'])->name('ortu.anak.profil');
         Route::get('/anak/{id}/absensi', [PortalOrangTuaController::class, 'absensiAnak'])->name('ortu.anak.absensi');

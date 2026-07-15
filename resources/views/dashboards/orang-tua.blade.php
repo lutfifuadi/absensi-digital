@@ -8,7 +8,7 @@
     .premium-card {
         background: #ffffff;
         border: 1px solid rgba(0, 0, 0, 0.05) !important;
-        border-radius: 16px !important;
+        border-radius: 5px !important;
         box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02) !important;
         transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
@@ -33,7 +33,7 @@
         position: relative;
         overflow: hidden;
         background: linear-gradient(135deg, #7367f0 0%, #4338ca 100%);
-        border-radius: 16px;
+        border-radius: 5px;
         color: #ffffff;
     }
     .welcome-card::after {
@@ -52,7 +52,7 @@
     .stat-circle {
         width: 50px;
         height: 50px;
-        border-radius: 50%;
+        border-radius: 5px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -88,7 +88,7 @@
 
     .badge-dynamic {
         padding: 6px 12px;
-        border-radius: 30px;
+        border-radius: 4px;
         font-weight: 600;
         letter-spacing: 0.3px;
         display: inline-flex;
@@ -119,7 +119,7 @@
 
     /* Quick Actions panel */
     .quick-action-btn {
-        border-radius: 12px;
+        border-radius: 5px;
         padding: 12px 16px;
         font-weight: 600;
         display: flex;
@@ -151,7 +151,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        border-radius: 8px;
+        border-radius: 4px;
         font-size: 0.85rem;
         font-weight: 600;
         position: relative;
@@ -213,7 +213,7 @@
         transition: all 0.2s ease;
         border: 2px solid transparent;
         padding: 4px;
-        border-radius: 50%;
+        border-radius: 5px;
     }
     .profile-switch-btn.active {
         border-color: #7367f0;
@@ -236,7 +236,7 @@
             <p class="card-text mb-0 opacity-85">Pantau kehadiran, status izin, dan perkembangan akademik putra-putri Anda secara real-time.</p>
           </div>
           <div class="text-md-end">
-            <span class="badge bg-white text-primary px-3 py-2 fw-bold" style="border-radius: 30px; font-size: 0.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.08);">
+            <span class="badge bg-white text-primary px-3 py-2 fw-bold" style="border-radius: 4px; font-size: 0.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.08);">
               Wali Murid Dashboard
             </span>
           </div>
@@ -263,7 +263,7 @@
     
     <!-- Profile Switcher & Selector (Jika Multi-Anak) -->
     @if($anakList->count() > 1)
-      <div class="card premium-card mb-4">
+      <div class="card premium-card mb-4" style="background: linear-gradient(135deg, rgba(0, 207, 221, 0.05) 0%, rgba(115, 103, 240, 0.02) 100%); border-left: 4px solid #00cfdd !important;">
         <div class="card-body p-3">
           <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div class="d-flex align-items-center gap-2">
@@ -271,21 +271,24 @@
               <div>
                 <h6 class="mb-0 fw-bold">Pilih Anak Aktif</h6>
                 <small class="text-muted">Ganti profil untuk melihat rekap kehadiran</small>
-              </div>
             </div>
             <div class="d-flex align-items-center gap-3">
               @foreach($anakList as $child)
+                @php
+                  $childAvatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($child->nama_lengkap) . '&size=100&background=7367f0&color=fff';
+                  if ($child->foto) {
+                      if (strlen($child->foto) > 30) {
+                          $childAvatarUrl = 'https://drive.google.com/thumbnail?id=' . $child->foto . '&sz=w200&_t=' . time();
+                      } else {
+                          $childAvatarUrl = asset('storage/' . $child->foto);
+                      }
+                  }
+                @endphp
                 <form action="{{ route('ortu.switch-anak') }}" method="POST" class="d-inline">
                   @csrf
                   <input type="hidden" name="siswa_id" value="{{ $child->id }}">
                   <button type="submit" class="btn p-0 profile-switch-btn {{ $activeAnak->id == $child->id ? 'active' : '' }}" title="{{ $child->nama_lengkap }}">
-                    @if($child->foto)
-                      <img src="{{ asset('storage/' . $child->foto) }}" alt="{{ $child->nama_lengkap }}" class="rounded-circle" style="width: 48px; height: 48px; object-fit: cover;">
-                    @else
-                      <div class="rounded-circle bg-label-primary d-flex align-items-center justify-content-center fw-bold" style="width: 48px; height: 48px; font-size: 1.2rem;">
-                        {{ substr($child->nama_lengkap, 0, 1) }}
-                      </div>
-                    @endif
+                    <img src="{{ $childAvatarUrl }}" alt="{{ $child->nama_lengkap }}" style="border-radius: 5px; width: 48px; height: 48px; object-fit: cover;">
                   </button>
                 </form>
               @endforeach
@@ -298,16 +301,47 @@
     <div class="row g-4">
       <!-- Info & Ringkasan Kehadiran Hari Ini -->
       <div class="col-md-6 col-xl-4">
-        <div class="card h-100 premium-card">
+        @php
+          $cardBg = 'background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.05) !important;';
+          $statusBorderColor = '#7367f0';
+          if ($absensiHariIni) {
+              $statusBorderColor = match($absensiHariIni->status) {
+                  'hadir' => '#28c76f',
+                  'terlambat' => '#ff9f43',
+                  'sakit' => '#00cfdd',
+                  'izin' => '#7367f0',
+                  'alpha' => '#ea5455',
+                  default => '#7367f0'
+              };
+          } else {
+              $statusBorderColor = '#ff9f43';
+          }
+          
+          $cardBg = "background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.98) 100%); border-left: 4px solid {$statusBorderColor} !important;";
+          
+          $statusBoxStyle = match($absensiHariIni ? $absensiHariIni->status : 'belum_absen') {
+              'hadir' => 'background: linear-gradient(135deg, rgba(40, 199, 111, 0.12) 0%, rgba(40, 199, 111, 0.03) 100%); border: 1px solid rgba(40, 199, 111, 0.2) !important;',
+              'terlambat' => 'background: linear-gradient(135deg, rgba(255, 159, 67, 0.12) 0%, rgba(255, 159, 67, 0.03) 100%); border: 1px solid rgba(255, 159, 67, 0.2) !important;',
+              'sakit' => 'background: linear-gradient(135deg, rgba(0, 207, 221, 0.12) 0%, rgba(0, 207, 221, 0.03) 100%); border: 1px solid rgba(0, 207, 221, 0.2) !important;',
+              'izin' => 'background: linear-gradient(135deg, rgba(115, 103, 240, 0.12) 0%, rgba(115, 103, 240, 0.03) 100%); border: 1px solid rgba(115, 103, 240, 0.2) !important;',
+              'alpha' => 'background: linear-gradient(135deg, rgba(234, 84, 85, 0.12) 0%, rgba(234, 84, 85, 0.03) 100%); border: 1px solid rgba(234, 84, 85, 0.2) !important;',
+              default => 'background: linear-gradient(135deg, rgba(255, 159, 67, 0.12) 0%, rgba(255, 159, 67, 0.03) 100%); border: 1px solid rgba(255, 159, 67, 0.2) !important;'
+          };
+        @endphp
+        <div class="card h-100 premium-card" style="{{ $cardBg }}">
           <div class="card-header d-flex justify-content-between align-items-center border-bottom pb-3">
             <div class="d-flex align-items-center gap-2">
-              @if($activeAnak->foto)
-                <img src="{{ asset('storage/' . $activeAnak->foto) }}" alt="{{ $activeAnak->nama_lengkap }}" class="rounded-circle" style="width: 42px; height: 42px; object-fit: cover;">
-              @else
-                <div class="avatar avatar-md bg-label-primary rounded-circle d-flex align-items-center justify-content-center fw-bold">
-                  {{ substr($activeAnak->nama_lengkap, 0, 1) }}
-                </div>
-              @endif
+              @php
+                $activeAvatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($activeAnak->nama_lengkap) . '&size=100&background=7367f0&color=fff';
+                if ($activeAnak->foto) {
+                    if (strlen($activeAnak->foto) > 30) {
+                        $activeAvatarUrl = 'https://drive.google.com/thumbnail?id=' . $activeAnak->foto . '&sz=w200&_t=' . time();
+                    } else {
+                        $activeAvatarUrl = asset('storage/' . $activeAnak->foto);
+                    }
+                }
+              @endphp
+              <img src="{{ $activeAvatarUrl }}" alt="{{ $activeAnak->nama_lengkap }}" style="border-radius: 5px; width: 42px; height: 42px; object-fit: cover;">
               <div>
                 <h5 class="mb-0 fw-bold text-truncate" style="max-width: 160px;" title="{{ $activeAnak->nama_lengkap }}">
                   {{ $activeAnak->nama_lengkap }}
@@ -327,7 +361,7 @@
               Status Presensi Hari Ini
             </h6>
             
-            <div class="text-center py-3 mb-4 rounded bg-light dark-bg-dark border position-relative overflow-hidden">
+            <div class="text-center py-4 mb-4 position-relative overflow-hidden" style="border-radius: 5px !important; {{ $statusBoxStyle }}">
               @if($absensiHariIni)
                 @php
                   $statusLabel = match($absensiHariIni->status) {
@@ -346,25 +380,25 @@
                       'alpha' => 'text-danger',
                       default => 'text-muted'
                   };
-                  $statusBg = match($absensiHariIni->status) {
-                      'hadir' => 'bg-label-success',
-                      'terlambat' => 'bg-label-warning',
-                      'sakit' => 'bg-label-info',
-                      'izin' => 'bg-label-primary',
-                      'alpha' => 'bg-label-danger',
-                      default => 'bg-label-secondary'
+                  $statusBgSolid = match($absensiHariIni->status) {
+                      'hadir' => 'background: #28c76f; color: #ffffff;',
+                      'terlambat' => 'background: #ff9f43; color: #ffffff;',
+                      'sakit' => 'background: #00cfdd; color: #ffffff;',
+                      'izin' => 'background: #7367f0; color: #ffffff;',
+                      'alpha' => 'background: #ea5455; color: #ffffff;',
+                      default => 'background: #a8aaae; color: #ffffff;'
                   };
                 @endphp
-                <div class="d-inline-block p-3 rounded-circle {{ $statusBg }} mb-2">
+                <div class="d-inline-block p-3 mb-2 shadow-sm" style="border-radius: 5px !important; {{ $statusBgSolid }}">
                   <i class="ti {{ $absensiHariIni->status == 'hadir' || $absensiHariIni->status == 'terlambat' ? 'tabler-check' : 'tabler-clock' }} fs-2"></i>
                 </div>
                 <h3 class="fw-bold {{ $statusColor }} mb-1">{{ $statusLabel }}</h3>
                 <p class="text-muted small mb-0">Tercatat Jam: <span class="fw-bold text-dark dark-text-light">{{ $absensiHariIni->jam_masuk ?? '-' }}</span></p>
                 @if($absensiHariIni->metode)
-                  <span class="badge bg-label-dark mt-2" style="font-size: 0.65rem;">Scan: {{ strtoupper($absensiHariIni->metode) }}</span>
+                  <span class="badge bg-label-dark mt-2" style="border-radius: 4px; font-size: 0.65rem;">Scan: {{ strtoupper($absensiHariIni->metode) }}</span>
                 @endif
               @else
-                <div class="d-inline-block p-3 rounded-circle bg-label-warning pulse-amber mb-2">
+                <div class="d-inline-block p-3 bg-warning text-white pulse-amber mb-2" style="border-radius: 5px !important;">
                   <i class="ti tabler-loader fs-2 animate-spin"></i>
                 </div>
                 <h3 class="fw-bold text-warning mb-1">Belum Absen</h3>
@@ -373,10 +407,10 @@
             </div>
 
             <div class="d-flex flex-column gap-2">
-              <a href="{{ route('ortu.izin-sakit.create') }}" class="btn btn-primary py-2 w-full" style="border-radius: 10px; font-weight: 600;">
+              <a href="{{ route('ortu.izin-sakit.create') }}" class="btn btn-primary py-2 w-full" style="border-radius: 5px; font-weight: 600;">
                 <i class="ti tabler-file-text me-1 fs-5"></i> Ajukan Izin / Sakit
               </a>
-              <a href="{{ route('ortu.anak.profil', $activeAnak->id) }}" class="btn btn-outline-secondary py-2 w-full" style="border-radius: 10px; font-weight: 600;">
+              <a href="{{ route('ortu.anak.profil', $activeAnak->id) }}" class="btn btn-outline-secondary py-2 w-full" style="border-radius: 5px; font-weight: 600;">
                 <i class="ti tabler-user-circle me-1 fs-5"></i> Lihat Detail Profil Anak
               </a>
             </div>
@@ -386,7 +420,7 @@
 
       <!-- Ringkasan Performa Bulanan & Kalender Widget -->
       <div class="col-md-6 col-xl-8">
-        <div class="card h-100 premium-card">
+        <div class="card h-100 premium-card" style="background: linear-gradient(135deg, rgba(115, 103, 240, 0.03) 0%, rgba(30, 41, 59, 0.01) 100%); border-top: 4px solid #7367f0 !important;">
           <div class="card-header border-bottom pb-3">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
               <div>
@@ -534,7 +568,7 @@
       <div class="card premium-card" style="background: linear-gradient(135deg, rgba(37, 211, 102, 0.05) 0%, rgba(18, 140, 126, 0.02) 100%); border-left: 5px solid #25d366 !important;">
         <div class="card-body p-4">
           <div class="d-flex gap-3 align-items-center flex-column flex-sm-row">
-            <div class="avatar bg-label-success p-3 rounded" style="background: rgba(37, 211, 102, 0.15) !important; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+            <div class="avatar bg-label-success p-3 rounded" style="background: rgba(37, 211, 102, 0.15) !important; border-radius: 5px !important; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
               <i class="ti tabler-brand-whatsapp text-success fs-1"></i>
             </div>
             <div>
