@@ -827,19 +827,18 @@ function beep(type = 'success') {
 }
 
 // ─── SCANNER VARS ─────────────────────────────────────────────────────────
-let isProcessing = false, lastQR = '', lastQRTime = 0, scanCount = 0;
+let lastQR = '', lastQRTime = 0, scanCount = 0;
 
 // ─── HANDLE SCAN → SERVER ─────────────────────────────────────────────────
 async function handleScan(qrCode) {
   // Implementasi cooldown untuk QR yang sama
   const now = Date.now();
   if (qrCode === lastQR && (now - lastQRTime) < 3000) {
-    // Tampilkan toast warning tapi jangan set isProcessing agar scanner tetap siap menerima QR lain
+    // Tampilkan toast warning
     showToast('warning', '⚠️', null, 'QR yang sama baru saja di-scan. Silakan tunggu 3 detik.');
     return;
   }
 
-  isProcessing = true;
   lastQR = qrCode;
   lastQRTime = now;
 
@@ -866,8 +865,6 @@ async function handleScan(qrCode) {
   } catch(e) {
     showToast('error', '❌', null, 'Gagal terhubung ke server. Coba lagi.');
     beep('error');
-  } finally {
-    isProcessing = false;
   }
 }
 
@@ -1004,18 +1001,39 @@ setInterval(refreshLeaderboard, REFRESH_MS);
     if (hwIndicator) { hwIndicator.textContent = type === 'scanning' ? '🔌 HW: Scanning…' : '🔌 HW: Piket Aktif'; hwIndicator.style.color = s.color; }
   }
 
+  // Queue state inside the IIFE
+  let scanQueue = [];
+  let isProcessingQueue = false;
+
+  async function processQueue() {
+    if (isProcessingQueue) return;
+    isProcessingQueue = true;
+
+    while (scanQueue.length > 0) {
+      const code = scanQueue.shift();
+      setStatus('scanning');
+      await handleScan(code);
+    }
+
+    if (document.activeElement === hwInput) {
+      setStatus('ready');
+    } else {
+      setStatus('lost');
+    }
+    isProcessingQueue = false;
+    ensureFocus();
+  }
+
   // ── Commit: proses kode yang terkumpul di buffer ──────────────────────────
   async function commitScan() {
     const code = buffer.trim();
     buffer = '';
     hwInput.value = '';
     if (commitTmr) { clearTimeout(commitTmr); commitTmr = null; }
-    if (code.length < MIN_CODE_LENGTH || isProcessing) return;
+    if (code.length < MIN_CODE_LENGTH) return;
 
-    setStatus('scanning');
-    await handleScan(code);
-    setStatus('ready');
-    ensureFocus();
+    scanQueue.push(code);
+    processQueue();
   }
 
   // ── Input handler: terima karakter dari scanner ──────────────────────────
@@ -1055,7 +1073,7 @@ setInterval(refreshLeaderboard, REFRESH_MS);
       hwInput.focus({ preventScroll: true });
       // Jika ada elemen lain yang butuh fokus (modal, dll), jangan rebut
       if (document.activeElement === hwInput) {
-        setStatus('ready');
+        if (!isProcessingQueue) setStatus('ready');
       } else {
         setStatus('lost');
       }
@@ -1086,7 +1104,9 @@ setInterval(refreshLeaderboard, REFRESH_MS);
       if (document.activeElement !== hwInput) setStatus('lost');
     }, 100);
   });
-  hwInput.addEventListener('focus', () => setStatus('ready'));
+  hwInput.addEventListener('focus', () => {
+    if (!isProcessingQueue) setStatus('ready');
+  });
 
   // Status awal
   setStatus('ready');
