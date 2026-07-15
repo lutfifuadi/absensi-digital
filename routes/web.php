@@ -322,6 +322,9 @@ Route::middleware([
         Route::get('/holidays', [DashboardController::class, 'holidays'])
             ->middleware('role:super_admin,admin_sekolah')
             ->name('admin.holidays');
+        Route::post('/holidays/sync', [DashboardController::class, 'holidaysSync'])
+            ->middleware('role:super_admin,admin_sekolah')
+            ->name('admin.holidays.sync');
         Route::post('/holidays', [DashboardController::class, 'holidaysStore'])
             ->middleware('role:super_admin,admin_sekolah')
             ->name('admin.holidays.store');

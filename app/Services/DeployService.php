@@ -126,10 +126,33 @@ class DeployService
                 'commit_message' => $commitInfo['message'],
             ]);
 
-            // Step 4: composer install
-            $this->updateProgress($progress, $steps['composer']['label'], $steps['composer']['progress'], $logOutput);
-            $this->runProcess(['composer', 'install', '--no-dev', '--optimize-autoloader'], 300);
-            $logOutput .= "[OK] composer install\n";
+            // Step 4: composer install (Hanya jika composer.json atau composer.lock berubah)
+            $composerChanged = false;
+            try {
+                $diffProcess = new Process(['git', 'diff', '--name-only', 'HEAD@{1}', 'HEAD'], base_path(), $this->env);
+                $diffProcess->run();
+                if ($diffProcess->isSuccessful()) {
+                    $files = explode("\n", trim($diffProcess->getOutput()));
+                    foreach ($files as $f) {
+                        if (str_contains($f, 'composer.json') || str_contains($f, 'composer.lock')) {
+                            $composerChanged = true;
+                            break;
+                        }
+                    }
+                } else {
+                    $composerChanged = true;
+                }
+            } catch (\Exception $e) {
+                $composerChanged = true;
+            }
+
+            if ($composerChanged) {
+                $this->updateProgress($progress, $steps['composer']['label'], $steps['composer']['progress'], $logOutput);
+                $this->runProcess(['composer', 'install', '--no-dev', '--optimize-autoloader'], 300);
+                $logOutput .= "[OK] composer install\n";
+            } else {
+                $logOutput .= "[SKIP] composer install (tidak ada perubahan dependensi PHP)\n";
+            }
 
             // Step 5: migrate
             $this->updateProgress($progress, $steps['migrate']['label'], $steps['migrate']['progress'], $logOutput);

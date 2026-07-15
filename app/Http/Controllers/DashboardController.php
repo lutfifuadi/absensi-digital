@@ -328,6 +328,47 @@ return response()->json([
         return view('admin.holidays', compact('holidays', 'year'));
     }
 
+    public function holidaysSync(Request $request)
+    {
+        $year = (int) $request->input('year', now()->year);
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withoutVerifying()->get('https://raw.githubusercontent.com/guangrei/APIHariLibur_V2/main/calendar.json');
+            
+            if ($response->successful()) {
+                $data = $response->json();
+                
+                // Sync target year, year - 1, and year + 1
+                $years = [$year - 1, $year, $year + 1];
+
+                foreach ($data as $date => $info) {
+                    if (isset($info['holiday']) && $info['holiday'] === true) {
+                        $parsedYear = (int) date('Y', strtotime($date));
+                        
+                        if (in_array($parsedYear, $years)) {
+                            $summary = $info['summary'][0] ?? 'Hari Libur Nasional';
+                            
+                            Holiday::updateOrCreate(
+                                ['tanggal' => $date],
+                                [
+                                    'nama' => $summary,
+                                    'jenis' => 'national',
+                                    'is_national_holiday' => true
+                                ]
+                            );
+                        }
+                    }
+                }
+
+                return back()->with('success', 'Hari libur nasional berhasil disinkronkan dari API.');
+            }
+            
+            return back()->with('error', 'Gagal mengambil data dari API Hari Libur.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan saat sinkronisasi: ' . $e->getMessage());
+        }
+    }
+
     public function holidaysStore(Request $request)
     {
         $validated = $request->validate([

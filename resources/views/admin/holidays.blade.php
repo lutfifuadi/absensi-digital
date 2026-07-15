@@ -198,6 +198,16 @@
             @if($holidays->isNotEmpty())
               <span class="das-chip das-chip--primary">{{ $holidays->count() }} Libur</span>
             @endif
+            
+            {{-- Form Sinkronisasi Libur Nasional --}}
+            <form action="{{ route('admin.holidays.sync') }}" method="POST" onsubmit="this.querySelector('button').disabled = true; this.querySelector('.ti').className = 'ti tabler-loader spinner';">
+              @csrf
+              <input type="hidden" name="year" value="{{ $year }}">
+              <button type="submit" class="das-btn das-btn--ghost">
+                <i class="ti tabler-refresh me-1"></i> Sinkronisasi Libur Nasional
+              </button>
+            </form>
+
             <form method="GET" class="d-flex align-items-center gap-2">
               <label class="das-form-label mb-0" style="font-size:.7rem;">Tahun:</label>
               <select name="year" class="form-select form-select-sm das-select" style="width:90px;" onchange="this.form.submit()">
