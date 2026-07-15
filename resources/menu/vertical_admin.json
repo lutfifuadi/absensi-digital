@@ -245,7 +245,7 @@
     },
     {
       "name": "Profil Sekolah",
-      "icon": "menu-icon ti tabler-building-school",
+      "icon": "menu-icon ti tabler-file-info",
       "slug": "admin.pengaturan.index",
       "url": "/admin/pengaturan"
     },
