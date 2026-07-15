@@ -41,8 +41,91 @@ class UpdateController extends Controller
         ], 422);
     }
 
-    public function update()
+    public function update(Request $request)
     {
+        // 1. Validasi Lisensi via API Pusat sebelum update
+        $licenseKey = env('LICENSE_KEY');
+        $domain = env('REGISTERED_DOMAIN');
+
+        if (empty($licenseKey) || empty($domain)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lisensi atau Domain belum dikonfigurasi. Silakan aktifkan lisensi terlebih dahulu.',
+            ], 403);
+        }
+
+        // Bypass for development
+        if ($licenseKey !== 'DEV-MASTER-KEY') {
+            try {
+                $response = \Illuminate\Support\Facades\Http::withoutVerifying()->asForm()->timeout(20)->post('https://saas-presensi.lutfifuadi.my.id/api/license/verify', [
+                    'license_key' => $licenseKey,
+                    'domain' => $domain,
+                ]);
+
+                $result = $response->json();
+
+                if (!$response->successful() || empty($result['success'])) {
+                    $errorMsg = 'Lisensi tidak valid. Proses update dibatalkan.';
+                    if (isset($result['message'])) {
+                        $errorMsg .= ' Detail: ' . $result['message'];
+                    }
+                    return response()->json([
+                        'success' => false,
+                        'message' => $errorMsg,
+                    ], 403);
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('License Check Error during System Update: ' . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal verifikasi lisensi (Server Error). Pastikan server terhubung ke internet.',
+                ], 500);
+            }
+        }
+
+        // Set time limit
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(600);
+        }
+        ini_set('max_execution_time', 600);
+
+        // 2. Deteksi metode update: Jika Git tersedia, jalankan Git Deploy secara sinkron
+        $deployService = app(\App\Services\DeployService::class);
+        $envCheck = $deployService->checkEnvironment();
+        $isGitAvailable = $envCheck['git']['available'] ?? false;
+
+        if ($isGitAvailable && \Illuminate\Support\Facades\File::exists(base_path('.git'))) {
+            if (\Illuminate\Support\Facades\Cache::get('deploy_running')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Proses update (deploy) sedang berjalan.'
+                ], 409);
+            }
+
+            \Illuminate\Support\Facades\Cache::put('deploy_running', true, 3600);
+            
+            $deployLog = \App\Models\DeployLog::create([
+                'status' => 'running',
+                'triggered_by' => $request->user()->id,
+                'started_at' => now(),
+            ]);
+            $progress = [];
+
+            try {
+                $deployService->runDeploy($request->user(), $deployLog, $progress);
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Sistem (Git Deploy) berhasil diperbarui ke versi terbaru.'
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Update via Git gagal: ' . $e->getMessage()
+                ], 500);
+            }
+        }
+
+        // Fallback: Jalankan update via ZIP konvensional
         $result = $this->updateService->runUpdate();
         
         if ($result['status']) {
