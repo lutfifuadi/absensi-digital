@@ -48,28 +48,46 @@ class SiswaController extends Controller
     {
         $search = $request->query('search');
         $perPage = (int) $request->query('per_page', 10);
+        $sortBy = $request->query('sort_by', 'nama_lengkap');
+        $sortDir = $request->query('sort_dir', 'asc');
+
+        $allowedSorts = ['nama_lengkap', 'nis', 'kelas_id', 'status'];
+        if (!in_array($sortBy, $allowedSorts)) {
+            $sortBy = 'nama_lengkap';
+        }
+        if (!in_array($sortDir, ['asc', 'desc'])) {
+            $sortDir = 'asc';
+        }
 
         $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
 
-        $siswa = Siswa::with(['kelas', 'tahunAkademik'])
-            ->where('status', '!=', 'alumni')
+        $siswaQuery = Siswa::with(['kelas', 'tahunAkademik'])
+            ->select('siswa.*')
+            ->where('siswa.status', '!=', 'alumni')
             ->where(function ($q) use ($tahunAjaranId) {
                 if ($tahunAjaranId) {
                     // Tampilkan siswa yang sesuai tahun ajaran ATAU yang tahun_akademik_id-nya NULL
                     // (karena kemungkinan di-sync/import sebelum fitur ini ada)
-                    $q->where('tahun_akademik_id', $tahunAjaranId)
-                        ->orWhereNull('tahun_akademik_id');
+                    $q->where('siswa.tahun_akademik_id', $tahunAjaranId)
+                        ->orWhereNull('siswa.tahun_akademik_id');
                 }
             })
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('nama_lengkap', 'like', "%{$search}%")
-                        ->orWhere('nis', 'like', "%{$search}%")
-                        ->orWhere('nisn', 'like', "%{$search}%");
+                    $q->where('siswa.nama_lengkap', 'like', "%{$search}%")
+                        ->orWhere('siswa.nis', 'like', "%{$search}%")
+                        ->orWhere('siswa.nisn', 'like', "%{$search}%");
                 });
-            })
-            ->orderBy('nama_lengkap')
-            ->paginate($perPage)
+            });
+
+        if ($sortBy === 'kelas_id') {
+            $siswaQuery->leftJoin('kelas', 'siswa.kelas_id', '=', 'kelas.id')
+                ->orderBy('kelas.nama', $sortDir);
+        } else {
+            $siswaQuery->orderBy('siswa.' . $sortBy, $sortDir);
+        }
+
+        $siswa = $siswaQuery->paginate($perPage)
             ->withQueryString();
 
         // Deteksi siswa dengan tahun_akademik_id NULL untuk notifikasi admin
@@ -78,12 +96,12 @@ class SiswaController extends Controller
             : 0;
 
         if ($request->ajax()) {
-            return view('admin.siswa.table', compact('siswa'))->render();
+            return view('admin.siswa.table', compact('siswa', 'sortBy', 'sortDir'))->render();
         }
 
         $tahunAjaranOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
 
-        return view('admin.siswa.index', compact('siswa', 'tahunAjaranOptions', 'siswaNullTahun'));
+        return view('admin.siswa.index', compact('siswa', 'tahunAjaranOptions', 'siswaNullTahun', 'sortBy', 'sortDir'));
     }
 
     public function create()

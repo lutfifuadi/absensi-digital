@@ -562,6 +562,14 @@ Route::middleware([
             ->name('admin.orang-tua.destroy-all')
             ->middleware('role:super_admin,admin_sekolah');
 
+        Route::post('orang-tua-reset-password-all', [OrangTuaController::class, 'resetPasswordAll'])
+            ->name('admin.orang-tua.reset-password-all')
+            ->middleware('role:super_admin,admin_sekolah');
+
+        Route::post('orang-tua/{user}/reset-password', [OrangTuaController::class, 'resetPassword'])
+            ->name('admin.orang-tua.reset-password')
+            ->middleware('role:super_admin,admin_sekolah');
+
         Route::resource('orang-tua', OrangTuaController::class)
             ->names('admin.orang-tua')
             ->middleware('role:super_admin,admin_sekolah');

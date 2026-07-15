@@ -176,13 +176,16 @@
 
             <div class="das-hero__actions">
                 <button type="button" class="btn das-btn --warning" id="btnSyncOrtu">
-                    <i class="ti tabler-refresh me-1"></i> Sinkronisasi Data
+                    <i class="ti tabler-refresh me-1"></i> Sync Data
+                </button>
+                <button type="button" class="btn das-btn --info" id="btnResetPasswordAll">
+                    <i class="ti tabler-key me-1"></i> Reset PW Massal
                 </button>
                 <button type="button" class="btn das-btn --danger" data-bs-toggle="modal" data-bs-target="#deleteAllModal">
                     <i class="ti tabler-trash me-1"></i> Hapus Semua
                 </button>
                 <a href="{{ route('admin.orang-tua.create') }}" class="btn das-btn --primary">
-                    <i class="ti tabler-plus me-1"></i> Tambah Orang Tua
+                    <i class="ti tabler-plus me-1"></i> Tambah Ortu
                 </a>
             </div>
         </div>
@@ -427,6 +430,102 @@
                 });
             }
 
+            // Reset Password Massal
+            const btnResetPasswordAll = document.getElementById('btnResetPasswordAll');
+            if (btnResetPasswordAll) {
+                btnResetPasswordAll.addEventListener('click', function() {
+                    Swal.fire({
+                        title: 'Reset Password Massal?',
+                        text: 'Semua password akun Orang Tua akan di-reset menjadi NISN anak masing-masing (atau password123 jika NISN kosong)!',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#00cfe8',
+                        cancelButtonColor: '#82868b',
+                        confirmButtonText: 'Ya, Reset Semua!',
+                        cancelButtonText: 'Batal',
+                        customClass: {
+                            popup: 'das-swal-popup',
+                            title: 'das-swal-title',
+                            htmlContainer: 'das-swal-html',
+                            confirmButton: 'btn btn-info das-swal-confirm me-2',
+                            cancelButton: 'btn das-swal-cancel',
+                            icon: 'das-swal-icon'
+                        },
+                        buttonsStyling: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({
+                                title: 'Memproses Reset...',
+                                text: 'Mohon tunggu, jangan tutup halaman ini.',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                allowEnterKey: false,
+                                customClass: {
+                                    popup: 'das-swal-popup',
+                                    title: 'das-swal-title',
+                                    htmlContainer: 'das-swal-html'
+                                },
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+
+                            fetch("{{ route('admin.orang-tua.reset-password-all') }}", {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Reset Selesai!',
+                                        text: data.message,
+                                        customClass: {
+                                            popup: 'das-swal-popup',
+                                            title: 'das-swal-title',
+                                            htmlContainer: 'das-swal-html',
+                                            confirmButton: 'btn btn-primary das-swal-confirm'
+                                        }
+                                    }).then(() => {
+                                        fetchData(1);
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Gagal!',
+                                        text: data.message || 'Gagal me-reset password massal.',
+                                        customClass: {
+                                            popup: 'das-swal-popup',
+                                            title: 'das-swal-title',
+                                            htmlContainer: 'das-swal-html',
+                                            confirmButton: 'btn btn-primary das-swal-confirm'
+                                        }
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error!',
+                                    text: 'Terjadi kesalahan sistem.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-primary das-swal-confirm'
+                                    }
+                                });
+                            });
+                        }
+                    });
+                });
+            }
+
             const container = document.getElementById('ortuTableContainer');
             const searchInput = document.getElementById('searchInput');
             const perPageSelect = document.getElementById('perPageSelect');
@@ -532,6 +631,98 @@
 
                             document.body.appendChild(form);
                             form.submit();
+                        }
+                    });
+                }
+            });
+
+            // Reset Password Individu
+            document.addEventListener('click', function(e) {
+                const btnReset = e.target.closest('.btn-reset-password-ortu');
+                if (btnReset) {
+                    const url = btnReset.getAttribute('data-url');
+                    const nama = btnReset.getAttribute('data-nama');
+
+                    Swal.fire({
+                        title: 'Reset Password?',
+                        text: `Password untuk Orang Tua "${nama}" akan di-reset ke password default (NISN anak / password123)!`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#7367f0',
+                        cancelButtonColor: '#82868b',
+                        confirmButtonText: 'Ya, Reset!',
+                        cancelButtonText: 'Batal',
+                        customClass: {
+                            popup: 'das-swal-popup',
+                            title: 'das-swal-title',
+                            htmlContainer: 'das-swal-html',
+                            confirmButton: 'btn btn-primary das-swal-confirm me-2',
+                            cancelButton: 'btn das-swal-cancel',
+                            icon: 'das-swal-icon'
+                        },
+                        buttonsStyling: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({
+                                title: 'Memproses...',
+                                text: 'Mohon tunggu.',
+                                allowOutsideClick: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+
+                            fetch(url, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil!',
+                                        text: data.message,
+                                        customClass: {
+                                            popup: 'das-swal-popup',
+                                            title: 'das-swal-title',
+                                            htmlContainer: 'das-swal-html',
+                                            confirmButton: 'btn btn-primary das-swal-confirm'
+                                        }
+                                    }).then(() => {
+                                        fetchData(1);
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Gagal!',
+                                        text: data.message || 'Gagal me-reset password.',
+                                        customClass: {
+                                            popup: 'das-swal-popup',
+                                            title: 'das-swal-title',
+                                            htmlContainer: 'das-swal-html',
+                                            confirmButton: 'btn btn-primary das-swal-confirm'
+                                        }
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error!',
+                                    text: 'Terjadi kesalahan sistem.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-primary das-swal-confirm'
+                                    }
+                                });
+                            });
                         }
                     });
                 }

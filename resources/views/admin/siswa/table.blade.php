@@ -3,11 +3,31 @@
     <thead style="background:rgba(255,255,255,0.04);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;opacity:0.7;">
       <tr>
         <th class="ps-2 py-3" style="width:46px;">#</th>
-        <th class="py-3">Informasi Siswa</th>
-        <th class="py-3 d-none d-md-table-cell text-center">NIS / NISN</th>
-        <th class="py-3 text-center">Kelas</th>
+        <th class="py-3 sortable cursor-pointer" data-sort-by="nama_lengkap" style="user-select: none;">
+          Informasi Siswa
+          @if(($sortBy ?? '') === 'nama_lengkap')
+            <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
+          @endif
+        </th>
+        <th class="py-3 d-none d-md-table-cell text-center sortable cursor-pointer" data-sort-by="nis" style="user-select: none;">
+          NIS / NISN
+          @if(($sortBy ?? '') === 'nis')
+            <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
+          @endif
+        </th>
+        <th class="py-3 text-center sortable cursor-pointer" data-sort-by="kelas_id" style="user-select: none;">
+          Kelas
+          @if(($sortBy ?? '') === 'kelas_id')
+            <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
+          @endif
+        </th>
         <th class="py-3 d-none d-xl-table-cell text-center">Tahun Akademik</th>
-        <th class="py-3 text-center">Status</th>
+        <th class="py-3 text-center sortable cursor-pointer" data-sort-by="status" style="user-select: none;">
+          Status
+          @if(($sortBy ?? '') === 'status')
+            <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
+          @endif
+        </th>
         <th class="py-3 pe-4 text-end">Aksi</th>
       </tr>
     </thead>

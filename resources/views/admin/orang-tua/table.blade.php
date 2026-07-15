@@ -4,7 +4,6 @@
             <tr>
                 <th class="ps-4 py-3" style="width:46px;">#</th>
                 <th class="py-3">Nama Orang Tua</th>
-                <th class="py-3">Kontak & Hubungan</th>
                 <th class="py-3">Akun</th>
                 <th class="py-3 text-center">Menghubungkan Siswa</th>
                 <th class="py-3 text-center">Status</th>
@@ -29,12 +28,8 @@
                         </div>
                     </td>
                     <td>
-                        <div class="small fw-medium text-white">{{ $item->no_hp ?? '-' }}</div>
-                        <div class="text-white-50 small" style="font-size:0.72rem;">Hubungan: {{ $item->hubungan ?? 'Orang Tua' }}</div>
-                    </td>
-                    <td>
-                        <div class="small fw-medium text-white">{{ $item->email }}</div>
-                        <div class="text-white-50 small" style="font-size:0.72rem;">Username: {{ $item->username }}</div>
+                        <div class="small fw-medium text-white">Username: {{ $item->username }}</div>
+                        <div class="text-white-50 small" style="font-size:0.72rem;">Pass Default: NISN Anak / password123</div>
                     </td>
                     <td class="text-center">
                         @if($item->children->count() > 0)
@@ -56,9 +51,22 @@
                     </td>
                     <td class="pe-4 text-end">
                         <div class="d-flex justify-content-end gap-1">
+                            @if(auth()->user()->isSuperAdmin() && auth()->id() !== $item->id)
+                                <a href="{{ route('admin.impersonate.login-as', $item->id) }}" class="action-btn text-success" title="Login Sebagai Orang Tua" data-bs-toggle="tooltip">
+                                    <i class="ti tabler-login fs-5"></i>
+                                </a>
+                            @endif
                             <a href="{{ route('admin.orang-tua.show', $item) }}" class="action-btn text-info" title="Detail" data-bs-toggle="tooltip">
                                 <i class="ti tabler-eye fs-5"></i>
                             </a>
+                            <button type="button"
+                                class="action-btn text-purple btn-reset-password-ortu"
+                                title="Reset Password"
+                                data-bs-toggle="tooltip"
+                                data-url="{{ route('admin.orang-tua.reset-password', $item) }}"
+                                data-nama="{{ $item->name }}">
+                                <i class="ti tabler-key fs-5"></i>
+                            </button>
                             <a href="{{ route('admin.orang-tua.edit', $item) }}" class="action-btn text-warning" title="Ubah" data-bs-toggle="tooltip">
                                 <i class="ti tabler-pencil fs-5"></i>
                             </a>
@@ -75,7 +83,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="text-center py-5">
+                    <td colspan="6" class="text-center py-5">
                         <div class="d-flex flex-column align-items-center gap-2 opacity-50">
                             <i class="ti tabler-users-minus" style="font-size:2.5rem;"></i>
                             <span class="small">Belum ada data orang tua.</span>

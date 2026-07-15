@@ -311,4 +311,64 @@ class OrangTuaController extends Controller
             return back()->with('error', $errorMsg);
         }
     }
+
+    public function resetPassword(User $user)
+    {
+        try {
+            $firstSiswa = $user->children()->first();
+            $passwordRaw = 'password123';
+            if ($firstSiswa) {
+                $passwordRaw = $firstSiswa->nisn ?? $firstSiswa->nis ?? 'password123';
+            }
+
+            $user->update([
+                'password' => Hash::make($passwordRaw)
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Password untuk orang tua {$user->name} berhasil di-reset menjadi: {$passwordRaw}"
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal me-reset password: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function resetPasswordAll(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $ortuUsers = User::withRole(User::ROLE_ORANG_TUA)->with('children')->get();
+            $count = 0;
+
+            foreach ($ortuUsers as $user) {
+                $firstSiswa = $user->children->first();
+                $passwordRaw = 'password123';
+                if ($firstSiswa) {
+                    $passwordRaw = $firstSiswa->nisn ?? $firstSiswa->nis ?? 'password123';
+                }
+
+                $user->update([
+                    'password' => Hash::make($passwordRaw)
+                ]);
+                $count++;
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil me-reset password untuk {$count} akun Orang Tua ke password default masing-masing anak."
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal me-reset password massal: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

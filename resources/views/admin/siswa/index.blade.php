@@ -585,10 +585,13 @@
             const perPageSelect = document.getElementById('perPageSelect');
             let searchTimeout;
 
+            let currentSortBy = '{{ $sortBy ?? 'nama_lengkap' }}';
+            let currentSortDir = '{{ $sortDir ?? 'asc' }}';
+
             function fetchData(page = 1) {
                 const search = encodeURIComponent(searchInput.value || '');
                 const perPage = perPageSelect.value || 10;
-                const url = `{{ route('admin.siswa.index') }}?page=${page}&search=${search}&per_page=${perPage}`;
+                const url = `{{ route('admin.siswa.index') }}?page=${page}&search=${search}&per_page=${perPage}&sort_by=${currentSortBy}&sort_dir=${currentSortDir}`;
 
                 container.style.opacity = '0.5';
                 container.style.pointerEvents = 'none';
@@ -635,6 +638,21 @@
                     e.preventDefault();
                     const page = link.dataset.page || new URL(link.href).searchParams.get('page') || 1;
                     fetchData(page);
+                }
+            });
+
+            // sort clicks (capture delegated events)
+            container.addEventListener('click', function(e) {
+                const th = e.target.closest('th.sortable');
+                if (th) {
+                    const sortBy = th.dataset.sortBy;
+                    if (currentSortBy === sortBy) {
+                        currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSortBy = sortBy;
+                        currentSortDir = 'asc';
+                    }
+                    fetchData(1);
                 }
             });
 
