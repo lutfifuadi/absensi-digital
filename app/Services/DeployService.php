@@ -164,6 +164,22 @@ class DeployService
             $this->runProcess(['php', 'artisan', 'optimize'], 120);
             $logOutput .= "[OK] php artisan optimize\n";
 
+            // Update database version setting to match new code version (running in separate process to load new files)
+            try {
+                $versionProcess = new Process(['php', '-r', 'echo (include "config/app.php")["version"] ?? "";'], base_path(), $this->env);
+                $versionProcess->run();
+                if ($versionProcess->isSuccessful() && !empty(trim($versionProcess->getOutput()))) {
+                    $newVersion = trim($versionProcess->getOutput());
+                    \App\Models\Pengaturan::updateOrCreate(
+                        ['key' => 'app_version'],
+                        ['value' => $newVersion]
+                    );
+                    $logOutput .= "[OK] Database version updated to: {$newVersion}\n";
+                }
+            } catch (\Exception $e) {
+                $logOutput .= "[WARNING] Failed to update database version: " . $e->getMessage() . "\n";
+            }
+
             // Step 7: queue:restart
             $this->updateProgress($progress, $steps['restart-queue']['label'], $steps['restart-queue']['progress'], $logOutput);
             $this->runProcess(['php', 'artisan', 'queue:restart'], 30);
