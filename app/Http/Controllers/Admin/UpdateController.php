@@ -72,9 +72,9 @@ class UpdateController extends Controller
 
     public function update(Request $request)
     {
-        // 1. Validasi Lisensi via API Pusat sebelum update
-        $licenseKey = env('LICENSE_KEY');
-        $domain = env('REGISTERED_DOMAIN');
+        // 1. Validasi Lisensi via API Pusat sebelum update (menggunakan config agar aman saat cache aktif)
+        $licenseKey = config('license.key');
+        $domain = config('license.domain');
 
         if (empty($licenseKey) || empty($domain)) {
             return response()->json([
@@ -172,9 +172,9 @@ class UpdateController extends Controller
 
     public function publishAssets()
     {
-        // 1. Validasi Lisensi via API Pusat sebelum update assets
-        $licenseKey = env('LICENSE_KEY');
-        $domain = env('REGISTERED_DOMAIN');
+        // 1. Validasi Lisensi via API Pusat sebelum update assets (menggunakan config agar aman saat cache aktif)
+        $licenseKey = config('license.key');
+        $domain = config('license.domain');
 
         if (empty($licenseKey) || empty($domain)) {
             return response()->json([
