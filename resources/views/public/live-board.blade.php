@@ -831,7 +831,18 @@ let isProcessing = false, lastQR = '', lastQRTime = 0, scanCount = 0;
 
 // ─── HANDLE SCAN → SERVER ─────────────────────────────────────────────────
 async function handleScan(qrCode) {
+  // Implementasi cooldown untuk QR yang sama
+  const now = Date.now();
+  if (qrCode === lastQR && (now - lastQRTime) < 3000) {
+    // Tampilkan toast warning tapi jangan set isProcessing agar scanner tetap siap menerima QR lain
+    showToast('warning', '⚠️', null, 'QR yang sama baru saja di-scan. Silakan tunggu 3 detik.');
+    return;
+  }
+
   isProcessing = true;
+  lastQR = qrCode;
+  lastQRTime = now;
+
   try {
     const resp = await fetch(SCAN_URL, {
       method: 'POST',
@@ -855,6 +866,8 @@ async function handleScan(qrCode) {
   } catch(e) {
     showToast('error', '❌', null, 'Gagal terhubung ke server. Coba lagi.');
     beep('error');
+  } finally {
+    isProcessing = false;
   }
 }
 
@@ -879,7 +892,6 @@ function showToast(type, icon, siswa, msg) {
   });
   toastTimer = setTimeout(() => {
     toast.classList.remove('show');
-    isProcessing = false;
   }, DISMISS_MS);
 }
 

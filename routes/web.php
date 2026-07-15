@@ -161,7 +161,7 @@ Route::get('/scan-ekskul', function () {
 
 // ── Halaman Live Board Publik (tanpa login) ───────────────────────────────────
 Route::get('/live-board', [PublicQrScanController::class, 'liveBoard'])->name('public.live-board')->middleware('device.trusted');
-Route::post('/live-board/scan', [PublicQrScanController::class, 'liveBoardScan'])->name('public.live-board.scan')->middleware(['throttle:60,1', 'device.trusted']);
+Route::post('/live-board/scan', [PublicQrScanController::class, 'liveBoardScan'])->name('public.live-board.scan')->middleware(['throttle:300,1', 'device.trusted']);
 Route::get('/live-board/leaderboard', [PublicQrScanController::class, 'liveBoardLeaderboard'])->name('public.live-board.leaderboard');
 // ─────────────────────────────────────────────────────────────────────────────
 

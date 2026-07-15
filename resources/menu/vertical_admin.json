@@ -138,6 +138,13 @@
       "url": "/admin/scan-qr"
     },
     {
+      "name": "Live Board Monitor",
+      "icon": "menu-icon ti tabler-screen-share",
+      "slug": "public.live-board",
+      "url": "/live-board",
+      "target": "_blank"
+    },
+    {
       "name": "Absensi Kegiatan",
       "icon": "menu-icon ti tabler-calendar-check",
       "slug": "admin.kegiatans.absensi",
