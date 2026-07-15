@@ -27,6 +27,35 @@ class UpdateController extends Controller
     {
         $result = $this->updateService->checkForUpdates();
         
+        // Cek apakah sistem diinstall menggunakan Git. Jika iya, bandingkan commit lokal dengan remote.
+        $deployService = app(\App\Services\DeployService::class);
+        $envCheck = $deployService->checkEnvironment();
+        $isGitAvailable = $envCheck['git']['available'] ?? false;
+
+        if ($isGitAvailable && \Illuminate\Support\Facades\File::exists(base_path('.git'))) {
+            try {
+                // Ambil daftar commit terbaru dari remote
+                $fetchProcess = new \Symfony\Component\Process\Process(['git', 'fetch', 'origin'], base_path());
+                $fetchProcess->run();
+                
+                $versionInfo = $deployService->checkVersion();
+                if (isset($versionInfo['behind']) && $versionInfo['behind'] > 0) {
+                    $result['status'] = true;
+                    $result['update_available'] = true;
+                    $result['latest_version'] = 'Update via Git';
+                    $result['changelog'] = "Terdapat {$versionInfo['behind']} pembaruan (commit) baru di GitHub. Klik 'Perbarui' untuk melakukan penarikan kode dan update aset otomatis.";
+                    $result['update_data'] = [
+                        'latest_version' => 'Update via Git',
+                        'changelog' => "Terdapat {$versionInfo['behind']} pembaruan (commit) baru di GitHub.",
+                        'package_url' => '',
+                        'release_date' => now()->toDateTimeString()
+                    ];
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning('Git update check error: ' . $e->getMessage());
+            }
+        }
+        
         if ($result['status']) {
             return response()->json([
                 'success' => true,
