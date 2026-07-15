@@ -54,7 +54,7 @@
             <form action="{{ route('ortu.anak.absensi', $anak->id) }}" method="GET" class="d-flex align-items-center gap-2">
                 <select name="month" class="form-select form-select-sm" style="height: 35px; min-width: 120px;">
                     @for($m=1; $m<=12; $m++)
-                        <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>{{ \Carbon\Carbon::create(2000, $m, 1)->translatedFormat('F') }}</option>
+                        <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>{{ \Carbon\Carbon::create(2000, $m, 1)->locale('id')->translatedFormat('F') }}</option>
                     @endfor
                 </select>
                 <select name="year" class="form-select form-select-sm" style="height: 35px; min-width: 90px;">
@@ -80,7 +80,7 @@
             <tbody>
                 @forelse($absensi as $row)
                     <tr>
-                        <td class="fw-semibold text-white py-3">{{ \Carbon\Carbon::parse($row->tanggal)->translatedFormat('d M Y') }}</td>
+                        <td class="fw-semibold text-white py-3">{{ \Carbon\Carbon::parse($row->tanggal)->locale('id')->translatedFormat('d M Y') }}</td>
                         <td class="text-white">{{ $row->jam_masuk ?? '-' }}</td>
                         <td class="text-white">{{ $row->jam_pulang ?? '-' }}</td>
                         <td>

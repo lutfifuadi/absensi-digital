@@ -430,7 +430,7 @@
               <form action="{{ route('ortu.dashboard') }}" method="GET" class="d-flex gap-2">
                 <select name="month" class="form-select form-select-sm">
                   @for($m=1; $m<=12; $m++)
-                    <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>{{ \Carbon\Carbon::create(2000, $m, 1)->translatedFormat('F') }}</option>
+                    <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>{{ \Carbon\Carbon::create(2000, $m, 1)->locale('id')->translatedFormat('F') }}</option>
                   @endfor
                 </select>
                 <select name="year" class="form-select form-select-sm">
@@ -528,7 +528,7 @@
                 <div class="calendar-cell {{ $cellClass }} {{ $isToday ? 'calendar-cell-today' : '' }}" 
                      data-bs-toggle="tooltip" 
                      data-bs-placement="top" 
-                     title="{{ $day }} {{ \Carbon\Carbon::create(2000, $month, 1)->translatedFormat('F') }}: {{ $tooltip ?: 'Tidak ada catatan' }}">
+                     title="{{ $day }} {{ \Carbon\Carbon::create(2000, $month, 1)->locale('id')->translatedFormat('F') }}: {{ $tooltip ?: 'Tidak ada catatan' }}">
                   <span>{{ $day }}</span>
                 </div>
               @endfor
