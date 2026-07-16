@@ -6,6 +6,22 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>Live Absensi — {{ $namaSekolah }}</title>
   <link rel="stylesheet" href="{{ asset('assets/css/local-fonts.css') }}">
+  @php
+    $liveFont = \App\Models\Pengaturan::where('key', 'live_board_font_family')->value('value') ?? 'Product Sans';
+    $liveCounterFont = \App\Models\Pengaturan::where('key', 'live_board_counter_font_family')->value('value') ?? 'Courier New';
+    $liveCounterColor = \App\Models\Pengaturan::where('key', 'live_board_counter_color')->value('value') ?? '#7367f0';
+    $browserFonts = ['Courier New', 'Courier', 'Arial', 'Helvetica', 'Times New Roman', 'Times', 'Georgia', 'Verdana', 'Trebuchet MS', 'Impact', 'Comic Sans MS', 'Palatino', 'Bookman Old Style', 'monospace', 'serif', 'sans-serif'];
+  @endphp
+  @if($liveFont !== 'Product Sans' || (!in_array($liveCounterFont, $browserFonts) && $liveCounterFont !== 'Product Sans'))
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    @if($liveFont !== 'Product Sans')
+      <link href="https://fonts.googleapis.com/css2?family={{ urlencode($liveFont) }}:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    @endif
+    @if(!in_array($liveCounterFont, $browserFonts) && $liveCounterFont !== 'Product Sans')
+      <link href="https://fonts.googleapis.com/css2?family={{ urlencode($liveCounterFont) }}:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    @endif
+  @endif
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -26,7 +42,7 @@
     html, body {
       height: 100dvh;
       max-height: 100dvh;
-      font-family: 'Product Sans', sans-serif;
+      font-family: '{{ $liveFont }}', 'Product Sans', sans-serif !important;
       background: var(--bg);
       color: var(--text);
       overflow: hidden;
@@ -190,7 +206,7 @@
       margin-bottom: 0.5rem;
     }
     .counter-value {
-      font-family: 'Courier New', Courier, monospace;
+      font-family: '{{ $liveCounterFont }}', 'Courier New', Courier, monospace;
       font-size: 3rem;
       font-weight: 900;
       color: #fff;
@@ -203,7 +219,8 @@
       gap: 0.25rem;
     }
     .counter-value .current {
-      color: #7367f0;
+      color: {{ $liveCounterColor }} !important;
+      text-shadow: 0 0 10px {{ $liveCounterColor }}99, 0 0 20px {{ $liveCounterColor }}66 !important;
       font-size: 3.5rem;
     }
     .counter-value .slash {

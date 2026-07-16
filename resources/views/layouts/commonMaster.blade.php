@@ -77,7 +77,21 @@
   <link rel="preload" href="{{ asset('assets/fonts/ProductSans-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="{{ asset('assets/fonts/ProductSans-Medium.woff2') }}" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="{{ asset('assets/fonts/ProductSans-Bold.woff2') }}" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="{{ asset('assets/fonts/TrajanPro-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>  <style>body{font-family:'Product Sans',sans-serif !important;}</style>  <!-- laravel CRUD token -->
+  <link rel="preload" href="{{ asset('assets/fonts/TrajanPro-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
+  @php
+    $fontFamily = \App\Models\Pengaturan::where('key', 'google_font_family')->value('value') ?? 'Product Sans';
+  @endphp
+  @if($fontFamily !== 'Product Sans')
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family={{ urlencode($fontFamily) }}:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  @endif
+  <style>
+    body {
+      font-family: '{{ $fontFamily }}', 'Product Sans', sans-serif !important;
+    }
+  </style>
+  <!-- laravel CRUD token -->
   <meta name="csrf-token" content="{{ csrf_token() }}" />
   <!-- Canonical SEO -->
   <link rel="canonical" href="{{ config('variables.productPage') ? config('variables.productPage') : '' }}" />

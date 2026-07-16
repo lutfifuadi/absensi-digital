@@ -125,6 +125,12 @@ class PengaturanController extends Controller
         'google_drive_client_id' => '',
         'google_drive_client_secret' => '',
         'google_drive_refresh_token' => '',
+
+        // Google Fonts Configuration
+        'google_font_family' => 'Product Sans',
+        'live_board_font_family' => 'Product Sans',
+        'live_board_counter_font_family' => 'Courier New',
+        'live_board_counter_color' => '#7367f0',
     ];
 
     protected \App\Services\UpdateService $updateService;

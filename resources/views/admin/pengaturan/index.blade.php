@@ -100,6 +100,39 @@
       if (auth()->user()->isSuperAdmin()) {
         $navItems[] = ['id' => 'update', 'icon' => 'tabler-cloud-download', 'label' => 'Pembaruan GitHub'];
       }
+
+      $popularFonts = [
+        // Bawaan
+        'Product Sans',
+        
+        // Sans-Serif
+        'Inter', 'Roboto', 'Montserrat', 'Poppins', 'Open Sans', 'Nunito', 'Lato', 'Ubuntu', 'Mukta', 'Rubik', 
+        'Heebo', 'Work Sans', 'DM Sans', 'Plus Jakarta Sans', 'Outfit', 'Quicksand', 'Josefin Sans', 'Fira Sans', 
+        'PT Sans', 'Cabin', 'Nunito Sans', 'Karla', 'Albert Sans', 'Arimo', 'Asap', 'Barlow', 'Catamaran', 'Hind', 
+        'Manrope', 'Kanit', 'Abel', 'Alegreya Sans', 'Assistant', 'Chivo', 'Dosis', 'Fira Sans Condensed', 'Giga Sandbox',
+        'IBM Plex Sans', 'Jost', 'League Spartan', 'Lexend', 'Maven Pro', 'Merriweather Sans', 'Nobile', 'Noto Sans', 
+        'PT Sans Narrow', 'Public Sans', 'Quick Sand', 'Saira', 'Sen', 'Sora', 'Source Sans 3', 'Teko', 'Titillium Web',
+        'Urbanist', 'Varela Round', 'Yantramanav',
+        
+        // Serif
+        'Playfair Display', 'Merriweather', 'Lora', 'PT Serif', 'Crimson Text', 'Noto Serif', 'Libre Baskerville', 
+        'Arvo', 'EB Garamond', 'Cardo', 'Cinzel', 'Cormorant Garamond', 'Domine', 'Playfair', 'Alegreya', 'Alfa Slab One',
+        'Amiri', 'Baskervville', 'Bodoni Moda', 'Bookman Old Style', 'Crimson Pro', 'DM Serif Display', 'Gelasio', 
+        'Georgia', 'Libre Caslon Text', 'Literata', 'Niconne', 'Playfair Display Serif', 'Prata', 'PT Serif Caption', 
+        'Rokkitt', 'Source Serif 4', 'Spectral', 'Times New Roman', 'Volkhov',
+        
+        // Display / Quirky
+        'Oswald', 'Raleway', 'Bebas Neue', 'Anton', 'Lobster', 'Pacifico', 'Caveat', 'Righteous', 'Cinzel Decorative', 
+        'Comfortaa', 'Fredoka', 'Great Vibes', 'Sacramento', 'Shadows Into Light', 'Titan One', 'Abril Fatface', 'Acme', 
+        'Alata', 'Architects Daughter', 'Bangers', 'Carter One', 'Creepster', 'Dancing Script', 'Kaushan Script', 
+        'Luckiest Guy', 'Monoton', 'Permanent Marker', 'Press Start 2P', 'Satisfy', 'Spicy Rice', 'Yellowtail',
+        
+        // Monospace
+        'Fira Code', 'Source Code Pro', 'Roboto Mono', 'Inconsolata', 'JetBrains Mono', 'Space Mono', 'Ubuntu Mono', 
+        'Share Tech Mono', 'Courier Prime', 'Cutive Mono', 'DM Mono', 'IBM Plex Mono', 'Major Mono Display', 
+        'Nanum Gothic Coding', 'Nova Mono', 'Oxygen Mono', 'PT Mono', 'VT323', 'Orbitron'
+      ];
+      $popularFonts = array_values(array_unique($popularFonts));
     @endphp
     @foreach ($navItems as $i => $nav)
       <button type="button"
@@ -805,6 +838,77 @@
                 <i class="ti tabler-info-circle"></i> Nama kota untuk dicantumkan pada kartu identitas (contoh: "Bandung, 12 Juli 2026").
               </div>
             </div>
+        </div>
+      </div>
+
+      {{-- ══ PENGATURAN FONT GOOGLE FONTS ══ --}}
+      <div class="set-panel" style="margin-top: 1.5rem;">
+        <div class="set-panel__head">
+          <div class="set-panel__title-wrap">
+            <div class="set-panel__icon --primary"><i class="ti tabler-typography"></i></div>
+            <div>
+              <div class="set-panel__title">Pengaturan Font Google Fonts</div>
+              <div class="set-panel__sub">Sesuaikan jenis font yang digunakan untuk antarmuka aplikasi dan live board.</div>
+            </div>
+          </div>
+        </div>
+        <div class="set-panel__body">
+          <div class="set-form-grid">
+            <div class="set-field">
+              <label class="set-label">Font Utama Aplikasi</label>
+              <div class="select2-wrapper" style="position: relative;">
+                <select class="select2 form-select" name="google_font_family">
+                  @foreach($popularFonts as $font)
+                    <option value="{{ $font }}" {{ ($settings['google_font_family'] ?? 'Product Sans') == $font ? 'selected' : '' }}>{{ $font }}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="set-field-hint --info">
+                <i class="ti tabler-info-circle"></i> Font yang digunakan di seluruh halaman panel admin dan user.
+              </div>
+            </div>
+
+            <div class="set-field">
+              <label class="set-label">Font Live Board</label>
+              <div class="select2-wrapper" style="position: relative;">
+                <select class="select2 form-select" name="live_board_font_family">
+                  @foreach($popularFonts as $font)
+                    <option value="{{ $font }}" {{ ($settings['live_board_font_family'] ?? 'Product Sans') == $font ? 'selected' : '' }}>{{ $font }}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="set-field-hint --info">
+                <i class="ti tabler-info-circle"></i> Font khusus untuk tampilan Live Absensi Board.
+              </div>
+            </div>
+
+            <div class="set-field">
+              <label class="set-label">Font Counter Angka Live Board</label>
+              <div class="select2-wrapper" style="position: relative;">
+                <select class="select2 form-select" name="live_board_counter_font_family">
+                  <option value="Courier New" {{ ($settings['live_board_counter_font_family'] ?? 'Courier New') == 'Courier New' ? 'selected' : '' }}>Courier New</option>
+                  @foreach($popularFonts as $font)
+                    <option value="{{ $font }}" {{ ($settings['live_board_counter_font_family'] ?? 'Courier New') == $font ? 'selected' : '' }}>{{ $font }}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="set-field-hint --info">
+                <i class="ti tabler-info-circle"></i> Font khusus untuk tampilan counter angka Live Absensi Board.
+              </div>
+            </div>
+
+            <div class="set-field">
+              <label class="set-label">Warna Angka Counter Live Board</label>
+              <div class="set-input-group">
+                <input type="color" class="set-input" name="live_board_counter_color"
+                  value="{{ old('live_board_counter_color', $settings['live_board_counter_color'] ?? '#7367f0') }}"
+                  style="height: 40px; padding: 2px 6px; width: 100%;">
+              </div>
+              <div class="set-field-hint --info">
+                <i class="ti tabler-info-circle"></i> Warna aksen untuk angka counter di Live Absensi Board.
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1645,13 +1749,15 @@
   background: var(--das-surface);
   border: 1px solid var(--das-border);
   border-radius: var(--das-radius);
-  overflow: hidden;
+  overflow: visible;
   backdrop-filter: blur(6px);
 }
 .set-panel__head {
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--das-border);
   background: linear-gradient(90deg, rgba(115,103,240,0.06) 0%, transparent 60%);
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
 }
 .set-panel__title-wrap {
   display: flex; align-items: center; gap: 1rem;
@@ -2235,6 +2341,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
       // persist
       localStorage.setItem('set_active_tab_v2', target);
+
+      // Re-initialize Select2 inside active tab to handle hidden parent size issue
+      if (window.initActiveTabSelect2) {
+          window.initActiveTabSelect2();
+      }
     });
   });
 
@@ -2421,16 +2532,91 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ── INITIALIZE SELECT2 FOR DROP DOWNS ── */
-  $(window).on('load', function() {
+  function formatFont(font) {
+      if (!font.id) {
+          return font.text;
+      }
+      
+      var fontName = font.id;
+      if (fontName !== 'Product Sans' && fontName !== 'default') {
+          var linkId = 'font-preview-' + fontName.replace(/\s+/g, '-').toLowerCase();
+          if (!document.getElementById(linkId)) {
+              var link = document.createElement('link');
+              link.id = linkId;
+              link.rel = 'stylesheet';
+              link.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(fontName) + '&display=swap';
+              document.head.appendChild(link);
+          }
+      }
+      
+      return $('<span style="font-family: \'' + fontName + '\', sans-serif; font-size: 0.95rem;">' + font.text + '</span>');
+  }
+
+  function getSelect2Config($el) {
+      var isFontSelect = $el.attr('name') === 'google_font_family' || $el.attr('name') === 'live_board_font_family' || $el.attr('name') === 'live_board_counter_font_family';
+      var optionCount = $el.find('option').length;
+      var minResults = (isFontSelect || optionCount > 5) ? 0 : Infinity;
+      
+      var config = {
+          placeholder: 'Pilih opsi',
+          dropdownParent: $el.parent(),
+          width: '100%',
+          minimumResultsForSearch: minResults
+      };
+      
+      if (isFontSelect) {
+          config.templateResult = formatFont;
+          config.templateSelection = formatFont;
+      }
+      return config;
+  }
+
+  function initializeSelect2() {
       if ($.fn.select2) {
           $('.select2').each(function() {
               var $this = $(this);
-              $this.wrap('<div class="position-relative"></div>').select2({
-                  placeholder: 'Pilih opsi',
-                  dropdownParent: $this.parent(),
-                  width: '100%'
-              });
+              // Avoid double wrapping if already initialized or wrapped
+              if ($this.hasClass('select2-hidden-accessible')) {
+                  // Destroy and rebuild if needed, or skip
+                  return;
+              }
+              if (!$this.parent().hasClass('position-relative')) {
+                  $this.wrap('<div class="position-relative"></div>');
+              }
+              $this.select2(getSelect2Config($this));
           });
+      }
+  }
+
+  // Global helper to destroy and re-init Select2 in active tab to fix dimensions
+  window.initActiveTabSelect2 = function() {
+      if ($.fn.select2) {
+          const activeTab = document.querySelector('.set-tab.active');
+          if (!activeTab) return;
+          
+          $(activeTab).find('.select2').each(function() {
+              var $this = $(this);
+              if ($this.hasClass('select2-hidden-accessible')) {
+                  $this.select2('destroy');
+              }
+              if (!$this.parent().hasClass('position-relative')) {
+                  $this.wrap('<div class="position-relative"></div>');
+              }
+              $this.select2(getSelect2Config($this));
+          });
+      }
+  };
+
+  // Run on load and DOM ready
+  initializeSelect2();
+  if (window.initActiveTabSelect2) {
+      window.initActiveTabSelect2();
+  }
+
+  $(window).on('load', function() {
+      initializeSelect2();
+      if (window.initActiveTabSelect2) {
+          window.initActiveTabSelect2();
       }
   });
 
