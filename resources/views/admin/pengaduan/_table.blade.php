@@ -69,54 +69,9 @@
     </table>
 </div>
 
-{{-- Pagination --}}
-@if(method_exists($pengaduan, 'links'))
-    <div class="d-flex justify-content-between align-items-center px-4 py-3 flex-wrap gap-2"
-        style="border-top: 1px solid rgba(255,255,255,0.06);">
-        <small class="text-white-50">
-            Menampilkan {{ $pengaduan->firstItem() ?? 0 }} - {{ $pengaduan->lastItem() ?? 0 }}
-            dari {{ $pengaduan->total() }} pengaduan
-        </small>
-        <div class="d-flex align-items-center gap-2">
-            @php
-                $currentPage = $pengaduan->currentPage();
-                $lastPage = $pengaduan->lastPage();
-                $startPage = max(1, $currentPage - 2);
-                $endPage = min($lastPage, $currentPage + 2);
-            @endphp
-
-            @if($currentPage > 1)
-                <a href="javascript:void(0);" class="das-page-btn" data-page="1" title="Halaman pertama">
-                    <i class="ti tabler-chevrons-left" style="font-size:0.8rem;"></i>
-                </a>
-                <a href="javascript:void(0);" class="das-page-btn" data-page="{{ $currentPage - 1 }}" title="Sebelumnya">
-                    <i class="ti tabler-chevron-left" style="font-size:0.8rem;"></i>
-                </a>
-            @endif
-
-            @if($startPage > 1)
-                <span class="das-page-btn das-page-dots">...</span>
-            @endif
-
-            @for($page = $startPage; $page <= $endPage; $page++)
-                <a href="javascript:void(0);"
-                    class="das-page-btn {{ $page == $currentPage ? 'das-page-active' : '' }}"
-                    data-page="{{ $page }}">{{ $page }}</a>
-            @endfor
-
-            @if($endPage < $lastPage)
-                <span class="das-page-btn das-page-dots">...</span>
-            @endif
-
-            @if($currentPage < $lastPage)
-                <a href="javascript:void(0);" class="das-page-btn" data-page="{{ $currentPage + 1 }}" title="Selanjutnya">
-                    <i class="ti tabler-chevron-right" style="font-size:0.8rem;"></i>
-                </a>
-                <a href="javascript:void(0);" class="das-page-btn" data-page="{{ $lastPage }}" title="Halaman terakhir">
-                    <i class="ti tabler-chevrons-right" style="font-size:0.8rem;"></i>
-                </a>
-            @endif
-        </div>
+@if ($pengaduan->hasPages())
+    <div class="px-4 py-3 border-top" style="border-color: rgba(255, 255, 255, 0.06) !important;">
+        {{ $pengaduan->links('vendor.pagination.users') }}
     </div>
 @endif
 
