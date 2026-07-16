@@ -33,3 +33,7 @@ class IzinDiajukanNotification extends Notification
             'periode'  => $this->izin->tanggal_mulai->format('d M Y') . ' - ' . $this->izin->tanggal_selesai->format('d M Y'),
             'pesan'    => "Pengajuan {$this->izin->jenis} dari {$nama} menunggu persetujuan.",
             'url'      => route('admin.izin-sakit.edit', $this->izin),
+        ];
+    }
+}
+
