@@ -14,7 +14,6 @@ class IzinSakit extends Model
     protected $fillable = [
         'tipe',
         'reference_id',
-        'user_id',
         'tanggal_mulai',
         'tanggal_selesai',
         'jenis',

@@ -137,7 +137,6 @@ class PortalOrangTuaController extends Controller
         $data = [
             'tipe' => 'siswa',
             'reference_id' => $siswa->id,
-            'user_id' => $siswa->user_id,
             'jenis' => $request->jenis,
             'tanggal_mulai' => $request->tanggal_mulai,
             'tanggal_selesai' => $request->tanggal_selesai,
