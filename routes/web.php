@@ -725,6 +725,10 @@ Route::middleware([
             ->name('admin.rekap-harian')
             ->middleware('role:super_admin,admin_sekolah,wali_kelas,guru,operator');
 
+        Route::get('absensi-hari-ini', [LaporanController::class, 'absensiHariIni'])
+            ->name('admin.absensi-hari-ini')
+            ->middleware('role:super_admin,admin_sekolah,wali_kelas,guru,operator');
+
         // Laporan individual siswa
         Route::get('laporan/siswa/{siswa}', [LaporanController::class, 'individualSiswa'])
             ->name('admin.laporan.individualSiswa')

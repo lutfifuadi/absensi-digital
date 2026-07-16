@@ -151,6 +151,7 @@ class PublicQrScanController extends Controller
                 }
 
                 $absensi->update(['jam_pulang' => $currentTime]);
+                Cache::forget('live_board_leaderboard_data');
 
                 QrScanLogger::info('QR_SCAN_PULANG_SUCCESS', [
                     'ip'      => $ip,
@@ -213,6 +214,7 @@ class PublicQrScanController extends Controller
                     'guru_id'     => null,
                     'metode'      => 'qr',
                 ]);
+                Cache::forget('live_board_leaderboard_data');
             } catch (\Illuminate\Database\QueryException $e) {
                 if ($e->errorInfo[1] === 1062) {
                     return response()->json([
@@ -265,6 +267,7 @@ class PublicQrScanController extends Controller
                 }
 
                 $absensi->update(['jam_pulang' => $currentTime]);
+                Cache::forget('live_board_leaderboard_data');
 
                 return response()->json([
                     'success' => true,
@@ -293,6 +296,7 @@ class PublicQrScanController extends Controller
                     'keterangan' => 'Scan QR publik oleh guru piket',
                     'metode'     => 'qr',
                 ]);
+                Cache::forget('live_board_leaderboard_data');
             } catch (\Illuminate\Database\QueryException $e) {
                 if ($e->errorInfo[1] === 1062) {
                     return response()->json([
@@ -473,20 +477,27 @@ class PublicQrScanController extends Controller
     /**
      * Halaman Live Board Publik — Leaderboard + QR Scanner (tanpa login).
      */
-    public function liveBoard()
+    public function liveBoard(Request $request)
     {
+        $mode = $request->query('mode', 'otomatis');
+        if (!in_array($mode, ['masuk', 'pulang', 'otomatis'])) {
+            $mode = 'otomatis';
+        }
+
         $settings     = $this->getCachedSettings();
         $namaSekolah  = $settings['nama_sekolah']        ?? 'Madrasah Aliyah';
         $jamMasukCfg  = $settings['jam_masuk']          ?? '07:00';
         $toleransi    = (int)($settings['toleransi_terlambat'] ?? 15);
         $announcement = $settings['announcement_text']   ?? null;
 
-        [$leaderboardAwal, $leaderboardTerbaru, $stats] = $this->getLeaderboardData();
-        $totalKapasitasSiswa = Siswa::count();
+        [$leaderboardAwal, $leaderboardTerbaru, $stats] = $this->getLeaderboardData($mode);
+        $totalKapasitasSiswa = Cache::remember('total_siswa_count', now()->addDay(), function () {
+            return Siswa::count();
+        });
 
         return view('public.live-board', compact(
             'namaSekolah', 'jamMasukCfg', 'toleransi', 'announcement',
-            'leaderboardAwal', 'leaderboardTerbaru', 'stats', 'totalKapasitasSiswa'
+            'leaderboardAwal', 'leaderboardTerbaru', 'stats', 'totalKapasitasSiswa', 'mode'
         ));
     }
 
@@ -495,7 +506,12 @@ class PublicQrScanController extends Controller
      */
     public function liveBoardScan(Request $request)
     {
-        // Reuse logic yang sama dengan process() tapi tanpa middleware qr.scan.auth
+        // Validate/read request parameter 'mode'
+        $mode = $request->input('mode', 'otomatis');
+        if (!in_array($mode, ['masuk', 'pulang', 'otomatis'])) {
+            $mode = 'otomatis';
+        }
+
         $data   = $request->validate(['qr_code' => 'required|string|max:255']);
         $qrCode = $data['qr_code'];
         $ip     = $request->ip();
@@ -512,12 +528,90 @@ class PublicQrScanController extends Controller
         $currentTime    = now()->format('H:i:s');
         $tanggal        = now()->toDateString();
 
+        // Helper untuk invalidate leaderboard cache
+        $forgetCache = function() {
+            Cache::forget('live_board_leaderboard_data_otomatis');
+            Cache::forget('live_board_leaderboard_data_masuk');
+            Cache::forget('live_board_leaderboard_data_pulang');
+        };
+
         // 1. Cek Siswa
         $siswa = Siswa::with('kelas')->where('qr_code', $qrCode)->first();
         if ($siswa) {
             $absensi = AbsensiSiswa::where('siswa_id', $siswa->id)->whereDate('tanggal', $tanggal)->first();
 
-            // --- LOGIKA PULANG ---
+            // PULANG MODE
+            if ($mode === 'pulang') {
+                if ($absensi && $absensi->jam_pulang) {
+                    return response()->json([
+                        'success' => false,
+                        'already' => true,
+                        'message' => $siswa->nama_lengkap . ' sudah melakukan scan pulang pada jam ' . $absensi->jam_pulang . '.',
+                    ]);
+                }
+
+                if ($absensi) {
+                    $absensi->update(['jam_pulang' => $currentTime]);
+                } else {
+                    AbsensiSiswa::create([
+                        'siswa_id'   => $siswa->id,
+                        'kelas_id'   => $siswa->kelas_id,
+                        'tanggal'    => $tanggal,
+                        'jam_masuk'  => null,
+                        'jam_pulang' => $currentTime,
+                        'status'     => 'hadir',
+                        'keterangan' => 'Scan QR Live Board Pulang',
+                        'metode'     => 'qr',
+                    ]);
+                }
+                $forgetCache();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Sudah waktunya pulang! Jam pulang ' . $siswa->nama_lengkap . ' berhasil dicatat.',
+                    'siswa'   => ['nama' => $siswa->nama_lengkap, 'kelas' => $siswa->kelas?->nama ?? '-', 'jam' => $currentTime],
+                ]);
+            }
+
+            // MASUK MODE
+            if ($mode === 'masuk') {
+                if ($absensi && $absensi->jam_masuk) {
+                    return response()->json([
+                        'success' => false,
+                        'already' => true,
+                        'message' => $siswa->nama_lengkap . ' sudah tercatat hadir pada jam ' . $absensi->jam_masuk . '.',
+                    ]);
+                }
+
+                $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i:s');
+                $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
+
+                if ($absensi) {
+                    $absensi->update([
+                        'jam_masuk' => $currentTime,
+                        'status'    => $status,
+                    ]);
+                } else {
+                    AbsensiSiswa::create([
+                        'siswa_id'   => $siswa->id,
+                        'kelas_id'   => $siswa->kelas_id,
+                        'tanggal'    => $tanggal,
+                        'jam_masuk'  => $currentTime,
+                        'status'     => $status,
+                        'keterangan' => 'Scan QR Live Board Masuk',
+                        'metode'     => 'qr',
+                    ]);
+                }
+                $forgetCache();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Absensi masuk berhasil dicatat!',
+                    'siswa'   => ['nama' => $siswa->nama_lengkap, 'kelas' => $siswa->kelas?->nama ?? '-', 'jam' => $currentTime, 'status' => $status],
+                ]);
+            }
+
+            // OTOMATIS MODE (Original Logic)
             if ($absensi && $currentTime >= $jamMulaiPulang) {
                 if ($currentTime > $jamAkhirPulang) {
                     return response()->json(['success' => false, 'message' => 'Sesi scan pulang sudah ditutup.']);
@@ -532,6 +626,7 @@ class PublicQrScanController extends Controller
                 }
 
                 $absensi->update(['jam_pulang' => $currentTime]);
+                $forgetCache();
 
                 return response()->json([
                     'success' => true,
@@ -548,7 +643,6 @@ class PublicQrScanController extends Controller
                 ]);
             }
 
-            // Cek Batas Akhir Masuk
             if ($currentTime > $jamBatasMasuk) {
                 return response()->json(['success' => false, 'message' => 'Sesi scan masuk guru sudah ditutup.']);
             }
@@ -566,6 +660,7 @@ class PublicQrScanController extends Controller
                     'keterangan' => 'Scan QR Live Board',
                     'metode'     => 'qr',
                 ]);
+                $forgetCache();
             } catch (\Illuminate\Database\QueryException $e) {
                 if ($e->errorInfo[1] === 1062) {
                     return response()->json(['success' => false, 'already' => true, 'message' => 'Sudah tercatat hadir.']);
@@ -585,7 +680,76 @@ class PublicQrScanController extends Controller
         if ($guru) {
             $absensi = AbsensiGuru::where('guru_id', $guru->id)->whereDate('tanggal', $tanggal)->first();
 
-            // LOGIKA PULANG GURU
+            // PULANG MODE GURU
+            if ($mode === 'pulang') {
+                if ($absensi && $absensi->jam_pulang) {
+                    return response()->json([
+                        'success' => false,
+                        'already' => true,
+                        'message' => 'Guru: ' . $guru->nama_lengkap . ' sudah scan pulang.',
+                    ]);
+                }
+
+                if ($absensi) {
+                    $absensi->update(['jam_pulang' => $currentTime]);
+                } else {
+                    AbsensiGuru::create([
+                        'guru_id'    => $guru->id,
+                        'tanggal'    => $tanggal,
+                        'jam_masuk'  => null,
+                        'jam_pulang' => $currentTime,
+                        'status'     => 'hadir',
+                        'keterangan' => 'Scan QR Live Board Pulang',
+                        'metode'     => 'qr',
+                    ]);
+                }
+                $forgetCache();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Selamat beristirahat! Jam pulang Guru ' . $guru->nama_lengkap . ' berhasil dicatat.',
+                    'siswa'   => ['nama' => $guru->nama_lengkap, 'kelas' => 'GURU', 'jam' => $currentTime],
+                ]);
+            }
+
+            // MASUK MODE GURU
+            if ($mode === 'masuk') {
+                if ($absensi && $absensi->jam_masuk) {
+                    return response()->json([
+                        'success' => false,
+                        'already' => true,
+                        'message' => 'Guru ' . $guru->nama_lengkap . ' sudah tercatat hadir.',
+                    ]);
+                }
+
+                $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i:s');
+                $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
+
+                if ($absensi) {
+                    $absensi->update([
+                        'jam_masuk' => $currentTime,
+                        'status'    => $status,
+                    ]);
+                } else {
+                    AbsensiGuru::create([
+                        'guru_id'    => $guru->id,
+                        'tanggal'    => $tanggal,
+                        'jam_masuk'  => $currentTime,
+                        'status'     => $status,
+                        'keterangan' => 'Scan QR Live Board Masuk',
+                        'metode'     => 'qr',
+                    ]);
+                }
+                $forgetCache();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Absensi Guru berhasil dicatat!',
+                    'siswa'   => ['nama' => $guru->nama_lengkap, 'kelas' => 'GURU', 'jam' => $currentTime],
+                ]);
+            }
+
+            // OTOMATIS GURU MODE
             if ($absensi && $currentTime >= $jamMulaiPulang) {
                 if ($currentTime > $jamAkhirPulang) {
                     return response()->json(['success' => false, 'message' => 'Sesi scan pulang sudah ditutup.']);
@@ -594,6 +758,7 @@ class PublicQrScanController extends Controller
                     return response()->json(['success' => false, 'already' => true, 'message' => 'Sudah scan pulang.',]);
                 }
                 $absensi->update(['jam_pulang' => $currentTime]);
+                $forgetCache();
                 return response()->json([
                     'success' => true,
                     'message' => 'Selamat beristirahat! Jam pulang Guru ' . $guru->nama_lengkap . ' berhasil dicatat.',
@@ -621,6 +786,7 @@ class PublicQrScanController extends Controller
                     'keterangan' => 'Scan QR Live Board',
                     'metode'     => 'qr',
                 ]);
+                $forgetCache();
             } catch (\Illuminate\Database\QueryException $e) {
                 if ($e->errorInfo[1] === 1062) {
                     QrScanLogger::warning('QR_SCAN_GURU_DUPLICATE', [
@@ -659,9 +825,14 @@ class PublicQrScanController extends Controller
     /**
      * AJAX endpoint — kembalikan data leaderboard terbaru (JSON).
      */
-    public function liveBoardLeaderboard()
+    public function liveBoardLeaderboard(Request $request)
     {
-        [$awal, $terbaru, $stats] = $this->getLeaderboardData();
+        $mode = $request->input('mode', 'otomatis');
+        if (!in_array($mode, ['masuk', 'pulang', 'otomatis'])) {
+            $mode = 'otomatis';
+        }
+
+        [$awal, $terbaru, $stats] = $this->getLeaderboardData($mode);
 
         $mapRow = fn($obj, $rank) => [
             'rank'  => $rank,
@@ -678,76 +849,104 @@ class PublicQrScanController extends Controller
         ]);
     }
 
-
-
     /** Helper: ambil data leaderboard + stats hari ini. */
-    private function getLeaderboardData(): array
+    private function getLeaderboardData(string $mode = 'otomatis'): array
     {
-        $today = today()->toDateString();
+        return Cache::remember('live_board_leaderboard_data_' . $mode, 10, function () use ($mode) {
+            $today = today()->toDateString();
 
-        // 1. Ambil Absensi Siswa
-        $absensiSiswa = AbsensiSiswa::with('siswa.kelas')
-            ->whereDate('tanggal', $today)
-            ->whereNotNull('jam_masuk')
-            ->whereIn('status', ['hadir', 'terlambat'])
-            ->get();
+            // Tentukan field jam berdasarkan mode
+            // Jika mode = pulang, kita filter whereNotNull('jam_pulang')
+            // Jika mode = masuk, kita filter whereNotNull('jam_masuk')
+            // Jika mode = otomatis, default ke whereNotNull('jam_masuk')
+            $siswaQuery = AbsensiSiswa::with('siswa.kelas')->whereDate('tanggal', $today);
+            $guruQuery = AbsensiGuru::with('guru')->whereDate('tanggal', $today);
 
-        // 2. Ambil Absensi Guru
-        $absensiGuru = AbsensiGuru::with('guru')
-            ->whereDate('tanggal', $today)
-            ->whereNotNull('jam_masuk')
-            ->whereIn('status', ['hadir', 'terlambat'])
-            ->get();
+            if ($mode === 'pulang') {
+                $siswaQuery->whereNotNull('jam_pulang');
+                $guruQuery->whereNotNull('jam_pulang');
+            } else {
+                $siswaQuery->whereNotNull('jam_masuk')->whereIn('status', ['hadir', 'terlambat']);
+                $guruQuery->whereNotNull('jam_masuk')->whereIn('status', ['hadir', 'terlambat']);
+            }
 
-        // 3. Gabungkan dan Map ke struktur seragam
-        $all = collect();
+            $absensiSiswa = $siswaQuery->get();
+            $absensiGuru = $guruQuery->get();
 
-        foreach ($absensiSiswa as $as) {
-            $all->push((object)[
-                'nama'   => $as->siswa->nama_lengkap ?? '-',
-                'kelas'  => $as->siswa->kelas->nama  ?? '-',
-                'jam'    => $as->created_at ? $as->created_at->format('H:i:s') : $as->jam_masuk,
-                'status' => $as->status,
-                'type'   => 'siswa',
-                'original' => $as
-            ]);
-        }
+            // 3. Gabungkan dan Map ke struktur seragam
+            $all = collect();
 
-        foreach ($absensiGuru as $ag) {
-            $all->push((object)[
-                'nama'   => $ag->guru->nama_lengkap ?? '-',
-                'kelas'  => 'GURU',
-                'jam'    => $ag->created_at ? $ag->created_at->format('H:i:s') : $ag->jam_masuk,
-                'status' => $ag->status,
-                'type'   => 'guru',
-                'original' => $ag
-            ]);
-        }
+            foreach ($absensiSiswa as $as) {
+                $jamVal = $mode === 'pulang' ? $as->jam_pulang : $as->jam_masuk;
+                $all->push((object)[
+                    'nama'   => $as->siswa->nama_lengkap ?? '-',
+                    'kelas'  => $as->siswa->kelas->nama  ?? '-',
+                    'jam'    => $jamVal,
+                    'status' => $as->status,
+                    'type'   => 'siswa',
+                    'original' => $as
+                ]);
+            }
 
-        // 4. Sortir berdasarkan Jam Masuk ASC untuk awal, DESC untuk terbaru
-        $sortedAwal = $all->sortBy('jam')->values();
-        $sortedTerbaru = $all->sortByDesc('jam')->values();
+            foreach ($absensiGuru as $ag) {
+                $jamVal = $mode === 'pulang' ? $ag->jam_pulang : $ag->jam_masuk;
+                $all->push((object)[
+                    'nama'   => $ag->guru->nama_lengkap ?? '-',
+                    'kelas'  => 'GURU',
+                    'jam'    => $jamVal,
+                    'status' => $ag->status,
+                    'type'   => 'guru',
+                    'original' => $ag
+                ]);
+            }
 
-        $awal    = $sortedAwal->slice(0, 10);
-        $terbaru = $sortedTerbaru->slice(0, 10);
+            // 4. Sortir berdasarkan Jam ASC untuk awal, DESC untuk terbaru
+            $sortedAwal = $all->sortBy('jam')->values();
+            $sortedTerbaru = $all->sortByDesc('jam')->values();
 
+            $awal    = $sortedAwal->slice(0, 10);
+            $terbaru = $sortedTerbaru->slice(0, 10);
 
+            if ($mode === 'pulang') {
+                // Under 'pulang' mode: stats should count total checked-out and remaining
+                $totalSiswa = Cache::remember('total_siswa_count', now()->addDay(), function () {
+                    return Siswa::count();
+                });
+                
+                $checkedOut = AbsensiSiswa::whereDate('tanggal', $today)
+                    ->whereNotNull('jam_pulang')
+                    ->count();
 
-        $rawStats = AbsensiSiswa::whereDate('tanggal', $today)
-            ->selectRaw('status, COUNT(*) as total')
-            ->groupBy('status')
-            ->pluck('total', 'status')
-            ->toArray();
+                $remaining = max(0, $totalSiswa - $checkedOut);
 
-        $stats = [
-            'hadir'    => ($rawStats['hadir']    ?? 0) + ($rawStats['terlambat'] ?? 0),
-            'sakit'    => $rawStats['sakit']    ?? 0,
-            'izin'     => $rawStats['izin']     ?? 0,
-            'alpha'    => $rawStats['alpha']    ?? 0,
-            'terlambat'=> $rawStats['terlambat']?? 0,
-            'total'    => array_sum($rawStats),
-        ];
+                $stats = [
+                    'hadir'     => $checkedOut, // Gunakan key 'hadir' agar sinkron dengan template view
+                    'sakit'     => 0,
+                    'izin'      => 0,
+                    'alpha'     => 0,
+                    'terlambat' => 0,
+                    'total'     => $totalSiswa,
+                    'pulang'    => $checkedOut,
+                    'remaining' => $remaining,
+                ];
+            } else {
+                $rawStats = AbsensiSiswa::whereDate('tanggal', $today)
+                    ->selectRaw('status, COUNT(*) as total')
+                    ->groupBy('status')
+                    ->pluck('total', 'status')
+                    ->toArray();
 
-        return [$awal, $terbaru, $stats];
+                $stats = [
+                    'hadir'    => ($rawStats['hadir']    ?? 0) + ($rawStats['terlambat'] ?? 0),
+                    'sakit'    => $rawStats['sakit']    ?? 0,
+                    'izin'     => $rawStats['izin']     ?? 0,
+                    'alpha'    => $rawStats['alpha']    ?? 0,
+                    'terlambat'=> $rawStats['terlambat']?? 0,
+                    'total'    => array_sum($rawStats),
+                ];
+            }
+
+            return [$awal, $terbaru, $stats];
+        });
     }
 }

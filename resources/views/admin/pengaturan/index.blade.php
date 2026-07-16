@@ -1759,6 +1759,17 @@
   border-top-left-radius: inherit;
   border-top-right-radius: inherit;
 }
+#tab-lembaga .set-panel__head { background: linear-gradient(90deg, rgba(115, 103, 240, 0.1) 0%, transparent 70%); }
+#tab-waktu .set-panel__head { background: linear-gradient(90deg, rgba(255, 159, 67, 0.1) 0%, transparent 70%); }
+#tab-keamanan .set-panel__head { background: linear-gradient(90deg, rgba(234, 84, 85, 0.1) 0%, transparent 70%); }
+#tab-branding .set-panel__head { background: linear-gradient(90deg, rgba(115, 103, 240, 0.1) 0%, transparent 70%); }
+#tab-google-drive .set-panel__head { background: linear-gradient(90deg, rgba(0, 207, 232, 0.1) 0%, transparent 70%); }
+#tab-notifikasi .set-panel__head { background: linear-gradient(90deg, rgba(255, 159, 67, 0.1) 0%, transparent 70%); }
+#tab-ai .set-panel__head { background: linear-gradient(90deg, rgba(115, 103, 240, 0.1) 0%, transparent 70%); }
+#tab-api-source .set-panel__head { background: linear-gradient(90deg, rgba(0, 207, 232, 0.1) 0%, transparent 70%); }
+#tab-google-sheets-siswa .set-panel__head { background: linear-gradient(90deg, rgba(40, 199, 111, 0.1) 0%, transparent 70%); }
+#tab-google-sheets-guru .set-panel__head { background: linear-gradient(90deg, rgba(40, 199, 111, 0.1) 0%, transparent 70%); }
+#tab-update .set-panel__head { background: linear-gradient(90deg, rgba(75, 85, 99, 0.12) 0%, transparent 70%); }
 .set-panel__title-wrap {
   display: flex; align-items: center; gap: 1rem;
 }

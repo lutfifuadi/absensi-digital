@@ -78,6 +78,36 @@
     #live-date  { font-size: 0.72rem; color: var(--muted); }
 
     .header-right { display: flex; align-items: center; gap: 0.75rem; }
+    .segmented-control {
+      display: inline-flex;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .segmented-control button {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 5px 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .segmented-control button:hover {
+      color: #fff;
+    }
+    .segmented-control button.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(115,103,240,0.4);
+    }
     .live-badge {
       display: flex; align-items: center; gap: 0.4rem;
       background: rgba(234,84,85,.15); border: 1px solid rgba(234,84,85,.4);
@@ -544,6 +574,11 @@
   </div>
 
   <div class="header-right">
+    <div class="segmented-control">
+      <button class="{{ $mode === 'otomatis' ? 'active' : '' }}" onclick="switchMode('otomatis')">⏰ Otomatis</button>
+      <button class="{{ $mode === 'masuk' ? 'active' : '' }}" onclick="switchMode('masuk')">☀️ Masuk</button>
+      <button class="{{ $mode === 'pulang' ? 'active' : '' }}" onclick="switchMode('pulang')">🌙 Pulang</button>
+    </div>
     <div class="live-badge">
       <span class="live-dot"></span> LIVE
     </div>
@@ -566,7 +601,11 @@
   <div class="panel">
     <div class="panel-header">
       <div class="panel-title">
-        🏆 <span>10 Siswa Hadir Paling Awal</span>
+        @if($mode === 'pulang')
+          🏆 <span>10 Siswa Pulang Paling Awal</span>
+        @else
+          🏆 <span>10 Siswa Hadir Paling Awal</span>
+        @endif
       </div>
       <div style="font-size:.7rem; color:var(--muted);">{{ \Carbon\Carbon::today()->translatedFormat('d F Y') }}</div>
     </div>
@@ -587,15 +626,17 @@
               $selisih    = (int) $jamMasukSetting->diffInMinutes($jamSiswa, false);
               $isLate     = $selisih > $toleransi;
             @endphp
-            <tr class="{{ $i < 3 ? 'top-3' : '' }} {{ $isLate ? 'late-row' : '' }}">
+            <tr class="{{ $i < 3 ? 'top-3' : '' }} {{ ($mode !== 'pulang' && $isLate) ? 'late-row' : '' }}">
               <td class="rank-cell">{{ $i === 0 ? '🥇' : ($i === 1 ? '🥈' : ($i === 2 ? '🥉' : $i+1)) }}</td>
               <td class="name-cell">
                 <div class="name">{{ $abs->nama }}</div>
                 <div class="kelas-badge">{{ $abs->kelas }}</div>
               </td>
-              <td class="jam-cell {{ $isLate ? 'jam-late' : 'jam-early' }}">{{ \Carbon\Carbon::parse($abs->jam)->format('H:i:s') }}</td>
+              <td class="jam-cell {{ ($mode !== 'pulang' && $isLate) ? 'jam-late' : 'jam-early' }}">{{ \Carbon\Carbon::parse($abs->jam)->format('H:i:s') }}</td>
               <td>
-                @if($isLate)
+                @if($mode === 'pulang')
+                  <span class="status-badge badge-hadir">✅ Pulang</span>
+                @elseif($isLate)
                   <span class="status-badge badge-terlambat">⏰ Terlambat</span>
                   <span class="late-minutes">+{{ $selisih }} menit</span>
                 @else
@@ -636,15 +677,17 @@
               $selisih    = (int) $jamMasukSetting->diffInMinutes($jamSiswa, false);
               $isLate     = $selisih > $toleransi;
             @endphp
-            <tr class="{{ $isLate ? 'late-row' : '' }}">
+            <tr class="{{ ($mode !== 'pulang' && $isLate) ? 'late-row' : '' }}">
               <td class="rank-cell" style="color:var(--muted);">{{ $i+1 }}</td>
               <td class="name-cell">
                 <div class="name">{{ $abs->nama }}</div>
                 <div class="kelas-badge">{{ $abs->kelas }}</div>
               </td>
-              <td class="jam-cell {{ $isLate ? 'jam-late' : '' }}">{{ \Carbon\Carbon::parse($abs->jam)->format('H:i:s') }}</td>
+              <td class="jam-cell {{ ($mode !== 'pulang' && $isLate) ? 'jam-late' : '' }}">{{ \Carbon\Carbon::parse($abs->jam)->format('H:i:s') }}</td>
               <td>
-                @if($isLate)
+                @if($mode === 'pulang')
+                  <span class="status-badge badge-hadir">✅ Pulang</span>
+                @elseif($isLate)
                   <span class="status-badge badge-terlambat">⏰ Terlambat</span>
                   @if($selisih > 0)<span class="late-minutes">+{{ $selisih }} menit</span>@endif
                 @else
@@ -673,7 +716,11 @@
     <div class="scanner-area">
       <!-- Widget Counter Besar Futuristik -->
       <div class="counter-widget">
-        <div class="counter-title">Total Siswa Hadir Hari Ini</div>
+        @if($mode === 'pulang')
+          <div class="counter-title">Total Siswa Pulang Hari Ini</div>
+        @else
+          <div class="counter-title">Total Siswa Hadir Hari Ini</div>
+        @endif
         <div class="counter-value">
           <span class="current" id="s-hadir-large">{{ $stats['hadir'] }}</span>
           <span class="slash">/</span>
@@ -683,11 +730,16 @@
       </div>
 
       <div class="stat-chips" id="stat-chips">
-        <div class="stat-chip"><span class="dot" style="background:var(--success)"></span> Hadir: <strong id="s-hadir">{{ $stats['hadir'] }}</strong></div>
-        <div class="stat-chip"><span class="dot" style="background:var(--info)"></span> Sakit: <strong id="s-sakit">{{ $stats['sakit'] }}</strong></div>
-        <div class="stat-chip"><span class="dot" style="background:var(--warning)"></span> Izin: <strong id="s-izin">{{ $stats['izin'] }}</strong></div>
-        <div class="stat-chip"><span class="dot" style="background:var(--danger)"></span> Alpha: <strong id="s-alpha">{{ $stats['alpha'] }}</strong></div>
-        <div class="stat-chip"><span class="dot" style="background:#a78bfa"></span> Terlambat: <strong id="s-terlambat">{{ $stats['terlambat'] }}</strong></div>
+        @if($mode === 'pulang')
+          <div class="stat-chip"><span class="dot" style="background:var(--success)"></span> Pulang: <strong id="s-hadir">{{ $stats['hadir'] }}</strong></div>
+          <div class="stat-chip"><span class="dot" style="background:var(--danger)"></span> Belum Pulang: <strong id="s-remaining">{{ $stats['remaining'] ?? ($totalKapasitasSiswa - $stats['hadir']) }}</strong></div>
+        @else
+          <div class="stat-chip"><span class="dot" style="background:var(--success)"></span> Hadir: <strong id="s-hadir">{{ $stats['hadir'] }}</strong></div>
+          <div class="stat-chip"><span class="dot" style="background:var(--info)"></span> Sakit: <strong id="s-sakit">{{ $stats['sakit'] }}</strong></div>
+          <div class="stat-chip"><span class="dot" style="background:var(--warning)"></span> Izin: <strong id="s-izin">{{ $stats['izin'] }}</strong></div>
+          <div class="stat-chip"><span class="dot" style="background:var(--danger)"></span> Alpha: <strong id="s-alpha">{{ $stats['alpha'] }}</strong></div>
+          <div class="stat-chip"><span class="dot" style="background:#a78bfa"></span> Terlambat: <strong id="s-terlambat">{{ $stats['terlambat'] }}</strong></div>
+        @endif
       </div>
 
       <!-- RFID Animation -->
@@ -765,8 +817,13 @@ const CSRF           = document.querySelector('meta[name="csrf-token"]').content
 const JAM_MASUK_CFG  = '{{ $jamMasukCfg }}';
 const TOLERANSI_MENIT= {{ $toleransi }};
 const REFRESH_MS     = 3000; // leaderboard auto-refresh (Real-time speed)
-const DISMISS_MS     = 3800;  // toast auto-hide
+const DISMISS_MS     = 800;  // toast auto-hide
 const DEBOUNCE_MS    = 3000;  // anti-duplicate scan
+const CURRENT_MODE   = '{{ $mode }}';
+
+function switchMode(mode) {
+  window.location.search = '?mode=' + mode;
+}
 
 // ─── CLOCK ────────────────────────────────────────────────────────────────
 const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
@@ -797,9 +854,15 @@ function toggleSound() {
 function beep(type = 'success') {
   if (!soundEnabled) return;
   try {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
-    const ctx = new AudioCtx();
+    if (!window._audioCtx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      window._audioCtx = new AudioCtx();
+    }
+    const ctx = window._audioCtx;
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
 
     function playTone(freq, startTime, duration, gainPeak = 0.5, curve = 'bell') {
       const osc  = ctx.createOscillator();
@@ -863,7 +926,7 @@ async function handleScan(qrCode) {
     const resp = await fetch(SCAN_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-      body: JSON.stringify({ qr_code: qrCode }),
+      body: JSON.stringify({ qr_code: qrCode, mode: CURRENT_MODE }),
     });
     const data = await resp.json();
     if (data.success) {
@@ -925,13 +988,16 @@ function renderRows(rows, colClass) {
     const isLate = diff > TOLERANSI_MENIT;
     const rank = r.rank || (i + 1);
     const medal = colClass === 'awal' && rank === 1 ? '🥇' : colClass === 'awal' && rank === 2 ? '🥈' : colClass === 'awal' && rank === 3 ? '🥉' : rank;
-    const badge = isLate
-      ? `<span class="status-badge badge-terlambat">⏰ Terlambat</span><span class="late-minutes">+${diff} mnt</span>`
-      : `<span class="status-badge badge-hadir">✅ Hadir</span>`;
-    return `<tr class="${colClass==='awal'&&rank<=3?'top-3':''} ${isLate?'late-row':''}">
+    const badge = CURRENT_MODE === 'pulang'
+      ? `<span class="status-badge badge-hadir">✅ Pulang</span>`
+      : (isLate
+        ? `<span class="status-badge badge-terlambat">⏰ Terlambat</span><span class="late-minutes">+${diff} mnt</span>`
+        : `<span class="status-badge badge-hadir">✅ Hadir</span>`);
+    const isLateRow = CURRENT_MODE !== 'pulang' && isLate;
+    return `<tr class="${colClass==='awal'&&rank<=3?'top-3':''} ${isLateRow?'late-row':''}">
       <td class="rank-cell">${medal}</td>
       <td class="name-cell"><div class="name">${r.nama}</div><div class="kelas-badge">${r.kelas}</div></td>
-      <td><span class="jam-cell ${isLate?'jam-late':'jam-early'}">${jamVal}</span></td>
+      <td><span class="jam-cell ${isLateRow?'jam-late':'jam-early'}">${jamVal}</span></td>
       <td class="status-col">${badge}</td>
     </tr>`;
   }).join('') || (colClass === 'awal' 
@@ -939,19 +1005,43 @@ function renderRows(rows, colClass) {
     : `<tr><td colspan="4"><div class="empty-state"><span class="icon">🌙</span><p>Belum ada data scan terbaru hari ini</p></div></td></tr>`);
 }
 
+let oldAwalStr = '';
+let oldTerbaruStr = '';
+
 async function refreshLeaderboard() {
   try {
-    const resp = await fetch(LEADERBOARD_URL, { headers: { 'Accept': 'application/json' } });
+    const url = LEADERBOARD_URL + '?mode=' + CURRENT_MODE;
+    const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
     const data = await resp.json();
-    document.getElementById('tbody-awal').innerHTML  = renderRows(data.awal, 'awal');
-    document.getElementById('tbody-akhir').innerHTML = renderRows(data.terbaru, 'terbaru');
+    
+    const newAwalStr = JSON.stringify(data.awal);
+    if (newAwalStr !== oldAwalStr) {
+      document.getElementById('tbody-awal').innerHTML = renderRows(data.awal, 'awal');
+      oldAwalStr = newAwalStr;
+    }
+    
+    const newTerbaruStr = JSON.stringify(data.terbaru);
+    if (newTerbaruStr !== oldTerbaruStr) {
+      document.getElementById('tbody-akhir').innerHTML = renderRows(data.terbaru, 'terbaru');
+      oldTerbaruStr = newTerbaruStr;
+    }
+
     if (data.stats) {
-      document.getElementById('s-hadir').textContent     = data.stats.hadir     ?? 0;
-      document.getElementById('s-hadir-large').textContent = data.stats.hadir   ?? 0;
-      document.getElementById('s-sakit').textContent     = data.stats.sakit     ?? 0;
-      document.getElementById('s-izin').textContent      = data.stats.izin      ?? 0;
-      document.getElementById('s-alpha').textContent     = data.stats.alpha     ?? 0;
-      document.getElementById('s-terlambat').textContent = data.stats.terlambat ?? 0;
+      const statsMap = {
+        's-hadir': data.stats.hadir ?? 0,
+        's-hadir-large': data.stats.hadir ?? 0,
+        's-sakit': data.stats.sakit ?? 0,
+        's-izin': data.stats.izin ?? 0,
+        's-alpha': data.stats.alpha ?? 0,
+        's-terlambat': data.stats.terlambat ?? 0,
+        's-remaining': data.stats.remaining ?? 0
+      };
+      for (const [id, val] of Object.entries(statsMap)) {
+        const el = document.getElementById(id);
+        if (el && el.textContent !== String(val)) {
+          el.textContent = val;
+        }
+      }
     }
   } catch(_) {}
 }
@@ -1053,11 +1143,10 @@ setInterval(refreshLeaderboard, REFRESH_MS);
     processQueue();
   }
 
-  // ── Input handler: terima karakter dari scanner ──────────────────────────
+  // Input handler: terima karakter dari scanner
   hwInput.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
       e.preventDefault();
-      // Commit langsung saat Enter diterima
       buffer = hwInput.value.trim() || buffer;
       hwInput.value = '';
       commitScan();

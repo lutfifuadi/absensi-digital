@@ -140,6 +140,86 @@ class LaporanController extends Controller
         return $pdf->download(sprintf('rekap-absensi-%04d-%02d.pdf', $tahun, $bulan));
     }
 
+    public function absensiHariIni(Request $request)
+    {
+        $tanggal = now()->toDateString();
+        $query = \App\Models\Siswa::with(['kelas', 'absensi' => function($q) use ($tanggal) {
+            $q->whereDate('tanggal', $tanggal);
+        }])
+        ->leftJoin('absensi_siswa', function($join) use ($tanggal) {
+            $join->on('siswa.id', '=', 'absensi_siswa.siswa_id')
+                 ->whereDate('absensi_siswa.tanggal', $tanggal);
+        })
+        ->select('siswa.*');
+
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('siswa.nama_lengkap', 'like', "%{$search}%")
+                  ->orWhere('siswa.nis', 'like', "%{$search}%");
+            });
+        }
+
+        // Kelas filter
+        if ($request->filled('kelas_id')) {
+            $query->where('siswa.kelas_id', $request->input('kelas_id'));
+        }
+
+        // Status filter
+        if ($request->filled('status')) {
+            $status = $request->input('status');
+            if ($status === 'belum_absen') {
+                $query->whereDoesntHave('absensi', function($q) use ($tanggal) {
+                    $q->whereDate('tanggal', $tanggal);
+                });
+            } else {
+                $query->whereHas('absensi', function($q) use ($tanggal, $status) {
+                    $q->whereDate('tanggal', $tanggal)->where('status', $status);
+                });
+            }
+        } else {
+            // Default: only show students who have check-in/absensi today
+            $query->whereHas('absensi', function($q) use ($tanggal) {
+                $q->whereDate('tanggal', $tanggal);
+            });
+        }
+
+        $siswa = $query->orderByRaw('CASE WHEN absensi_siswa.jam_masuk IS NULL THEN 1 ELSE 0 END ASC')
+            ->orderBy('absensi_siswa.jam_masuk', 'asc')
+            ->orderBy('siswa.nama_lengkap', 'asc')
+            ->paginate(10)
+            ->withQueryString();
+
+        $today = now()->toDateString();
+        $totalSiswa = \App\Models\Siswa::count();
+        $stats = \App\Models\AbsensiSiswa::whereDate('tanggal', $today)
+            ->selectRaw("
+                SUM(CASE WHEN status='hadir' THEN 1 ELSE 0 END) as hadir,
+                SUM(CASE WHEN status='terlambat' THEN 1 ELSE 0 END) as terlambat,
+                SUM(CASE WHEN status='sakit' THEN 1 ELSE 0 END) as sakit,
+                SUM(CASE WHEN status='izin' THEN 1 ELSE 0 END) as izin,
+                SUM(CASE WHEN status='alpha' THEN 1 ELSE 0 END) as alpha
+            ")->first();
+
+        $summary = [
+            'total' => $totalSiswa,
+            'hadir' => ($stats->hadir ?? 0) + ($stats->terlambat ?? 0),
+            'terlambat' => $stats->terlambat ?? 0,
+            'sakit' => $stats->sakit ?? 0,
+            'izin' => $stats->izin ?? 0,
+            'alpha' => $stats->alpha ?? 0,
+            'belum_absen' => $totalSiswa - (($stats->hadir ?? 0) + ($stats->terlambat ?? 0) + ($stats->sakit ?? 0) + ($stats->izin ?? 0) + ($stats->alpha ?? 0))
+        ];
+
+        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'))
+            ?? \App\Models\TahunAkademik::where('is_aktif', true)->value('id');
+
+        $kelasOptions = \App\Models\Kelas::where('tahun_akademik_id', $tahunAjaranId)->orderBy('nama')->get();
+
+        return view('admin.laporan.absensi-hari-ini', compact('siswa', 'summary', 'kelasOptions'));
+    }
+
     public function rekapHarian(Request $request)
     {
         $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'))

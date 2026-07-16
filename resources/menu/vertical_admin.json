@@ -145,6 +145,12 @@
       "target": "_blank"
     },
     {
+      "name": "Absensi Hari Ini",
+      "icon": "menu-icon ti tabler-calendar-time",
+      "slug": "admin.absensi-hari-ini",
+      "url": "/admin/absensi-hari-ini"
+    },
+    {
       "name": "Absensi Kegiatan",
       "icon": "menu-icon ti tabler-calendar-check",
       "slug": "admin.kegiatans.absensi",
