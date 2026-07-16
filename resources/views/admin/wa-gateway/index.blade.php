@@ -228,6 +228,190 @@
         </div>
       </div>
 
+      {{-- ═══════════════════════════════════════
+           WA PENGADUAN
+           ═══════════════════════════════════════ --}}
+      <div class="set-panel mb-4">
+        <div class="set-panel__head">
+          <div class="set-panel__title-wrap">
+            <div class="set-panel__icon --warning"><i class="ti tabler-message-report"></i></div>
+            <div>
+              <div class="set-panel__title">WA Pengaduan (Notifikasi Pengaduan)</div>
+              <div class="set-panel__sub">Konfigurasi WhatsApp untuk notifikasi pengaduan data siswa &amp; orang tua.</div>
+            </div>
+          </div>
+        </div>
+        <div class="set-panel__body">
+          <div class="set-form-grid">
+
+            {{-- Aktifkan --}}
+            <div class="set-field set-field--full">
+              <div class="form-check form-switch form-check-lg">
+                <input class="form-check-input" type="checkbox" id="wa_pengaduan_enabled_check"
+                       style="width:3rem;height:1.5rem;"
+                       onchange="document.getElementById('wa_pengaduan_enabled').value = this.checked ? 'Ya' : 'Tidak'"
+                       {{ ($settings['wa_pengaduan_enabled'] ?? 'Tidak') === 'Ya' ? 'checked' : '' }}>
+                <label class="form-check-label fs-6 fw-semibold ms-2" for="wa_pengaduan_enabled_check">
+                  Aktifkan WA Pengaduan
+                </label>
+              </div>
+              <input type="hidden" name="wa_pengaduan_enabled" id="wa_pengaduan_enabled"
+                     value="{{ $settings['wa_pengaduan_enabled'] ?? 'Tidak' }}">
+              <div class="set-field-hint --info mt-3">
+                <i class="ti tabler-info-circle"></i>
+                Jika diaktifkan, notifikasi pengaduan baru akan dikirim ke grup admin WA.
+              </div>
+            </div>
+
+            {{-- API Key --}}
+            <div class="set-field set-field--full">
+              <label class="set-label">API Key <span class="text-danger">*</span></label>
+              <div class="set-input-group">
+                <span class="set-input-prefix"><i class="ti tabler-key"></i></span>
+                <input type="password" class="set-input @error('wa_pengaduan_api_key') is-invalid @enderror"
+                       name="wa_pengaduan_api_key" id="wa_pengaduan_api_key"
+                       value="{{ old('wa_pengaduan_api_key', $settings['wa_pengaduan_api_key'] ?? '') }}"
+                       placeholder="Masukkan API Key WA Pengaduan">
+                <button class="btn btn-outline-secondary" type="button" onclick="togglePengaduanKeyVisibility()"
+                        style="border-radius:0 8px 8px 0 !important;">
+                  <i class="ti tabler-eye" id="pengaduanKeyEyeIcon"></i>
+                </button>
+              </div>
+              <div class="set-field-hint">API Key khusus untuk WA Pengaduan.</div>
+              @error('wa_pengaduan_api_key')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+            </div>
+
+            {{-- Endpoint URL --}}
+            <div class="set-field set-field--full">
+              <label class="set-label">Endpoint URL <span class="text-danger">*</span></label>
+              <div class="set-input-group">
+                <span class="set-input-prefix"><i class="ti tabler-link"></i></span>
+                <input type="url" class="set-input @error('wa_pengaduan_endpoint') is-invalid @enderror"
+                       name="wa_pengaduan_endpoint"
+                       value="{{ old('wa_pengaduan_endpoint', $settings['wa_pengaduan_endpoint'] ?? 'https://wa.lutfifuadi.my.id') }}"
+                       placeholder="https://wa.lutfifuadi.my.id">
+              </div>
+              <div class="set-field-hint">Base URL server WA Pengaduan (tanpa <code>/send-message</code>).</div>
+              @error('wa_pengaduan_endpoint')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+            </div>
+
+            {{-- Nomor Pengirim --}}
+            <div class="set-field">
+              <label class="set-label">Nomor Pengirim (Sender) <span class="text-danger">*</span></label>
+              <div class="set-input-group">
+                <input type="text" class="set-input @error('wa_pengaduan_sender') is-invalid @enderror"
+                       name="wa_pengaduan_sender" maxlength="20"
+                       value="{{ old('wa_pengaduan_sender', $settings['wa_pengaduan_sender'] ?? '') }}"
+                       placeholder="08xxxxxxxxx atau 628xxxxxxxxx">
+              </div>
+              <div class="set-field-hint">Nomor WA perangkat yang terhubung ke gateway pengaduan.</div>
+              @error('wa_pengaduan_sender')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+            </div>
+
+            {{-- ID Grup Admin WA --}}
+            <div class="set-field">
+              <label class="set-label">ID Grup Admin WA</label>
+              <div class="set-input-group">
+                <input type="text" class="set-input @error('wa_pengaduan_group_id') is-invalid @enderror"
+                       name="wa_pengaduan_group_id" maxlength="50"
+                       value="{{ old('wa_pengaduan_group_id', $settings['wa_pengaduan_group_id'] ?? '') }}"
+                       placeholder="Contoh: 62812xxxxxx-123456789">
+              </div>
+              <div class="set-field-hint --info mt-1">
+                <i class="ti tabler-info-circle"></i>
+                Nomor grup WA untuk notifikasi pengaduan baru. Biarkan kosong jika tidak menggunakan grup.
+              </div>
+              @error('wa_pengaduan_group_id')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      {{-- ═══════════════════════════════════════
+           WA VALIDATOR
+           ═══════════════════════════════════════ --}}
+      <div class="set-panel mb-4">
+        <div class="set-panel__head">
+          <div class="set-panel__title-wrap">
+            <div class="set-panel__icon --info"><i class="ti tabler-shield-check"></i></div>
+            <div>
+              <div class="set-panel__title">WA Validator (Validasi Nomor)</div>
+              <div class="set-panel__sub">Konfigurasi WhatsApp untuk validasi nomor siswa &amp; orang tua.</div>
+            </div>
+          </div>
+        </div>
+        <div class="set-panel__body">
+          <div class="set-form-grid">
+
+            {{-- Aktifkan --}}
+            <div class="set-field set-field--full">
+              <div class="form-check form-switch form-check-lg">
+                <input class="form-check-input" type="checkbox" id="wa_validator_enabled_check"
+                       style="width:3rem;height:1.5rem;"
+                       onchange="document.getElementById('wa_validator_enabled').value = this.checked ? 'Ya' : 'Tidak'"
+                       {{ ($settings['wa_validator_enabled'] ?? 'Tidak') === 'Ya' ? 'checked' : '' }}>
+                <label class="form-check-label fs-6 fw-semibold ms-2" for="wa_validator_enabled_check">
+                  Aktifkan WA Validator
+                </label>
+              </div>
+              <input type="hidden" name="wa_validator_enabled" id="wa_validator_enabled"
+                     value="{{ $settings['wa_validator_enabled'] ?? 'Tidak' }}">
+              <div class="set-field-hint --info mt-3">
+                <i class="ti tabler-info-circle"></i>
+                Jika diaktifkan, sistem akan memvalidasi nomor WA sebelum mengirim notifikasi pengaduan.
+              </div>
+            </div>
+
+            {{-- API Key --}}
+            <div class="set-field set-field--full">
+              <label class="set-label">API Key <span class="text-danger">*</span></label>
+              <div class="set-input-group">
+                <span class="set-input-prefix"><i class="ti tabler-key"></i></span>
+                <input type="password" class="set-input @error('wa_validator_api_key') is-invalid @enderror"
+                       name="wa_validator_api_key" id="wa_validator_api_key"
+                       value="{{ old('wa_validator_api_key', $settings['wa_validator_api_key'] ?? '') }}"
+                       placeholder="Masukkan API Key WA Validator">
+                <button class="btn btn-outline-secondary" type="button" onclick="toggleValidatorKeyVisibility()"
+                        style="border-radius:0 8px 8px 0 !important;">
+                  <i class="ti tabler-eye" id="validatorKeyEyeIcon"></i>
+                </button>
+              </div>
+              <div class="set-field-hint">API Key khusus untuk WA Validator.</div>
+              @error('wa_validator_api_key')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+            </div>
+
+            {{-- Endpoint URL --}}
+            <div class="set-field set-field--full">
+              <label class="set-label">Endpoint URL <span class="text-danger">*</span></label>
+              <div class="set-input-group">
+                <span class="set-input-prefix"><i class="ti tabler-link"></i></span>
+                <input type="url" class="set-input @error('wa_validator_endpoint') is-invalid @enderror"
+                       name="wa_validator_endpoint"
+                       value="{{ old('wa_validator_endpoint', $settings['wa_validator_endpoint'] ?? 'https://wa.lutfifuadi.my.id') }}"
+                       placeholder="https://wa.lutfifuadi.my.id">
+              </div>
+              <div class="set-field-hint">Base URL server WA Validator (tanpa <code>/check-number</code>).</div>
+              @error('wa_validator_endpoint')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+            </div>
+
+            {{-- Nomor Pengirim --}}
+            <div class="set-field set-field--full">
+              <label class="set-label">Nomor Pengirim (Sender) <span class="text-danger">*</span></label>
+              <div class="set-input-group">
+                <input type="text" class="set-input @error('wa_validator_sender') is-invalid @enderror"
+                       name="wa_validator_sender" maxlength="20"
+                       value="{{ old('wa_validator_sender', $settings['wa_validator_sender'] ?? '') }}"
+                       placeholder="08xxxxxxxxx atau 628xxxxxxxxx">
+              </div>
+              <div class="set-field-hint">Nomor WA perangkat yang terhubung ke gateway validator.</div>
+              @error('wa_validator_sender')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+            </div>
+
+          </div>
+        </div>
+      </div>
+
       <div class="set-panel mb-4">
         <div class="set-panel__head">
           <div class="set-panel__title-wrap">
@@ -551,6 +735,30 @@ select.set-input { padding-right: 0.5rem; cursor: pointer; }
 function toggleApiKeyVisibility() {
   const input = document.getElementById('wa_api_key');
   const icon = document.getElementById('apiKeyEyeIcon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.className = 'ti tabler-eye-off';
+  } else {
+    input.type = 'password';
+    icon.className = 'ti tabler-eye';
+  }
+}
+
+function togglePengaduanKeyVisibility() {
+  const input = document.getElementById('wa_pengaduan_api_key');
+  const icon = document.getElementById('pengaduanKeyEyeIcon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.className = 'ti tabler-eye-off';
+  } else {
+    input.type = 'password';
+    icon.className = 'ti tabler-eye';
+  }
+}
+
+function toggleValidatorKeyVisibility() {
+  const input = document.getElementById('wa_validator_api_key');
+  const icon = document.getElementById('validatorKeyEyeIcon');
   if (input.type === 'password') {
     input.type = 'text';
     icon.className = 'ti tabler-eye-off';

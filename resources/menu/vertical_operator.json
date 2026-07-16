@@ -148,6 +148,12 @@
       "slug": "admin.id-card-templates"
     },
     {
+      "name": "Pengaduan Data",
+      "icon": "menu-icon ti tabler-report",
+      "slug": ["admin.pengaduan.index", "admin.pengaduan.show"],
+      "url": "/admin/pengaduan"
+    },
+    {
       "menuHeader": "Panduan & Dokumentasi",
       "icon": "menu-icon ti tabler-book"
     },

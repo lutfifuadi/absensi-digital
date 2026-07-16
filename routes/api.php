@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PengaduanController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -72,3 +73,9 @@ Route::prefix('ekskul/absensi')->group(function () {
         ->name('api.ekskul.absensi.scan')
         ->middleware('throttle:30,1');
 });
+
+// ── Layanan Pengaduan Data Tidak Valid (PRD-002) — Publik API ────────────────
+Route::post('/pengaduan', [PengaduanController::class, 'submit']);
+Route::get('/pengaduan/cek', [PengaduanController::class, 'cekStatus']);
+Route::get('/pengaduan/cek-wa', [PengaduanController::class, 'cekWa']);
+Route::get('/pengaduan/cek-wa', [PengaduanController::class, 'cekWa']);

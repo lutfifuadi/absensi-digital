@@ -130,6 +130,8 @@ $namaSekolah = \App\Models\Pengaturan::where('key', 'nama_lembaga')->value('valu
             <li><a class="dropdown-item {{ $currentRouteName === 'public.panduan-pengguna' ? 'active' : '' }}" href="{{ route('public.panduan-pengguna') }}"><i class="ti tabler-book me-2"></i>Panduan Pengguna</a></li>
             <li><a class="dropdown-item {{ $currentRouteName === 'public.kebijakan-privasi' ? 'active' : '' }}" href="{{ route('public.kebijakan-privasi') }}"><i class="ti tabler-shield-check me-2"></i>Kebijakan Privasi</a></li>
             <li><a class="dropdown-item {{ $currentRouteName === 'public.bantuan' ? 'active' : '' }}" href="{{ route('public.bantuan') }}"><i class="ti tabler-help-circle me-2"></i>Bantuan</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item {{ $currentRouteName === 'pengaduan.form' ? 'active' : '' }}" href="{{ route('pengaduan.form') }}"><i class="ti tabler-flag text-danger me-2"></i>Pengaduan Data</a></li>
           </ul>
         </li>
       </ul>

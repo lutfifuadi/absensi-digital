@@ -34,6 +34,7 @@ $logoSekolah = $logoSekolah ?? \App\Models\Pengaturan::where('key', 'logo_sekola
              <li class="mb-3"><a href="{{ route('login') }}" class="footer-link-custom">Portal Admin</a></li>
              <li class="mb-3"><a href="{{ route('public.live-board') }}" class="footer-link-custom">Live Monitor</a></li>
              <li class="mb-3"><a href="{{ route('public.scan-qr.index') }}" class="footer-link-custom">Scan QR Absensi</a></li>
+             <li class="mb-3"><a href="{{ route('pengaduan.form') }}" class="footer-link-custom">Pengaduan Data</a></li>
           </ul>
         </div>
         <div class="col-lg-2 col-md-4 col-sm-6">

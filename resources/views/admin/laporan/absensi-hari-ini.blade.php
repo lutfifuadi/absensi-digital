@@ -405,12 +405,6 @@
         });
       });
 
-      // Polling automatic updates every 5 seconds
-      setInterval(function() {
-        if (!document.hidden && document.activeElement !== searchInput) {
-          fetchData(currentUrl, true);
-        }
-      }, 5000);
     });
   </script>
 @endsection

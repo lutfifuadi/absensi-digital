@@ -24,7 +24,7 @@ class WhatsAppService
             && Pengaturan::where('key', 'jenis_notifikasi_ortu')->value('value') === 'WhatsApp (WA)';
 
         $link = Pengaturan::where('key', 'link_server_wa')->value('value') ?: 'https://wa.lutfifuadi.my.id/send-message';
-        $this->baseUrl = str_replace(['/send-message', '/send-media', '/check-number', '/send-location'], '', $link);
+        $this->baseUrl = rtrim(str_replace(['/send-message', '/send-media', '/check-number', '/send-location'], '', $link), '/');
 
         // API key dan sender nomor
         $this->apiKey   = Pengaturan::where('key', 'wa_api_key')->value('value') ?: env('WA_API_KEY', '');
@@ -140,9 +140,9 @@ class WhatsAppService
     /**
      * Check if a number exists on WhatsApp
      */
-    public function checkNumber(string $number): bool
+    public function checkNumber(string $number, bool $force = false): bool
     {
-        if (!$this->isEnabled) return false;
+        if (!$force && !$this->isEnabled) return false;
 
         try {
             $response = Http::timeout(10)->post("{$this->baseUrl}/check-number", [

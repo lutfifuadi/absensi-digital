@@ -62,6 +62,7 @@ use App\Http\Controllers\PublicPagesController;
 use App\Http\Controllers\PublicPelepasanController;
 use App\Http\Controllers\PublicQrScanController;
 use App\Http\Controllers\PiketScannerController;
+use App\Http\Controllers\PengaduanController;
 use App\Http\Controllers\PublicKegiatanController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
@@ -143,6 +144,13 @@ Route::redirect('/panduan-pengguna', '/panduan', 301)->name('public.panduan-peng
 Route::get('/kebijakan-privasi', [PublicPagesController::class, 'kebijakanPrivasi'])->name('public.kebijakan-privasi');
 Route::get('/bantuan', [PublicPagesController::class, 'bantuan'])->name('public.bantuan');
 Route::get('/prestasi', [PublicPagesController::class, 'prestasi'])->name('public.prestasi');
+
+// ── Layanan Pengaduan Data Tidak Valid (PRD-002) — Publik ────────────────────
+Route::prefix('pengaduan')->name('pengaduan.')->group(function () {
+    Route::get('/', [PengaduanController::class, 'form'])->name('form');
+    Route::get('/cek', [PengaduanController::class, 'cekForm'])->name('cek');
+});
+// ─────────────────────────────────────────────────────────────────────────────
 
 // ── Halaman Panduan (public) ───────────────────────────────────────────────────
 Route::prefix('panduan')->name('guide.')->group(function () {
@@ -1061,6 +1069,15 @@ Route::middleware([
         Route::delete('alumni/{siswa}', [AlumniController::class, 'destroy'])
             ->name('admin.alumni.destroy')
             ->middleware('role:super_admin');
+
+        // ── PENGADUAN DATA TIDAK VALID (PRD-002) ─────────────────────────
+        Route::prefix('pengaduan')->name('admin.pengaduan.')->middleware('role:super_admin,admin_sekolah,operator')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\PengaduanController::class, 'index'])->name('index');
+            Route::delete('/reset', [\App\Http\Controllers\Admin\PengaduanController::class, 'reset'])->name('reset')->middleware('role:super_admin');
+            Route::get('/{pengaduan}', [\App\Http\Controllers\Admin\PengaduanController::class, 'show'])->name('show');
+            Route::put('/{pengaduan}', [\App\Http\Controllers\Admin\PengaduanController::class, 'update'])->name('update');
+            Route::post('/{pengaduan}/update-status', [\App\Http\Controllers\Admin\PengaduanController::class, 'updateStatus'])->name('update-status');
+        });
 
         // ── CETAK KARTU IDENTITAS ALL-IN-ONE (PRD-006) ─────────────────────
         Route::prefix('cetak-kartu')->name('admin.cetak-kartu.')->middleware('role:super_admin,admin_sekolah,operator')->group(function () {
