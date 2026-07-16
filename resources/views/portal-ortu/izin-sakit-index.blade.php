@@ -70,11 +70,11 @@
                         <td>
                             <div class="d-flex justify-content-start align-items-center gap-2">
                                 <div class="avatar avatar-sm">
-                                    <span class="avatar-initial rounded-circle bg-label-info">{{ substr($row->user->name, 0, 2) }}</span>
+                                    <span class="avatar-initial rounded-circle bg-label-info">{{ substr($row->siswa?->nama_lengkap ?? '-', 0, 2) }}</span>
                                 </div>
                                 <div class="d-flex flex-column">
-                                    <span class="fw-bold text-white">{{ $row->user?->name }}</span>
-                                    <small class="text-muted" style="font-size: 0.72rem;">Kelas: {{ $row->user?->siswa?->kelas?->nama ?? '-' }}</small>
+                                    <span class="fw-bold text-white">{{ $row->siswa?->nama_lengkap ?? '-' }}</span>
+                                    <small class="text-muted" style="font-size: 0.72rem;">Kelas: {{ $row->siswa?->kelas?->nama ?? '-' }}</small>
                                 </div>
                             </div>
                         </td>
