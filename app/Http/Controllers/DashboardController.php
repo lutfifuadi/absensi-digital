@@ -933,7 +933,8 @@ private function superAdminData(): array
     public function gamifikasi(Request $request)
     {
         $tahunAkademikList  = TahunAkademik::orderByDesc('is_aktif')->orderByDesc('id')->get();
-        $kelasList          = Kelas::orderBy('nama')->get(['id', 'nama', 'jurusan_id', 'tahun_akademik_id']);
+        $tahunId            = session('tahun_akademik_id') ?? TahunAkademik::where('is_aktif', true)->value('id');
+        $kelasList          = Kelas::where('tahun_akademik_id', $tahunId)->orderBy('nama')->get(['id', 'nama', 'jurusan_id', 'tahun_akademik_id']);
         $tahunAkademikAktif = TahunAkademik::where('is_aktif', true)->first();
 
         return view('admin.gamifikasi.index', compact(
@@ -952,7 +953,7 @@ private function superAdminData(): array
             $kelasId = $request->query('kelas_id');
             $periode = $request->query('periode', 'bulan');
             $bulan = $request->query('bulan', now()->format('Y-m'));
-            $tahunAkademikId = $request->query('tahun_akademik_id');
+            $tahunAkademikId = $request->query('tahun_akademik_id') ?? session('tahun_akademik_id') ?? TahunAkademik::where('is_aktif', true)->value('id');
 
             // Format dynamic cache key
             $cacheKey = sprintf(
