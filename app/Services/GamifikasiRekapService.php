@@ -230,6 +230,7 @@ class GamifikasiRekapService
     public function getRekapKelas(array $filters = []): Collection
     {
         $tahunAkademikId = $filters['tahun_akademik_id'] ?? null;
+        $kelasId = $filters['kelas_id'] ?? null;
 
         // ── Ambil semua kelas ────────────────────────────────────────────────
         $kelasQuery = Kelas::query()->with([
@@ -244,6 +245,10 @@ class GamifikasiRekapService
 
         if ($tahunAkademikId) {
             $kelasQuery->where('tahun_akademik_id', $tahunAkademikId);
+        }
+
+        if ($kelasId) {
+            $kelasQuery->where('id', $kelasId);
         }
 
         $kelasList = $kelasQuery->get();

@@ -349,7 +349,7 @@
         </div>
         <div class="col-sm-4 col-md-3">
           <label class="form-label text-white-50 small fw-bold mb-1">PILIH KELAS</label>
-          <select x-model="kelasId" class="form-select form-select-sm bg-dark border-0 text-white" style="border-radius: 5px !important;">
+          <select x-model="kelasId" @change="fetchRekap()" class="form-select form-select-sm bg-dark border-0 text-white" style="border-radius: 5px !important;">
             <option value="">Semua Kelas</option>
             @foreach($kelasList ?? [] as $kls)
               <option value="{{ $kls->id }}">{{ $kls->nama }}</option>
@@ -360,6 +360,7 @@
           <label class="form-label text-white-50 small fw-bold mb-1">PILIH BULAN</label>
           <input type="month"
                  x-model="bulan"
+                 @change="fetchRekap()"
                  class="form-control form-control-sm bg-dark border-0 text-white"
                  style="color-scheme:dark; border-radius: 5px !important;">
         </div>
