@@ -951,7 +951,7 @@ private function superAdminData(): array
     {
         try {
             $kelasId = $request->query('kelas_id');
-            $periode = $request->query('periode', 'bulan');
+            $periode = $request->query('periode', 'semua');
             $bulan = $request->query('bulan', now()->format('Y-m'));
             $tahunAkademikId = $request->query('tahun_akademik_id') ?? session('tahun_akademik_id') ?? TahunAkademik::where('is_aktif', true)->value('id');
 
@@ -1061,12 +1061,13 @@ private function superAdminData(): array
 
         $rows = $data->map(function ($item, $index) {
             $badgeNames = collect($item['badge_list'])->pluck('name')->implode(', ');
+            $kelasNama = is_array($item['kelas']) ? ($item['kelas']['nama'] ?? '-') : $item['kelas'];
             return [
                 $index + 1,
                 $item['rank'] ?? '-',
                 $item['nama_lengkap'],
                 $item['nis'],
-                $item['kelas'],
+                $kelasNama,
                 $item['jurusan'],
                 $item['total_hadir'],
                 $item['total_terlambat'],
@@ -1133,13 +1134,14 @@ private function superAdminData(): array
                 ];
             } else {
                 foreach ($badge['penerima'] as $i => $penerima) {
+                    $kelasNama = is_array($penerima['kelas']) ? ($penerima['kelas']['nama'] ?? '-') : $penerima['kelas'];
                     $rows[] = [
                         $i === 0 ? $no++ : '',
                         $i === 0 ? $badge['name'] : '',
                         $i === 0 ? ($badge['badge_type'] ?? '-') : '',
                         $i === 0 ? $badge['total_penerima'] : '',
                         $penerima['nama'],
-                        $penerima['kelas'],
+                        $kelasNama,
                         $penerima['earned_at'] ?? '-',
                     ];
                 }

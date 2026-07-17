@@ -271,7 +271,7 @@
      ===================================================================== --}}
 <div x-data="{
        kelasId: '',
-       periode: 'bulan',
+       periode: 'semua',
        bulan: '{{ now()->format('Y-m') }}',
        activeSubTab: 'siswa',
        loading: false,
@@ -364,9 +364,9 @@
          }
        },
 
-       resetFilter() {
-         this.kelasId   = '';
-         this.periode   = 'bulan';
+        resetFilter() {
+          this.kelasId   = '';
+          this.periode   = 'semua';
          this.bulan     = '{{ now()->format('Y-m') }}';
          this.loaded    = false;
          this.error     = null;
@@ -896,12 +896,12 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <template x-for="(penerima, pi) in badge.penerima" :key="pi">
+                       <template x-for="(penerima, pi) in badge.penerima" :key="pi">
                         <tr>
-                          <td class="fw-semibold text-white" x-text="penerima.nama_lengkap || '-'"></td>
+                          <td class="fw-semibold text-white" x-text="penerima.nama || '-'"></td>
                           <td>
                             <span class="badge bg-label-secondary" style="font-size:.65rem;"
-                                  x-text="penerima.kelas || '-'"></span>
+                                  x-text="penerima.kelas?.nama || '-'"></span>
                           </td>
                           <td class="text-center text-muted"
                               x-text="penerima.earned_at ? new Date(penerima.earned_at).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'}) : '-'">

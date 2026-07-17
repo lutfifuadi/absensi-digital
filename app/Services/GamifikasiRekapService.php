@@ -197,7 +197,7 @@ class GamifikasiRekapService
                 'siswa_id'        => $siswa->id,
                 'nama_lengkap'    => $siswa->nama_lengkap,
                 'nis'             => $siswa->nis,
-                'kelas'           => $siswa->kelas?->nama ?? '-',
+                'kelas'           => $siswa->kelas ? ['id' => $siswa->kelas->id, 'nama' => $siswa->kelas->nama] : null,
                 'jurusan'         => $siswa->kelas?->jurusan?->nama ?? '-',
                 'total_hadir'     => (int) ($stats->total_hadir ?? 0),
                 'total_terlambat' => (int) ($stats->total_terlambat ?? 0),
@@ -205,8 +205,8 @@ class GamifikasiRekapService
                 'total_izin'      => (int) ($stats->total_izin ?? 0),
                 'total_alpha'     => (int) ($stats->total_alpha ?? 0),
                 'total_absensi'   => (int) ($stats->total_absensi ?? 0),
-                'skor'            => ($startDate && $endDate) ? null : ($leaderboard?->score ?? 0),
-                'rank'            => ($startDate && $endDate) ? null : ($leaderboard?->rank ?? null),
+                'skor'            => $leaderboard?->score ?? 0,
+                'rank'            => $leaderboard?->rank ?? null,
                 'jumlah_badge'    => $siswa->studentBadges->count(),
                 'badge_list'      => $badgeList->values()->toArray(),
             ];
@@ -379,7 +379,7 @@ class GamifikasiRekapService
             $penerima = $sbQuery->get()->map(fn ($sb) => [
                 'siswa_id'   => $sb->siswa_id,
                 'nama'       => $sb->siswa?->nama_lengkap ?? '-',
-                'kelas'      => $sb->siswa?->kelas?->nama ?? '-',
+                'kelas'      => $sb->siswa?->kelas ? ['id' => $sb->siswa->kelas->id, 'nama' => $sb->siswa->kelas->nama] : null,
                 'earned_at'  => $sb->earned_at?->format('Y-m-d H:i:s'),
             ]);
 
