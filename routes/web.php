@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\IdCardTemplateController;
 use App\Http\Controllers\Admin\ImpersonateController;
 use App\Http\Controllers\Admin\IzinSakitController;
 use App\Http\Controllers\Admin\JadwalPelajaranController;
+use App\Http\Controllers\Admin\JurusanController;
 use App\Http\Controllers\Admin\KegiatanController;
 use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Admin\LaporanController;
@@ -477,6 +478,9 @@ Route::middleware([
             ->names('admin.kelas')
             ->parameters(['kelas' => 'kelas'])
             ->except(['show'])
+            ->middleware('role:super_admin,admin_sekolah,operator');
+        Route::resource('jurusan', JurusanController::class)
+            ->names('admin.jurusan')
             ->middleware('role:super_admin,admin_sekolah,operator');
         Route::post('kelas/import', [KelasController::class, 'importStore'])
             ->name('admin.kelas.import.store')

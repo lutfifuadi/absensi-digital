@@ -101,9 +101,10 @@
     @php
       $akademik = [
         ['title' => 'Tahun Ajaran', 'desc' => 'Kelola tahun ajaran dan status aktif.', 'icon' => 'tabler-calendar-stats', 'color' => 'warning', 'route' => route('admin.tahun-akademik.index')],
+        ['title' => 'Master Jurusan', 'desc' => 'Kelola program keahlian / jurusan sekolah.', 'icon' => 'tabler-books', 'color' => 'success', 'route' => route('admin.jurusan.index')],
         ['title' => 'Kelas', 'desc' => 'Kelola rombongan belajar dan wali kelas.', 'icon' => 'tabler-door', 'color' => 'info', 'route' => route('admin.kelas.index')],
         ['title' => 'Jadwal Pelajaran', 'desc' => 'Atur jadwal pelajaran per kelas dan guru.', 'icon' => 'tabler-calendar-time', 'color' => 'primary', 'route' => route('admin.jadwal.index')],
-        ['title' => 'Data Kegiatan Khusus', 'desc' => 'Kelola kegiatan khusus, ujian, dan ekstrakurikuler.', 'icon' => 'tabler-calendar-event', 'color' => 'secondary', 'route' => route('admin.kegiatan.index')],
+        ['title' => 'Data Kegiatan Khusus', 'desc' => 'Kelola kegiatan khusus, ujian, and ekstrakurikuler.', 'icon' => 'tabler-calendar-event', 'color' => 'secondary', 'route' => route('admin.kegiatan.index')],
       ];
     @endphp
 

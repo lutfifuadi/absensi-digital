@@ -8,7 +8,7 @@ use App\Models\Guru;
 use App\Models\Kelas;
 use App\Models\Siswa;
 use App\Models\TahunAkademik;
-use App\Models\User;
+use App\Models\Jurusan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -27,7 +27,7 @@ class KelasController extends Controller
 
         $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
 
-        $kelas = Kelas::with(['waliKelas.user', 'tahunAkademik'])
+        $kelas = Kelas::with(['waliKelas.user', 'tahunAkademik', 'jurusan'])
             ->withCount('siswa')
             ->where('tahun_akademik_id', $tahunAjaranId)
             ->when($tingkat, function ($query, $tingkat) {
@@ -36,8 +36,11 @@ class KelasController extends Controller
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('nama', 'like', "%{$search}%")
-                      ->orWhere('jurusan', 'like', "%{$search}%")
-                      ->orWhere('tingkat', 'like', "%{$search}%");
+                      ->orWhere('tingkat', 'like', "%{$search}%")
+                      ->orWhereHas('jurusan', function ($qj) use ($search) {
+                          $qj->where('nama', 'like', "%{$search}%")
+                            ->orWhere('kode', 'like', "%{$search}%");
+                      });
                 });
             })
             ->orderBy('nama')
@@ -54,8 +57,9 @@ class KelasController extends Controller
         $tahunAkademikOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
         $tahunAkademikList = TahunAkademik::orderBy('nama', 'desc')->orderBy('semester', 'desc')->get();
         $tingkatOptions = \App\Helpers\JenjangHelper::getTingkatOptions();
+        $jurusanOptions = Jurusan::orderBy('nama')->get();
 
-        return view('admin.kelas.index', compact('kelas', 'guruOptions', 'tahunAkademikOptions', 'tahunAkademikList', 'tingkat', 'tingkatOptions'));
+        return view('admin.kelas.index', compact('kelas', 'guruOptions', 'tahunAkademikOptions', 'tahunAkademikList', 'tingkat', 'tingkatOptions', 'jurusanOptions'));
     }
 
     public function create()
@@ -64,11 +68,13 @@ class KelasController extends Controller
             ->orderBy('nama_lengkap')
             ->get();
         $tahunAkademikOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
+        $jurusanOptions = Jurusan::orderBy('nama')->get();
 
         return view('admin.kelas.form', [
             'kelas' => new Kelas(),
             'guruOptions' => $guruOptions,
             'tahunAkademikOptions' => $tahunAkademikOptions,
+            'jurusanOptions' => $jurusanOptions,
         ]);
     }
 
@@ -78,7 +84,7 @@ class KelasController extends Controller
         $data = $request->validate([
             'nama' => 'required|string|max:255',
             'tingkat' => ['required', Rule::in($tingkatOptions)],
-            'jurusan' => 'required|string|max:255',
+            'jurusan_id' => 'required|exists:jurusan,id',
             'wali_kelas_id' => ['nullable', 'integer', Rule::exists('guru', 'id')],
             'tahun_akademik_id' => 'required|exists:tahun_akademik,id',
             'is_aktif_absensi' => 'nullable|boolean',
@@ -109,8 +115,9 @@ class KelasController extends Controller
             ->orderBy('nama_lengkap')
             ->get();
         $tahunAkademikOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
+        $jurusanOptions = Jurusan::orderBy('nama')->get();
 
-        return view('admin.kelas.form', compact('kelas', 'guruOptions', 'tahunAkademikOptions'));
+        return view('admin.kelas.form', compact('kelas', 'guruOptions', 'tahunAkademikOptions', 'jurusanOptions'));
     }
 
     public function update(Request $request, Kelas $kelas)
@@ -119,7 +126,7 @@ class KelasController extends Controller
         $data = $request->validate([
             'nama' => 'required|string|max:255',
             'tingkat' => ['required', Rule::in($tingkatOptions)],
-            'jurusan' => 'required|string|max:255',
+            'jurusan_id' => 'required|exists:jurusan,id',
             'wali_kelas_id' => ['nullable', 'integer', Rule::exists('guru', 'id')],
             'tahun_akademik_id' => 'required|exists:tahun_akademik,id',
             'is_aktif_absensi' => 'nullable|boolean',
@@ -204,6 +211,7 @@ class KelasController extends Controller
 
         $kelasOptions = Kelas::where('tahun_akademik_id', $kelas->tahun_akademik_id)
             ->where('id', '!=', $kelas->id)
+            ->with('jurusan')
             ->orderBy('nama')
             ->get();
 
@@ -279,8 +287,8 @@ class KelasController extends Controller
                 'total_sumber' => $kelasSumber->count(),
                 'total_skip' => count($skip),
                 'total_baru' => count($baru),
-                'kelas_baru' => collect($baru)->map(fn($k) => ['nama' => $k->nama, 'tingkat' => $k->tingkat, 'jurusan' => $k->jurusan]),
-                'kelas_skip' => collect($skip)->map(fn($k) => ['nama' => $k->nama, 'tingkat' => $k->tingkat, 'jurusan' => $k->jurusan]),
+                'kelas_baru' => collect($baru)->map(fn($k) => ['nama' => $k->nama, 'tingkat' => $k->tingkat, 'jurusan_id' => $k->jurusan_id]),
+                'kelas_skip' => collect($skip)->map(fn($k) => ['nama' => $k->nama, 'tingkat' => $k->tingkat, 'jurusan_id' => $k->jurusan_id]),
             ]
         ]);
     }
@@ -314,7 +322,7 @@ class KelasController extends Controller
                 Kelas::create([
                     'nama' => $kelas->nama,
                     'tingkat' => $kelas->tingkat,
-                    'jurusan' => $kelas->jurusan,
+                    'jurusan_id' => $kelas->jurusan_id,
                     'tahun_akademik_id' => $taTujuan->id,
                     'wali_kelas_id' => null,
                     'is_aktif_absensi' => true,
@@ -347,12 +355,12 @@ class KelasController extends Controller
 
     public function downloadSample()
     {
-        $headers = ['nama', 'tingkat', 'jurusan', 'wali_kelas', 'tahun_akademik'];
+        $headers = ['nama', 'tingkat', 'jurusan_kode', 'wali_kelas', 'tahun_akademik'];
 
         $callback = function () use ($headers) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $headers);
-            fputcsv($file, ['X IPA 1', 'X', 'IPA', 'Nama Guru Wali', '2023/2024 Ganjil']);
+            fputcsv($file, ['X IPA 1', 'X', 'UMUM', 'Nama Guru Wali', '2023/2024 Ganjil']);
             fclose($file);
         };
 

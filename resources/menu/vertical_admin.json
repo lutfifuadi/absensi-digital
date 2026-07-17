@@ -31,6 +31,12 @@
       "url": "/admin/tahun-akademik"
     },
     {
+      "name": "Master Jurusan",
+      "icon": "menu-icon ti tabler-books",
+      "slug": ["admin.jurusan.index", "admin.jurusan.create", "admin.jurusan.edit"],
+      "url": "/admin/jurusan"
+    },
+    {
       "name": "Kelas",
       "icon": "menu-icon ti tabler-door",
       "slug": ["admin.kelas.index", "admin.kelas.show"],

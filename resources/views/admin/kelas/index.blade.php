@@ -410,13 +410,18 @@
                 @enderror
               </div>
               <div class="col-md-8">
-                <label class="form-label fw-semibold small" for="modal_jurusan">
+                <label class="form-label fw-semibold small" for="modal_jurusan_id">
                   <i class="ti tabler-books me-1 text-info"></i> Jurusan
                 </label>
-                <input id="modal_jurusan" name="jurusan" type="text"
-                  class="form-control @error('jurusan') is-invalid @enderror" placeholder="Contoh: IPA"
-                  value="{{ old('jurusan') }}" required>
-                @error('jurusan')
+                <select id="modal_jurusan_id" name="jurusan_id" class="form-select @error('jurusan_id') is-invalid @enderror" required>
+                  <option value="">Pilih jurusan</option>
+                  @foreach($jurusanOptions as $jurs)
+                    <option value="{{ $jurs->id }}" {{ old('jurusan_id') == $jurs->id ? 'selected' : '' }}>
+                      [{{ $jurs->kode }}] — {{ $jurs->nama }}
+                    </option>
+                  @endforeach
+                </select>
+                @error('jurusan_id')
                   <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
               </div>
@@ -890,7 +895,7 @@
 
       document.getElementById('modal_nama').value = '';
       document.getElementById('modal_tingkat').value = '';
-      document.getElementById('modal_jurusan').value = '';
+      document.getElementById('modal_jurusan_id').value = '';
       document.getElementById('modal_tahun').value = '';
       document.getElementById('modal_wali').value = '';
       document.getElementById('modal_is_aktif_absensi').checked = true;
@@ -915,7 +920,7 @@
 
       document.getElementById('modal_nama').value = data.nama;
       document.getElementById('modal_tingkat').value = data.tingkat;
-      document.getElementById('modal_jurusan').value = data.jurusan;
+      document.getElementById('modal_jurusan_id').value = data.jurusan_id ?? '';
       document.getElementById('modal_tahun').value = data.tahun_akademik_id ?? '';
       document.getElementById('modal_wali').value = data.wali_kelas_id ?? '';
       document.getElementById('modal_is_aktif_absensi').checked = data.is_aktif_absensi ?? true;
@@ -1014,7 +1019,7 @@
           baruBody.innerHTML = '<tr><td colspan="3" class="text-center text-white-50 py-3">Tidak ada kelas baru.</td></tr>';
         } else {
           d.kelas_baru.forEach(k => {
-            baruBody.innerHTML += `<tr><td>${k.nama}</td><td>${k.tingkat}</td><td>${k.jurusan}</td></tr>`;
+            baruBody.innerHTML += `<tr><td>${k.nama}</td><td>${k.tingkat}</td><td>${k.jurusan_id ? 'Tersalin' : 'N/A'}</td></tr>`;
           });
         }
 
@@ -1025,7 +1030,7 @@
           skipBody.innerHTML = '<tr><td colspan="3" class="text-center text-white-50 py-3">Tidak ada kelas yang di-skip.</td></tr>';
         } else {
           d.kelas_skip.forEach(k => {
-            skipBody.innerHTML += `<tr><td>${k.nama}</td><td>${k.tingkat}</td><td>${k.jurusan}</td></tr>`;
+            skipBody.innerHTML += `<tr><td>${k.nama}</td><td>${k.tingkat}</td><td>${k.jurusan_id ? 'Sudah Ada' : 'N/A'}</td></tr>`;
           });
         }
 

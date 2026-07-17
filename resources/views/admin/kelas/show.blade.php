@@ -270,7 +270,7 @@
       <div class="col-6 col-md-2">
         <div class="info-card__item">
           <span class="info-card__label">Jurusan</span>
-          <span class="info-card__value text-white-75">{{ $kelas->jurusan ?? '—' }}</span>
+          <span class="info-card__value text-white-75">{{ $kelas->jurusan?->nama ?? '—' }}</span>
         </div>
       </div>
       <div class="col-6 col-md-3">
@@ -537,7 +537,7 @@
               <select name="kelas_tujuan_id" class="form-select select2" data-placeholder="Pilih kelas tujuan..." required>
                 <option value=""></option>
                 @foreach ($kelasOptions as $ko)
-                  <option value="{{ $ko->id }}">{{ $ko->nama }} ({{ $ko->jurusan }})</option>
+                  <option value="{{ $ko->id }}">{{ $ko->nama }} ({{ $ko->jurusan?->nama ?? '—' }})</option>
                 @endforeach
               </select>
             </div>
@@ -593,7 +593,7 @@
               <select name="kelas_id" class="form-select select2" data-placeholder="Pilih kelas tujuan..." required>
                 <option value=""></option>
                 @foreach ($kelasOptions as $ko)
-                  <option value="{{ $ko->id }}">{{ $ko->nama }} ({{ $ko->jurusan }})</option>
+                  <option value="{{ $ko->id }}">{{ $ko->nama }} ({{ $ko->jurusan?->nama ?? '—' }})</option>
                 @endforeach
               </select>
             </div>

@@ -93,13 +93,18 @@
                 @enderror
               </div>
               <div class="col-md-8">
-                <label class="form-label fw-semibold small" for="jurusan">
+                <label class="form-label fw-semibold small" for="jurusan_id">
                   <i class="ti tabler-books me-1 text-info"></i> Jurusan
                 </label>
-                <input id="jurusan" name="jurusan" type="text"
-                  class="form-control @error('jurusan') is-invalid @enderror" placeholder="Contoh: IPA"
-                  value="{{ old('jurusan', $kelas->jurusan) }}" required>
-                @error('jurusan')
+                <select id="jurusan_id" name="jurusan_id" class="form-select @error('jurusan_id') is-invalid @enderror" required>
+                  <option value="">Pilih jurusan</option>
+                  @foreach($jurusanOptions as $jurs)
+                    <option value="{{ $jurs->id }}" {{ old('jurusan_id', $kelas->jurusan_id) == $jurs->id ? 'selected' : '' }}>
+                      [{{ $jurs->kode }}] — {{ $jurs->nama }}
+                    </option>
+                  @endforeach
+                </select>
+                @error('jurusan_id')
                   <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
               </div>

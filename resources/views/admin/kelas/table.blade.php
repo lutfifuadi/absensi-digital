@@ -50,7 +50,7 @@
             @endphp
             <span class="badge bg-label-{{ $tingkatColor }} tingkat-badge">{{ $item->tingkat }}</span>
           </td>
-          <td class="text-white-50 small">{{ $item->jurusan }}</td>
+          <td class="text-white-50 small">{{ $item->jurusan?->nama ?? '—' }}</td>
           <td class="text-center">
             <span class="badge bg-label-primary px-2">{{ $item->siswa_count }}</span>
           </td>
@@ -89,7 +89,7 @@
                 id: {{ $item->id }},
                 nama: '{{ addslashes($item->nama) }}',
                 tingkat: '{{ $item->tingkat }}',
-                jurusan: '{{ addslashes($item->jurusan) }}',
+                jurusan_id: {{ $item->jurusan_id ?? 'null' }},
                 tahun_akademik_id: {{ $item->tahun_akademik_id ?? 'null' }},
                 wali_kelas_id: {{ $item->wali_kelas_id ?? 'null' }},
                 is_aktif_absensi: {{ $item->is_aktif_absensi ? 'true' : 'false' }},

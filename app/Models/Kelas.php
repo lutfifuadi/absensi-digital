@@ -18,7 +18,7 @@ class Kelas extends Model
     protected $fillable = [
         'nama',
         'tingkat',
-        'jurusan',
+        'jurusan_id',
         'wali_kelas_id',
         'tahun_akademik_id',
         'is_aktif_absensi',
@@ -35,6 +35,11 @@ class Kelas extends Model
     public function waliKelas()
     {
         return $this->belongsTo(Guru::class, 'wali_kelas_id');
+    }
+
+    public function jurusan()
+    {
+        return $this->belongsTo(Jurusan::class, 'jurusan_id');
     }
 
     public function tahunAkademik()

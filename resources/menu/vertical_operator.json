@@ -26,6 +26,11 @@
           "slug": "admin.tahun-akademik.index"
         },
         {
+          "url": "/admin/jurusan",
+          "name": "Master Jurusan",
+          "slug": "admin.jurusan.index"
+        },
+        {
           "url": "/admin/kelas",
           "name": "Data Kelas",
           "slug": "admin.kelas.index"
