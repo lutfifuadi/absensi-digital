@@ -432,8 +432,8 @@
   {{-- Card 1: Filter Panel (Atas) --}}
   <div class="das-panel mb-4">
     <div class="das-panel__body">
-      <div class="row g-2 align-items-end">
-        <div class="col-sm-4 col-md-3">
+      <div class="row g-3 align-items-end">
+        <div class="col-md">
           <label class="form-label text-white-50 small fw-bold mb-1">PILIH PERIODE</label>
           <select x-model="periode" @change="fetchRekap()" class="form-select form-select-sm bg-dark border-0 text-white" style="border-radius: 5px !important;">
             <option value="semua">Semua Waktu</option>
@@ -443,7 +443,7 @@
             <option value="tahun">Tahun Ajaran Ini</option>
           </select>
         </div>
-        <div class="col-sm-4 col-md-3">
+        <div class="col-md">
           <label class="form-label text-white-50 small fw-bold mb-1">PILIH KELAS</label>
           <select x-model="kelasId" @change="fetchRekap()" class="form-select form-select-sm bg-dark border-0 text-white" style="border-radius: 5px !important;">
             <option value="">Semua Kelas</option>
@@ -452,7 +452,7 @@
             @endforeach
           </select>
         </div>
-        <div class="col-sm-4 col-md-3" x-show="periode === 'bulan'">
+        <div class="col-md" x-show="periode === 'bulan'">
           <label class="form-label text-white-50 small fw-bold mb-1">PILIH BULAN</label>
           <input type="month"
                  x-model="bulan"
@@ -460,7 +460,7 @@
                  class="form-control form-control-sm bg-dark border-0 text-white"
                  style="color-scheme:dark; border-radius: 5px !important;">
         </div>
-        <div class="col-sm-4 col-md-auto d-flex gap-2">
+        <div class="col-md-auto d-flex gap-2">
           <button class="das-btn das-btn--primary das-btn--sm"
                    @click="fetchRekap()"
                    :disabled="loading"
@@ -700,7 +700,7 @@
                       </div>
                     </td>
                     <td class="text-center">
-                      <a :href="'/admin/siswa/' + (item.nis || '')"
+                      <a :href="'/admin/siswa/' + (item.siswa_id || '') + '/profil'"
                          class="action-btn"
                          title="Lihat Detail">
                         <i class="ti tabler-eye" style="font-size:.85rem;"></i>
