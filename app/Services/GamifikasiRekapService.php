@@ -178,7 +178,7 @@ class GamifikasiRekapService
         $absensiStats = $absensiQuery->groupBy('siswa_id')->get()->keyBy('siswa_id');
 
         // ── Bangun hasil ─────────────────────────────────────────────────────
-        return $siswaList->map(function (Siswa $siswa) use ($absensiStats, $startDate, $endDate) {
+        $mappedSiswa = $siswaList->map(function (Siswa $siswa) use ($absensiStats, $startDate, $endDate) {
             $stats = $absensiStats->get($siswa->id);
 
             // Ambil data leaderboard terbaru untuk siswa ini
@@ -193,27 +193,49 @@ class GamifikasiRekapService
                     'earned_at' => $sb->earned_at?->format('Y-m-d'),
                 ]);
 
+            $totalHadir = (int) ($stats->total_hadir ?? 0);
+            $totalTerlambat = (int) ($stats->total_terlambat ?? 0);
+            $totalAlpha = (int) ($stats->total_alpha ?? 0);
+
+            $skorDinamis = ($totalHadir * 10) + ($totalTerlambat * 5) - ($totalAlpha * 10);
+
+            $isDinamis = ($startDate && $endDate) || is_null($leaderboard);
+
+            if ($isDinamis) {
+                $skor = $skorDinamis;
+                $rank = null;
+            } else {
+                $skor = $leaderboard->score;
+                $rank = $leaderboard->rank;
+            }
+
             return [
                 'siswa_id'        => $siswa->id,
                 'nama_lengkap'    => $siswa->nama_lengkap,
                 'nis'             => $siswa->nis,
                 'kelas'           => $siswa->kelas ? ['id' => $siswa->kelas->id, 'nama' => $siswa->kelas->nama] : null,
                 'jurusan'         => $siswa->kelas?->jurusan?->nama ?? '-',
-                'total_hadir'     => (int) ($stats->total_hadir ?? 0),
-                'total_terlambat' => (int) ($stats->total_terlambat ?? 0),
+                'total_hadir'     => $totalHadir,
+                'total_terlambat' => $totalTerlambat,
                 'total_sakit'     => (int) ($stats->total_sakit ?? 0),
                 'total_izin'      => (int) ($stats->total_izin ?? 0),
-                'total_alpha'     => (int) ($stats->total_alpha ?? 0),
+                'total_alpha'     => $totalAlpha,
                 'total_absensi'   => (int) ($stats->total_absensi ?? 0),
-                'skor'            => $leaderboard?->score ?? 0,
-                'rank'            => $leaderboard?->rank ?? null,
+                'skor'            => $skor,
+                'rank'            => $rank,
                 'jumlah_badge'    => $siswa->studentBadges->count(),
                 'badge_list'      => $badgeList->values()->toArray(),
             ];
-        })->sortBy(function ($item) {
-            // Urutkan: rank terkecil dulu, null rank paling bawah
-            return $item['rank'] ?? PHP_INT_MAX;
-        })->values();
+        });
+
+        $sortedSiswa = $mappedSiswa->sortByDesc('skor')->values();
+
+        return $sortedSiswa->map(function ($item, $index) {
+            if (is_null($item['rank'])) {
+                $item['rank'] = $index + 1;
+            }
+            return $item;
+        });
     }
 
     /**
@@ -304,7 +326,7 @@ class GamifikasiRekapService
         }
 
         // ── Bangun hasil ─────────────────────────────────────────────────────
-        return $kelasList->map(function (Kelas $kelas) use ($siswaPerKelas, $absensiStats, $badgePerKelas, $startDate, $endDate) {
+        $mappedKelas = $kelasList->map(function (Kelas $kelas) use ($siswaPerKelas, $absensiStats, $badgePerKelas, $startDate, $endDate) {
             $stats     = $absensiStats->get($kelas->id);
             $leaderboard = $kelas->classLeaderboard->first();
 
@@ -315,6 +337,14 @@ class GamifikasiRekapService
                 ? round(($totalPresent / $totalAttendance) * 100, 2)
                 : 0;
 
+            $isDinamis = ($startDate && $endDate) || is_null($leaderboard);
+
+            if ($isDinamis) {
+                $rank = null;
+            } else {
+                $rank = $leaderboard->rank;
+            }
+
             return [
                 'kelas_id'            => $kelas->id,
                 'nama'                => $kelas->nama,
@@ -323,12 +353,19 @@ class GamifikasiRekapService
                 'total_kehadiran'     => $totalAttendance,
                 'total_present'       => $totalPresent,
                 'percentage'          => $percentage,
-                'rank'                => ($startDate && $endDate) ? null : ($leaderboard?->rank ?? null),
+                'rank'                => $rank,
                 'jumlah_badge_diraih' => $badgePerKelas[$kelas->id] ?? 0,
             ];
-        })->sortBy(function ($item) {
-            return $item['rank'] ?? PHP_INT_MAX;
-        })->values();
+        });
+
+        $sortedKelas = $mappedKelas->sortByDesc('percentage')->values();
+
+        return $sortedKelas->map(function ($item, $index) {
+            if (is_null($item['rank'])) {
+                $item['rank'] = $index + 1;
+            }
+            return $item;
+        });
     }
 
     /**
