@@ -81,12 +81,12 @@
     /* Timeline / History */
     .timeline {
         position: relative;
-        padding-left: 2rem;
+        padding-left: 1.5rem;
     }
     .timeline::before {
         content: '';
         position: absolute;
-        left: 8px;
+        left: 5px;
         top: 0;
         bottom: 0;
         width: 2px;
@@ -94,7 +94,7 @@
     }
     .timeline-item {
         position: relative;
-        padding-bottom: 1.5rem;
+        padding-bottom: 1.75rem;
     }
     .timeline-item:last-child {
         padding-bottom: 0;
@@ -102,10 +102,10 @@
     .timeline-item::before {
         content: '';
         position: absolute;
-        left: -2rem;
+        left: -1.5rem;
         top: 4px;
-        width: 18px;
-        height: 18px;
+        width: 12px;
+        height: 12px;
         border-radius: 50%;
         background: #1a1a2e;
         border: 2px solid rgba(255, 255, 255, 0.2);

@@ -50,6 +50,8 @@ class SiswaController extends Controller
         $perPage = (int) $request->query('per_page', 10);
         $sortBy = $request->query('sort_by', 'nama_lengkap');
         $sortDir = $request->query('sort_dir', 'asc');
+        $kelasId = $request->query('kelas_id');
+        $status = $request->query('status');
 
         $allowedSorts = ['nama_lengkap', 'nis', 'kelas_id', 'status'];
         if (!in_array($sortBy, $allowedSorts)) {
@@ -63,7 +65,6 @@ class SiswaController extends Controller
 
         $siswaQuery = Siswa::with(['kelas', 'tahunAkademik'])
             ->select('siswa.*')
-            ->where('siswa.status', '!=', 'alumni')
             ->where(function ($q) use ($tahunAjaranId) {
                 if ($tahunAjaranId) {
                     // Tampilkan siswa yang sesuai tahun ajaran ATAU yang tahun_akademik_id-nya NULL
@@ -71,6 +72,14 @@ class SiswaController extends Controller
                     $q->where('siswa.tahun_akademik_id', $tahunAjaranId)
                         ->orWhereNull('siswa.tahun_akademik_id');
                 }
+            })
+            ->when($kelasId, function ($query, $kelasId) {
+                $query->where('siswa.kelas_id', $kelasId);
+            })
+            ->when($status, function ($query, $status) {
+                $query->where('siswa.status', $status);
+            }, function ($query) {
+                $query->where('siswa.status', '!=', 'alumni');
             })
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
@@ -95,13 +104,17 @@ class SiswaController extends Controller
             ? Siswa::whereNull('tahun_akademik_id')->where('status', '!=', 'alumni')->count()
             : 0;
 
+        $kelasOptions = Kelas::where('tahun_akademik_id', $tahunAjaranId)
+            ->orderBy('nama')
+            ->get();
+
         if ($request->ajax()) {
             return view('admin.siswa.table', compact('siswa', 'sortBy', 'sortDir'))->render();
         }
 
         $tahunAjaranOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
 
-        return view('admin.siswa.index', compact('siswa', 'tahunAjaranOptions', 'siswaNullTahun', 'sortBy', 'sortDir'));
+        return view('admin.siswa.index', compact('siswa', 'tahunAjaranOptions', 'siswaNullTahun', 'sortBy', 'sortDir', 'kelasOptions'));
     }
 
     public function create()

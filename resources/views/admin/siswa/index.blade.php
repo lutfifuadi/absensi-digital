@@ -316,6 +316,47 @@
         </div>
     @endif
 
+    {{-- FILTER PANEL --}}
+    <div class="das-panel mb-4">
+        <div class="das-panel__body">
+            <form id="filterForm" method="GET" class="row gy-3 gx-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label text-white-50 small fw-bold">Cari Siswa</label>
+                    <input type="text" id="filterSearch" name="search" class="form-control bg-dark border-secondary text-white"
+                        placeholder="Nama, NIS, atau NISN…" value="{{ request('search') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-white-50 small fw-bold">Filter Kelas</label>
+                    <select id="filterKelas" name="kelas_id" class="form-select bg-dark border-secondary text-white">
+                        <option value="">Semua Kelas</option>
+                        @foreach ($kelasOptions as $k)
+                            <option value="{{ $k->id }}" @selected(request('kelas_id') == $k->id)>{{ $k->nama }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-white-50 small fw-bold">Status</label>
+                    <select id="filterStatus" name="status" class="form-select bg-dark border-secondary text-white">
+                        <option value="">Semua Status</option>
+                        <option value="aktif" @selected(request('status') === 'aktif')>Aktif</option>
+                        <option value="nonaktif" @selected(request('status') === 'nonaktif')>Nonaktif</option>
+                        <option value="alumni" @selected(request('status') === 'alumni')>Alumni</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn das-btn --info w-100">
+                            <i class="ti tabler-search me-1"></i> Cari
+                        </button>
+                        <button type="button" id="resetFilterBtn" class="btn das-btn --secondary" title="Reset">
+                            <i class="ti tabler-refresh"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     {{-- TABLE CARD --}}
     <div class="das-panel">
         <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3"
@@ -583,6 +624,11 @@
             const container = document.getElementById('siswaTableContainer');
             const searchInput = document.getElementById('searchInput');
             const perPageSelect = document.getElementById('perPageSelect');
+            const filterSearch = document.getElementById('filterSearch');
+            const filterKelas = document.getElementById('filterKelas');
+            const filterStatus = document.getElementById('filterStatus');
+            const filterForm = document.getElementById('filterForm');
+            const resetFilterBtn = document.getElementById('resetFilterBtn');
             let searchTimeout;
 
             let currentSortBy = '{{ $sortBy ?? 'nama_lengkap' }}';
@@ -591,7 +637,9 @@
             function fetchData(page = 1) {
                 const search = encodeURIComponent(searchInput.value || '');
                 const perPage = perPageSelect.value || 10;
-                const url = `{{ route('admin.siswa.index') }}?page=${page}&search=${search}&per_page=${perPage}&sort_by=${currentSortBy}&sort_dir=${currentSortDir}`;
+                const kelasId = filterKelas.value || '';
+                const status = filterStatus.value || '';
+                const url = `{{ route('admin.siswa.index') }}?page=${page}&search=${search}&per_page=${perPage}&sort_by=${currentSortBy}&sort_dir=${currentSortDir}&kelas_id=${kelasId}&status=${status}`;
 
                 container.style.opacity = '0.5';
                 container.style.pointerEvents = 'none';
@@ -623,9 +671,47 @@
 
             // debounce search
             searchInput.addEventListener('input', function() {
+                if (filterSearch) filterSearch.value = searchInput.value;
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => fetchData(1), 450);
             });
+
+            if (filterSearch) {
+                filterSearch.addEventListener('input', function() {
+                    searchInput.value = filterSearch.value;
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => fetchData(1), 450);
+                });
+            }
+
+            if (filterKelas) {
+                filterKelas.addEventListener('change', function() {
+                    fetchData(1);
+                });
+            }
+
+            if (filterStatus) {
+                filterStatus.addEventListener('change', function() {
+                    fetchData(1);
+                });
+            }
+
+            if (filterForm) {
+                filterForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    fetchData(1);
+                });
+            }
+
+            if (resetFilterBtn) {
+                resetFilterBtn.addEventListener('click', function() {
+                    if (filterSearch) filterSearch.value = '';
+                    searchInput.value = '';
+                    if (filterKelas) filterKelas.value = '';
+                    if (filterStatus) filterStatus.value = '';
+                    fetchData(1);
+                });
+            }
 
             perPageSelect.addEventListener('change', function() {
                 fetchData(1);
