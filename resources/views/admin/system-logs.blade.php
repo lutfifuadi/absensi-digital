@@ -3,7 +3,6 @@
 @section('title', 'Log Sistem')
 
 @section('page-style')
-  @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
   <style>
     /* Styling kustom terminal premium */
     .terminal-container {
@@ -80,53 +79,29 @@
       background: rgba(255, 255, 255, 0.2);
     }
 
-    /* SWEETALERT2 CUSTOM PREMIUM */
-    .das-swal-popup {
-      background: rgba(26, 26, 46, 0.95) !important;
-      backdrop-filter: blur(16px) saturate(180%) !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
-      border-radius: 20px !important;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    /* Custom style for Bootstrap Modal */
+    #clearLogConfirmModal .modal-content,
+    #alertModal .modal-content {
+      background: #1e1e2d;
+      border: 1px solid rgba(255,255,255,0.1) !important;
+      border-radius: 5px !important;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
     }
-
-    .das-swal-title {
-      color: #fff !important;
-      font-weight: 700 !important;
-      font-size: 1.35rem !important;
-      text-align: center !important;
-      width: 100% !important;
-      max-width: none !important;
-      max-inline-size: none !important;
+    #clearLogConfirmModal .modal-header,
+    #clearLogConfirmModal .modal-body,
+    #clearLogConfirmModal .modal-footer,
+    #clearLogConfirmModal button,
+    #clearLogConfirmModal .btn-close,
+    #alertModal .modal-header,
+    #alertModal .modal-body,
+    #alertModal .modal-footer,
+    #alertModal button,
+    #alertModal .btn-close {
+      border-radius: 5px !important;
     }
-
-    .das-swal-html {
-      color: rgba(255, 255, 255, 0.7) !important;
-      font-size: 0.9rem !important;
-    }
-
-    .das-swal-confirm {
-      padding: 10px 24px !important;
-      font-weight: 600 !important;
-      border-radius: 10px !important;
-      font-size: 0.875rem !important;
-      background-color: #ea5455 !important;
-      color: #fff !important;
-      box-shadow: 0 4px 12px rgba(234, 84, 85, 0.3) !important;
-      border: none !important;
-    }
-
-    .das-swal-cancel {
-      padding: 10px 24px !important;
-      font-weight: 600 !important;
-      border-radius: 10px !important;
-      font-size: 0.875rem !important;
-      background: rgba(255, 255, 255, 0.05) !important;
-      color: #fff !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    }
-
-    .das-swal-icon {
-      border-color: rgba(255, 255, 255, 0.15) !important;
+    #clearLogConfirmModal .btn-close-white,
+    #alertModal .btn-close-white {
+      filter: invert(1) grayscale(1) brightness(2);
     }
   </style>
 @endsection
@@ -191,10 +166,46 @@
       </div>
     </div>
   </div>
-@endsection
 
-@section('vendor-script')
-  @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.js'])
+  <!-- Modal Konfirmasi Hapus Log -->
+  <div class="modal fade" id="clearLogConfirmModal" tabindex="-1" aria-labelledby="clearLogConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-danger bg-opacity-10 py-3 border-bottom border-secondary d-flex align-items-center">
+          <h5 class="modal-title text-white d-flex align-items-center mb-0" id="clearLogConfirmModalLabel">
+            <i class="ti tabler-alert-triangle text-warning me-2 fs-4"></i> Apakah Anda Yakin?
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-white py-4">
+          Aksi ini akan menghapus semua isi file log '<strong id="modalLogFileName" class="text-warning"></strong>' secara permanen dari server!
+        </div>
+        <div class="modal-footer border-top border-secondary py-3">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="btn btn-danger" id="btnConfirmClear">Ya, Hapus Log!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Alert/Notification -->
+  <div class="modal fade" id="alertModal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header py-3 border-bottom border-secondary d-flex align-items-center" id="alertModalHeader">
+          <h5 class="modal-title d-flex align-items-center mb-0" id="alertModalTitle">
+            <i id="alertModalIcon" class=""></i> <span id="alertModalTitleText"></span>
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-white py-4" id="alertModalMessage">
+        </div>
+        <div class="modal-footer border-top border-secondary py-3">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
 @endsection
 
 @section('page-script')
@@ -205,6 +216,16 @@
       const btnClearLog = document.getElementById('btnClearLog');
       const terminalBody = document.getElementById('terminalBody');
       const terminalTitle = document.getElementById('terminalTitle');
+
+      // Modals
+      const clearLogConfirmModal = new bootstrap.Modal(document.getElementById('clearLogConfirmModal'));
+      const alertModal = new bootstrap.Modal(document.getElementById('alertModal'));
+      const modalLogFileName = document.getElementById('modalLogFileName');
+      const btnConfirmClear = document.getElementById('btnConfirmClear');
+      const alertModalHeader = document.getElementById('alertModalHeader');
+      const alertModalTitleText = document.getElementById('alertModalTitleText');
+      const alertModalIcon = document.getElementById('alertModalIcon');
+      const alertModalMessage = document.getElementById('alertModalMessage');
 
       // Fungsi mengambil isi Log
       function loadLogData() {
@@ -233,96 +254,59 @@
       logFileSelect.addEventListener('change', loadLogData);
       btnRefresh.addEventListener('click', loadLogData);
 
-      // Event Listener Clear Log dengan SweetAlert2
+      // Event Listener Tampilkan Modal Konfirmasi
       btnClearLog.addEventListener('click', function () {
         const selectedFile = logFileSelect.value;
+        modalLogFileName.textContent = selectedFile;
+        clearLogConfirmModal.show();
+      });
 
-        Swal.fire({
-          title: 'Apakah Anda Yakin?',
-          text: `Aksi ini akan menghapus semua isi file log "${selectedFile}" secara permanen dari server!`,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Ya, Hapus Log!',
-          cancelButtonText: 'Batal',
-          customClass: {
-            popup: 'das-swal-popup',
-            title: 'das-swal-title',
-            htmlContainer: 'das-swal-html',
-            confirmButton: 'das-swal-confirm btn btn-danger',
-            cancelButton: 'das-swal-cancel btn btn-secondary',
-            icon: 'das-swal-icon'
+      // Event Listener Clear Log (Proses Hapus di Modal)
+      btnConfirmClear.addEventListener('click', function () {
+        const selectedFile = logFileSelect.value;
+        clearLogConfirmModal.hide();
+        terminalBody.textContent = 'Membersihkan file log...';
+        
+        fetch(`{{ route('admin.system-logs.clear') }}`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
           },
-          buttonsStyling: false
-        }).then((result) => {
-          if (result.isConfirmed) {
-            terminalBody.textContent = 'Membersihkan file log...';
-            
-            fetch(`{{ route('admin.system-logs.clear') }}`, {
-              method: 'POST',
-              headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-              },
-              body: JSON.stringify({ file: selectedFile })
-            })
-            .then(response => {
-              if (!response.ok) {
-                return response.json().then(err => { throw new Error(err.message || 'Terjadi kesalahan pada server.') });
-              }
-              return response.json();
-            })
-            .then(data => {
-              if (data.success) {
-                Swal.fire({
-                  title: 'Log Dibersihkan!',
-                  text: data.message,
-                  icon: 'success',
-                  customClass: {
-                    popup: 'das-swal-popup',
-                    title: 'das-swal-title',
-                    htmlContainer: 'das-swal-html',
-                    confirmButton: 'das-swal-confirm btn btn-success',
-                    icon: 'das-swal-icon'
-                  },
-                  buttonsStyling: false
-                });
-                loadLogData();
-              } else {
-                Swal.fire({
-                  title: 'Gagal!',
-                  text: data.message,
-                  icon: 'error',
-                  customClass: {
-                    popup: 'das-swal-popup',
-                    title: 'das-swal-title',
-                    htmlContainer: 'das-swal-html',
-                    confirmButton: 'das-swal-confirm btn btn-primary',
-                    icon: 'das-swal-icon'
-                  },
-                  buttonsStyling: false
-                });
-                loadLogData();
-              }
-            })
-            .catch(error => {
-              Swal.fire({
-                title: 'Error!',
-                text: error.message || 'Terjadi kesalahan sistem saat menghubungi backend.',
-                icon: 'error',
-                customClass: {
-                  popup: 'das-swal-popup',
-                  title: 'das-swal-title',
-                  htmlContainer: 'das-swal-html',
-                  confirmButton: 'das-swal-confirm btn btn-primary',
-                  icon: 'das-swal-icon'
-                },
-                buttonsStyling: false
-              });
-              loadLogData();
-              console.error(error);
-            });
+          body: JSON.stringify({ file: selectedFile })
+        })
+        .then(response => {
+          if (!response.ok) {
+            return response.json().then(err => { throw new Error(err.message || 'Terjadi kesalahan pada server.') });
           }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            alertModalHeader.className = 'modal-header bg-success bg-opacity-10 py-3 border-bottom border-secondary d-flex align-items-center text-success';
+            alertModalTitleText.textContent = 'Sukses';
+            alertModalIcon.className = 'ti tabler-circle-check fs-4 me-2';
+            alertModalMessage.textContent = data.message;
+            alertModal.show();
+            loadLogData();
+          } else {
+            alertModalHeader.className = 'modal-header bg-danger bg-opacity-10 py-3 border-bottom border-secondary d-flex align-items-center text-danger';
+            alertModalTitleText.textContent = 'Gagal';
+            alertModalIcon.className = 'ti tabler-circle-x fs-4 me-2';
+            alertModalMessage.textContent = data.message;
+            alertModal.show();
+            loadLogData();
+          }
+        })
+        .catch(error => {
+          alertModalHeader.className = 'modal-header bg-danger bg-opacity-10 py-3 border-bottom border-secondary d-flex align-items-center text-danger';
+          alertModalTitleText.textContent = 'Gagal';
+          alertModalIcon.className = 'ti tabler-circle-x fs-4 me-2';
+          alertModalMessage.textContent = error.message || 'Terjadi kesalahan sistem saat menghubungi backend.';
+          alertModal.show();
+          loadLogData();
+          console.error(error);
         });
       });
 
