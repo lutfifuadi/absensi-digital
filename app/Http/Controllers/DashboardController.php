@@ -949,23 +949,38 @@ private function superAdminData(): array
     public function gamifikasiRekap(Request $request): JsonResponse
     {
         try {
-            $filters = array_filter([
-                'kelas_id'          => $request->query('kelas_id'),
-                'bulan'             => $request->query('bulan'),
-                'tahun_akademik_id' => $request->query('tahun_akademik_id'),
-            ], fn ($v) => $v !== null && $v !== '');
+            $kelasId = $request->query('kelas_id');
+            $periode = $request->query('periode', 'bulan');
+            $bulan = $request->query('bulan', now()->format('Y-m'));
+            $tahunAkademikId = $request->query('tahun_akademik_id');
 
-            /** @var GamifikasiRekapService $service */
-            $service = app(GamifikasiRekapService::class);
+            // Format dynamic cache key
+            $cacheKey = sprintf(
+                'gamifikasi_rekap_%s_%s_%s_%s',
+                $kelasId ?? 'all',
+                $periode,
+                $bulan ?? 'current',
+                $tahunAkademikId ?? 'active'
+            );
 
-            $tahunAkademikId = $filters['tahun_akademik_id'] ?? null;
+            $data = Cache::remember($cacheKey, 600, function () use ($kelasId, $periode, $bulan, $tahunAkademikId) {
+                $filters = array_filter([
+                    'kelas_id'          => $kelasId,
+                    'periode'           => $periode,
+                    'bulan'             => $bulan,
+                    'tahun_akademik_id' => $tahunAkademikId,
+                ], fn ($v) => $v !== null && $v !== '');
 
-            $data = [
-                'summary' => $service->getSummaryStats($tahunAkademikId),
-                'siswa'   => $service->getRekapSiswa($filters)->toArray(),
-                'kelas'   => $service->getRekapKelas($filters)->toArray(),
-                'badge'   => $service->getRekapBadge($filters)->toArray(),
-            ];
+                /** @var GamifikasiRekapService $service */
+                $service = app(GamifikasiRekapService::class);
+
+                return [
+                    'summary' => $service->getSummaryStats($tahunAkademikId),
+                    'siswa'   => $service->getRekapSiswa($filters)->toArray(),
+                    'kelas'   => $service->getRekapKelas($filters)->toArray(),
+                    'badge'   => $service->getRekapBadge($filters)->toArray(),
+                ];
+            });
 
             return response()->json([
                 'success' => true,
@@ -994,6 +1009,7 @@ private function superAdminData(): array
             $type    = $request->query('type', 'siswa');
             $filters = array_filter([
                 'kelas_id'          => $request->query('kelas_id'),
+                'periode'           => $request->query('periode', 'bulan'),
                 'bulan'             => $request->query('bulan'),
                 'tahun_akademik_id' => $request->query('tahun_akademik_id'),
             ], fn ($v) => $v !== null && $v !== '');

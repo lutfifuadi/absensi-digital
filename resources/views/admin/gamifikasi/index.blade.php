@@ -187,6 +187,7 @@
 <div class="das-panel mt-4"
      x-data="{
        kelasId: '',
+       periode: 'bulan',
        bulan: '{{ now()->format('Y-m') }}',
        activeSubTab: 'siswa',
        loading: false,
@@ -209,7 +210,8 @@
          try {
            const params = new URLSearchParams();
            if (this.kelasId) params.append('kelas_id', this.kelasId);
-           if (this.bulan) params.append('bulan', this.bulan);
+           params.append('periode', this.periode);
+           if (this.periode === 'bulan' && this.bulan) params.append('bulan', this.bulan);
            const res = await fetch('/admin/gamifikasi/rekap?' + params.toString(), {
              headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
            });
@@ -230,6 +232,7 @@
 
        resetFilter() {
          this.kelasId   = '';
+         this.periode   = 'bulan';
          this.bulan     = '{{ now()->format('Y-m') }}';
          this.loaded    = false;
          this.error     = null;
@@ -277,7 +280,8 @@
        exportUrl(type) {
          const params = new URLSearchParams({ type });
          if (this.kelasId) params.append('kelas_id', this.kelasId);
-         if (this.bulan) params.append('bulan', this.bulan);
+         params.append('periode', this.periode);
+         if (this.periode === 'bulan' && this.bulan) params.append('bulan', this.bulan);
          return '/admin/gamifikasi/rekap/export?' + params.toString();
        },
 
@@ -346,6 +350,16 @@
     <div class="row g-2 align-items-end mb-4 p-3 rounded"
          style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);">
       <div class="col-sm-4 col-md-3">
+        <label class="form-label text-white-50 small fw-bold mb-1">PILIH PERIODE</label>
+        <select x-model="periode" @change="fetchRekap()" class="form-select form-select-sm bg-dark border-0 text-white">
+          <option value="semua">Semua Waktu</option>
+          <option value="minggu">Minggu Ini</option>
+          <option value="bulan">Bulan Ini</option>
+          <option value="semester">Semester Ini</option>
+          <option value="tahun">Tahun Ajaran Ini</option>
+        </select>
+      </div>
+      <div class="col-sm-4 col-md-3">
         <label class="form-label text-white-50 small fw-bold mb-1">PILIH KELAS</label>
         <select x-model="kelasId" class="form-select form-select-sm bg-dark border-0 text-white">
           <option value="">Semua Kelas</option>
@@ -354,7 +368,7 @@
           @endforeach
         </select>
       </div>
-      <div class="col-sm-4 col-md-3">
+      <div class="col-sm-4 col-md-3" x-show="periode === 'bulan'">
         <label class="form-label text-white-50 small fw-bold mb-1">PILIH BULAN</label>
         <input type="month"
                x-model="bulan"
@@ -363,8 +377,8 @@
       </div>
       <div class="col-sm-4 col-md-auto d-flex gap-2">
         <button class="das-btn das-btn--primary das-btn--sm"
-                @click="fetchRekap()"
-                :disabled="loading">
+                 @click="fetchRekap()"
+                 :disabled="loading">
           <span x-show="!loading"><i class="ti tabler-search"></i> Tampilkan Rekap</span>
           <span x-show="loading" class="d-flex align-items-center gap-1">
             <span class="spinner-border spinner-border-sm"></span> Memuat...
