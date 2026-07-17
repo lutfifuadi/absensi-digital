@@ -113,6 +113,24 @@
             border-color: rgba(115, 103, 240, 0.5) !important;
         }
 
+        .form-control,
+        .form-select {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: #fff !important;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: var(--bs-info) !important;
+        }
+
+        .form-control::placeholder,
+        #filterSearch::placeholder {
+            color: rgba(255, 255, 255, 0.35) !important;
+        }
+
         #perPageSelect option {
             background: #1a1a2e;
             color: #ccc;
@@ -322,12 +340,12 @@
             <form id="filterForm" method="GET" class="row gy-3 gx-3 align-items-end">
                 <div class="col-md-4">
                     <label class="form-label text-white-50 small fw-bold">Cari Siswa</label>
-                    <input type="text" id="filterSearch" name="search" class="form-control bg-dark border-secondary text-white"
+                    <input type="text" id="filterSearch" name="search" class="form-control"
                         placeholder="Nama, NIS, atau NISN…" value="{{ request('search') }}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label text-white-50 small fw-bold">Filter Kelas</label>
-                    <select id="filterKelas" name="kelas_id" class="form-select bg-dark border-secondary text-white">
+                    <select id="filterKelas" name="kelas_id" class="form-select">
                         <option value="">Semua Kelas</option>
                         @foreach ($kelasOptions as $k)
                             <option value="{{ $k->id }}" @selected(request('kelas_id') == $k->id)>{{ $k->nama }}</option>
@@ -336,7 +354,7 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label text-white-50 small fw-bold">Status</label>
-                    <select id="filterStatus" name="status" class="form-select bg-dark border-secondary text-white">
+                    <select id="filterStatus" name="status" class="form-select">
                         <option value="">Semua Status</option>
                         <option value="aktif" @selected(request('status') === 'aktif')>Aktif</option>
                         <option value="nonaktif" @selected(request('status') === 'nonaktif')>Nonaktif</option>
