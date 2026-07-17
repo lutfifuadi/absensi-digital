@@ -421,9 +421,11 @@
                  @click="fetchRekap()"
                  :disabled="loading"
                  style="border-radius: 5px !important;">
-          <span x-show="!loading"><i class="ti tabler-search"></i> Tampilkan Rekap</span>
-          <span x-show="loading" class="d-flex align-items-center gap-1">
-            <span class="spinner-border spinner-border-sm"></span> Memuat...
+          <span x-show="!loading" x-cloak><i class="ti tabler-search"></i> Tampilkan Rekap</span>
+          <span x-show="loading" x-cloak>
+            <span class="d-inline-flex align-items-center gap-1">
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Memuat...
+            </span>
           </span>
         </button>
         <button class="das-btn das-btn--secondary das-btn--sm" @click="resetFilter()" style="border-radius: 5px !important;">
