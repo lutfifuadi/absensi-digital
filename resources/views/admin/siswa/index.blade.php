@@ -365,14 +365,6 @@
                 <i class="ti tabler-list text-info"></i> Daftar Siswa
             </h6>
             <div class="d-flex align-items-center gap-3">
-                <div class="position-relative" style="max-width:300px;">
-                    <i class="ti tabler-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"
-                        style="font-size:0.85rem; pointer-events:none;"></i>
-                    <input type="text" id="searchInput" class="form-control border-0 text-white"
-                        placeholder="Cari nama, NIS, atau NISN..."
-                        style="background: rgba(255,255,255,0.05); height:38px; padding-left:2.2rem; font-size:0.85rem;">
-                </div>
-
                 <select id="perPageSelect" class="form-select border-0 text-white w-auto"
                     style="background: rgba(255,255,255,0.05); height:38px; font-size:0.85rem; cursor:pointer;">
                     <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
@@ -622,7 +614,6 @@
             @endif
 
             const container = document.getElementById('siswaTableContainer');
-            const searchInput = document.getElementById('searchInput');
             const perPageSelect = document.getElementById('perPageSelect');
             const filterSearch = document.getElementById('filterSearch');
             const filterKelas = document.getElementById('filterKelas');
@@ -635,7 +626,7 @@
             let currentSortDir = '{{ $sortDir ?? 'asc' }}';
 
             function fetchData(page = 1) {
-                const search = encodeURIComponent(searchInput.value || '');
+                const search = encodeURIComponent(filterSearch.value || '');
                 const perPage = perPageSelect.value || 10;
                 const kelasId = filterKelas.value || '';
                 const status = filterStatus.value || '';
@@ -670,15 +661,8 @@
             }
 
             // debounce search
-            searchInput.addEventListener('input', function() {
-                if (filterSearch) filterSearch.value = searchInput.value;
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => fetchData(1), 450);
-            });
-
             if (filterSearch) {
                 filterSearch.addEventListener('input', function() {
-                    searchInput.value = filterSearch.value;
                     clearTimeout(searchTimeout);
                     searchTimeout = setTimeout(() => fetchData(1), 450);
                 });
@@ -706,7 +690,6 @@
             if (resetFilterBtn) {
                 resetFilterBtn.addEventListener('click', function() {
                     if (filterSearch) filterSearch.value = '';
-                    searchInput.value = '';
                     if (filterKelas) filterKelas.value = '';
                     if (filterStatus) filterStatus.value = '';
                     fetchData(1);
@@ -964,7 +947,7 @@
             const exportCsvBtn = document.getElementById('exportCsvBtn');
 
             function handleExport(format) {
-                const search = encodeURIComponent(searchInput.value || '');
+                const search = encodeURIComponent(filterSearch.value || '');
                 const url = `{{ route('admin.siswa.export') }}?format=${format}&search=${search}`;
                 window.location.href = url;
             }
