@@ -297,7 +297,7 @@
             <label class="das-form-label">Target Peserta (Kelas Spesifik)</label>
             <div class="row g-2 p-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
               @foreach($kelas as $k)
-                <div class="col-md-3 col-6 checkbox-kelas-wrapper" data-tingkat="{{ $k->tingkat }}" data-jurusan="{{ $k->jurusan ?? '' }}">
+                <div class="col-md-3 col-6 checkbox-kelas-wrapper" data-tingkat="{{ $k->tingkat }}" data-jurusan="{{ $k->jurusan?->nama ?? '' }}">
                   <div class="form-check">
                     <input class="form-check-input checkbox-kelas" type="checkbox" name="target_peserta[]" value="{{ $k->id }}" id="kelas_{{ $k->id }}"
                            {{ is_array(old('target_peserta')) && in_array($k->id, old('target_peserta')) ? 'checked' : '' }}>

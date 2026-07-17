@@ -22,11 +22,7 @@ class KegiatanController extends Controller
         $tahunAkademiks = TahunAkademik::all();
         $kelas = Kelas::all();
         $tingkat = Kelas::distinct()->pluck('tingkat')->filter()->sort();
-        $jurusanList = Kelas::whereNotNull('jurusan')
-            ->distinct()
-            ->pluck('jurusan')
-            ->sort()
-            ->values();
+        $jurusanList = \App\Models\Jurusan::pluck('nama')->sort()->values();
         return view('admin.kegiatan.create', compact('tahunAkademiks', 'kelas', 'tingkat', 'jurusanList'));
     }
 
@@ -71,11 +67,7 @@ class KegiatanController extends Controller
         $tahunAkademiks = TahunAkademik::all();
         $kelas = Kelas::all();
         $tingkat = Kelas::distinct()->pluck('tingkat')->filter()->sort();
-        $jurusanList = Kelas::whereNotNull('jurusan')
-            ->distinct()
-            ->pluck('jurusan')
-            ->sort()
-            ->values();
+        $jurusanList = \App\Models\Jurusan::pluck('nama')->sort()->values();
         return view('admin.kegiatan.edit', compact('kegiatan', 'tahunAkademiks', 'kelas', 'tingkat', 'jurusanList'));
     }
 

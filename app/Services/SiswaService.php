@@ -153,7 +153,7 @@ class SiswaService
         $taAsal = TahunAkademik::findOrFail($tahunAkademikAsalId);
         $taTujuan = TahunAkademik::findOrFail($tahunAkademikTujuanId);
 
-        $kelasAsalList = Kelas::where('tahun_akademik_id', $taAsal->id)
+        $kelasAsalList = Kelas::with('jurusan')->where('tahun_akademik_id', $taAsal->id)
             ->whereHas('siswa', function ($q) {
                 $q->where('status', 'aktif');
             })
@@ -168,9 +168,9 @@ class SiswaService
             ->groupBy('kelas_id')
             ->pluck('total', 'kelas_id');
 
-        $kelasTujuanMap = Kelas::where('tahun_akademik_id', $taTujuan->id)
+        $kelasTujuanMap = Kelas::with('jurusan')->where('tahun_akademik_id', $taTujuan->id)
             ->get()
-            ->groupBy(fn ($k) => $k->tingkat.'|'.$k->jurusan);
+            ->groupBy(fn ($k) => $k->tingkat.'|'.($k->jurusan?->nama ?? ''));
 
         // Sort kelas tujuan dalam setiap grup by nama ASC agar urutan mapping konsisten
         $kelasTujuanMap = $kelasTujuanMap->map(fn ($group) => $group->sortBy('nama')->values());
@@ -201,7 +201,7 @@ class SiswaService
             if ($nextTingkat === null) {
                 $keterangan = 'Lulus — status akan diubah menjadi alumni';
             } else {
-                $key = $nextTingkat.'|'.$kelas->jurusan;
+                $key = $nextTingkat.'|'.($kelas->jurusan?->nama ?? '');
                 $kelasTujuanList = $kelasTujuanMap->get($key);
 
                 if ($kelasTujuanList !== null) {
@@ -210,10 +210,10 @@ class SiswaService
                     $kelasTujuan = $kelasTujuanList->get($idx);
 
                     if (! $kelasTujuan) {
-                        $keterangan = "Kelas {$nextTingkat} {$kelas->jurusan} ke-".($idx + 1).' tidak tersedia di TA tujuan';
+                        $keterangan = "Kelas {$nextTingkat} " . ($kelas->jurusan?->nama ?? '') . " ke-".($idx + 1).' tidak tersedia di TA tujuan';
                     }
                 } else {
-                    $keterangan = "Kelas {$nextTingkat} {$kelas->jurusan} tidak ditemukan di TA tujuan";
+                    $keterangan = "Kelas {$nextTingkat} " . ($kelas->jurusan?->nama ?? '') . " tidak ditemukan di TA tujuan";
                 }
             }
 
@@ -246,7 +246,7 @@ class SiswaService
         $taAsal = TahunAkademik::findOrFail($tahunAkademikAsalId);
         $taTujuan = TahunAkademik::findOrFail($tahunAkademikTujuanId);
 
-        $kelasAsalList = Kelas::where('tahun_akademik_id', $taAsal->id)
+        $kelasAsalList = Kelas::with('jurusan')->where('tahun_akademik_id', $taAsal->id)
             ->whereHas('siswa', function ($q) {
                 $q->where('status', 'aktif');
             })
@@ -254,9 +254,9 @@ class SiswaService
             ->orderBy('nama')
             ->get();
 
-        $kelasTujuanMap = Kelas::where('tahun_akademik_id', $taTujuan->id)
+        $kelasTujuanMap = Kelas::with('jurusan')->where('tahun_akademik_id', $taTujuan->id)
             ->get()
-            ->groupBy(fn ($k) => $k->tingkat.'|'.$k->jurusan);
+            ->groupBy(fn ($k) => $k->tingkat.'|'.($k->jurusan?->nama ?? ''));
 
         // Sort kelas tujuan dalam setiap grup by nama ASC agar urutan mapping konsisten
         $kelasTujuanMap = $kelasTujuanMap->map(fn ($group) => $group->sortBy('nama')->values());
@@ -325,7 +325,7 @@ class SiswaService
                     'kelas_tujuan' => 'ALUMNI',
                 ];
             } else {
-                $key = $nextTingkat.'|'.$kelas->jurusan;
+                $key = $nextTingkat.'|'.($kelas->jurusan?->nama ?? '');
                 $kelasTujuanList = $kelasTujuanMap->get($key);
 
                 if ($kelasTujuanList !== null) {

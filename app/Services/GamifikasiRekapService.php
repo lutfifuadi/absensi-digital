@@ -37,7 +37,8 @@ class GamifikasiRekapService
         // ── Base query siswa ─────────────────────────────────────────────────
         $siswaQuery = Siswa::query()
             ->with([
-                'kelas:id,nama,jurusan',
+                'kelas:id,nama,jurusan_id',
+                'kelas.jurusan:id,nama',
                 'studentLeaderboard' => function ($q) use ($tahunAkademikId) {
                     if ($tahunAkademikId) {
                         $q->where('tahun_akademik_id', $tahunAkademikId);
@@ -122,7 +123,7 @@ class GamifikasiRekapService
                 'nama_lengkap'    => $siswa->nama_lengkap,
                 'nis'             => $siswa->nis,
                 'kelas'           => $siswa->kelas?->nama ?? '-',
-                'jurusan'         => $siswa->kelas?->jurusan ?? '-',
+                'jurusan'         => $siswa->kelas?->jurusan?->nama ?? '-',
                 'total_hadir'     => (int) ($stats->total_hadir ?? 0),
                 'total_terlambat' => (int) ($stats->total_terlambat ?? 0),
                 'total_sakit'     => (int) ($stats->total_sakit ?? 0),
@@ -157,6 +158,7 @@ class GamifikasiRekapService
 
         // ── Ambil semua kelas ────────────────────────────────────────────────
         $kelasQuery = Kelas::query()->with([
+            'jurusan',
             'classLeaderboard' => function ($q) use ($tahunAkademikId) {
                 if ($tahunAkademikId) {
                     $q->where('tahun_akademik_id', $tahunAkademikId);
@@ -242,7 +244,7 @@ class GamifikasiRekapService
             return [
                 'kelas_id'            => $kelas->id,
                 'nama'                => $kelas->nama,
-                'jurusan'             => $kelas->jurusan ?? '-',
+                'jurusan'             => $kelas->jurusan?->nama ?? '-',
                 'total_siswa'         => $totalSiswa,
                 'total_kehadiran'     => $totalAttendance,
                 'total_present'       => $totalPresent,

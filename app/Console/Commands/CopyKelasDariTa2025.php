@@ -27,7 +27,7 @@ class CopyKelasDariTa2025 extends Command
             return 1;
         }
 
-        $kelasSumber = Kelas::where('tahun_akademik_id', $taSumber->id)
+        $kelasSumber = Kelas::with('jurusan')->where('tahun_akademik_id', $taSumber->id)
             ->orderBy('tingkat')
             ->orderBy('nama')
             ->get();
@@ -61,11 +61,11 @@ class CopyKelasDariTa2025 extends Command
         $this->line('Daftar:');
 
         foreach ($baru as $kelas) {
-            $this->line("  [BARU] {$kelas->nama} ({$kelas->tingkat} - {$kelas->jurusan})");
+            $this->line("  [BARU] {$kelas->nama} ({$kelas->tingkat} - {$kelas->jurusan?->nama})");
         }
 
         foreach ($skip as $kelas) {
-            $this->line("  [SKIP] {$kelas->nama} ({$kelas->tingkat} - {$kelas->jurusan}) — sudah ada");
+            $this->line("  [SKIP] {$kelas->nama} ({$kelas->tingkat} - {$kelas->jurusan?->nama}) — sudah ada");
         }
 
         $this->line('');
@@ -98,7 +98,7 @@ class CopyKelasDariTa2025 extends Command
                 Kelas::create([
                     'nama' => $kelas->nama,
                     'tingkat' => $kelas->tingkat,
-                    'jurusan' => $kelas->jurusan,
+                    'jurusan_id' => $kelas->jurusan_id,
                     'tahun_akademik_id' => $taTujuan->id,
                     'wali_kelas_id' => null,
                     'is_aktif_absensi' => true,

@@ -271,7 +271,7 @@
 
     // 2. Dropdown Kelas dinamis (Naik Kelas)
     const allKelas = {!! json_encode($kelasOptions->map(function($k) { 
-        return ['id' => $k->id, 'nama' => $k->nama, 'jurusan' => $k->jurusan, 'tahun_akademik_id' => $k->tahun_akademik_id]; 
+        return ['id' => $k->id, 'nama' => $k->nama, 'jurusan' => $k->jurusan?->nama, 'tahun_akademik_id' => $k->tahun_akademik_id]; 
     })->toArray()) !!};
 
     const selectTA    = document.getElementById('naik_tahun_akademik_id');

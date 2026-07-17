@@ -830,7 +830,7 @@ class InnovationController extends Controller
             }
             // Check Jurusan
             if (!$isTarget && $kegiatan->target_jurusan && count($kegiatan->target_jurusan) > 0) {
-                if ($siswa->kelas && in_array($siswa->kelas->jurusan, $kegiatan->target_jurusan)) {
+                if ($siswa->kelas && in_array($siswa->kelas->jurusan?->nama, $kegiatan->target_jurusan)) {
                     $isTarget = true;
                 }
             }

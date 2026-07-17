@@ -933,7 +933,7 @@ private function superAdminData(): array
     public function gamifikasi(Request $request)
     {
         $tahunAkademikList  = TahunAkademik::orderByDesc('is_aktif')->orderByDesc('id')->get();
-        $kelasList          = Kelas::orderBy('nama')->get(['id', 'nama', 'jurusan', 'tahun_akademik_id']);
+        $kelasList          = Kelas::orderBy('nama')->get(['id', 'nama', 'jurusan_id', 'tahun_akademik_id']);
         $tahunAkademikAktif = TahunAkademik::where('is_aktif', true)->first();
 
         return view('admin.gamifikasi.index', compact(
