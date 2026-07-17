@@ -40,6 +40,50 @@
       border-color: var(--bs-info) !important;
       box-shadow: none;
   }
+  .das-page-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      height: 32px;
+      padding: 0 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: transparent;
+      color: #888;
+      text-decoration: none;
+      transition: all 0.18s ease;
+      cursor: pointer;
+      line-height: 1;
+      font-family: inherit;
+  }
+  .das-page-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.12);
+  }
+  .das-page-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+  }
+  .das-page-active {
+      background: #7367f0 !important;
+      color: #fff !important;
+      border-color: #7367f0 !important;
+  }
+  .das-page-dots {
+      border-color: transparent;
+      background: transparent;
+      color: #555;
+      pointer-events: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      height: 32px;
+  }
 </style>
 @endsection
 
@@ -243,8 +287,58 @@
        sortKelasCol: 'rank',
        sortKelasDir: 'asc',
        expandedBadge: null,
+       siswaPage: 1,
+       kelasPage: 1,
+       perPage: 10,
+
+       paginatedSiswa() {
+         const totalPages = this.totalSiswaPages;
+         if (this.siswaPage > totalPages && totalPages > 0) {
+           this.siswaPage = totalPages;
+         }
+         const start = (this.siswaPage - 1) * this.perPage;
+         return this.siswadata.slice(start, start + this.perPage);
+       },
+
+       paginatedKelas() {
+         const totalPages = this.totalKelasPages;
+         if (this.kelasPage > totalPages && totalPages > 0) {
+           this.kelasPage = totalPages;
+         }
+         const start = (this.kelasPage - 1) * this.perPage;
+         return this.kelasdata.slice(start, start + this.perPage);
+       },
+
+       get totalSiswaPages() {
+         return Math.ceil(this.siswadata.length / this.perPage);
+       },
+
+       get totalKelasPages() {
+         return Math.ceil(this.kelasdata.length / this.perPage);
+       },
+
+       getPages(current, total) {
+         if (total <= 5) {
+           let pages = [];
+           for (let i = 1; i <= total; i++) {
+             pages.push(i);
+           }
+           return pages;
+         }
+         let pages = [];
+         if (current <= 3) {
+           pages = [1, 2, 3, 4, '...', total];
+         } else if (current >= total - 2) {
+           pages = [1, '...', total - 3, total - 2, total - 1, total];
+         } else {
+           pages = [1, '...', current - 1, current, current + 1, '...', total];
+         }
+         return pages;
+       },
 
        async fetchRekap() {
+         this.siswaPage = 1;
+         this.kelasPage = 1;
          this.loading = true;
          this.error = null;
          try {
@@ -281,6 +375,8 @@
          this.kelasdata = [];
          this.badgedata = [];
          this.expandedBadge = null;
+         this.siswaPage = 1;
+         this.kelasPage = 1;
        },
 
        sortSiswa(col) {
@@ -538,81 +634,119 @@
         <div x-show="siswadata.length === 0" class="text-center py-4 text-muted opacity-50 small">
           Tidak ada data siswa untuk filter ini.
         </div>
-        <div x-show="siswadata.length > 0" class="table-responsive">
-          <table class="das-table">
-            <thead>
-              <tr>
-                <th class="text-center" style="cursor:pointer;" @click="sortSiswa('rank')">
-                  RANK <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
-                </th>
-                <th style="cursor:pointer;" @click="sortSiswa('nama_lengkap')">
-                  NAMA SISWA <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
-                </th>
-                <th>KELAS</th>
-                <th class="text-center" style="cursor:pointer;" @click="sortSiswa('total_hadir')">
-                  HADIR <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
-                </th>
-                <th class="text-center" style="cursor:pointer;" @click="sortSiswa('total_alpha')">
-                  ALPHA <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
-                </th>
-                <th class="text-center" style="cursor:pointer;" @click="sortSiswa('skor')">
-                  SKOR <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
-                </th>
-                <th class="text-center">BADGE</th>
-                <th class="text-center">AKSI</th>
-              </tr>
-            </thead>
-            <tbody>
-              <template x-for="(item, idx) in siswadata" :key="idx">
-                <tr class="rekap-row-hover">
-                  <td class="text-center fw-bold fs-5">
-                    <span x-text="item.rank === 1 ? '🥇' : item.rank === 2 ? '🥈' : item.rank === 3 ? '🥉' : item.rank"></span>
-                  </td>
-                  <td>
-                    <div class="fw-bold text-white" style="font-size:.82rem;" x-text="item.nama_lengkap || '-'"></div>
-                    <div class="text-muted" style="font-size:.65rem;" x-text="'NIS: ' + (item.nis || '-')"></div>
-                  </td>
-                  <td>
-                    <span class="badge bg-label-secondary" style="font-size:.65rem;" x-text="item.kelas?.nama || '-'"></span>
-                  </td>
-                  <td class="text-center fw-semibold" style="color:var(--das-success);" x-text="item.total_hadir ?? 0"></td>
-                  <td class="text-center fw-semibold" style="color:#f87171;" x-text="item.total_alpha ?? 0"></td>
-                  <td class="text-center">
-                    <span class="fw-bold" style="color:#ffd700;" x-text="item.skor ?? 0"></span>
-                  </td>
-                  <td class="text-center">
-                    <div class="d-flex align-items-center justify-content-center gap-1" style="min-width:80px;">
-                      <template x-if="item.badge_list && item.badge_list.length > 0">
-                        <div class="d-flex align-items-center gap-1">
-                          <template x-for="(b, bi) in item.badge_list.slice(0,3)" :key="bi">
-                            <span class="das-stat-card__icon"
-                                  :title="b.name"
-                                  style="width:22px;height:22px;background:rgba(255,215,0,.1);color:#ffd700;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;">
-                              <i :class="'ti ' + (b.icon || 'tabler-award')"></i>
-                            </span>
-                          </template>
-                          <span x-show="item.badge_list.length > 3"
-                                class="text-muted"
-                                style="font-size:.65rem;"
-                                x-text="'+' + (item.badge_list.length - 3)"></span>
-                        </div>
-                      </template>
-                      <template x-if="!item.badge_list || item.badge_list.length === 0">
-                        <span class="text-muted" style="font-size:.65rem;">-</span>
-                      </template>
-                    </div>
-                  </td>
-                  <td class="text-center">
-                    <a :href="'/admin/siswa/' + (item.nis || '')"
-                       class="action-btn"
-                       title="Lihat Detail">
-                      <i class="ti tabler-eye" style="font-size:.85rem;"></i>
-                    </a>
-                  </td>
+        <div x-show="siswadata.length > 0">
+          <div class="table-responsive">
+            <table class="das-table">
+              <thead>
+                <tr>
+                  <th class="text-center" style="cursor:pointer;" @click="sortSiswa('rank')">
+                    RANK <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                  </th>
+                  <th style="cursor:pointer;" @click="sortSiswa('nama_lengkap')">
+                    NAMA SISWA <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                  </th>
+                  <th>KELAS</th>
+                  <th class="text-center" style="cursor:pointer;" @click="sortSiswa('total_hadir')">
+                    HADIR <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                  </th>
+                  <th class="text-center" style="cursor:pointer;" @click="sortSiswa('total_alpha')">
+                    ALPHA <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                  </th>
+                  <th class="text-center" style="cursor:pointer;" @click="sortSiswa('skor')">
+                    SKOR <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                  </th>
+                  <th class="text-center">BADGE</th>
+                  <th class="text-center">AKSI</th>
                 </tr>
-              </template>
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                <template x-for="(item, idx) in paginatedSiswa()" :key="idx">
+                  <tr class="rekap-row-hover">
+                    <td class="text-center fw-bold fs-5">
+                      <span x-text="item.rank === 1 ? '🥇' : item.rank === 2 ? '🥈' : item.rank === 3 ? '🥉' : item.rank"></span>
+                    </td>
+                    <td>
+                      <div class="fw-bold text-white" style="font-size:.82rem;" x-text="item.nama_lengkap || '-'"></div>
+                      <div class="text-muted" style="font-size:.65rem;" x-text="'NIS: ' + (item.nis || '-')"></div>
+                    </td>
+                    <td>
+                      <span class="badge bg-label-secondary" style="font-size:.65rem;" x-text="item.kelas?.nama || '-'"></span>
+                    </td>
+                    <td class="text-center fw-semibold" style="color:var(--das-success);" x-text="item.total_hadir ?? 0"></td>
+                    <td class="text-center fw-semibold" style="color:#f87171;" x-text="item.total_alpha ?? 0"></td>
+                    <td class="text-center">
+                      <span class="fw-bold" style="color:#ffd700;" x-text="item.skor ?? 0"></span>
+                    </td>
+                    <td class="text-center">
+                      <div class="d-flex align-items-center justify-content-center gap-1" style="min-width:80px;">
+                        <template x-if="item.badge_list && item.badge_list.length > 0">
+                          <div class="d-flex align-items-center gap-1">
+                            <template x-for="(b, bi) in item.badge_list.slice(0,3)" :key="bi">
+                              <span class="das-stat-card__icon"
+                                    :title="b.name"
+                                    style="width:22px;height:22px;background:rgba(255,215,0,.1);color:#ffd700;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;">
+                                <i :class="'ti ' + (b.icon || 'tabler-award')"></i>
+                              </span>
+                            </template>
+                            <span x-show="item.badge_list.length > 3"
+                                  class="text-muted"
+                                  style="font-size:.65rem;"
+                                  x-text="'+' + (item.badge_list.length - 3)"></span>
+                          </div>
+                        </template>
+                        <template x-if="!item.badge_list || item.badge_list.length === 0">
+                          <span class="text-muted" style="font-size:.65rem;">-</span>
+                        </template>
+                      </div>
+                    </td>
+                    <td class="text-center">
+                      <a :href="'/admin/siswa/' + (item.nis || '')"
+                         class="action-btn"
+                         title="Lihat Detail">
+                        <i class="ti tabler-eye" style="font-size:.85rem;"></i>
+                      </a>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+
+          {{-- PAGINATION SISWA --}}
+          <div class="px-4 py-3 border-top" style="border-color: rgba(255,255,255,0.08) !important;">
+            <nav aria-label="Navigasi Halaman" class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+              <div class="text-muted small font-monospace">
+                Menampilkan <span class="text-white fw-semibold" x-text="((siswaPage - 1) * perPage) + 1"></span>–<span class="text-white fw-semibold" x-text="Math.min(siswaPage * perPage, siswadata.length)"></span> dari <span class="text-white fw-semibold" x-text="siswadata.length"></span> data
+              </div>
+              <ul class="pagination pagination-sm mb-0 gap-1" style="list-style:none; display:flex; align-items:center; flex-wrap:wrap;">
+                {{-- Previous --}}
+                <li class="page-item" :class="siswaPage === 1 ? 'disabled' : ''">
+                  <button class="das-page-btn" :disabled="siswaPage === 1" @click="siswaPage = Math.max(1, siswaPage - 1)" aria-label="Sebelumnya">
+                    <i class="ti tabler-chevron-left" style="font-size:0.85rem;"></i>
+                  </button>
+                </li>
+
+                {{-- Page Numbers --}}
+                <template x-for="(page, pIdx) in getPages(siswaPage, totalSiswaPages)" :key="pIdx">
+                  <li class="page-item" :class="page === siswaPage ? 'active' : (page === '...' ? 'disabled' : '')">
+                    <template x-if="page === '...'">
+                      <span class="das-page-btn das-page-dots">...</span>
+                    </template>
+                    <template x-if="page !== '...'">
+                      <button class="das-page-btn" :class="page === siswaPage ? 'das-page-active' : ''" @click="siswaPage = page" x-text="page"></button>
+                    </template>
+                  </li>
+                </template>
+
+                {{-- Next --}}
+                <li class="page-item" :class="siswaPage === totalSiswaPages ? 'disabled' : ''">
+                  <button class="das-page-btn" :disabled="siswaPage === totalSiswaPages" @click="siswaPage = Math.min(totalSiswaPages, siswaPage + 1)" aria-label="Selanjutnya">
+                    <i class="ti tabler-chevron-right" style="font-size:0.85rem;"></i>
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
         </div>
       </div>
 
@@ -621,58 +755,96 @@
         <div x-show="kelasdata.length === 0" class="text-center py-4 text-muted opacity-50 small">
           Tidak ada data kelas untuk filter ini.
         </div>
-        <div x-show="kelasdata.length > 0" class="table-responsive">
-          <table class="das-table">
-            <thead>
-              <tr>
-                <th class="text-center" style="cursor:pointer;" @click="sortKelas('rank')">
-                  RANK <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
-                </th>
-                <th style="cursor:pointer;" @click="sortKelas('nama')">
-                  KELAS <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
-                </th>
-                <th>JURUSAN</th>
-                <th class="text-center" style="cursor:pointer;" @click="sortKelas('total_siswa')">
-                  TOTAL SISWA <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
-                </th>
-                <th class="text-center" style="cursor:pointer;" @click="sortKelas('percentage')">
-                  % KEHADIRAN <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
-                </th>
-                <th class="text-center" style="cursor:pointer;" @click="sortKelas('jumlah_badge_diraih')">
-                  BADGE DIRAIH <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <template x-for="(item, idx) in kelasdata" :key="idx">
-                <tr class="rekap-row-hover">
-                  <td class="text-center fw-bold fs-5">
-                    <span x-text="item.rank === 1 ? '🏆' : item.rank === 2 ? '🥈' : item.rank === 3 ? '🥉' : item.rank"></span>
-                  </td>
-                  <td>
-                    <div class="fw-bold text-white" style="font-size:.85rem;" x-text="item.nama || '-'"></div>
-                  </td>
-                  <td>
-                    <span class="badge bg-label-info" style="font-size:.65rem;" x-text="item.jurusan || '-'"></span>
-                  </td>
-                  <td class="text-center" x-text="item.total_siswa ?? 0"></td>
-                  <td class="text-center">
-                    <div class="d-flex align-items-center justify-content-center gap-2">
-                      <div class="progress w-px-75" style="height:6px;background:rgba(255,255,255,.05);">
-                        <div class="progress-bar"
-                             :class="parseFloat(item.percentage) > 85 ? 'bg-success' : (parseFloat(item.percentage) > 70 ? 'bg-warning' : 'bg-danger')"
-                             :style="'width:' + (item.percentage || 0) + '%'"></div>
-                      </div>
-                      <span class="fw-bold" x-text="parseFloat(item.percentage || 0).toFixed(1) + '%'"></span>
-                    </div>
-                  </td>
-                  <td class="text-center">
-                    <span class="das-chip --warning" x-text="item.jumlah_badge_diraih ?? 0"></span>
-                  </td>
+        <div x-show="kelasdata.length > 0">
+          <div class="table-responsive">
+            <table class="das-table">
+              <thead>
+                <tr>
+                  <th class="text-center" style="cursor:pointer;" @click="sortKelas('rank')">
+                    RANK <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                  </th>
+                  <th style="cursor:pointer;" @click="sortKelas('nama')">
+                    KELAS <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                  </th>
+                  <th>JURUSAN</th>
+                  <th class="text-center" style="cursor:pointer;" @click="sortKelas('total_siswa')">
+                    TOTAL SISWA <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                  </th>
+                  <th class="text-center" style="cursor:pointer;" @click="sortKelas('percentage')">
+                    % KEHADIRAN <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                  </th>
+                  <th class="text-center" style="cursor:pointer;" @click="sortKelas('jumlah_badge_diraih')">
+                    BADGE DIRAIH <i class="ti tabler-arrows-sort" style="font-size:.7rem;opacity:.5;"></i>
+                  </th>
                 </tr>
-              </template>
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                <template x-for="(item, idx) in paginatedKelas()" :key="idx">
+                  <tr class="rekap-row-hover">
+                    <td class="text-center fw-bold fs-5">
+                      <span x-text="item.rank === 1 ? '🏆' : item.rank === 2 ? '🥈' : item.rank === 3 ? '🥉' : item.rank"></span>
+                    </td>
+                    <td>
+                      <div class="fw-bold text-white" style="font-size:.85rem;" x-text="item.nama || '-'"></div>
+                    </td>
+                    <td>
+                      <span class="badge bg-label-info" style="font-size:.65rem;" x-text="item.jurusan || '-'"></span>
+                    </td>
+                    <td class="text-center" x-text="item.total_siswa ?? 0"></td>
+                    <td class="text-center">
+                      <div class="d-flex align-items-center justify-content-center gap-2">
+                        <div class="progress w-px-75" style="height:6px;background:rgba(255,255,255,.05);">
+                          <div class="progress-bar"
+                               :class="parseFloat(item.percentage) > 85 ? 'bg-success' : (parseFloat(item.percentage) > 70 ? 'bg-warning' : 'bg-danger')"
+                               :style="'width:' + (item.percentage || 0) + '%'"></div>
+                        </div>
+                        <span class="fw-bold" x-text="parseFloat(item.percentage || 0).toFixed(1) + '%'"></span>
+                      </div>
+                    </td>
+                    <td class="text-center">
+                      <span class="das-chip --warning" x-text="item.jumlah_badge_diraih ?? 0"></span>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+
+          {{-- PAGINATION KELAS --}}
+          <div class="px-4 py-3 border-top" style="border-color: rgba(255,255,255,0.08) !important;">
+            <nav aria-label="Navigasi Halaman" class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+              <div class="text-muted small font-monospace">
+                Menampilkan <span class="text-white fw-semibold" x-text="((kelasPage - 1) * perPage) + 1"></span>–<span class="text-white fw-semibold" x-text="Math.min(kelasPage * perPage, kelasdata.length)"></span> dari <span class="text-white fw-semibold" x-text="kelasdata.length"></span> data
+              </div>
+              <ul class="pagination pagination-sm mb-0 gap-1" style="list-style:none; display:flex; align-items:center; flex-wrap:wrap;">
+                {{-- Previous --}}
+                <li class="page-item" :class="kelasPage === 1 ? 'disabled' : ''">
+                  <button class="das-page-btn" :disabled="kelasPage === 1" @click="kelasPage = Math.max(1, kelasPage - 1)" aria-label="Sebelumnya">
+                    <i class="ti tabler-chevron-left" style="font-size:0.85rem;"></i>
+                  </button>
+                </li>
+
+                {{-- Page Numbers --}}
+                <template x-for="(page, pIdx) in getPages(kelasPage, totalKelasPages)" :key="pIdx">
+                  <li class="page-item" :class="page === kelasPage ? 'active' : (page === '...' ? 'disabled' : '')">
+                    <template x-if="page === '...'">
+                      <span class="das-page-btn das-page-dots">...</span>
+                    </template>
+                    <template x-if="page !== '...'">
+                      <button class="das-page-btn" :class="page === kelasPage ? 'das-page-active' : ''" @click="kelasPage = page" x-text="page"></button>
+                    </template>
+                  </li>
+                </template>
+
+                {{-- Next --}}
+                <li class="page-item" :class="kelasPage === totalKelasPages ? 'disabled' : ''">
+                  <button class="das-page-btn" :disabled="kelasPage === totalKelasPages" @click="kelasPage = Math.min(totalKelasPages, kelasPage + 1)" aria-label="Selanjutnya">
+                    <i class="ti tabler-chevron-right" style="font-size:0.85rem;"></i>
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
         </div>
       </div>
 
