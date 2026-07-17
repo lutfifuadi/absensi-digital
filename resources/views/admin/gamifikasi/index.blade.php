@@ -2,6 +2,47 @@
 
 @section('title', 'Gamifikasi Presensi')
 
+@section('page-style')
+<style>
+  .rekap-row-hover {
+      transition: background 0.15s ease;
+  }
+  .rekap-row-hover:hover {
+      background: rgba(255, 255, 255, 0.04) !important;
+  }
+  .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      border: none;
+      background: rgba(255, 255, 255, 0.05);
+      color: inherit;
+  }
+  .action-btn:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+  }
+  .form-control,
+  .form-select {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      color: #fff !important;
+      border-radius: 5px !important;
+  }
+  .form-control:focus,
+  .form-select:focus {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: var(--bs-info) !important;
+      box-shadow: none;
+  }
+</style>
+@endsection
+
 @section('content')
 <div class="das-hero mb-4">
   <div class="das-hero__bg"></div>
@@ -351,7 +392,7 @@
          style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);">
       <div class="col-sm-4 col-md-3">
         <label class="form-label text-white-50 small fw-bold mb-1">PILIH PERIODE</label>
-        <select x-model="periode" @change="fetchRekap()" class="form-select form-select-sm bg-dark border-0 text-white">
+        <select x-model="periode" @change="fetchRekap()" class="form-select form-select-sm bg-dark border-0 text-white" style="border-radius: 5px !important;">
           <option value="semua">Semua Waktu</option>
           <option value="minggu">Minggu Ini</option>
           <option value="bulan">Bulan Ini</option>
@@ -361,7 +402,7 @@
       </div>
       <div class="col-sm-4 col-md-3">
         <label class="form-label text-white-50 small fw-bold mb-1">PILIH KELAS</label>
-        <select x-model="kelasId" class="form-select form-select-sm bg-dark border-0 text-white">
+        <select x-model="kelasId" class="form-select form-select-sm bg-dark border-0 text-white" style="border-radius: 5px !important;">
           <option value="">Semua Kelas</option>
           @foreach($kelasList ?? [] as $kls)
             <option value="{{ $kls->id }}">{{ $kls->nama }}</option>
@@ -373,18 +414,19 @@
         <input type="month"
                x-model="bulan"
                class="form-control form-control-sm bg-dark border-0 text-white"
-               style="color-scheme:dark;">
+               style="color-scheme:dark; border-radius: 5px !important;">
       </div>
       <div class="col-sm-4 col-md-auto d-flex gap-2">
         <button class="das-btn das-btn--primary das-btn--sm"
                  @click="fetchRekap()"
-                 :disabled="loading">
+                 :disabled="loading"
+                 style="border-radius: 5px !important;">
           <span x-show="!loading"><i class="ti tabler-search"></i> Tampilkan Rekap</span>
           <span x-show="loading" class="d-flex align-items-center gap-1">
             <span class="spinner-border spinner-border-sm"></span> Memuat...
           </span>
         </button>
-        <button class="das-btn das-btn--secondary das-btn--sm" @click="resetFilter()">
+        <button class="das-btn das-btn--secondary das-btn--sm" @click="resetFilter()" style="border-radius: 5px !important;">
           <i class="ti tabler-x"></i> Reset
         </button>
       </div>
@@ -515,7 +557,7 @@
             </thead>
             <tbody>
               <template x-for="(item, idx) in siswadata" :key="idx">
-                <tr>
+                <tr class="rekap-row-hover">
                   <td class="text-center fw-bold fs-5">
                     <span x-text="item.rank === 1 ? '🥇' : item.rank === 2 ? '🥈' : item.rank === 3 ? '🥉' : item.rank"></span>
                   </td>
@@ -555,7 +597,7 @@
                   </td>
                   <td class="text-center">
                     <a :href="'/admin/siswa/' + (item.nis || '')"
-                       class="das-btn das-btn--ghost-sm p-1"
+                       class="action-btn"
                        title="Lihat Detail">
                       <i class="ti tabler-eye" style="font-size:.85rem;"></i>
                     </a>
@@ -596,7 +638,7 @@
             </thead>
             <tbody>
               <template x-for="(item, idx) in kelasdata" :key="idx">
-                <tr>
+                <tr class="rekap-row-hover">
                   <td class="text-center fw-bold fs-5">
                     <span x-text="item.rank === 1 ? '🏆' : item.rank === 2 ? '🥈' : item.rank === 3 ? '🥉' : item.rank"></span>
                   </td>
