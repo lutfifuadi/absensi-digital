@@ -121,6 +121,14 @@ class PengaduanController extends Controller
             'diubah_oleh' => 'admin:' . auth()->id(),
         ]);
 
+        // Dispatch job notifikasi WA via queue
+        SendPengaduanStatusJob::dispatch(
+            $pengaduan->nomor_wa,
+            $pengaduan->kode_unik,
+            $request->status,
+            $request->catatan ?? ''
+        );
+
         return redirect()->route('admin.pengaduan.show', $pengaduan->id)
             ->with('success', 'Status pengaduan berhasil diperbarui.');
     }

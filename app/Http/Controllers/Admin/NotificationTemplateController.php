@@ -11,10 +11,25 @@ class NotificationTemplateController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $templates = NotificationTemplate::latest()->paginate(10);
+        $query = NotificationTemplate::query();
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('content', 'like', "%{$search}%")
+                  ->orWhere('type', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->input('type'));
+        }
+
+        $templates = $query->latest()->paginate(10)->withQueryString();
         $types = NotificationTemplate::TYPES;
+
         return view('admin.notification-templates.index', compact('templates', 'types'));
     }
 

@@ -39,12 +39,35 @@
   .das-btn--primary:hover { background: #6259e8; transform: translateY(-2px); }
   .das-btn--ghost { background: transparent; border-color: var(--das-border); color: #999 !important; }
   .das-btn--ghost:hover { background: var(--das-surface-hover); color: white !important; }
+  .das-btn--info { background: var(--das-info); color: white !important; border-color: var(--das-info); }
+  .das-btn--info:hover { background: #00b4cc; transform: translateY(-2px); }
+  .das-btn--secondary { background: rgba(168,179,191,.15); border-color: rgba(168,179,191,.3); color: #a8b3bf !important; }
+  .das-btn--secondary:hover { background: rgba(168,179,191,.25); color: white !important; }
 
   /* PANEL */
   .das-panel { background: var(--das-surface); border: 1px solid var(--das-border); border-radius: var(--das-radius); overflow: hidden; backdrop-filter: blur(6px); }
   .das-panel__head { display: flex; align-items: center; justify-content: space-between; padding: .9rem 1.25rem; border-bottom: 1px solid var(--das-border); }
+  .das-panel__body { padding: 1.25rem; }
   .das-panel__title { font-size: .82rem; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; display: flex; align-items: center; gap: 8px; color: #ccc; }
   .das-panel__icon-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--das-info); box-shadow: 0 0 6px var(--das-info); }
+
+  .form-control,
+  .form-select {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    border-radius: 5px !important;
+  }
+
+  .form-control:focus,
+  .form-select:focus {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: var(--das-info) !important;
+  }
+
+  .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+  }
 
   /* TABLE */
   .das-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
@@ -67,6 +90,47 @@
   .das-table-btn--info:hover    { color: var(--das-info);    border-color: var(--das-info); }
   .das-table-btn--warning:hover { color: var(--das-warning); border-color: var(--das-warning); }
   .das-table-btn--danger:hover  { color: var(--das-danger);  border-color: var(--das-danger); }
+
+  /* PAGINATION */
+  .das-page-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      height: 32px;
+      padding: 0 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: transparent;
+      color: #888;
+      text-decoration: none;
+      transition: all 0.18s ease;
+      cursor: pointer;
+      line-height: 1;
+      font-family: inherit;
+  }
+  .das-page-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.12);
+  }
+  .das-page-active {
+      background: #7367f0 !important;
+      color: #fff !important;
+      border-color: #7367f0 !important;
+  }
+  .das-page-dots {
+      border-color: transparent;
+      background: transparent;
+      color: #555;
+      pointer-events: none;
+  }
+  .page-item.disabled .das-page-btn {
+      opacity: 0.35;
+      pointer-events: none;
+  }
 
   /* MODAL */
   .das-modal { background: #1a1a2e !important; border: 1px solid var(--das-border) !important; border-radius: var(--das-radius) !important; overflow: hidden; }
@@ -124,14 +188,46 @@
     @endif
   @endforeach
 
+  {{-- ── FILTER CARD ──────────────────────────────────── --}}
+  <div class="das-panel mb-4 slide-in-up">
+    <div class="das-panel__body">
+      <form id="filterForm" method="GET" class="row gy-3 gx-3 align-items-end">
+        <div class="col-md-5">
+          <label class="form-label text-white-50 small fw-bold">Cari Redaksi</label>
+          <input type="text" name="search" class="form-control"
+            placeholder="Cari isi pesan / tipe…" value="{{ request('search') }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small fw-bold">Tipe Notifikasi</label>
+          <select name="type" class="form-select">
+            <option value="">Semua Tipe</option>
+            @foreach ($types as $key => $val)
+              <option value="{{ $key }}" @selected(request('type') === $key)>{{ $val }}</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="col-md-3">
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn das-btn das-btn--info w-100 justify-content-center">
+              <i class="ti tabler-search me-1"></i> Cari
+            </button>
+            <a href="{{ route('admin.notification-templates.index') }}" class="btn das-btn das-btn--secondary" title="Reset">
+              <i class="ti tabler-refresh"></i>
+            </a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
   {{-- ── MAIN TABLE PANEL ────────────────────────────── --}}
-  <div class="das-panel slide-in-up">
+  <div class="das-panel slide-in-up" id="templatesTableCard">
     <div class="das-panel__head flex-wrap gap-3">
       <div class="das-panel__title">
         <span class="das-panel__icon-dot"></span>
         Daftar Redaksi Notifikasi
       </div>
-      <span class="das-chip das-chip--info">{{ $templates->total() }} Template</span>
+      <span class="das-chip das-chip--info" id="totalTemplatesChip">{{ $templates->total() }} Template</span>
     </div>
 
     <div class="table-responsive">
@@ -161,8 +257,8 @@
               </div>
             </td>
             <td>
-              <div class="text-muted" style="max-width:400px;white-space:pre-wrap;font-size:.8rem;line-height:1.5;">
-                {{ \Illuminate\Support\Str::limit($template->content, 110) }}
+              <div class="text-muted text-truncate" style="max-width:400px;font-size:.8rem;">
+                {{ $template->content }}
               </div>
             </td>
             <td class="d-none d-md-table-cell text-muted font-monospace small">
@@ -203,7 +299,7 @@
 
     @if($templates->hasPages())
     <div class="px-4 py-3 border-top" style="border-color:var(--das-border)!important;">
-      {{ $templates->links() }}
+      {{ $templates->links('vendor.pagination.users') }}
     </div>
     @endif
   </div>
@@ -255,6 +351,106 @@ document.addEventListener('DOMContentLoaded', function () {
       delModal.querySelector('#delName').textContent = btn.getAttribute('data-name');
       delModal.querySelector('#delForm').action = btn.getAttribute('data-url');
     });
+  }
+
+  // AJAX search & filter
+  const filterForm = document.getElementById('filterForm');
+  if (filterForm) {
+    const searchInput = filterForm.querySelector('input[name="search"]');
+    const typeSelect = filterForm.querySelector('select[name="type"]');
+    const tableCard = document.getElementById('templatesTableCard');
+    const resetButton = filterForm.querySelector('a.das-btn--secondary');
+
+    let searchTimeout;
+    let lastSearch = searchInput.value.trim();
+
+    function fetchData(url) {
+      if (tableCard) {
+        tableCard.style.opacity = '0.5';
+        tableCard.style.pointerEvents = 'none';
+      }
+
+      fetch(url, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(res => res.text())
+      .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newCard = doc.getElementById('templatesTableCard');
+        if (tableCard && newCard) {
+          tableCard.innerHTML = newCard.innerHTML;
+        }
+        // re-init tooltips
+        const newTooltips = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        newTooltips.map(el => new bootstrap.Tooltip(el));
+      })
+      .catch(err => {
+        console.error('Fetch error:', err);
+      })
+      .finally(() => {
+        if (tableCard) {
+          tableCard.style.opacity = '1';
+          tableCard.style.pointerEvents = 'auto';
+        }
+      });
+    }
+
+    function triggerSearch() {
+      const params = new URLSearchParams();
+      const searchValue = searchInput.value.trim();
+      const typeValue = typeSelect.value;
+
+      if (searchValue) {
+        params.append('search', searchValue);
+      }
+      if (typeValue) {
+        params.append('type', typeValue);
+      }
+
+      const url = `${window.location.pathname}?${params.toString()}`;
+      fetchData(url);
+    }
+
+    searchInput.addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      const val = searchInput.value.trim();
+      if (val !== lastSearch) {
+        lastSearch = val;
+        searchTimeout = setTimeout(triggerSearch, 400);
+      }
+    });
+
+    typeSelect.addEventListener('change', triggerSearch);
+
+    filterForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      triggerSearch();
+    });
+
+    if (resetButton) {
+      resetButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        filterForm.reset();
+        searchInput.value = '';
+        typeSelect.value = '';
+        lastSearch = '';
+        triggerSearch();
+      });
+    }
+
+    // AJAX pagination clicks
+    if (tableCard) {
+      tableCard.addEventListener('click', function(e) {
+        const link = e.target.closest('a.das-page-btn');
+        if (link) {
+          e.preventDefault();
+          fetchData(link.href);
+        }
+      });
+    }
   }
 });
 </script>

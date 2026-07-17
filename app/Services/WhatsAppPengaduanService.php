@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Pengaturan;
+use App\Models\NotificationTemplate;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -26,12 +27,21 @@ class WhatsAppPengaduanService
      */
     public function sendKodeUnik(string $nomorWa, string $kodeUnik, string $nama): bool
     {
-        $message = "Halo *{$nama}*,\n\n"
-            . "Terima kasih telah melaporkan data tidak valid.\n\n"
-            . "Berikut kode unik pengaduan Anda:\n"
-            . "*{$kodeUnik}*\n\n"
-            . "Simpan kode ini untuk mengecek status pengaduan Anda.\n\n"
-            . "Sistem Pengaduan Data - MAN 1 Kota Bandung";
+        $template = NotificationTemplate::where('type', 'pengaduan_kode_unik')->value('content');
+        if (empty($template)) {
+            $message = "Halo *{$nama}*,\n\n"
+                . "Terima kasih telah melaporkan data tidak valid.\n\n"
+                . "Berikut kode unik pengaduan Anda:\n"
+                . "*{$kodeUnik}*\n\n"
+                . "Simpan kode ini untuk mengecek status pengaduan Anda.\n\n"
+                . "Sistem Pengaduan Data - MAN 1 Kota Bandung";
+        } else {
+            $message = str_replace(
+                ['{nama}', '{kode_unik}'],
+                [$nama, $kodeUnik],
+                $template
+            );
+        }
 
         return $this->sendMessage($nomorWa, $message);
     }
@@ -48,16 +58,26 @@ class WhatsAppPengaduanService
             default    => ucfirst($status),
         };
 
-        $message = "Halo,\n\n"
-            . "Pengaduan dengan kode *{$kodeUnik}* telah diupdate.\n\n"
-            . "Status: *{$statusLabel}*\n";
+        $template = NotificationTemplate::where('type', 'pengaduan_status_update')->value('content');
+        if (empty($template)) {
+            $message = "Halo,\n\n"
+                . "Pengaduan dengan kode *{$kodeUnik}* telah diupdate.\n\n"
+                . "Status: *{$statusLabel}*\n";
 
-        if ($catatan) {
-            $message .= "Catatan: {$catatan}\n";
+            if ($catatan) {
+                $message .= "Catatan: {$catatan}\n";
+            }
+
+            $message .= "\nTerima kasih telah menggunakan layanan pengaduan kami.\n\n"
+                . "Sistem Pengaduan Data - MAN 1 Kota Bandung";
+        } else {
+            $catatanText = $catatan ? "Catatan: {$catatan}\n" : '';
+            $message = str_replace(
+                ['{kode_unik}', '{status}', '{catatan}'],
+                [$kodeUnik, $statusLabel, $catatanText],
+                $template
+            );
         }
-
-        $message .= "\nTerima kasih telah menggunakan layanan pengaduan kami.\n\n"
-            . "Sistem Pengaduan Data - MAN 1 Kota Bandung";
 
         return $this->sendMessage($nomorWa, $message);
     }
@@ -69,14 +89,23 @@ class WhatsAppPengaduanService
     {
         $statusPelaporLabel = $statusPelapor === 'siswa' ? 'Siswa' : 'Orang Tua';
 
-        $message = "━━━ *PENGADUAN BARU* ━━━\n\n"
-            . "Kode: *{$kodeUnik}*\n"
-            . "Nama: {$nama}\n"
-            . "Status: {$statusPelaporLabel}\n"
-            . "Kategori: {$kategori}\n\n"
-            . "Deskripsi:\n{$deskripsi}\n\n"
-            . "Silakan proses pengaduan ini di panel admin.\n"
-            . "Sistem Pengaduan Data - MAN 1 Kota Bandung";
+        $template = NotificationTemplate::where('type', 'pengaduan_group_admin')->value('content');
+        if (empty($template)) {
+            $message = "━━━ *PENGADUAN BARU* ━━━\n\n"
+                . "Kode: *{$kodeUnik}*\n"
+                . "Nama: {$nama}\n"
+                . "Status: {$statusPelaporLabel}\n"
+                . "Kategori: {$kategori}\n\n"
+                . "Deskripsi:\n{$deskripsi}\n\n"
+                . "Silakan proses pengaduan ini di panel admin.\n"
+                . "Sistem Pengaduan Data - MAN 1 Kota Bandung";
+        } else {
+            $message = str_replace(
+                ['{kode_unik}', '{nama}', '{status}', '{kategori}', '{deskripsi}'],
+                [$kodeUnik, $nama, $statusPelaporLabel, $kategori, $deskripsi],
+                $template
+            );
+        }
 
         return $this->sendMessage($this->groupId, $message);
     }
@@ -124,6 +153,11 @@ class WhatsAppPengaduanService
      */
     protected function formatNumber(string $number): string
     {
+        // Jika berupa group ID (mengandung @), kembalikan langsung
+        if (str_contains($number, '@')) {
+            return $number;
+        }
+
         // Hanya sisakan angka saja
         $number = preg_replace('/\D/', '', $number);
 

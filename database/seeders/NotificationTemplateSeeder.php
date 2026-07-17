@@ -206,6 +206,52 @@ Wassalamu'alaikum Wr. Wb.
 Admin Kesiswaan {lembaga}
 EOS,
             ],
+            'pengaduan_kode_unik' => [
+                'label' => 'WhatsApp Pengaduan — Kode Unik',
+                'content' => <<<'EOS'
+Halo *{nama}*,
+
+Terima kasih telah melaporkan data tidak valid.
+
+Berikut kode unik pengaduan Anda:
+*{kode_unik}*
+
+Simpan kode ini untuk mengecek status pengaduan Anda.
+
+Sistem Pengaduan Data - MAN 1 Kota Bandung
+EOS,
+            ],
+            'pengaduan_status_update' => [
+                'label' => 'WhatsApp Pengaduan — Update Status',
+                'content' => <<<'EOS'
+Halo,
+
+Pengaduan dengan kode *{kode_unik}* telah diupdate.
+
+Status: *{status}*
+{catatan}
+Terima kasih telah menggunakan layanan pengaduan kami.
+
+Sistem Pengaduan Data - MAN 1 Kota Bandung
+EOS,
+            ],
+            'pengaduan_group_admin' => [
+                'label' => 'WhatsApp Pengaduan — Grup Admin',
+                'content' => <<<'EOS'
+━━━ *PENGADUAN BARU* ━━━
+
+Kode: *{kode_unik}*
+Nama: {nama}
+Status: {status}
+Kategori: {kategori}
+
+Deskripsi:
+{deskripsi}
+
+Silakan proses pengaduan ini di panel admin.
+Sistem Pengaduan Data - MAN 1 Kota Bandung
+EOS,
+            ],
         ];
 
         foreach ($templates as $type => $data) {

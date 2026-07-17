@@ -27,5 +27,8 @@ class NotificationTemplate extends Model
         'badge_baru' => 'Ucapan Selamat — Badge Baru',
         'leaderboard_top3' => 'Ucapan Selamat — Top 3 Leaderboard',
         'streak_milestone' => 'Ucapan Selamat — Streak Kehadiran',
+        'pengaduan_kode_unik' => 'WhatsApp Pengaduan — Kode Unik',
+        'pengaduan_status_update' => 'WhatsApp Pengaduan — Update Status',
+        'pengaduan_group_admin' => 'WhatsApp Pengaduan — Grup Admin',
     ];
 }
