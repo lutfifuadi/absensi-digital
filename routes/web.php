@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\GoogleSheetsSettingController;
 use App\Http\Controllers\Admin\GoogleSheetsGuruSettingController;
 use App\Http\Controllers\Admin\GuideCategoryController;
 use App\Http\Controllers\Admin\GuruController;
+use App\Http\Controllers\Admin\MapelController;
 use App\Http\Controllers\Admin\IdCardTemplateController;
 use App\Http\Controllers\Admin\ImpersonateController;
 use App\Http\Controllers\Admin\IzinSakitController;
@@ -534,6 +535,11 @@ Route::middleware([
 
         Route::resource('guru', GuruController::class)
             ->names('admin.guru')
+            ->except(['show'])
+            ->middleware('role:super_admin,admin_sekolah,operator');
+
+        Route::resource('mapel', MapelController::class)
+            ->names('admin.mapel')
             ->except(['show'])
             ->middleware('role:super_admin,admin_sekolah,operator');
 

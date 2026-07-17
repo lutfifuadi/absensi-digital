@@ -110,14 +110,14 @@
     {
       "name": "Jadwal Pelajaran",
       "icon": "menu-icon ti tabler-calendar-clock",
-      "slug": "admin.jadwal.index",
+      "slug": ["admin.jadwal.index", "admin.mapel.index"],
       "url": "/admin/jadwal",
       "submenu": [
         {
           "name": "Mata Pelajaran",
           "icon": "menu-icon ti tabler-book",
-          "slug": "admin.jadwal.index",
-          "url": "/admin/jadwal"
+          "slug": "admin.mapel.index",
+          "url": "/admin/mapel"
         },
         {
           "name": "Jam Pelajaran",

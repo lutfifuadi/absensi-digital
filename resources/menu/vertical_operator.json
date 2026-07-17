@@ -18,7 +18,7 @@
     {
       "name": "Data Sekolah",
       "icon": "menu-icon ti tabler-school",
-      "slug": "admin.data-sekolah",
+      "slug": ["admin.data-sekolah", "admin.mapel.index"],
       "submenu": [
         {
           "url": "/admin/tahun-akademik",
@@ -29,6 +29,11 @@
           "url": "/admin/kelas",
           "name": "Data Kelas",
           "slug": "admin.kelas.index"
+        },
+        {
+          "url": "/admin/mapel",
+          "name": "Mata Pelajaran",
+          "slug": "admin.mapel.index"
         },
         {
           "url": "/admin/jadwal",
