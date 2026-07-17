@@ -225,8 +225,7 @@
 {{-- =====================================================================
      SECTION: REKAPITULASI (PRD-004)
      ===================================================================== --}}
-<div class="das-panel mt-4"
-     x-data="{
+<div x-data="{
        kelasId: '',
        periode: 'bulan',
        bulan: '{{ now()->format('Y-m') }}',
@@ -332,107 +331,112 @@
            ? 'tabler-sort-ascending' : 'tabler-sort-descending';
        }
      }"
+     class="mt-4"
 >
-  {{-- ── PANEL HEADER ─────────────────────────────────────────────────── --}}
-  <div class="das-panel__head">
-    <div class="das-panel__title">
-      <span class="das-panel__icon-dot --primary"></span>
-      Rekapitulasi
-    </div>
-    <div class="d-flex align-items-center gap-2">
-      {{-- Export Dropdown --}}
-      <div class="position-relative" x-data>
-        <button class="das-btn das-btn--ghost-sm d-flex align-items-center gap-1"
-                @click="exportOpen = !exportOpen"
-                @click.outside="exportOpen = false"
-                :disabled="!loaded">
-          <i class="ti tabler-file-export"></i>
-          <span>Export</span>
-          <i class="ti tabler-chevron-down" style="font-size:.75rem;"></i>
-        </button>
-        <div x-show="exportOpen"
-             x-transition:enter="transition ease-out duration-100"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-75"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95"
-             class="position-absolute end-0 mt-1 rounded shadow-lg border"
-             style="min-width:220px;z-index:50;background:var(--das-card-bg,#1e2433);border-color:rgba(255,255,255,.08)!important;">
-          <a :href="exportUrl('siswa')"
-             class="d-flex align-items-center gap-2 px-3 py-2 text-white small text-decoration-none"
-             style="transition:background .15s;"
-             @mouseenter="$el.style.background='rgba(255,255,255,.05)'"
-             @mouseleave="$el.style.background='transparent'">
-            <i class="ti tabler-users" style="font-size:.95rem;"></i> Export Rekap Siswa (.csv)
-          </a>
-          <a :href="exportUrl('kelas')"
-             class="d-flex align-items-center gap-2 px-3 py-2 text-white small text-decoration-none"
-             style="transition:background .15s;"
-             @mouseenter="$el.style.background='rgba(255,255,255,.05)'"
-             @mouseleave="$el.style.background='transparent'">
-            <i class="ti tabler-school" style="font-size:.95rem;"></i> Export Rekap Kelas (.csv)
-          </a>
-          <a :href="exportUrl('badge')"
-             class="d-flex align-items-center gap-2 px-3 py-2 text-white small text-decoration-none"
-             style="transition:background .15s;"
-             @mouseenter="$el.style.background='rgba(255,255,255,.05)'"
-             @mouseleave="$el.style.background='transparent'">
-            <i class="ti tabler-award" style="font-size:.95rem;"></i> Export Rekap Badge (.csv)
-          </a>
+  {{-- Card 1: Filter Panel (Atas) --}}
+  <div class="das-panel mb-4">
+    <div class="das-panel__body">
+      <div class="row g-2 align-items-end">
+        <div class="col-sm-4 col-md-3">
+          <label class="form-label text-white-50 small fw-bold mb-1">PILIH PERIODE</label>
+          <select x-model="periode" @change="fetchRekap()" class="form-select form-select-sm bg-dark border-0 text-white" style="border-radius: 5px !important;">
+            <option value="semua">Semua Waktu</option>
+            <option value="minggu">Minggu Ini</option>
+            <option value="bulan">Bulan Ini</option>
+            <option value="semester">Semester Ini</option>
+            <option value="tahun">Tahun Ajaran Ini</option>
+          </select>
+        </div>
+        <div class="col-sm-4 col-md-3">
+          <label class="form-label text-white-50 small fw-bold mb-1">PILIH KELAS</label>
+          <select x-model="kelasId" class="form-select form-select-sm bg-dark border-0 text-white" style="border-radius: 5px !important;">
+            <option value="">Semua Kelas</option>
+            @foreach($kelasList ?? [] as $kls)
+              <option value="{{ $kls->id }}">{{ $kls->nama }}</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="col-sm-4 col-md-3" x-show="periode === 'bulan'">
+          <label class="form-label text-white-50 small fw-bold mb-1">PILIH BULAN</label>
+          <input type="month"
+                 x-model="bulan"
+                 class="form-control form-control-sm bg-dark border-0 text-white"
+                 style="color-scheme:dark; border-radius: 5px !important;">
+        </div>
+        <div class="col-sm-4 col-md-auto d-flex gap-2">
+          <button class="das-btn das-btn--primary das-btn--sm"
+                   @click="fetchRekap()"
+                   :disabled="loading"
+                   style="border-radius: 5px !important;">
+            <span x-show="!loading" x-cloak><i class="ti tabler-search"></i> Tampilkan Rekap</span>
+            <span x-show="loading" x-cloak>
+              <span class="d-inline-flex align-items-center gap-1">
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Memuat...
+              </span>
+            </span>
+          </button>
+          <button class="das-btn das-btn--secondary das-btn--sm" @click="resetFilter()" style="border-radius: 5px !important;">
+            <i class="ti tabler-x"></i> Reset
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="das-panel__body">
-
-    {{-- ── FILTER BAR ──────────────────────────────────────────────────── --}}
-    <div class="row g-2 align-items-end mb-4 p-3 rounded"
-         style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);">
-      <div class="col-sm-4 col-md-3">
-        <label class="form-label text-white-50 small fw-bold mb-1">PILIH PERIODE</label>
-        <select x-model="periode" @change="fetchRekap()" class="form-select form-select-sm bg-dark border-0 text-white" style="border-radius: 5px !important;">
-          <option value="semua">Semua Waktu</option>
-          <option value="minggu">Minggu Ini</option>
-          <option value="bulan">Bulan Ini</option>
-          <option value="semester">Semester Ini</option>
-          <option value="tahun">Tahun Ajaran Ini</option>
-        </select>
+  {{-- Card 2: Tabel Rekapitulasi Panel (Bawah) --}}
+  <div class="das-panel">
+    <div class="das-panel__head">
+      <div class="das-panel__title">
+        <span class="das-panel__icon-dot --primary"></span>
+        Rekapitulasi
       </div>
-      <div class="col-sm-4 col-md-3">
-        <label class="form-label text-white-50 small fw-bold mb-1">PILIH KELAS</label>
-        <select x-model="kelasId" class="form-select form-select-sm bg-dark border-0 text-white" style="border-radius: 5px !important;">
-          <option value="">Semua Kelas</option>
-          @foreach($kelasList ?? [] as $kls)
-            <option value="{{ $kls->id }}">{{ $kls->nama }}</option>
-          @endforeach
-        </select>
-      </div>
-      <div class="col-sm-4 col-md-3" x-show="periode === 'bulan'">
-        <label class="form-label text-white-50 small fw-bold mb-1">PILIH BULAN</label>
-        <input type="month"
-               x-model="bulan"
-               class="form-control form-control-sm bg-dark border-0 text-white"
-               style="color-scheme:dark; border-radius: 5px !important;">
-      </div>
-      <div class="col-sm-4 col-md-auto d-flex gap-2">
-        <button class="das-btn das-btn--primary das-btn--sm"
-                 @click="fetchRekap()"
-                 :disabled="loading"
-                 style="border-radius: 5px !important;">
-          <span x-show="!loading" x-cloak><i class="ti tabler-search"></i> Tampilkan Rekap</span>
-          <span x-show="loading" x-cloak>
-            <span class="d-inline-flex align-items-center gap-1">
-              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Memuat...
-            </span>
-          </span>
-        </button>
-        <button class="das-btn das-btn--secondary das-btn--sm" @click="resetFilter()" style="border-radius: 5px !important;">
-          <i class="ti tabler-x"></i> Reset
-        </button>
+      <div class="d-flex align-items-center gap-2">
+        {{-- Export Dropdown --}}
+        <div class="position-relative" x-data>
+          <button class="das-btn das-btn--ghost-sm d-flex align-items-center gap-1"
+                  @click="exportOpen = !exportOpen"
+                  @click.outside="exportOpen = false"
+                  :disabled="!loaded">
+            <i class="ti tabler-file-export"></i>
+            <span>Export</span>
+            <i class="ti tabler-chevron-down" style="font-size:.75rem;"></i>
+          </button>
+          <div x-show="exportOpen"
+               x-transition:enter="transition ease-out duration-100"
+               x-transition:enter-start="opacity-0 scale-95"
+               x-transition:enter-end="opacity-100 scale-100"
+               x-transition:leave="transition ease-in duration-75"
+               x-transition:leave-start="opacity-100 scale-100"
+               x-transition:leave-end="opacity-0 scale-95"
+               class="position-absolute end-0 mt-1 rounded shadow-lg border"
+               style="min-width:220px;z-index:50;background:var(--das-card-bg,#1e2433);border-color:rgba(255,255,255,.08)!important;">
+            <a :href="exportUrl('siswa')"
+               class="d-flex align-items-center gap-2 px-3 py-2 text-white small text-decoration-none"
+               style="transition:background .15s;"
+               @mouseenter="$el.style.background='rgba(255,255,255,.05)'"
+               @mouseleave="$el.style.background='transparent'">
+              <i class="ti tabler-users" style="font-size:.95rem;"></i> Export Rekap Siswa (.csv)
+            </a>
+            <a :href="exportUrl('kelas')"
+               class="d-flex align-items-center gap-2 px-3 py-2 text-white small text-decoration-none"
+               style="transition:background .15s;"
+               @mouseenter="$el.style.background='rgba(255,255,255,.05)'"
+               @mouseleave="$el.style.background='transparent'">
+              <i class="ti tabler-school" style="font-size:.95rem;"></i> Export Rekap Kelas (.csv)
+            </a>
+            <a :href="exportUrl('badge')"
+               class="d-flex align-items-center gap-2 px-3 py-2 text-white small text-decoration-none"
+               style="transition:background .15s;"
+               @mouseenter="$el.style.background='rgba(255,255,255,.05)'"
+               @mouseleave="$el.style.background='transparent'">
+              <i class="ti tabler-award" style="font-size:.95rem;"></i> Export Rekap Badge (.csv)
+            </a>
+          </div>
+        </div>
       </div>
     </div>
+
+    <div class="das-panel__body">
 
     {{-- ── ERROR STATE ─────────────────────────────────────────────────── --}}
     <div x-show="error" x-cloak
@@ -743,6 +747,7 @@
     </div>{{-- end x-show loaded --}}
   </div>{{-- end das-panel__body --}}
 </div>{{-- end das-panel Rekapitulasi --}}
+</div>{{-- end Alpine wrapper --}}
 
 {{-- Modal Badge Style --}}
 <div class="modal fade" id="badgeModal" tabindex="-1" aria-hidden="true">
