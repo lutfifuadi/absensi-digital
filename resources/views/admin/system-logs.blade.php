@@ -175,7 +175,6 @@
           <h5 class="modal-title text-white d-flex align-items-center mb-0" id="clearLogConfirmModalLabel">
             <i class="ti tabler-alert-triangle text-warning me-2 fs-4"></i> Apakah Anda Yakin?
           </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body text-white py-4">
           Aksi ini akan menghapus semua isi file log '<strong id="modalLogFileName" class="text-warning"></strong>' secara permanen dari server!
@@ -196,7 +195,6 @@
           <h5 class="modal-title d-flex align-items-center mb-0" id="alertModalTitle">
             <i id="alertModalIcon" class=""></i> <span id="alertModalTitleText"></span>
           </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body text-white py-4" id="alertModalMessage">
         </div>
