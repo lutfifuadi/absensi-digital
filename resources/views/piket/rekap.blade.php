@@ -3,44 +3,62 @@
 @section('title', 'Rekap Kehadiran Harian Siswa — Guru Piket')
 
 @section('page-style')
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ asset('css/dashboards/super-admin.css') }}?v=4.3">
   <style>
-    body {
-      font-family: 'Product Sans', 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    }
-    .rekap-card {
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      border-radius: 8px;
-    }
-    .font-product-sans {
-      font-family: 'Product Sans', sans-serif;
+    .form-control, .form-select, .btn {
+      border-radius: 5px !important;
     }
   </style>
 @endsection
 
 @section('content')
-  <div class="row mb-3">
-    <div class="col-12 d-flex justify-content-between align-items-center">
-      <h4 class="py-3 mb-0 fw-bold font-product-sans">
-        <span class="text-muted fw-light">Piket /</span> Rekap Kehadiran Harian
-      </h4>
-      <div class="text-muted font-product-sans" style="font-size: 0.9rem;">
-        Tanggal Berjalan: <span class="badge bg-primary fs-6">{{ now()->translatedFormat('d F Y') }}</span>
+  <div class="das-hero mb-4">
+    <div class="das-hero__bg"></div>
+    <div class="das-hero__glass"></div>
+    <div class="das-hero__grid-lines"></div>
+
+    <div class="das-hero__inner">
+      <div class="das-hero__identity">
+        <div class="das-hero__logo-wrapper">
+          <div class="das-hero__logo-placeholder">
+            <i class="ti tabler-calendar-stats text-info"></i>
+          </div>
+          <div class="das-hero__logo-glow"></div>
+        </div>
+
+        <div class="das-hero__meta">
+          <div class="das-hero__badge">
+            Piket / Rekap Kehadiran
+          </div>
+          <h4 class="das-hero__title text-gradient-gold">Rekap Kehadiran Harian</h4>
+          <p class="das-hero__subtitle">Audit log absensi harian dan status kehadiran siswa.</p>
+        </div>
+      </div>
+      <div class="das-hero__actions">
+        <div class="badge bg-black bg-opacity-25 p-2 px-3 border border-white border-opacity-10 text-white">
+          <i class="ti tabler-calendar me-1"></i> {{ now()->translatedFormat('d F Y') }}
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="card rekap-card mb-4">
-    <div class="card-header border-bottom py-3">
-      <h5 class="card-title mb-0 font-product-sans fw-bold">Filter Rekap Kehadiran</h5>
+  <div class="das-panel mb-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+    <div class="das-panel__head">
+      <h5 class="das-panel__title mb-0 fw-bold">
+        <i class="ti tabler-filter text-info me-2"></i>Filter Rekap Kehadiran
+      </h5>
     </div>
-    <div class="card-body py-3">
+    <div class="das-panel__body py-3">
       <form action="{{ route('piket.rekap') }}" method="GET" class="row g-3">
         <div class="col-md-3">
-          <label class="form-label text-muted small fw-bold">Tanggal</label>
+          <label class="form-label text-muted small fw-bold"><i class="ti tabler-calendar me-1"></i>Tanggal</label>
           <input type="date" name="tanggal" class="form-control" value="{{ $tanggal }}" onchange="this.form.submit()">
         </div>
         <div class="col-md-3">
-          <label class="form-label text-muted small fw-bold">Kelas</label>
+          <label class="form-label text-muted small fw-bold"><i class="ti tabler-door me-1"></i>Kelas</label>
           <select name="kelas_id" class="form-select" onchange="this.form.submit()">
             <option value="">-- Semua Kelas --</option>
             @foreach($kelas as $k)
@@ -49,7 +67,7 @@
           </select>
         </div>
         <div class="col-md-3">
-          <label class="form-label text-muted small fw-bold">Status Kehadiran</label>
+          <label class="form-label text-muted small fw-bold"><i class="ti tabler-circle-check me-1"></i>Status Kehadiran</label>
           <select name="status" class="form-select" onchange="this.form.submit()">
             <option value="">-- Semua Status --</option>
             <option value="belum_presensi" {{ $status == 'belum_presensi' ? 'selected' : '' }}>Belum Presensi</option>
@@ -61,7 +79,7 @@
           </select>
         </div>
         <div class="col-md-3 d-flex align-items-end">
-          <a href="{{ route('piket.rekap') }}" class="btn btn-outline-secondary w-100 font-product-sans">
+          <a href="{{ route('piket.rekap') }}" class="btn das-btn --secondary w-100">
             <i class="ti tabler-refresh me-1"></i> Reset Filter
           </a>
         </div>
@@ -69,70 +87,77 @@
     </div>
   </div>
 
-  <div class="card rekap-card">
-    <div class="table-responsive text-nowrap">
-      <table class="table table-hover mb-0">
-        <thead class="table-light">
+  <div class="das-panel mb-4">
+    <div class="das-panel__head border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3"
+      style="border-color:rgba(255,255,255,0.08) !important;">
+      <h6 class="das-panel__title mb-0 d-flex align-items-center gap-2">
+        <i class="ti tabler-list text-info"></i> Daftar Kehadiran Siswa
+      </h6>
+      <span class="das-chip --info">Total: {{ $siswaList->total() }} Siswa</span>
+    </div>
+    <div class="das-table-wrap">
+      <table class="das-table">
+        <thead>
           <tr>
-            <th class="font-product-sans fw-bold">No</th>
-            <th class="font-product-sans fw-bold">Nama Siswa</th>
-            <th class="font-product-sans fw-bold">NIS / NISN</th>
-            <th class="font-product-sans fw-bold">Kelas</th>
-            <th class="font-product-sans fw-bold">Jam Masuk</th>
-            <th class="font-product-sans fw-bold">Jam Pulang</th>
-            <th class="font-product-sans fw-bold">Status</th>
-            <th class="font-product-sans fw-bold">Keterangan</th>
-            <th class="font-product-sans fw-bold text-center">Aksi</th>
+            <th class="ps-4 py-3" width="60">No</th>
+            <th class="py-3">Nama Siswa</th>
+            <th class="py-3">NIS / NISN</th>
+            <th class="py-3">Kelas</th>
+            <th class="py-3 text-center">Jam Masuk</th>
+            <th class="py-3 text-center">Jam Pulang</th>
+            <th class="py-3 text-center">Status</th>
+            <th class="py-3">Keterangan</th>
+            <th class="py-3 text-center pe-4" width="80">Aksi</th>
           </tr>
         </thead>
         <tbody class="table-border-bottom-0">
           @forelse($siswaList as $index => $siswa)
             @php
               $absensi = $siswa->absensi->first();
-              $statusBadge = 'bg-secondary';
+              $statusChip = '--dark';
               $statusText = 'Belum Presensi';
               
               if ($absensi) {
                 switch($absensi->status) {
                   case 'hadir':
-                    $statusBadge = 'bg-success';
+                    $statusChip = '--success';
                     $statusText = 'Hadir';
                     break;
                   case 'terlambat':
-                    $statusBadge = 'bg-warning text-dark';
+                    $statusChip = '--primary';
                     $statusText = 'Terlambat';
                     break;
                   case 'sakit':
-                    $statusBadge = 'bg-info';
+                    $statusChip = '--info';
                     $statusText = 'Sakit';
                     break;
                   case 'izin':
-                    $statusBadge = 'bg-primary';
+                    $statusChip = '--warning';
                     $statusText = 'Izin';
                     break;
                   case 'alpha':
-                    $statusBadge = 'bg-danger';
+                    $statusChip = '--danger';
                     $statusText = 'Alpha';
                     break;
                 }
               }
             @endphp
-            <tr>
-              <td>{{ $siswaList->firstItem() + $index }}</td>
+            <tr class="rekap-row-hover">
+              <td class="ps-4">{{ $siswaList->firstItem() + $index }}</td>
               <td class="fw-bold">{{ $siswa->nama_lengkap }}</td>
               <td>{{ $siswa->nis }} / {{ $siswa->nisn ?: '-' }}</td>
               <td>{{ $siswa->kelas->nama ?? '-' }}</td>
-              <td>{{ $absensi && $absensi->jam_masuk ? $absensi->jam_masuk : '-' }}</td>
-              <td>{{ $absensi && $absensi->jam_pulang ? $absensi->jam_pulang : '-' }}</td>
-              <td><span class="badge {{ $statusBadge }}">{{ $statusText }}</span></td>
+              <td class="text-center">{{ $absensi && $absensi->jam_masuk ? $absensi->jam_masuk : '-' }}</td>
+              <td class="text-center">{{ $absensi && $absensi->jam_pulang ? $absensi->jam_pulang : '-' }}</td>
+              <td class="text-center"><span class="das-chip {{ $statusChip }}">{{ $statusText }}</span></td>
               <td>
                 <span class="text-wrap" style="max-width: 200px; display: inline-block;">
                   {{ $absensi && $absensi->keterangan ? $absensi->keterangan : '-' }}
                 </span>
               </td>
-              <td class="text-center">
+              <td class="text-center pe-4">
                 @if($tanggal === now()->toDateString())
-                  <button type="button" class="btn btn-sm btn-icon btn-outline-primary btn-edit-status" 
+                  <button type="button" class="btn btn-sm btn-icon btn-label-primary btn-edit-status" 
                           data-id="{{ $siswa->id }}"
                           data-nama="{{ $siswa->nama_lengkap }}"
                           data-status="{{ $absensi ? $absensi->status : 'belum_presensi' }}"
@@ -141,7 +166,7 @@
                     <i class="ti tabler-edit"></i>
                   </button>
                 @else
-                  <button type="button" class="btn btn-sm btn-icon btn-outline-secondary" disabled title="Hanya dapat mengedit data hari ini">
+                  <button type="button" class="btn btn-sm btn-icon btn-label-secondary" disabled title="Hanya dapat mengedit data hari ini">
                     <i class="ti tabler-lock"></i>
                   </button>
                 @endif
@@ -159,12 +184,12 @@
       </table>
     </div>
     @if($siswaList->hasPages())
-      <div class="card-footer py-3 d-flex justify-content-between align-items-center">
-        <div class="small text-muted font-product-sans">
+      <div class="px-4 py-3 border-top d-flex justify-content-between align-items-center" style="border-color: var(--das-border) !important;">
+        <div class="small text-white-50">
           Menampilkan {{ $siswaList->firstItem() }} sampai {{ $siswaList->lastItem() }} dari {{ $siswaList->total() }} data
         </div>
         <div>
-          {{ $siswaList->links() }}
+          {{ $siswaList->links('vendor.pagination.users') }} <!-- Gunakan custom pagination -->
         </div>
       </div>
     @endif
@@ -173,16 +198,16 @@
   <!-- Modal Edit Status Kehadiran -->
   <div class="modal fade" id="modalEditStatus" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-      <form id="formEditStatus" class="modal-content">
+      <form id="formEditStatus" class="modal-content das-modal">
         @csrf
         <input type="hidden" name="siswa_id" id="editSiswaId">
         <input type="hidden" name="tanggal" value="{{ $tanggal }}">
         
-        <div class="modal-header">
-          <h5 class="modal-title font-product-sans fw-bold">Ubah Status Kehadiran</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="das-modal__head">
+          <h5 class="das-modal__title fw-bold"><i class="ti tabler-edit me-2 text-info"></i>Ubah Status Kehadiran</h5>
+          <button type="button" class="das-modal__close" data-bs-dismiss="modal" aria-label="Close"><i class="ti tabler-x"></i></button>
         </div>
-        <div class="modal-body">
+        <div class="das-modal__body">
           <div class="mb-3">
             <label class="form-label text-muted small fw-bold">Nama Siswa</label>
             <input type="text" id="editSiswaNama" class="form-control" readonly>
@@ -203,9 +228,9 @@
             <textarea name="keterangan" id="editSiswaKeterangan" class="form-control" rows="3" placeholder="Masukkan keterangan (opsional, misal: Surat dokter dilampirkan, dll)"></textarea>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary font-product-sans" data-bs-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-primary font-product-sans">Simpan Perubahan</button>
+        <div class="das-modal__foot d-flex justify-content-end gap-2">
+          <button type="button" class="btn das-btn --secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn das-btn --primary">Simpan Perubahan</button>
         </div>
       </form>
     </div>
@@ -262,7 +287,7 @@
             title: 'Berhasil',
             text: data.message,
             customClass: {
-              confirmButton: 'btn btn-primary font-product-sans'
+              confirmButton: 'btn das-btn --primary'
             },
             buttonsStyling: false
           }).then(() => {
@@ -274,7 +299,7 @@
             title: 'Gagal',
             text: data.message || 'Terjadi kesalahan saat memperbarui status.',
             customClass: {
-              confirmButton: 'btn btn-primary font-product-sans'
+              confirmButton: 'btn das-btn --primary'
             },
             buttonsStyling: false
           });
@@ -285,7 +310,7 @@
           title: 'Error',
           text: 'Gagal menghubungi server.',
           customClass: {
-            confirmButton: 'btn btn-primary font-product-sans'
+            confirmButton: 'btn das-btn --primary'
           },
           buttonsStyling: false
         });
