@@ -394,7 +394,7 @@ class PiketScannerController extends Controller
             }
         }
 
-        $siswaList = $query->orderBy('nama_lengkap', 'asc')->paginate(50)->withQueryString();
+        $siswaList = $query->orderBy('nama_lengkap', 'asc')->paginate(10)->withQueryString();
 
         return view('piket.rekap', compact('siswaList', 'kelas', 'tanggal', 'kelasId', 'status'));
     }
