@@ -1,0 +1,30 @@
+{
+  "menu": [
+    {
+      "menuHeader": "Dashboard",
+      "icon": "menu-icon ti tabler-smart-home"
+    },
+    {
+      "name": "Dashboard",
+      "icon": "menu-icon ti tabler-smart-home",
+      "slug": "dashboard",
+      "url": "/dashboard"
+    },
+    {
+      "menuHeader": "Tugas Piket",
+      "icon": "menu-icon ti tabler-user-shield"
+    },
+    {
+      "name": "Scanner Gerbang",
+      "icon": "menu-icon ti tabler-qrcode",
+      "slug": "piket.scanner",
+      "url": "/piket/scanner"
+    },
+    {
+      "name": "Rekap Harian Piket",
+      "icon": "menu-icon ti tabler-report",
+      "slug": "piket.rekap",
+      "url": "/piket/rekap"
+    }
+  ]
+}

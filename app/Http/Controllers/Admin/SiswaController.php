@@ -53,6 +53,27 @@ class SiswaController extends Controller
         $kelasId = $request->query('kelas_id');
         $status = $request->query('status');
 
+        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
+
+        $user = Auth::user();
+        $activeRole = session('active_role', $user ? $user->role : 'guest');
+        $isWaliKelas = $activeRole === \App\Models\User::ROLE_WALI_KELAS;
+        $kelasWaliId = null;
+
+        if ($isWaliKelas) {
+            $guru = $user->guru;
+            if ($guru) {
+                $kelasWali = \App\Models\Kelas::where('wali_kelas_id', $guru->id)
+                    ->where('tahun_akademik_id', $tahunAjaranId)
+                    ->first();
+                if ($kelasWali) {
+                    $kelasWaliId = $kelasWali->id;
+                }
+            }
+            // Paksa kelasId ke kelas wali kelasnya saja
+            $kelasId = $kelasWaliId;
+        }
+
         $allowedSorts = ['nama_lengkap', 'nis', 'kelas_id', 'status'];
         if (!in_array($sortBy, $allowedSorts)) {
             $sortBy = 'nama_lengkap';
@@ -60,8 +81,6 @@ class SiswaController extends Controller
         if (!in_array($sortDir, ['asc', 'desc'])) {
             $sortDir = 'asc';
         }
-
-        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
 
         $siswaQuery = Siswa::with(['kelas', 'tahunAkademik'])
             ->select('siswa.*')
@@ -75,6 +94,11 @@ class SiswaController extends Controller
             })
             ->when($kelasId, function ($query, $kelasId) {
                 $query->where('siswa.kelas_id', $kelasId);
+            }, function ($query) use ($isWaliKelas) {
+                // Jika user adalah wali kelas tapi kelas bimbingannya tidak ditemukan di TA ini, paksa kosongkan data siswa
+                if ($isWaliKelas) {
+                    $query->whereNull('siswa.id');
+                }
             })
             ->when($status, function ($query, $status) {
                 $query->where('siswa.status', $status);
@@ -104,17 +128,23 @@ class SiswaController extends Controller
             ? Siswa::whereNull('tahun_akademik_id')->where('status', '!=', 'alumni')->count()
             : 0;
 
-        $kelasOptions = Kelas::where('tahun_akademik_id', $tahunAjaranId)
-            ->orderBy('nama')
-            ->get();
+        if ($isWaliKelas) {
+            $kelasOptions = $kelasWaliId 
+                ? \App\Models\Kelas::where('id', $kelasWaliId)->get() 
+                : collect();
+        } else {
+            $kelasOptions = \App\Models\Kelas::where('tahun_akademik_id', $tahunAjaranId)
+                ->orderBy('nama')
+                ->get();
+        }
 
         if ($request->ajax()) {
-            return view('admin.siswa.table', compact('siswa', 'sortBy', 'sortDir'))->render();
+            return view('admin.siswa.table', compact('siswa', 'sortBy', 'sortDir', 'isWaliKelas'))->render();
         }
 
         $tahunAjaranOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
 
-        return view('admin.siswa.index', compact('siswa', 'tahunAjaranOptions', 'siswaNullTahun', 'sortBy', 'sortDir', 'kelasOptions'));
+        return view('admin.siswa.index', compact('siswa', 'tahunAjaranOptions', 'siswaNullTahun', 'sortBy', 'sortDir', 'kelasOptions', 'isWaliKelas'));
     }
 
     public function create()

@@ -3,160 +3,257 @@
 @section('title', 'Dashboard Wali Kelas')
 
 @section('page-style')
-  <style>
-    .glass-card {
-      background: rgba(255, 255, 255, 0.04) !important;
-      border: 1px solid rgba(255, 255, 255, 0.08) !important;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .glass-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2) !important;
-      background: rgba(255, 255, 255, 0.06) !important;
-    }
-
-    .stat-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 1rem;
-      font-size: 1.5rem;
-    }
-
-    .action-btn {
-      border-radius: 8px;
-      padding: 10px 16px;
-      font-weight: 600;
-      transition: all 0.2s ease;
-    }
-
-    @media (max-width: 576px) {
-      .stat-icon { width: 36px; height: 36px; font-size: 1.1rem; margin-bottom: 0.5rem; }
-      h4 { font-size: 1.3rem !important; }
-      .card-body { padding: 1.5rem 0.75rem !important; }
-      .hero-header h4 { font-size: 1.1rem; }
-      .badge { font-size: 0.7rem; }
-    }
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ asset('css/dashboards/super-admin.css') }}?v=4.3">
 @endsection
 
 @section('content')
-  {{-- HERO HEADER --}}
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card border-0 text-white overflow-hidden shadow-lg"
-        style="background: linear-gradient(135deg, #360033 0%, #0b8793 100%); border-radius: 12px;">
-        <div class="card-body p-4 p-md-5">
-          <div class="row align-items-center">
-            <div class="col-md-8 text-white">
-              <div class="d-flex align-items-center gap-3 mb-3">
-                <div class="rounded d-flex align-items-center justify-content-center shadow-lg"
-                  style="width:64px;height:64px;border-radius:16px !important;background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);">
-                  <i class="ti tabler-users text-white fs-2"></i>
+
+  {{-- ═══════════════════════════════════════════════════════
+       HERO HEADER — identitas wali kelas + jam live
+  ═══════════════════════════════════════════════════════ --}}
+  <div class="das-hero mb-4">
+    <div class="das-hero__bg" aria-hidden="true"></div>
+    <div class="das-hero__scanline" aria-hidden="true"></div>
+    <div class="das-hero__grid-lines" aria-hidden="true"></div>
+
+    <div class="das-hero__inner">
+      {{-- Identitas --}}
+      <div class="das-hero__identity">
+        <div class="das-hero__logo-wrapper">
+          <div class="das-hero__logo-placeholder">
+            <i class="ti tabler-users" aria-hidden="true"></i>
+          </div>
+        </div>
+
+        <div class="das-hero__meta">
+          <div class="das-hero__badge">
+            <span class="das-hero__pulse-dot" aria-hidden="true"></span>
+            Portal Wali Kelas
+          </div>
+          <h1 class="das-hero__school">Kelas {{ $has_class ? $kelas_nama : '—' }}</h1>
+          <p class="das-hero__welcome">Selamat datang kembali, <strong>{{ $user->name }}</strong> <span aria-hidden="true">👋</span></p>
+        </div>
+      </div>
+
+      {{-- Clock --}}
+      <div class="das-hero__clock" role="status" aria-live="off">
+        <div class="das-hero__date">{{ now()->locale('id')->translatedFormat('l, d F Y') }}</div>
+        <div class="das-hero__time">
+          <span id="live-clock">00:00:00</span>
+          <span class="das-hero__live-badge"><span class="das-hero__pulse-dot" aria-hidden="true"></span>LIVE</span>
+        </div>
+        <div class="das-hero__tz">WAKTU INDONESIA BARAT (WIB)</div>
+      </div>
+    </div>
+  </div>{{-- /das-hero --}}
+
+  @if ($has_class)
+    {{-- ═══════════════════════════════════════════════════════
+         STATS ROW — 4 Card Statistik Dinamis
+    ═══════════════════════════════════════════════════════ --}}
+    <div class="row g-6 mb-6">
+      {{-- Card 1: Total Siswa --}}
+      <div class="col-lg-3 col-sm-6">
+        <a href="{{ route('wali-kelas.siswa.index') }}" class="text-decoration-none stats-card-link">
+          <div class="card card-grad-primary h-100">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-2">
+                <div class="avatar me-4">
+                  <span class="avatar-initial rounded bg-label-primary">
+                    <i class="ti tabler-users fs-4"></i>
+                  </span>
                 </div>
-                <div>
-                  <h4 class="mb-0 text-white fw-bold" style="letter-spacing:-0.5px;">Portal Wali Kelas</h4>
-                  <p class="mb-0 text-white opacity-90 fw-medium fs-5">{{ $user->name }}</p>
-                </div>
+                <h4 class="mb-0 fw-semibold">{{ $total_siswa }}</h4>
               </div>
-              <p class="mb-0 text-white opacity-75">Kelola kelas bimbingan Anda, periksa kehadiran harian siswa, dan bantu tugas piket jika diperlukan.</p>
-            </div>
-            <div class="col-md-4 text-md-end mt-4 mt-md-0">
-               <div class="badge bg-white bg-opacity-10 p-2 px-3 border border-white border-opacity-20 text-white shadow-sm">
-                  <i class="ti tabler-door me-1"></i> Kelas: {{ $has_class ? $kelas_nama : 'Belum Ada' }}
-               </div>
+              <p class="mb-1 text-body-secondary text-nowrap">Total Siswa</p>
+              <p class="mb-0">
+                <span class="text-primary fw-medium me-2">Kelas {{ $kelas_nama }}</span>
+                <small class="text-body-secondary">terdaftar</small>
+              </p>
             </div>
           </div>
-        </div>
+        </a>
       </div>
-    </div>
-  </div>
 
-  {{-- STATS SECTION --}}
-  <div class="row gy-4 mb-4">
-    <div class="col-6 col-md-3">
-      <div class="card glass-card text-center h-100 border-0 shadow-sm">
-        <div class="card-body py-4">
-          <div class="stat-icon mx-auto bg-label-info shadow-sm">
-            <i class="ti tabler-users"></i>
-          </div>
-          <h4 class="mb-1 text-white fw-bold">{{ $has_class ? $total_siswa : 0 }}</h4>
-          <small class="text-white-50 opacity-50 text-uppercase fw-bold" style="font-size:0.65rem; letter-spacing:1px;">Total Siswa Kelas</small>
-        </div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="card glass-card text-center h-100 border-0 shadow-sm">
-        <div class="card-body py-4">
-          <div class="stat-icon mx-auto bg-label-success shadow-sm">
-            <i class="ti tabler-calendar-check"></i>
-          </div>
-          <h4 class="mb-1 text-white fw-bold">{{ $has_class ? $hadir_hari_ini : 0 }}</h4>
-          <small class="text-white-50 opacity-50 text-uppercase fw-bold" style="font-size:0.65rem; letter-spacing:1px;">Hadir Hari Ini</small>
-        </div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card glass-card text-center h-100 border-0 shadow-sm">
-          <div class="card-body py-4">
-            <div class="stat-icon mx-auto bg-label-danger shadow-sm">
-              <i class="ti tabler-user-x"></i>
+      {{-- Card 2: Hadir Hari Ini --}}
+      <div class="col-lg-3 col-sm-6">
+        <a href="{{ route('wali-kelas.absensi-siswa.index') }}" class="text-decoration-none stats-card-link">
+          <div class="card card-grad-success h-100">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-2">
+                <div class="avatar me-4">
+                  <span class="avatar-initial rounded bg-label-success">
+                    <i class="ti tabler-calendar-check fs-4"></i>
+                  </span>
+                </div>
+                <h4 class="mb-0 fw-semibold">{{ $hadir_hari_ini }}</h4>
+              </div>
+              <p class="mb-1 text-body-secondary text-nowrap">Hadir Hari Ini</p>
+              <p class="mb-0">
+                <span class="text-success fw-medium me-2">Hadir & Terlambat</span>
+                <small class="text-body-secondary">siswa</small>
+              </p>
             </div>
-            <h4 class="mb-1 text-white fw-bold">{{ $has_class ? $tidak_hadir : 0 }}</h4>
-            <small class="text-white-50 opacity-50 text-uppercase fw-bold" style="font-size:0.65rem; letter-spacing:1px;">Tidak Hadir</small>
           </div>
-        </div>
+        </a>
       </div>
-    <div class="col-6 col-md-3">
-      <div class="card glass-card text-center h-100 border-0 shadow-sm">
-        <div class="card-body py-4">
-          <div class="stat-icon mx-auto bg-label-warning shadow-sm">
-            <i class="ti tabler-clock"></i>
-          </div>
-          <h4 class="mb-1 text-white fw-bold">{{ $has_class ? $pending_izin_kelas : 0 }}</h4>
-          <small class="text-white-50 opacity-50 text-uppercase fw-bold" style="font-size:0.65rem; letter-spacing:1px;">Izin Pending</small>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  {{-- ACTIONS SECTION --}}
-  <h6 class="text-white-50 small fw-bold text-uppercase mb-3 ps-1" style="letter-spacing:1.5px; opacity:0.6;">Tugas & Piket</h6>
-  <div class="row gy-4">
-    <div class="col-md-4">
-      <div class="card glass-card h-100">
-        <div class="card-body d-flex flex-column p-4">
-            <div class="stat-icon bg-label-primary mb-3"><i class="ti tabler-qrcode"></i></div>
-            <h6 class="text-white fw-bold">Scanner Piket</h6>
-            <p class="text-white-50 small flex-grow-1">Buka scanner untuk merekam kehadiran siswa di gerbang.</p>
-            <a href="{{ route('public.scan-qr.index') }}" target="_blank" class="btn btn-primary btn-sm">Buka Scanner</a>
-        </div>
+      {{-- Card 3: Tidak Hadir --}}
+      <div class="col-lg-3 col-sm-6">
+        <a href="{{ route('wali-kelas.absensi-siswa.index') }}" class="text-decoration-none stats-card-link">
+          <div class="card card-grad-danger h-100">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-2">
+                <div class="avatar me-4">
+                  <span class="avatar-initial rounded bg-label-danger">
+                    <i class="ti tabler-user-x fs-4"></i>
+                  </span>
+                </div>
+                <h4 class="mb-0 fw-semibold">{{ $tidak_hadir }}</h4>
+              </div>
+              <p class="mb-1 text-body-secondary text-nowrap">Tidak Hadir</p>
+              <p class="mb-0">
+                <span class="text-danger fw-medium me-2">Sakit / Izin / Alpha</span>
+                <small class="text-body-secondary">hari ini</small>
+              </p>
+            </div>
+          </div>
+        </a>
       </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card glass-card h-100">
-        <div class="card-body d-flex flex-column p-4">
-            <div class="stat-icon bg-label-info mb-3"><i class="ti tabler-calendar-event"></i></div>
-            <h6 class="text-white fw-bold">Kegiatan Khusus</h6>
-            <p class="text-white-50 small flex-grow-1">Scan kehadiran untuk kegiatan ekskul/ujian.</p>
-            <a href="{{ route('admin.absensi-kegiatan.scan') }}" class="btn btn-info btn-sm">Mulai Scan</a>
-        </div>
+
+      {{-- Card 4: Izin Pending --}}
+      <div class="col-lg-3 col-sm-6">
+        <a href="{{ route('wali-kelas.absensi-siswa.index') }}" class="text-decoration-none stats-card-link">
+          <div class="card card-grad-warning h-100">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-2">
+                <div class="avatar me-4">
+                  <span class="avatar-initial rounded bg-label-warning">
+                    <i class="ti tabler-clock fs-4"></i>
+                  </span>
+                </div>
+                <h4 class="mb-0 fw-semibold">{{ $pending_izin_kelas }}</h4>
+              </div>
+              <p class="mb-1 text-body-secondary text-nowrap">Izin Pending</p>
+              <p class="mb-0">
+                <span class="text-warning fw-medium me-2">Perlu Tindakan</span>
+                <small class="text-body-secondary">butuh konfirmasi</small>
+              </p>
+            </div>
+          </div>
+        </a>
       </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card glass-card h-100">
+    </div>{{-- /row g-6 mb-6 (Stats Row) --}}
+
+    {{-- ═══════════════════════════════════════════════════════
+         QUICK MENU — Tugas & Piket ala Super Admin
+    ═══════════════════════════════════════════════════════ --}}
+    <div class="row g-6">
+      {{-- Card 1: Scanner Piket --}}
+      <div class="col-md-4">
+        <div class="card card-grad-primary h-100">
           <div class="card-body d-flex flex-column p-4">
-              <div class="stat-icon bg-label-success mb-3"><i class="ti tabler-users"></i></div>
-              <h6 class="text-white fw-bold">Monitoring Kelas</h6>
-              <p class="text-white-50 small flex-grow-1">Lihat detail absensi dan rekap siswa kelas Anda.</p>
-              <a href="{{ route('wali-kelas.absensi-siswa.index') }}" class="btn btn-success btn-sm">Buka Data Kelas</a>
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="avatar">
+                <span class="avatar-initial rounded bg-label-primary">
+                  <i class="ti tabler-qrcode fs-4"></i>
+                </span>
+              </div>
+              <div>
+                <h6 class="mb-0">Scanner Piket</h6>
+                <small class="text-body-secondary">Rekam kehadiran siswa</small>
+              </div>
+            </div>
+            <p class="text-body-secondary small flex-grow-1">Buka scanner untuk merekam kehadiran siswa di gerbang.</p>
+            <a href="{{ route('public.scan-qr.index') }}" target="_blank" class="btn btn-primary">Buka Scanner</a>
           </div>
         </div>
       </div>
-  </div>
+
+      {{-- Card 2: Kegiatan Khusus --}}
+      <div class="col-md-4">
+        <div class="card card-grad-info h-100">
+          <div class="card-body d-flex flex-column p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="avatar">
+                <span class="avatar-initial rounded bg-label-info">
+                  <i class="ti tabler-calendar-event fs-4"></i>
+                </span>
+              </div>
+              <div>
+                <h6 class="mb-0">Kegiatan Khusus</h6>
+                <small class="text-body-secondary">Ekskul & ujian</small>
+              </div>
+            </div>
+            <p class="text-body-secondary small flex-grow-1">Scan kehadiran untuk kegiatan ekskul/ujian.</p>
+            <a href="{{ route('admin.absensi-kegiatan.scan') }}" class="btn btn-info">Mulai Scan</a>
+          </div>
+        </div>
+      </div>
+
+      {{-- Card 3: Monitoring Kelas --}}
+      <div class="col-md-4">
+        <div class="card card-grad-success h-100">
+          <div class="card-body d-flex flex-column p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="avatar">
+                <span class="avatar-initial rounded bg-label-success">
+                  <i class="ti tabler-users fs-4"></i>
+                </span>
+              </div>
+              <div>
+                <h6 class="mb-0">Monitoring Kelas</h6>
+                <small class="text-body-secondary">Data absensi & rekap</small>
+              </div>
+            </div>
+            <p class="text-body-secondary small flex-grow-1">Lihat detail absensi dan rekap siswa kelas Anda.</p>
+            <a href="{{ route('wali-kelas.absensi-siswa.index') }}" class="btn btn-success">Buka Data Kelas</a>
+          </div>
+        </div>
+      </div>
+    </div>{{-- /row g-6 --}}
+
+  @else
+    {{-- ═══════════════════════════════════════════════════════
+         EMPTY STATE — Belum punya kelas
+    ═══════════════════════════════════════════════════════ --}}
+    <div class="row g-6">
+      <div class="col-12">
+        <div class="card card-grad-warning">
+          <div class="card-body text-center py-5">
+            <div class="avatar mb-3">
+              <span class="avatar-initial rounded bg-label-warning">
+                <i class="ti tabler-door fs-2"></i>
+              </span>
+            </div>
+            <h5 class="mb-2">Belum Ada Kelas Tersedia</h5>
+            <p class="text-body-secondary mb-1">Akun Anda belum terdaftar sebagai wali kelas.</p>
+            <p class="text-body-secondary mb-0">Silakan hubungi admin sekolah untuk menetapkan kelas bimbingan Anda.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  @endif
+
 @endsection
 
+@section('page-script')
+  <script>
+    /* ── LIVE CLOCK ── */
+    (function() {
+      function updateClock() {
+        const el = document.getElementById('live-clock');
+        if (el) {
+          el.textContent = new Date().toLocaleTimeString('id-ID', {
+            hour12: false
+          });
+        }
+      }
+      updateClock();
+      setInterval(updateClock, 1000);
+    })();
+  </script>
+@endsection

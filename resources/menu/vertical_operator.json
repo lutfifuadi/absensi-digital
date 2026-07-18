@@ -2,160 +2,167 @@
   "menu": [
     {
       "name": "Dashboard",
-      "icon": "menu-icon icon-base ti tabler-smart-home",
+      "icon": "menu-icon ti tabler-smart-home",
       "slug": "dashboard",
       "url": "/dashboard"
     },
     {
-      "url": "/admin/ai-chat",
       "name": "Asisten AI",
       "icon": "menu-icon ti tabler-message-chatbot",
-      "slug": "admin.ai-chat.index"
+      "slug": "admin.ai-chat.index",
+      "url": "/admin/ai-chat"
     },
     {
-      "menuHeader": "Portal Operator"
+      "menuHeader": "Akademik",
+      "icon": "menu-icon ti tabler-books"
     },
     {
-      "name": "Data Sekolah",
-      "icon": "menu-icon ti tabler-school",
-      "slug": ["admin.data-sekolah", "admin.mapel.index"],
-      "submenu": [
-        {
-          "url": "/admin/tahun-akademik",
-          "name": "Tahun Ajaran",
-          "slug": "admin.tahun-akademik.index"
-        },
-        {
-          "url": "/admin/jurusan",
-          "name": "Master Jurusan",
-          "slug": "admin.jurusan.index"
-        },
-        {
-          "url": "/admin/kelas",
-          "name": "Data Kelas",
-          "slug": "admin.kelas.index"
-        },
-        {
-          "url": "/admin/mapel",
-          "name": "Mata Pelajaran",
-          "slug": "admin.mapel.index"
-        },
-        {
-          "url": "/admin/jadwal",
-          "name": "Jadwal Pelajaran",
-          "slug": "admin.jadwal.index"
-        }
-      ]
+      "name": "Tahun Ajaran",
+      "icon": "menu-icon ti tabler-calendar-stats",
+      "slug": "admin.tahun-akademik.index",
+      "url": "/admin/tahun-akademik"
     },
     {
-      "name": "Data Pengguna",
+      "name": "Master Jurusan",
+      "icon": "menu-icon ti tabler-books",
+      "slug": "admin.jurusan.index",
+      "url": "/admin/jurusan"
+    },
+    {
+      "name": "Data Kelas",
+      "icon": "menu-icon ti tabler-door",
+      "slug": "admin.kelas.index",
+      "url": "/admin/kelas"
+    },
+    {
+      "name": "Mata Pelajaran",
+      "icon": "menu-icon ti tabler-book",
+      "slug": "admin.mapel.index",
+      "url": "/admin/mapel"
+    },
+    {
+      "name": "Jadwal Pelajaran",
+      "icon": "menu-icon ti tabler-clock",
+      "slug": "admin.jadwal.index",
+      "url": "/admin/jadwal"
+    },
+    {
+      "menuHeader": "Data Pengguna",
+      "icon": "menu-icon ti tabler-users"
+    },
+    {
+      "name": "Data Siswa",
       "icon": "menu-icon ti tabler-users",
-      "slug": "admin.users-data",
-      "submenu": [
-        {
-          "url": "/admin/siswa",
-          "name": "Data Siswa",
-          "slug": "admin.siswa.index"
-        },
-        {
-          "url": "/admin/siswa/naik-kelas-massal",
-          "name": "Naik Kelas Massal",
-          "slug": "admin.siswa.naik-kelas-massal"
-        },
-        {
-          "url": "/admin/guru",
-          "name": "Data Guru",
-          "slug": "admin.guru.index"
-        },
-        {
-          "url": "/admin/wali-kelas",
-          "name": "Data Wali Kelas",
-          "slug": "admin.wali-kelas.index"
-        },
-        {
-          "url": "/admin/staff-tata-usaha",
-          "name": "Data Staff TU",
-          "slug": "admin.staff-tata-usaha.index"
-        }
-      ]
+      "slug": "admin.siswa.index",
+      "url": "/admin/siswa"
     },
     {
-      "name": "Monitoring Absensi",
-      "icon": "menu-icon ti tabler-clipboard-check",
-      "slug": "admin.absensi",
-      "submenu": [
-        {
-          "url": "/admin/absensi-siswa",
-          "name": "Absensi Siswa",
-          "slug": "admin.absensi-siswa.index"
-        },
-        {
-          "url": "/admin/absensi-guru",
-          "name": "Absensi Guru",
-          "slug": "admin.absensi-guru.index"
-        },
-        {
-          "url": "/admin/absensi-staff",
-          "name": "Absensi Staff",
-          "slug": "admin.absensi-staff.index"
-        }
-      ]
+      "name": "Naik Kelas Massal",
+      "icon": "menu-icon ti tabler-trending-up",
+      "slug": "admin.siswa.naik-kelas-massal",
+      "url": "/admin/siswa/naik-kelas-massal"
     },
     {
-      "name": "Kegiatan Khusus",
+      "name": "Data Guru",
+      "icon": "menu-icon ti tabler-presentation",
+      "slug": "admin.guru.index",
+      "url": "/admin/guru"
+    },
+    {
+      "name": "Data Wali Kelas",
+      "icon": "menu-icon ti tabler-user-check",
+      "slug": "admin.wali-kelas.index",
+      "url": "/admin/wali-kelas"
+    },
+    {
+      "name": "Data Staff TU",
+      "icon": "menu-icon ti tabler-briefcase",
+      "slug": "admin.staff-tata-usaha.index",
+      "url": "/admin/staff-tata-usaha"
+    },
+    {
+      "menuHeader": "Absensi",
+      "icon": "menu-icon ti tabler-clipboard-check"
+    },
+    {
+      "name": "Absensi Siswa",
+      "icon": "menu-icon ti tabler-calendar-stats",
+      "slug": "admin.absensi-siswa.index",
+      "url": "/admin/absensi-siswa"
+    },
+    {
+      "name": "Absensi Guru",
+      "icon": "menu-icon ti tabler-presentation",
+      "slug": "admin.absensi-guru.index",
+      "url": "/admin/absensi-guru"
+    },
+    {
+      "name": "Absensi Staff",
+      "icon": "menu-icon ti tabler-briefcase",
+      "slug": "admin.absensi-staff.index",
+      "url": "/admin/absensi-staff"
+    },
+    {
+      "menuHeader": "Kegiatan",
+      "icon": "menu-icon ti tabler-calendar-event"
+    },
+    {
+      "name": "Master Kegiatan",
       "icon": "menu-icon ti tabler-calendar-event",
-      "slug": "admin.kegiatan",
-      "submenu": [
-        {
-          "url": "/admin/kegiatan",
-          "name": "Master Kegiatan",
-          "slug": "admin.kegiatan.index"
-        },
-        {
-          "url": "/admin/absensi-kegiatan/scan",
-          "name": "Scan Kegiatan",
-          "slug": "admin.absensi-kegiatan.scan"
-        },
-        {
-          "url": "/admin/absensi-kegiatan/rekap",
-          "name": "Rekap Kegiatan",
-          "slug": "admin.absensi-kegiatan.rekap"
-        },
-        {
-          "url": "/admin/kegiatans/absensi",
-          "name": "Absensi Inovasi",
-          "slug": "admin.kegiatans.absensi"
-        },
-        {
-          "url": "/admin/pelepasan",
-          "name": "Pelepasan Kelas XII",
-          "slug": "admin.pelepasan.index"
-        }
-      ]
+      "slug": "admin.kegiatan.index",
+      "url": "/admin/kegiatan"
+    },
+    {
+      "name": "Scan Kegiatan",
+      "icon": "menu-icon ti tabler-qrcode",
+      "slug": "admin.absensi-kegiatan.scan",
+      "url": "/admin/absensi-kegiatan/scan"
+    },
+    {
+      "name": "Rekap Kegiatan",
+      "icon": "menu-icon ti tabler-report",
+      "slug": "admin.absensi-kegiatan.rekap",
+      "url": "/admin/absensi-kegiatan/rekap"
+    },
+    {
+      "name": "Absensi Inovasi",
+      "icon": "menu-icon ti tabler-calendar-check",
+      "slug": "admin.kegiatans.absensi",
+      "url": "/admin/kegiatans/absensi"
+    },
+    {
+      "name": "Pelepasan Kelas XII",
+      "icon": "menu-icon ti tabler-graduation-cap",
+      "slug": "admin.pelepasan.index",
+      "url": "/admin/pelepasan"
     },
     {
       "name": "Ekstrakurikuler",
-      "icon": "menu-icon ti tabler-trophy",
-      "slug": ["admin.ekskul"],
+      "icon": "menu-icon ti tabler-star",
+      "slug": "admin.ekskul",
       "url": "/admin/ekskul"
     },
     {
-      "url": "/admin/izin-sakit",
       "name": "Verifikasi Izin",
       "icon": "menu-icon ti tabler-stethoscope",
-      "slug": "admin.izin-sakit.index"
+      "slug": "admin.izin-sakit.index",
+      "url": "/admin/izin-sakit"
     },
     {
-      "url": "/admin/laporan",
+      "menuHeader": "Layanan",
+      "icon": "menu-icon ti tabler-headset"
+    },
+    {
       "name": "Laporan & Arsip",
       "icon": "menu-icon ti tabler-report",
-      "slug": "admin.laporan.index"
+      "slug": "admin.laporan.index",
+      "url": "/admin/laporan"
     },
     {
-      "url": "/admin/id-card-templates",
       "name": "Designer ID Card",
       "icon": "menu-icon ti tabler-id-badge-2",
-      "slug": "admin.id-card-templates"
+      "slug": "admin.id-card-templates",
+      "url": "/admin/id-card-templates"
     },
     {
       "name": "Pengaduan Data",
@@ -164,23 +171,19 @@
       "url": "/admin/pengaduan"
     },
     {
-      "menuHeader": "Panduan & Dokumentasi",
-      "icon": "menu-icon ti tabler-book"
-    },
-    {
       "name": "Panduan",
       "icon": "menu-icon ti tabler-book",
       "slug": ["admin.guides"],
       "url": "/admin/guides",
       "submenu": [
         {
-          "name": "📖 Semua Panduan",
+          "name": "Semua Panduan",
           "icon": "menu-icon ti tabler-books",
           "slug": "admin.guides.index",
           "url": "/admin/guides"
         },
         {
-          "name": "📂 Kategori",
+          "name": "Kategori",
           "icon": "menu-icon ti tabler-folder",
           "slug": "admin.guide-categories.index",
           "url": "/admin/guide-categories"

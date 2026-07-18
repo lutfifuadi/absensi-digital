@@ -257,6 +257,7 @@
                 </div>
             </div>
 
+            @if(!$isWaliKelas)
             <div class="das-hero__actions">
                 <button type="button" class="btn das-btn --purple" id="generateOrtuBtn">
                     <i class="ti tabler-key me-1"></i> Generate Ortu
@@ -296,6 +297,7 @@
                     <i class="ti tabler-plus me-1"></i> Tambah Siswa
                 </a>
             </div>
+            @endif
         </div>
     </div>
 

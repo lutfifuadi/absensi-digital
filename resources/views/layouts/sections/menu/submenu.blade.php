@@ -5,6 +5,12 @@ use Illuminate\Support\Facades\Route;
 <ul class="menu-sub">
   @if (isset($menu))
     @foreach ($menu as $submenu)
+      @php
+        $currentRole = auth()->check() ? auth()->user()->role : 'guest';
+      @endphp
+      @if (isset($submenu->roles) && !in_array($currentRole, $submenu->roles, true))
+        @continue
+      @endif
 
     {{-- active menu method --}}
     @php
@@ -32,11 +38,17 @@ use Illuminate\Support\Facades\Route;
     @endphp
 
       <li class="menu-item {{$activeClass}}">
-        <a href="{{ isset($submenu->url) ? url($submenu->url) : 'javascript:void(0)' }}" class="{{ isset($submenu->submenu) ? 'menu-link menu-toggle' : 'menu-link' }}" @if (isset($submenu->target) and !empty($submenu->target)) target="_blank" @endif>
+        <a href="{{ isset($submenu->url) ? url($submenu->url) : 'javascript:void(0)' }}" 
+          class="{{ isset($submenu->submenu) ? 'menu-link menu-toggle' : 'menu-link' }}" 
+          @if (isset($submenu->target) and !empty($submenu->target)) target="_blank" @endif
+          data-bs-toggle="tooltip" data-bs-placement="right" title="{{ isset($submenu->name) ? __($submenu->name) : '' }}">
           @if (isset($submenu->icon))
           <i class="{{ $submenu->icon }}"></i>
           @endif
           <div>{{ isset($submenu->name) ? __($submenu->name) : '' }}</div>
+          @if(isset($submenu->target) && $submenu->target === '_blank')
+            <i class="ti tabler-external-link ms-1 text-muted" style="font-size: 0.75rem;"></i>
+          @endif
           @isset($submenu->badge)
             <div class="badge bg-{{ $submenu->badge[0] }} rounded-pill ms-auto">{{ $submenu->badge[1] }}</div>
           @endisset

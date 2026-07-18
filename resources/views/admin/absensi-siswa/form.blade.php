@@ -3,44 +3,48 @@
 @section('title', isset($absensiSiswa) ? 'Ubah Absensi Siswa' : 'Tambah Absensi Siswa')
 
 @section('page-style')
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ asset('css/dashboards/super-admin.css') }}?v=4.3">
   <style>
     .form-alert {
       transition: all .2s ease;
     }
 
-    .form-card {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    /* Tambahkan style kustom jika diperlukan, pastikan border-radius maksimal 5px */
+    .form-control, .form-select, .btn {
+      border-radius: 5px !important;
     }
   </style>
 @endsection
 
 @section('content')
   {{-- HERO HEADER --}}
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card border-0 text-white overflow-hidden shadow-lg"
-        style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border-radius: 4px;">
-        <div class="card-body p-4">
-          <div class="d-flex align-items-center gap-3">
-            <div class="rounded d-flex align-items-center justify-content-center shadow-sm"
-              style="width:52px;height:52px;border-radius:12px !important;background:rgba(0,207,232,0.2);border:1px solid rgba(0,207,232,0.4);">
-              <i class="ti {{ isset($absensiSiswa) ? 'tabler-pencil' : 'tabler-plus' }} text-info fs-3"></i>
-            </div>
-            <div>
-              <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-1" style="font-size:0.72rem;opacity:0.6;">
-                  <li class="breadcrumb-item"><a href="{{ route('admin.absensi-siswa.index') }}"
-                      class="text-white text-decoration-none">Absensi</a></li>
-                  <li class="breadcrumb-item active text-white">{{ isset($absensiSiswa) ? 'Ubah' : 'Tambah' }}</li>
-                </ol>
-              </nav>
-              <h4 class="mb-0 text-white fw-bold" style="letter-spacing:-0.5px;">
-                {{ isset($absensiSiswa) ? 'Ubah Data Absensi' : 'Tambah Absensi Baru' }}
-              </h4>
-              <p class="mb-0 text-white opacity-60 small">Catat absensi siswa dengan cepat dan konsisten.</p>
-            </div>
+  <div class="das-hero mb-4">
+    <div class="das-hero__bg"></div>
+    <div class="das-hero__glass"></div>
+    <div class="das-hero__grid-lines"></div>
+
+    <div class="das-hero__inner">
+      <div class="das-hero__identity">
+        <div class="das-hero__logo-wrapper">
+          <div class="das-hero__logo-placeholder">
+            <i class="ti {{ isset($absensiSiswa) ? 'tabler-pencil' : 'tabler-calendar-time' }} text-info"></i>
           </div>
+          <div class="das-hero__logo-glow"></div>
+        </div>
+
+        <div class="das-hero__meta">
+          <div class="das-hero__badge">
+            <span class="pulse-dot"></span>
+            <a href="{{ route('admin.absensi-siswa.index') }}" class="text-white text-decoration-none">Absensi</a> /
+            {{ isset($absensiSiswa) ? 'Ubah' : 'Tambah' }}
+          </div>
+          <h4 class="das-hero__title text-gradient-gold">
+            {{ isset($absensiSiswa) ? 'Ubah Data Absensi' : 'Tambah Absensi Baru' }}
+          </h4>
+          <p class="das-hero__subtitle">Catat absensi siswa dengan cepat dan konsisten.</p>
         </div>
       </div>
     </div>
@@ -62,13 +66,13 @@
         </div>
       @endif
 
-      <div class="card border-0 shadow-sm form-card">
-        <div class="card-header border-bottom py-3 d-flex align-items-center gap-2"
+      <div class="das-panel" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+        <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center gap-2"
           style="border-color:rgba(255,255,255,0.08) !important; background:transparent;">
           <i class="ti tabler-forms text-info"></i>
-          <h6 class="card-title mb-0">Detail Absensi Siswa</h6>
+          <h6 class="das-panel__title mb-0">Informasi Lengkap Absensi</h6>
         </div>
-        <div class="card-body p-4">
+        <div class="das-panel__body p-4">
           <form
             action="{{ isset($absensiSiswa) ? route('admin.absensi-siswa.update', $absensiSiswa) : route('admin.absensi-siswa.store') }}"
             method="POST">
@@ -117,7 +121,7 @@
 
               <div class="col-md-4">
                 <label class="form-label fw-semibold small" for="jam_masuk">
-                  <i class="ti tabler-clock-measure me-1 text-info"></i> Jam Masuk
+                  <i class="ti tabler-clock me-1 text-info"></i> Jam Masuk
                 </label>
                 <input id="jam_masuk" type="time" name="jam_masuk" class="form-control"
                   value="{{ old('jam_masuk', $absensiSiswa->jam_masuk ?? '') }}">
@@ -125,7 +129,7 @@
 
               <div class="col-md-4">
                 <label class="form-label fw-semibold small" for="jam_pulang">
-                  <i class="ti tabler-clock-check me-1 text-info"></i> Jam Pulang
+                  <i class="ti tabler-clock-play me-1 text-info"></i> Jam Pulang
                 </label>
                 <input id="jam_pulang" type="time" name="jam_pulang" class="form-control"
                   value="{{ old('jam_pulang', $absensiSiswa->jam_pulang ?? '') }}">
@@ -166,7 +170,7 @@
 
               <div class="col-md-6">
                 <label class="form-label fw-semibold small" for="guru_id">
-                  <i class="ti tabler-user-check me-1 text-info"></i> Guru
+                  <i class="ti tabler-presentation me-1 text-info"></i> Guru
                 </label>
                 <select id="guru_id" name="guru_id" class="form-select">
                   <option value="">Tidak dipilih</option>
@@ -188,10 +192,10 @@
 
             <div class="d-flex align-items-center justify-content-end gap-3 pt-4 mt-2 border-top"
               style="border-color:rgba(255,255,255,0.08) !important;">
-              <a href="{{ route('admin.absensi-siswa.index') }}" class="btn btn-label-secondary">
+              <a href="{{ route('admin.absensi-siswa.index') }}" class="btn das-btn --secondary">
                 <i class="ti tabler-arrow-left me-1"></i> Kembali
               </a>
-              <button type="submit" class="btn btn-info fw-semibold px-4 shadow-sm">
+              <button type="submit" class="btn das-btn --primary">
                 <i class="ti tabler-device-floppy me-1"></i>
                 {{ isset($absensiSiswa) ? 'Perbarui Absensi' : 'Simpan Absensi' }}
               </button>

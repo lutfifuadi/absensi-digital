@@ -65,6 +65,7 @@ class ImpersonateController extends Controller
             // CRITICAL: Synchronize password hashes for AuthenticateSession middleware
             'password_hash_web' => $user->getAuthPassword(),
             'password_hash_sanctum' => $user->getAuthPassword(),
+            'active_role' => $user->role,
         ]);
 
         // Manually save session to ensure it persists before redirection
@@ -110,6 +111,7 @@ class ImpersonateController extends Controller
         $session->put([
             'password_hash_web' => $impersonator->getAuthPassword(),
             'password_hash_sanctum' => $impersonator->getAuthPassword(),
+            'active_role' => $impersonator->role,
         ]);
 
         // Save session manually

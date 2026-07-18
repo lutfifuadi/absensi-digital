@@ -2,36 +2,48 @@
   "menu": [
     {
       "name": "Dashboard",
-      "icon": "menu-icon icon-base ti tabler-smart-home",
+      "icon": "menu-icon ti tabler-smart-home",
       "slug": "dashboard",
       "url": "/dashboard"
     },
     {
-      "menuHeader": "Portal Orang Tua"
+      "menuHeader": "Portal Orang Tua",
+      "icon": "menu-icon ti tabler-user-heart"
     },
     {
-      "url": "/ortu/anak",
       "name": "Data Anak",
       "icon": "menu-icon ti tabler-users",
-      "slug": "ortu.anak"
+      "slug": "ortu.anak",
+      "url": "/ortu/anak"
     },
     {
-      "url": "/ortu/izin-sakit",
+      "name": "Absensi Anak",
+      "icon": "menu-icon ti tabler-calendar-stats",
+      "slug": "ortu.absensi",
+      "url": "/ortu/absensi"
+    },
+    {
       "name": "Izin & Sakit",
       "icon": "menu-icon ti tabler-stethoscope",
-      "slug": "ortu.izin-sakit"
+      "slug": "ortu.izin-sakit",
+      "submenu": [
+        {
+          "name": "Riwayat Izin",
+          "slug": "ortu.izin-sakit.index",
+          "url": "/ortu/izin-sakit"
+        },
+        {
+          "name": "Ajukan Izin/Sakit",
+          "slug": "ortu.izin-sakit.create",
+          "url": "/ortu/izin-sakit/create"
+        }
+      ]
     },
     {
-      "url": "/ortu/izin-sakit/create",
-      "name": "Ajukan Izin/Sakit",
-      "icon": "menu-icon ti tabler-file-plus",
-      "slug": "ortu.izin-sakit.create"
-    },
-    {
-      "url": "/ortu/pengaturan",
       "name": "Pengaturan & Password",
       "icon": "menu-icon ti tabler-settings",
-      "slug": "ortu.pengaturan"
+      "slug": "ortu.pengaturan",
+      "url": "/ortu/pengaturan"
     }
   ]
 }

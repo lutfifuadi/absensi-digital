@@ -2,42 +2,54 @@
   "menu": [
     {
       "name": "Dashboard",
-      "icon": "menu-icon icon-base ti tabler-smart-home",
+      "icon": "menu-icon ti tabler-smart-home",
       "slug": "dashboard",
       "url": "/dashboard"
     },
     {
-      "menuHeader": "Portal Siswa"
+      "menuHeader": "Portal Siswa",
+      "icon": "menu-icon ti tabler-user"
     },
     {
-      "url": "/siswa/profile",
       "name": "Profil Saya",
       "icon": "menu-icon ti tabler-user-circle",
-      "slug": "siswa.profile"
+      "slug": "siswa.profile",
+      "url": "/siswa/profile"
     },
     {
-      "url": "/siswa/izin-sakit",
       "name": "Izin & Sakit",
       "icon": "menu-icon ti tabler-stethoscope",
-      "slug": "siswa.izin-sakit.index"
+      "slug": "siswa.izin-sakit",
+      "submenu": [
+        {
+          "name": "Riwayat Izin",
+          "slug": "siswa.izin-sakit.index",
+          "url": "/siswa/izin-sakit"
+        },
+        {
+          "name": "Ajukan Izin Mandiri",
+          "slug": "siswa.izin-sakit.create",
+          "url": "/siswa/izin-sakit/create"
+        }
+      ]
     },
     {
-      "url": "/siswa/assignments",
       "name": "Tugas Mandiri",
       "icon": "menu-icon ti tabler-notebook",
-      "slug": "siswa.assignments.index"
+      "slug": "siswa.assignments.index",
+      "url": "/siswa/assignments"
     },
     {
-      "url": "/siswa/leaderboard",
       "name": "Papan Peringkat",
       "icon": "menu-icon ti tabler-trophy",
-      "slug": "siswa.leaderboard"
+      "slug": "siswa.leaderboard",
+      "url": "/siswa/leaderboard"
     },
     {
-      "url": "/siswa/download-kartu",
       "name": "Kartu Pelajar",
       "icon": "menu-icon ti tabler-id-badge-2",
       "slug": "siswa.download-kartu",
+      "url": "/siswa/download-kartu",
       "target": "_blank"
     }
   ]

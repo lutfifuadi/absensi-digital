@@ -74,6 +74,7 @@
               <a href="{{ route('admin.siswa.profil', $item) }}" class="action-btn text-info" title="Lihat Profil" data-bs-toggle="tooltip">
                 <i class="ti tabler-eye fs-5"></i>
               </a>
+              @if(!$isWaliKelas)
               <a href="{{ route('admin.siswa.generate-qr', $item) }}" class="action-btn text-secondary" title="Unduh QR" data-bs-toggle="tooltip">
                 <i class="ti tabler-qrcode fs-5"></i>
               </a>
@@ -88,6 +89,7 @@
                 data-nama="{{ $item->nama_lengkap }}">
                 <i class="ti tabler-trash fs-5"></i>
               </button>
+              @endif
             </div>
           </td>
         </tr>

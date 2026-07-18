@@ -78,7 +78,7 @@
                 </label>
                 <input id="nama_lengkap" name="nama_lengkap" type="text"
                   class="form-control @error('nama_lengkap') is-invalid @enderror" placeholder="Nama lengkap & gelar"
-                  value="{{ old('nama_lengkap', $guru->nama_lengkap) }}" required>
+                  value="{{ old('nama_lengkap', $guru->nama_lengkap ?? ($user->name ?? '')) }}" required>
                 @error('nama_lengkap')<div class="invalid-feedback">{{ $message }}</div>@enderror
               </div>
 
@@ -88,7 +88,7 @@
                 </label>
                 <input id="nip" name="nip" type="text"
                   class="form-control @error('nip') is-invalid @enderror" placeholder="Nomor Induk Pegawai"
-                  value="{{ old('nip', $guru->nip) }}" required>
+                  value="{{ old('nip', $guru->nip ?? ($user->username ?? '')) }}" required>
                 @error('nip')<div class="invalid-feedback">{{ $message }}</div>@enderror
               </div>
 
@@ -112,10 +112,15 @@
                 <label class="form-label fw-semibold small" for="mata_pelajaran">
                   <i class="ti tabler-book me-1 text-info"></i> Mata Pelajaran <span class="text-danger">*</span>
                 </label>
-                <input id="mata_pelajaran" name="mata_pelajaran" type="text"
-                  class="form-control @error('mata_pelajaran') is-invalid @enderror"
-                  placeholder="Contoh: Matematika, B. Inggris"
-                  value="{{ old('mata_pelajaran', $guru->mata_pelajaran) }}" required>
+                <select id="mata_pelajaran" name="mata_pelajaran"
+                  class="form-select @error('mata_pelajaran') is-invalid @enderror" required>
+                  <option value="">Pilih Mata Pelajaran</option>
+                  @foreach ($mapelOptions as $mapel)
+                    <option value="{{ $mapel->nama_mapel }}" {{ old('mata_pelajaran', $guru->mata_pelajaran) === $mapel->nama_mapel ? 'selected' : '' }}>
+                      {{ $mapel->nama_mapel }}
+                    </option>
+                  @endforeach
+                </select>
                 @error('mata_pelajaran')<div class="invalid-feedback">{{ $message }}</div>@enderror
               </div>
 

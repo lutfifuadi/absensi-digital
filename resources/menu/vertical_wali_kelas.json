@@ -2,80 +2,117 @@
   "menu": [
     {
       "name": "Dashboard",
-      "icon": "menu-icon icon-base ti tabler-smart-home",
+      "icon": "menu-icon ti tabler-smart-home",
       "slug": "dashboard",
       "url": "/dashboard"
     },
     {
-      "menuHeader": "Management Kelas Saya"
+      "menuHeader": "Kelas Saya",
+      "icon": "menu-icon ti tabler-door"
     },
     {
-      "url": "/wali-kelas/siswa",
-      "name": "Data Siswa Kelas",
-      "icon": "menu-icon ti tabler-users",
-      "slug": "wali-kelas.siswa.index"
+      "name": "Input Absensi Kelas",
+      "icon": "menu-icon ti tabler-edit",
+      "slug": "admin.absensi-cepat",
+      "url": "/admin/absensi-cepat"
     },
     {
-      "url": "/wali-kelas/absensi-siswa",
       "name": "Absensi Harian Kelas",
       "icon": "menu-icon ti tabler-calendar-stats",
-      "slug": "wali-kelas.absensi-siswa.index"
+      "slug": "wali-kelas.absensi-siswa.index",
+      "url": "/wali-kelas/absensi-siswa"
     },
     {
-      "url": "/wali-kelas/rekap-harian",
+      "name": "Data Siswa Kelas",
+      "icon": "menu-icon ti tabler-users",
+      "slug": "wali-kelas.siswa.index",
+      "url": "/wali-kelas/siswa"
+    },
+    {
       "name": "Laporan Rekap",
       "icon": "menu-icon ti tabler-presentation",
-      "slug": "wali-kelas.rekap-harian"
+      "slug": "wali-kelas.rekap-harian",
+      "url": "/wali-kelas/rekap-harian"
     },
     {
-      "menuHeader": "Tugas Piket & Monitor"
+      "menuHeader": "Tugas Piket",
+      "icon": "menu-icon ti tabler-shield-check"
     },
     {
-      "url": "/scan-qr",
-      "name": "Scanner QR Piket",
-      "icon": "menu-icon ti tabler-qrcode",
-      "slug": "public.scan-qr.index",
-      "target": "_blank"
+      "name": "Monitor Piket",
+      "icon": "menu-icon ti tabler-device-desktop-analytics",
+      "slug": [
+        "public.scan-qr.index",
+        "public.live-board"
+      ],
+      "submenu": [
+        {
+          "name": "Scanner QR Piket",
+          "icon": "menu-icon ti tabler-qrcode",
+          "slug": "public.scan-qr.index",
+          "url": "/scan-qr",
+          "target": "_blank"
+        },
+        {
+          "name": "Live Board Monitor",
+          "icon": "menu-icon ti tabler-screen-share",
+          "slug": "public.live-board",
+          "url": "/live-board",
+          "target": "_blank"
+        }
+      ]
     },
     {
-      "url": "/admin/absensi-kegiatan/scan",
-      "name": "Scan Kegiatan Khusus",
+      "name": "Absensi Kegiatan",
       "icon": "menu-icon ti tabler-calendar-event",
-      "slug": "admin.absensi-kegiatan.scan"
+      "slug": [
+        "admin.kegiatans.absensi",
+        "admin.absensi-kegiatan.scan"
+      ],
+      "submenu": [
+        {
+          "name": "Daftar Kegiatan",
+          "icon": "menu-icon ti tabler-list",
+          "slug": "admin.kegiatans.absensi",
+          "url": "/admin/kegiatans/absensi"
+        },
+        {
+          "name": "Scan Kegiatan Khusus",
+          "icon": "menu-icon ti tabler-qrcode",
+          "slug": "admin.absensi-kegiatan.scan",
+          "url": "/admin/absensi-kegiatan/scan"
+        }
+      ]
     },
     {
       "name": "Ekstrakurikuler",
-      "icon": "menu-icon ti tabler-trophy",
-      "slug": ["admin.ekskul"],
+      "icon": "menu-icon ti tabler-star",
+      "slug": [
+        "admin.ekskul"
+      ],
       "url": "/admin/ekskul"
     },
     {
-      "url": "/admin/kegiatans/absensi",
-      "name": "Absensi Kegiatan",
-      "icon": "menu-icon ti tabler-calendar-check",
-      "slug": "admin.kegiatans.absensi"
+      "menuHeader": "Portal Guru",
+      "icon": "menu-icon ti tabler-user-cog"
     },
     {
-      "url": "/live-board",
-      "name": "Live Board Monitor",
-      "icon": "menu-icon ti tabler-screen-share",
-      "slug": "public.live-board",
-      "target": "_blank"
-    },
-    {
-      "menuHeader": "Portal Pendidik"
-    },
-    {
-      "url": "/guru/absensi/scan",
       "name": "Absensi Saya",
       "icon": "menu-icon ti tabler-user-check",
-      "slug": "guru.absensi.scan"
+      "slug": "guru.absensi.scan",
+      "url": "/guru/absensi/scan"
     },
     {
-      "url": "/guru/izin-sakit",
       "name": "Pengajuan Izin",
       "icon": "menu-icon ti tabler-stethoscope",
-      "slug": "guru.izin-sakit.index"
+      "slug": "guru.izin-sakit.index",
+      "url": "/guru/izin-sakit"
+    },
+    {
+      "name": "Penugasan Siswa",
+      "icon": "menu-icon ti tabler-book-upload",
+      "slug": "assignments",
+      "url": "/guru/assignments"
     }
   ]
 }

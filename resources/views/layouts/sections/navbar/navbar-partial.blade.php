@@ -223,7 +223,7 @@
                 </h6>
                 <small class="text-body-secondary">
                   @if (Auth::check())
-                    {{ ucwords(str_replace('_', ' ', Auth::user()->role)) }}
+                    {{ ucwords(str_replace('_', ' ', session('active_role', Auth::user()->role))) }}
                   @else
                     Admin
                   @endif
@@ -240,6 +240,31 @@
             href="{{ Auth::check() && Auth::user()->role === 'orang_tua' ? route('ortu.pengaturan') : (Route::has('profile.show') ? route('profile.show') : 'javascript:void(0);') }}">
             <i class="icon-base ti tabler-user me-3 icon-md"></i><span class="align-middle">My Profile</span> </a>
         </li>
+        @php
+          $user = Auth::user();
+          $availableRoles = $user ? array_unique(array_filter(array_merge([$user->role], $user->roles ?? []))) : [];
+          $activeRole = session('active_role', $user?->role);
+        @endphp
+        @if (count($availableRoles) > 1)
+          <li>
+            <div class="dropdown-divider my-1 mx-n2"></div>
+          </li>
+          <li>
+            <h6 class="dropdown-header text-uppercase fw-bold"><i class="ti tabler-arrows-left-right me-2"></i>Ganti Peran</h6>
+          </li>
+          @foreach($availableRoles as $availableRole)
+            <li>
+              <form action="{{ route('role.switch') }}" method="POST" class="d-inline">
+                @csrf
+                <input type="hidden" name="role" value="{{ $availableRole }}">
+                <button type="submit" class="dropdown-item d-flex align-items-center {{ $activeRole === $availableRole ? 'active fw-bold' : '' }}">
+                  <i class="icon-base ti {{ $availableRole === 'super_admin' ? 'tabler-shield-lock' : ($availableRole === 'admin_sekolah' ? 'tabler-building-fortress' : ($availableRole === 'operator' ? 'tabler-adjustments' : ($availableRole === 'guru' ? 'tabler-school' : ($availableRole === 'wali_kelas' ? 'tabler-presentation' : ($availableRole === 'piket' ? 'tabler-device-desktop-analytics' : 'tabler-user'))))) }} me-3 icon-md"></i>
+                  <span>{{ ucwords(str_replace('_', ' ', $availableRole)) }}</span>
+                </button>
+              </form>
+            </li>
+          @endforeach
+        @endif
         @if (Auth::check() && Laravel\Jetstream\Jetstream::hasApiFeatures())
           <li>
             <a class="dropdown-item" href="{{ route('api-tokens.index') }}">

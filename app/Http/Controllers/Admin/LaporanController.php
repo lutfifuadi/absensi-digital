@@ -225,39 +225,105 @@ class LaporanController extends Controller
         $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'))
             ?? \App\Models\TahunAkademik::where('is_aktif', true)->value('id');
 
-        $kelasOptions = Kelas::where('tahun_akademik_id', $tahunAjaranId)->orderBy('nama')->get();
-        $tanggal = $request->input('tanggal', now()->toDateString());
+        $user = auth()->user();
+        $activeRole = session('active_role', $user ? $user->role : 'guest');
+        $isWaliKelas = $activeRole === \App\Models\User::ROLE_WALI_KELAS;
+        $kelasWaliId = null;
+
+        // Ambil rentang tanggal dari request, default hari ini
+        $tanggalMulai = $request->input('tanggal_mulai', now()->toDateString());
+        $tanggalSelesai = $request->input('tanggal_selesai', now()->toDateString());
         $kelasId = $request->input('kelas_id');
 
-        $absensiSiswa = AbsensiSiswa::with(['siswa:id,nama_lengkap,kelas_id', 'kelas:id,nama', 'guru:id,nama_lengkap'])
-            ->whereDate('tanggal', $tanggal)
-            ->when($kelasId, fn ($q) => $q->where('kelas_id', $kelasId))
-            ->orderBy('siswa_id')
-            ->paginate(100);
+        if ($isWaliKelas) {
+            $guru = $user->guru;
+            if ($guru) {
+                $kelasWali = Kelas::where('wali_kelas_id', $guru->id)
+                    ->where('tahun_akademik_id', $tahunAjaranId)
+                    ->first();
+                if ($kelasWali) {
+                    $kelasWaliId = $kelasWali->id;
+                }
+            }
+            // Paksa kelasId ke kelas bimbingan wali kelas
+            $kelasId = $kelasWaliId;
+            $kelasOptions = $kelasWaliId 
+                ? Kelas::where('id', $kelasWaliId)->get() 
+                : collect();
+        } else {
+            $kelasOptions = Kelas::where('tahun_akademik_id', $tahunAjaranId)->orderBy('nama')->get();
+        }
 
-        $absensiGuru = AbsensiGuru::with('guru:id,nama_lengkap')
-            ->whereDate('tanggal', $tanggal)
-            ->orderBy('guru_id')
-            ->paginate(100);
+        // Query absensi siswa dengan filter rentang tanggal
+        $querySiswa = AbsensiSiswa::with(['siswa:id,nama_lengkap,kelas_id', 'kelas:id,nama', 'guru:id,nama_lengkap'])
+            ->whereBetween('tanggal', [$tanggalMulai, $tanggalSelesai])
+            ->orderBy('tanggal', 'desc')
+            ->orderBy('siswa_id');
 
-        $absensiStaff = AbsensiStaff::with('staff:id,nama_lengkap')
-            ->whereDate('tanggal', $tanggal)
-            ->orderBy('staff_id')
-            ->paginate(100);
+        if ($isWaliKelas) {
+            if ($kelasWaliId) {
+                $querySiswa->where('absensi_siswa.kelas_id', $kelasWaliId);
+            } else {
+                $querySiswa->whereNull('absensi_siswa.id');
+            }
+        } elseif ($kelasId) {
+            $querySiswa->where('kelas_id', $kelasId);
+        }
+
+        $absensiSiswa = $querySiswa->paginate(100)->withQueryString();
+
+        // Absensi Guru dan Staff (hanya untuk Admin/Operator, kosongkan untuk Wali Kelas)
+        if (!$isWaliKelas) {
+            $absensiGuru = AbsensiGuru::with('guru:id,nama_lengkap')
+                ->whereBetween('tanggal', [$tanggalMulai, $tanggalSelesai])
+                ->orderBy('tanggal', 'desc')
+                ->orderBy('guru_id')
+                ->paginate(100)->withQueryString();
+
+            $absensiStaff = AbsensiStaff::with('staff:id,nama_lengkap')
+                ->whereBetween('tanggal', [$tanggalMulai, $tanggalSelesai])
+                ->orderBy('tanggal', 'desc')
+                ->orderBy('staff_id')
+                ->paginate(100)->withQueryString();
+        } else {
+            $absensiGuru = collect();
+            $absensiStaff = collect();
+        }
+
+        // Statistiche rekap dalam periode
+        $qSummary = AbsensiSiswa::whereBetween('tanggal', [$tanggalMulai, $tanggalSelesai]);
+        if ($isWaliKelas) {
+            if ($kelasWaliId) {
+                $qSummary->where('kelas_id', $kelasWaliId);
+            } else {
+                $qSummary->whereNull('id');
+            }
+        } elseif ($kelasId) {
+            $qSummary->where('kelas_id', $kelasId);
+        }
+
+        $summaryStats = (clone $qSummary)
+            ->selectRaw("
+                SUM(CASE WHEN status='hadir' THEN 1 ELSE 0 END) as hadir,
+                SUM(CASE WHEN status='sakit' THEN 1 ELSE 0 END) as sakit,
+                SUM(CASE WHEN status='izin' THEN 1 ELSE 0 END) as izin,
+                SUM(CASE WHEN status='alpha' THEN 1 ELSE 0 END) as alpha,
+                SUM(CASE WHEN status='terlambat' THEN 1 ELSE 0 END) as terlambat
+            ")->first();
 
         $summaryHarian = [
-            'siswa_hadir'    => AbsensiSiswa::whereDate('tanggal', $tanggal)->when($kelasId, fn ($q) => $q->where('kelas_id', $kelasId))->where('status', 'hadir')->count(),
-            'siswa_sakit'   => AbsensiSiswa::whereDate('tanggal', $tanggal)->when($kelasId, fn ($q) => $q->where('kelas_id', $kelasId))->where('status', 'sakit')->count(),
-            'siswa_izin'    => AbsensiSiswa::whereDate('tanggal', $tanggal)->when($kelasId, fn ($q) => $q->where('kelas_id', $kelasId))->where('status', 'izin')->count(),
-            'siswa_alpha'   => AbsensiSiswa::whereDate('tanggal', $tanggal)->when($kelasId, fn ($q) => $q->where('kelas_id', $kelasId))->where('status', 'alpha')->count(),
-            'siswa_terlambat'=> AbsensiSiswa::whereDate('tanggal', $tanggal)->when($kelasId, fn ($q) => $q->where('kelas_id', $kelasId))->where('status', 'terlambat')->count(),
-            'guru_hadir'    => AbsensiGuru::whereDate('tanggal', $tanggal)->where('status', 'hadir')->count(),
-            'staff_hadir'   => AbsensiStaff::whereDate('tanggal', $tanggal)->where('status', 'hadir')->count(),
+            'siswa_hadir'    => $summaryStats->hadir ?? 0,
+            'siswa_sakit'   => $summaryStats->sakit ?? 0,
+            'siswa_izin'    => $summaryStats->izin ?? 0,
+            'siswa_alpha'   => $summaryStats->alpha ?? 0,
+            'siswa_terlambat'=> $summaryStats->terlambat ?? 0,
+            'guru_hadir'    => !$isWaliKelas ? AbsensiGuru::whereBetween('tanggal', [$tanggalMulai, $tanggalSelesai])->where('status', 'hadir')->count() : 0,
+            'staff_hadir'   => !$isWaliKelas ? AbsensiStaff::whereBetween('tanggal', [$tanggalMulai, $tanggalSelesai])->where('status', 'hadir')->count() : 0,
         ];
 
         return view('admin.laporan.rekap-harian', compact(
             'absensiSiswa', 'absensiGuru', 'absensiStaff',
-            'tanggal', 'kelasOptions', 'kelasId', 'summaryHarian'
+            'tanggalMulai', 'tanggalSelesai', 'kelasOptions', 'kelasId', 'summaryHarian', 'isWaliKelas'
         ));
     }
 

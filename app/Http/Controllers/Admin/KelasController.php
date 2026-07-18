@@ -52,6 +52,10 @@ class KelasController extends Controller
         }
 
         $guruOptions = Guru::where('status', 'aktif')
+            ->whereHas('user', function ($query) {
+                $query->where('role', \App\Models\User::ROLE_WALI_KELAS)
+                      ->orWhereJsonContains('roles', \App\Models\User::ROLE_WALI_KELAS);
+            })
             ->orderBy('nama_lengkap')
             ->get();
         $tahunAkademikOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
@@ -65,6 +69,10 @@ class KelasController extends Controller
     public function create()
     {
         $guruOptions = Guru::where('status', 'aktif')
+            ->whereHas('user', function ($query) {
+                $query->where('role', \App\Models\User::ROLE_WALI_KELAS)
+                      ->orWhereJsonContains('roles', \App\Models\User::ROLE_WALI_KELAS);
+            })
             ->orderBy('nama_lengkap')
             ->get();
         $tahunAkademikOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();
@@ -112,6 +120,10 @@ class KelasController extends Controller
     public function edit(Kelas $kelas)
     {
         $guruOptions = Guru::where('status', 'aktif')
+            ->whereHas('user', function ($query) {
+                $query->where('role', \App\Models\User::ROLE_WALI_KELAS)
+                      ->orWhereJsonContains('roles', \App\Models\User::ROLE_WALI_KELAS);
+            })
             ->orderBy('nama_lengkap')
             ->get();
         $tahunAkademikOptions = TahunAkademik::orderBy('tanggal_mulai', 'desc')->get();

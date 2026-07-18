@@ -35,7 +35,20 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $role = $user->role;
+        
+        $availableRoles = array_unique(array_filter(array_merge([$user->role], $user->roles ?? [])));
+        
+        if (count($availableRoles) > 1) {
+            if (!session()->has('active_role')) {
+                return redirect()->route('role.select');
+            }
+            $role = session('active_role');
+        } else {
+            if (!session()->has('active_role')) {
+                session(['active_role' => $user->role]);
+            }
+            $role = session('active_role', $user->role);
+        }
 
         // Redirect based on role if accessed via generic /dashboard
         if ($request->routeIs('dashboard')) {
@@ -43,7 +56,7 @@ class DashboardController extends Controller
             if ($role === User::ROLE_GURU) return redirect()->route('guru.dashboard');
             if ($role === User::ROLE_WALI_KELAS) return redirect()->route('wali-kelas.dashboard');
             if ($role === User::ROLE_ORANG_TUA) return redirect()->route('ortu.dashboard');
-            if ($role === User::ROLE_PIKET || $user->isPiket()) return redirect()->route('piket.dashboard');
+            if ($role === User::ROLE_PIKET || ($role === User::ROLE_PIKET && $user->isPiket())) return redirect()->route('piket.dashboard');
             if ($role === User::ROLE_SUPER_ADMIN || $role === User::ROLE_ADMIN_SEKOLAH) return view('dashboards.super-admin', array_merge(['user' => $user, 'pageTitle' => 'Admin Panel'], $this->superAdminData()));
         }
 
@@ -94,7 +107,7 @@ class DashboardController extends Controller
             $data = array_merge($data, $this->orangTuaData($user));
         } elseif ($role === User::ROLE_SISWA) {
             $data = array_merge($data, $this->siswaData($user));
-        } elseif ($role === User::ROLE_PIKET || $user->isPiket()) {
+        } elseif ($role === User::ROLE_PIKET) {
             $data = array_merge($data, $this->piketData());
         }
 
@@ -107,6 +120,17 @@ class DashboardController extends Controller
     public function liveMonitor()
     {
         return view('admin.live-monitor', $this->superAdminData());
+    }
+
+    /**
+     * AJAX: Refresh dashboard statistics.
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function refreshStats(Request $request): JsonResponse
+    {
+        return response()->json($this->superAdminData());
     }
 
     /**
@@ -608,8 +632,15 @@ private function superAdminData(): array
     private function waliKelasData($user): array
     {
         $today = Carbon::today();
-        $kelas = Kelas::where('guru_id', $user->id)->first();
+        
+        // Cari data guru berdasarkan user_id
+        $guru = Guru::where('user_id', $user->id)->first();
+        if (!$guru) {
+            return ['has_class' => false];
+        }
 
+        // Cari kelas yang wali kelasnya adalah guru ini
+        $kelas = Kelas::where('wali_kelas_id', $guru->id)->first();
         if (!$kelas) {
             return ['has_class' => false];
         }

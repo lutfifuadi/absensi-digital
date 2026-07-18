@@ -190,6 +190,11 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
+    // Role selector routes
+    Route::get('/select-role', [\App\Http\Controllers\RoleSelectorController::class, 'index'])->name('role.select');
+    Route::post('/select-role', [\App\Http\Controllers\RoleSelectorController::class, 'select'])->name('role.select.post');
+    Route::post('/switch-role', [\App\Http\Controllers\RoleSelectorController::class, 'switch'])->name('role.switch');
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/refresh-stats', [DashboardController::class, 'refreshStats'])->name('admin.dashboard.refresh-stats')->middleware('role:super_admin,admin_sekolah');
 
@@ -269,6 +274,27 @@ Route::middleware([
             }
             return redirect()->route('ortu.dashboard');
         });
+        Route::get('/absensi', function() {
+            $activeSiswaId = session('active_siswa_id');
+            if (!$activeSiswaId) {
+                /** @var \App\Models\User $user */
+                $user = auth()->user();
+                $firstAnak = \App\Models\Siswa::where(function($query) use ($user) {
+                    $query->where('ortu_user_id', $user->id)
+                          ->orWhereHas('ortu', function($q) use ($user) {
+                              $q->where('users.id', $user->id);
+                          });
+                })->first();
+                if ($firstAnak) {
+                    $activeSiswaId = $firstAnak->id;
+                    session(['active_siswa_id' => $activeSiswaId]);
+                }
+            }
+            if ($activeSiswaId) {
+                return redirect()->route('ortu.anak.absensi', $activeSiswaId);
+            }
+            return redirect()->route('ortu.dashboard');
+        })->name('ortu.absensi');
         Route::post('/switch-anak', [DashboardController::class, 'switchAnak'])->name('ortu.switch-anak');
         Route::get('/anak/{id}/profil', [PortalOrangTuaController::class, 'profilAnak'])->name('ortu.anak.profil');
         Route::get('/anak/{id}/absensi', [PortalOrangTuaController::class, 'absensiAnak'])->name('ortu.anak.absensi');

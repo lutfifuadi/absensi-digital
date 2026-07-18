@@ -13,11 +13,38 @@ class AbsensiSiswaController extends Controller
 {
     public function index()
     {
-        $absensi = AbsensiSiswa::with(['siswa:id,nama_lengkap,kelas_id', 'kelas:id,nama', 'guru:id,nama_lengkap'])
-            ->orderByDesc('tanggal')
-            ->paginate(50);
+        $user = auth()->user();
+        $activeRole = session('active_role', $user ? $user->role : 'guest');
+        $isWaliKelas = $activeRole === \App\Models\User::ROLE_WALI_KELAS;
 
-        return view('admin.absensi-siswa.index', compact('absensi'));
+        $query = AbsensiSiswa::with(['siswa:id,nama_lengkap,kelas_id', 'kelas:id,nama', 'guru:id,nama_lengkap'])
+            ->orderByDesc('tanggal');
+
+        if ($isWaliKelas) {
+            $guru = $user->guru;
+            $kelasWaliId = null;
+            if ($guru) {
+                $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
+                $kelasWali = \App\Models\Kelas::where('wali_kelas_id', $guru->id)
+                    ->where('tahun_akademik_id', $tahunAjaranId)
+                    ->first();
+                if ($kelasWali) {
+                    $kelasWaliId = $kelasWali->id;
+                }
+            }
+
+            if ($kelasWaliId) {
+                // Saring absensi siswa yang ada di kelas bimbingan wali kelas saja
+                $query->where('absensi_siswa.kelas_id', $kelasWaliId);
+            } else {
+                // Jika wali kelas belum memiliki kelas di TA aktif, paksa kosongkan data absensi
+                $query->whereNull('absensi_siswa.id');
+            }
+        }
+
+        $absensi = $query->paginate(50);
+
+        return view('admin.absensi-siswa.index', compact('absensi', 'isWaliKelas'));
     }
 
     public function create()
@@ -214,8 +241,32 @@ class AbsensiSiswaController extends Controller
      */
     public function bulkForm(Request $request)
     {
-        $kelasOptions = Kelas::orderBy('nama')->get();
-        $selectedKelasId = $request->query('kelas_id');
+        $user = auth()->user();
+        $activeRole = session('active_role', $user ? $user->role : 'guest');
+        $isWaliKelas = $activeRole === \App\Models\User::ROLE_WALI_KELAS;
+        $kelasWaliId = null;
+
+        if ($isWaliKelas) {
+            $guru = $user->guru;
+            if ($guru) {
+                $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
+                $kelasWali = Kelas::where('wali_kelas_id', $guru->id)
+                    ->where('tahun_akademik_id', $tahunAjaranId)
+                    ->first();
+                if ($kelasWali) {
+                    $kelasWaliId = $kelasWali->id;
+                }
+            }
+            // Paksa kelas_id ke kelas bimbingan wali kelas
+            $selectedKelasId = $kelasWaliId;
+            $kelasOptions = $kelasWaliId 
+                ? Kelas::where('id', $kelasWaliId)->get() 
+                : collect();
+        } else {
+            $kelasOptions = Kelas::orderBy('nama')->get();
+            $selectedKelasId = $request->query('kelas_id');
+        }
+
         $siswa = collect();
         if ($selectedKelasId) {
             $siswa = Siswa::with(['absensi' => function($q) use ($request) {
@@ -228,7 +279,7 @@ class AbsensiSiswaController extends Controller
                 ->get();
         }
 
-        return view('admin.absensi-siswa.bulk', compact('kelasOptions', 'selectedKelasId', 'siswa'));
+        return view('admin.absensi-siswa.bulk', compact('kelasOptions', 'selectedKelasId', 'siswa', 'isWaliKelas'));
     }
 
     /**
@@ -236,6 +287,28 @@ class AbsensiSiswaController extends Controller
      */
     public function bulkStore(Request $request)
     {
+        $user = auth()->user();
+        $activeRole = session('active_role', $user ? $user->role : 'guest');
+        $isWaliKelas = $activeRole === \App\Models\User::ROLE_WALI_KELAS;
+
+        if ($isWaliKelas) {
+            $guru = $user->guru;
+            $kelasWaliId = null;
+            if ($guru) {
+                $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
+                $kelasWali = Kelas::where('wali_kelas_id', $guru->id)
+                    ->where('tahun_akademik_id', $tahunAjaranId)
+                    ->first();
+                if ($kelasWali) {
+                    $kelasWaliId = $kelasWali->id;
+                }
+            }
+            // Cegah modifikasi kelas lain oleh wali kelas
+            if ($request->kelas_id != $kelasWaliId) {
+                abort(403, 'Anda hanya diizinkan menginput absensi kelas bimbingan Anda.');
+            }
+        }
+
         $request->validate([
             'kelas_id' => 'required|exists:kelas,id',
             'tanggal'  => 'required|date',

@@ -42,7 +42,9 @@ class WaliKelasController extends Controller
             }
         }
 
-        return view('admin.wali-kelas.form', compact('guru', 'user'));
+        $mapelOptions = \App\Models\Mapel::where('status', 1)->orderBy('nama_mapel')->get();
+
+        return view('admin.wali-kelas.form', compact('guru', 'user', 'mapelOptions'));
     }
 
     public function store(Request $request)
@@ -107,7 +109,9 @@ class WaliKelasController extends Controller
             abort(403, 'Data yang diakses bukan merupakan wali kelas.');
         }
 
-        return view('admin.wali-kelas.form', compact('guru'));
+        $mapelOptions = \App\Models\Mapel::where('status', 1)->orderBy('nama_mapel')->get();
+
+        return view('admin.wali-kelas.form', compact('guru', 'mapelOptions'));
     }
 
     public function update(Request $request, Guru $guru)

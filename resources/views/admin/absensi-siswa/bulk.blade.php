@@ -77,14 +77,23 @@
         <div class="row align-items-end g-3">
           <div class="col-md-4">
             <label class="form-label text-white-50 small fw-bold" for="kelas_id">Pilih Kelas</label>
-            <select name="kelas_id" id="kelas_id" class="form-select @error('kelas_id') is-invalid @enderror" onchange="this.form.submit()">
-              <option value="">-- Pilih Kelas --</option>
-              @foreach ($kelasOptions as $kelas)
-                <option value="{{ $kelas->id }}" {{ $selectedKelasId == $kelas->id ? 'selected' : '' }}>
-                  {{ $kelas->nama }}
-                </option>
-              @endforeach
-            </select>
+            @if(isset($isWaliKelas) && $isWaliKelas)
+              <select id="kelas_id_disabled" class="form-select" disabled>
+                @foreach ($kelasOptions as $kelas)
+                  <option value="{{ $kelas->id }}" selected>{{ $kelas->nama }}</option>
+                @endforeach
+              </select>
+              <input type="hidden" name="kelas_id" value="{{ $selectedKelasId }}">
+            @else
+              <select name="kelas_id" id="kelas_id" class="form-select @error('kelas_id') is-invalid @enderror" onchange="this.form.submit()">
+                <option value="">-- Pilih Kelas --</option>
+                @foreach ($kelasOptions as $kelas)
+                  <option value="{{ $kelas->id }}" {{ $selectedKelasId == $kelas->id ? 'selected' : '' }}>
+                    {{ $kelas->nama }}
+                  </option>
+                @endforeach
+              </select>
+            @endif
           </div>
           <div class="col-md-3">
             <label class="form-label text-white-50 small fw-bold" for="tanggal">Tanggal Absensi</label>

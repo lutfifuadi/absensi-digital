@@ -60,6 +60,7 @@
         </div>
       </div>
 
+      @if(!$isWaliKelas)
       <div class="das-hero__actions">
         <div class="d-flex gap-2">
           <a href="{{ route('admin.absensi-siswa.scan') }}" class="das-btn das-btn--success">
@@ -70,6 +71,7 @@
           </a>
         </div>
       </div>
+      @endif
     </div>
   </div>
 
@@ -105,7 +107,9 @@
             <th class="text-center">JAM PULANG</th>
             <th class="text-center">STATUS</th>
             <th class="text-center">METODE</th>
+            @if(!$isWaliKelas)
             <th class="text-end pe-4">AKSI</th>
+            @endif
           </tr>
         </thead>
         <tbody>
@@ -144,6 +148,7 @@
                   {{ strtoupper($item->metode) }}
                 </span>
               </td>
+              @if(!$isWaliKelas)
               <td class="pe-4 text-end">
                 <div class="d-flex justify-content-end gap-1">
                   <a href="{{ route('admin.absensi-siswa.edit', $item) }}" class="absensi-action-btn text-warning"
@@ -160,14 +165,17 @@
                   </button>
                 </div>
               </td>
+              @endif
             </tr>
           @empty
             <tr>
-              <td colspan="7">
+              <td colspan="{{ $isWaliKelas ? 8 : 9 }}">
                 <div class="das-empty-state">
                   <i class="ti tabler-calendar-off"></i>
                   <span>Belum ada data absensi tercatat.</span>
+                  @if(!$isWaliKelas)
                   <a href="{{ route('admin.absensi-siswa.create') }}" class="das-btn das-btn--primary mt-2">Tambah Kehadiran</a>
+                  @endif
                 </div>
               </td>
             </tr>

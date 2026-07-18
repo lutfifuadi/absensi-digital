@@ -24,7 +24,10 @@ class MenuServiceProvider extends ServiceProvider
   {
     View::composer('layouts.sections.menu.verticalMenu', function ($view) {
       $user = auth()->user();
-      $role = $user ? $user->role : 'guest';
+      $role = 'guest';
+      if ($user) {
+        $role = session('active_role', $user->role);
+      }
 
       $menuFile = match ($role) {
         'super_admin', 'admin_sekolah' => 'vertical_admin.json',
@@ -33,6 +36,7 @@ class MenuServiceProvider extends ServiceProvider
         'siswa' => 'vertical_siswa.json',
         'guru' => 'vertical_guru.json',
         'wali_kelas' => 'vertical_wali_kelas.json',
+        'piket' => 'vertical_piket.json',
         'orang_tua' => 'vertical_orang_tua.json',
         default => 'vertical_admin.json',
       };
