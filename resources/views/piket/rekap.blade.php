@@ -101,7 +101,6 @@
           <tr>
             <th class="ps-4 py-3" width="60">No</th>
             <th class="py-3">Nama Siswa</th>
-            <th class="py-3">NIS / NISN</th>
             <th class="py-3">Kelas</th>
             <th class="py-3 text-center">Jam Masuk</th>
             <th class="py-3 text-center">Jam Pulang</th>
@@ -144,8 +143,7 @@
             @endphp
             <tr class="rekap-row-hover">
               <td class="ps-4">{{ $siswaList->firstItem() + $index }}</td>
-              <td class="fw-bold">{{ $siswa->nama_lengkap }}</td>
-              <td>{{ $siswa->nis }} / {{ $siswa->nisn ?: '-' }}</td>
+              <td class="fw-bold text-nowrap">{{ $siswa->nama_lengkap }}</td>
               <td>{{ $siswa->kelas->nama ?? '-' }}</td>
               <td class="text-center">{{ $absensi && $absensi->jam_masuk ? $absensi->jam_masuk : '-' }}</td>
               <td class="text-center">{{ $absensi && $absensi->jam_pulang ? $absensi->jam_pulang : '-' }}</td>
@@ -174,7 +172,7 @@
             </tr>
           @empty
             <tr>
-              <td colspan="9" class="text-center py-4 text-muted">
+              <td colspan="8" class="text-center py-4 text-muted">
                 <i class="ti tabler-users fs-1 mb-2 d-block"></i>
                 Tidak ada data siswa ditemukan
               </td>
