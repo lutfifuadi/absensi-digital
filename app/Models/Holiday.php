@@ -16,10 +16,17 @@ class Holiday extends Model
         'nama',
         'jenis',
         'is_national_holiday',
+        'tingkat',
+        'kelas_id',
     ];
 
     protected $casts = [
         'tanggal' => 'date',
         'is_national_holiday' => 'boolean',
     ];
+
+    public function kelas()
+    {
+        return $this->belongsTo(Kelas::class, 'kelas_id');
+    }
 }

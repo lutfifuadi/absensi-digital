@@ -15,12 +15,67 @@ class AiChat extends Component
     public bool $isLoading = false;
     public bool $hasError = false;
     public string $errorMessage = '';
+    public string $userRole = '';
+    public string $roleLabel = '';
+    public string $schoolName = 'MAN 1 Kota Bandung';
 
     protected $listeners = [];
 
     public function mount()
     {
+        if (auth()->check()) {
+            $user = auth()->user();
+            $this->userRole = $user->role;
+            $this->roleLabel = $this->getRoleLabel($user->role);
+            $this->schoolName = $this->getSchoolName();
+        }
         $this->loadHistory();
+    }
+
+    /**
+     * Dapatkan label untuk ditampilkan berdasarkan role.
+     */
+    protected function getRoleLabel(string $role): string
+    {
+        $labels = [
+            'super_admin'   => 'Super Admin',
+            'admin_sekolah' => 'Admin Sekolah',
+            'operator'      => 'Operator',
+            'guru'          => 'Guru',
+            'wali_kelas'    => 'Wali Kelas',
+            'staff_tu'      => 'Staff TU',
+            'siswa'         => 'Siswa',
+            'orang_tua'     => 'Orang Tua',
+            'piket'         => 'Piket',
+        ];
+
+        return $labels[$role] ?? ucfirst($role);
+    }
+
+    /**
+     * Ambil nama sekolah/lembaga dari pengaturan dengan urutan prioritas:
+     * 1. nama_lembaga (primary)
+     * 2. nama_sekolah (fallback pertama)
+     * 3. SCHOOL_NAME dari .env (fallback kedua)
+     * 4. config('app.name') (fallback terakhir)
+     */
+    protected function getSchoolName(): string
+    {
+        try {
+            $nama = \App\Models\Pengaturan::where('key', 'nama_lembaga')->value('value');
+            if (!empty($nama)) {
+                return $nama;
+            }
+
+            $nama = \App\Models\Pengaturan::where('key', 'nama_sekolah')->value('value');
+            if (!empty($nama)) {
+                return $nama;
+            }
+
+            return env('SCHOOL_NAME', config('app.name', 'MAN 1 Kota Bandung'));
+        } catch (\Exception $e) {
+            return env('SCHOOL_NAME', config('app.name', 'MAN 1 Kota Bandung'));
+        }
     }
 
     public function loadHistory()
@@ -32,11 +87,13 @@ class AiChat extends Component
                 ->get();
 
             $this->messages = $logs->map(function ($log) {
+                $metadata = is_string($log->metadata) ? json_decode($log->metadata, true) : ($log->metadata ?? []);
                 return [
                     'id' => $log->id,
                     'role' => $log->role,
                     'message' => $log->message,
                     'time' => $log->created_at->format('H:i'),
+                    'source' => $metadata['source_title'] ?? ($metadata['source'] ?? null),
                 ];
             })->toArray();
         } catch (\Exception $e) {
@@ -94,8 +151,8 @@ class AiChat extends Component
             // Panggil Gemini langsung
             $gemini = app(GeminiService::class);
             $history = $gemini->getHistory($user->id, 20);
-            $tools = $gemini->getToolDefinitions();
-            $response = $gemini->sendWithTools($lastUserMessage, $tools, $history);
+            $tools = $gemini->getToolDefinitions($user->role);
+            $response = $gemini->sendWithTools($lastUserMessage, $tools, $history, $user->role);
             
             // ... (logika proses respons sama seperti sebelumnya)
 
@@ -119,6 +176,12 @@ class AiChat extends Component
                 $hasError = true;
             }
 
+            // Deteksi source dari tool call metadata
+            $sourceTitle = null;
+            if (isset($response['_toolMetadata']['sources'])) {
+                $sourceTitle = implode(', ', $response['_toolMetadata']['sources']);
+            }
+
             // Simpan respons AI ke database
             ChatLog::create([
                 'user_id' => $user->id,
@@ -127,6 +190,7 @@ class AiChat extends Component
                 'metadata' => [
                     'has_tool_calls' => isset($textParts) && isset($parts) && count($parts) > 1,
                     'has_error' => $hasError,
+                    'source_title' => $sourceTitle,
                 ],
             ]);
 
@@ -136,6 +200,7 @@ class AiChat extends Component
                 'role' => 'assistant',
                 'message' => $replyText,
                 'time' => now()->format('H:i'),
+                'source' => $sourceTitle,
             ];
             
             // Buka kunci tombol kirim segera setelah pesan AI muncul (typing animasi tetap jalan di frontend)
@@ -157,7 +222,7 @@ class AiChat extends Component
                 'user_id' => $user->id,
                 'role' => 'assistant',
                 'message' => 'Maaf, terjadi kesalahan sistem. Silakan coba lagi.',
-                'metadata' => ['error' => $e->getMessage()],
+                'metadata' => ['error' => $e->getMessage(), 'source_title' => null],
             ]);
 
             $this->messages[] = [
@@ -165,6 +230,7 @@ class AiChat extends Component
                 'role' => 'assistant',
                 'message' => 'Maaf, terjadi kesalahan sistem. Silakan coba lagi.',
                 'time' => now()->format('H:i'),
+                'source' => null,
             ];
             
             // Buka kunci tombol kirim meskipun error
@@ -174,6 +240,15 @@ class AiChat extends Component
             $this->hasError = true;
             $this->errorMessage = 'Kesalahan sistem: ' . $e->getMessage();
         }
+    }
+
+    /**
+     * Kirim quick chip sebagai pesan.
+     */
+    public function sendQuickChip($chipMessage)
+    {
+        $this->message = $chipMessage;
+        $this->send();
     }
 
     public function clearChat()

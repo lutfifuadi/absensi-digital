@@ -11,7 +11,7 @@ class HolidayController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Holiday::query();
+        $query = Holiday::with('kelas');
 
         if ($request->has('jenis') && in_array($request->jenis, ['national', 'school'])) {
             $query->where('jenis', $request->jenis);
@@ -23,6 +23,14 @@ class HolidayController extends Controller
 
         if ($request->has('bulan')) {
             $query->whereMonth('tanggal', $request->bulan);
+        }
+
+        if ($request->has('tingkat')) {
+            $query->where('tingkat', $request->tingkat);
+        }
+
+        if ($request->has('kelas_id')) {
+            $query->where('kelas_id', $request->kelas_id);
         }
 
         $holidays = $query->orderBy('tanggal')->get();
@@ -39,6 +47,8 @@ class HolidayController extends Controller
             'tanggal' => 'required|date',
             'nama' => 'required|string|max:255',
             'jenis' => 'required|in:national,school',
+            'tingkat' => 'nullable|in:X,XI,XII',
+            'kelas_id' => 'nullable|exists:kelas,id',
         ]);
 
         if ($validator->fails()) {
@@ -48,17 +58,29 @@ class HolidayController extends Controller
             ], 422);
         }
 
+        if (!empty($request->tingkat) && !empty($request->kelas_id)) {
+            $kelasObj = \App\Models\Kelas::find($request->kelas_id);
+            if ($kelasObj && $kelasObj->tingkat !== $request->tingkat) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['tingkat' => ['Tingkat tidak cocok dengan tingkat dari kelas yang dipilih.']],
+                ], 422);
+            }
+        }
+
         $holiday = Holiday::create([
             'tanggal' => $request->tanggal,
             'nama' => $request->nama,
             'jenis' => $request->jenis,
             'is_national_holiday' => $request->jenis === 'national' ? true : false,
+            'tingkat' => $request->tingkat ?? null,
+            'kelas_id' => $request->kelas_id ?? null,
         ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Hari libur berhasil ditambahkan',
-            'data' => $holiday,
+            'data' => $holiday->load('kelas'),
         ], 201);
     }
 
@@ -94,6 +116,8 @@ class HolidayController extends Controller
             'tanggal' => 'sometimes|date',
             'nama' => 'sometimes|string|max:255',
             'jenis' => 'sometimes|in:national,school',
+            'tingkat' => 'nullable|in:X,XI,XII',
+            'kelas_id' => 'nullable|exists:kelas,id',
         ]);
 
         if ($validator->fails()) {
@@ -103,7 +127,20 @@ class HolidayController extends Controller
             ], 422);
         }
 
-        $holiday->update($request->only(['tanggal', 'nama', 'jenis']));
+        $tingkat = $request->has('tingkat') ? $request->tingkat : $holiday->tingkat;
+        $kelasId = $request->has('kelas_id') ? $request->kelas_id : $holiday->kelas_id;
+
+        if (!empty($tingkat) && !empty($kelasId)) {
+            $kelasObj = \App\Models\Kelas::find($kelasId);
+            if ($kelasObj && $kelasObj->tingkat !== $tingkat) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['tingkat' => ['Tingkat tidak cocok dengan tingkat dari kelas yang dipilih.']],
+                ], 422);
+            }
+        }
+
+        $holiday->update($request->only(['tanggal', 'nama', 'jenis', 'tingkat', 'kelas_id']));
 
         if ($request->has('jenis')) {
             $holiday->update(['is_national_holiday' => $request->jenis === 'national']);
@@ -112,7 +149,7 @@ class HolidayController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Hari libur berhasil diperbarui',
-            'data' => $holiday,
+            'data' => $holiday->load('kelas'),
         ]);
     }
 

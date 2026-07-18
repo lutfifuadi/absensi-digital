@@ -289,7 +289,7 @@ class DashboardController extends Controller
         // Bangun map: tanggal => ['hadir'=>N, 'sakit'=>N, ...]
         $calendarData = [];
         foreach ($rawAbsensi as $row) {
-            $key = $row->tanggal;
+            $key = $row->tanggal->format('Y-m-d');
             if (!isset($calendarData[$key])) {
                 $calendarData[$key] = ['hadir' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0, 'terlambat' => 0, 'total' => 0];
             }
@@ -305,10 +305,25 @@ class DashboardController extends Controller
         $daysInMonth = $startOfMonth->daysInMonth;
         $today       = Carbon::today()->toDateString();
 
-        // Ambil data libur dalam bulan ini
-        $holidays = Holiday::whereBetween('tanggal', [$startOfMonth, $endOfMonth])
-            ->pluck('nama', 'tanggal')
-            ->toArray();
+        // Ambil data libur dalam bulan ini beserta kelasnya
+        $holidaysCollection = Holiday::with('kelas')->whereBetween('tanggal', [$startOfMonth, $endOfMonth])->get();
+        $holidays = [];
+        foreach ($holidaysCollection as $holiday) {
+            $dateStr = $holiday->tanggal->toDateString();
+            $scopeStr = '';
+            if ($holiday->kelas_id) {
+                $scopeStr = " ({$holiday->kelas->nama})";
+            } elseif ($holiday->tingkat) {
+                $scopeStr = " (Tingkat {$holiday->tingkat})";
+            }
+            $holidayName = $holiday->nama . $scopeStr;
+            
+            if (isset($holidays[$dateStr])) {
+                $holidays[$dateStr] .= ' | ' . $holidayName;
+            } else {
+                $holidays[$dateStr] = $holidayName;
+            }
+        }
 
         // Prev / Next bulan
         $prevMonth = $startOfMonth->copy()->subMonth();
@@ -348,8 +363,9 @@ return response()->json([
     {
         $year = (int) $request->query('year', now()->year);
         $holidays = Holiday::whereYear('tanggal', $year)->orderBy('tanggal')->get();
+        $kelas = Kelas::where('tahun_akademik_id', session('tahun_akademik_id'))->orderBy('nama')->get();
 
-        return view('admin.holidays', compact('holidays', 'year'));
+        return view('admin.holidays', compact('holidays', 'year', 'kelas'));
     }
 
     public function holidaysSync(Request $request)
@@ -399,13 +415,24 @@ return response()->json([
             'tanggal' => 'required|date',
             'nama' => 'required|string|max:255',
             'jenis' => 'required|in:school',
+            'tingkat' => 'nullable|in:X,XI,XII',
+            'kelas_id' => 'nullable|exists:kelas,id',
         ]);
+
+        if (!empty($validated['tingkat']) && !empty($validated['kelas_id'])) {
+            $kelasObj = Kelas::find($validated['kelas_id']);
+            if ($kelasObj && $kelasObj->tingkat !== $validated['tingkat']) {
+                return back()->withInput()->withErrors(['tingkat' => 'Tingkat tidak cocok dengan tingkat dari kelas yang dipilih.']);
+            }
+        }
 
         Holiday::create([
             'tanggal' => $validated['tanggal'],
             'nama' => $validated['nama'],
             'jenis' => $validated['jenis'],
             'is_national_holiday' => false,
+            'tingkat' => $validated['tingkat'] ?? null,
+            'kelas_id' => $validated['kelas_id'] ?? null,
         ]);
 
         return back()->with('success', 'Hari libur sekolah berhasil ditambahkan.');
@@ -828,10 +855,31 @@ private function superAdminData(): array
             ->get()
             ->keyBy('tanggal');
 
-        // Dapatkan daftar hari libur di bulan/tahun terpilih
-        $holidays = Holiday::whereBetween('tanggal', [$startOfMonth, $endOfMonth])
-            ->pluck('nama', 'tanggal')
-            ->toArray();
+        // Dapatkan daftar hari libur di bulan/tahun terpilih untuk anak aktif
+        $holidaysCollection = Holiday::whereBetween('tanggal', [$startOfMonth, $endOfMonth])
+            ->where(function ($query) use ($activeAnak) {
+                $query->where(function ($q) {
+                    $q->whereNull('tingkat')
+                      ->whereNull('kelas_id');
+                });
+                if ($activeAnak->kelas) {
+                    if ($activeAnak->kelas->tingkat) {
+                        $query->orWhere('tingkat', $activeAnak->kelas->tingkat);
+                    }
+                    $query->orWhere('kelas_id', $activeAnak->kelas_id);
+                }
+            })
+            ->get();
+
+        $holidays = [];
+        foreach ($holidaysCollection as $h) {
+            $dateStr = $h->tanggal->toDateString();
+            if (isset($holidays[$dateStr])) {
+                $holidays[$dateStr] .= ' | ' . $h->nama;
+            } else {
+                $holidays[$dateStr] = $h->nama;
+            }
+        }
 
         return [
             'anakList' => $children,

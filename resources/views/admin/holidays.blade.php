@@ -169,6 +169,38 @@
               <div class="das-form-text">Nama ini akan tampil di Kalender Absensi.</div>
             </div>
 
+            <div class="mb-3">
+              <label class="das-form-label" for="cakupan">Cakupan Libur <span class="text-danger">*</span></label>
+              <select name="cakupan" id="cakupan" class="form-select das-select @error('cakupan') is-invalid @enderror" required>
+                <option value="global" @selected(old('cakupan', 'global') === 'global')>Semua Siswa & Guru</option>
+                <option value="tingkat" @selected(old('cakupan') === 'tingkat')>Tingkat Tertentu</option>
+                <option value="kelas" @selected(old('cakupan') === 'kelas')>Kelas Tertentu</option>
+              </select>
+              @error('cakupan') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="mb-3" id="div-tingkat" style="display: none;">
+              <label class="das-form-label" for="tingkat">Tingkat Kelas <span class="text-danger">*</span></label>
+              <select name="tingkat" id="tingkat" class="form-select das-select @error('tingkat') is-invalid @enderror">
+                <option value="">-- Pilih Tingkat --</option>
+                <option value="X" @selected(old('tingkat') === 'X')>X</option>
+                <option value="XI" @selected(old('tingkat') === 'XI')>XI</option>
+                <option value="XII" @selected(old('tingkat') === 'XII')>XII</option>
+              </select>
+              @error('tingkat') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="mb-4" id="div-kelas" style="display: none;">
+              <label class="das-form-label" for="kelas_id">Kelas <span class="text-danger">*</span></label>
+              <select name="kelas_id" id="kelas_id" class="form-select das-select @error('kelas_id') is-invalid @enderror">
+                <option value="">-- Pilih Kelas --</option>
+                @foreach($kelas as $k)
+                  <option value="{{ $k->id }}" data-tingkat="{{ $k->tingkat }}" @selected(old('kelas_id') == $k->id)>{{ $k->nama }}</option>
+                @endforeach
+              </select>
+              @error('kelas_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+
             <input type="hidden" name="jenis" value="school">
 
             <button type="submit" class="das-btn das-btn--primary w-100">
@@ -246,6 +278,11 @@
                   <div class="d-flex align-items-center gap-2">
                     <div style="width:6px;height:6px;border-radius:50%;background:{{ $holiday->jenis === 'national' ? 'var(--das-danger)' : 'var(--das-info)' }};flex-shrink:0;"></div>
                     <span style="font-size:.83rem;">{{ $holiday->nama }}</span>
+                    @if($holiday->kelas_id)
+                      <span class="badge bg-label-info ms-1" style="font-size: .65rem;">Kelas: {{ $holiday->kelas->nama ?? '-' }}</span>
+                    @elseif($holiday->tingkat)
+                      <span class="badge bg-label-warning ms-1" style="font-size: .65rem;">Tingkat: {{ $holiday->tingkat }}</span>
+                    @endif
                   </div>
                 </td>
                 <td class="text-center">
@@ -347,6 +384,41 @@ document.addEventListener('DOMContentLoaded', function () {
       delModal.querySelector('#delName').textContent = btn.getAttribute('data-name');
       delModal.querySelector('#delForm').action      = btn.getAttribute('data-url');
     });
+  }
+
+  // Toggle dropdowns dynamically
+  const cakupanSelect = document.getElementById('cakupan');
+  const divTingkat = document.getElementById('div-tingkat');
+  const divKelas = document.getElementById('div-kelas');
+  const tingkatSelect = document.getElementById('tingkat');
+  const kelasSelect = document.getElementById('kelas_id');
+
+  function toggleDropdowns() {
+    const value = cakupanSelect.value;
+    if (value === 'tingkat') {
+      divTingkat.style.display = 'block';
+      tingkatSelect.setAttribute('required', 'required');
+      
+      divKelas.style.display = 'none';
+      kelasSelect.removeAttribute('required');
+    } else if (value === 'kelas') {
+      divKelas.style.display = 'block';
+      kelasSelect.setAttribute('required', 'required');
+      
+      divTingkat.style.display = 'none';
+      tingkatSelect.removeAttribute('required');
+    } else {
+      divTingkat.style.display = 'none';
+      divKelas.style.display = 'none';
+      tingkatSelect.removeAttribute('required');
+      kelasSelect.removeAttribute('required');
+    }
+  }
+
+  if (cakupanSelect) {
+    cakupanSelect.addEventListener('change', toggleDropdowns);
+    // Init state on page load
+    toggleDropdowns();
   }
 });
 </script>

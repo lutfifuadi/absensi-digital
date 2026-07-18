@@ -1198,18 +1198,13 @@
             </div>
 
             <div class="set-field">
-              <label class="set-label">Gemini API Key</label>
-              <div class="set-input-group set-password-toggle">
+              <label class="set-label">Gemini API Key (Bisa lebih dari satu)</label>
+              <div class="set-input-group">
                 <span class="set-input-prefix"><i class="ti tabler-key"></i></span>
-                <input type="password" class="set-input font-monospace" name="gemini_api_key"
-                  value="{{ old('gemini_api_key', $settings['gemini_api_key'] ?? '') }}"
-                  placeholder="Masukkan API Key Gemini di sini..." autocomplete="new-password">
-                <button type="button" class="set-input-eye">
-                  <i class="ti tabler-eye-off"></i>
-                </button>
+                <textarea class="set-input font-monospace" name="gemini_api_key" rows="3" placeholder="Masukkan API Key Gemini... Pisahkan dengan koma jika lebih dari satu.">{{ old('gemini_api_key', $settings['gemini_api_key'] ?? '') }}</textarea>
               </div>
               <div class="set-field-hint --info">
-                <i class="ti tabler-info-circle"></i> 
+                <i class="ti tabler-info-circle"></i> Pisahkan dengan koma (,) jika memasukkan lebih dari satu key untuk auto-rotate saat quota habis (Limit Free Tier).<br>
                 Dapatkan API Key di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-info text-decoration-underline">Google AI Studio</a>
               </div>
             </div>

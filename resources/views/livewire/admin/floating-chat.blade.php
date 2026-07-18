@@ -292,48 +292,88 @@
                 right: 16px;
             }
         }
+
+        /* Markdown override agar font tidak kebesaran */
+        .markdown-body {
+            font-size: 13px !important;
+        }
+        .markdown-body p, 
+        .markdown-body li, 
+        .markdown-body ul, 
+        .markdown-body ol,
+        .markdown-body span {
+            font-size: 13px !important;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        .markdown-body h1,
+        .markdown-body h2,
+        .markdown-body h3,
+        .markdown-body h4,
+        .markdown-body h5,
+        .markdown-body h6 {
+            font-size: 14px !important;
+            font-weight: 700;
+            margin-top: 8px;
+            margin-bottom: 4px;
+            color: #fff !important;
+        }
+        .markdown-body ul, .markdown-body ol {
+            padding-left: 1.2rem;
+            margin-bottom: 8px;
+        }
     </style>
 
     @auth
-        @if(in_array(auth()->user()->role, ['super_admin', 'admin_sekolah', 'operator']))
-            <button class="floating-chat-btn" wire:click="toggle" title="Asisten AI">
-                @if($isOpen)
-                    <i class="ti tabler-x"></i>
-                @else
-                    <i class="ti tabler-message-chatbot"></i>
-                    @if($unreadCount > 0)
-                        <span class="floating-unread">{{ $unreadCount }}</span>
-                    @endif
-                @endif
-            </button>
-
+        <button class="floating-chat-btn" wire:click="toggle" title="Asisten AI">
             @if($isOpen)
-                <div class="floating-chat-window" wire:click.away="isOpen = false">
-                    <div class="floating-chat-header">
-                        <div>
-                            <h6><i class="ti tabler-message-chatbot me-1"></i> Asisten AI</h6>
-                            <small>Tanya atau edit data</small>
-                        </div>
-                        <div class="d-flex gap-1">
-                            <button class="floating-trash-btn" wire:click="clearChat" title="Hapus riwayat">
-                                <i class="ti tabler-trash" style="font-size: 16px;"></i>
-                            </button>
-                            <button class="btn-close btn-close-white" style="font-size: 12px;" wire:click="toggle"></button>
-                        </div>
-                    </div>
+                <i class="ti tabler-x"></i>
+            @else
+                <i class="ti tabler-message-chatbot"></i>
+                @if($unreadCount > 0)
+                    <span class="floating-unread">{{ $unreadCount }}</span>
+                @endif
+            @endif
+        </button>
 
-                    <div class="floating-chat-body" id="floatingChatBody">
-                        @if(count($messages) === 0 && !$isLoading)
-                            <div class="text-center py-4">
-                                <i class="ti tabler-message-chatbot floating-empty-icon"></i>
-                                <p class="floating-empty-text">Ada yang bisa dibantu?</p>
-                                <div class="d-flex justify-content-center gap-1 flex-wrap mt-2">
-                                    <span class="floating-chip --primary" wire:click="$set('message', 'Cari siswa')">Cari siswa</span>
-                                    <span class="floating-chip --success" wire:click="$set('message', 'Statistik')">Statistik</span>
-                                    <span class="floating-chip --warning" wire:click="$set('message', 'Cari guru')">Cari guru</span>
-                                </div>
+        @if($isOpen)
+            <div class="floating-chat-window" wire:click.away="isOpen = false">
+                <div class="floating-chat-header">
+                    <div>
+                        <h6><i class="ti tabler-message-chatbot me-1"></i> Asisten {{ $schoolName }}</h6>
+                        <small>👤 {{ $roleLabel }}</small>
+                    </div>
+                    <div class="d-flex gap-1">
+                        <button class="floating-trash-btn" wire:click="clearChat" title="Hapus riwayat">
+                            <i class="ti tabler-trash" style="font-size: 16px;"></i>
+                        </button>
+                        <button class="btn-close btn-close-white" style="font-size: 12px;" wire:click="toggle"></button>
+                    </div>
+                </div>
+
+                <div class="floating-chat-body" id="floatingChatBody">
+                    @if(count($messages) === 0 && !$isLoading)
+                        <div class="text-center py-4">
+                            <i class="ti tabler-message-chatbot floating-empty-icon"></i>
+                            <p class="floating-empty-text">Ada yang bisa dibantu?</p>
+                            <div class="d-flex justify-content-center gap-1 flex-wrap mt-2">
+                                {{-- Chip untuk semua role --}}
+                                <span class="floating-chip --primary" wire:click="sendQuickChip('📚 Panduan Fitur')">📚 Panduan Fitur</span>
+                                <span class="floating-chip --success" wire:click="sendQuickChip('❓ Cara Absen')">❓ Cara Absen</span>
+
+                                {{-- Chip spesifik berdasarkan role --}}
+                                @if(in_array($userRole, ['guru', 'wali_kelas', 'staff_tu']))
+                                    <span class="floating-chip --warning" wire:click="sendQuickChip('👨‍🏫 Fitur untuk Guru')">👨‍🏫 Untuk Guru</span>
+                                @elseif(in_array($userRole, ['siswa']))
+                                    <span class="floating-chip --warning" wire:click="sendQuickChip('👨‍🎓 Fitur untuk Siswa')">👨‍🎓 Untuk Siswa</span>
+                                @elseif(in_array($userRole, ['orang_tua']))
+                                    <span class="floating-chip --warning" wire:click="sendQuickChip('👨‍👩‍👧‍👦 Fitur untuk Orang Tua')">👨‍👩‍👧‍👦 Untuk Orang Tua</span>
+                                @else
+                                    <span class="floating-chip --warning" wire:click="sendQuickChip('📊 Statistik')">📊 Statistik</span>
+                                @endif
                             </div>
-                        @endif
+                        </div>
+                    @endif
 
         @foreach($messages as $index => $msg)
                             <div class="d-flex {{ $msg['role'] === 'user' ? 'justify-content-end' : 'justify-content-start' }}"
@@ -371,6 +411,11 @@
                                             {!! \Illuminate\Support\Str::markdown($msg['message']) !!}
                                         @endif
                                     </div>
+                                    @if($msg['role'] === 'assistant' && !empty($msg['source']))
+                                        <div style="font-size: 10px; color: rgba(255,255,255,0.35); border-top: 1px solid rgba(255,255,255,0.06); margin-top: 6px; padding-top: 4px;">
+                                            📖 Sumber: {{ $msg['source'] }}
+                                        </div>
+                                    @endif
                                     <small style="color: {{ $msg['role'] === 'user' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.4)' }};">{{ $msg['time'] }}</small>
                                 </div>
                             </div>
@@ -413,7 +458,6 @@
                     </div>
                 </div>
             @endif
-        @endif
     @endauth
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>

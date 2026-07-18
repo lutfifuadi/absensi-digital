@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
         $this->call(HolidaySeeder::class);
         $this->call(EkskulSeeder::class);
         $this->call(GuideCategorySeeder::class);
+        $this->call(GuideSeeder::class);
         $this->call(PengaduanSeeder::class);
+        $this->call(GeminiApiKeySeeder::class);
     }
 }

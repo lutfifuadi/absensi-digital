@@ -1,10 +1,42 @@
 <div>
+    <style>
+        /* Markdown override agar font tidak kebesaran di chat panel */
+        .markdown-body {
+            font-size: 13px !important;
+        }
+        .markdown-body p, 
+        .markdown-body li, 
+        .markdown-body ul, 
+        .markdown-body ol,
+        .markdown-body span {
+            font-size: 13px !important;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        .markdown-body h1,
+        .markdown-body h2,
+        .markdown-body h3,
+        .markdown-body h4,
+        .markdown-body h5,
+        .markdown-body h6 {
+            font-size: 14px !important;
+            font-weight: 700;
+            margin-top: 8px;
+            margin-bottom: 4px;
+            color: #fff !important;
+        }
+        .markdown-body ul, .markdown-body ol {
+            padding-left: 1.2rem;
+            margin-bottom: 8px;
+        }
+    </style>
+
     <div class="das-panel">
         <div class="das-panel__head">
             <div class="das-panel__title">
                 <span class="das-panel__icon-dot --primary"></span>
-                Asisten AI
-                <small class="ms-2" style="font-size:0.7rem;font-weight:400;text-transform:none;letter-spacing:0;color:rgba(255,255,255,0.4);">Tanyakan atau edit data dengan bahasa alami</small>
+                Asisten {{ $schoolName }}
+                <small class="ms-2" style="font-size:0.7rem;font-weight:400;text-transform:none;letter-spacing:0;color:rgba(255,255,255,0.4);">👤 {{ $roleLabel }}</small>
             </div>
             <div>
                 <button type="button" class="das-btn das-btn--ghost-danger" wire:click="clearChat" wire:confirm="Hapus semua riwayat chat?" title="Hapus Riwayat">
@@ -20,10 +52,18 @@
                         <i class="ti tabler-message-chatbot chat-empty-icon"></i>
                         <h5 class="mt-2" style="color:rgba(255,255,255,0.3);">Mulai percakapan dengan AI</h5>
                         <p style="color:rgba(255,255,255,0.25);font-size:0.85rem;">Tanyakan data siswa, minta edit data, atau lihat statistik</p>
-                        <div class="d-flex justify-content-center gap-2 mt-3">
-                            <span class="das-chip --primary">Cari siswa</span>
-                            <span class="das-chip --success">Edit data guru</span>
-                            <span class="das-chip --warning">Statistik</span>
+                        <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
+                            <span class="das-chip --primary" wire:click="sendQuickChip('📚 Panduan Fitur')" style="cursor:pointer;">📚 Panduan Fitur</span>
+                            <span class="das-chip --success" wire:click="sendQuickChip('❓ Cara Absen')" style="cursor:pointer;">❓ Cara Absen</span>
+                            @if(in_array($userRole, ['guru', 'wali_kelas', 'staff_tu']))
+                                <span class="das-chip --warning" wire:click="sendQuickChip('👨‍🏫 Fitur untuk Guru')" style="cursor:pointer;">👨‍🏫 Untuk Guru</span>
+                            @elseif(in_array($userRole, ['siswa']))
+                                <span class="das-chip --warning" wire:click="sendQuickChip('👨‍🎓 Fitur untuk Siswa')" style="cursor:pointer;">👨‍🎓 Untuk Siswa</span>
+                            @elseif(in_array($userRole, ['orang_tua']))
+                                <span class="das-chip --warning" wire:click="sendQuickChip('👨‍👩‍👧‍👦 Fitur untuk Orang Tua')" style="cursor:pointer;">👨‍👩‍👧‍👦 Untuk Orang Tua</span>
+                            @else
+                                <span class="das-chip --warning" wire:click="sendQuickChip('📊 Statistik')" style="cursor:pointer;">📊 Statistik</span>
+                            @endif
                         </div>
                     </div>
                 @endif
@@ -69,6 +109,11 @@
                                     {!! \Illuminate\Support\Str::markdown($msg['message']) !!}
                                 @endif
                             </div>
+                            @if($msg['role'] === 'assistant' && !empty($msg['source']))
+                                <div style="font-size: 10px; color: rgba(255,255,255,0.35); border-top: 1px solid rgba(255,255,255,0.06); margin-top: 6px; padding-top: 4px;">
+                                    📖 Sumber: {{ $msg['source'] }}
+                                </div>
+                            @endif
                             <small class="chat-ts chat-ts-{{ $msg['role'] === 'user' ? 'user' : 'ai' }}">{{ $msg['time'] }}</small>
                         </div>
                     </div>

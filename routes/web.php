@@ -972,19 +972,19 @@ Route::middleware([
             ->name('admin.google.update-settings')
             ->middleware('role:super_admin,admin_sekolah');
 
-        // AI Chat
+        // AI Chat — semua role terautentikasi bisa akses, tiered access di backend
         Route::get('ai-chat', [AiChatController::class, 'index'])
             ->name('admin.ai-chat.index')
-            ->middleware('role:super_admin,admin_sekolah,operator');
+            ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas,staff_tu,siswa,orang_tua,piket');
         Route::post('ai-chat/send', [AiChatController::class, 'sendMessage'])
             ->name('admin.ai-chat.send')
-            ->middleware(['role:super_admin,admin_sekolah,operator', 'throttle:30,1']);
+            ->middleware(['role:super_admin,admin_sekolah,operator,guru,wali_kelas,staff_tu,siswa,orang_tua,piket', 'throttle:30,1']);
         Route::get('ai-chat/history', [AiChatController::class, 'history'])
             ->name('admin.ai-chat.history')
-            ->middleware('role:super_admin,admin_sekolah,operator');
+            ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas,staff_tu,siswa,orang_tua,piket');
         Route::delete('ai-chat/clear', [AiChatController::class, 'clear'])
             ->name('admin.ai-chat.clear')
-            ->middleware('role:super_admin,admin_sekolah,operator');
+            ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas,staff_tu,siswa,orang_tua,piket');
 
         // Integrasi API
         Route::get('api-integration', [ApiIntegrationController::class, 'index'])

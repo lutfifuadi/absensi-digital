@@ -42,9 +42,12 @@ class AiChatController extends Controller
 
         $history = $this->gemini->getHistory($user->id, 20);
 
+        // Ambil role user (aktif atau bawaan)
+        $userRole = session('active_role', $user->role);
+
         try {
-            $tools = $this->gemini->getToolDefinitions();
-            $response = $this->gemini->sendWithTools($message, $tools, $history);
+            $tools = $this->gemini->getToolDefinitions($userRole);
+            $response = $this->gemini->sendWithTools($message, $tools, $history, $userRole);
 
             $replyText = 'Maaf, terjadi kesalahan saat memproses pesan Anda.';
             $hasError = false;

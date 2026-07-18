@@ -30,13 +30,40 @@ class AutoMarkAlphaCommand extends Command
         $this->info("Auto-mark alpha untuk tanggal: {$tanggal}");
 
         // --- Siswa aktif ---
-        $siswaAktif = Siswa::where('status', 'aktif')->pluck('id');
+        $siswaAktif = Siswa::with('kelas')->where('status', 'aktif')->get();
+        $siswaAktifIds = $siswaAktif->pluck('id');
         $sudahAbsenSiswa = AbsensiSiswa::whereDate('tanggal', $tanggal)
-            ->whereIn('siswa_id', $siswaAktif)->pluck('siswa_id')->toArray();
-        $belumAbsenSiswa = $siswaAktif->diff($sudahAbsenSiswa);
+            ->whereIn('siswa_id', $siswaAktifIds)->pluck('siswa_id')->toArray();
+        $belumAbsenSiswaIds = $siswaAktifIds->diff($sudahAbsenSiswa);
 
-        foreach ($belumAbsenSiswa as $siswaId) {
-            $s = Siswa::find($siswaId);
+        $holidaysToday = \App\Models\Holiday::whereDate('tanggal', $tanggal)->get();
+
+        $countSiswaAlpha = 0;
+        foreach ($belumAbsenSiswaIds as $siswaId) {
+            $s = $siswaAktif->firstWhere('id', $siswaId);
+            if ($s) {
+                // Cek apakah hari tersebut libur untuk siswa tersebut menggunakan $holidaysToday->contains(...)
+                $isLibur = $holidaysToday->contains(function ($holiday) use ($s) {
+                    // Global holiday (tingkat & kelas null)
+                    if (is_null($holiday->tingkat) && is_null($holiday->kelas_id)) {
+                        return true;
+                    }
+                    // Cocok tingkat
+                    if ($holiday->tingkat && $s->kelas && $s->kelas->tingkat === $holiday->tingkat) {
+                        return true;
+                    }
+                    // Cocok kelas_id
+                    if ($holiday->kelas_id && $s->kelas_id === $holiday->kelas_id) {
+                        return true;
+                    }
+                    return false;
+                });
+
+                if ($isLibur) {
+                    continue;
+                }
+            }
+
             AbsensiSiswa::create([
                 'siswa_id'   => $siswaId,
                 'kelas_id'   => $s?->kelas_id,
@@ -48,8 +75,9 @@ class AutoMarkAlphaCommand extends Command
                 'guru_id'    => null,
                 'metode'     => 'manual',
             ]);
+            $countSiswaAlpha++;
         }
-        $this->line("  Siswa alpha dibuat: {$belumAbsenSiswa->count()}");
+        $this->line("  Siswa alpha dibuat: {$countSiswaAlpha}");
 
         // --- Guru aktif ---
         $guruAktif = Guru::where('status', 'aktif')->pluck('id');
