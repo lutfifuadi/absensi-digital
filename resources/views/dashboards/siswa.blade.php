@@ -3,301 +3,10 @@
 @section('title', 'Dashboard Siswa')
 
 @section('page-style')
-  <style>
-    /* Pulse Effect untuk Status Absensi */
-    .absen-pulse {
-      box-shadow: 0 0 0 0 rgba(40, 199, 111, 0.7);
-      animation: absen-pulse 2s infinite;
-    }
-
-    @keyframes absen-pulse {
-      0% { box-shadow: 0 0 0 0 rgba(40, 199, 111, 0.4); }
-      70% { box-shadow: 0 0 0 15px rgba(40, 199, 111, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(40, 199, 111, 0); }
-    }
-
-    /* 
-     * ── RESPONSIVE OVERRIDES UNTUK DASHBOARD SISWA ──
-     */
-
-    /* Default (PC & Laptop): 3 kolom stats */
-    .das-stats-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr) !important;
-      gap: 1.25rem !important;
-      bottom: -45px !important;
-    }
-
-    .das-hero--with-stats {
-      margin-bottom: 5.5rem !important;
-    }
-
-    /* ── ACTION CARDS (Tombol Kartu yang Menonjol) ── */
-    .siswa-action-row {
-      margin-top: -2.25rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .siswa-action-card {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1.25rem 1.5rem;
-      border-radius: 5px;
-      text-decoration: none !important;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-      min-height: 80px;
-    }
-
-    .siswa-action-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      border-radius: inherit;
-    }
-
-    .siswa-action-card:hover::before {
-      opacity: 1;
-    }
-
-    .siswa-action-card:hover {
-      transform: translateY(-3px);
-    }
-
-    .siswa-action-card:active {
-      transform: translateY(0px);
-    }
-
-    .siswa-action-card__icon {
-      width: 52px;
-      height: 52px;
-      min-width: 52px;
-      border-radius: 5px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.6rem;
-      position: relative;
-      z-index: 1;
-      flex-shrink: 0;
-    }
-
-    .siswa-action-card__body {
-      flex: 1;
-      min-width: 0;
-      position: relative;
-      z-index: 1;
-    }
-
-    .siswa-action-card__title {
-      font-weight: 700;
-      font-size: 1rem;
-      line-height: 1.3;
-      margin-bottom: 2px;
-    }
-
-    .siswa-action-card__subtitle {
-      font-size: 0.75rem;
-      opacity: 0.7;
-      line-height: 1.3;
-    }
-
-    .siswa-action-card__arrow {
-      font-size: 1.3rem;
-      opacity: 0.5;
-      transition: opacity 0.2s, transform 0.2s;
-      position: relative;
-      z-index: 1;
-      flex-shrink: 0;
-    }
-
-    .siswa-action-card:hover .siswa-action-card__arrow {
-      opacity: 1;
-      transform: translateX(4px);
-    }
-
-    /* Variant: Warning (Kartu Pelepasan) */
-    .siswa-action-card--warning {
-      background: linear-gradient(135deg, rgba(255, 159, 67, 0.18) 0%, rgba(255, 159, 67, 0.05) 100%);
-      border: 1px solid rgba(255, 159, 67, 0.35);
-    }
-
-    .siswa-action-card--warning::before {
-      background: rgba(255, 159, 67, 0.05);
-    }
-
-    .siswa-action-card--warning:hover {
-      box-shadow: 0 0 15px rgba(255, 159, 67, 0.25) !important;
-      border-color: rgba(255, 159, 67, 0.6) !important;
-    }
-
-    .siswa-action-card--warning .siswa-action-card__icon {
-      background: linear-gradient(135deg, rgba(255, 159, 67, 0.3), rgba(255, 159, 67, 0.1));
-      color: #ff9f43;
-    }
-
-    .siswa-action-card--warning .siswa-action-card__title {
-      color: #ff9f43 !important;
-      text-shadow: 0 0 8px rgba(255, 159, 67, 0.2);
-    }
-
-    /* Variant: Primary (Kartu Pelajar) */
-    .siswa-action-card--primary {
-      background: linear-gradient(135deg, rgba(115, 103, 240, 0.18) 0%, rgba(115, 103, 240, 0.05) 100%);
-      border: 1px solid rgba(115, 103, 240, 0.35);
-    }
-
-    .siswa-action-card--primary::before {
-      background: rgba(115, 103, 240, 0.05);
-    }
-
-    .siswa-action-card--primary:hover {
-      box-shadow: 0 0 15px rgba(115, 103, 240, 0.25) !important;
-      border-color: rgba(115, 103, 240, 0.6) !important;
-    }
-
-    .siswa-action-card--primary .siswa-action-card__icon {
-      background: linear-gradient(135deg, rgba(115, 103, 240, 0.3), rgba(115, 103, 240, 0.1));
-      color: #7367f0;
-    }
-
-    .siswa-action-card--primary .siswa-action-card__title {
-      color: #7367f0 !important;
-      text-shadow: 0 0 8px rgba(115, 103, 240, 0.2);
-    }
-
-    /* Variant: Success */
-    .siswa-action-card--success {
-      background: linear-gradient(135deg, rgba(40, 199, 111, 0.18) 0%, rgba(40, 199, 111, 0.05) 100%);
-      border: 1px solid rgba(40, 199, 111, 0.35);
-    }
-
-    .siswa-action-card--success::before {
-      background: rgba(40, 199, 111, 0.05);
-    }
-
-    .siswa-action-card--success:hover {
-      box-shadow: 0 0 15px rgba(40, 199, 111, 0.25) !important;
-      border-color: rgba(40, 199, 111, 0.6) !important;
-    }
-
-    .siswa-action-card--success .siswa-action-card__icon {
-      background: linear-gradient(135deg, rgba(40, 199, 111, 0.3), rgba(40, 199, 111, 0.1));
-      color: #28c76f;
-    }
-
-    .siswa-action-card--success .siswa-action-card__title {
-      color: #28c76f !important;
-      text-shadow: 0 0 8px rgba(40, 199, 111, 0.2);
-    }
-
-    /* Tablet */
-    @media (max-width: 991px) {
-      .das-hero--with-stats {
-        margin-bottom: 6.5rem !important;
-      }
-      .das-stats-row {
-        grid-template-columns: repeat(3, 1fr) !important;
-        gap: 0.75rem !important;
-        bottom: -75px !important;
-        left: 1rem !important;
-        right: 1rem !important;
-      }
-      .das-stat-card {
-        padding: 0.8rem 0.6rem !important;
-      }
-      .das-stat-card__val {
-        font-size: 1.05rem !important;
-      }
-      .das-stat-card__label {
-        font-size: 0.7rem !important;
-      }
-      .siswa-action-card {
-        padding: 1rem 1.25rem;
-        min-height: 72px;
-      }
-      .siswa-action-card__icon {
-        width: 44px;
-        height: 44px;
-        min-width: 44px;
-        font-size: 1.3rem;
-      }
-    }
-
-    /* Mobile */
-    @media (max-width: 767px) {
-      .das-hero--with-stats {
-        margin-bottom: 12.8rem !important;
-      }
-      
-      .das-hero__inner {
-        padding: 1.5rem 1rem 4.5rem 1rem !important;
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 1.5rem !important;
-      }
-
-      .das-hero__clock {
-        display: none !important;
-      }
-
-      .das-stats-row {
-        grid-template-columns: 1fr !important;
-        gap: 0.75rem !important;
-        bottom: -155px !important;
-        left: 0.75rem !important;
-        right: 0.75rem !important;
-      }
-      
-      .das-stat-card {
-        padding: 0.75rem 1rem !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: flex-start !important;
-        gap: 1rem !important;
-        height: auto !important;
-      }
-
-      .das-stat-card__icon {
-        margin-bottom: 0 !important;
-        width: 40px !important;
-        height: 40px !important;
-        font-size: 1.25rem !important;
-      }
-
-      .das-stat-card__body {
-        text-align: left !important;
-      }
-
-      /* Action cards mobile: full-width & lebih menonjol */
-      .siswa-action-card {
-        padding: 1.1rem 1.25rem;
-        min-height: 76px;
-      }
-
-      .siswa-action-card__icon {
-        width: 48px;
-        height: 48px;
-        min-width: 48px;
-        font-size: 1.5rem;
-      }
-
-      .siswa-action-card__title {
-        font-size: 1rem;
-      }
-
-      .siswa-action-card__subtitle {
-        font-size: 0.75rem;
-      }
-    }
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ asset('css/dashboards/siswa.css') }}?v=1.0">
 @endsection
 
 @section('content')
@@ -340,6 +49,9 @@
     $freqNormal = (int)(\App\Models\Pengaturan::where('key', 'freq_bunyi_normal')->value('value') ?: 523);
     $freqLate = (int)(\App\Models\Pengaturan::where('key', 'freq_bunyi_late')->value('value') ?: 349);
     $freqCheckout = (int)(\App\Models\Pengaturan::where('key', 'freq_bunyi_checkout')->value('value') ?: 392);
+    
+    // Antitesis error @json parser limitasi Laravel (koma di dalam @json memicu ParseError)
+    $chartDaysCategories = !empty($chartDays) ? $chartDays : ['Sn','Sl','Rb','Km','Jm','Sb','Mg'];
   @endphp
 
   {{-- ═══════════════════════════════════════════════════════
@@ -369,19 +81,19 @@
             <span class="pulse-dot"></span>
             Portal Siswa Aktif
           </div>
-          <h4 class="das-hero__school text-gradient-gold">{{ $namaSekolah }}</h4>
+          <h1 class="das-hero__school text-gradient-gold">{{ $namaSekolah }}</h1>
           <p class="das-hero__welcome">Selamat datang kembali, <strong>{{ $user->name }}</strong> 👋</p>
         </div>
       </div>
 
       {{-- Clock --}}
-      <div class="das-hero__clock glass-card">
+      <div class="das-hero__clock" role="status" aria-live="off">
         <div class="das-hero__date">{{ now()->locale('id')->translatedFormat('l, d F Y') }}</div>
         <div class="das-hero__time">
           <span id="live-clock">00:00:00</span>
-          <div class="das-hero__status-indicator">
-            <span class="das-hero__live-badge">LIVE</span>
-          </div>
+          <span class="das-hero__live-badge">
+            <span class="das-hero__pulse-dot" aria-hidden="true"></span>LIVE
+          </span>
         </div>
         <div class="das-hero__tz">WAKTU INDONESIA BARAT (WIB)</div>
       </div>
@@ -506,6 +218,61 @@
             <i class="ti tabler-chevron-right"></i>
           </div>
         </a>
+      </div>
+    </div>
+  </div>
+
+  {{-- ═══════════════════════════════════════════════════════
+       SECTION 2B: [NEW] STATS CARD PERSONAL — Kehadiran Bulan Ini
+  ═══════════════════════════════════════════════════════ --}}
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="das-panel__icon-dot --success" style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #28c76f;"></span>
+        <h5 class="mb-0 fw-bold" style="font-size: 0.95rem;">Ringkasan Bulan Ini</h5>
+      </div>
+      <div class="siswa-stats-row">
+        <div class="siswa-stat-card siswa-stat-card--success">
+          <div class="siswa-stat-card__icon text-success"><i class="ti tabler-circle-check"></i></div>
+          <div class="siswa-stat-card__value text-success siswa-animate-count" id="count-hadir">0</div>
+          <div class="siswa-stat-card__label">Hadir</div>
+        </div>
+        <div class="siswa-stat-card siswa-stat-card--warning">
+          <div class="siswa-stat-card__icon text-warning"><i class="ti tabler-heart"></i></div>
+          <div class="siswa-stat-card__value text-warning siswa-animate-count" id="count-sakit">0</div>
+          <div class="siswa-stat-card__label">Sakit</div>
+        </div>
+        <div class="siswa-stat-card siswa-stat-card--info">
+          <div class="siswa-stat-card__icon text-info"><i class="ti tabler-clipboard-check"></i></div>
+          <div class="siswa-stat-card__value text-info siswa-animate-count" id="count-izin">0</div>
+          <div class="siswa-stat-card__label">Izin</div>
+        </div>
+        <div class="siswa-stat-card siswa-stat-card--danger">
+          <div class="siswa-stat-card__icon text-danger"><i class="ti tabler-ban"></i></div>
+          <div class="siswa-stat-card__value text-danger siswa-animate-count" id="count-alpha">0</div>
+          <div class="siswa-stat-card__label">Alpha</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{-- ═══════════════════════════════════════════════════════
+       SECTION 2C: [NEW] PROGRESS BAR — Persentase Kehadiran
+  ═══════════════════════════════════════════════════════ --}}
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="siswa-progress-card">
+        <div class="siswa-progress-header">
+          <span class="siswa-progress-label"><i class="ti tabler-trending-up me-1"></i> Persentase Kehadiran Bulan Ini</span>
+          <span class="siswa-progress-value" id="progress-text">{{ $persentaseKehadiran ?? 0 }}%</span>
+        </div>
+        <div class="siswa-progress-bar-track">
+          <div class="siswa-progress-bar-fill" id="progress-fill" style="width: 0%;" data-target="{{ $persentaseKehadiran ?? 0 }}"></div>
+        </div>
+        <div class="siswa-progress-footer">
+          <span>{{ $statsHadir ?? 0 }} hari hadir</span>
+          <span>{{ $totalAbsenBulanIni ?? 0 }} total hari</span>
+        </div>
       </div>
     </div>
   </div>
@@ -644,7 +411,140 @@
   </div>
 
   {{-- ═══════════════════════════════════════════════════════
-       SECTION 4: BOTTOM PANEL — Menu Cepat
+       SECTION 3B: [NEW] CHART — Tren Kehadiran 7 Hari + Donut
+  ═══════════════════════════════════════════════════════ --}}
+  <div class="row gy-4 mb-4">
+    <div class="col-lg-8">
+      <div class="siswa-chart-card">
+        <div class="das-panel__head">
+          <div class="das-panel__title">
+            <span class="das-panel__icon-dot --success"></span>
+            Tren Kehadiran — 7 Hari Terakhir
+          </div>
+        </div>
+        <div class="siswa-chart-mount">
+          <div id="siswaAreaChart"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="siswa-chart-card">
+        <div class="das-panel__head">
+          <div class="das-panel__title">
+            <span class="das-panel__icon-dot --warning"></span>
+            Distribusi Bulan Ini
+          </div>
+        </div>
+        <div class="siswa-chart-mount">
+          <div id="siswaDonutChart"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{-- ═══════════════════════════════════════════════════════
+       SECTION 3C: [NEW] RIWAYAT ABSENSI — 5 Entri Terbaru
+  ═══════════════════════════════════════════════════════ --}}
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="siswa-log-card">
+        <div class="das-panel__head">
+          <div class="das-panel__title">
+            <span class="das-panel__icon-dot --info"></span>
+            Riwayat Absensi Terbaru
+          </div>
+          <div class="das-panel__head-meta">
+            <a href="{{ route('siswa.izin-sakit.index') }}" class="das-btn das-btn--ghost" style="font-size:0.72rem;">
+              <i class="ti tabler-external-link me-1"></i> Lihat Semua
+            </a>
+          </div>
+        </div>
+        <div class="das-panel__body p-0">
+          <div class="table-responsive">
+            <table class="siswa-log-table">
+              <thead>
+                <tr>
+                  <th>Tanggal</th>
+                  <th>Jam Masuk</th>
+                  <th>Jam Pulang</th>
+                  <th>Status</th>
+                  <th>Metode</th>
+                </tr>
+              </thead>
+              <tbody>
+                @forelse($riwayatAbsensi as $item)
+                <tr>
+                  <td>
+                    <span style="font-weight:600; color:var(--das-text, #E7ECF5);">
+                      {{ \Carbon\Carbon::parse($item->tanggal)->locale('id')->translatedFormat('d M Y') }}
+                    </span>
+                  </td>
+                  <td>
+                    @if($item->jam_masuk)
+                      <span class="siswa-log-table__time">{{ \Carbon\Carbon::parse($item->jam_masuk)->format('H:i') }}</span>
+                    @else
+                      <span style="color:var(--das-text-dim, #5B6478);">—</span>
+                    @endif
+                  </td>
+                  <td>
+                    @if($item->jam_pulang)
+                      <span class="siswa-log-table__time">{{ \Carbon\Carbon::parse($item->jam_pulang)->format('H:i') }}</span>
+                    @else
+                      <span style="color:var(--das-text-dim, #5B6478);">—</span>
+                    @endif
+                  </td>
+                  <td>
+                    @php
+                      $statusBadge = match($item->status) {
+                        'hadir', 'terlambat' => 'bg-label-success',
+                        'sakit' => 'bg-label-info',
+                        'izin' => 'bg-label-warning',
+                        'alpha' => 'bg-label-danger',
+                        default => 'bg-label-secondary'
+                      };
+                      $statusText = match($item->status) {
+                        'hadir' => 'Hadir',
+                        'terlambat' => 'Terlambat',
+                        'sakit' => 'Sakit',
+                        'izin' => 'Izin',
+                        'alpha' => 'Alpha',
+                        default => ucfirst($item->status)
+                      };
+                    @endphp
+                    <span class="badge {{ $statusBadge }}">{{ $statusText }}</span>
+                  </td>
+                  <td>
+                    @php
+                      $metodeIcon = match($item->metode) {
+                        'mandiri' => '<i class="ti tabler-gps me-1"></i> GPS Mandiri',
+                        'qr' => '<i class="ti tabler-qrcode me-1"></i> Scan QR',
+                        'manual' => '<i class="ti tabler-edit me-1"></i> Manual',
+                        default => '<i class="ti tabler-help-circle me-1"></i> ' . ucfirst($item->metode ?? '—')
+                      };
+                    @endphp
+                    <span style="font-size:0.75rem;">{!! $metodeIcon !!}</span>
+                  </td>
+                </tr>
+                @empty
+                <tr>
+                  <td colspan="5">
+                    <div class="siswa-log-empty">
+                      <i class="ti tabler-history"></i>
+                      Belum ada riwayat absensi yang tercatat
+                    </div>
+                  </td>
+                </tr>
+                @endforelse
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{-- ═══════════════════════════════════════════════════════
+       SECTION 4: [UPDATED] QUICK MENU GRID — 8 Item
   ═══════════════════════════════════════════════════════ --}}
   <div class="row gy-4">
     <div class="col-12">
@@ -656,30 +556,48 @@
           </div>
         </div>
         <div class="das-panel__body">
-          <a href="{{ route('admin.izin-sakit.index') }}" class="siswa-action-card siswa-action-card--success mb-0">
-            <div class="siswa-action-card__icon">
-              <i class="ti tabler-stethoscope"></i>
-            </div>
-            <div class="siswa-action-card__body">
-              <div class="siswa-action-card__title">Pengajuan Izin & Sakit</div>
-              <div class="siswa-action-card__subtitle">Ajukan surat keterangan sakit atau izin berhalangan hadir</div>
-            </div>
-            <div class="siswa-action-card__arrow">
-              <i class="ti tabler-chevron-right"></i>
-            </div>
-          </a>
-          <a href="{{ route('siswa.leaderboard') }}" class="siswa-action-card siswa-action-card--warning mt-0">
-            <div class="siswa-action-card__icon">
-              <i class="ti tabler-trophy"></i>
-            </div>
-            <div class="siswa-action-card__body">
-              <div class="siswa-action-card__title">Papan Peringkat</div>
-              <div class="siswa-action-card__subtitle">Lihat peringkat dan skor kehadiranmu</div>
-            </div>
-            <div class="siswa-action-card__arrow">
-              <i class="ti tabler-chevron-right"></i>
-            </div>
-          </a>
+          <div class="siswa-quick-grid">
+            {{-- 1. Izin & Sakit --}}
+            <a href="{{ route('siswa.izin-sakit.index') }}" class="siswa-quick-item siswa-quick-item--success">
+              <span class="siswa-quick-item__icon"><i class="ti tabler-stethoscope"></i></span>
+              <span class="siswa-quick-item__label">Izin &amp; Sakit</span>
+            </a>
+            {{-- 2. Papan Peringkat --}}
+            <a href="{{ route('siswa.leaderboard') }}" class="siswa-quick-item siswa-quick-item--warning">
+              <span class="siswa-quick-item__icon"><i class="ti tabler-trophy"></i></span>
+              <span class="siswa-quick-item__label">Papan Peringkat</span>
+            </a>
+            {{-- 3. Riwayat Absensi --}}
+            <a href="{{ route('siswa.izin-sakit.index') }}" class="siswa-quick-item siswa-quick-item--info">
+              <span class="siswa-quick-item__icon"><i class="ti tabler-history"></i></span>
+              <span class="siswa-quick-item__label">Riwayat Absensi</span>
+            </a>
+            {{-- 4. Jadwal --}}
+            <a href="{{ route('siswa.assignments.index') }}" class="siswa-quick-item siswa-quick-item--primary">
+              <span class="siswa-quick-item__icon"><i class="ti tabler-calendar"></i></span>
+              <span class="siswa-quick-item__label">Jadwal</span>
+            </a>
+            {{-- 5. Profil Saya --}}
+            <a href="{{ route('siswa.profile') }}" class="siswa-quick-item siswa-quick-item--info">
+              <span class="siswa-quick-item__icon"><i class="ti tabler-user"></i></span>
+              <span class="siswa-quick-item__label">Profil Saya</span>
+            </a>
+            {{-- 6. Download Kartu --}}
+            <a href="{{ route('siswa.download-kartu') }}" target="_blank" class="siswa-quick-item siswa-quick-item--primary">
+              <span class="siswa-quick-item__icon"><i class="ti tabler-id-badge"></i></span>
+              <span class="siswa-quick-item__label">Download Kartu</span>
+            </a>
+            {{-- 7. Pengaturan --}}
+            <a href="{{ route('siswa.profile') }}" class="siswa-quick-item siswa-quick-item--secondary">
+              <span class="siswa-quick-item__icon"><i class="ti tabler-settings"></i></span>
+              <span class="siswa-quick-item__label">Pengaturan</span>
+            </a>
+            {{-- 8. Bantuan --}}
+            <a href="#" class="siswa-quick-item siswa-quick-item--secondary">
+              <span class="siswa-quick-item__icon"><i class="ti tabler-help-circle"></i></span>
+              <span class="siswa-quick-item__label">Bantuan</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -870,6 +788,166 @@ document.addEventListener('DOMContentLoaded', function () {
     function resetBtn(btn, html) {
         btn.disabled = false;
         btn.innerHTML = html;
+    }
+});
+</script>
+
+{{-- ApexCharts CDN --}}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    /* ── COUNTER ANIMATION (requestAnimationFrame, respects reduced motion) ── */
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function animateCounter(el, target, duration = 1000) {
+        if (prefersReducedMotion) { el.innerText = target; return; }
+        const start = performance.now();
+        function step(now) {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            el.innerText = Math.floor(progress * target);
+            if (progress < 1) requestAnimationFrame(step);
+            else el.innerText = target;
+        }
+        requestAnimationFrame(step);
+    }
+
+    // Animate stats counters
+    function initCounters() {
+        const counters = [
+            { id: 'count-hadir', target: {{ $statsHadir ?? 0 }} },
+            { id: 'count-sakit', target: {{ $statsSakit ?? 0 }} },
+            { id: 'count-izin', target: {{ $statsIzin ?? 0 }} },
+            { id: 'count-alpha', target: {{ $statsAlpha ?? 0 }} }
+        ];
+        counters.forEach(function(item) {
+            const el = document.getElementById(item.id);
+            if (!el) return;
+            if (item.target === 0) { el.innerText = '0'; return; }
+            animateCounter(el, item.target, 1000);
+        });
+    }
+    initCounters();
+
+    /* ── PROGRESS BAR ANIMATION ── */
+    const progressFill = document.getElementById('progress-fill');
+    if (progressFill) {
+        const target = parseFloat(progressFill.getAttribute('data-target')) || 0;
+        setTimeout(function() {
+            progressFill.style.width = target + '%';
+            // Change color based on value
+            if (target < 50) {
+                progressFill.classList.add('siswa-progress-bar-fill--danger');
+            } else if (target < 75) {
+                progressFill.classList.add('siswa-progress-bar-fill--warning');
+            }
+        }, 300);
+    }
+
+    /* ── APEX: AREA CHART (7 Hari) ── */
+    if (typeof ApexCharts !== 'undefined') {
+        const chartFont = "'Inter', 'Plus Jakarta Sans', sans-serif";
+        const areaEl = document.querySelector('#siswaAreaChart');
+        let areaChart;
+        if (areaEl) {
+            const seriesData = [];
+            @if(isset($chartHadir) && count($chartHadir) > 0)
+                seriesData.push({ name: 'Hadir', data: @json($chartHadir) });
+                seriesData.push({ name: 'Sakit', data: @json($chartSakit) });
+                seriesData.push({ name: 'Izin', data: @json($chartIzin) });
+                seriesData.push({ name: 'Alpha', data: @json($chartAlpha) });
+            @endif
+
+            areaChart = new ApexCharts(areaEl, {
+                series: seriesData.length > 0 ? seriesData : [
+                    { name: 'Hadir', data: [0,0,0,0,0,0,0] },
+                    { name: 'Sakit', data: [0,0,0,0,0,0,0] },
+                    { name: 'Izin', data: [0,0,0,0,0,0,0] },
+                    { name: 'Alpha', data: [0,0,0,0,0,0,0] }
+                ],
+                chart: {
+                    type: 'area',
+                    height: 220,
+                    background: 'transparent',
+                    fontFamily: chartFont,
+                    toolbar: { show: false },
+                    animations: { enabled: !prefersReducedMotion, easing: 'easeinout', speed: 800 }
+                },
+                theme: { mode: 'dark' },
+                colors: ['#2FBF71', '#3AB7E0', '#F0A63B', '#EF5A5A'],
+                stroke: { curve: 'smooth', width: 2.5 },
+                fill: {
+                    type: 'gradient',
+                    gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.04, stops: [0, 90, 100] }
+                },
+                dataLabels: { enabled: false },
+                xaxis: {
+                    categories: @json($chartDaysCategories),
+                    axisBorder: { show: false },
+                    axisTicks: { show: false },
+                    labels: { style: { colors: '#8B96AB', fontSize: '11px' } }
+                },
+                yaxis: {
+                    labels: { style: { colors: '#8B96AB' } },
+                    min: 0,
+                    tickAmount: 2
+                },
+                grid: { borderColor: 'rgba(231,236,245,0.06)', strokeDashArray: 4 },
+                legend: { position: 'top', horizontalAlign: 'right', labels: { colors: '#8B96AB' } },
+                tooltip: { theme: 'dark', y: { formatter: function(v) { return v + ' Hari'; } } },
+                responsive: [
+                    { breakpoint: 768, options: { chart: { height: 180 }, legend: { position: 'bottom', horizontalAlign: 'center' } } }
+                ]
+            });
+            areaChart.render();
+        }
+
+        /* ── APEX: DONUT CHART ── */
+        const donutEl = document.querySelector('#siswaDonutChart');
+        let donutChart;
+        if (donutEl) {
+            donutChart = new ApexCharts(donutEl, {
+                chart: {
+                    type: 'donut',
+                    height: 220,
+                    background: 'transparent',
+                    fontFamily: chartFont,
+                    animations: { enabled: !prefersReducedMotion }
+                },
+                theme: { mode: 'dark' },
+                series: [{{ $statsHadir ?? 0 }}, {{ $statsSakit ?? 0 }}, {{ $statsIzin ?? 0 }}, {{ $statsAlpha ?? 0 }}],
+                labels: ['Hadir', 'Sakit', 'Izin', 'Alpha'],
+                colors: ['#2FBF71', '#3AB7E0', '#F0A63B', '#EF5A5A'],
+                legend: { show: false },
+                dataLabels: { enabled: false },
+                stroke: { show: true, width: 3, colors: ['#121B2E'] },
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            size: '78%',
+                            labels: {
+                                show: true,
+                                total: {
+                                    show: true,
+                                    label: 'Total',
+                                    color: '#8B96AB',
+                                    formatter: function() {
+                                        return '{{ ($statsHadir ?? 0) + ($statsSakit ?? 0) + ($statsIzin ?? 0) + ($statsAlpha ?? 0) }}';
+                                    }
+                                },
+                                value: { color: '#E7ECF5', fontWeight: 700 }
+                            }
+                        }
+                    }
+                },
+                tooltip: { theme: 'dark', y: { formatter: function(v) { return v + ' Hari'; } } },
+                responsive: [
+                    { breakpoint: 576, options: { chart: { height: 190 } } }
+                ]
+            });
+            donutChart.render();
+        }
     }
 });
 </script>

@@ -1,0 +1,776 @@
+/* ═══════════════════════════════════════════════════════════
+   SISWA DASHBOARD — DESIGN SYSTEM
+   Selaras dengan super-admin.css — tema navy gelap + aksen emas
+   Menggunakan CSS variables yang sudah didefinisikan di das-theme.css
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Google Fonts: Plus Jakarta Sans + JetBrains Mono ── */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
+
+/* Styling Clock (Diadaptasi dari super-admin.css) */
+.das-hero__clock {
+  align-self: stretch;
+  border-radius: var(--das-radius);
+  border: 1px solid var(--das-border);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.das-hero__date {
+  font: 500 0.78rem/1 var(--das-font-body);
+  color: var(--das-text-muted);
+  text-transform: capitalize;
+}
+
+.das-hero__time {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font: 700 clamp(1.6rem, 6vw, 2.1rem)/1.1 var(--das-font-mono);
+  color: var(--das-text);
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.das-hero__live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font: 700 0.6rem/1 var(--das-font-body);
+  letter-spacing: 0.08em;
+  color: var(--das-success);
+  background: var(--das-success-soft);
+  border: 1px solid rgba(47, 191, 113, 0.3);
+  padding: 0.3rem 0.5rem;
+  border-radius: 5px;
+}
+
+.das-hero__pulse-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--das-success);
+  box-shadow: 0 0 0 0 rgba(47, 191, 113, 0.7);
+  animation: pulse-dot-active 2s infinite;
+}
+
+@keyframes pulse-dot-active {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(47, 191, 113, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(47, 191, 113, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(47, 191, 113, 0); }
+}
+
+.das-hero__tz {
+  font: 600 0.62rem/1 var(--das-font-body);
+  letter-spacing: 0.08em;
+  color: var(--das-text-dim);
+}
+
+@media (min-width: 640px) {
+  .das-hero__clock { min-width: 240px; }
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+}
+
+/* ═══════════════════════════════════════════
+   EXISTING INLINE CSS — Dipindahkan dari blade
+   ═══════════════════════════════════════════ */
+
+/* Pulse Effect untuk Status Absensi */
+.absen-pulse {
+  box-shadow: 0 0 0 0 rgba(40, 199, 111, 0.7);
+  animation: absen-pulse 2s infinite;
+}
+
+@keyframes absen-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(40, 199, 111, 0.4); }
+  70% { box-shadow: 0 0 0 15px rgba(40, 199, 111, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(40, 199, 111, 0); }
+}
+
+/* ── RESPONSIVE OVERRIDES UNTUK DASHBOARD SISWA ── */
+
+/* Default (PC & Laptop): 3 kolom stats */
+.das-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 1.25rem !important;
+  bottom: -45px !important;
+}
+
+.das-hero--with-stats {
+  margin-bottom: 5.5rem !important;
+}
+
+/* ── ACTION CARDS (Tombol Kartu yang Menonjol) ── */
+.siswa-action-row {
+  margin-top: -2.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.siswa-action-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 5px;
+  text-decoration: none !important;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  min-height: 80px;
+}
+
+.siswa-action-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+}
+
+.siswa-action-card:hover::before {
+  opacity: 1;
+}
+
+.siswa-action-card:hover {
+  transform: translateY(-3px);
+}
+
+.siswa-action-card:active {
+  transform: translateY(0px);
+}
+
+.siswa-action-card__icon {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.siswa-action-card__body {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.siswa-action-card__title {
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+
+.siswa-action-card__subtitle {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  line-height: 1.3;
+}
+
+.siswa-action-card__arrow {
+  font-size: 1.3rem;
+  opacity: 0.5;
+  transition: opacity 0.2s, transform 0.2s;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.siswa-action-card:hover .siswa-action-card__arrow {
+  opacity: 1;
+  transform: translateX(4px);
+}
+
+/* Variant: Warning (Kartu Pelepasan) */
+.siswa-action-card--warning {
+  background: linear-gradient(135deg, rgba(255, 159, 67, 0.18) 0%, rgba(255, 159, 67, 0.05) 100%);
+  border: 1px solid rgba(255, 159, 67, 0.35);
+}
+
+.siswa-action-card--warning::before {
+  background: rgba(255, 159, 67, 0.05);
+}
+
+.siswa-action-card--warning:hover {
+  box-shadow: 0 0 15px rgba(255, 159, 67, 0.25) !important;
+  border-color: rgba(255, 159, 67, 0.6) !important;
+}
+
+.siswa-action-card--warning .siswa-action-card__icon {
+  background: linear-gradient(135deg, rgba(255, 159, 67, 0.3), rgba(255, 159, 67, 0.1));
+  color: #ff9f43;
+}
+
+.siswa-action-card--warning .siswa-action-card__title {
+  color: #ff9f43 !important;
+  text-shadow: 0 0 8px rgba(255, 159, 67, 0.2);
+}
+
+/* Variant: Primary (Kartu Pelajar) */
+.siswa-action-card--primary {
+  background: linear-gradient(135deg, rgba(115, 103, 240, 0.18) 0%, rgba(115, 103, 240, 0.05) 100%);
+  border: 1px solid rgba(115, 103, 240, 0.35);
+}
+
+.siswa-action-card--primary::before {
+  background: rgba(115, 103, 240, 0.05);
+}
+
+.siswa-action-card--primary:hover {
+  box-shadow: 0 0 15px rgba(115, 103, 240, 0.25) !important;
+  border-color: rgba(115, 103, 240, 0.6) !important;
+}
+
+.siswa-action-card--primary .siswa-action-card__icon {
+  background: linear-gradient(135deg, rgba(115, 103, 240, 0.3), rgba(115, 103, 240, 0.1));
+  color: #7367f0;
+}
+
+.siswa-action-card--primary .siswa-action-card__title {
+  color: #7367f0 !important;
+  text-shadow: 0 0 8px rgba(115, 103, 240, 0.2);
+}
+
+/* Variant: Success */
+.siswa-action-card--success {
+  background: linear-gradient(135deg, rgba(40, 199, 111, 0.18) 0%, rgba(40, 199, 111, 0.05) 100%);
+  border: 1px solid rgba(40, 199, 111, 0.35);
+}
+
+.siswa-action-card--success::before {
+  background: rgba(40, 199, 111, 0.05);
+}
+
+.siswa-action-card--success:hover {
+  box-shadow: 0 0 15px rgba(40, 199, 111, 0.25) !important;
+  border-color: rgba(40, 199, 111, 0.6) !important;
+}
+
+.siswa-action-card--success .siswa-action-card__icon {
+  background: linear-gradient(135deg, rgba(40, 199, 111, 0.3), rgba(40, 199, 111, 0.1));
+  color: #28c76f;
+}
+
+.siswa-action-card--success .siswa-action-card__title {
+  color: #28c76f !important;
+  text-shadow: 0 0 8px rgba(40, 199, 111, 0.2);
+}
+
+/* ═══════════════════════════════════════════
+   STATS CARD PERSONAL — 4 card kehadiran bulan ini
+   ═══════════════════════════════════════════ */
+.siswa-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.siswa-stat-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 5px;
+  padding: 1.25rem;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: block;
+  position: relative;
+  overflow: hidden;
+}
+
+.siswa-stat-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.siswa-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  border-radius: 3px 0 0 3px;
+}
+
+.siswa-stat-card--success::before { background: var(--das-success, #2FBF71); }
+.siswa-stat-card--warning::before { background: var(--das-warning, #F0A63B); }
+.siswa-stat-card--info::before    { background: var(--das-info, #3AB7E0); }
+.siswa-stat-card--danger::before  { background: var(--das-danger, #EF5A5A); }
+
+.siswa-stat-card__icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.siswa-stat-card__value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+  font-family: 'JetBrains Mono', 'SFMono-Regular', monospace;
+}
+
+.siswa-stat-card__label {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+.siswa-stat-card__change {
+  font-size: 0.65rem;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════
+   PROGRESS BAR — Persentase Kehadiran
+   ═══════════════════════════════════════════ */
+.siswa-progress-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 5px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.siswa-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.siswa-progress-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.siswa-progress-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', 'SFMono-Regular', monospace;
+}
+
+.siswa-progress-bar-track {
+  height: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 50px;
+  overflow: hidden;
+}
+
+.siswa-progress-bar-fill {
+  height: 100%;
+  border-radius: 50px;
+  transition: width 1.5s ease;
+  background: linear-gradient(90deg, #28c76f, #2FBF71);
+}
+
+.siswa-progress-bar-fill--danger {
+  background: linear-gradient(90deg, #ea5455, #EF5A5A);
+}
+
+.siswa-progress-bar-fill--warning {
+  background: linear-gradient(90deg, #ff9f43, #F0A63B);
+}
+
+.siswa-progress-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ═══════════════════════════════════════════
+   CHART CARD — ApexCharts wrapper
+   ═══════════════════════════════════════════ */
+.siswa-chart-card {
+  background: var(--das-surface, #121B2E);
+  border: 1px solid var(--das-border, rgba(231, 236, 245, 0.08));
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: var(--das-shadow, 0 12px 32px -12px rgba(0, 0, 0, 0.45));
+}
+
+.siswa-chart-card .das-panel__head {
+  border-bottom: 1px solid var(--das-border, rgba(231, 236, 245, 0.08));
+}
+
+.siswa-chart-mount {
+  padding: 0.5rem 1rem 1rem;
+  min-height: 220px;
+}
+
+.siswa-chart-mount .apexcharts-canvas {
+  margin: 0 auto;
+}
+
+/* ═══════════════════════════════════════════
+   RIWAYAT ABSENSI TABLE
+   ═══════════════════════════════════════════ */
+.siswa-log-card {
+  background: var(--das-surface, #121B2E);
+  border: 1px solid var(--das-border, rgba(231, 236, 245, 0.08));
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: var(--das-shadow, 0 12px 32px -12px rgba(0, 0, 0, 0.45));
+}
+
+.siswa-log-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 500px;
+}
+
+.siswa-log-table thead th {
+  text-align: left;
+  font: 700 0.66rem/1 var(--das-font-body, 'Inter', sans-serif);
+  letter-spacing: 0.06em;
+  color: var(--das-text-dim, #5B6478);
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--das-border, rgba(231, 236, 245, 0.08));
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.siswa-log-table tbody td {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--das-border, rgba(231, 236, 245, 0.08));
+  font: 500 0.82rem/1.4 var(--das-font-body, 'Inter', sans-serif);
+  color: var(--das-text-muted, #8B96AB);
+  vertical-align: middle;
+}
+
+.siswa-log-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.siswa-log-table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.siswa-log-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.siswa-log-table__time {
+  font-family: 'JetBrains Mono', 'SFMono-Regular', monospace;
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--das-text, #E7ECF5);
+}
+
+.siswa-log-table .badge {
+  font-size: 0.7rem;
+  padding: 0.3rem 0.55rem;
+  font-weight: 600;
+}
+
+.siswa-log-empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--das-text-dim, #5B6478);
+  font: 500 0.85rem var(--das-font-body, 'Inter', sans-serif);
+}
+
+.siswa-log-empty i {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.5rem;
+  opacity: 0.5;
+}
+
+/* ═══════════════════════════════════════════
+   QUICK MENU GRID — 8 items (grid 4×2)
+   ═══════════════════════════════════════════ */
+.siswa-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.siswa-quick-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 5px;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  gap: 6px;
+  min-height: 90px;
+}
+
+.siswa-quick-item:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.siswa-quick-item:active {
+  transform: translateY(0);
+}
+
+.siswa-quick-item__icon {
+  font-size: 1.5rem;
+}
+
+.siswa-quick-item__label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.3;
+}
+
+/* Color variants per item */
+.siswa-quick-item--success .siswa-quick-item__icon { color: var(--das-success, #2FBF71); }
+.siswa-quick-item--warning .siswa-quick-item__icon { color: var(--das-warning, #F0A63B); }
+.siswa-quick-item--info .siswa-quick-item__icon    { color: var(--das-info, #3AB7E0); }
+.siswa-quick-item--primary .siswa-quick-item__icon  { color: var(--das-primary, #6C7CF0); }
+.siswa-quick-item--secondary .siswa-quick-item__icon { color: var(--das-text-muted, #8B96AB); }
+
+.siswa-quick-item:hover .siswa-quick-item__label {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+/* ═══════════════════════════════════════════
+   COUNTER ANIMATION
+   ═══════════════════════════════════════════ */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.siswa-animate-count {
+  animation: countUp 0.6s ease forwards;
+  opacity: 0;
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — Tablet (≤991px)
+   ═══════════════════════════════════════════ */
+@media (max-width: 991px) {
+  .das-hero--with-stats {
+    margin-bottom: 6.5rem !important;
+  }
+
+  .das-stats-row {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.75rem !important;
+    bottom: -75px !important;
+    left: 1rem !important;
+    right: 1rem !important;
+  }
+
+  .das-stat-card {
+    padding: 0.8rem 0.6rem !important;
+  }
+
+  .das-stat-card__val {
+    font-size: 1.05rem !important;
+  }
+
+  .das-stat-card__label {
+    font-size: 0.7rem !important;
+  }
+
+  .siswa-action-card {
+    padding: 1rem 1.25rem;
+    min-height: 72px;
+  }
+
+  .siswa-action-card__icon {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    font-size: 1.3rem;
+  }
+
+  /* Stats personal: 2 kolom di tablet */
+  .siswa-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  /* Quick grid: 4 kolom di tablet */
+  .siswa-quick-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — Mobile (≤767px)
+   ═══════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .das-hero--with-stats {
+    margin-bottom: 12.8rem !important;
+  }
+
+  .das-hero__inner {
+    padding: 1.5rem 1rem 4.5rem 1rem !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 1.5rem !important;
+  }
+
+  .das-hero__clock {
+    display: none !important;
+  }
+
+  .das-stats-row {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+    bottom: -155px !important;
+    left: 0.75rem !important;
+    right: 0.75rem !important;
+  }
+
+  .das-stat-card {
+    padding: 0.75rem 1rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 1rem !important;
+    height: auto !important;
+  }
+
+  .das-stat-card__icon {
+    margin-bottom: 0 !important;
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 1.25rem !important;
+  }
+
+  .das-stat-card__body {
+    text-align: left !important;
+  }
+
+  /* Action cards mobile */
+  .siswa-action-card {
+    padding: 1.1rem 1.25rem;
+    min-height: 76px;
+  }
+
+  .siswa-action-card__icon {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    font-size: 1.5rem;
+  }
+
+  .siswa-action-card__title {
+    font-size: 1rem;
+  }
+
+  .siswa-action-card__subtitle {
+    font-size: 0.75rem;
+  }
+
+  /* Stats personal: 2 kolom di mobile */
+  .siswa-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+  }
+
+  .siswa-stat-card {
+    padding: 0.9rem;
+  }
+
+  .siswa-stat-card__value {
+    font-size: 1.35rem;
+  }
+
+  /* Quick grid: 2 kolom di mobile */
+  .siswa-quick-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .siswa-quick-item {
+    min-height: 76px;
+    padding: 0.7rem 0.4rem;
+  }
+
+  /* Chart cards: full width */
+  .siswa-chart-mount {
+    min-height: 180px;
+  }
+
+  /* Log table: horizontal scroll */
+  .siswa-log-table {
+    min-width: 480px;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — Small Mobile (≤420px)
+   ═══════════════════════════════════════════ */
+@media (max-width: 420px) {
+  .siswa-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .siswa-stat-card {
+    padding: 0.75rem;
+  }
+
+  .siswa-stat-card__value {
+    font-size: 1.2rem;
+  }
+
+  .siswa-stat-card__label {
+    font-size: 0.65rem;
+  }
+
+  .siswa-quick-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+  }
+
+  .siswa-quick-item {
+    min-height: 68px;
+    padding: 0.6rem 0.35rem;
+  }
+
+  .siswa-quick-item__icon {
+    font-size: 1.25rem;
+  }
+
+  .siswa-quick-item__label {
+    font-size: 0.62rem;
+  }
+}
