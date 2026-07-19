@@ -32,6 +32,12 @@ class WaGatewayController extends Controller
         'wa_validator_api_key',
         'wa_validator_endpoint',
         'wa_validator_sender',
+        // WA Autoreply
+        'wa_autoreply_enabled',
+        'wa_autoreply_sender',
+        'wa_autoreply_api_key',
+        'wa_autoreply_endpoint',
+        'wa_autoreply_webhook_token',
     ];
 
     public function index()
@@ -52,6 +58,18 @@ class WaGatewayController extends Controller
         // Defaults WA Validator
         if (empty($settings['wa_validator_enabled'])) $settings['wa_validator_enabled'] = 'Tidak';
         if (empty($settings['wa_validator_endpoint'])) $settings['wa_validator_endpoint'] = 'https://wa.lutfifuadi.my.id/check-number';
+
+        // Defaults WA Autoreply
+        if (empty($settings['wa_autoreply_enabled'])) $settings['wa_autoreply_enabled'] = 'Tidak';
+        if (empty($settings['wa_autoreply_endpoint'])) $settings['wa_autoreply_endpoint'] = 'https://wa.lutfifuadi.my.id';
+        if (empty($settings['wa_autoreply_webhook_token'])) {
+            $token = \Illuminate\Support\Str::random(32);
+            Pengaturan::updateOrCreate(
+                ['key' => 'wa_autoreply_webhook_token'],
+                ['value' => $token, 'group' => 'wa_gateway']
+            );
+            $settings['wa_autoreply_webhook_token'] = $token;
+        }
 
         return view('admin.wa-gateway.index', compact('settings'));
     }
@@ -76,6 +94,12 @@ class WaGatewayController extends Controller
             'wa_validator_api_key'              => 'nullable|string|max:255',
             'wa_validator_endpoint'             => 'nullable|url|max:255',
             'wa_validator_sender'               => 'nullable|string|max:20|regex:/^[0-9+]+$/',
+            // WA Autoreply
+            'wa_autoreply_enabled'              => 'nullable|in:Ya,Tidak',
+            'wa_autoreply_sender'               => 'nullable|string|max:20|regex:/^[0-9+]+$/',
+            'wa_autoreply_api_key'              => 'nullable|string|max:255',
+            'wa_autoreply_endpoint'             => 'nullable|url|max:255',
+            'wa_autoreply_webhook_token'        => 'nullable|string|max:255',
         ], [
             'link_server_wa.url'            => 'Link server WA harus berupa URL yang valid.',
             'wa_nomor_admin.regex'          => 'Nomor admin hanya boleh berisi angka dan +.',
@@ -84,6 +108,8 @@ class WaGatewayController extends Controller
             'wa_pengaduan_sender.regex'     => 'Nomor pengirim WA Pengaduan hanya boleh berisi angka dan +.',
             'wa_validator_endpoint.url'     => 'Endpoint WA Validator harus berupa URL yang valid.',
             'wa_validator_sender.regex'     => 'Nomor pengirim WA Validator hanya boleh berisi angka dan +.',
+            'wa_autoreply_endpoint.url'     => 'Endpoint WA Autoreply harus berupa URL yang valid.',
+            'wa_autoreply_sender.regex'     => 'Nomor pengirim WA Autoreply hanya boleh berisi angka dan +.',
         ]);
 
         $data = $request->only($this->waKeys);

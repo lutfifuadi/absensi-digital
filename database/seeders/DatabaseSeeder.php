@@ -23,5 +23,7 @@ class DatabaseSeeder extends Seeder
         $this->call(GuideSeeder::class);
         $this->call(PengaduanSeeder::class);
         $this->call(GeminiApiKeySeeder::class);
+        $this->call(NotificationTemplateSeeder::class);
+        $this->call(WaAutoreplyKeywordSeeder::class);
     }
 }

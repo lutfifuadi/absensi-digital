@@ -48,9 +48,12 @@
 @endif
 
 {{-- Status Badge --}}
-<div class="d-flex gap-2 mb-4 align-items-center">
+<div class="d-flex gap-2 mb-4 align-items-center flex-wrap">
   <a href="{{ route('admin.pengaturan.index') }}" class="btn btn-sm btn-outline-secondary">
     <i class="ti tabler-arrow-left me-1"></i>Kembali ke Pengaturan
+  </a>
+  <a href="{{ route('admin.wa-gateway.keywords.index') }}" class="btn btn-sm btn-primary">
+    <i class="ti tabler-key me-1"></i>Kelola Keyword Autoreply
   </a>
   @php $waOn = ($settings['wa_gateway_enabled'] ?? 'Ya') === 'Ya'; @endphp
   <span class="badge {{ $waOn ? 'bg-success' : 'bg-secondary' }} fs-6 px-3 py-2">
@@ -373,7 +376,7 @@
                        value="{{ old('wa_validator_api_key', $settings['wa_validator_api_key'] ?? '') }}"
                        placeholder="Masukkan API Key WA Validator">
                 <button class="btn btn-outline-secondary" type="button" onclick="toggleValidatorKeyVisibility()"
-                        style="border-radius:0 8px 8px 0 !important;">
+                       style="border-radius:0 8px 8px 0 !important;">
                   <i class="ti tabler-eye" id="validatorKeyEyeIcon"></i>
                 </button>
               </div>
@@ -407,6 +410,107 @@
               <div class="set-field-hint">Nomor WA perangkat yang terhubung ke gateway validator.</div>
               @error('wa_validator_sender')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
             </div>
+
+          </div>
+        </div>
+      </div>
+
+      {{-- ═══════════════════════════════════════
+           WA AUTOREPLY
+           ═══════════════════════════════════════ --}}
+      <div class="set-panel mb-4">
+        <div class="set-panel__head">
+          <div class="set-panel__title-wrap">
+            <div class="set-panel__icon --success"><i class="ti tabler-message-chatbot"></i></div>
+            <div>
+              <div class="set-panel__title">Autoreply WA (Inbound Response)</div>
+              <div class="set-panel__sub">Konfigurasi WhatsApp untuk autoreply berbasis kata kunci pesan masuk.</div>
+            </div>
+          </div>
+        </div>
+        <div class="set-panel__body">
+          <div class="set-form-grid">
+
+            {{-- Aktifkan --}}
+            <div class="set-field set-field--full">
+              <div class="form-check form-switch form-check-lg">
+                <input class="form-check-input" type="checkbox" id="wa_autoreply_enabled_check"
+                       style="width:3rem;height:1.5rem;"
+                       onchange="document.getElementById('wa_autoreply_enabled').value = this.checked ? 'Ya' : 'Tidak'"
+                       {{ ($settings['wa_autoreply_enabled'] ?? 'Tidak') === 'Ya' ? 'checked' : '' }}>
+                <label class="form-check-label fs-6 fw-semibold ms-2" for="wa_autoreply_enabled_check">
+                  Aktifkan Autoreply WA
+                </label>
+              </div>
+              <input type="hidden" name="wa_autoreply_enabled" id="wa_autoreply_enabled"
+                     value="{{ $settings['wa_autoreply_enabled'] ?? 'Tidak' }}">
+              <div class="set-field-hint --info mt-3">
+                <i class="ti tabler-info-circle"></i>
+                Jika diaktifkan, sistem akan memproses pesan masuk dan menjawab otomatis sesuai kata kunci.
+              </div>
+            </div>
+
+            {{-- Nomor Pengirim --}}
+            <div class="set-field">
+              <label class="set-label">Nomor Pengirim (Autoreply) <span class="text-danger">*</span></label>
+              <div class="set-input-group">
+                <input type="text" class="set-input @error('wa_autoreply_sender') is-invalid @enderror"
+                       name="wa_autoreply_sender" maxlength="20"
+                       value="{{ old('wa_autoreply_sender', $settings['wa_autoreply_sender'] ?? '') }}"
+                       placeholder="08xxxxxxxxx atau 628xxxxxxxxx">
+              </div>
+              <div class="set-field-hint">Nomor WA perangkat yang terhubung untuk autoreply.</div>
+              @error('wa_autoreply_sender')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+            </div>
+
+            {{-- API Key --}}
+            <div class="set-field">
+              <label class="set-label">API Key Autoreply <span class="text-danger">*</span></label>
+              <div class="set-input-group">
+                <span class="set-input-prefix"><i class="ti tabler-key"></i></span>
+                <input type="password" class="set-input @error('wa_autoreply_api_key') is-invalid @enderror"
+                       name="wa_autoreply_api_key" id="wa_autoreply_api_key"
+                       value="{{ old('wa_autoreply_api_key', $settings['wa_autoreply_api_key'] ?? '') }}"
+                       placeholder="Masukkan API Key WA Autoreply">
+                <button class="btn btn-outline-secondary" type="button" onclick="toggleAutoreplyKeyVisibility()"
+                       style="border-radius:0 8px 8px 0 !important;">
+                  <i class="ti tabler-eye" id="autoreplyKeyEyeIcon"></i>
+                </button>
+              </div>
+              <div class="set-field-hint">API Key untuk autentikasi ke server WA Autoreply.</div>
+              @error('wa_autoreply_api_key')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+            </div>
+
+            {{-- Endpoint URL --}}
+            <div class="set-field set-field--full">
+              <label class="set-label">Endpoint URL <span class="text-danger">*</span></label>
+              <div class="set-input-group">
+                <span class="set-input-prefix"><i class="ti tabler-link"></i></span>
+                <input type="url" class="set-input @error('wa_autoreply_endpoint') is-invalid @enderror"
+                       name="wa_autoreply_endpoint"
+                       value="{{ old('wa_autoreply_endpoint', $settings['wa_autoreply_endpoint'] ?? 'https://wa.lutfifuadi.my.id') }}"
+                       placeholder="https://wa.lutfifuadi.my.id">
+              </div>
+              <div class="set-field-hint">Base URL server WA Autoreply (e.g. <code>https://wa.lutfifuadi.my.id</code>).</div>
+              @error('wa_autoreply_endpoint')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+            </div>
+
+            {{-- Webhook URL (Readonly) --}}
+            <div class="set-field set-field--full">
+              <label class="set-label">Webhook URL (Readonly)</label>
+              <div class="set-input-group">
+                <span class="set-input-prefix"><i class="ti tabler-webhook"></i></span>
+                <input type="text" class="set-input" readonly
+                       value="{{ url('/api/v1/webhook/whatsapp-autoreply?token=' . ($settings['wa_autoreply_webhook_token'] ?? '')) }}">
+                <button class="btn btn-outline-info" type="button" onclick="copyWebhookUrl(this)"
+                       style="border-radius:0 8px 8px 0 !important;">
+                  <i class="ti tabler-copy me-1"></i>Copy
+                </button>
+              </div>
+              <div class="set-field-hint">Copy URL ini dan paste di dashboard provider WA Anda (e.g. Fonnte).</div>
+            </div>
+
+            <input type="hidden" name="wa_autoreply_webhook_token" value="{{ $settings['wa_autoreply_webhook_token'] ?? '' }}">
 
           </div>
         </div>
@@ -766,6 +870,31 @@ function toggleValidatorKeyVisibility() {
     input.type = 'password';
     icon.className = 'ti tabler-eye';
   }
+}
+
+function toggleAutoreplyKeyVisibility() {
+  const input = document.getElementById('wa_autoreply_api_key');
+  const icon = document.getElementById('autoreplyKeyEyeIcon');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.className = 'ti tabler-eye-off';
+  } else {
+    input.type = 'password';
+    icon.className = 'ti tabler-eye';
+  }
+}
+
+function copyWebhookUrl(btn) {
+  const input = btn.previousElementSibling;
+  input.select();
+  input.setSelectionRange(0, 99999);
+  navigator.clipboard.writeText(input.value);
+
+  const origHtml = btn.innerHTML;
+  btn.innerHTML = '<i class="ti tabler-check me-1"></i>Copied!';
+  setTimeout(() => {
+    btn.innerHTML = origHtml;
+  }, 2000);
 }
 
 async function testWaConnection() {

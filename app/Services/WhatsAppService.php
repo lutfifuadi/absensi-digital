@@ -44,14 +44,17 @@ class WhatsAppService
     /**
      * Send a text message via WhatsApp Gateway
      */
-    public function sendMessage(string $number, string $message, string $footer = ''): bool
+    public function sendMessage(string $number, string $message, string $footer = '', ?string $customSender = null, ?string $customApiKey = null): bool
     {
         if (!$this->isEnabled) return false;
 
+        $apiKey = $customApiKey ?: $this->apiKey;
+        $sender = $customSender ?: $this->sender;
+
         try {
             $response = Http::timeout(15)->post("{$this->baseUrl}/send-message", [
-                'api_key' => $this->apiKey,
-                'sender'  => $this->sender,
+                'api_key' => $apiKey,
+                'sender'  => $sender,
                 'number'  => $number,
                 'message' => $message,
                 'footer'  => $footer ?: 'Sistem Absensi Otomatis'
@@ -76,27 +79,27 @@ class WhatsAppService
      * Send message only if number is validated on WhatsApp
      * Uses cache to avoid hammering the check-number API
      */
-    public function sendMessageIfValid(string $number, string $message, string $footer = '', int $siswaId = 0): bool
+    public function sendMessageIfValid(string $number, string $message, string $footer = '', int $siswaId = 0, ?string $customSender = null, ?string $customApiKey = null): bool
     {
         if (!$this->isEnabled) return false;
 
-        if (!$this->isNumberValidCached($number, $siswaId)) {
+        if (!$this->isNumberValidCached($number, $siswaId, $customSender, $customApiKey)) {
             Log::info("WA: Nomor {$number} tidak terdaftar di WhatsApp, pesan tidak dikirim.");
             return false;
         }
 
-        return $this->sendMessage($number, $message, $footer);
+        return $this->sendMessage($number, $message, $footer, $customSender, $customApiKey);
     }
 
     /**
      * Check if a WA number is valid with caching (24 jam TTL)
      */
-    public function isNumberValidCached(string $number, int $siswaId = 0): bool
+    public function isNumberValidCached(string $number, int $siswaId = 0, ?string $customSender = null, ?string $customApiKey = null): bool
     {
         $cacheKey = 'wa_valid_' . preg_replace('/\D/', '', $number);
 
-        return Cache::remember($cacheKey, now()->addHours(24), function () use ($number) {
-            return $this->checkNumber($number);
+        return Cache::remember($cacheKey, now()->addHours(24), function () use ($number, $customSender, $customApiKey) {
+            return $this->checkNumber($number, false, $customSender, $customApiKey);
         });
     }
 
@@ -140,14 +143,17 @@ class WhatsAppService
     /**
      * Check if a number exists on WhatsApp
      */
-    public function checkNumber(string $number, bool $force = false): bool
+    public function checkNumber(string $number, bool $force = false, ?string $customSender = null, ?string $customApiKey = null): bool
     {
         if (!$force && !$this->isEnabled) return false;
 
+        $apiKey = $customApiKey ?: $this->apiKey;
+        $sender = $customSender ?: $this->sender;
+
         try {
             $response = Http::timeout(10)->post("{$this->baseUrl}/check-number", [
-                'api_key' => $this->apiKey,
-                'sender'  => $this->sender,
+                'api_key' => $apiKey,
+                'sender'  => $sender,
                 'number'  => $number
             ]);
 

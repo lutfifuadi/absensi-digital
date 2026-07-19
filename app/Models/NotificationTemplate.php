@@ -30,5 +30,11 @@ class NotificationTemplate extends Model
         'pengaduan_kode_unik' => 'WhatsApp Pengaduan — Kode Unik',
         'pengaduan_status_update' => 'WhatsApp Pengaduan — Update Status',
         'pengaduan_group_admin' => 'WhatsApp Pengaduan — Grup Admin',
+        'autoreply_absen' => 'Autoreply — Cek Absen',
+        'autoreply_rekap' => 'Autoreply — Rekap Mingguan',
+        'autoreply_bantuan' => 'Autoreply — Menu Bantuan',
+        'autoreply_link' => 'Autoreply — Link Portal',
+        'autoreply_pengaduan' => 'Autoreply — Pengaduan',
+        'autoreply_nomor_tak_dikenal' => 'Autoreply — Nomor Tidak Terdaftar',
     ];
 }

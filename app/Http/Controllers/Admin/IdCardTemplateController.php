@@ -335,4 +335,187 @@ class IdCardTemplateController extends Controller
         $idCardTemplate->delete();
         return back()->with('success', 'Template berhasil dihapus.');
     }
+
+    public function export(IdCardTemplate $idCardTemplate)
+    {
+        $isLocalBackground = false;
+        $base64Background = null;
+        $mimeType = null;
+
+        if ($idCardTemplate->background_path && !str_starts_with($idCardTemplate->background_path, 'http')) {
+            $isGoogleDrive = (strlen($idCardTemplate->background_path) > 30 && !str_contains($idCardTemplate->background_path, '/'));
+            if (!$isGoogleDrive && Storage::disk('public')->exists($idCardTemplate->background_path)) {
+                $isLocalBackground = true;
+                $fileContent = Storage::disk('public')->get($idCardTemplate->background_path);
+                $base64Background = base64_encode($fileContent);
+                $mimeType = Storage::disk('public')->mimeType($idCardTemplate->background_path) ?: 'image/jpeg';
+            }
+        }
+
+        $payload = [
+            'name' => $idCardTemplate->name,
+            'type' => $idCardTemplate->type,
+            'config' => $idCardTemplate->config,
+            'background_path' => $idCardTemplate->background_path,
+        ];
+
+        if ($isLocalBackground) {
+            $payload['background_base64'] = $base64Background;
+            $payload['background_mime'] = $mimeType;
+        }
+
+        $filename = 'id-card-template-' . \Illuminate\Support\Str::slug($idCardTemplate->name) . '-' . date('Y-m-d') . '.json';
+
+        return response()->streamDownload(function () use ($payload) {
+            echo json_encode($payload, JSON_PRETTY_PRINT);
+        }, $filename, [
+            'Content-Type' => 'application/json'
+        ]);
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'template_file' => 'required|file|max:5120|mimetypes:application/json,text/plain',
+            'name' => 'nullable|string|max:255',
+            'is_active' => 'nullable',
+        ]);
+
+        $file = $request->file('template_file');
+        $content = file_get_contents($file->getRealPath());
+        $data = json_decode($content, true);
+
+        if (!$data || !isset($data['name']) || !isset($data['type']) || !isset($data['config'])) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Format file JSON tidak valid atau struktur template tidak lengkap.'
+                ], 422);
+            }
+            return back()->with('error', 'Format file JSON tidak valid atau struktur template tidak lengkap.');
+        }
+
+        if (!in_array($data['type'], ['siswa', 'guru', 'staff'])) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tipe template tidak valid.'
+                ], 422);
+            }
+            return back()->with('error', 'Tipe template tidak valid.');
+        }
+
+        if (!is_array($data['config'])) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Struktur config template tidak valid.'
+                ], 422);
+            }
+            return back()->with('error', 'Struktur config template tidak valid.');
+        }
+
+        // Validate border_radius range 0-5
+        $borderRadius = $data['config']['canvas']['border_radius'] ?? 5;
+        if (!is_int($borderRadius) || $borderRadius < 0 || $borderRadius > 5) {
+            $data['config']['canvas']['border_radius'] = 5;
+        }
+
+        $templateName = $request->filled('name') ? $request->input('name') : $data['name'];
+        $isActive = $request->has('is_active') ? $request->boolean('is_active') : false;
+
+        $backgroundPath = null;
+
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            if (!empty($data['background_base64']) && !empty($data['background_mime'])) {
+                $base64Data = $data['background_base64'];
+                $mime = $data['background_mime'];
+                $decodedData = base64_decode($base64Data);
+
+                if ($decodedData === false) {
+                    throw new \Exception('Gagal mendekode gambar background Base64.');
+                }
+
+                $extension = 'jpg';
+                if (str_contains($mime, 'png')) {
+                    $extension = 'png';
+                } elseif (str_contains($mime, 'gif')) {
+                    $extension = 'gif';
+                } elseif (str_contains($mime, 'webp')) {
+                    $extension = 'webp';
+                }
+
+                $filename = 'bg_' . uniqid() . '.' . $extension;
+                $tempPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $filename;
+                file_put_contents($tempPath, $decodedData);
+
+                try {
+                    if ($this->googleDriveService->isEnabled()) {
+                        $fileId = $this->googleDriveService->uploadPhoto($tempPath);
+                        if ($fileId) {
+                            $backgroundPath = $fileId;
+                        } else {
+                            throw new \Exception('Gagal mengunggah background ke Google Drive.');
+                        }
+                    } else {
+                        $path = Storage::disk('public')->put('backgrounds/' . $filename, $decodedData);
+                        if ($path) {
+                            $backgroundPath = 'backgrounds/' . $filename;
+                        } else {
+                            throw new \Exception('Gagal menyimpan file background ke local storage.');
+                        }
+                    }
+                } finally {
+                    if (file_exists($tempPath)) {
+                        @unlink($tempPath);
+                    }
+                }
+            } else {
+                $backgroundPath = $data['background_path'] ?? null;
+            }
+
+            if ($isActive) {
+                IdCardTemplate::where('type', $data['type'])->update(['is_active' => false]);
+            }
+
+            $newTemplate = IdCardTemplate::create([
+                'name' => $templateName,
+                'type' => $data['type'],
+                'background_path' => $backgroundPath,
+                'config' => $data['config'],
+                'is_active' => $isActive,
+            ]);
+
+            \Illuminate\Support\Facades\DB::commit();
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+
+            if ($backgroundPath && !str_starts_with($backgroundPath, 'http')) {
+                if (strlen($backgroundPath) > 30 && !str_contains($backgroundPath, '/')) {
+                    $this->googleDriveService->deletePhoto($backgroundPath);
+                } else {
+                    Storage::disk('public')->delete($backgroundPath);
+                }
+            }
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mengimpor template: ' . $e->getMessage()
+                ], 500);
+            }
+            return back()->with('error', 'Gagal mengimpor template: ' . $e->getMessage());
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Template berhasil di-import.',
+                'data' => $newTemplate
+            ]);
+        }
+
+        return redirect()->route('admin.id-card-templates.index')->with('success', 'Template berhasil di-import.');
+    }
 }

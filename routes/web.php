@@ -807,6 +807,20 @@ Route::middleware([
             ->name('admin.wa-gateway.test')
             ->middleware('role:super_admin,admin_sekolah');
 
+        // WA Autoreply Keywords CRUD
+        Route::get('wa-gateway/keywords', [\App\Http\Controllers\Admin\WaAutoreplyKeywordController::class, 'index'])
+            ->name('admin.wa-gateway.keywords.index')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('wa-gateway/keywords', [\App\Http\Controllers\Admin\WaAutoreplyKeywordController::class, 'store'])
+            ->name('admin.wa-gateway.keywords.store')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::put('wa-gateway/keywords/{keyword}', [\App\Http\Controllers\Admin\WaAutoreplyKeywordController::class, 'update'])
+            ->name('admin.wa-gateway.keywords.update')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::delete('wa-gateway/keywords/{keyword}', [\App\Http\Controllers\Admin\WaAutoreplyKeywordController::class, 'destroy'])
+            ->name('admin.wa-gateway.keywords.destroy')
+            ->middleware('role:super_admin,admin_sekolah');
+
         // Pengaturan
         Route::get('pengaturan', [PengaturanController::class, 'index'])
             ->name('admin.pengaturan.index')
@@ -1041,7 +1055,13 @@ Route::middleware([
             ->middleware('role:super_admin,admin_sekolah,operator');
 
         // ID Card Template
-        // ID Card Template
+        Route::get('id-card-templates/{idCardTemplate}/export', [IdCardTemplateController::class, 'export'])
+            ->name('admin.id-card-templates.export')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('id-card-templates/import', [IdCardTemplateController::class, 'import'])
+            ->name('admin.id-card-templates.import')
+            ->middleware('role:super_admin,admin_sekolah');
+
         Route::resource('id-card-templates', IdCardTemplateController::class)
             ->names('admin.id-card-templates')
             ->middleware('role:super_admin,admin_sekolah');

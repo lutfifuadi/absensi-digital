@@ -78,4 +78,6 @@ Route::prefix('ekskul/absensi')->group(function () {
 Route::post('/pengaduan', [PengaduanController::class, 'submit']);
 Route::get('/pengaduan/cek', [PengaduanController::class, 'cekStatus']);
 Route::get('/pengaduan/cek-wa', [PengaduanController::class, 'cekWa']);
-Route::get('/pengaduan/cek-wa', [PengaduanController::class, 'cekWa']);
+
+// ── WhatsApp Autoreply Webhook (PRD-005) — Publik API ───────────────────────
+Route::post('/v1/webhook/whatsapp-autoreply', [\App\Http\Controllers\Api\V1\WhatsAppWebhookController::class, 'handle']);

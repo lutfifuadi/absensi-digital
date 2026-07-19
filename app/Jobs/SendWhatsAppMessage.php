@@ -34,6 +34,8 @@ class SendWhatsAppMessage implements ShouldQueue
     public string $footer;
     public bool $validateNumber;
     public int $siswaId;
+    public ?string $customSender;
+    public ?string $customApiKey;
 
     /**
      * Create a new job instance.
@@ -43,13 +45,17 @@ class SendWhatsAppMessage implements ShouldQueue
         string $message,
         string $footer = '',
         bool $validateNumber = true,
-        int $siswaId = 0
+        int $siswaId = 0,
+        ?string $customSender = null,
+        ?string $customApiKey = null
     ) {
         $this->number         = $number;
         $this->message        = $message;
         $this->footer         = $footer;
         $this->validateNumber = $validateNumber;
         $this->siswaId        = $siswaId;
+        $this->customSender   = $customSender;
+        $this->customApiKey   = $customApiKey;
         $this->onQueue('notifications');
     }
 
@@ -63,10 +69,12 @@ class SendWhatsAppMessage implements ShouldQueue
                 $this->number,
                 $this->message,
                 $this->footer,
-                $this->siswaId
+                $this->siswaId,
+                $this->customSender,
+                $this->customApiKey
             );
         } else {
-            $sent = $waService->sendMessage($this->number, $this->message, $this->footer);
+            $sent = $waService->sendMessage($this->number, $this->message, $this->footer, $this->customSender, $this->customApiKey);
         }
 
         if (!$sent) {
