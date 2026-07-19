@@ -29,6 +29,26 @@
       }
     });
   </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Toggle password visibility
+      document.querySelectorAll('.toggle-password').forEach(function(toggle) {
+        toggle.addEventListener('click', function() {
+          const targetId = this.dataset.target;
+          const input = document.getElementById(targetId);
+          if (input) {
+            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+            input.setAttribute('type', type);
+            const icon = this.querySelector('i');
+            if (icon) {
+              icon.classList.toggle('tabler-eye');
+              icon.classList.toggle('tabler-eye-off');
+            }
+          }
+        });
+      });
+    });
+  </script>
 @endsection
 
 @section('page-style')
@@ -44,45 +64,6 @@
       --das-radius: 5px;
     }
 
-    /* HERO HEADER (COMPACT) */
-    .das-hero-mini {
-      position: relative;
-      border-radius: var(--das-radius);
-      overflow: hidden;
-      margin-bottom: 2rem;
-      background: linear-gradient(135deg, #1e1b4b 0%, #312d89 60%, #4338ca 100%);
-    }
-
-    .das-hero-mini__inner {
-      position: relative;
-      z-index: 2;
-      padding: 2rem 2.5rem;
-      display: flex;
-      align-items: center;
-      gap: 1.25rem;
-    }
-
-    .das-hero-mini__icon {
-      width: 52px;
-      height: 52px;
-      background: rgba(115, 103, 240, 0.2);
-      border: 1px solid rgba(115, 103, 240, 0.3);
-      border-radius: 5px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      color: #a5a2f7;
-    }
-
-    .das-hero-mini__title {
-      font-size: 1.25rem;
-      font-weight: 800;
-      color: white;
-      margin: 0;
-    }
-
-    /* PANEL */
     .das-panel {
       background: var(--das-surface);
       border: 1px solid var(--das-border);
@@ -124,6 +105,10 @@
       border-color: #ea5455 !important;
     }
 
+    .form-control::placeholder {
+      color: rgba(255, 255, 255, 0.25) !important;
+    }
+
     /* BUTTONS */
     .das-btn {
       display: inline-flex;
@@ -162,6 +147,29 @@
       color: white !important;
     }
 
+    .password-wrapper {
+      position: relative;
+    }
+
+    .password-wrapper .toggle-password {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 1.1rem;
+      transition: color 0.2s;
+      background: none;
+      border: none;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .password-wrapper .toggle-password:hover {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
     /* ANIMATIONS */
     @keyframes slideInUp {
       from { transform: translateY(20px); opacity: 0; }
@@ -172,111 +180,187 @@
 @endsection
 
 @section('content')
-  <div class="slide-in-up">
-    {{-- HERO MINI --}}
-    <div class="das-hero-mini">
-      <div class="das-hero-mini__inner">
-        <div class="das-hero-mini__icon">
-          <i class="ti tabler-{{ isset($user) ? 'edit' : 'user-plus' }}"></i>
-        </div>
-        <div>
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-1" style="font-size:0.6rem; text-transform:uppercase; letter-spacing:1px; opacity:0.6;">
-              <li class="breadcrumb-item"><a href="{{ route('admin.users.index') }}" class="text-white text-decoration-none">Manajemen User</a></li>
-              <li class="breadcrumb-item active text-white">{{ isset($user) ? 'Edit User' : 'Tambah User' }}</li>
-            </ol>
-          </nav>
-          <h4 class="das-hero-mini__title">{{ isset($user) ? 'Sunting Data Pengguna' : 'Tambahkan Pengguna Baru' }}</h4>
-        </div>
-      </div>
-    </div>
 
-    {{-- MAIN FORM PANEL --}}
-    <div class="das-panel">
-      <div class="das-panel__body">
-        <form action="{{ isset($user) ? route('admin.users.update', $user) : route('admin.users.store') }}" method="POST">
-          @csrf
-          @if (isset($user))
-            @method('PUT')
-          @endif
-
-          <div class="row gy-4">
-            <div class="col-md-6">
-              <label class="form-label">Username <span class="text-danger">*</span></label>
-              <input type="text" name="username" class="form-control @error('username') is-invalid @enderror"
-                placeholder="Masukkan username unik"
-                value="{{ old('username', $user->username ?? '') }}" required>
-              @error('username')
-                <div class="invalid-feedback">{{ $message }}</div>
-              @enderror
+  {{-- HERO HEADER --}}
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 text-white overflow-hidden shadow-lg"
+        style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border-radius: 4px;">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-3">
+            <div class="rounded d-flex align-items-center justify-content-center shadow-sm"
+              style="width:52px;height:52px;border-radius:12px !important;background:rgba(0,207,232,0.2);border:1px solid rgba(0,207,232,0.4);">
+              <i class="ti {{ isset($user) ? 'tabler-pencil' : 'tabler-plus' }} text-info fs-3"></i>
             </div>
-
-            <div class="col-md-6">
-              <label class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
-              <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
-                placeholder="Masukkan nama lengkap user"
-                value="{{ old('name', $user->name ?? '') }}" required>
-              @error('name')
-                <div class="invalid-feedback">{{ $message }}</div>
-              @enderror
-            </div>
-
-            <div class="col-md-6">
-              <label class="form-label">Email Address <span class="text-danger">*</span></label>
-              <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
-                placeholder="nama@email.com"
-                value="{{ old('email', $user->email ?? '') }}" required>
-              @error('email')
-                <div class="invalid-feedback">{{ $message }}</div>
-              @enderror
-            </div>
-
-            <div class="col-md-6">
-              <label class="form-label">Password {{ isset($user) ? '(Kosongkan jika tidak ingin diubah)' : '' }} <span
-                  class="text-danger">*</span></label>
-              <input type="password" name="password" class="form-control @error('password') is-invalid @enderror"
-                placeholder="••••••••"
-                {{ isset($user) ? '' : 'required' }} autocomplete="new-password">
-              @error('password')
-                <div class="invalid-feedback">{{ $message }}</div>
-              @enderror
-            </div>
-
-            <div class="col-md-6">
-              <label class="form-label">Konfirmasi Password</label>
-              <input type="password" name="password_confirmation" class="form-control" 
-                placeholder="Ulangi password"
-                autocomplete="new-password">
-            </div>
-
-            <div class="col-md-6">
-              <label class="form-label">Level Hak Akses (Role) <span class="text-danger">*</span></label>
-              <select name="roles[]" class="select2 form-select @error('roles') is-invalid @enderror @error('roles.*') is-invalid @enderror" multiple required data-placeholder="Pilih Hak Akses">
-                @foreach ($roles as $key => $label)
-                  <option value="{{ $key }}"
-                    @selected(in_array((string)$key, old('roles', isset($user) ? (array)($user->roles ?? []) : []), true))>{{ $label }}</option>
-                @endforeach
-              </select>
-              <div class="form-text text-white-50 small">Pilih satu atau lebih peran yang sesuai untuk pengguna ini.</div>
-              @error('roles')
-                <div class="invalid-feedback">{{ $message }}</div>
-              @enderror
-              @if ($errors->has('roles.*'))
-                <div class="invalid-feedback">{{ $errors->first('roles.*') }}</div>
-              @endif
+            <div>
+              <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1" style="font-size:0.72rem;opacity:0.6;">
+                  <li class="breadcrumb-item"><a href="{{ route('admin.master-data') }}"
+                      class="text-white text-decoration-none">Master Data</a></li>
+                  <li class="breadcrumb-item"><a href="{{ route('admin.users.index') }}"
+                      class="text-white text-decoration-none">Manajemen User</a></li>
+                  <li class="breadcrumb-item active text-white">{{ isset($user) ? 'Edit' : 'Tambah' }}
+                  </li>
+                </ol>
+              </nav>
+              <h4 class="mb-0 text-white fw-bold" style="letter-spacing:-0.5px;">
+                {{ isset($user) ? 'Sunting Data Pengguna' : 'Tambahkan Pengguna Baru' }}
+              </h4>
             </div>
           </div>
-
-          <div class="mt-5 d-flex gap-2">
-            <button type="submit" class="das-btn das-btn--primary">
-              <i class="ti tabler-device-floppy me-1"></i> {{ isset($user) ? 'Simpan Perubahan' : 'Daftarkan User' }}
-            </button>
-            <a href="{{ route('admin.users.index') }}" class="das-btn das-btn--ghost">
-              Batal
-            </a>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   </div>
+
+  <div class="row">
+    <div class="col-12">
+
+      @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible d-flex align-items-start gap-2 mb-4 border-0 shadow-sm"
+          style="border-radius:8px; background: rgba(234, 84, 85, 0.15); color: #ea5455;">
+          <i class="ti tabler-alert-circle fs-5 mt-1 flex-shrink-0"></i>
+          <ul class="mb-0 ps-3 small">
+            @foreach ($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
+          <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        </div>
+      @endif
+
+      <div class="card border-0 shadow-sm"
+        style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08) !important;">
+        <div class="card-header border-bottom py-3 d-flex align-items-center gap-2"
+          style="border-color:rgba(255,255,255,0.08) !important;background:transparent;">
+          <i class="ti tabler-forms text-info"></i>
+          <h6 class="card-title mb-0">Informasi Akun Pengguna</h6>
+        </div>
+        <div class="card-body p-4">
+          <form action="{{ isset($user) ? route('admin.users.update', $user) : route('admin.users.store') }}"
+            method="POST">
+            @csrf
+            @if (isset($user))
+              @method('PUT')
+            @endif
+
+            <div class="row g-4">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small" for="username">
+                  <i class="ti tabler-user me-1 text-info"></i> Username <span class="text-danger">*</span>
+                </label>
+                <input id="username" name="username" type="text"
+                  class="form-control @error('username') is-invalid @enderror"
+                  placeholder="Masukkan username unik"
+                  value="{{ old('username', $user->username ?? '') }}" required>
+                @error('username')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small" for="name">
+                  <i class="ti tabler-user-check me-1 text-info"></i> Nama Lengkap <span class="text-danger">*</span>
+                </label>
+                <input id="name" name="name" type="text"
+                  class="form-control @error('name') is-invalid @enderror"
+                  placeholder="Masukkan nama lengkap user"
+                  value="{{ old('name', $user->name ?? '') }}" required>
+                @error('name')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small" for="email">
+                  <i class="ti tabler-mail me-1 text-info"></i> Email <span class="text-danger">*</span>
+                </label>
+                <input id="email" name="email" type="email"
+                  class="form-control @error('email') is-invalid @enderror"
+                  placeholder="nama@email.com"
+                  value="{{ old('email', $user->email ?? '') }}" required>
+                @error('email')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small" for="password">
+                  <i class="ti tabler-key me-1 text-info"></i> Password
+                  @if (isset($user))
+                    <span class="text-white-50 fw-normal ms-1">(kosongkan jika tidak diubah)</span>
+                  @else
+                    <span class="text-danger">*</span>
+                  @endif
+                </label>
+                <div class="password-wrapper">
+                  <input id="password" name="password" type="password"
+                    class="form-control @error('password') is-invalid @enderror"
+                    placeholder="••••••••"
+                    {{ isset($user) ? '' : 'required' }} autocomplete="new-password">
+                  <span class="toggle-password" data-target="password">
+                    <i class="ti tabler-eye"></i>
+                  </span>
+                </div>
+                @error('password')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small" for="password_confirmation">
+                  <i class="ti tabler-key me-1 text-info"></i> Konfirmasi Password
+                </label>
+                <div class="password-wrapper">
+                  <input id="password_confirmation" name="password_confirmation" type="password"
+                    class="form-control @error('password_confirmation') is-invalid @enderror"
+                    placeholder="Ulangi password"
+                    {{ isset($user) ? '' : 'required' }} autocomplete="new-password">
+                  <span class="toggle-password" data-target="password_confirmation">
+                    <i class="ti tabler-eye"></i>
+                  </span>
+                </div>
+                @error('password_confirmation')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">
+                  <i class="ti tabler-shield me-1 text-info"></i> Hak Akses (Role) <span class="text-danger">*</span>
+                </label>
+                <select name="roles[]" class="select2 form-select @error('roles') is-invalid @enderror @error('roles.*') is-invalid @enderror"
+                  multiple required data-placeholder="Pilih Hak Akses">
+                  @foreach ($roles as $key => $label)
+                    <option value="{{ $key }}"
+                      @selected(in_array((string)$key, old('roles', isset($user) ? (array)($user->roles ?? []) : []), true))>{{ $label }}</option>
+                  @endforeach
+                </select>
+                <div class="form-text text-white-50 small mt-2">Pilih satu atau lebih peran yang sesuai untuk pengguna ini.</div>
+                @error('roles')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+                @if ($errors->has('roles.*'))
+                  <div class="invalid-feedback">{{ $errors->first('roles.*') }}</div>
+                @endif
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-end gap-3 pt-4 mt-2 border-top"
+              style="border-color:rgba(255,255,255,0.08) !important;">
+              <a href="{{ route('admin.users.index') }}" class="btn btn-label-secondary">
+                <i class="ti tabler-arrow-left me-1"></i> Kembali
+              </a>
+              <button type="submit" class="btn btn-info fw-semibold px-4 shadow-sm">
+                <i class="ti tabler-device-floppy me-1"></i>
+                {{ isset($user) ? 'Simpan Perubahan' : 'Daftarkan User' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 @endsection

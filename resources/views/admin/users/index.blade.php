@@ -3,721 +3,656 @@
 @section('title', 'Manajemen User')
 
 @section('page-style')
-  <style>
-    /* ═══════════════════════════════════════════════════════
-       DASHBOARD DESIGN SYSTEM (ADAPTED)
-    ═══════════════════════════════════════════════════════ */
-    :root {
-      --das-primary: #7367f0;
-      --das-primary-soft: rgba(115, 103, 240, 0.12);
-      --das-success: #28c76f;
-      --das-success-soft: rgba(40, 199, 111, 0.12);
-      --das-info: #00cfe8;
-      --das-info-soft: rgba(0, 207, 232, 0.12);
-      --das-warning: #ff9f43;
-      --das-warning-soft: rgba(255, 159, 67, 0.12);
-      --das-danger: #ea5455;
-      --das-danger-soft: rgba(234, 84, 85, 0.12);
-      --das-dark: #4b4b4b;
-      --das-secondary: #a8aaae;
+    <style>
+        .user-row-hover {
+            transition: background 0.15s ease;
+        }
 
-      --das-surface: rgba(15, 23, 42, 0.4);
-      --das-surface-hover: rgba(30, 41, 59, 0.6);
-      --das-border: rgba(255, 255, 255, 0.06);
-      --das-border-hover: rgba(255, 255, 255, 0.12);
-      --das-radius: 5px;
-      --das-radius-sm: 5px;
-    }
+        .user-row-hover:hover {
+            background: rgba(255, 255, 255, 0.04) !important;
+        }
 
-    /* GLASS CARD EXCLUSIVE */
-    .glass-card {
-      background: rgba(255, 255, 255, 0.03) !important;
-      backdrop-filter: blur(12px) saturate(180%);
-      -webkit-backdrop-filter: blur(12px) saturate(180%);
-      border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    }
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            border: none;
+            background: rgba(255, 255, 255, 0.05);
+            color: inherit;
+        }
 
-    /* HERO HEADER */
-    .das-hero {
-      position: relative;
-      border-radius: var(--das-radius);
-      overflow: hidden;
-      margin-bottom: 2rem;
-    }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.1);
+        }
 
-    .das-hero__bg {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, #1e1b4b 0%, #312d89 40%, #4338ca 100%);
-      z-index: 0;
-    }
+        /* MODAL CUSTOM */
+        .das-modal {
+            background: #1a1a2e !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-radius: 12px !important;
+            overflow: hidden;
+            backdrop-filter: blur(12px) saturate(180%);
+        }
 
-    .das-hero__glass {
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at top right, rgba(115, 103, 240, 0.15), transparent 40%);
-      z-index: 1;
-    }
+        .das-modal-head {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(115, 103, 240, 0.05);
+            padding: 1.25rem;
+        }
 
-    .das-hero__grid-lines {
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-      background-size: 40px 40px;
-      z-index: 1;
-    }
+        .das-modal-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+        }
 
-    .das-hero__inner {
-      position: relative;
-      z-index: 2;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 2.5rem;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-    }
+        .das-modal-body {
+            padding: 1.5rem;
+        }
 
-    .das-hero__identity {
-      display: flex;
-      align-items: center;
-      gap: 1.25rem;
-    }
+        /* PAGINATION */
+        .das-page-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            height: 32px;
+            padding: 0 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            border-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: transparent;
+            color: #888;
+            text-decoration: none;
+            transition: all 0.18s ease;
+            cursor: pointer;
+            line-height: 1;
+            font-family: inherit;
+        }
 
-    .das-hero__icon-wrapper {
-      position: relative;
-    }
+        .das-page-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.12);
+        }
 
-    .das-hero__icon {
-      width: 64px;
-      height: 64px;
-      background: rgba(115, 103, 240, 0.2);
-      border: 1px solid rgba(115, 103, 240, 0.3);
-      border-radius: 5px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.75rem;
-      color: #a5a2f7;
-      z-index: 2;
-      position: relative;
-    }
+        .das-page-active {
+            background: #7367f0 !important;
+            color: #fff !important;
+            border-color: #7367f0 !important;
+        }
 
-    .das-hero__title {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: white;
-      margin: 0 0 4px;
-    }
+        .das-page-dots {
+            border-color: transparent;
+            background: transparent;
+            color: #555;
+            pointer-events: none;
+        }
 
-    .das-hero__welcome {
-      margin: 0;
-      font-size: 0.88rem;
-      color: rgba(255, 255, 255, 0.6);
-    }
+        .page-item.disabled .das-page-btn {
+            opacity: 0.35;
+            pointer-events: none;
+        }
 
-    /* ACTION BUTTONS */
-    .das-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 0.5rem 1rem;
-      border-radius: 5px;
-      border: 1px solid transparent;
-      cursor: pointer;
-      transition: all 0.18s ease;
-      text-decoration: none;
-      white-space: nowrap;
-    }
+        /* SEARCH INPUT */
+        #filterSearch::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
 
-    .das-btn--primary {
-      background: var(--das-primary);
-      color: white !important;
-      border-color: var(--das-primary);
-    }
+        #filterSearch:focus {
+            outline: none;
+            box-shadow: none;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(115, 103, 240, 0.5) !important;
+        }
 
-    .das-btn--primary:hover {
-      background: #6259e8;
-      transform: translateY(-2px);
-    }
+        .form-control,
+        .form-select {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: #fff !important;
+        }
 
-    .das-btn--ghost {
-      background: transparent;
-      border-color: var(--das-border);
-      color: #999 !important;
-    }
+        .form-control:focus,
+        .form-select:focus {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: var(--bs-info) !important;
+        }
 
-    .das-btn--ghost:hover {
-      background: var(--das-surface-hover);
-      color: white !important;
-    }
+        .form-control::placeholder,
+        #filterSearch::placeholder {
+            color: rgba(255, 255, 255, 0.35) !important;
+        }
 
-    /* PANEL (CARD) */
-    .das-panel {
-      background: var(--das-surface);
-      border: 1px solid var(--das-border);
-      border-radius: var(--das-radius);
-      overflow: hidden;
-      backdrop-filter: blur(6px);
-    }
+        #perPageSelect option {
+            background: #1a1a2e;
+            color: #ccc;
+        }
 
-    .das-panel__head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.9rem 1.25rem;
-      border-bottom: 1px solid var(--das-border);
-    }
+        #perPageSelect:focus {
+            outline: none;
+            box-shadow: none;
+        }
 
-    .das-panel__title {
-      font-size: 0.82rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #ccc;
-    }
+        /* SWEETALERT2 CUSTOM PREMIUM */
+        .das-swal-popup {
+            background: rgba(26, 26, 46, 0.95) !important;
+            backdrop-filter: blur(16px) saturate(180%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 5px !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+        }
 
-    .das-panel__icon-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--das-info);
-      box-shadow: 0 0 6px var(--das-info);
-    }
+        .das-swal-title {
+            color: #fff !important;
+            font-weight: 700 !important;
+            font-size: 1.5rem !important;
+            text-align: center !important;
+            width: 100% !important;
+            max-width: none !important;
+            max-inline-size: none !important;
+        }
 
-    /* TABLE */
-    .das-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.82rem;
-    }
+        .das-swal-html {
+            color: rgba(255, 255, 255, 0.7) !important;
+            font-size: 0.95rem !important;
+        }
 
-    .das-table thead th {
-      font-size: 0.65rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: #666;
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid var(--das-border);
-      background: rgba(255, 255, 255, 0.02);
-    }
+        .das-swal-confirm {
+            padding: 10px 24px !important;
+            font-weight: 600 !important;
+            border-radius: 5px !important;
+            font-size: 0.875rem !important;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(234, 84, 85, 0.3) !important;
+        }
 
-    .das-table tbody td {
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid var(--das-border);
-      color: #ccc;
-      vertical-align: middle;
-      transition: background 0.2s ease;
-    }
+        .das-swal-cancel {
+            padding: 10px 24px !important;
+            font-weight: 600 !important;
+            border-radius: 5px !important;
+            font-size: 0.875rem !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: #fff !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
 
-    .das-table tbody tr:hover td {
-      background: var(--das-surface-hover);
-    }
+        .das-swal-icon {
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
 
-    /* AVATAR */
-    .das-avatar-circle {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: var(--das-primary-soft);
-      border: 2px solid var(--das-border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      color: var(--das-primary);
-      font-size: 0.75rem;
-      flex-shrink: 0;
-    }
+        .hover-bg-primary-light:hover {
+            background: rgba(115, 103, 240, 0.1) !important;
+            border-color: rgba(115, 103, 240, 0.4) !important;
+        }
 
-    /* CHIP / BADGE */
-    .das-chip {
-      display: inline-flex;
-      align-items: center;
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 2px 10px;
-      border-radius: 20px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
+        .extra-small {
+            font-size: 0.7rem;
+        }
 
-    .das-chip--danger { background: var(--das-danger-soft); color: var(--das-danger); }
-    .das-chip--warning { background: var(--das-warning-soft); color: var(--das-warning); }
-    .das-chip--info { background: var(--das-info-soft); color: var(--das-info); }
-    .das-chip--success { background: var(--das-success-soft); color: var(--das-success); }
-    .das-chip--secondary { background: rgba(168, 170, 174, 0.12); color: #a8aaae; }
-    .das-chip--primary { background: var(--das-primary-soft); color: var(--das-primary); }
+        .das-btn.--purple {
+            background: rgba(115, 103, 240, 0.15);
+            border-color: rgba(115, 103, 240, 0.35);
+            color: #a5a2f7;
+        }
+        .das-btn.--purple:hover {
+            background: rgba(115, 103, 240, 0.3);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(115, 103, 240, 0.2);
+        }
 
-    /* ACTION BUTTONS IN TABLE */
-    .das-table-btn {
-      width: 30px;
-      height: 30px;
-      border-radius: 5px;
-      border: 1px solid var(--das-border);
-      background: transparent;
-      color: #888;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-      text-decoration: none;
-    }
-
-    .das-table-btn:hover {
-      background: var(--das-surface-hover);
-      color: white;
-      transform: translateY(-2px);
-    }
-
-    .das-table-btn--info:hover { color: var(--das-info); border-color: var(--das-info); }
-    .das-table-btn--warning:hover { color: var(--das-warning); border-color: var(--das-warning); }
-    .das-table-btn--danger:hover { color: var(--das-danger); border-color: var(--das-danger); }
-
-    /* MODAL */
-    .das-modal {
-      background: #1a1a2e !important;
-      border: 1px solid var(--das-border) !important;
-      border-radius: var(--das-radius) !important;
-      overflow: hidden;
-    }
-
-    .das-modal-head {
-      border-bottom: 1px solid var(--das-border);
-      background: rgba(115, 103, 240, 0.05);
-      padding: 1.25rem;
-    }
-
-    .das-modal-title {
-      font-size: 1rem;
-      font-weight: 700;
-      color: #fff;
-      margin: 0;
-    }
-
-    .das-modal-body {
-      padding: 1.5rem;
-    }
-
-    .alert-das {
-      background: var(--das-primary-soft);
-      border: 1px solid rgba(115,103,240,0.2);
-      color: #fff;
-      border-radius: 5px;
-    }
-
-    /* ANIMATIONS */
-    @keyframes slideInUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    .slide-in-up { animation: slideInUp 0.5s ease-out; }
-
-    /* PAGINATION */
-    .das-page-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 32px;
-      height: 32px;
-      padding: 0 8px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      border-radius: 5px;
-      border: 1px solid var(--das-border);
-      background: transparent;
-      color: #888;
-      text-decoration: none;
-      transition: all 0.18s ease;
-      cursor: pointer;
-      line-height: 1;
-      font-family: inherit;
-    }
-    .das-page-btn:hover {
-      background: var(--das-surface-hover);
-      color: #fff;
-      border-color: var(--das-border-hover);
-    }
-    .das-page-active {
-      background: var(--das-primary) !important;
-      color: #fff !important;
-      border-color: var(--das-primary) !important;
-    }
-    .das-page-dots {
-      border-color: transparent;
-      background: transparent;
-      color: #555;
-      pointer-events: none;
-    }
-    .page-item.disabled .das-page-btn {
-      opacity: 0.35;
-      pointer-events: none;
-    }
-
-    /* SEARCH & FILTER INPUTS */
-    #searchInput::placeholder { color: rgba(255,255,255,0.3); }
-    #searchInput:focus, #roleSelect:focus, #startDateInput:focus, #endDateInput:focus {
-      outline: none;
-      box-shadow: none;
-      background: rgba(255,255,255,0.08) !important;
-      border-color: rgba(115,103,240,0.5) !important;
-    }
-    #perPageSelect option, #roleSelect option { background: #1a1a2e; color: #ccc; }
-    #perPageSelect:focus { outline: none; box-shadow: none; }
-  </style>
+        .text-purple {
+            color: #a5a2f7 !important;
+        }
+    </style>
+    @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
 @endsection
 
 @section('content')
 
-  {{-- ═══════════════════════════════════════════════════════
-       HERO HEADER
-  ═══════════════════════════════════════════════════════ --}}
-  <div class="das-hero slide-in-up">
-    <div class="das-hero__bg"></div>
-    <div class="das-hero__glass"></div>
-    <div class="das-hero__grid-lines"></div>
+    {{-- ═══════════════════════════════════════════════════════
+       SECTION 1: HERO HEADER
+    ═══════════════════════════════════════════════════════ --}}
+    <div class="das-hero mb-4">
+        <div class="das-hero__bg"></div>
+        <div class="das-hero__glass"></div>
+        <div class="das-hero__grid-lines"></div>
 
-    <div class="das-hero__inner">
-      <div class="das-hero__identity">
-        <div class="das-hero__icon-wrapper">
-          <div class="das-hero__icon">
-            <i class="ti tabler-user-cog"></i>
-          </div>
-        </div>
-        <div>
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-1" style="font-size:0.65rem; text-transform:uppercase; letter-spacing:1px; opacity:0.6;">
-              <li class="breadcrumb-item"><a href="{{ route('admin.master-data') }}" class="text-white text-decoration-none">Master Data</a></li>
-              <li class="breadcrumb-item active text-white opacity-100">User Management</li>
-            </ol>
-          </nav>
-          <h4 class="das-hero__title">Manajemen User</h4>
-          <p class="das-hero__welcome">Kelola akun pengguna, hak akses, dan pengaturan keamanan sistem.</p>
-        </div>
-      </div>
+        <div class="das-hero__inner">
+            <div class="das-hero__identity">
+                <div class="das-hero__logo-wrapper">
+                    <div class="das-hero__logo-placeholder">
+                        <i class="ti tabler-users text-info"></i>
+                    </div>
+                    <div class="das-hero__logo-glow"></div>
+                </div>
 
-      <div class="das-hero__actions">
-        <a href="{{ route('admin.users.create') }}" class="das-btn das-btn--primary shadow-sm">
-          <i class="ti tabler-plus me-1"></i> Tambah User Baru
-        </a>
-      </div>
+                <div class="das-hero__meta">
+                    <div class="das-hero__badge">
+                        <span class="pulse-dot"></span>
+                        <a href="{{ route('admin.master-data') }}" class="text-white text-decoration-none">Master Data</a> / User Management
+                    </div>
+                    <h4 class="das-hero__title text-gradient-gold">Manajemen User</h4>
+                    <p class="das-hero__subtitle">Kelola seluruh akun pengguna, hak akses, dan pengaturan keamanan sistem.</p>
+                </div>
+            </div>
+
+            <div class="das-hero__actions">
+                <a href="{{ route('admin.users.create') }}" class="btn das-btn --primary">
+                    <i class="ti tabler-plus me-1"></i> Tambah User Baru
+                </a>
+            </div>
+        </div>
     </div>
-  </div>
 
-  {{-- FLASH MESSAGES --}}
-  @foreach (['success', 'error', 'info'] as $msg)
-    @if (session($msg))
-      <div class="alert alert-{{ $msg === 'success' ? 'success' : ($msg === 'info' ? 'info' : 'danger') }} alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-lg slide-in-up"
-        role="alert" style="border-radius:8px; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1) !important;">
-        <i class="ti tabler-{{ $msg === 'success' ? 'circle-check' : 'alert-circle' }} fs-4 text-{{ $msg === 'success' ? 'success' : ($msg === 'info' ? 'info' : 'danger') }}"></i>
-        <div class="text-white small fw-medium">{{ session($msg) }}</div>
-        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"></button>
-      </div>
+    {{-- FLASH MESSAGES --}}
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm"
+            role="alert" style="border-radius:8px;">
+            <i class="ti tabler-circle-check fs-5"></i>
+            <span>{{ session('success') }}</span>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        </div>
     @endif
-  @endforeach
 
-  {{-- MAIN TABLE PANEL --}}
-  <div class="das-panel slide-in-up">
-    <div class="das-panel__head flex-wrap gap-3">
-      <div class="das-panel__title">
-        <span class="das-panel__icon-dot"></span>
-        Daftar Pengguna Sistem
-      </div>
-      
-      <div class="d-flex align-items-center gap-3 ms-auto">
-        <label for="perPageSelect" class="text-muted small d-none d-sm-inline">Tampilkan:</label>
-        <select id="perPageSelect" class="form-select border-0 text-white w-auto" 
-                style="background: rgba(255,255,255,0.05); height: 38px; font-size: 0.82rem; cursor: pointer;">
-          <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
-          <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
-          <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
-          <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
-        </select>
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm"
+            role="alert" style="border-radius:8px;">
+            <i class="ti tabler-alert-circle fs-5"></i>
+            <span>{{ session('error') }}</span>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
 
-        <span class="das-chip das-chip--info" id="totalCount">{{ $users->total() }} Total</span>
-      </div>
+    {{-- FILTER PANEL --}}
+    <div class="das-panel mb-4">
+        <div class="das-panel__body">
+            <form id="filterForm" method="GET" class="row gy-3 gx-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label text-white-50 small fw-bold">Cari User</label>
+                    <input type="text" id="filterSearch" name="search" class="form-control"
+                        placeholder="Nama, Username, atau Email…" value="{{ request('search') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-white-50 small fw-bold">Filter Hak Akses</label>
+                    <select id="filterRole" name="role" class="form-select">
+                        <option value="">Semua Role</option>
+                        @foreach ($roles as $val => $label)
+                            <option value="{{ $val }}" @selected(request('role') == $val)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-white-50 small fw-bold">Tanggal Join (Mulai - Sampai)</label>
+                    <div class="d-flex align-items-center gap-1">
+                        <input type="date" id="startDate" name="start_date" class="form-control"
+                            value="{{ request('start_date') }}" style="color-scheme: dark;">
+                        <span class="text-white-50 small">s/d</span>
+                        <input type="date" id="endDate" name="end_date" class="form-control"
+                            value="{{ request('end_date') }}" style="color-scheme: dark;">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn das-btn --info w-100">
+                            <i class="ti tabler-search me-1"></i> Cari
+                        </button>
+                        <button type="button" id="resetFilterBtn" class="btn das-btn --secondary" title="Reset">
+                            <i class="ti tabler-refresh"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <!-- Filter Panel -->
-    <div class="px-4 py-3 border-bottom" style="border-color: var(--das-border) !important; background: rgba(255, 255, 255, 0.01);">
-      <div class="row g-3">
-        <!-- Search Input -->
-        <div class="col-12 col-md-4">
-          <label for="searchInput" class="form-label text-muted small uppercase font-monospace mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Cari User</label>
-          <div class="position-relative">
-            <i class="ti tabler-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size:0.85rem; pointer-events:none;"></i>
-            <input type="text" id="searchInput" name="search" class="form-control border-0 text-white" 
-                   value="{{ request('search') }}"
-                   placeholder="Cari nama, username, email..." 
-                   style="background: rgba(255,255,255,0.05); height: 38px; font-size: 0.82rem; padding-left: 2.4rem;">
-          </div>
-        </div>
+    {{-- TABLE CARD --}}
+    <div class="das-panel">
+        <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3"
+            style="border-color:rgba(255,255,255,0.08) !important;">
+            <h6 class="das-panel__title mb-0 d-flex align-items-center gap-2">
+                <i class="ti tabler-list text-info"></i> Daftar User
+            </h6>
+            <div class="d-flex align-items-center gap-3">
+                <select id="perPageSelect" class="form-select border-0 text-white w-auto"
+                    style="background: rgba(255,255,255,0.05);height:38px;font-size:0.85rem;cursor:pointer;">
+                    <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                    <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                </select>
 
-        <!-- Role Dropdown -->
-        <div class="col-12 col-md-3">
-          <label for="roleSelect" class="form-label text-muted small uppercase font-monospace mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Hak Akses (Role)</label>
-          <select id="roleSelect" name="role" class="form-select border-0 text-white" 
-                  style="background: rgba(255,255,255,0.05); height: 38px; font-size: 0.82rem; cursor: pointer;">
-            <option value="">Semua Hak Akses</option>
-            @foreach ($roles as $val => $label)
-              <option value="{{ $val }}" {{ request('role') == $val ? 'selected' : '' }}>{{ $label }}</option>
-            @endforeach
-          </select>
-        </div>
-
-        <!-- Date Range -->
-        <div class="col-12 col-md-5">
-          <label class="form-label text-muted small uppercase font-monospace mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Tanggal Join (Mulai - Sampai)</label>
-          <div class="d-flex align-items-center gap-2">
-            <input type="date" id="startDateInput" name="start_date" class="form-control border-0 text-white" 
-                   value="{{ request('start_date') }}"
-                   style="background: rgba(255,255,255,0.05); height: 38px; font-size: 0.82rem; cursor: pointer; color-scheme: dark;">
-            <span class="text-muted small">s/d</span>
-            <input type="date" id="endDateInput" name="end_date" class="form-control border-0 text-white" 
-                   value="{{ request('end_date') }}"
-                   style="background: rgba(255,255,255,0.05); height: 38px; font-size: 0.82rem; cursor: pointer; color-scheme: dark;">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="userTableContainer">
-      @include('admin.users.table')
-    </div>
-  </div>
-
-  <!-- Modal Impersonate -->
-  <div class="modal fade" id="impersonateModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content das-modal shadow-lg">
-        <div class="das-modal-head d-flex align-items-center justify-content-between">
-          <h5 class="das-modal-title"><i class="ti tabler-user-check me-2 text-warning"></i>Konfirmasi Akses</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="das-modal-body text-center">
-          <div class="mb-4">
-            <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
-                 style="width:70px; height:70px; background: rgba(255,159,67,0.1); border: 1px solid rgba(255,159,67,0.2);">
-              <i class="ti tabler-login-2 text-warning fs-1"></i>
+                <span class="das-chip --info d-none d-sm-inline-flex">{{ $users->total() }} User</span>
             </div>
-            <h4 class="text-white mb-2">Login sebagai <span id="impName" class="text-warning"></span>?</h4>
-            <p class="text-muted small">Anda akan masuk ke dalam akun ini sebagai Administrator. Seluruh aktivitas akan dicatat dalam log sistem.</p>
-          </div>
-          <div class="d-flex gap-2 justify-content-center pt-2">
-            <button type="button" class="das-btn das-btn--ghost min-w-100" data-bs-dismiss="modal">Batal</button>
-            <a href="#" id="impBtn" class="das-btn das-btn--primary px-4 shadow-sm">Ya, Lanjutkan</a>
-          </div>
         </div>
-      </div>
+        <div class="das-panel__body p-0">
+            <div id="userTableContainer">
+                @include('admin.users.table')
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- Modal Delete -->
-  <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content das-modal shadow-lg">
-        <div class="das-modal-head d-flex align-items-center justify-content-between" style="background: rgba(234,84,85,0.05);">
-          <h5 class="das-modal-title"><i class="ti tabler-alert-triangle me-2 text-danger"></i>Hapus Permanen</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- Modal Konfirmasi Impersonate -->
+    <div class="modal fade" id="impersonateConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+            <div class="modal-content das-modal shadow-lg" style="border-radius: 5px !important;">
+                <div class="das-modal-head py-3 px-4">
+                    <h5 class="das-modal-title"><i class="ti tabler-login me-2 text-success"></i> Konfirmasi Login As</h5>
+                </div>
+                <div class="das-modal-body p-4 text-white">
+                    <p class="mb-0">Anda akan masuk ke dalam akun <b id="impersonateUserName" class="text-warning"></b>. Seluruh aktivitas akan dicatat dalam log sistem.</p>
+                </div>
+                <div class="d-flex justify-content-end gap-2 px-4 pb-4 pt-2">
+                    <button type="button" class="btn btn-label-secondary w-50" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" id="confirmImpersonateBtn" class="btn btn-success w-50">Ya, Lanjutkan</button>
+                </div>
+            </div>
         </div>
-        <form id="delForm" method="POST">
-          @csrf @method('DELETE')
-          <div class="das-modal-body text-center">
-            <div class="mb-4">
-              <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
-                   style="width:70px; height:70px; background: rgba(234,84,85,0.1); border: 1px solid rgba(234,84,85,0.2);">
-                <i class="ti tabler-trash-x text-danger fs-1"></i>
-              </div>
-              <h4 class="text-white mb-2">Hapus <span id="delName" class="text-danger"></span>?</h4>
-              <p class="text-muted small">Aksi ini tidak dapat dibatalkan. Seluruh data yang terkait dengan user ini akan ikut terhapus.</p>
-            </div>
-            <div class="d-flex gap-2 justify-content-center pt-2">
-              <button type="button" class="das-btn das-btn--ghost min-w-100" data-bs-dismiss="modal">Batal</button>
-              <button type="submit" class="das-btn das-btn--primary px-4 shadow-sm" style="background-color: var(--das-danger); border-color: var(--das-danger);">Hapus Sekarang</button>
-            </div>
-          </div>
-        </form>
-      </div>
     </div>
-  </div>
 
 @endsection
 
+@section('vendor-script')
+    @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.js'])
+@endsection
+
 @section('page-script')
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const container = document.getElementById('userTableContainer');
-      const searchInput = document.getElementById('searchInput');
-      const roleSelect = document.getElementById('roleSelect');
-      const startDateInput = document.getElementById('startDateInput');
-      const endDateInput = document.getElementById('endDateInput');
-      const perPageSelect = document.getElementById('perPageSelect');
-      
-      let sortBy = "{{ request('sort_by', 'name') }}";
-      let sortDirection = "{{ request('sort_direction', 'asc') }}";
-      let searchTimeout;
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
 
-      function fetchData(page = 1, pushToHistory = true) {
-        const search = searchInput.value;
-        const role = roleSelect.value;
-        const startDate = startDateInput.value;
-        const endDate = endDateInput.value;
-        const perPage = perPageSelect.value;
+            const container = document.getElementById('userTableContainer');
+            const perPageSelect = document.getElementById('perPageSelect');
+            const filterSearch = document.getElementById('filterSearch');
+            const filterRole = document.getElementById('filterRole');
+            const startDate = document.getElementById('startDate');
+            const endDate = document.getElementById('endDate');
+            const filterForm = document.getElementById('filterForm');
+            const resetFilterBtn = document.getElementById('resetFilterBtn');
+            let searchTimeout;
 
-        // Build query string
-        const params = new URLSearchParams();
-        params.append('page', page);
-        if (search) params.append('search', search);
-        if (role) params.append('role', role);
-        if (startDate) params.append('start_date', startDate);
-        if (endDate) params.append('end_date', endDate);
-        if (sortBy) params.append('sort_by', sortBy);
-        if (sortDirection) params.append('sort_direction', sortDirection);
-        if (perPage) params.append('per_page', perPage);
+            let currentSortBy = '{{ $sortBy ?? 'name' }}';
+            let currentSortDir = '{{ $sortDir ?? 'asc' }}';
 
-        const url = `{{ route('admin.users.index') }}?${params.toString()}`;
+            function fetchData(page = 1) {
+                const search = encodeURIComponent(filterSearch.value || '');
+                const perPage = perPageSelect.value || 10;
+                const role = filterRole.value || '';
+                const sd = startDate.value || '';
+                const ed = endDate.value || '';
+                const url = `{{ route('admin.users.index') }}?page=${page}&search=${search}&per_page=${perPage}&sort_by=${currentSortBy}&sort_dir=${currentSortDir}&role=${role}&start_date=${sd}&end_date=${ed}`;
 
-        // Add loading state
-        container.style.opacity = '0.5';
-        container.style.pointerEvents = 'none';
+                container.style.opacity = '0.5';
+                container.style.pointerEvents = 'none';
 
-        fetch(url, {
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        })
-        .then(response => response.text())
-        .then(html => {
-          container.innerHTML = html;
-          container.style.opacity = '1';
-          container.style.pointerEvents = 'auto';
-          
-          // Update URL in browser
-          if (pushToHistory) {
-            history.pushState({ page, search, role, startDate, endDate, sortBy, sortDirection, perPage }, '', url);
-          }
-          
-          // Re-initialize tooltips
-          const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-          tooltipTriggerList.map(function(tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-          });
-          
-          // Update total count
-          const ajaxTotalCount = document.getElementById('ajaxTotalCount');
-          if (ajaxTotalCount) {
-            const totalVal = ajaxTotalCount.value;
-            document.getElementById('totalCount').textContent = totalVal + ' Total';
-          }
-        })
-        .catch(error => {
-          console.error('Error fetching data:', error);
-          container.style.opacity = '1';
-          container.style.pointerEvents = 'auto';
+                fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(res => res.text())
+                    .then(html => {
+                        container.innerHTML = html;
+                        container.style.opacity = '1';
+                        container.style.pointerEvents = 'auto';
+
+                        // re-init tooltips
+                        const tooltipTriggerList = [].slice.call(document.querySelectorAll(
+                            '[data-bs-toggle="tooltip"]'));
+                        tooltipTriggerList.map(function(tooltipTriggerEl) {
+                            return new bootstrap.Tooltip(tooltipTriggerEl);
+                        });
+                    })
+                    .catch(err => {
+                        console.error('Fetch error:', err);
+                        container.style.opacity = '1';
+                        container.style.pointerEvents = 'auto';
+                    });
+            }
+
+            // debounce search
+            if (filterSearch) {
+                filterSearch.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => fetchData(1), 450);
+                });
+            }
+
+            if (filterRole) {
+                filterRole.addEventListener('change', function() {
+                    fetchData(1);
+                });
+            }
+
+            if (startDate) {
+                startDate.addEventListener('change', function() {
+                    fetchData(1);
+                });
+            }
+
+            if (endDate) {
+                endDate.addEventListener('change', function() {
+                    fetchData(1);
+                });
+            }
+
+            if (filterForm) {
+                filterForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    fetchData(1);
+                });
+            }
+
+            if (resetFilterBtn) {
+                resetFilterBtn.addEventListener('click', function() {
+                    if (filterSearch) filterSearch.value = '';
+                    if (filterRole) filterRole.value = '';
+                    if (startDate) startDate.value = '';
+                    if (endDate) endDate.value = '';
+                    fetchData(1);
+                });
+            }
+
+            perPageSelect.addEventListener('change', function() {
+                fetchData(1);
+            });
+
+            // pagination clicks (capture delegated events)
+            container.addEventListener('click', function(e) {
+                const link = e.target.closest('a.das-page-btn');
+                if (link) {
+                    e.preventDefault();
+                    const page = link.dataset.page || new URL(link.href).searchParams.get('page') || 1;
+                    fetchData(page);
+                }
+            });
+
+            // sort clicks (capture delegated events)
+            container.addEventListener('click', function(e) {
+                const th = e.target.closest('th.sortable');
+                if (th) {
+                    const sortBy = th.dataset.sortBy;
+                    if (currentSortBy === sortBy) {
+                        currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSortBy = sortBy;
+                        currentSortDir = 'asc';
+                    }
+                    fetchData(1);
+                }
+            });
+
+            // Impersonate and Delete handlers
+            container.addEventListener('click', function(e) {
+                // Impersonate handler
+                const btnImpersonate = e.target.closest('.btn-impersonate-user');
+                if (btnImpersonate) {
+                    const url = btnImpersonate.dataset.url;
+                    const nama = btnImpersonate.dataset.nama || 'User';
+
+                    document.getElementById('impersonateUserName').textContent = nama;
+                    const modalEl = document.getElementById('impersonateConfirmModal');
+                    const confirmBtn = document.getElementById('confirmImpersonateBtn');
+
+                    // Reset confirm button state
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = 'Ya, Lanjutkan';
+
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+
+                    // Cleanup any existing click handler
+                    const newConfirmBtn = confirmBtn.cloneNode(true);
+                    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+                    newConfirmBtn.addEventListener('click', function() {
+                        newConfirmBtn.disabled = true;
+                        newConfirmBtn.innerHTML = '<i class="ti tabler-loader spinner me-1"></i> Memproses...';
+
+                        modal.hide();
+
+                        // Create form element dynamically to do a POST request
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = url;
+
+                        const csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = '_token';
+                        csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                        form.appendChild(csrfInput);
+
+                        document.body.appendChild(form);
+                        form.submit();
+                    });
+                    return;
+                }
+
+                // Delete handler
+                const btn = e.target.closest('.btn-hapus-user');
+                if (!btn) return;
+
+                const url = btn.dataset.url;
+                const nama = btn.dataset.nama || 'user ini';
+
+                Swal.fire({
+                    title: 'Hapus User?',
+                    html: `<div class="mt-2">Data <b class="text-danger">"${nama}"</b> akan dihapus secara permanen beserta data terkait.</div>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Hapus Data',
+                    cancelButtonText: 'Batalkan',
+                    customClass: {
+                        popup: 'das-swal-popup',
+                        title: 'das-swal-title',
+                        htmlContainer: 'das-swal-html',
+                        confirmButton: 'btn btn-danger das-swal-confirm me-2',
+                        cancelButton: 'btn das-swal-cancel',
+                        icon: 'das-swal-icon'
+                    },
+                    buttonsStyling: false,
+                    showClass: {
+                        popup: 'animate__animated animate__fadeInUp animate__faster'
+                    },
+                    hideClass: {
+                        popup: 'animate__animated animate__fadeOutDown animate__faster'
+                    },
+                    background: 'transparent',
+                    backdrop: `rgba(0,0,10,0.4)`,
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    btn.disabled = true;
+
+                    fetch(url, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector(
+                                    'meta[name="csrf-token"]').getAttribute('content'),
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: data.message || 'User berhasil dihapus.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-success das-swal-confirm'
+                                    },
+                                    timer: 2000,
+                                    showConfirmButton: false,
+                                    background: 'transparent',
+                                });
+                                fetchData(1);
+                            } else {
+                                btn.disabled = false;
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal!',
+                                    text: data.message || 'Terjadi kesalahan.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-primary das-swal-confirm'
+                                    },
+                                    showClass: {
+                                        popup: 'animate__animated animate__shakeX animate__faster'
+                                    },
+                                    hideClass: {
+                                        popup: 'animate__animated animate__fadeOut animate__faster'
+                                    },
+                                    background: 'transparent',
+                                    buttonsStyling: false
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            btn.disabled = false;
+                            console.error('Delete user error:', err);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: 'Terjadi kesalahan koneksi.',
+                                customClass: {
+                                    popup: 'das-swal-popup',
+                                    title: 'das-swal-title',
+                                    htmlContainer: 'das-swal-html',
+                                    confirmButton: 'btn btn-primary das-swal-confirm'
+                                },
+                                showClass: {
+                                    popup: 'animate__animated animate__shakeX animate__faster'
+                                },
+                                hideClass: {
+                                    popup: 'animate__animated animate__fadeOut animate__faster'
+                                },
+                                background: 'transparent',
+                                buttonsStyling: false
+                            });
+                        });
+                });
+            });
+
+            // Initialize tooltips on page load
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
         });
-      }
-
-      // Handle popstate for browser back/forward buttons
-      window.addEventListener('popstate', function(event) {
-        const urlParams = new URLSearchParams(window.location.search);
-        
-        searchInput.value = urlParams.get('search') || '';
-        roleSelect.value = urlParams.get('role') || '';
-        startDateInput.value = urlParams.get('start_date') || '';
-        endDateInput.value = urlParams.get('end_date') || '';
-        perPageSelect.value = urlParams.get('per_page') || '10';
-        sortBy = urlParams.get('sort_by') || 'name';
-        sortDirection = urlParams.get('sort_direction') || 'asc';
-        
-        const page = urlParams.get('page') || 1;
-        fetchData(page, false);
-      });
-
-      // Live search with debounce
-      searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-          fetchData(1);
-        }, 500);
-      });
-
-      // Dropdown role change
-      roleSelect.addEventListener('change', function() {
-        fetchData(1);
-      });
-
-      // Date range change
-      startDateInput.addEventListener('change', function() {
-        fetchData(1);
-      });
-      endDateInput.addEventListener('change', function() {
-        fetchData(1);
-      });
-
-      // Per page change
-      perPageSelect.addEventListener('change', function() {
-        fetchData(1);
-      });
-
-      // Click handling for table (sorting headers & pagination links)
-      container.addEventListener('click', function(e) {
-        // Pagination link click handling
-        const link = e.target.closest('a.das-page-btn');
-        if (link) {
-          e.preventDefault();
-          const page = link.dataset.page || new URL(link.href).searchParams.get('page') || 1;
-          fetchData(page);
-          return;
-        }
-
-        // Sorting header click handling
-        const th = e.target.closest('th.sortable');
-        if (th) {
-          e.preventDefault();
-          const field = th.dataset.sort;
-          if (sortBy === field) {
-            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-          } else {
-            sortBy = field;
-            sortDirection = 'asc';
-          }
-          fetchData(1);
-        }
-      });
-
-      // Tooltips initial load
-      const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-      tooltipTriggerList.map(function(tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-      });
-
-      // Impersonate modal
-      const impModal = document.getElementById('impersonateModal');
-      if (impModal) {
-        impModal.addEventListener('show.bs.modal', function(event) {
-          const btn = event.relatedTarget;
-          impModal.querySelector('#impName').textContent = btn.getAttribute('data-name');
-          impModal.querySelector('#impBtn').href = btn.getAttribute('data-url');
-        });
-      }
-
-      // Delete modal
-      const delModal = document.getElementById('deleteModal');
-      if (delModal) {
-        delModal.addEventListener('show.bs.modal', function(event) {
-          const btn = event.relatedTarget;
-          delModal.querySelector('#delName').textContent = btn.getAttribute('data-name');
-          delModal.querySelector('#delForm').action = btn.getAttribute('data-url');
-        });
-      }
-    });
-  </script>
+    </script>
 @endsection

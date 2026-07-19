@@ -15,23 +15,20 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $search = $request->query('search');
+        $perPage = (int) $request->query('per_page', 10);
+        $sortBy = $request->query('sort_by', 'name');
+        $sortDir = $request->query('sort_dir', 'asc');
         $role = $request->query('role');
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
 
-        $sortBy = $request->query('sort_by', 'name'); // default sorting by name
-        $sortDirection = $request->query('sort_direction', 'asc'); // default asc
-
-        // Whitelist columns to avoid SQL Injection
-        $allowedSortColumns = ['name', 'created_at'];
-        if (!in_array($sortBy, $allowedSortColumns)) {
+        $allowedSorts = ['name', 'created_at'];
+        if (!in_array($sortBy, $allowedSorts)) {
             $sortBy = 'name';
         }
-        if (!in_array($sortDirection, ['asc', 'desc'])) {
-            $sortDirection = 'asc';
+        if (!in_array($sortDir, ['asc', 'desc'])) {
+            $sortDir = 'asc';
         }
-
-        $perPage = $request->query('per_page', 10);
 
         $users = User::query()
             ->when($search, function ($query, $search) {
@@ -42,7 +39,6 @@ class UserController extends Controller
                 });
             })
             ->when($role, function ($query, $role) {
-                // Memfilter berdasarkan kolom role JSON atau relasi
                 return $query->where(function($q) use ($role) {
                     $q->where('role', $role)
                       ->orWhereJsonContains('roles', $role);
@@ -51,17 +47,17 @@ class UserController extends Controller
             ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
                 return $query->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
             })
-            ->orderBy($sortBy, $sortDirection)
+            ->orderBy($sortBy, $sortDir)
             ->paginate($perPage)
             ->withQueryString();
 
         if ($request->ajax()) {
-            return view('admin.users.table', compact('users'))->render();
+            return view('admin.users.table', compact('users', 'sortBy', 'sortDir'))->render();
         }
 
         $roles = $this->roleOptions();
 
-        return view('admin.users.index', compact('users', 'roles'));
+        return view('admin.users.index', compact('users', 'roles', 'sortBy', 'sortDir'));
     }
 
     public function create()
@@ -145,13 +141,20 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')->with('success', 'User berhasil diperbarui.');
     }
 
-    public function destroy(User $user)
+    public function destroy(Request $request, User $user)
     {
         if ($user->id === auth()->id()) {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Tidak dapat menghapus akun yang sedang aktif.'], 400);
+            }
             return back()->with('error', 'Tidak dapat menghapus akun yang sedang aktif.');
         }
 
         $user->delete();
+
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'User berhasil dihapus.']);
+        }
 
         return redirect()->route('admin.users.index')->with('success', 'User berhasil dihapus.');
     }
