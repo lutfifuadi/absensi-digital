@@ -78,7 +78,7 @@ class IdCardPdfService
             return '';
         }
 
-        if (strlen($filename) > 30) {
+        if (strlen($filename) > 30 && !str_contains($filename, '/') && !str_contains($filename, '\\')) {
             try {
                 return app(\App\Services\GoogleDriveService::class)->getPhotoBase64($filename);
             } catch (\Exception $e) {
@@ -311,7 +311,7 @@ class IdCardPdfService
         }
 
         // Check if Google Drive File ID
-        if (strlen($fotoPath) > 30) {
+        if (strlen($fotoPath) > 30 && !str_contains($fotoPath, '/') && !str_contains($fotoPath, '\\')) {
             try {
                 return app(\App\Services\GoogleDriveService::class)->getPhotoBase64($fotoPath);
             } catch (\Exception $e) {

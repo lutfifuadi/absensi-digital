@@ -18,7 +18,7 @@ class PortalSiswaController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        $siswa = Siswa::with('kelas')->where('user_id', $user->id)->firstOrFail();
+        $siswa = Siswa::with(['kelas', 'tahunAkademik'])->where('user_id', $user->id)->firstOrFail();
         
         $template = \App\Models\IdCardTemplate::where('type', 'siswa')->active()->first();
 
@@ -50,7 +50,7 @@ class PortalSiswaController extends Controller
         $ttdPath = Pengaturan::where('key', 'tanda_tangan_kepala_sekolah')->value('value');
         $ttdBase64 = null;
         if ($ttdPath) {
-            if (strlen($ttdPath) > 30) {
+            if (strlen($ttdPath) > 30 && !str_contains($ttdPath, '/') && !str_contains($ttdPath, '\\')) {
                 try {
                     $ttdBase64 = app(\App\Services\GoogleDriveService::class)->getPhotoBase64($ttdPath);
                 } catch (\Exception $e) {
@@ -79,7 +79,7 @@ class PortalSiswaController extends Controller
         $capPath = Pengaturan::where('key', 'cap_sekolah')->value('value');
         $capBase64 = null;
         if ($capPath) {
-            if (strlen($capPath) > 30) {
+            if (strlen($capPath) > 30 && !str_contains($capPath, '/') && !str_contains($capPath, '\\')) {
                 try {
                     $capBase64 = app(\App\Services\GoogleDriveService::class)->getPhotoBase64($capPath);
                 } catch (\Exception $e) {
@@ -112,7 +112,7 @@ class PortalSiswaController extends Controller
         // 3. Konversi foto siswa ke base64
         $fotoBase64 = null;
         if ($siswa->foto) {
-            if (strlen($siswa->foto) > 30) {
+            if (strlen($siswa->foto) > 30 && !str_contains($siswa->foto, '/') && !str_contains($siswa->foto, '\\')) {
                 try {
                     $fotoBase64 = app(\App\Services\GoogleDriveService::class)->getPhotoBase64($siswa->foto);
                 } catch (\Exception $e) {
@@ -139,7 +139,7 @@ class PortalSiswaController extends Controller
         // 4. Background template
         $bgBase64 = null;
         if ($template && $template->background_path) {
-            if (strlen($template->background_path) > 30) {
+            if (strlen($template->background_path) > 30 && !str_contains($template->background_path, '/') && !str_contains($template->background_path, '\\')) {
                 try {
                     $bgBase64 = app(\App\Services\GoogleDriveService::class)->getPhotoBase64($template->background_path);
                 } catch (\Exception $e) {

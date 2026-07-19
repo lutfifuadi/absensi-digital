@@ -230,7 +230,7 @@ class CetakKartuController extends Controller
         }
 
         // Check if Google Drive File ID
-        if (strlen($fotoPath) > 30) {
+        if (strlen($fotoPath) > 30 && !str_contains($fotoPath, '/') && !str_contains($fotoPath, '\\')) {
             try {
                 return app(\App\Services\GoogleDriveService::class)->getPhotoBase64($fotoPath);
             } catch (\Exception $e) {

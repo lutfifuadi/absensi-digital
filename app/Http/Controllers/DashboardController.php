@@ -939,7 +939,24 @@ private function superAdminData(): array
     private function siswaData($user): array
     {
         $siswa = Siswa::where('user_id', $user->id)->first();
-        if (!$siswa) return ['attendance_streak' => 0, 'greeting_message' => ''];
+        if (!$siswa) {
+            return [
+                'attendance_streak' => 0,
+                'greeting_message' => '',
+                'statsHadir' => 0,
+                'statsSakit' => 0,
+                'statsIzin' => 0,
+                'statsAlpha' => 0,
+                'totalAbsenBulanIni' => 0,
+                'persentaseKehadiran' => 0,
+                'riwayatAbsensi' => collect([]),
+                'chartDays' => [],
+                'chartHadir' => [],
+                'chartSakit' => [],
+                'chartIzin' => [],
+                'chartAlpha' => [],
+            ];
+        }
 
         // Calculate streak
         $streak = 0;
@@ -998,9 +1015,50 @@ private function superAdminData(): array
             $greeting = $messages[$highestKey];
         }
 
+        $startOfMonth = now()->startOfMonth();
+        $endOfMonth = now()->endOfMonth();
+
+        $statsHadir = AbsensiSiswa::where('siswa_id', $siswa->id)->whereBetween('tanggal', [$startOfMonth, $endOfMonth])->whereIn('status', ['hadir', 'terlambat'])->count();
+        $statsSakit = AbsensiSiswa::where('siswa_id', $siswa->id)->whereBetween('tanggal', [$startOfMonth, $endOfMonth])->where('status', 'sakit')->count();
+        $statsIzin = AbsensiSiswa::where('siswa_id', $siswa->id)->whereBetween('tanggal', [$startOfMonth, $endOfMonth])->where('status', 'izin')->count();
+        $statsAlpha = AbsensiSiswa::where('siswa_id', $siswa->id)->whereBetween('tanggal', [$startOfMonth, $endOfMonth])->where('status', 'alpha')->count();
+        $totalAbsenBulanIni = $statsHadir + $statsSakit + $statsIzin + $statsAlpha;
+        $persentaseKehadiran = $totalAbsenBulanIni > 0 ? round(($statsHadir / $totalAbsenBulanIni) * 100) : 0;
+
+        $riwayatAbsensi = AbsensiSiswa::where('siswa_id', $siswa->id)->orderBy('tanggal', 'desc')->orderBy('jam_masuk', 'desc')->limit(5)->get();
+
+        $chartDays = [];
+        $chartHadir = [];
+        $chartSakit = [];
+        $chartIzin = [];
+        $chartAlpha = [];
+
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i)->toDateString();
+            $label = now()->subDays($i)->locale('id')->translatedFormat('d M');
+            $chartDays[] = $label;
+            
+            $chartHadir[] = AbsensiSiswa::where('siswa_id', $siswa->id)->whereDate('tanggal', $date)->whereIn('status', ['hadir', 'terlambat'])->count();
+            $chartSakit[] = AbsensiSiswa::where('siswa_id', $siswa->id)->whereDate('tanggal', $date)->where('status', 'sakit')->count();
+            $chartIzin[] = AbsensiSiswa::where('siswa_id', $siswa->id)->whereDate('tanggal', $date)->where('status', 'izin')->count();
+            $chartAlpha[] = AbsensiSiswa::where('siswa_id', $siswa->id)->whereDate('tanggal', $date)->where('status', 'alpha')->count();
+        }
+
         return [
             'attendance_streak' => $streak,
-            'greeting_message' => $greeting
+            'greeting_message' => $greeting,
+            'statsHadir' => $statsHadir,
+            'statsSakit' => $statsSakit,
+            'statsIzin' => $statsIzin,
+            'statsAlpha' => $statsAlpha,
+            'totalAbsenBulanIni' => $totalAbsenBulanIni,
+            'persentaseKehadiran' => $persentaseKehadiran,
+            'riwayatAbsensi' => $riwayatAbsensi,
+            'chartDays' => $chartDays,
+            'chartHadir' => $chartHadir,
+            'chartSakit' => $chartSakit,
+            'chartIzin' => $chartIzin,
+            'chartAlpha' => $chartAlpha,
         ];
     }
 

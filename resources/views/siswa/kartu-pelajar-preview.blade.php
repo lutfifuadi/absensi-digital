@@ -40,7 +40,7 @@
   /* Kartu Container */
   .kp-card-container {
     position: relative;
-    border-radius: 20px;
+    border-radius: 0 !important;
     overflow: hidden;
     box-shadow: 0 25px 80px rgba(212,175,55,0.18), 0 0 0 1px rgba(212,175,55,0.25);
     font-family: 'Product Sans', sans-serif;
@@ -51,7 +51,7 @@
     position: relative;
     width: 1011px;
     height: 638px;
-    border-radius: 20px;
+    border-radius: 0 !important;
     overflow: hidden;
     font-family: 'Product Sans', sans-serif;
   }
@@ -490,10 +490,13 @@
   <div class="kp-scale-wrapper">
     @if($template && $config)
       {{-- ====== KARTU PELAJAR TEMPLATE KUSTOM ====== --}}
-      <div class="kp-card-container template-wrapper" id="kartuPelajar" style="width: {{ $config['canvas']['width'] }}pt; height: {{ $config['canvas']['height'] }}pt;">
-        @if($bgBase64)
-          <img class="template-background" src="{{ $bgBase64 }}" alt="Background">
-        @endif
+      <div class="kp-card-container template-wrapper" id="kartuPelajar" 
+           style="
+             width: {{ $config['canvas']['width'] }}pt; 
+             height: {{ $config['canvas']['height'] }}pt; 
+             border-radius: 0 !important;
+             @if($bgBase64) background-image: url('{{ $bgBase64 }}'); background-size: cover; background-position: center; @endif
+           ">
 
         @php
           $elements = $config['elements'];
@@ -506,7 +509,7 @@
         @endphp
 
         <!-- PHOTO -->
-        @if($elements['photo']['show'])
+        @if(isset($elements['photo']) && $elements['photo']['show'])
           <div class="template-element" style="left: {{ $elements['photo']['x'] }}pt; top: {{ $elements['photo']['y'] }}pt;">
             @if($fotoBase64)
               <img class="template-photo" src="{{ $fotoBase64 }}" 
@@ -519,7 +522,7 @@
         @endif
 
         <!-- Name -->
-        @if($elements['name']['show'])
+        @if(isset($elements['name']) && $elements['name']['show'])
           <div class="template-element template-text" style="
               left: {{ $elements['name']['align'] == 'center' ? 0 : $elements['name']['x'] . 'pt' }}; 
               top: {{ $elements['name']['y'] }}pt;
@@ -533,7 +536,7 @@
         @endif
 
         <!-- ID Card (NIS) -->
-        @if($elements['id_number']['show'])
+        @if(isset($elements['id_number']) && $elements['id_number']['show'])
           <div class="template-element template-text" style="
               left: {{ $elements['id_number']['align'] == 'center' ? 0 : $elements['id_number']['x'] . 'pt' }}; 
               top: {{ $elements['id_number']['y'] }}pt;
@@ -575,7 +578,7 @@
         @endif
 
         <!-- Class -->
-        @if($elements['class']['show'])
+        @if(isset($elements['class']) && $elements['class']['show'])
           <div class="template-element template-text" style="
               left: {{ $elements['class']['align'] == 'center' ? 0 : $elements['class']['x'] . 'pt' }}; 
               top: {{ $elements['class']['y'] }}pt;
@@ -589,7 +592,7 @@
         @endif
 
         <!-- QR Code -->
-        @if($elements['qr']['show'])
+        @if(isset($elements['qr']) && $elements['qr']['show'])
           <div class="template-element" style="left: {{ $elements['qr']['x'] }}pt; top: {{ $elements['qr']['y'] }}pt;">
             <img class="template-qr" src="{{ $qrImage }}" style="width: {{ $elements['qr']['w'] }}pt; height: {{ $elements['qr']['h'] }}pt;" alt="QR Code">
           </div>
@@ -872,17 +875,11 @@ function downloadKartu() {
   // Tambahkan sedikit delay untuk memastikan layout terhitung ulang oleh browser
   setTimeout(() => {
     html2canvas(card, {
-      scale: 2,
+      scale: 6,
       useCORS: true,
-      allowTaint: false,
+      allowTaint: true,
       backgroundColor: null,
-      width: cardWidth,
-      height: cardHeight,
-      scrollX: 0,
-      scrollY: 0,
-      x: 0,
-      y: 0,
-      logging: false,
+      imageTimeout: 0,
     }).then(function(canvas) {
       // Kembalikan style transform asli setelah render selesai
       if (wrapper) {
@@ -909,7 +906,7 @@ function downloadKartu() {
       btn.disabled = false;
       btn.innerHTML = '<i class="ti tabler-download" style="font-size:18px;"></i> Download Kartu (PNG)';
     });
-  }, 150);
+  }, 350);
 }
 </script>
 @endpush
