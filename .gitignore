@@ -66,3 +66,7 @@ vendor.zip
 
 # PRD files
 /prd-laporan-absensi.md
+
+# Temporary files
+9router-*.tgz
+package/

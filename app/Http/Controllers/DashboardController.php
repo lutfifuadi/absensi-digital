@@ -586,7 +586,7 @@ private function superAdminData(): array
             ->selectRaw('COUNT(*) as total')
             ->groupBy('tanggal', 'status')
             ->get()
-            ->groupBy('tanggal');
+            ->groupBy(fn($item) => $item->tanggal->toDateString());
 
         for ($i = 6; $i >= 0; $i--) {
             $date = $today->copy()->subDays($i);
@@ -598,6 +598,27 @@ private function superAdminData(): array
             $chartIzin[]  = $dayData->firstWhere('status', 'izin')?->total ?? 0;
             $chartAlpha[] = $dayData->firstWhere('status', 'alpha')?->total ?? 0;
         }
+
+        $sumHadir = array_sum($chartHadir);
+        $totalHari = count($chartHadir) ?: 1;
+        $rataRataHadir = $totalSiswaWajibAbsen > 0
+            ? round(($sumHadir / ($totalSiswaWajibAbsen * $totalHari)) * 100, 1) . '%'
+            : '0%';
+
+        $maxHadir = -1;
+        $maxIndex = -1;
+        foreach ($chartHadir as $index => $value) {
+            if ($value > $maxHadir) {
+                $maxHadir = $value;
+                $maxIndex = $index;
+            }
+        }
+        $hariTerbaik = ($sumHadir > 0 && $maxIndex !== -1) ? $chartDays[$maxIndex] : '-';
+
+        $sumTidakHadir = array_sum($chartSakit) + array_sum($chartIzin) + array_sum($chartAlpha);
+        $tingkatKetidakhadiran = $totalSiswaWajibAbsen > 0
+            ? round(($sumTidakHadir / ($totalSiswaWajibAbsen * $totalHari)) * 100, 1) . '%'
+            : '0%';
 
         // ── Absensi Guru & Staff hari ini ─────────────────────────────
         $absensiGuruHariIni  = AbsensiGuru::whereDate('tanggal', $today)->count();
@@ -634,6 +655,7 @@ private function superAdminData(): array
             'hadirCount', 'sakitCount', 'izinCount', 'alphaCount', 'terlambatCount', 'belumAbsen',
             'tingkatKehadiran',
             'chartDays', 'chartHadir', 'chartSakit', 'chartIzin', 'chartAlpha',
+            'rataRataHadir', 'hariTerbaik', 'tingkatKetidakhadiran',
             'absensiGuruHariIni', 'absensiStaffHariIni',
             'palingAwal', 'palingAkhir', 'pengaturanArr',
             'tahunAkademikAktif',

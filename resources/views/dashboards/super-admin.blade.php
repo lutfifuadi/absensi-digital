@@ -361,80 +361,39 @@
       </div>
     </div>
 
-    {{-- -- Row 2, Col 1: Laporan Mingguan -- --}}
+    {{-- -- Row 2, Col 1: Tren Kehadiran (7 Hari) — selaras dengan siswa dashboard -- --}}
     <div class="col-md-6">
-      <div class="card card-grad-info h-100">
-        <div class="card-header pb-0 d-flex justify-content-between">
-          <div class="card-title mb-0">
-            <h5 class="mb-1">Laporan Mingguan</h5>
-            <p class="card-subtitle">Tren 7 Hari Terakhir</p>
+      <div class="siswa-chart-card h-100">
+        <div class="das-panel__head">
+          <div class="das-panel__title">
+            <span class="das-panel__icon-dot das-panel__icon-dot--success"></span>
+            Tren Kehadiran — 7 Hari Terakhir
           </div>
-          <a href="{{ route('admin.laporan.index') }}" class="btn btn-text-secondary rounded-pill text-body-secondary border-0 p-2 me-n1">
-            <i class="ti tabler-external-link icon-md text-body-secondary"></i>
+          <a href="{{ route('admin.laporan.index') }}" class="das-btn das-btn--ghost" style="font-size:0.72rem;">
+            <i class="ti tabler-external-link me-1"></i> Lihat Semua
           </a>
         </div>
-        <div class="card-body">
-          {{-- Chart Full Width --}}
-          <div id="chartKehadiranMingguan" class="w-100"></div>
-
-          {{-- Total Hadir di Bawah Chart --}}
-          @php $grandTotal = max(array_sum($chartHadir) + array_sum($chartSakit) + array_sum($chartIzin) + array_sum($chartAlpha), 1); @endphp
-          <div class="text-center mt-4 py-4 border-top border-secondary border-opacity-10">
-            <div class="d-flex align-items-baseline justify-content-center gap-2 mt-3">
-              <h2 class="mb-0 display-6 fw-black">{{ array_sum($chartHadir) }}</h2>
-              <div class="badge rounded bg-success text-white">{{ round($tingkatKehadiran ?? 0, 1) }}%</div>
-            </div>
-            <small class="text-body-secondary">Total hadir 7 hari</small>
-          </div>
-
-          {{-- 4 Stats with progress bars --}}
-          <div class="row g-3 mt-3">
-            <div class="col-6 col-sm-3">
-              <div class="d-flex align-items-center gap-2 mb-1">
-                <div class="badge rounded bg-label-success p-1"><i class="ti tabler-circle-check icon-sm"></i></div>
-                <small class="fw-medium">Hadir</small>
-              </div>
-              <div class="d-flex align-items-center gap-2">
-                <div class="progress flex-grow-1" style="height:4px">
-                  <div class="progress-bar bg-success" style="width: {{ array_sum($chartHadir) / $grandTotal * 100 }}%"></div>
-                </div>
-                <small class="text-body-secondary fw-medium">{{ array_sum($chartHadir) }}</small>
+        <div class="das-chart-mount">
+          <div id="chartKehadiranMingguan" style="min-height:200px;width:100%;"></div>
+        </div>
+        <div class="px-4 pb-4 pt-2 border-top" style="border-color: rgba(231,236,245,0.06) !important;">
+          <div class="row text-center g-3">
+            <div class="col-4">
+              <div class="p-2 rounded-2" style="background: rgba(47, 191, 113, 0.05); border: 1px solid rgba(47, 191, 113, 0.1);">
+                <small class="text-body-secondary d-block mb-1 text-uppercase text-nowrap" style="font-size: 0.65rem; letter-spacing: 0.5px;">Rerata Hadir</small>
+                <h5 class="mb-0 text-success fw-bold text-nowrap" style="font-size: 0.95rem;">{{ $rataRataHadir }}</h5>
               </div>
             </div>
-            <div class="col-6 col-sm-3">
-              <div class="d-flex align-items-center gap-2 mb-1">
-                <div class="badge rounded bg-label-info p-1"><i class="ti tabler-heart icon-sm"></i></div>
-                <small class="fw-medium">Sakit</small>
-              </div>
-              <div class="d-flex align-items-center gap-2">
-                <div class="progress flex-grow-1" style="height:4px">
-                  <div class="progress-bar bg-info" style="width: {{ array_sum($chartSakit) / $grandTotal * 100 }}%"></div>
-                </div>
-                <small class="text-body-secondary fw-medium">{{ array_sum($chartSakit) }}</small>
+            <div class="col-4">
+              <div class="p-2 rounded-2" style="background: rgba(58, 183, 224, 0.05); border: 1px solid rgba(58, 183, 224, 0.1);">
+                <small class="text-body-secondary d-block mb-1 text-uppercase text-nowrap" style="font-size: 0.65rem; letter-spacing: 0.5px;">Hari Terbaik</small>
+                <h5 class="mb-0 text-info fw-bold text-nowrap" style="font-size: 0.95rem;">{{ $hariTerbaik }}</h5>
               </div>
             </div>
-            <div class="col-6 col-sm-3">
-              <div class="d-flex align-items-center gap-2 mb-1">
-                <div class="badge rounded bg-label-warning p-1"><i class="ti tabler-clipboard-check icon-sm"></i></div>
-                <small class="fw-medium">Izin</small>
-              </div>
-              <div class="d-flex align-items-center gap-2">
-                <div class="progress flex-grow-1" style="height:4px">
-                  <div class="progress-bar bg-warning" style="width: {{ array_sum($chartIzin) / $grandTotal * 100 }}%"></div>
-                </div>
-                <small class="text-body-secondary fw-medium">{{ array_sum($chartIzin) }}</small>
-              </div>
-            </div>
-            <div class="col-6 col-sm-3">
-              <div class="d-flex align-items-center gap-2 mb-1">
-                <div class="badge rounded bg-label-danger p-1"><i class="ti tabler-ban icon-sm"></i></div>
-                <small class="fw-medium">Alpha</small>
-              </div>
-              <div class="d-flex align-items-center gap-2">
-                <div class="progress flex-grow-1" style="height:4px">
-                  <div class="progress-bar bg-danger" style="width: {{ array_sum($chartAlpha) / $grandTotal * 100 }}%"></div>
-                </div>
-                <small class="text-body-secondary fw-medium">{{ array_sum($chartAlpha) }}</small>
+            <div class="col-4">
+              <div class="p-2 rounded-2" style="background: rgba(239, 90, 90, 0.05); border: 1px solid rgba(239, 90, 90, 0.1);">
+                <small class="text-body-secondary d-block mb-1 text-uppercase text-nowrap" style="font-size: 0.65rem; letter-spacing: 0.5px;">Ketidakhadiran</small>
+                <h5 class="mb-0 text-danger fw-bold text-nowrap" style="font-size: 0.95rem;">{{ $tingkatKetidakhadiran }}</h5>
               </div>
             </div>
           </div>
@@ -453,11 +412,11 @@
           <span class="badge bg-label-primary">{{ now()->translatedFormat('d F Y') }}</span>
         </div>
         <div class="card-body">
-          <div class="row">
-            <div class="col-12 col-sm-4">
-              <div class="mt-lg-4 mb-lg-6 mb-2">
-                <h2 class="mb-0 display-5 fw-black text-body lh-1">{{ $hadirCount + $terlambatCount }}</h2>
-                <p class="mb-0 text-body-secondary small text-uppercase letter-spacing-1">Total Hadir</p>
+          <div class="row align-items-center">
+            <div class="col-md-6 col-12">
+              <div class="mb-4">
+                <span class="text-body-secondary small text-uppercase letter-spacing-1 d-block mb-1">Total Hadir Hari Ini</span>
+                <h2 class="mb-0 fw-black text-success" style="font-size: 2.2rem; font-family: 'Plus Jakarta Sans', sans-serif;">{{ $hadirCount + $terlambatCount }}</h2>
               </div>
               @php
                 $trackerItems = [
@@ -469,23 +428,25 @@
                   ['label' => 'Belum Absen', 'val' => $belumAbsen, 'color' => 'dark', 'icon' => 'tabler-user-question'],
                 ];
               @endphp
-              <ul class="p-0 m-0">
+              <div class="row g-2">
                 @foreach ($trackerItems as $item)
-                  <li class="d-flex gap-3 align-items-center mb-lg-3 pb-1 py-1">
-                    <div class="badge rounded bg-label-{{ $item['color'] }} p-1_5">
-                      <i class="ti {{ $item['icon'] }} icon-md"></i>
+                  <div class="col-6">
+                    <div class="d-flex align-items-center gap-2 p-2 rounded-2" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); transition: all 0.2s ease;">
+                      <div class="badge rounded bg-label-{{ $item['color'] }} p-1 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; flex-shrink: 0;">
+                        <i class="ti {{ $item['icon'] }}" style="font-size: 0.95rem;"></i>
+                      </div>
+                      <div class="overflow-hidden">
+                        <small class="text-body-secondary d-block text-truncate" style="font-size: 0.68rem; font-weight: 500;">{{ $item['label'] }}</small>
+                        <h6 class="mb-0 fw-bold" style="font-size: 0.88rem; line-height: 1.2;">{{ $item['val'] }}</h6>
+                      </div>
                     </div>
-                    <div>
-                      <h6 class="mb-0 text-nowrap">{{ $item['label'] }}</h6>
-                      <small class="text-body-secondary">{{ $item['val'] }}</small>
-                    </div>
-                  </li>
+                  </div>
                 @endforeach
-              </ul>
+              </div>
             </div>
-            <div class="col-12 col-md-8">
+            <div class="col-md-6 col-12 d-flex justify-content-center align-items-center mt-3 mt-md-0">
               @if ($totalAbsensiHariIni > 0 || $totalSiswa > 0)
-                <div id="chartDonutStatus" class="w-100"></div>
+                <div id="chartDonutStatus" class="w-100" style="max-width: 250px;"></div>
               @else
                 <div class="d-flex flex-column align-items-center justify-content-center py-5 text-body-secondary">
                   <i class="ti tabler-chart-pie fs-1 mb-2" aria-hidden="true"></i>
