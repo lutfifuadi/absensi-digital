@@ -5,29 +5,32 @@
 @section('content')
 
   {{-- HERO HEADER --}}
-  <div class="das-hero mb-4">
-    <div class="das-hero__bg"></div>
-    <div class="das-hero__glass"></div>
-    <div class="das-hero__grid-lines"></div>
-
-    <div class="das-hero__inner">
-      <div class="das-hero__identity">
-        <div class="das-hero__logo-wrapper">
-          <div class="das-hero__logo-placeholder">
-            <i class="ti {{ $guru->exists ? 'tabler-pencil' : 'tabler-plus' }} text-info fs-3"></i>
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 text-white overflow-hidden shadow-lg"
+        style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border-radius: 4px;">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-3">
+            <div class="rounded d-flex align-items-center justify-content-center shadow-sm"
+              style="width:52px;height:52px;border-radius:12px !important;background:rgba(0,207,232,0.2);border:1px solid rgba(0,207,232,0.4);">
+              <i class="ti {{ $guru->exists ? 'tabler-pencil' : 'tabler-plus' }} text-info fs-3"></i>
+            </div>
+            <div>
+              <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1" style="font-size:0.72rem;opacity:0.6;">
+                  <li class="breadcrumb-item"><a href="{{ route('admin.master-data') }}"
+                      class="text-white text-decoration-none">Master Data</a></li>
+                  <li class="breadcrumb-item"><a href="{{ route('admin.guru.index') }}"
+                      class="text-white text-decoration-none">Guru</a></li>
+                  <li class="breadcrumb-item active text-white">{{ $guru->exists ? 'Ubah' : 'Tambah' }}
+                  </li>
+                </ol>
+              </nav>
+              <h4 class="mb-0 text-white fw-bold" style="letter-spacing:-0.5px;">
+                {{ $guru->exists ? 'Ubah Data Guru' : 'Tambah Guru Baru' }}
+              </h4>
+            </div>
           </div>
-          <div class="das-hero__logo-glow"></div>
-        </div>
-
-        <div class="das-hero__meta">
-          <div class="das-hero__badge">
-            <span class="pulse-dot"></span>
-            <a href="{{ route('admin.master-data') }}" class="text-white text-decoration-none">Master Data</a> / 
-            <a href="{{ route('admin.guru.index') }}" class="text-white text-decoration-none">Guru</a> / 
-            <span class="text-white-50">{{ $guru->exists ? 'Ubah' : 'Tambah' }}</span>
-          </div>
-          <h4 class="das-hero__title text-gradient-gold">{{ $guru->exists ? 'Ubah Data Guru' : 'Tambah Guru Baru' }}</h4>
-          <p class="das-hero__subtitle">Isi formulir dengan data yang valid untuk {{ $guru->exists ? 'memperbarui' : 'mendaftarkan' }} tenaga pendidik.</p>
         </div>
       </div>
     </div>
@@ -49,13 +52,14 @@
         </div>
       @endif
 
-      <div class="das-panel">
-        <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center gap-2"
-          style="border-color:rgba(255,255,255,0.08) !important;">
+      <div class="card border-0 shadow-sm"
+        style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08) !important;">
+        <div class="card-header border-bottom py-3 d-flex align-items-center gap-2"
+          style="border-color:rgba(255,255,255,0.08) !important;background:transparent;">
           <i class="ti tabler-forms text-info"></i>
-          <h6 class="das-panel__title mb-0">Informasi Lengkap Guru</h6>
+          <h6 class="card-title mb-0">Informasi Lengkap Guru</h6>
         </div>
-        <div class="das-panel__body p-4">
+        <div class="card-body p-4">
           <form action="{{ $guru->exists ? route('admin.guru.update', $guru) : route('admin.guru.store') }}"
             method="POST">
             @csrf
@@ -77,7 +81,7 @@
                   
                   <div class="mb-3">
                     <label class="form-label fw-semibold small" for="nama_lengkap">
-                      Nama Lengkap <span class="text-danger">*</span>
+                      <i class="ti tabler-user me-1 text-info"></i> Nama Lengkap <span class="text-danger">*</span>
                     </label>
                     <input id="nama_lengkap" name="nama_lengkap" type="text"
                       class="form-control @error('nama_lengkap') is-invalid @enderror" placeholder="Nama lengkap & gelar"
@@ -87,7 +91,7 @@
                   <div class="row">
                     <div class="col-sm-6 mb-3">
                       <label class="form-label fw-semibold small" for="jenis_kelamin">
-                        Jenis Kelamin <span class="text-danger">*</span>
+                        <i class="ti tabler-gender-bigender me-1 text-info"></i> Jenis Kelamin <span class="text-danger">*</span>
                       </label>
                       <select id="jenis_kelamin" name="jenis_kelamin"
                         class="form-select @error('jenis_kelamin') is-invalid @enderror" required>
@@ -101,7 +105,7 @@
 
                     <div class="col-sm-6 mb-3">
                       <label class="form-label fw-semibold small" for="no_hp">
-                        No. HP / WhatsApp
+                        <i class="ti tabler-phone me-1 text-info"></i> No. HP / WhatsApp
                       </label>
                       <input id="no_hp" name="no_hp" type="text"
                         class="form-control @error('no_hp') is-invalid @enderror" placeholder="e.g. 08123456789"
@@ -120,7 +124,7 @@
 
                   <div class="mb-3">
                     <label class="form-label fw-semibold small" for="nip">
-                      NIP <span class="text-danger">*</span>
+                      <i class="ti tabler-id me-1 text-info"></i> NIP <span class="text-danger">*</span>
                     </label>
                     <input id="nip" name="nip" type="text"
                       class="form-control @error('nip') is-invalid @enderror" placeholder="Nomor Induk Pegawai"
@@ -129,7 +133,7 @@
 
                   <div class="mb-3">
                     <label class="form-label fw-semibold small" for="mata_pelajaran">
-                      Mata Pelajaran <span class="text-danger">*</span>
+                      <i class="ti tabler-book me-1 text-info"></i> Mata Pelajaran <span class="text-danger">*</span>
                     </label>
                     <select id="mata_pelajaran" name="mata_pelajaran"
                       class="form-select @error('mata_pelajaran') is-invalid @enderror" required>
@@ -145,7 +149,7 @@
                   <div class="row">
                     <div class="col-sm-6 mb-3 mb-sm-0">
                       <label class="form-label fw-semibold small" for="jabatan">
-                        Jabatan
+                        <i class="ti tabler-stairs-up me-1 text-info"></i> Jabatan
                       </label>
                       <input id="jabatan" name="jabatan" type="text"
                         class="form-control @error('jabatan') is-invalid @enderror" placeholder="Contoh: Guru Tetap"
@@ -154,7 +158,7 @@
 
                     <div class="col-sm-6">
                       <label class="form-label fw-semibold small" for="status">
-                        Status Aktif <span class="text-danger">*</span>
+                        <i class="ti tabler-circle-check me-1 text-info"></i> Status Aktif <span class="text-danger">*</span>
                       </label>
                       <select id="status" name="status" class="form-select @error('status') is-invalid @enderror"
                         required>
@@ -182,7 +186,7 @@
                   @else
                     <div class="mb-3">
                       <label class="form-label fw-semibold small" for="email">
-                        Email Login <span class="text-muted">(opsional)</span>
+                        <i class="ti tabler-mail me-1 text-info"></i> Email Login <span class="text-muted">(opsional)</span>
                       </label>
                       <input id="email" name="email" type="email"
                         class="form-control @error('email') is-invalid @enderror" placeholder="nama@sekolah.sch.id"
@@ -192,7 +196,7 @@
                     <div class="row">
                       <div class="col-md-6 mb-3 mb-md-0">
                         <label class="form-label fw-semibold small" for="password">
-                          Password Akun
+                          <i class="ti tabler-key me-1 text-info"></i> Password Akun
                           @if ($guru->exists)
                             <span class="text-white-50 fw-normal ms-1">(kosongkan jika tidak diubah)</span>
                           @else
@@ -211,7 +215,7 @@
 
                       <div class="col-md-6">
                         <label class="form-label fw-semibold small" for="password_confirmation">
-                          Konfirmasi Password
+                          <i class="ti tabler-key me-1 text-info"></i> Konfirmasi Password
                         </label>
                         <div class="password-wrapper">
                           <input id="password_confirmation" name="password_confirmation" type="password"
@@ -230,10 +234,10 @@
 
             <div class="d-flex align-items-center justify-content-end gap-3 pt-4 mt-2 border-top"
               style="border-color:rgba(255,255,255,0.08) !important;">
-              <a href="{{ route('admin.guru.index') }}" class="btn das-btn --secondary">
+              <a href="{{ route('admin.guru.index') }}" class="btn btn-label-secondary">
                 <i class="ti tabler-arrow-left me-1"></i> Kembali
               </a>
-              <button type="submit" class="btn das-btn --primary px-4 shadow-sm">
+              <button type="submit" class="btn btn-info fw-semibold px-4 shadow-sm">
                 <i class="ti tabler-device-floppy me-1"></i>
                 {{ $guru->exists ? 'Perbarui Data' : 'Simpan Guru' }}
               </button>

@@ -21,14 +21,46 @@ use Illuminate\Validation\Rule;
 
 class GuruController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $guruUsers = User::with('guru')
-            ->withRole(User::ROLE_GURU)
-            ->orderBy('name')
-            ->get();
+        $search = $request->query('search');
+        $perPage = (int) $request->query('per_page', 10);
+        $sortBy = $request->query('sort_by', 'nama_lengkap');
+        $sortDir = $request->query('sort_dir', 'asc');
+        $status = $request->query('status');
+        $jabatan = $request->query('jabatan');
 
-        return view('admin.guru.index', compact('guruUsers'));
+        $allowedSorts = ['nama_lengkap', 'nip', 'jabatan', 'status'];
+        if (!in_array($sortBy, $allowedSorts)) $sortBy = 'nama_lengkap';
+        if (!in_array($sortDir, ['asc', 'desc'])) $sortDir = 'asc';
+
+        $guruQuery = Guru::with('user')
+            ->select('guru.*')
+            ->when($status, function ($query, $status) {
+                $query->where('guru.status', $status);
+            })
+            ->when($jabatan, function ($query, $jabatan) {
+                $query->where('guru.jabatan', $jabatan);
+            })
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('guru.nama_lengkap', 'like', "%{$search}%")
+                      ->orWhere('guru.nip', 'like', "%{$search}%")
+                      ->orWhere('guru.mata_pelajaran', 'like', "%{$search}%")
+                      ->orWhere('guru.jabatan', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('guru.' . $sortBy, $sortDir);
+
+        $guruUsers = $guruQuery->paginate($perPage)->withQueryString();
+
+        $jabatanOptions = Guru::distinct()->whereNotNull('jabatan')->pluck('jabatan')->sort();
+
+        if ($request->ajax()) {
+            return view('admin.guru.table', compact('guruUsers', 'sortBy', 'sortDir'))->render();
+        }
+
+        return view('admin.guru.index', compact('guruUsers', 'sortBy', 'sortDir', 'jabatanOptions'));
     }
 
     public function create(Request $request)
@@ -158,9 +190,10 @@ class GuruController extends Controller
         return redirect()->route('admin.guru.index')->with('success', 'Guru berhasil diperbarui.');
     }
 
-    public function destroy(Guru $guru)
+    public function destroy(Request $request, Guru $guru)
     {
         $user = $guru->user;
+        $nama = $guru->nama_lengkap;
 
         DB::transaction(function () use ($guru, $user) {
             if ($user) {
@@ -169,6 +202,13 @@ class GuruController extends Controller
                 $guru->delete();
             }
         });
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Guru {$nama} berhasil dihapus.",
+            ]);
+        }
 
         return redirect()->route('admin.guru.index')
             ->with('success', 'Guru dan akun user berhasil dihapus.');
@@ -272,7 +312,12 @@ class GuruController extends Controller
     public function export(Request $request)
     {
         $search = $request->query('search');
+        $format = $request->query('format', 'xlsx');
         $filename = 'data_guru_' . now()->format('Y-m-d_H-i-s');
+
+        if ($format === 'csv') {
+            return Excel::download(new GuruExport($search), $filename . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        }
 
         return Excel::download(new GuruExport($search), $filename . '.xlsx');
     }
@@ -356,8 +401,22 @@ class GuruController extends Controller
                 );
             });
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Semua data guru berhasil dihapus.',
+                ]);
+            }
+
             return redirect()->route('admin.guru.index')->with('success', 'Semua data guru berhasil dihapus.');
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghapus semua data guru: ' . $e->getMessage(),
+                ], 500);
+            }
+
             return back()->with('error', 'Gagal menghapus semua data guru: ' . $e->getMessage());
         }
     }
