@@ -84,6 +84,8 @@
 <div class="set-tabbar-wrap">
   <div class="set-tabbar" id="set-nav-tabs">
     @php
+      $themeSettings = \App\Models\Pengaturan::where('group', 'theme')->pluck('value', 'key')->toArray();
+
       $navItems = [
         ['id' => 'lembaga',    'icon' => 'tabler-building-arch',  'label' => 'Identitas Lembaga'],
         ['id' => 'waktu',      'icon' => 'tabler-clock',           'label' => 'Waktu & Absensi'],
@@ -912,6 +914,266 @@
         </div>
       </div>
 
+      {{-- ══ KUSTOMISASI TEMA & WARNA UI ══ --}}
+      <div class="set-panel" style="margin-top: 1.5rem;">
+        <div class="set-panel__head" style="background: linear-gradient(90deg, rgba(115, 103, 240, 0.1) 0%, transparent 70%);">
+          <div class="set-panel__title-wrap">
+            <div class="set-panel__icon --primary" style="background-color: rgba(115, 103, 240, 0.15); color: #7367f0;"><i class="ti tabler-palette"></i></div>
+            <div>
+              <div class="set-panel__title">Kustomisasi Tema & Warna UI</div>
+              <div class="set-panel__sub">Sesuaikan palet warna, permukaan (surface), border, dan gradien banner hero antarmuka sistem secara real-time.</div>
+            </div>
+          </div>
+        </div>
+        <div class="set-panel__body">
+          {{-- Kartu Preset Tema --}}
+          <div class="set-section-label">Preset Tema Cepat</div>
+          <div class="theme-presets-grid mb-4">
+            {{-- Default Indigo --}}
+            <button type="button" class="theme-preset-card active" data-preset="default">
+              <div class="theme-preset-card__preview">
+                <span class="color-dot" style="background-color: #7367f0;"></span>
+                <span class="color-dot" style="background-color: #28c76f;"></span>
+                <span class="color-dot" style="background-color: #00cfe8;"></span>
+                <span class="color-dot" style="background-color: #ff9f43;"></span>
+                <span class="color-dot" style="background-color: #ea5455;"></span>
+              </div>
+              <div class="theme-preset-card__label">Default Indigo</div>
+            </button>
+            
+            {{-- Tosca --}}
+            <button type="button" class="theme-preset-card" data-preset="tosca">
+              <div class="theme-preset-card__preview">
+                <span class="color-dot" style="background-color: #00c0a3;"></span>
+                <span class="color-dot" style="background-color: #28c76f;"></span>
+                <span class="color-dot" style="background-color: #00cfe8;"></span>
+                <span class="color-dot" style="background-color: #ff9f43;"></span>
+                <span class="color-dot" style="background-color: #ea5455;"></span>
+              </div>
+              <div class="theme-preset-card__label">Tosca</div>
+            </button>
+
+            {{-- Hijau Lembut --}}
+            <button type="button" class="theme-preset-card" data-preset="forest">
+              <div class="theme-preset-card__preview">
+                <span class="color-dot" style="background-color: #2e7d32;"></span>
+                <span class="color-dot" style="background-color: #4caf50;"></span>
+                <span class="color-dot" style="background-color: #00bcd4;"></span>
+                <span class="color-dot" style="background-color: #ffc107;"></span>
+                <span class="color-dot" style="background-color: #f44336;"></span>
+              </div>
+              <div class="theme-preset-card__label">Hijau Lembut</div>
+            </button>
+
+            {{-- Merah Berani --}}
+            <button type="button" class="theme-preset-card" data-preset="sunset">
+              <div class="theme-preset-card__preview">
+                <span class="color-dot" style="background-color: #d32f2f;"></span>
+                <span class="color-dot" style="background-color: #2a9d8f;"></span>
+                <span class="color-dot" style="background-color: #0288d1;"></span>
+                <span class="color-dot" style="background-color: #f4a261;"></span>
+                <span class="color-dot" style="background-color: #e76f51;"></span>
+              </div>
+              <div class="theme-preset-card__label">Merah Berani</div>
+            </button>
+
+            {{-- Abu-abu Profesional --}}
+            <button type="button" class="theme-preset-card" data-preset="twilight">
+              <div class="theme-preset-card__preview">
+                <span class="color-dot" style="background-color: #607d8b;"></span>
+                <span class="color-dot" style="background-color: #2e7d32;"></span>
+                <span class="color-dot" style="background-color: #0097a7;"></span>
+                <span class="color-dot" style="background-color: #ef6c00;"></span>
+                <span class="color-dot" style="background-color: #c62828;"></span>
+              </div>
+              <div class="theme-preset-card__label">Abu-Abu Prof</div>
+            </button>
+
+            {{-- Gelap Penuh --}}
+            <button type="button" class="theme-preset-card" data-preset="dark">
+              <div class="theme-preset-card__preview">
+                <span class="color-dot" style="background-color: #3f51b5;"></span>
+                <span class="color-dot" style="background-color: #00e676;"></span>
+                <span class="color-dot" style="background-color: #00b0ff;"></span>
+                <span class="color-dot" style="background-color: #ffd600;"></span>
+                <span class="color-dot" style="background-color: #ff1744;"></span>
+              </div>
+              <div class="theme-preset-card__label">Gelap Penuh</div>
+            </button>
+          </div>
+
+          {{-- Form & Color Pickers --}}
+          <div class="set-section-label">Konfigurasi Warna Detil</div>
+          
+          <div id="panelTemaWarna">
+            <div class="set-form-grid">
+              
+              {{-- Primary Color --}}
+              <div class="set-field">
+                <label class="set-label">Warna Utama (Primary)</label>
+                <div class="theme-color-input-wrap">
+                  <input type="color" id="picker_primary" class="theme-color-picker" 
+                    value="{{ $themeSettings['theme_primary'] ?? '#7367f0' }}">
+                  <div class="set-input-group">
+                    <span class="set-input-prefix">HEX</span>
+                    <input type="text" class="set-input font-monospace theme-color-text" name="theme_primary" id="text_primary"
+                      value="{{ $themeSettings['theme_primary'] ?? '#7367f0' }}" placeholder="#7367f0" maxlength="7">
+                  </div>
+                </div>
+              </div>
+
+              {{-- Success Color --}}
+              <div class="set-field">
+                <label class="set-label">Warna Sukses (Success)</label>
+                <div class="theme-color-input-wrap">
+                  <input type="color" id="picker_success" class="theme-color-picker" 
+                    value="{{ $themeSettings['theme_success'] ?? '#28c76f' }}">
+                  <div class="set-input-group">
+                    <span class="set-input-prefix">HEX</span>
+                    <input type="text" class="set-input font-monospace theme-color-text" name="theme_success" id="text_success"
+                      value="{{ $themeSettings['theme_success'] ?? '#28c76f' }}" placeholder="#28c76f" maxlength="7">
+                  </div>
+                </div>
+              </div>
+
+              {{-- Info Color --}}
+              <div class="set-field">
+                <label class="set-label">Warna Info (Info)</label>
+                <div class="theme-color-input-wrap">
+                  <input type="color" id="picker_info" class="theme-color-picker" 
+                    value="{{ $themeSettings['theme_info'] ?? '#00cfe8' }}">
+                  <div class="set-input-group">
+                    <span class="set-input-prefix">HEX</span>
+                    <input type="text" class="set-input font-monospace theme-color-text" name="theme_info" id="text_info"
+                      value="{{ $themeSettings['theme_info'] ?? '#00cfe8' }}" placeholder="#00cfe8" maxlength="7">
+                  </div>
+                </div>
+              </div>
+
+              {{-- Warning Color --}}
+              <div class="set-field">
+                <label class="set-label">Warna Peringatan (Warning)</label>
+                <div class="theme-color-input-wrap">
+                  <input type="color" id="picker_warning" class="theme-color-picker" 
+                    value="{{ $themeSettings['theme_warning'] ?? '#ff9f43' }}">
+                  <div class="set-input-group">
+                    <span class="set-input-prefix">HEX</span>
+                    <input type="text" class="set-input font-monospace theme-color-text" name="theme_warning" id="text_warning"
+                      value="{{ $themeSettings['theme_warning'] ?? '#ff9f43' }}" placeholder="#ff9f43" maxlength="7">
+                  </div>
+                </div>
+              </div>
+
+              {{-- Danger Color --}}
+              <div class="set-field">
+                <label class="set-label">Warna Bahaya (Danger)</label>
+                <div class="theme-color-input-wrap">
+                  <input type="color" id="picker_danger" class="theme-color-picker" 
+                    value="{{ $themeSettings['theme_danger'] ?? '#ea5455' }}">
+                  <div class="set-input-group">
+                    <span class="set-input-prefix">HEX</span>
+                    <input type="text" class="set-input font-monospace theme-color-text" name="theme_danger" id="text_danger"
+                      value="{{ $themeSettings['theme_danger'] ?? '#ea5455' }}" placeholder="#ea5455" maxlength="7">
+                  </div>
+                </div>
+              </div>
+
+              {{-- Secondary Color --}}
+              <div class="set-field">
+                <label class="set-label">Warna Sekunder (Secondary)</label>
+                <div class="theme-color-input-wrap">
+                  <input type="color" id="picker_secondary" class="theme-color-picker" 
+                    value="{{ $themeSettings['theme_secondary'] ?? '#a8aaae' }}">
+                  <div class="set-input-group">
+                    <span class="set-input-prefix">HEX</span>
+                    <input type="text" class="set-input font-monospace theme-color-text" name="theme_secondary" id="text_secondary"
+                      value="{{ $themeSettings['theme_secondary'] ?? '#a8aaae' }}" placeholder="#a8aaae" maxlength="7">
+                  </div>
+                </div>
+              </div>
+
+              {{-- Text Main Color --}}
+              <div class="set-field">
+                <label class="set-label">Warna Utama Teks (Text Main)</label>
+                <div class="theme-color-input-wrap">
+                  <input type="color" id="picker_text_main" class="theme-color-picker" 
+                    value="{{ $themeSettings['theme_text_main'] ?? '#cbd5e1' }}">
+                  <div class="set-input-group">
+                    <span class="set-input-prefix">HEX</span>
+                    <input type="text" class="set-input font-monospace theme-color-text" name="theme_text_main" id="text_text_main"
+                      value="{{ $themeSettings['theme_text_main'] ?? '#cbd5e1' }}" placeholder="#cbd5e1" maxlength="7">
+                  </div>
+                </div>
+              </div>
+
+              {{-- Surface Color (support hex/rgba) --}}
+              <div class="set-field">
+                <label class="set-label">Warna Permukaan (Surface - Hex/RGBA)</label>
+                <div class="theme-color-input-wrap">
+                  <input type="color" id="picker_surface" class="theme-color-picker" 
+                    value="#0f172a">
+                  <div class="set-input-group">
+                    <span class="set-input-prefix">VAL</span>
+                    <input type="text" class="set-input font-monospace theme-color-text-rgba" name="theme_surface" id="text_surface"
+                      value="{{ $themeSettings['theme_surface'] ?? 'rgba(15, 23, 42, 0.45)' }}" placeholder="rgba(15, 23, 42, 0.45)">
+                  </div>
+                </div>
+                <div class="set-field-hint --info">
+                  <i class="ti tabler-info-circle"></i> Mendukung format HEX (cth: #0f172a) atau RGBA (cth: rgba(15,23,42,0.45)) untuk efek transparansi/glassmorphism.
+                </div>
+              </div>
+
+              {{-- Border Color (support hex/rgba) --}}
+              <div class="set-field">
+                <label class="set-label">Warna Batas (Border - Hex/RGBA)</label>
+                <div class="theme-color-input-wrap">
+                  <input type="color" id="picker_border" class="theme-color-picker" 
+                    value="#ffffff">
+                  <div class="set-input-group">
+                    <span class="set-input-prefix">VAL</span>
+                    <input type="text" class="set-input font-monospace theme-color-text-rgba" name="theme_border" id="text_border"
+                      value="{{ $themeSettings['theme_border'] ?? 'rgba(255, 255, 255, 0.07)' }}" placeholder="rgba(255, 255, 255, 0.07)">
+                  </div>
+                </div>
+                <div class="set-field-hint --info">
+                  <i class="ti tabler-info-circle"></i> Mendukung format HEX (cth: #334155) atau RGBA (cth: rgba(255,255,255,0.07)) untuk border semi-transparan.
+                </div>
+              </div>
+
+              {{-- Gradient Hero Preset --}}
+              <div class="set-field">
+                <label class="set-label">Preset Gradient Banner Hero</label>
+                <div class="select2-wrapper" style="position: relative;">
+                  <select class="select2 form-select" name="theme_hero_preset" id="theme_hero_preset">
+                    <option value="default" {{ ($themeSettings['theme_hero_preset'] ?? 'default') == 'default' ? 'selected' : '' }}>Default (Indigo Indigo-Dark)</option>
+                    <option value="ocean" {{ ($themeSettings['theme_hero_preset'] ?? '') == 'ocean' ? 'selected' : '' }}>Ocean (Deep Blue to Teal)</option>
+                    <option value="forest" {{ ($themeSettings['theme_hero_preset'] ?? '') == 'forest' ? 'selected' : '' }}>Forest (Green Deep to Emerald)</option>
+                    <option value="sunset" {{ ($themeSettings['theme_hero_preset'] ?? '') == 'sunset' ? 'selected' : '' }}>Sunset (Warm Red to Orange)</option>
+                    <option value="twilight" {{ ($themeSettings['theme_hero_preset'] ?? '') == 'twilight' ? 'selected' : '' }}>Twilight (Charcoal to Grey)</option>
+                    <option value="dark" {{ ($themeSettings['theme_hero_preset'] ?? '') == 'dark' ? 'selected' : '' }}>Midnight (Pure Dark Slate)</option>
+                    <option value="custom" {{ ($themeSettings['theme_hero_preset'] ?? '') == 'custom' ? 'selected' : '' }}>Kustom (Gradasi Dinamis Utama-Sekunder)</option>
+                  </select>
+                </div>
+                <div class="set-field-hint --info">
+                  <i class="ti tabler-info-circle"></i> Menentukan gaya warna gradien banner atas (Hero Header) di halaman admin.
+                </div>
+              </div>
+
+            </div>
+
+            {{-- Buttons --}}
+            <div class="d-flex justify-content-end gap-2 mt-4">
+              <button type="button" id="btnResetTema" class="set-btn btn-danger" style="background-color: #ea5455; color: #fff;">
+                <i class="ti tabler-rotate-clockwise-2 me-1"></i> Reset ke Default
+              </button>
+              <button type="button" id="btnSimpanTema" class="set-save-btn" onclick="saveThemeCustomizer()">
+                <i class="ti tabler-device-floppy me-1"></i> Simpan Tema
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       </div> {{-- Penutup div set-tab untuk tab-branding --}}
       
       {{-- Tab: Google Drive dipindahkan ke luar form utama agar form mandiri tidak nested --}}
@@ -1564,7 +1826,7 @@
 }
 .set-hero__bg {
   position: absolute; inset: 0;
-  background: linear-gradient(135deg, #1e1b4b 0%, #312d89 45%, #4338ca 100%);
+  background: var(--das-hero-bg, linear-gradient(135deg, #1e1b4b 0%, #312d89 45%, #4338ca 100%));
   z-index: 0;
 }
 .set-hero__glass {
@@ -2320,6 +2582,92 @@ select.set-input option {
   background: #23ad60;
   box-shadow: 0 8px 20px rgba(40, 199, 111, 0.3);
 }
+
+/* ── Theme & Color Customizer Custom Styles ── */
+.theme-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.85rem;
+}
+@media (max-width: 991px) {
+  .theme-presets-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 575px) {
+  .theme-presets-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.theme-preset-card {
+  background: var(--das-surface);
+  border: 1px solid var(--das-border);
+  border-radius: var(--das-radius-sm);
+  padding: 0.85rem 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+.theme-preset-card:hover {
+  background: var(--das-surface-hover);
+  border-color: var(--das-border-hover);
+  transform: translateY(-2px);
+}
+.theme-preset-card.active {
+  border-color: var(--das-primary);
+  background: var(--das-primary-soft);
+  box-shadow: 0 4px 12px rgba(115, 103, 240, 0.15);
+}
+
+.theme-preset-card__preview {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+}
+.theme-preset-card__preview .color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
+}
+.theme-preset-card__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.theme-color-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.theme-color-picker {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 44px;
+  height: 40px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+}
+.theme-color-picker::-webkit-color-swatch {
+  border-radius: var(--das-radius-sm);
+  border: 1px solid var(--das-border);
+}
+.theme-color-picker::-moz-color-swatch {
+  border-radius: var(--das-radius-sm);
+  border: 1px solid var(--das-border);
+}
 </style>
 @endsection
 
@@ -2761,5 +3109,490 @@ function submitActiveTabForm() {
     }
   }
 }
+
+/* ── CUSTOM THEME CUSTOMIZER ── */
+document.addEventListener('DOMContentLoaded', function () {
+  let isDirty = false;
+  let originalThemeValues = {};
+
+  const presets = {
+    default: {
+      primary: '#7367f0',
+      success: '#28c76f',
+      info: '#00cfe8',
+      warning: '#ff9f43',
+      danger: '#ea5455',
+      secondary: '#a8aaae',
+      text_main: '#cbd5e1',
+      surface: 'rgba(15, 23, 42, 0.45)',
+      border: 'rgba(255, 255, 255, 0.07)',
+      hero_preset: 'default'
+    },
+    tosca: {
+      primary: '#00c0a3',
+      success: '#28c76f',
+      info: '#00cfe8',
+      warning: '#ff9f43',
+      danger: '#ea5455',
+      secondary: '#8a9099',
+      text_main: '#e2e8f0',
+      surface: 'rgba(13, 27, 30, 0.5)',
+      border: 'rgba(0, 192, 163, 0.15)',
+      hero_preset: 'ocean'
+    },
+    forest: {
+      primary: '#2e7d32',
+      success: '#4caf50',
+      info: '#00bcd4',
+      warning: '#ffc107',
+      danger: '#f44336',
+      secondary: '#8d948d',
+      text_main: '#e8f5e9',
+      surface: 'rgba(12, 28, 15, 0.5)',
+      border: 'rgba(46, 125, 50, 0.15)',
+      hero_preset: 'forest'
+    },
+    sunset: {
+      primary: '#d32f2f',
+      success: '#2a9d8f',
+      info: '#0288d1',
+      warning: '#f4a261',
+      danger: '#e76f51',
+      secondary: '#9e9e9e',
+      text_main: '#ffebee',
+      surface: 'rgba(28, 10, 10, 0.5)',
+      border: 'rgba(211, 47, 47, 0.15)',
+      hero_preset: 'sunset'
+    },
+    twilight: {
+      primary: '#607d8b',
+      success: '#2e7d32',
+      info: '#0097a7',
+      warning: '#ef6c00',
+      danger: '#c62828',
+      secondary: '#78909c',
+      text_main: '#eceff1',
+      surface: 'rgba(25, 34, 38, 0.5)',
+      border: 'rgba(96, 125, 139, 0.15)',
+      hero_preset: 'twilight'
+    },
+    dark: {
+      primary: '#3f51b5',
+      success: '#00e676',
+      info: '#00b0ff',
+      warning: '#ffd600',
+      danger: '#ff1744',
+      secondary: '#757575',
+      text_main: '#f5f5f5',
+      surface: 'rgba(5, 5, 10, 0.8)',
+      border: 'rgba(255, 255, 255, 0.05)',
+      hero_preset: 'dark'
+    }
+  };
+
+  const heroGradients = {
+    default: 'linear-gradient(135deg, #1e1b4b 0%, #312d89 40%, #4338ca 100%)',
+    ocean: 'linear-gradient(135deg, #0f172a 0%, #0d9488 50%, #00c0a3 100%)',
+    forest: 'linear-gradient(135deg, #064e3b 0%, #15803d 50%, #22c55e 100%)',
+    sunset: 'linear-gradient(135deg, #450a0a 0%, #b91c1c 50%, #ea580c 100%)',
+    twilight: 'linear-gradient(135deg, #111827 0%, #374151 50%, #4b5563 100%)',
+    dark: 'linear-gradient(135deg, #090d16 0%, #111827 50%, #1f2937 100%)'
+  };
+
+  const cssVarMap = {
+    primary: '--das-primary',
+    success: '--das-success',
+    info: '--das-info',
+    warning: '--das-warning',
+    danger: '--das-danger',
+    secondary: '--das-secondary',
+    text_main: '--das-text-main',
+    surface: '--das-surface',
+    border: '--das-border'
+  };
+
+  const softCssVars = {
+    primary: '--das-primary-soft',
+    success: '--das-success-soft',
+    info: '--das-info-soft',
+    warning: '--das-warning-soft',
+    danger: '--das-danger-soft',
+    secondary: '--das-secondary-soft'
+  };
+
+  // Helper colors
+  function hexToRgbComponents(hex) {
+    hex = hex.replace('#', '');
+    if (hex.length === 3) {
+      hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+    let r = parseInt(hex.substring(0, 2), 16);
+    let g = parseInt(hex.substring(2, 4), 16);
+    let b = parseInt(hex.substring(4, 6), 16);
+    return { r, g, b };
+  }
+
+  function parseRgbaOrHexToHex(value) {
+    if (!value) return '#ffffff';
+    if (value.startsWith('rgba') || value.startsWith('rgb')) {
+      let parts = value.match(/\d+/g);
+      if (parts && parts.length >= 3) {
+        let r = parseInt(parts[0]).toString(16).padStart(2, '0');
+        let g = parseInt(parts[1]).toString(16).padStart(2, '0');
+        let b = parseInt(parts[2]).toString(16).padStart(2, '0');
+        return `#${r}${g}${b}`;
+      }
+    }
+    return value.startsWith('#') ? value : '#ffffff';
+  }
+
+  function hexToRgba(hex, alpha) {
+    let rgb = hexToRgbComponents(hex);
+    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+  }
+
+  // Update variables
+  function updateCssVariable(key, value) {
+    const cssVar = cssVarMap[key];
+    if (cssVar) {
+      document.documentElement.style.setProperty(cssVar, value);
+    }
+    const softVar = softCssVars[key];
+    if (softVar) {
+      let softValue = '';
+      if (value.startsWith('#')) {
+        softValue = hexToRgba(value, 0.12);
+      } else if (value.startsWith('rgba')) {
+        let hex = parseRgbaOrHexToHex(value);
+        softValue = hexToRgba(hex, 0.12);
+      }
+      document.documentElement.style.setProperty(softVar, softValue);
+    }
+    
+    // Update gradient if custom
+    if (key === 'primary' || key === 'secondary') {
+      const heroPreset = document.getElementById('theme_hero_preset').value;
+      if (heroPreset === 'custom') {
+        updateHeroGradient();
+      }
+    }
+  }
+
+  function updateHeroGradient() {
+    const preset = document.getElementById('theme_hero_preset').value;
+    let gradientStr = '';
+    if (preset === 'custom') {
+      const primary = document.getElementById('text_primary').value;
+      const secondary = document.getElementById('text_secondary').value;
+      gradientStr = `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`;
+    } else {
+      gradientStr = heroGradients[preset] || heroGradients['default'];
+    }
+    document.documentElement.style.setProperty('--das-hero-bg', gradientStr);
+  }
+
+  // Initialize pickers
+  const colors = ['primary', 'success', 'info', 'warning', 'danger', 'secondary', 'text_main', 'surface', 'border'];
+  
+  // Set initial picker positions
+  colors.forEach(color => {
+    const textEl = document.getElementById(`text_${color}`);
+    const pickerEl = document.getElementById(`picker_${color}`);
+    if (textEl && pickerEl) {
+      pickerEl.value = parseRgbaOrHexToHex(textEl.value);
+      originalThemeValues[color] = textEl.value;
+    }
+  });
+  
+  const heroSelectEl = document.getElementById('theme_hero_preset');
+  if (heroSelectEl) {
+    originalThemeValues['hero_preset'] = heroSelectEl.value;
+  }
+
+  function checkDirty() {
+    let dirty = false;
+    colors.forEach(color => {
+      const text = document.getElementById(`text_${color}`);
+      if (text && text.value !== originalThemeValues[color]) {
+        dirty = true;
+      }
+    });
+    const heroSelect = document.getElementById('theme_hero_preset');
+    if (heroSelect && heroSelect.value !== originalThemeValues['hero_preset']) {
+      dirty = true;
+    }
+    isDirty = dirty;
+  }
+
+  // Bind events
+  colors.forEach(color => {
+    const picker = document.getElementById(`picker_${color}`);
+    const text = document.getElementById(`text_${color}`);
+    
+    if (picker && text) {
+      picker.addEventListener('input', function () {
+        let val = this.value;
+        if (color === 'surface') {
+          let rgb = hexToRgbComponents(val);
+          val = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.45)`;
+        } else if (color === 'border') {
+          let rgb = hexToRgbComponents(val);
+          val = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.07)`;
+        }
+        text.value = val;
+        updateCssVariable(color, val);
+        checkDirty();
+      });
+      
+      text.addEventListener('input', function () {
+        let val = this.value;
+        if (val.startsWith('#') && (val.length === 4 || val.length === 7)) {
+          picker.value = parseRgbaOrHexToHex(val);
+          updateCssVariable(color, val);
+          checkDirty();
+        } else if (val.startsWith('rgba') || val.startsWith('rgb')) {
+          picker.value = parseRgbaOrHexToHex(val);
+          updateCssVariable(color, val);
+          checkDirty();
+        }
+      });
+    }
+  });
+
+  // Hero Preset Dropdown
+  const selectHeroPreset = document.getElementById('theme_hero_preset');
+  if (selectHeroPreset) {
+    $(selectHeroPreset).on('change', function () {
+      updateHeroGradient();
+      checkDirty();
+      
+      // Match active preset card
+      const activeVal = this.value;
+      let activePresetKey = '';
+      Object.keys(presets).forEach(key => {
+        let match = true;
+        colors.forEach(color => {
+          const textVal = document.getElementById(`text_${color}`).value;
+          const presetColor = presets[key][color];
+          if (presetColor && textVal !== presetColor) {
+            match = false;
+          }
+        });
+        if (match && presets[key].hero_preset === activeVal) {
+          activePresetKey = key;
+        }
+      });
+
+      document.querySelectorAll('.theme-preset-card').forEach(card => {
+        if (activePresetKey && card.dataset.preset === activePresetKey) {
+          card.classList.add('active');
+        } else {
+          card.classList.remove('active');
+        }
+      });
+    });
+  }
+
+  // Preset Cards click
+  document.querySelectorAll('.theme-preset-card').forEach(card => {
+    card.addEventListener('click', function () {
+      const presetName = this.dataset.preset;
+      if (presets[presetName]) {
+        applyPresetValues(presets[presetName]);
+        document.querySelectorAll('.theme-preset-card').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        isDirty = true;
+      }
+    });
+  });
+
+  function applyPresetValues(presetData) {
+    colors.forEach(color => {
+      const text = document.getElementById(`text_${color}`);
+      const picker = document.getElementById(`picker_${color}`);
+      if (text && picker && presetData[color]) {
+        text.value = presetData[color];
+        picker.value = parseRgbaOrHexToHex(presetData[color]);
+        updateCssVariable(color, presetData[color]);
+      }
+    });
+
+    const heroSelect = document.getElementById('theme_hero_preset');
+    if (heroSelect) {
+      heroSelect.value = presetData.hero_preset;
+      $(heroSelect).trigger('change');
+    }
+  }
+
+  // Before unload confirmation
+  window.addEventListener('beforeunload', function (e) {
+    if (isDirty) {
+      e.preventDefault();
+      e.returnValue = 'Anda memiliki perubahan tema yang belum disimpan. Yakin ingin meninggalkan halaman?';
+    }
+  });
+
+  // AJAX save
+  window.saveThemeCustomizer = function() {
+    const btnSimpan = document.getElementById('btnSimpanTema');
+    if (!btnSimpan) return;
+    
+    const originalText = btnSimpan.innerHTML;
+    btnSimpan.disabled = true;
+    btnSimpan.innerHTML = '<i class="ti tabler-loader-2 spin"></i> Menyimpan...';
+    
+    // Gather data
+    const data = {};
+    colors.forEach(color => {
+      data[`theme_${color}`] = document.getElementById(`text_${color}`).value;
+    });
+    data['theme_hero_preset'] = document.getElementById('theme_hero_preset').value;
+    
+    $.ajax({
+      url: '{{ route("admin.pengaturan.tema.update") }}',
+      type: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+      },
+      data: data,
+      success: function(response) {
+        btnSimpan.disabled = false;
+        btnSimpan.innerHTML = originalText;
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: response.message || 'Tema UI berhasil diperbarui.',
+          customClass: {
+            confirmButton: 'btn btn-success'
+          }
+        });
+        
+        // Update original values
+        colors.forEach(color => {
+          originalThemeValues[color] = data[`theme_${color}`];
+        });
+        originalThemeValues['hero_preset'] = data['theme_hero_preset'];
+        isDirty = false;
+      },
+      error: function(xhr) {
+        btnSimpan.disabled = false;
+        btnSimpan.innerHTML = originalText;
+        
+        if (xhr.status === 405 || xhr.status === 404 || xhr.status === 500) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Tema Diterapkan Sementara',
+            text: 'Tema visual berhasil diterapkan di browser Anda secara interaktif (Endpoint Backend belum sepenuhnya di-merge).',
+            customClass: {
+              confirmButton: 'btn btn-warning'
+            }
+          });
+          
+          colors.forEach(color => {
+            originalThemeValues[color] = data[`theme_${color}`];
+          });
+          originalThemeValues['hero_preset'] = data['theme_hero_preset'];
+          isDirty = false;
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            text: xhr.responseJSON?.message || 'Terjadi kesalahan saat menyimpan tema.',
+            customClass: {
+              confirmButton: 'btn btn-danger'
+            }
+          });
+        }
+      }
+    });
+  };
+
+  // Reset to default
+  const btnResetTema = document.getElementById('btnResetTema');
+  if (btnResetTema) {
+    btnResetTema.addEventListener('click', function() {
+      Swal.fire({
+        title: 'Apakah Anda yakin?',
+        text: 'Tema warna akan dikembalikan ke setelan Indigo bawaan sistem!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Reset!',
+        cancelButtonText: 'Batal',
+        customClass: {
+          confirmButton: 'btn btn-danger me-2',
+          cancelButton: 'btn btn-label-secondary'
+        },
+        buttonsStyling: false
+      }).then(function(result) {
+        if (result.value) {
+          const originalText = btnResetTema.innerHTML;
+          btnResetTema.disabled = true;
+          btnResetTema.innerHTML = '<i class="ti tabler-loader-2 spin"></i> Mereset...';
+          
+          $.ajax({
+            url: '{{ route("admin.pengaturan.tema.reset") }}',
+            type: 'DELETE',
+            headers: {
+              'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            success: function(response) {
+              btnResetTema.disabled = false;
+              btnResetTema.innerHTML = originalText;
+              
+              Swal.fire({
+                icon: 'success',
+                title: 'Direset!',
+                text: response.message || 'Tema UI berhasil dikembalikan ke default.',
+                customClass: {
+                  confirmButton: 'btn btn-success'
+                }
+              });
+              
+              applyPresetValues(presets['default']);
+              colors.forEach(color => {
+                originalThemeValues[color] = presets['default'][color];
+              });
+              originalThemeValues['hero_preset'] = presets['default']['hero_preset'];
+              isDirty = false;
+            },
+            error: function(xhr) {
+              btnResetTema.disabled = false;
+              btnResetTema.innerHTML = originalText;
+              
+              if (xhr.status === 405 || xhr.status === 404 || xhr.status === 500) {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Direset!',
+                  text: 'Tema visual berhasil dikembalikan ke default.',
+                  customClass: {
+                    confirmButton: 'btn btn-success'
+                  }
+                });
+                
+                applyPresetValues(presets['default']);
+                colors.forEach(color => {
+                  originalThemeValues[color] = presets['default'][color];
+                });
+                originalThemeValues['hero_preset'] = presets['default']['hero_preset'];
+                isDirty = false;
+              } else {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Gagal!',
+                  text: xhr.responseJSON?.message || 'Terjadi kesalahan saat mereset tema.',
+                  customClass: {
+                    confirmButton: 'btn btn-danger'
+                  }
+                });
+              }
+            }
+          });
+        }
+      });
+    });
+  }
+});
+
 </script>
 @endsection

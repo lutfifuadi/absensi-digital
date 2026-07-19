@@ -255,13 +255,16 @@ class GeminiService
      */
     protected function buildDynamicSystemInstruction(string $userRole): array
     {
-        // Urutan prioritas: nama_lembaga > nama_sekolah > SCHOOL_NAME env > config('app.name')
+        // Urutan prioritas: nama_lembaga > nama_sekolah > config('app.name') > SCHOOL_NAME env
         $namaLembaga = Pengaturan::where('key', 'nama_lembaga')->value('value');
         if (empty($namaLembaga)) {
             $namaLembaga = Pengaturan::where('key', 'nama_sekolah')->value('value');
         }
         if (empty($namaLembaga)) {
-            $namaLembaga = env('SCHOOL_NAME', config('app.name', 'Sekolah'));
+            $namaLembaga = config('app.name');
+        }
+        if (empty($namaLembaga)) {
+            $namaLembaga = env('SCHOOL_NAME', 'Sekolah');
         }
 
         $asistenName = "Asisten {$namaLembaga}";

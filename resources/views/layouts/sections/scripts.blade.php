@@ -110,12 +110,21 @@
 @stack('scripts')
 
 {{-- Impersonation Banner: auto-adjust body padding --}}
-@if(session('impersonator_id'))
+@if(session('impersonator_id') || session('impersonated_by'))
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     var banner = document.getElementById('impersonation-banner');
     if (banner) {
-      document.body.style.paddingBottom = banner.offsetHeight + 'px';
+      var computedStyle = window.getComputedStyle(banner);
+      var isBottom = computedStyle.bottom === '0px' || banner.style.bottom === '0px';
+      
+      if (isBottom) {
+        document.body.style.paddingBottom = banner.offsetHeight + 'px';
+        document.body.style.paddingTop = '';
+      } else {
+        document.body.style.paddingTop = banner.offsetHeight + 'px';
+        document.body.style.paddingBottom = '';
+      }
     }
   });
 </script>

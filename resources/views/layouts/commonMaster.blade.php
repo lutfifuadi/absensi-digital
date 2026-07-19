@@ -131,6 +131,33 @@
     </style>
   @endif
 
+  @php
+    $themeVars = \Illuminate\Support\Facades\Cache::rememberForever('das_theme_vars', function () {
+        return \App\Models\Pengaturan::where('group', 'theme')->pluck('value', 'key')->toArray();
+    });
+  @endphp
+  @if(!empty($themeVars))
+    <style id="das-theme-vars">
+      :root {
+        @isset($themeVars['theme_primary']) --das-primary: {{ $themeVars['theme_primary'] }}; @endisset
+        @isset($themeVars['theme_primary_soft']) --das-primary-soft: {{ $themeVars['theme_primary_soft'] }}; @endisset
+        @isset($themeVars['theme_secondary']) --das-secondary: {{ $themeVars['theme_secondary'] }}; @endisset
+        @isset($themeVars['theme_secondary_soft']) --das-secondary-soft: {{ $themeVars['theme_secondary_soft'] }}; @endisset
+        @isset($themeVars['theme_success']) --das-success: {{ $themeVars['theme_success'] }}; @endisset
+        @isset($themeVars['theme_success_soft']) --das-success-soft: {{ $themeVars['theme_success_soft'] }}; @endisset
+        @isset($themeVars['theme_info']) --das-info: {{ $themeVars['theme_info'] }}; @endisset
+        @isset($themeVars['theme_info_soft']) --das-info-soft: {{ $themeVars['theme_info_soft'] }}; @endisset
+        @isset($themeVars['theme_warning']) --das-warning: {{ $themeVars['theme_warning'] }}; @endisset
+        @isset($themeVars['theme_warning_soft']) --das-warning-soft: {{ $themeVars['theme_warning_soft'] }}; @endisset
+        @isset($themeVars['theme_danger']) --das-danger: {{ $themeVars['theme_danger'] }}; @endisset
+        @isset($themeVars['theme_danger_soft']) --das-danger-soft: {{ $themeVars['theme_danger_soft'] }}; @endisset
+        @isset($themeVars['theme_text_main']) --das-text-main: {{ $themeVars['theme_text_main'] }}; @endisset
+        @isset($themeVars['theme_surface']) --das-surface: {{ $themeVars['theme_surface'] }}; @endisset
+        @isset($themeVars['theme_border']) --das-border: {{ $themeVars['theme_border'] }}; @endisset
+      }
+    </style>
+  @endif
+
   <!-- Include Scripts for customizer, helper, analytics, config -->
   <!-- $isFront is used to append the front layout scriptsIncludes only on the front layout otherwise the variable will be blank -->
   @include('layouts/sections/scriptsIncludes' . $isFront)

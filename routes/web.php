@@ -324,6 +324,14 @@ Route::middleware([
     // NOTE: 'revert' is defined FIRST to avoid conflict with {user} wildcard!
     Route::get('/admin/impersonate-revert', [ImpersonateController::class, 'revert'])
         ->name('admin.impersonate.revert');
+    
+    // Impersonate Siswa routes
+    Route::post('/admin/siswa/{siswa}/impersonate', [\App\Http\Controllers\Admin\ImpersonationController::class, 'start'])
+        ->name('admin.siswa.impersonate')
+        ->middleware('role:super_admin,admin_sekolah');
+    Route::post('/impersonate/leave', [\App\Http\Controllers\Admin\ImpersonationController::class, 'leave'])
+        ->name('impersonate.leave');
+
     Route::middleware('role:super_admin')->group(function () {
         Route::get('/admin/impersonate/{user}', [ImpersonateController::class, 'loginAs'])
             ->name('admin.impersonate.login-as');
@@ -805,6 +813,12 @@ Route::middleware([
             ->middleware('role:super_admin,admin_sekolah');
         Route::post('pengaturan', [PengaturanController::class, 'update'])
             ->name('admin.pengaturan.update')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pengaturan/tema', [PengaturanController::class, 'updateTheme'])
+            ->name('admin.pengaturan.tema.update')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::delete('pengaturan/tema/reset', [PengaturanController::class, 'resetTheme'])
+            ->name('admin.pengaturan.tema.reset')
             ->middleware('role:super_admin,admin_sekolah');
         Route::post('pengaturan/clear-cache', [PengaturanController::class, 'clearCache'])
             ->name('admin.pengaturan.clear-cache')

@@ -146,7 +146,7 @@
             background: rgba(26, 26, 46, 0.95) !important;
             backdrop-filter: blur(16px) saturate(180%) !important;
             border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            border-radius: 20px !important;
+            border-radius: 5px !important;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
         }
 
@@ -168,7 +168,7 @@
         .das-swal-confirm {
             padding: 10px 24px !important;
             font-weight: 600 !important;
-            border-radius: 10px !important;
+            border-radius: 5px !important;
             font-size: 0.875rem !important;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -178,7 +178,7 @@
         .das-swal-cancel {
             padding: 10px 24px !important;
             font-weight: 600 !important;
-            border-radius: 10px !important;
+            border-radius: 5px !important;
             font-size: 0.875rem !important;
             background: rgba(255, 255, 255, 0.05) !important;
             color: #fff !important;
@@ -619,6 +619,24 @@
         </div>
     </div>
 
+    <!-- Modal Konfirmasi Impersonate -->
+    <div class="modal fade" id="impersonateConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+            <div class="modal-content das-modal shadow-lg" style="border-radius: 5px !important;">
+                <div class="das-modal-head py-3 px-4">
+                    <h5 class="das-modal-title"><i class="ti tabler-user-share me-2 text-success"></i> Konfirmasi Login As</h5>
+                </div>
+                <div class="das-modal-body p-4 text-white">
+                    <p class="mb-0">Anda akan masuk ke dalam akun <b id="impersonateSiswaName" class="text-warning"></b>. Seluruh aktivitas akan dicatat dalam log sistem.</p>
+                </div>
+                <div class="d-flex justify-content-end gap-2 px-4 pb-4 pt-2">
+                    <button type="button" class="btn btn-label-secondary w-50" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" id="confirmImpersonateBtn" class="btn btn-success w-50">Ya, Lanjutkan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @section('vendor-script')
@@ -747,6 +765,49 @@
 
             // Individual delete AJAX handler (delegated, works after fetchData re-render)
             container.addEventListener('click', function(e) {
+                const btnImpersonate = e.target.closest('.btn-impersonate-siswa');
+                if (btnImpersonate) {
+                    const url = btnImpersonate.dataset.url;
+                    const nama = btnImpersonate.dataset.nama || 'Siswa';
+
+                    document.getElementById('impersonateSiswaName').textContent = nama;
+                    const modalEl = document.getElementById('impersonateConfirmModal');
+                    const confirmBtn = document.getElementById('confirmImpersonateBtn');
+                    
+                    // Reset confirm button state
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = 'Ya, Lanjutkan';
+
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+
+                    // Cleanup any existing click handler on confirm button to prevent multiple submissions
+                    const newConfirmBtn = confirmBtn.cloneNode(true);
+                    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+                    newConfirmBtn.addEventListener('click', function() {
+                        newConfirmBtn.disabled = true;
+                        newConfirmBtn.innerHTML = '<i class="ti tabler-loader spinner me-1"></i> Memproses...';
+                        
+                        modal.hide();
+
+                        // Create form element dynamically to do a POST request
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = url;
+
+                        const csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = '_token';
+                        csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                        form.appendChild(csrfInput);
+
+                        document.body.appendChild(form);
+                        form.submit();
+                    });
+                    return;
+                }
+
                 const btn = e.target.closest('.btn-hapus-siswa');
                 if (!btn) return;
 

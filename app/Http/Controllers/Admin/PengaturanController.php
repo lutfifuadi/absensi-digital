@@ -410,4 +410,88 @@ class PengaturanController extends Controller
         }
         return 'umum';
     }
+
+    public function updateTheme(Request $request)
+    {
+        $keys = [
+            'theme_primary', 'theme_success', 'theme_info', 'theme_warning', 
+            'theme_danger', 'theme_secondary', 'theme_text_main', 
+            'theme_surface', 'theme_border', 'theme_hero_preset'
+        ];
+
+        // Validasi: menolak format warna yang tidak valid (bukan hex valid / di luar enum preset)
+        $rules = [];
+        foreach ($keys as $key) {
+            if ($key === 'theme_hero_preset') {
+                $rules[$key] = 'required|string|in:default,ocean,forest,sunset,twilight,dark,custom';
+            } elseif (in_array($key, ['theme_surface', 'theme_border'])) {
+                // Surface dan Border mendukung format hex (#ffffff) atau rgba (rgba(255,255,255,0.07))
+                $rules[$key] = ['required', 'string', function ($attribute, $value, $fail) {
+                    $isHex = preg_match('/^#[a-fA-F0-9]{3}([a-fA-F0-9]{3})?$/', $value);
+                    $isRgba = preg_match('/^rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*(0(\.\d+)?|1(\.0+)?)\s*\)$/', $value) ||
+                              preg_match('/^rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)$/', $value);
+                    if (!$isHex && !$isRgba) {
+                        $fail("Warna {$attribute} harus berupa format HEX atau RGBA yang valid.");
+                    }
+                }];
+            } else {
+                $rules[$key] = ['required', 'string', 'regex:/^#[a-fA-F0-9]{3}([a-fA-F0-9]{3})?$/'];
+            }
+        }
+
+        $validated = $request->validate($rules);
+
+        // helper logic to auto-generate soft-colors
+        // soft-colors are primary, success, info, warning, danger, secondary
+        // format is rgba(r, g, b, 0.12)
+        $hexToRgb = function ($hex) {
+            $hex = str_replace('#', '', $hex);
+            if (strlen($hex) == 3) {
+                $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+            }
+            $r = hexdec(substr($hex, 0, 2));
+            $g = hexdec(substr($hex, 2, 2));
+            $b = hexdec(substr($hex, 4, 2));
+            return "rgba($r, $g, $b, 0.12)";
+        };
+
+        foreach ($validated as $key => $value) {
+            Pengaturan::updateOrCreate(
+                ['key' => $key],
+                ['value' => $value, 'group' => 'theme']
+            );
+
+            // Generate soft colors if it's one of the main colors
+            $colorName = str_replace('theme_', '', $key);
+            if (in_array($colorName, ['primary', 'success', 'info', 'warning', 'danger', 'secondary'])) {
+                $softValue = $hexToRgb($value);
+                Pengaturan::updateOrCreate(
+                    ['key' => "theme_{$colorName}_soft"],
+                    ['value' => $softValue, 'group' => 'theme']
+                );
+            }
+        }
+
+        // Bersihkan cache `das_theme_vars`
+        Cache::forget('das_theme_vars');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kustomisasi warna tema UI berhasil disimpan.'
+        ]);
+    }
+
+    public function resetTheme()
+    {
+        // Hapus data pengaturan yang bertipe theme
+        Pengaturan::where('group', 'theme')->delete();
+
+        // Bersihkan cache `das_theme_vars`
+        Cache::forget('das_theme_vars');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tema UI berhasil direset ke default.'
+        ]);
+    }
 }

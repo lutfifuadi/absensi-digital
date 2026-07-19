@@ -133,32 +133,61 @@
   <!-- / Layout wrapper -->
 
   {{-- ── Impersonation Banner ──────────────────────────────────────────── --}}
-  @if(session('impersonator_id'))
+  @if(session('impersonator_id') || session('impersonated_by'))
   <div id="impersonation-banner" style="
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
-      z-index: 9999;
-      background: linear-gradient(135deg, #fef3cd 0%, #fde68a 100%);
-      border-top: 2px solid #f59e0b;
+      z-index: 99999;
+      background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+      border-top: 2px solid #ef4444;
       padding: 10px 24px;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 14px;
-      box-shadow: 0 -4px 20px rgba(245, 158, 11, 0.25);
+      box-shadow: 0 -4px 20px rgba(239, 68, 68, 0.25);
       font-family: inherit;
   ">
-      <span style="font-size: 13px; color: #92400e;">
-          <i class="ti tabler-user-check" style="color: #d97706; margin-right: 5px;"></i>
-          Kamu sedang login sebagai user:
-          <strong style="color: #92400e;">{{ auth()->user()->name }}</strong>
-          <span style="margin: 0 6px; color: #b45309;">·</span>
-          <span class="badge" style="background:#fbbf24; color:#78350f; font-size:11px; padding: 3px 8px; border-radius: 20px;">
-              {{ str_replace('_', ' ', ucfirst(auth()->user()->role)) }}
-          </span>
+      <span style="font-size: 13px; color: #991b1b;">
+          <i class="ti tabler-user-check" style="color: #dc2626; margin-right: 5px;"></i>
+          @if(session('impersonated_by'))
+              Anda sedang login sebagai Siswa: <strong style="color: #991b1b;">{{ auth()->user()->name }}</strong>. Akun Admin Asli: <strong style="color: #991b1b;">{{ session('impersonator_name') }}</strong>
+          @else
+              Kamu sedang login sebagai user: <strong style="color: #991b1b;">{{ auth()->user()->name }}</strong>
+              <span style="margin: 0 6px; color: #b91c1c;">·</span>
+              <span class="badge" style="background:#f87171; color:#7f1d1d; font-size:11px; padding: 3px 8px; border-radius: 20px;">
+                  {{ str_replace('_', ' ', ucfirst(auth()->user()->role)) }}
+              </span>
+          @endif
       </span>
+      @if(session('impersonated_by'))
+      <form action="{{ route('impersonate.leave') }}" method="POST" style="margin: 0;">
+          @csrf
+          <button type="submit"
+             style="
+                 background: #ef4444;
+                 color: #fff;
+                 border: none;
+                 padding: 6px 18px;
+                 border-radius: 6px;
+                 font-size: 13px;
+                 font-weight: 600;
+                 text-decoration: none;
+                 display: inline-flex;
+                 align-items: center;
+                 gap: 6px;
+                 transition: background 0.2s;
+                 cursor: pointer;
+             "
+             onmouseover="this.style.background='#dc2626'"
+             onmouseout="this.style.background='#ef4444'">
+              <i class="ti tabler-arrow-back-up"></i>
+              Kembali ke Admin
+          </button>
+      </form>
+      @else
       <a href="{{ route('admin.impersonate.revert') }}"
          style="
              background: #7367f0;
@@ -179,6 +208,7 @@
           <i class="ti tabler-arrow-back-up"></i>
           Kembali ke Admin
       </a>
+      @endif
   </div>
   @endif
   {{-- ────────────────────────────────────────────────────────────────────── --}}

@@ -71,6 +71,16 @@
           </td>
           <td class="pe-4 text-end">
             <div class="d-flex justify-content-end gap-1">
+              @if(!$isWaliKelas && $item->user_id && auth()->user()->hasAnyRole(['super_admin', 'admin_sekolah']))
+              <button type="button"
+                class="action-btn text-success btn-impersonate-siswa"
+                title="Login As Siswa"
+                data-bs-toggle="tooltip"
+                data-url="{{ route('admin.siswa.impersonate', $item) }}"
+                data-nama="{{ $item->nama_lengkap }}">
+                <i class="ti tabler-user-share fs-5"></i>
+              </button>
+              @endif
               <a href="{{ route('admin.siswa.profil', $item) }}" class="action-btn text-info" title="Lihat Profil" data-bs-toggle="tooltip">
                 <i class="ti tabler-eye fs-5"></i>
               </a>
