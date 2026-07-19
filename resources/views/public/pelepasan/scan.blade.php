@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Scan Pelepasan Kelas XII — Absensi Wisuda</title>
+  <title>Scan Pelepasan Kelas {{ \App\Helpers\JenjangHelper::getKelasAkhir() }} — Absensi Wisuda</title>
   <link rel="stylesheet" href="{{ asset('assets/css/local-fonts.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/vendor/fonts/tabler-icons.css') }}">
   <style>
@@ -412,7 +412,7 @@
   <div class="nav-brand">
     <div class="brand-icon">🎓</div>
     <div>
-      <h1>Scan Pelepasan Kelas XII</h1>
+      <h1>Scan Pelepasan Kelas {{ \App\Helpers\JenjangHelper::getKelasAkhir() }}</h1>
       <p>Absensi Wisuda &amp; Pelepasan</p>
     </div>
   </div>

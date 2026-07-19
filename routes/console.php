@@ -13,6 +13,9 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+// Jadwal: setiap hari jam 00.00 bersihkan file log laravel.log
+Schedule::command(\App\Console\Commands\LogsClear::class)->daily();
+
 // Jadwal: setiap hari jam 08.00 tandai alpha bagi yang belum absen
 Schedule::command(AutoMarkAlphaCommand::class)->dailyAt('08:00');
 

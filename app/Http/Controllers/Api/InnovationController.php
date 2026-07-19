@@ -711,8 +711,8 @@ class InnovationController extends Controller
             ->where('kegiatan_id', $kegiatanId);
 
         if ($jurusan) {
-            $attendanceQuery->whereHas('siswa.kelas', function($q) use ($jurusan) {
-                $q->where('jurusan', $jurusan);
+            $attendanceQuery->whereHas('siswa.kelas.jurusan', function($q) use ($jurusan) {
+                $q->where('nama', $jurusan);
             });
         }
 
@@ -724,8 +724,8 @@ class InnovationController extends Controller
         $querySiswa = Siswa::with('kelas');
 
         if ($jurusan) {
-            $querySiswa->whereHas('kelas', function($q) use ($jurusan) {
-                $q->where('jurusan', $jurusan);
+            $querySiswa->whereHas('kelas.jurusan', function($q) use ($jurusan) {
+                $q->where('nama', $jurusan);
             });
         }
 
@@ -742,12 +742,12 @@ class InnovationController extends Controller
             $targetJurusan = $kegiatan->target_jurusan;
             if (($kegiatan->target_tingkat && count($kegiatan->target_tingkat) > 0) || 
                 ($kegiatan->target_peserta && count($kegiatan->target_peserta) > 0)) {
-                $querySiswa->orWhereHas('kelas', function($q) use ($targetJurusan) {
-                    $q->whereIn('jurusan', $targetJurusan);
+                $querySiswa->orWhereHas('kelas.jurusan', function($q) use ($targetJurusan) {
+                    $q->whereIn('nama', $targetJurusan);
                 });
             } else {
-                $querySiswa->whereHas('kelas', function($q) use ($targetJurusan) {
-                    $q->whereIn('jurusan', $targetJurusan);
+                $querySiswa->whereHas('kelas.jurusan', function($q) use ($targetJurusan) {
+                    $q->whereIn('nama', $targetJurusan);
                 });
             }
         }

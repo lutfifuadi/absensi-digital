@@ -25,7 +25,7 @@
                 </span>
               </div>
               <div>
-                <span class="fw-semibold">{{ $item->nama }}</span>
+                <span class="fw-semibold text-nowrap">{{ $item->nama }}</span>
                 @if ($item->kustomisasi_jam)
                   <span class="badge bg-label-warning ms-1" style="font-size:0.6rem;" title="Jam Khusus: {{ $item->jam_masuk ? \Carbon\Carbon::parse($item->jam_masuk)->format('H:i') : '-' }} - {{ $item->jam_pulang ? \Carbon\Carbon::parse($item->jam_pulang)->format('H:i') : '-' }}">
                     <i class="ti tabler-clock-edit"></i>
@@ -73,13 +73,11 @@
           <td>
             @if ($item->tahunAkademik)
               <span class="badge bg-label-warning px-2">{{ $item->tahunAkademik->nama }}</span>
-              <span class="text-white-50" style="font-size:0.72rem;">
-                {{ ucfirst($item->tahunAkademik->semester) }}</span>
             @else
               <span class="text-white-50 small">—</span>
             @endif
           </td>
-          <td class="pe-4 text-end">
+          <td class="pe-4 text-end text-nowrap">
             <a href="{{ route('admin.kelas.show', $item) }}"
               class="action-btn bg-label-success text-success me-1">
               <i class="ti tabler-users"></i> Detail Siswa

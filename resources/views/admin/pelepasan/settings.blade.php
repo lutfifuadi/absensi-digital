@@ -204,10 +204,10 @@
                 <div class="das-hero__meta">
                     <div class="das-hero__badge">
                         <span class="pulse-dot"></span>
-                        Pengaturan / Pelepasan Kelas XII
+                        Pengaturan / Pelepasan Kelas {{ \App\Helpers\JenjangHelper::getKelasAkhir() }}
                     </div>
                     <h4 class="das-hero__title text-gradient-gold">Pengaturan Kegiatan Pelepasan</h4>
-                    <p class="das-hero__subtitle">Pilih kegiatan khusus untuk absensi pelepasan kelas XII</p>
+                    <p class="das-hero__subtitle">Pilih kegiatan khusus untuk absensi pelepasan kelas {{ \App\Helpers\JenjangHelper::getKelasAkhir() }}</p>
                 </div>
             </div>
             <div class="das-hero__actions" style="gap:0.5rem;">

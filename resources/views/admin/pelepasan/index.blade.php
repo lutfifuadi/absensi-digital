@@ -1,6 +1,6 @@
 @extends('layouts/layoutMaster')
 
-@section('title', 'Absensi Pelepasan Kelas XII')
+@section('title', 'Absensi Pelepasan Kelas ' . \App\Helpers\JenjangHelper::getKelasAkhir())
 
 @section('page-style')
     <style>
@@ -291,9 +291,9 @@
                 <div class="das-hero__meta">
                     <div class="das-hero__badge">
                         <span class="pulse-dot"></span>
-                        Wisuda &amp; Alumni / Absensi Pelepasan XII
+                        Wisuda &amp; Alumni / Absensi Pelepasan {{ \App\Helpers\JenjangHelper::getKelasAkhir() }}
                     </div>
-                    <h4 class="das-hero__title text-gradient-gold">Absensi Pelepasan Kelas XII</h4>
+                    <h4 class="das-hero__title text-gradient-gold">Absensi Pelepasan Kelas {{ \App\Helpers\JenjangHelper::getKelasAkhir() }}</h4>
                     <p class="das-hero__subtitle">Pencatatan kehadiran, Live Board wisuda, dan notifikasi real-time ke orang tua siswa.</p>
                 </div>
             </div>
@@ -505,7 +505,7 @@
                     </div>
                     <div class="scan-modal__title-text">
                         <span class="scan-modal__title-main">Scan QR Kamera</span>
-                        <span class="scan-modal__title-sub">Pelepasan Kelas XII · Absensi Otomatis</span>
+                        <span class="scan-modal__title-sub">Pelepasan Kelas {{ \App\Helpers\JenjangHelper::getKelasAkhir() }} · Absensi Otomatis</span>
                     </div>
                 </div>
                 <button type="button" id="scanModalClose" class="scan-modal__close">
@@ -1306,7 +1306,7 @@
                 resetKehadiranBtn.addEventListener('click', function() {
                     Swal.fire({
                         title: 'Mereset Kehadiran?',
-                        html: '<div class="mt-2">Semua data scan masuk siswa untuk <b>Pelepasan Kelas XII</b> akan dihapus/direset kembali ke awal. Tindakan ini tidak dapat dibatalkan!</div>',
+                        html: '<div class="mt-2">Semua data scan masuk siswa untuk <b>Pelepasan Kelas {{ \App\Helpers\JenjangHelper::getKelasAkhir() }}</b> akan dihapus/direset kembali ke awal. Tindakan ini tidak dapat dibatalkan!</div>',
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonText: 'Ya, Reset Semua',

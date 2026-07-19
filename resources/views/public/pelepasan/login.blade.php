@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Scan Pelepasan Kelas XII — Absensi Wisuda</title>
+  <title>Scan Pelepasan Kelas {{ \App\Helpers\JenjangHelper::getKelasAkhir() }} — Absensi Wisuda</title>
   <link rel="stylesheet" href="{{ asset('assets/css/local-fonts.css') }}">
   <style>
     *,
@@ -237,7 +237,7 @@
       <div class="brand-icon">🎓</div>
 
       <div class="form-heading">
-        <h4>Scan Pelepasan Kelas XII</h4>
+        <h4>Scan Pelepasan Kelas {{ \App\Helpers\JenjangHelper::getKelasAkhir() }}</h4>
         <p>Absensi Wisuda — Akses Publik</p>
         <div class="date-pill">{{ now()->isoFormat('dddd, D MMMM Y') }}</div>
       </div>

@@ -242,11 +242,10 @@
 
   {{-- ── MODAL CREATE ─────────────────────────────────── --}}
   <div class="modal fade" id="modalCreate" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content das-modal shadow-lg">
-        <div class="das-modal-head d-flex align-items-center justify-content-between">
+        <div class="das-modal-head d-flex align-items-center">
           <h5 class="das-modal-title"><i class="ti tabler-calendar-plus me-2 text-primary"></i>Buat Agenda Baru</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <form action="{{ route('admin.kegiatan.store') }}" method="POST">
           @csrf
@@ -272,32 +271,32 @@
               </div>
             </div>
 
-            {{-- Tanpa Tanggal Pasti --}}
-            <div class="mb-3">
-              <div class="p-2" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
-                <div class="form-check">
-                  <input type="checkbox" id="tanpa_tanggal_pasti_modal" class="form-check-input"
-                         style="width:18px;height:18px;cursor:pointer;"
-                         onchange="toggleTanggalModal(this)">
-                  <label class="form-check-label text-white small fw-semibold" for="tanpa_tanggal_pasti_modal" style="cursor:pointer;font-size:.75rem;">
-                    <i class="ti tabler-calendar-off text-warning me-1"></i>
-                    Tanpa tanggal pasti (kegiatan rutin/fleksibel)
-                  </label>
+            {{-- Tanpa Tanggal Pasti & Tanpa Batas Waktu --}}
+            <div class="row g-3 mb-3">
+              <div class="col-6">
+                <div class="p-2" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
+                  <div class="form-check">
+                    <input type="checkbox" id="tanpa_tanggal_pasti_modal" class="form-check-input"
+                           style="width:18px;height:18px;cursor:pointer;"
+                           onchange="toggleTanggalModal(this)">
+                    <label class="form-check-label text-white small fw-semibold" for="tanpa_tanggal_pasti_modal" style="cursor:pointer;font-size:.75rem;">
+                      <i class="ti tabler-calendar-off text-warning me-1"></i>
+                      Tanpa tanggal pasti (kegiatan rutin/fleksibel)
+                    </label>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            {{-- Tanpa Batas Waktu --}}
-            <div class="mb-3">
-              <div class="p-2" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
-                <div class="form-check">
-                  <input type="checkbox" id="tanpa_batas_waktu_modal" class="form-check-input"
-                         style="width:18px;height:18px;cursor:pointer;"
-                         onchange="toggleWaktuModal(this)">
-                  <label class="form-check-label text-white small fw-semibold" for="tanpa_batas_waktu_modal" style="cursor:pointer;font-size:.75rem;">
-                    <i class="ti tabler-clock-off text-info me-1"></i>
-                    Kegiatan seharian penuh (tanpa batas waktu)
-                  </label>
+              <div class="col-6">
+                <div class="p-2" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
+                  <div class="form-check">
+                    <input type="checkbox" id="tanpa_batas_waktu_modal" class="form-check-input"
+                           style="width:18px;height:18px;cursor:pointer;"
+                           onchange="toggleWaktuModal(this)">
+                    <label class="form-check-label text-white small fw-semibold" for="tanpa_batas_waktu_modal" style="cursor:pointer;font-size:.75rem;">
+                      <i class="ti tabler-clock-off text-info me-1"></i>
+                      Kegiatan seharian penuh (tanpa batas waktu)
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
@@ -320,7 +319,7 @@
 
             <div class="mb-0">
               <label class="das-form-label">Deskripsi Singkat</label>
-              <textarea name="keterangan" class="form-control das-form-control" rows="3" placeholder="Tuliskan keterangan jika ada"></textarea>
+              <input type="text" name="keterangan" class="form-control das-form-control" placeholder="Tuliskan keterangan jika ada">
             </div>
           </div>
           <div class="modal-footer border-0 pt-0">

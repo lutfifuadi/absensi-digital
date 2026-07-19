@@ -104,8 +104,8 @@
       "url": "/admin/ekskul"
     },
     {
-      "name": "Pelepasan Kelas XII",
-      "icon": "menu-icon ti tabler-graduation-cap",
+      "name": "Pelepasan",
+      "icon": "menu-icon ti tabler-award",
       "slug": "admin.pelepasan.index",
       "url": "/admin/pelepasan"
     },

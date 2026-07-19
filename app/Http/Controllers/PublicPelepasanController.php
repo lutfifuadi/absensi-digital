@@ -221,8 +221,10 @@ class PublicPelepasanController extends Controller
             ->first();
 
         if (!$kegiatan) {
-            // Fallback: cari nama versi lama
-            $kegiatan = Kegiatan::where('nama_kegiatan', "Pelepasan Kelas {$kelasAkhir} Angkatan 2026")
+            // Fallback: cari nama versi lama (dengan tahun dari tahun akademik)
+            $ta = TahunAkademik::find($taId);
+            $tahunCari = $ta ? $ta->nama : date('Y');
+            $kegiatan = Kegiatan::where('nama_kegiatan', "Pelepasan Kelas {$kelasAkhir} Angkatan {$tahunCari}")
                 ->where('tahun_akademik_id', $taId)
                 ->first();
         }
@@ -231,20 +233,25 @@ class PublicPelepasanController extends Controller
         if (!$kegiatan) {
             $ta = TahunAkademik::find($taId);
             $tahun = $ta ? $ta->nama : date('Y');
+            $qrCode = 'KGT-PELEPASAN-' . date('Y');
 
-            $kegiatan = Kegiatan::create([
-                'nama_kegiatan'       => "Pelepasan Kelas {$kelasAkhir} Angkatan {$tahun}",
-                'jenis'               => 'LAINNYA',
-                'tanggal_pelaksanaan' => date('Y-m-d'),
-                'waktu_mulai'         => '07:00:00',
-                'waktu_selesai'       => '13:00:00',
-                'lokasi'              => 'AULA UTAMA',
-                'keterangan'          => "Absensi khusus wisuda & pelepasan siswa kelas {$kelasAkhir}",
-                'qr_code_kegiatan'    => 'KGT-PELEPASAN-' . date('Y'),
-                'is_wajib'            => true,
-                'target_peserta'      => [$kelasAkhir],
-                'tahun_akademik_id'   => $taId,
-            ]);
+            // Gunakan firstOrCreate dengan qr_code_kegiatan sebagai key unik
+            // agar aman dari race condition (unique constraint tetap terjaga)
+            $kegiatan = Kegiatan::firstOrCreate(
+                ['qr_code_kegiatan' => $qrCode],
+                [
+                    'nama_kegiatan'       => "Pelepasan Kelas {$kelasAkhir} Angkatan {$tahun}",
+                    'jenis'               => 'LAINNYA',
+                    'tanggal_pelaksanaan' => date('Y-m-d'),
+                    'waktu_mulai'         => '07:00:00',
+                    'waktu_selesai'       => '13:00:00',
+                    'lokasi'              => 'AULA UTAMA',
+                    'keterangan'          => "Absensi khusus wisuda & pelepasan siswa kelas {$kelasAkhir}",
+                    'is_wajib'            => true,
+                    'target_peserta'      => [$kelasAkhir],
+                    'tahun_akademik_id'   => $taId,
+                ]
+            );
         }
 
         return $kegiatan;

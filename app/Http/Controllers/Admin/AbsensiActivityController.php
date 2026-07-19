@@ -12,11 +12,7 @@ class AbsensiActivityController extends Controller
     public function index()
     {
         $kegiatans = Kegiatan::latest()->get();
-        $jurusanList = \App\Models\Kelas::whereNotNull('jurusan')
-            ->distinct()
-            ->pluck('jurusan')
-            ->sort()
-            ->values();
+        $jurusanList = \App\Models\Jurusan::pluck('nama')->sort()->values();
         return view('admin.kegiatan.absensi', compact('kegiatans', 'jurusanList'));
     }
 

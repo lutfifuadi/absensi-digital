@@ -1,6 +1,8 @@
 @extends('layouts/layoutMaster')
 
-@section('title', 'Absensi Kegiatan & Ekstrakurikuler')
+@section('title')
+    Absensi Kegiatan & Ekstrakurikuler
+@endsection
 
 @section('page-style')
 <style>

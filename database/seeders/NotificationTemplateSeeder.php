@@ -124,12 +124,12 @@ Admin Kesiswaan {lembaga}
 EOS,
             ],
             'pelepasan_hadir' => [
-                'label' => 'Pelepasan Kelas XII — Hadir',
+                'label' => 'Pelepasan Kelas Akhir — Hadir',
                 'content' => <<<'EOS'
 Assalamu'alaikum Wr. Wb.
 Yth. Bapak/Ibu Orang Tua/Wali dari *{nama}* – Kelas *{kelas}*,
 
-Dengan hormat, kami sampaikan bahwa putra/putri Bapak/Ibu telah tercatat hadir pada acara *Pelepasan Kelas XII {lembaga}* pada pukul *{jam}* WIB.
+Dengan hormat, kami sampaikan bahwa putra/putri Bapak/Ibu telah tercatat hadir pada acara *Pelepasan {lembaga}* pada pukul *{jam}* WIB.
 
 Kehadiran ini menjadi kebanggaan tersendiri bagi kami dan semoga menjadi awal yang baik bagi langkah putra/putri menuju masa depan yang gemilang.
 
