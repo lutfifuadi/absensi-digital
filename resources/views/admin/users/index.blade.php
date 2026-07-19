@@ -276,7 +276,7 @@
     <div class="das-panel mb-4">
         <div class="das-panel__body">
             <form id="filterForm" method="GET" class="row gy-3 gx-3 align-items-end">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label text-white-50 small fw-bold">Cari User</label>
                     <input type="text" id="filterSearch" name="search" class="form-control"
                         placeholder="Nama, Username, atau Email…" value="{{ request('search') }}">
@@ -290,7 +290,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label text-white-50 small fw-bold">Tanggal Join (Mulai - Sampai)</label>
                     <div class="d-flex align-items-center gap-1">
                         <input type="date" id="startDate" name="start_date" class="form-control"
