@@ -333,7 +333,7 @@ Route::middleware([
         ->name('impersonate.leave');
 
     Route::middleware('role:super_admin')->group(function () {
-        Route::get('/admin/impersonate/{user}', [ImpersonateController::class, 'loginAs'])
+        Route::post('/admin/impersonate/{user}', [ImpersonateController::class, 'loginAs'])
             ->name('admin.impersonate.login-as');
         
         // System & Developer Logs routes
