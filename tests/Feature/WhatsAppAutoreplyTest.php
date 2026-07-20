@@ -470,10 +470,15 @@ class WhatsAppAutoreplyTest extends TestCase
         ]);
 
         // Hari ini (misal Kamis/Jumat) kita set absensi hari ini untuk test jam_masuk & jam_pulang
-        AbsensiSiswa::create([
+        // Gunakan $startOfWeek + 3 hari agar tidak bentrok jika Carbon::today() jatuh pada hari Senin/Selasa/Rabu yang sudah di-insert di atas
+        $hariIni = $startOfWeek->copy()->addDays(3);
+        Carbon::setTestNow($hariIni);
+
+        AbsensiSiswa::updateOrCreate([
             'siswa_id' => $siswa->id,
+            'tanggal' => $hariIni->toDateString(),
+        ], [
             'kelas_id' => 1,
-            'tanggal' => Carbon::today()->toDateString(),
             'jam_masuk' => '07:10:00',
             'jam_pulang' => '16:00:00',
             'status' => 'hadir',

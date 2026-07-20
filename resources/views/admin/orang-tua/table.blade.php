@@ -17,18 +17,18 @@
                     <td>
                         <div class="d-flex align-items-center gap-3">
                             <div class="avatar avatar-md">
-                                <span class="avatar-initial rounded-circle bg-label-primary" style="font-size:0.85rem;">
+                                <span class="avatar-initial rounded-circle bg-label-info" style="font-size:0.85rem;">
                                     {{ strtoupper(substr($item->name, 0, 1)) }}{{ strtoupper(substr(strrchr($item->name, ' ') ?: $item->name, 1, 1)) }}
                                 </span>
                             </div>
                             <div>
-                                <div class="fw-bold mb-0 text-white" style="font-size:0.9rem;">{{ $item->name }}</div>
+                                <div class="fw-bold mb-0" style="font-size:0.9rem;">{{ $item->name }}</div>
                                 <div class="text-white-50 small" style="font-size:0.72rem;">ID: #{{ $item->id }}</div>
                             </div>
                         </div>
                     </td>
                     <td>
-                        <div class="small fw-medium text-white">Username: {{ $item->username }}</div>
+                        <div class="small fw-medium">Username: {{ $item->username }}</div>
                         <div class="text-white-50 small" style="font-size:0.72rem;">Pass Default: NISN Anak / password123</div>
                     </td>
                     <td class="text-center">
@@ -52,9 +52,14 @@
                     <td class="pe-4 text-end">
                         <div class="d-flex justify-content-end gap-1">
                             @if(auth()->user()->isSuperAdmin() && auth()->id() !== $item->id)
-                                <a href="{{ route('admin.impersonate.login-as', $item->id) }}" class="action-btn text-success" title="Login Sebagai Orang Tua" data-bs-toggle="tooltip">
+                                <button type="button"
+                                    class="action-btn text-success btn-impersonate-ortu"
+                                    title="Login Sebagai Orang Tua"
+                                    data-bs-toggle="tooltip"
+                                    data-url="{{ route('admin.impersonate.login-as', $item->id) }}"
+                                    data-nama="{{ $item->name }}">
                                     <i class="ti tabler-login fs-5"></i>
-                                </a>
+                                </button>
                             @endif
                             <a href="{{ route('admin.orang-tua.show', $item) }}" class="action-btn text-info" title="Detail" data-bs-toggle="tooltip">
                                 <i class="ti tabler-eye fs-5"></i>
@@ -87,7 +92,7 @@
                         <div class="d-flex flex-column align-items-center gap-2 opacity-50">
                             <i class="ti tabler-users-minus" style="font-size:2.5rem;"></i>
                             <span class="small">Belum ada data orang tua.</span>
-                            <a href="{{ route('admin.orang-tua.create') }}" class="btn btn-sm btn-label-primary mt-1">
+                            <a href="{{ route('admin.orang-tua.create') }}" class="btn btn-sm btn-label-info mt-1">
                                 <i class="ti tabler-plus me-1"></i> Tambah Sekarang
                             </a>
                         </div>
@@ -99,7 +104,7 @@
 </div>
 
 @if ($orangTua->hasPages())
-    <div class="px-4 py-3 border-top" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+    <div class="px-4 py-3 border-top" style="border-color: var(--das-border) !important;">
         {{ $orangTua->links('vendor.pagination.users') }}
     </div>
 @endif

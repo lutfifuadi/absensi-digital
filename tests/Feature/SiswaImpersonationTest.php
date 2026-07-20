@@ -125,4 +125,46 @@ class SiswaImpersonationTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    /** @test */
+    public function admin_cannot_impersonate_user_via_get()
+    {
+        $targetUser = User::factory()->create([
+            'role' => User::ROLE_GURU,
+        ]);
+
+        // Trying to access via GET should redirect to admin.users.index with warning
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.impersonate.get', $targetUser));
+
+        $response->assertRedirect(route('admin.users.index'));
+        $response->assertSessionHas('warning', 'Fitur impersonate tidak dapat diakses langsung via URL. Silakan gunakan tombol resmi di halaman daftar user.');
+    }
+
+    /** @test */
+    public function admin_can_impersonate_user_via_post_and_revert_via_get()
+    {
+        $targetUser = User::factory()->create([
+            'role' => User::ROLE_GURU,
+        ]);
+
+        // Start impersonation with POST
+        $response = $this->actingAs($this->admin)
+            ->post(route('admin.impersonate.login-as', $targetUser));
+
+        $response->assertRedirect('/dashboard');
+        $response->assertSessionHas('impersonator_id', $this->admin->id);
+        $response->assertSessionHas('active_role', User::ROLE_GURU);
+
+        // Verify logged in user is targetUser
+        $this->assertEquals($targetUser->id, auth()->guard('web')->id());
+
+        // Revert impersonation with GET
+        $revertResponse = $this->get(route('admin.impersonate.revert'));
+        $revertResponse->assertRedirect(route('admin.users.index'));
+        $revertResponse->assertSessionMissing('impersonator_id');
+
+        // Verify logged in user is admin again
+        $this->assertEquals($this->admin->id, auth()->guard('web')->id());
+    }
 }

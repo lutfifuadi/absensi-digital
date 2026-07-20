@@ -335,6 +335,8 @@ Route::middleware([
     Route::middleware('role:super_admin')->group(function () {
         Route::post('/admin/impersonate/{user}', [ImpersonateController::class, 'loginAs'])
             ->name('admin.impersonate.login-as');
+        Route::get('/admin/impersonate/{user}', [ImpersonateController::class, 'handleGet'])
+            ->name('admin.impersonate.get');
         
         // System & Developer Logs routes
         Route::get('/admin/system-logs', [\App\Http\Controllers\Admin\SystemLogController::class, 'index'])

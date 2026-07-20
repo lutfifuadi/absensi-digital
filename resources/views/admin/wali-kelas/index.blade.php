@@ -29,7 +29,56 @@
       transform: translateY(-2px);
       background: rgba(255, 255, 255, 0.1);
     }
+
+    /* SWEETALERT2 CUSTOM PREMIUM */
+    .das-swal-popup {
+      background: rgba(26, 26, 46, 0.95) !important;
+      backdrop-filter: blur(16px) saturate(180%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-radius: 5px !important;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .das-swal-title {
+      color: #fff !important;
+      font-weight: 700 !important;
+      font-size: 1.5rem !important;
+      text-align: center !important;
+      width: 100% !important;
+      max-width: none !important;
+      max-inline-size: none !important;
+    }
+
+    .das-swal-html {
+      color: rgba(255, 255, 255, 0.7) !important;
+      font-size: 0.95rem !important;
+    }
+
+    .das-swal-confirm {
+      padding: 10px 24px !important;
+      font-weight: 600 !important;
+      border-radius: 5px !important;
+      font-size: 0.875rem !important;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 12px rgba(234, 84, 85, 0.3) !important;
+    }
+
+    .das-swal-cancel {
+      padding: 10px 24px !important;
+      font-weight: 600 !important;
+      border-radius: 5px !important;
+      font-size: 0.875rem !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+      color: #fff !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .das-swal-icon {
+      border-color: rgba(255, 255, 255, 0.1) !important;
+    }
   </style>
+  @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
 @endsection
 
 @section('content')
@@ -100,142 +149,70 @@
     </div>
   @endif
 
+  {{-- FILTER PANEL --}}
+  <div class="das-panel mb-4">
+    <div class="das-panel__body">
+      <form id="filterForm" method="GET" class="row gy-3 gx-3 align-items-end">
+        <div class="col-md-5">
+          <label class="form-label text-white-50 small fw-bold">Cari Wali Kelas</label>
+          <input type="text" id="filterSearch" name="search" class="form-control"
+            placeholder="Nama, NIP, Email, atau Mapel…" value="{{ request('search') }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label text-white-50 small fw-bold">Status</label>
+          <select id="filterStatus" name="status" class="form-select">
+            <option value="">Semua Status</option>
+            <option value="aktif" @selected(request('status') === 'aktif')>Aktif</option>
+            <option value="nonaktif" @selected(request('status') === 'nonaktif')>Nonaktif</option>
+            <option value="belum lengkap" @selected(request('status') === 'belum lengkap')>Belum Lengkap</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn das-btn --info w-100">
+              <i class="ti tabler-search me-1"></i> Cari
+            </button>
+            <button type="button" id="resetFilterBtn" class="btn das-btn --secondary" title="Reset">
+              <i class="ti tabler-refresh"></i>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
   {{-- TABLE CARD --}}
   <div class="das-panel">
-    <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between"
+    <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3"
       style="border-color:rgba(255,255,255,0.08) !important;">
       <h6 class="das-panel__title mb-0 d-flex align-items-center gap-2">
         <i class="ti tabler-list text-info"></i> Daftar Wali Kelas
       </h6>
-      <span class="das-chip --info">{{ count($waliKelasUsers) }} Wali Kelas</span>
+      <div class="d-flex align-items-center gap-3">
+        <select id="perPageSelect" class="form-select border-0 text-white w-auto"
+          style="background: rgba(255,255,255,0.05); height:38px; font-size:0.85rem; cursor:pointer;">
+          <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+          <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+          <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+          <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+        </select>
+
+        <span class="das-chip --info d-none d-sm-inline-flex" id="totalCountSpan">
+          {{ method_exists($waliKelasUsers, 'total') ? $waliKelasUsers->total() : count($waliKelasUsers) }} Wali Kelas
+        </span>
+      </div>
     </div>
     <div class="das-panel__body p-0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0" style="color:inherit;">
-          <thead
-            style="background:rgba(255,255,255,0.04);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;opacity:0.7;">
-            <tr>
-              <th class="ps-4 py-3" style="width:46px;">#</th>
-              <th class="py-3">Informasi Wali Kelas</th>
-              <th class="py-3 d-none d-md-table-cell">NIP</th>
-              <th class="py-3">Mata Pelajaran</th>
-              <th class="py-3 text-center">Status</th>
-              <th class="py-3 d-none d-lg-table-cell">Role</th>
-              <th class="py-3 d-none d-xl-table-cell">Email Login</th>
-              <th class="py-3 pe-4 text-end">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse($waliKelasUsers as $item)
-              @php
-                $profile        = $item->guru;
-                $displayName    = $profile->nama_lengkap ?? $item->name;
-                $displayJabatan = $profile->jabatan ?? 'Wali Kelas';
-                $displayNip     = $profile->nip ?? '-';
-                $displayMapel   = $profile ? ($profile->mata_pelajaran ?: 'Belum diisi') : 'Belum diisi';
-                $displayStatus  = $profile->status ?? 'belum lengkap';
-                $statusClass    = $profile ? ($profile->status === 'aktif' ? 'success' : 'danger') : 'secondary';
-              @endphp
-              <tr class="wk-row-hover">
-                <td class="ps-4 text-white-50 small">{{ $loop->iteration }}</td>
-                <td>
-                  <div class="d-flex align-items-center gap-3">
-                    <div class="avatar avatar-md">
-                      <span class="avatar-initial rounded-circle bg-label-info" style="font-size:0.85rem;">
-                        {{ strtoupper(substr($displayName, 0, 1)) }}{{ strtoupper(substr(strrchr($displayName, ' ') ?: $displayName, 1, 1)) }}
-                      </span>
-                    </div>
-                    <div>
-                      <div class="fw-bold mb-0" style="font-size:0.9rem;">{{ $displayName }}</div>
-                      <div class="text-white-50 small" style="font-size:0.72rem;">{{ $displayJabatan }}</div>
-                    </div>
-                  </div>
-                </td>
-                <td class="d-none d-md-table-cell text-white-50 small">
-                  {{ $displayNip }}
-                </td>
-                <td>
-                  @if ($profile && $profile->mata_pelajaran)
-                    <span class="badge bg-label-warning text-capitalize">{{ $displayMapel }}</span>
-                  @else
-                    <span class="text-white-50 small">Belum diisi</span>
-                  @endif
-                </td>
-                <td class="text-center">
-                  <span
-                    class="badge bg-label-{{ $statusClass }} text-capitalize px-2">{{ $displayStatus }}</span>
-                </td>
-                <td class="d-none d-lg-table-cell text-capitalize small text-white-50">
-                  @php
-                    $userRoles = [];
-                    if ($item->role) {
-                      $userRoles[] = $item->role;
-                    }
-                    $userRoles = array_unique(array_filter(array_merge($userRoles, $item->roles ?? [])));
-                  @endphp
-                  @if (count($userRoles) > 0)
-                    {{ implode(', ', array_map(fn ($role) => str_replace('_', ' ', ucfirst($role)), $userRoles)) }}
-                  @else
-                    -
-                  @endif
-                </td>
-                <td class="d-none d-xl-table-cell small text-white-50">
-                  {{ $item->email ?? '-' }}
-                </td>
-                <td class="pe-4 text-end">
-                  <div class="d-flex justify-content-end gap-1">
-                    @if ($profile)
-                      <a href="{{ route('admin.wali-kelas.generate-qr', $profile->id) }}" class="action-btn text-info"
-                        title="Unduh QR" data-bs-toggle="tooltip">
-                        <i class="ti tabler-qrcode fs-5"></i>
-                      </a>
-                      <a href="{{ route('admin.wali-kelas.edit', $profile->id) }}" class="action-btn text-warning"
-                        title="Ubah" data-bs-toggle="tooltip">
-                        <i class="ti tabler-pencil fs-5"></i>
-                      </a>
-                      <form action="{{ route('admin.wali-kelas.destroy', $profile->id) }}" method="POST"
-                        class="d-inline" onsubmit="return confirm('Yakin ingin menghapus wali kelas ini?');">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="action-btn text-danger" title="Hapus" data-bs-toggle="tooltip">
-                          <i class="ti tabler-trash fs-5"></i>
-                        </button>
-                      </form>
-                    @else
-                      <a href="{{ route('admin.wali-kelas.create', ['user_id' => $item->id]) }}"
-                        class="action-btn text-warning" title="Lengkapi Profil Wali Kelas" data-bs-toggle="tooltip">
-                        <i class="ti tabler-pencil fs-5"></i>
-                      </a>
-                      <form action="{{ route('admin.wali-kelas.destroy-user', $item->id) }}" method="POST"
-                        class="d-inline"
-                        onsubmit="return confirm('Yakin ingin menghapus akun wali kelas ini? Profil belum lengkap.');">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="action-btn text-danger" title="Hapus Akun" data-bs-toggle="tooltip">
-                          <i class="ti tabler-trash fs-5"></i>
-                        </button>
-                      </form>
-                    @endif
-                  </div>
-                </td>
-              </tr>
-            @empty
-              <tr>
-                <td colspan="8" class="text-center py-5">
-                  <div class="d-flex flex-column align-items-center gap-2 opacity-50">
-                    <i class="ti tabler-users-minus" style="font-size:2.5rem;"></i>
-                    <span class="small">Belum ada data wali kelas.</span>
-                    <a href="{{ route('admin.wali-kelas.create') }}" class="btn btn-sm btn-label-info mt-1">
-                      <i class="ti tabler-plus me-1"></i> Tambah Sekarang
-                    </a>
-                  </div>
-                </td>
-              </tr>
-            @endforelse
-          </tbody>
-        </table>
+      <div id="waliKelasTableContainer">
+        @include('admin.wali-kelas.table')
       </div>
     </div>
   </div>
 
+@endsection
+
+@section('vendor-script')
+  @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.js'])
 @endsection
 
 @section('page-script')
@@ -244,6 +221,243 @@
       const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
       tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+
+      const container = document.getElementById('waliKelasTableContainer');
+      const perPageSelect = document.getElementById('perPageSelect');
+      const filterSearch = document.getElementById('filterSearch');
+      const filterStatus = document.getElementById('filterStatus');
+      const filterForm = document.getElementById('filterForm');
+      const resetFilterBtn = document.getElementById('resetFilterBtn');
+      const totalCountSpan = document.getElementById('totalCountSpan');
+      let searchTimeout;
+
+      let currentSortBy = '{{ $sortBy ?? 'nama_lengkap' }}';
+      let currentSortDir = '{{ $sortDir ?? 'asc' }}';
+
+      function fetchData(page = 1) {
+        const search = encodeURIComponent(filterSearch.value || '');
+        const perPage = perPageSelect.value || 10;
+        const status = filterStatus.value || '';
+        const url = `{{ route('admin.wali-kelas.index') }}?page=${page}&search=${search}&per_page=${perPage}&sort_by=${currentSortBy}&sort_dir=${currentSortDir}&status=${status}`;
+
+        container.style.opacity = '0.5';
+        container.style.pointerEvents = 'none';
+
+        fetch(url, {
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          })
+          .then(res => {
+            // Update total count header if we received total records header (like standard count or page)
+            // or just parse from HTML. We can extract from layout or pass via response but since we only return partial table:
+            return res.text();
+          })
+          .then(html => {
+            container.innerHTML = html;
+            container.style.opacity = '1';
+            container.style.pointerEvents = 'auto';
+
+            // re-init tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function(tooltipTriggerEl) {
+              return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+          })
+          .catch(err => {
+            console.error('Fetch error:', err);
+            container.style.opacity = '1';
+            container.style.pointerEvents = 'auto';
+          });
+      }
+
+      // debounce search
+      if (filterSearch) {
+        filterSearch.addEventListener('input', function() {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => fetchData(1), 450);
+        });
+      }
+
+      if (filterStatus) {
+        filterStatus.addEventListener('change', function() {
+          fetchData(1);
+        });
+      }
+
+      if (filterForm) {
+        filterForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          fetchData(1);
+        });
+      }
+
+      if (resetFilterBtn) {
+        resetFilterBtn.addEventListener('click', function() {
+          if (filterSearch) filterSearch.value = '';
+          if (filterStatus) filterStatus.value = '';
+          fetchData(1);
+        });
+      }
+
+      if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+          fetchData(1);
+        });
+      }
+
+      // pagination clicks (capture delegated events)
+      container.addEventListener('click', function(e) {
+        const link = e.target.closest('a.das-page-btn');
+        if (link) {
+          e.preventDefault();
+          const page = link.dataset.page || new URL(link.href).searchParams.get('page') || 1;
+          fetchData(page);
+        }
+      });
+
+      // sort clicks (capture delegated events)
+      container.addEventListener('click', function(e) {
+        const th = e.target.closest('th.sortable');
+        if (th) {
+          const sortBy = th.dataset.sortBy;
+          if (currentSortBy === sortBy) {
+            currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+          } else {
+            currentSortBy = sortBy;
+            currentSortDir = 'asc';
+          }
+          fetchData(1);
+        }
+      });
+
+      // Event delegation for delete buttons
+      document.addEventListener('click', function(e) {
+        const btnDeleteWk = e.target.closest('.btn-hapus-wali-kelas');
+        const btnDeleteUserWk = e.target.closest('.btn-hapus-user-wali-kelas');
+        const btn = btnDeleteWk || btnDeleteUserWk;
+
+        if (!btn) return;
+
+        const url = btn.dataset.url;
+        const nama = btn.dataset.nama || 'Wali Kelas';
+        const isUserOnly = !!btnDeleteUserWk;
+
+        const titleText = isUserOnly ? 'Hapus Akun Wali Kelas?' : 'Hapus Wali Kelas?';
+        const htmlText = isUserOnly 
+          ? `<div class="mt-2">Akun <b class="text-danger">"${nama}"</b> (profil belum lengkap) akan dihapus secara permanen dari sistem.</div>`
+          : `<div class="mt-2">Data <b class="text-danger">"${nama}"</b> beserta relasi guru akan dihapus secara permanen dari sistem.</div>`;
+
+        Swal.fire({
+          title: titleText,
+          html: htmlText,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, Hapus Data',
+          cancelButtonText: 'Batalkan',
+          customClass: {
+            popup: 'das-swal-popup',
+            title: 'das-swal-title',
+            htmlContainer: 'das-swal-html',
+            confirmButton: 'btn btn-danger das-swal-confirm me-2',
+            cancelButton: 'btn das-swal-cancel',
+            icon: 'das-swal-icon'
+          },
+          buttonsStyling: false,
+          showClass: {
+            popup: 'animate__animated animate__fadeInUp animate__faster'
+          },
+          hideClass: {
+            popup: 'animate__animated animate__fadeOutDown animate__faster'
+          },
+          background: 'transparent',
+          backdrop: `rgba(0,0,10,0.4)`,
+        }).then((result) => {
+          if (!result.isConfirmed) return;
+
+          btn.disabled = true;
+
+          fetch(url, {
+            method: 'DELETE',
+            headers: {
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json',
+            }
+          })
+          .then(res => {
+            if (!res.ok) {
+              return res.json().then(errData => {
+                throw new Error(errData.message || 'Terjadi kesalahan pada server.');
+              });
+            }
+            return res.json();
+          })
+          .then(data => {
+            if (data.success) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: data.message || 'Data berhasil dihapus.',
+                customClass: {
+                  popup: 'das-swal-popup',
+                  title: 'das-swal-title',
+                  htmlContainer: 'das-swal-html',
+                  confirmButton: 'btn btn-success das-swal-confirm'
+                },
+                timer: 2000,
+                showConfirmButton: false,
+                background: 'transparent',
+              });
+              fetchData(1);
+            } else {
+              btn.disabled = false;
+              Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: data.message || 'Terjadi kesalahan.',
+                customClass: {
+                  popup: 'das-swal-popup',
+                  title: 'das-swal-title',
+                  htmlContainer: 'das-swal-html',
+                  confirmButton: 'btn btn-primary das-swal-confirm'
+                },
+                showClass: {
+                  popup: 'animate__animated animate__shakeX animate__faster'
+                },
+                hideClass: {
+                  popup: 'animate__animated animate__fadeOut animate__faster'
+                },
+                background: 'transparent',
+                buttonsStyling: false
+              });
+            }
+          })
+          .catch(err => {
+            btn.disabled = false;
+            console.error('Delete error:', err);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: err.message || 'Terjadi kesalahan koneksi.',
+              customClass: {
+                popup: 'das-swal-popup',
+                title: 'das-swal-title',
+                htmlContainer: 'das-swal-html',
+                confirmButton: 'btn btn-primary das-swal-confirm'
+              },
+              showClass: {
+                popup: 'animate__animated animate__shakeX animate__faster'
+              },
+              hideClass: {
+                popup: 'animate__animated animate__fadeOut animate__faster'
+              },
+              background: 'transparent',
+              buttonsStyling: false
+            });
+          });
+        });
       });
     });
   </script>

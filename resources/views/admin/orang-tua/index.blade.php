@@ -30,6 +30,32 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
+        /* MODAL CUSTOM */
+        .das-modal {
+            background: #1a1a2e !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-radius: 12px !important;
+            overflow: hidden;
+            backdrop-filter: blur(12px) saturate(180%);
+        }
+
+        .das-modal-head {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(115, 103, 240, 0.05);
+            padding: 1.25rem;
+        }
+
+        .das-modal-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+        }
+
+        .das-modal-body {
+            padding: 1.5rem;
+        }
+
         /* PAGINATION */
         .das-page-btn {
             display: inline-flex;
@@ -75,6 +101,7 @@
             pointer-events: none;
         }
 
+        /* SEARCH INPUT */
         #searchInput::placeholder {
             color: rgba(255, 255, 255, 0.4);
         }
@@ -84,6 +111,23 @@
             box-shadow: none;
             background: rgba(255, 255, 255, 0.08) !important;
             border-color: rgba(115, 103, 240, 0.5) !important;
+        }
+
+        .form-control,
+        .form-select {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: #fff !important;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: var(--bs-info) !important;
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.35) !important;
         }
 
         #perPageSelect option {
@@ -101,7 +145,7 @@
             background: rgba(26, 26, 46, 0.95) !important;
             backdrop-filter: blur(16px) saturate(180%) !important;
             border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            border-radius: 20px !important;
+            border-radius: 5px !important;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
         }
 
@@ -123,7 +167,7 @@
         .das-swal-confirm {
             padding: 10px 24px !important;
             font-weight: 600 !important;
-            border-radius: 10px !important;
+            border-radius: 5px !important;
             font-size: 0.875rem !important;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -133,7 +177,7 @@
         .das-swal-cancel {
             padding: 10px 24px !important;
             font-weight: 600 !important;
-            border-radius: 10px !important;
+            border-radius: 5px !important;
             font-size: 0.875rem !important;
             background: rgba(255, 255, 255, 0.05) !important;
             color: #fff !important;
@@ -142,6 +186,39 @@
 
         .das-swal-icon {
             border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .hover-bg-primary-light:hover {
+            background: rgba(115, 103, 240, 0.1) !important;
+            border-color: rgba(115, 103, 240, 0.4) !important;
+        }
+
+        input[type="radio"]:checked+.hover-bg-primary-light {
+            background: rgba(115, 103, 240, 0.15) !important;
+            border-color: #7367f0 !important;
+        }
+
+        input[type="radio"]:checked+.hover-bg-primary-light .radio-indicator i {
+            color: #7367f0 !important;
+        }
+
+        .extra-small {
+            font-size: 0.7rem;
+        }
+
+        .das-btn.--purple {
+            background: rgba(115, 103, 240, 0.15);
+            border-color: rgba(115, 103, 240, 0.35);
+            color: #a5a2f7;
+        }
+        .das-btn.--purple:hover {
+            background: rgba(115, 103, 240, 0.3);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(115, 103, 240, 0.2);
+        }
+
+        .text-purple {
+            color: #a5a2f7 !important;
         }
     </style>
     @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
@@ -224,28 +301,164 @@
 
     <!-- Modal Delete All -->
     <div class="modal fade" id="deleteAllModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content das-modal shadow-lg">
+                <div class="das-modal-head d-flex align-items-center justify-content-between">
+                    <h5 class="das-modal-title"><i class="ti tabler-trash me-2 text-danger"></i> Konfirmasi Hapus Semua</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
                 <form id="deleteAllForm" action="{{ route('admin.orang-tua.destroy-all') }}" method="POST">
                     @csrf
                     @method('DELETE')
-                    <div class="modal-header">
-                        <h5 class="modal-title text-danger"><i class="ti tabler-alert-triangle me-2"></i>Konfirmasi Hapus Semua</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Apakah Anda yakin ingin menghapus <strong>semua data Orang Tua</strong>?</p>
-                        <ul class="text-danger">
+                    <div class="das-modal-body">
+                        <p class="mb-3 text-white">Apakah Anda yakin ingin menghapus <strong>semua data Orang Tua</strong>?</p>
+                        <ul class="text-danger ps-3 mb-0 small">
                             <li>Semua akun orang tua akan dihapus dari sistem.</li>
                             <li>Relasi wali di tabel Siswa akan dikosongkan.</li>
                             <li>Tindakan ini tidak dapat dibatalkan!</li>
                         </ul>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-danger">Ya, Hapus Semua</button>
+                    <div class="d-flex justify-content-end gap-2 p-4 pt-0">
+                        <button type="button" class="btn btn-label-secondary w-50" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-danger w-50">Ya, Hapus Semua</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Sync Data Ortu -->
+    <div class="modal fade" id="syncModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content das-modal shadow-lg">
+                <div class="das-modal-head d-flex align-items-center justify-content-between">
+                    <h5 class="das-modal-title"><i class="ti tabler-refresh me-2 text-warning"></i> Sinkronisasi Data?</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="das-modal-body">
+                    <p class="mb-0 text-white">Aksi ini akan membuat akun orang tua otomatis untuk siswa yang belum punya wali, dan merapikan relasinya.</p>
+                </div>
+                <div class="d-flex justify-content-end gap-2 p-4 pt-0">
+                    <button type="button" class="btn btn-label-secondary w-50" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" id="confirmSyncBtn" class="btn btn-warning w-50 text-dark fw-bold">Ya, Sinkronkan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reset Password Massal -->
+    <div class="modal fade" id="resetPasswordAllModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content das-modal shadow-lg">
+                <div class="das-modal-head d-flex align-items-center justify-content-between">
+                    <h5 class="das-modal-title"><i class="ti tabler-key me-2 text-info"></i> Reset Password Massal?</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="das-modal-body">
+                    <p class="mb-0 text-white">Semua password akun Orang Tua akan di-reset menjadi NISN anak masing-masing (atau password123 jika NISN kosong)!</p>
+                </div>
+                <div class="d-flex justify-content-end gap-2 p-4 pt-0">
+                    <button type="button" class="btn btn-label-secondary w-50" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" id="confirmResetPasswordAllBtn" class="btn btn-info w-50 text-white fw-bold">Ya, Reset Semua!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Delete Individual -->
+    <div class="modal fade" id="deleteIndividualModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content das-modal shadow-lg">
+                <div class="das-modal-head d-flex align-items-center justify-content-between">
+                    <h5 class="das-modal-title"><i class="ti tabler-alert-triangle me-2 text-danger"></i> Apakah Anda yakin?</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <form id="deleteIndividualForm" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <div class="das-modal-body">
+                        <p class="mb-0 text-white">Data Orang Tua <strong id="deleteOrtuName" class="text-warning"></strong> akan dihapus permanen!</p>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 p-4 pt-0">
+                        <button type="button" class="btn btn-label-secondary w-50" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-danger w-50">Ya, Hapus!</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Impersonate Ortu -->
+    <div class="modal fade" id="impersonateModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content das-modal shadow-lg">
+                <div class="das-modal-head d-flex align-items-center justify-content-between">
+                    <h5 class="das-modal-title"><i class="ti tabler-login me-2 text-success"></i> Konfirmasi Login As</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="das-modal-body">
+                    <p class="mb-0 text-white">Anda akan masuk ke dalam akun <b id="impersonateOrtuName" class="text-warning"></b>. Seluruh aktivitas akan dicatat dalam log sistem.</p>
+                </div>
+                <div class="d-flex justify-content-end gap-2 p-4 pt-0">
+                    <button type="button" class="btn btn-label-secondary w-50" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" id="confirmImpersonateBtn" class="btn btn-success w-50">Ya, Lanjutkan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reset Password Individual -->
+    <div class="modal fade" id="resetPwIndividualModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content das-modal shadow-lg">
+                <div class="das-modal-head d-flex align-items-center justify-content-between">
+                    <h5 class="das-modal-title"><i class="ti tabler-key me-2 text-primary"></i> Reset Password?</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="das-modal-body">
+                    <p class="mb-0 text-white">Password untuk Orang Tua <strong id="resetPwOrtuName" class="text-warning"></strong> akan di-reset ke password default (NISN anak / password123)!</p>
+                </div>
+                <div class="d-flex justify-content-end gap-2 p-4 pt-0">
+                    <button type="button" class="btn btn-label-secondary w-50" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" id="confirmResetPwIndividualBtn" class="btn btn-primary w-50">Ya, Reset!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Processing / Loading -->
+    <div class="modal fade" id="processingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 380px;">
+            <div class="modal-content das-modal shadow-lg">
+                <div class="das-modal-body p-5 text-center text-white">
+                    <div class="spinner-border text-primary mb-4" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h5 class="mb-2 text-white" id="processingTitle">Memproses...</h5>
+                    <p class="mb-0 text-white-50" id="processingMessage">Mohon tunggu sebentar, jangan tutup halaman ini.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Result (Success / Error / Alert) -->
+    <div class="modal fade" id="resultModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+            <div class="modal-content das-modal shadow-lg">
+                <div class="das-modal-body p-5 text-center text-white">
+                    <div class="mb-4" id="resultIconContainer">
+                        <!-- Icon will be set dynamically via JS -->
+                    </div>
+                    <h5 class="mb-2 text-white" id="resultTitle">Hasil</h5>
+                    <p class="mb-4 text-white-50" id="resultMessage"></p>
+                    <button type="button" class="btn btn-primary w-100" data-bs-dismiss="modal">Tutup</button>
+                </div>
             </div>
         </div>
     </div>
@@ -258,6 +471,51 @@
 @section('page-script')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Helper functions for custom modal dialogs
+            function showProcessing(title, message) {
+                document.getElementById('processingTitle').textContent = title || 'Memproses...';
+                document.getElementById('processingMessage').textContent = message || 'Mohon tunggu sebentar, jangan tutup halaman ini.';
+                const modalEl = document.getElementById('processingModal');
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            }
+
+            function hideProcessing() {
+                const modalEl = document.getElementById('processingModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            }
+
+            function showResult(success, title, message, callback) {
+                const iconContainer = document.getElementById('resultIconContainer');
+                if (success) {
+                    iconContainer.innerHTML = `<span class="d-inline-flex align-items-center justify-content-center bg-label-success rounded-circle p-3 mb-2 animate__animated animate__bounceIn">
+                        <i class="ti tabler-circle-check text-success" style="font-size: 3rem;"></i>
+                    </span>`;
+                    document.getElementById('resultTitle').className = 'mb-2 text-success fw-bold';
+                } else {
+                    iconContainer.innerHTML = `<span class="d-inline-flex align-items-center justify-content-center bg-label-danger rounded-circle p-3 mb-2 animate__animated animate__shakeX">
+                        <i class="ti tabler-circle-x text-danger" style="font-size: 3rem;"></i>
+                    </span>`;
+                    document.getElementById('resultTitle').className = 'mb-2 text-danger fw-bold';
+                }
+                
+                document.getElementById('resultTitle').textContent = title;
+                document.getElementById('resultMessage').textContent = message;
+                
+                const modalEl = document.getElementById('resultModal');
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+                
+                if (callback) {
+                    const handleHidden = () => {
+                        callback();
+                        modalEl.removeEventListener('hidden.bs.modal', handleHidden);
+                    };
+                    modalEl.addEventListener('hidden.bs.modal', handleHidden);
+                }
+            }
+
             // Delete All Logic
             const deleteAllForm = document.getElementById('deleteAllForm');
             if (deleteAllForm) {
@@ -285,31 +543,11 @@
                         if (modal) modal.hide();
                         
                         if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil!',
-                                text: data.message,
-                                customClass: {
-                                    popup: 'das-swal-popup',
-                                    title: 'das-swal-title',
-                                    htmlContainer: 'das-swal-html',
-                                    confirmButton: 'btn btn-primary das-swal-confirm'
-                                }
-                            }).then(() => {
+                            showResult(true, 'Berhasil!', data.message, () => {
                                 fetchData(1); // Refresh data table
                             });
                         } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Oops...',
-                                text: data.message || 'Terjadi kesalahan!',
-                                customClass: {
-                                    popup: 'das-swal-popup',
-                                    title: 'das-swal-title',
-                                    htmlContainer: 'das-swal-html',
-                                    confirmButton: 'btn btn-primary das-swal-confirm'
-                                }
-                            });
+                            showResult(false, 'Oops...', data.message || 'Terjadi kesalahan!');
                         }
                     })
                     .catch(error => {
@@ -317,17 +555,7 @@
                         const modal = bootstrap.Modal.getInstance(modalEl);
                         if (modal) modal.hide();
                         
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error!',
-                            text: 'Gagal terhubung ke server.',
-                            customClass: {
-                                popup: 'das-swal-popup',
-                                title: 'das-swal-title',
-                                htmlContainer: 'das-swal-html',
-                                confirmButton: 'btn btn-primary das-swal-confirm'
-                            }
-                        });
+                        showResult(false, 'Error!', 'Gagal terhubung ke server.');
                     })
                     .finally(() => {
                         btnSubmit.disabled = false;
@@ -340,92 +568,43 @@
             const btnSync = document.getElementById('btnSyncOrtu');
             if (btnSync) {
                 btnSync.addEventListener('click', function() {
-                    Swal.fire({
-                        title: 'Sinkronisasi Data?',
-                        text: "Aksi ini akan membuat akun orang tua otomatis untuk siswa yang belum punya wali, dan merapikan relasinya.",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonText: 'Ya, Sinkronkan',
-                        cancelButtonText: 'Batal',
-                        customClass: {
-                            popup: 'das-swal-popup',
-                            title: 'das-swal-title',
-                            htmlContainer: 'das-swal-html',
-                            confirmButton: 'btn btn-warning text-dark das-swal-confirm me-2', // khusus sync pake btn-warning
-                            cancelButton: 'btn das-swal-cancel',
-                            icon: 'das-swal-icon'
-                        },
-                        buttonsStyling: false
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            Swal.fire({
-                                title: 'Sinkronisasi berjalan...',
-                                text: 'Mohon tunggu, jangan tutup halaman ini.',
-                                allowOutsideClick: false,
-                                allowEscapeKey: false,
-                                allowEnterKey: false,
-                                customClass: {
-                                    popup: 'das-swal-popup',
-                                    title: 'das-swal-title',
-                                    htmlContainer: 'das-swal-html'
-                                },
-                                didOpen: () => {
-                                    Swal.showLoading();
-                                }
-                            });
+                    const syncModalEl = document.getElementById('syncModal');
+                    const syncModal = bootstrap.Modal.getOrCreateInstance(syncModalEl);
+                    syncModal.show();
+                });
+            }
 
-                            fetch("{{ route('admin.orang-tua.sync') }}", {
-                                method: 'POST',
-                                headers: {
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                    'Accept': 'application/json',
-                                    'X-Requested-With': 'XMLHttpRequest'
-                                }
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Sinkronisasi Selesai!',
-                                        text: data.message,
-                                        customClass: {
-                                            popup: 'das-swal-popup',
-                                            title: 'das-swal-title',
-                                            htmlContainer: 'das-swal-html',
-                                            confirmButton: 'btn btn-primary das-swal-confirm'
-                                        }
-                                    }).then(() => {
-                                        fetchData(1);
-                                    });
-                                } else {
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Gagal!',
-                                        text: data.message || 'Gagal mensinkronkan data.',
-                                        customClass: {
-                                            popup: 'das-swal-popup',
-                                            title: 'das-swal-title',
-                                            htmlContainer: 'das-swal-html',
-                                            confirmButton: 'btn btn-primary das-swal-confirm'
-                                        }
-                                    });
-                                }
-                            })
-                            .catch(error => {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error!',
-                                    text: 'Terjadi kesalahan sistem.',
-                                    customClass: {
-                                        popup: 'das-swal-popup',
-                                        title: 'das-swal-title',
-                                        htmlContainer: 'das-swal-html',
-                                        confirmButton: 'btn btn-primary das-swal-confirm'
-                                    }
-                                });
-                            });
+            const confirmSyncBtn = document.getElementById('confirmSyncBtn');
+            if (confirmSyncBtn) {
+                confirmSyncBtn.addEventListener('click', function() {
+                    const syncModalEl = document.getElementById('syncModal');
+                    const syncModal = bootstrap.Modal.getInstance(syncModalEl);
+                    if (syncModal) syncModal.hide();
+
+                    showProcessing('Sinkronisasi berjalan...', 'Mohon tunggu, jangan tutup halaman ini.');
+
+                    fetch("{{ route('admin.orang-tua.sync') }}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
                         }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        hideProcessing();
+                        if (data.success) {
+                            showResult(true, 'Sinkronisasi Selesai!', data.message, () => {
+                                fetchData(1);
+                            });
+                        } else {
+                            showResult(false, 'Gagal!', data.message || 'Gagal mensinkronkan data.');
+                        }
+                    })
+                    .catch(error => {
+                        hideProcessing();
+                        showResult(false, 'Error!', 'Terjadi kesalahan sistem.');
                     });
                 });
             }
@@ -434,94 +613,43 @@
             const btnResetPasswordAll = document.getElementById('btnResetPasswordAll');
             if (btnResetPasswordAll) {
                 btnResetPasswordAll.addEventListener('click', function() {
-                    Swal.fire({
-                        title: 'Reset Password Massal?',
-                        text: 'Semua password akun Orang Tua akan di-reset menjadi NISN anak masing-masing (atau password123 jika NISN kosong)!',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#00cfe8',
-                        cancelButtonColor: '#82868b',
-                        confirmButtonText: 'Ya, Reset Semua!',
-                        cancelButtonText: 'Batal',
-                        customClass: {
-                            popup: 'das-swal-popup',
-                            title: 'das-swal-title',
-                            htmlContainer: 'das-swal-html',
-                            confirmButton: 'btn btn-info das-swal-confirm me-2',
-                            cancelButton: 'btn das-swal-cancel',
-                            icon: 'das-swal-icon'
-                        },
-                        buttonsStyling: false
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            Swal.fire({
-                                title: 'Memproses Reset...',
-                                text: 'Mohon tunggu, jangan tutup halaman ini.',
-                                allowOutsideClick: false,
-                                allowEscapeKey: false,
-                                allowEnterKey: false,
-                                customClass: {
-                                    popup: 'das-swal-popup',
-                                    title: 'das-swal-title',
-                                    htmlContainer: 'das-swal-html'
-                                },
-                                didOpen: () => {
-                                    Swal.showLoading();
-                                }
-                            });
+                    const resetModalEl = document.getElementById('resetPasswordAllModal');
+                    const resetModal = bootstrap.Modal.getOrCreateInstance(resetModalEl);
+                    resetModal.show();
+                });
+            }
 
-                            fetch("{{ route('admin.orang-tua.reset-password-all') }}", {
-                                method: 'POST',
-                                headers: {
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                    'Accept': 'application/json',
-                                    'X-Requested-With': 'XMLHttpRequest'
-                                }
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Reset Selesai!',
-                                        text: data.message,
-                                        customClass: {
-                                            popup: 'das-swal-popup',
-                                            title: 'das-swal-title',
-                                            htmlContainer: 'das-swal-html',
-                                            confirmButton: 'btn btn-primary das-swal-confirm'
-                                        }
-                                    }).then(() => {
-                                        fetchData(1);
-                                    });
-                                } else {
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Gagal!',
-                                        text: data.message || 'Gagal me-reset password massal.',
-                                        customClass: {
-                                            popup: 'das-swal-popup',
-                                            title: 'das-swal-title',
-                                            htmlContainer: 'das-swal-html',
-                                            confirmButton: 'btn btn-primary das-swal-confirm'
-                                        }
-                                    });
-                                }
-                            })
-                            .catch(error => {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error!',
-                                    text: 'Terjadi kesalahan sistem.',
-                                    customClass: {
-                                        popup: 'das-swal-popup',
-                                        title: 'das-swal-title',
-                                        htmlContainer: 'das-swal-html',
-                                        confirmButton: 'btn btn-primary das-swal-confirm'
-                                    }
-                                });
-                            });
+            const confirmResetPasswordAllBtn = document.getElementById('confirmResetPasswordAllBtn');
+            if (confirmResetPasswordAllBtn) {
+                confirmResetPasswordAllBtn.addEventListener('click', function() {
+                    const resetModalEl = document.getElementById('resetPasswordAllModal');
+                    const resetModal = bootstrap.Modal.getInstance(resetModalEl);
+                    if (resetModal) resetModal.hide();
+
+                    showProcessing('Memproses Reset...', 'Mohon tunggu, jangan tutup halaman ini.');
+
+                    fetch("{{ route('admin.orang-tua.reset-password-all') }}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
                         }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        hideProcessing();
+                        if (data.success) {
+                            showResult(true, 'Reset Selesai!', data.message, () => {
+                                fetchData(1);
+                            });
+                        } else {
+                            showResult(false, 'Gagal!', data.message || 'Gagal me-reset password massal.');
+                        }
+                    })
+                    .catch(error => {
+                        hideProcessing();
+                        showResult(false, 'Error!', 'Terjadi kesalahan sistem.');
                     });
                 });
             }
@@ -593,140 +721,108 @@
                     const url = btnHapus.getAttribute('data-url');
                     const nama = btnHapus.getAttribute('data-nama');
 
-                    Swal.fire({
-                        title: 'Apakah Anda yakin?',
-                        text: `Data Orang Tua "${nama}" akan dihapus permanen!`,
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#ea5455',
-                        cancelButtonColor: '#82868b',
-                        confirmButtonText: 'Ya, Hapus!',
-                        cancelButtonText: 'Batal',
-                        customClass: {
-                            popup: 'das-swal-popup',
-                            title: 'das-swal-title',
-                            htmlContainer: 'das-swal-html',
-                            confirmButton: 'btn btn-danger das-swal-confirm me-2',
-                            cancelButton: 'btn das-swal-cancel',
-                            icon: 'das-swal-icon'
-                        },
-                        buttonsStyling: false
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            const form = document.createElement('form');
-                            form.setAttribute('method', 'POST');
-                            form.setAttribute('action', url);
+                    const deleteForm = document.getElementById('deleteIndividualForm');
+                    if (deleteForm) {
+                        deleteForm.setAttribute('action', url);
+                    }
+                    document.getElementById('deleteOrtuName').textContent = nama;
 
-                            const csrfToken = document.createElement('input');
-                            csrfToken.setAttribute('type', 'hidden');
-                            csrfToken.setAttribute('name', '_token');
-                            csrfToken.setAttribute('value', '{{ csrf_token() }}');
-                            form.appendChild(csrfToken);
-
-                            const method = document.createElement('input');
-                            method.setAttribute('type', 'hidden');
-                            method.setAttribute('name', '_method');
-                            method.setAttribute('value', 'DELETE');
-                            form.appendChild(method);
-
-                            document.body.appendChild(form);
-                            form.submit();
-                        }
-                    });
+                    const modalEl = document.getElementById('deleteIndividualModal');
+                    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    modal.show();
                 }
             });
 
             // Reset Password Individu
+            let resetPwUrl = '';
             document.addEventListener('click', function(e) {
                 const btnReset = e.target.closest('.btn-reset-password-ortu');
                 if (btnReset) {
-                    const url = btnReset.getAttribute('data-url');
+                    resetPwUrl = btnReset.getAttribute('data-url');
                     const nama = btnReset.getAttribute('data-nama');
 
-                    Swal.fire({
-                        title: 'Reset Password?',
-                        text: `Password untuk Orang Tua "${nama}" akan di-reset ke password default (NISN anak / password123)!`,
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonColor: '#7367f0',
-                        cancelButtonColor: '#82868b',
-                        confirmButtonText: 'Ya, Reset!',
-                        cancelButtonText: 'Batal',
-                        customClass: {
-                            popup: 'das-swal-popup',
-                            title: 'das-swal-title',
-                            htmlContainer: 'das-swal-html',
-                            confirmButton: 'btn btn-primary das-swal-confirm me-2',
-                            cancelButton: 'btn das-swal-cancel',
-                            icon: 'das-swal-icon'
-                        },
-                        buttonsStyling: false
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            Swal.fire({
-                                title: 'Memproses...',
-                                text: 'Mohon tunggu.',
-                                allowOutsideClick: false,
-                                didOpen: () => {
-                                    Swal.showLoading();
-                                }
-                            });
-
-                            fetch(url, {
-                                method: 'POST',
-                                headers: {
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                    'Accept': 'application/json',
-                                    'X-Requested-With': 'XMLHttpRequest'
-                                }
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Berhasil!',
-                                        text: data.message,
-                                        customClass: {
-                                            popup: 'das-swal-popup',
-                                            title: 'das-swal-title',
-                                            htmlContainer: 'das-swal-html',
-                                            confirmButton: 'btn btn-primary das-swal-confirm'
-                                        }
-                                    }).then(() => {
-                                        fetchData(1);
-                                    });
-                                } else {
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Gagal!',
-                                        text: data.message || 'Gagal me-reset password.',
-                                        customClass: {
-                                            popup: 'das-swal-popup',
-                                            title: 'das-swal-title',
-                                            htmlContainer: 'das-swal-html',
-                                            confirmButton: 'btn btn-primary das-swal-confirm'
-                                        }
-                                    });
-                                }
-                            })
-                            .catch(error => {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error!',
-                                    text: 'Terjadi kesalahan sistem.',
-                                    customClass: {
-                                        popup: 'das-swal-popup',
-                                        title: 'das-swal-title',
-                                        htmlContainer: 'das-swal-html',
-                                        confirmButton: 'btn btn-primary das-swal-confirm'
-                                    }
-                                });
-                            });
-                        }
-                    });
+                    document.getElementById('resetPwOrtuName').textContent = nama;
+                    const modalEl = document.getElementById('resetPwIndividualModal');
+                    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    modal.show();
                 }
             });
+
+            const confirmResetPwIndividualBtn = document.getElementById('confirmResetPwIndividualBtn');
+            if (confirmResetPwIndividualBtn) {
+                confirmResetPwIndividualBtn.addEventListener('click', function() {
+                    const modalEl = document.getElementById('resetPwIndividualModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+
+                    showProcessing('Memproses...', 'Mohon tunggu.');
+
+                    fetch(resetPwUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        hideProcessing();
+                        if (data.success) {
+                            showResult(true, 'Berhasil!', data.message, () => {
+                                fetchData(1);
+                            });
+                        } else {
+                            showResult(false, 'Gagal!', data.message || 'Gagal me-reset password.');
+                        }
+                    })
+                    .catch(error => {
+                        hideProcessing();
+                        showResult(false, 'Error!', 'Terjadi kesalahan sistem.');
+                    });
+                });
+            }
+
+            // Impersonate
+            let impersonateUrl = '';
+            document.addEventListener('click', function(e) {
+                const btnImpersonate = e.target.closest('.btn-impersonate-ortu');
+                if (btnImpersonate) {
+                    impersonateUrl = btnImpersonate.getAttribute('data-url');
+                    const nama = btnImpersonate.getAttribute('data-nama');
+
+                    document.getElementById('impersonateOrtuName').textContent = nama;
+                    const modalEl = document.getElementById('impersonateModal');
+                    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    modal.show();
+                }
+            });
+
+            const confirmImpersonateBtn = document.getElementById('confirmImpersonateBtn');
+            if (confirmImpersonateBtn) {
+                confirmImpersonateBtn.addEventListener('click', function() {
+                    const modalEl = document.getElementById('impersonateModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+
+                    confirmImpersonateBtn.disabled = true;
+                    confirmImpersonateBtn.innerHTML = '<i class="ti tabler-loader spinner me-1"></i> Memproses...';
+
+                    // Create form element dynamically to do a POST request
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = impersonateUrl;
+
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    form.appendChild(csrfInput);
+
+                    document.body.appendChild(form);
+                    form.submit();
+                });
+            }
         });
     </script>
 @endsection

@@ -12,6 +12,15 @@ use Illuminate\Support\Facades\Session;
 class ImpersonateController extends Controller
 {
     /**
+     * Handle GET request on impersonate route to prevent 405 Method Not Allowed.
+     */
+    public function handleGet($user)
+    {
+        return redirect()->route('admin.users.index')
+            ->with('warning', 'Fitur impersonate tidak dapat diakses langsung via URL. Silakan gunakan tombol resmi di halaman daftar user.');
+    }
+
+    /**
      * Login as another user (Impersonation).
      * Stores the original admin's ID in session for later restoration.
      */

@@ -116,7 +116,7 @@
     {
       "name": "Data Civitas",
       "icon": "menu-icon ti tabler-users-group",
-      "slug": ["admin.siswa.index", "admin.upload-massal.index", "admin.siswa.naik-kelas-massal", "admin.guru.index", "admin.orang-tua.index", "admin.staff-tata-usaha.index", "admin.alumni.index"],
+      "slug": ["admin.siswa.index", "admin.upload-massal.index", "admin.siswa.naik-kelas-massal", "admin.guru.index", "admin.wali-kelas.index", "admin.wali-kelas.create", "admin.wali-kelas.edit", "admin.orang-tua.index", "admin.staff-tata-usaha.index", "admin.alumni.index"],
       "submenu": [
         {
           "name": "Siswa",
@@ -148,6 +148,12 @@
           "icon": "menu-icon ti tabler-presentation",
           "slug": "admin.guru.index",
           "url": "/admin/guru"
+        },
+        {
+          "name": "Wali Kelas",
+          "icon": "menu-icon ti tabler-users-group",
+          "slug": ["admin.wali-kelas.index", "admin.wali-kelas.create", "admin.wali-kelas.edit"],
+          "url": "/admin/wali-kelas"
         },
         {
           "name": "Orang Tua",
