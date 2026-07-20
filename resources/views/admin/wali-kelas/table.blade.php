@@ -28,12 +28,6 @@
           @endif
         </th>
         <th class="py-3 d-none d-lg-table-cell">Role</th>
-        <th class="py-3 d-none d-xl-table-cell sortable cursor-pointer" data-sort-by="email" style="user-select: none;">
-          Email Login
-          @if(($sortBy ?? '') === 'email')
-            <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
-          @endif
-        </th>
         <th class="py-3 pe-4 text-end">Aksi</th>
       </tr>
     </thead>
@@ -50,7 +44,7 @@
         @endphp
         <tr class="wk-row-hover">
           <td class="ps-4 text-white-50 small">{{ $waliKelasUsers->firstItem() + $loop->index }}</td>
-          <td>
+          <td class="text-nowrap">
             <div class="d-flex align-items-center gap-3">
               <div class="avatar avatar-md">
                 <span class="avatar-initial rounded-circle bg-label-info" style="font-size:0.85rem;">
@@ -90,9 +84,6 @@
               -
             @endif
           </td>
-          <td class="d-none d-xl-table-cell small text-white-50">
-            {{ $item->email ?? '-' }}
-          </td>
           <td class="pe-4 text-end">
             <div class="d-flex justify-content-end gap-1">
               @if ($profile)
@@ -125,7 +116,7 @@
         </tr>
       @empty
         <tr>
-          <td colspan="8" class="text-center py-5">
+          <td colspan="7" class="text-center py-5">
             <div class="d-flex flex-column align-items-center gap-2 opacity-50">
               <i class="ti tabler-users-minus" style="font-size:2.5rem;"></i>
               <span class="small">Belum ada data wali kelas.</span>
