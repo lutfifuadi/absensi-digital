@@ -172,4 +172,84 @@ class DashboardControllerTest extends TestCase
         $response->assertStatus(200);
         $response->assertViewHas('has_class', false);
     }
+
+    /**
+     * Test orang tua dashboard maps monthly attendance correctly to calendar via keyBy Y-m-d.
+     */
+    public function test_orang_tua_dashboard_maps_monthly_attendance_correctly_to_calendar(): void
+    {
+        // Arrange
+        $user = User::factory()->create(['role' => User::ROLE_ORANG_TUA]);
+        
+        $tahun = TahunAkademik::create([
+            'nama' => '2026/2027',
+            'semester' => 'ganjil',
+            'tanggal_mulai' => '2026-07-01',
+            'tanggal_selesai' => '2026-12-31',
+            'is_aktif' => true,
+        ]);
+        
+        $kelas = Kelas::create([
+            'wali_kelas_id' => null,
+            'tahun_akademik_id' => $tahun->id,
+            'nama' => 'XII RPL 1',
+            'tingkat' => '12',
+            'is_aktif_absensi' => true
+        ]);
+
+        $siswaUser = User::factory()->create(['role' => User::ROLE_SISWA]);
+        $siswa = Siswa::create([
+            'user_id' => $siswaUser->id,
+            'ortu_user_id' => $user->id,
+            'nama_lengkap' => 'Siswa Test Anak',
+            'nis' => '11112',
+            'nisn' => '1111111112',
+            'jenis_kelamin' => 'L',
+            'status' => 'aktif',
+            'kelas_id' => $kelas->id,
+            'tahun_akademik_id' => $tahun->id,
+            'tempat_lahir' => 'Jakarta',
+            'tanggal_lahir' => '2010-01-01',
+        ]);
+
+        // Buat beberapa data absensi di bulan ini
+        $tanggal1 = now()->startOfMonth()->toDateString();
+        $tanggal2 = now()->startOfMonth()->addDays(2)->toDateString();
+
+        $absensi1 = \App\Models\AbsensiSiswa::create([
+            'siswa_id' => $siswa->id,
+            'kelas_id' => $kelas->id,
+            'tanggal' => $tanggal1,
+            'jam_masuk' => '07:00:00',
+            'status' => 'hadir',
+            'metode' => 'qr',
+        ]);
+
+        $absensi2 = \App\Models\AbsensiSiswa::create([
+            'siswa_id' => $siswa->id,
+            'kelas_id' => $kelas->id,
+            'tanggal' => $tanggal2,
+            'jam_masuk' => '07:15:00',
+            'status' => 'terlambat',
+            'metode' => 'qr',
+        ]);
+
+        // Act
+        $response = $this->actingAs($user)
+            ->withSession(['tahun_akademik_id' => $tahun->id, 'active_role' => User::ROLE_ORANG_TUA])
+            ->get(route('ortu.dashboard'));
+
+        // Assert
+        $response->assertStatus(200);
+        $response->assertViewHas('rawAbsensiBulan');
+        
+        $rawAbsensiBulan = $response->viewData('rawAbsensiBulan');
+        
+        // Pastikan key dari rawAbsensiBulan berformat string Y-m-d
+        $this->assertArrayHasKey($tanggal1, $rawAbsensiBulan);
+        $this->assertArrayHasKey($tanggal2, $rawAbsensiBulan);
+        
+        $this->assertEquals('hadir', $rawAbsensiBulan[$tanggal1]->status);
+        $this->assertEquals('terlambat', $rawAbsensiBulan[$tanggal2]->status);
+    }
 }

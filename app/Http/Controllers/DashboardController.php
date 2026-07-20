@@ -875,7 +875,9 @@ private function superAdminData(): array
         $rawAbsensiBulan = AbsensiSiswa::where('siswa_id', $activeAnak->id)
             ->whereBetween('tanggal', [$startOfMonth, $endOfMonth])
             ->get()
-            ->keyBy('tanggal');
+            ->keyBy(function ($item) {
+                return $item->tanggal->toDateString();
+            });
 
         // Dapatkan daftar hari libur di bulan/tahun terpilih untuk anak aktif
         $holidaysCollection = Holiday::whereBetween('tanggal', [$startOfMonth, $endOfMonth])
