@@ -1381,4 +1381,114 @@ private function superAdminData(): array
             return response()->json(['success' => false, 'message' => 'Terjadi kesalahan sistem.']);
         }
     }
+
+    /**
+     * AJAX: Mendapatkan daftar siswa yang belum absen hari ini.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function siswaBelumAbsen(Request $request): JsonResponse
+    {
+        try {
+            $tahunAkademikId = session('tahun_akademik_id');
+            if (!$tahunAkademikId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tahun akademik aktif tidak ditemukan di sesi.'
+                ], 400);
+            }
+
+            $today = Carbon::today()->toDateString();
+            $search = $request->query('search');
+
+            // Subquery untuk mencocokkan absensi hari ini
+            $query = Siswa::where('siswa.status', 'aktif')
+                ->where('siswa.tahun_akademik_id', $tahunAkademikId)
+                ->whereHas('kelas', function ($q) {
+                    $q->where('is_aktif_absensi', true);
+                })
+                ->whereDoesntHave('absensi', function ($q) use ($today) {
+                    $q->whereDate('tanggal', $today);
+                });
+
+            // Mendukung pencarian berdasarkan nama_lengkap atau nama kelas
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('siswa.nama_lengkap', 'like', "%{$search}%")
+                      ->orWhereHas('kelas', function ($qk) use ($search) {
+                          $qk->where('nama', 'like', "%{$search}%");
+                      });
+                });
+            }
+
+            // Urutkan berdasarkan nama kelas kemudian nama siswa
+            $query->join('kelas', 'siswa.kelas_id', '=', 'kelas.id')
+                ->orderBy('kelas.nama', 'asc')
+                ->orderBy('siswa.nama_lengkap', 'asc')
+                ->select('siswa.*'); // Mencegah nama kolom bentrok saat join
+
+            // Eager load relasi yang diperlukan untuk performa N+1
+            $paginator = $query->with([
+                'kelas.waliKelas',
+                'ortuUser'
+            ])->paginate($request->query('per_page', 10));
+
+            $items = collect($paginator->items())->map(function ($siswa) {
+                // Tentukan nomor HP wali murid
+                // no_hp dari siswa (apabila diisi) atau no_hp_ortu dari siswa, atau dari relasi wali murid user (ortuUser)
+                $noHp = $siswa->no_hp_ortu ?: ($siswa->ortuUser?->no_hp ?: $siswa->no_hp);
+
+                // Format nomor HP ke format internasional WhatsApp (misal: 628xxx)
+                $formattedPhone = '';
+                if (!empty($noHp)) {
+                    // Bersihkan karakter non-numerik
+                    $cleanPhone = preg_replace('/[^0-9]/', '', $noHp);
+                    if (str_starts_with($cleanPhone, '08')) {
+                        $formattedPhone = '62' . substr($cleanPhone, 1);
+                    } elseif (str_starts_with($cleanPhone, '62')) {
+                        $formattedPhone = $cleanPhone;
+                    } else {
+                        $formattedPhone = $cleanPhone;
+                    }
+                }
+
+                // Buat pesan template
+                $pesan = "Halo Bapak/Ibu, menginfokan bahwa putra/putri Anda {$siswa->nama_lengkap} belum melakukan absensi masuk sekolah hari ini. Terima kasih.";
+                $waUrl = !empty($formattedPhone) 
+                    ? 'https://wa.me/' . $formattedPhone . '?text=' . rawurlencode($pesan)
+                    : '#';
+
+                return [
+                    'id' => $siswa->id,
+                    'nama_lengkap' => $siswa->nama_lengkap,
+                    'kelas' => $siswa->kelas?->nama ?? '-',
+                    'wali_kelas' => $siswa->kelas?->waliKelas?->nama_lengkap ?? '-',
+                    'no_hp_ortu' => $noHp ?: '-',
+                    'wa_url' => $waUrl
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $items,
+                'meta' => [
+                    'current_page' => $paginator->currentPage(),
+                    'last_page' => $paginator->lastPage(),
+                    'per_page' => $paginator->perPage(),
+                    'total' => $paginator->total(),
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('siswaBelumAbsen error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memuat data siswa belum absen.'
+            ], 500);
+        }
+    }
 }

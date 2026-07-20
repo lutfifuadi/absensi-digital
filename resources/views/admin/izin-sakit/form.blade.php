@@ -2,7 +2,172 @@
 
 @section('title', isset($izinSakit) ? 'Ubah Pengajuan Izin/Sakit' : 'Tambah Pengajuan Izin/Sakit')
 
+@section('page-style')
+<style>
+  /* ── Quota Info Card ───────────────────────────────── */
+  .quota-card {
+    background: var(--das-surface);
+    border: 1px solid var(--das-border);
+    border-radius: var(--das-radius);
+    backdrop-filter: blur(6px);
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+  }
+  .quota-card__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.7rem 1.25rem;
+    border-bottom: 1px solid var(--das-border);
+  }
+  .quota-card__head-icon {
+    width: 28px; height: 28px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 207, 232, 0.12);
+    color: #00cfe8;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+  .quota-card__title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255,255,255,0.6);
+    margin: 0;
+  }
+  .quota-card__body {
+    padding: 0.85rem 1.25rem;
+  }
+  .quota-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.6rem;
+  }
+  .quota-item {
+    background: rgba(15, 23, 42, 0.25);
+    border: 1px solid var(--das-border);
+    border-radius: 4px;
+    padding: 0.6rem 0.85rem;
+    transition: all 0.2s;
+  }
+  .quota-item__name {
+    font-size: 0.62rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 3px;
+  }
+  .quota-item__bar {
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    margin: 5px 0;
+    overflow: hidden;
+  }
+  .quota-item__bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.6s ease;
+  }
+  .quota-item__stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+  }
+  .quota-item__remaining {
+    font-weight: 700;
+  }
+  .quota-item__remaining.--safe { color: var(--das-success); }
+  .quota-item__remaining.--low { color: var(--das-warning); }
+  .quota-item__remaining.--empty { color: var(--das-danger); }
+  .quota-item__used {
+    color: rgba(255,255,255,0.35);
+  }
+  .quota-message {
+    padding: 0.5rem 0.85rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+  }
+  .quota-message.--success {
+    background: rgba(40, 199, 111, 0.1);
+    color: var(--das-success);
+    border: 1px solid rgba(40, 199, 111, 0.2);
+  }
+  .quota-message.--warning {
+    background: rgba(255, 159, 67, 0.1);
+    color: var(--das-warning);
+    border: 1px solid rgba(255, 159, 67, 0.2);
+  }
+  .quota-message.--danger {
+    background: rgba(234, 84, 85, 0.1);
+    color: var(--das-danger);
+    border: 1px solid rgba(234, 84, 85, 0.2);
+  }
+  .quota-loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.4);
+    padding: 0.5rem 0;
+  }
+  .quota-loading .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.1);
+    border-top-color: var(--das-primary);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .quota-card-hidden { display: none; }
+</style>
+@endsection
+
 @section('content')
+  {{-- ═══════════════════════════════════════════════════════
+       QUOTA INFO CARD
+  ═══════════════════════════════════════════════════════ --}}
+  <div id="quotaCard" class="quota-card quota-card-hidden">
+    <div class="quota-card__head">
+      <div class="quota-card__head-icon">
+        <i class="ti tabler-chart-bar"></i>
+      </div>
+      <h6 class="quota-card__title">Sisa Kuota Izin / Sakit</h6>
+      <span id="quotaPeriod" class="ms-auto text-white-50" style="font-size:0.6rem;"></span>
+    </div>
+    <div class="quota-card__body">
+      {{-- Loading --}}
+      <div id="quotaLoading" class="quota-loading" style="display:none;">
+        <div class="spinner"></div>
+        <span>Memeriksa sisa kuota...</span>
+      </div>
+
+      {{-- Error --}}
+      <div id="quotaError" class="quota-message --danger" style="display:none;"></div>
+
+      {{-- Grid --}}
+      <div id="quotaGridContainer" style="display:none;">
+        <div id="quotaGrid" class="quota-grid"></div>
+        <div id="quotaMessage" class="quota-message" style="display:none;"></div>
+      </div>
+
+      {{-- No limits --}}
+      <div id="quotaNoLimits" class="quota-message --success" style="display:none;">
+        <i class="ti tabler-circle-check me-1"></i> Tidak ada batasan kuota untuk akun Anda.
+      </div>
+    </div>
+  </div>
+
+  {{-- ═══════════════════════════════════════════════════════
+       BREADCRUMB & FORM
+  ═══════════════════════════════════════════════════════ --}}
   <div class="container-xxl flex-grow-1 container-p-y">
     <h4 class="fw-bold py-3 mb-4">
       <span class="text-muted fw-light">Admin / <a href="{{ route('admin.izin-sakit.index') }}">Izin & Sakit</a> /</span>
@@ -45,25 +210,25 @@
 
             <div class="col-md-8">
               <label class="form-label">Nama <span class="text-danger">*</span></label>
-              <select name="reference_id" class="form-select @error('reference_id') is-invalid @enderror" required>
+              <select name="reference_id" class="form-select @error('reference_id') is-invalid @enderror" id="referenceId" required>
                 <option value="">-- Pilih Nama --</option>
                 <optgroup label="Siswa">
                   @foreach ($siswaOptions as $s)
-                    <option value="{{ $s->id }}" data-tipe="siswa" @selected(old('reference_id', $izinSakit->reference_id ?? '') == $s->id && old('tipe', $izinSakit->tipe ?? '') === 'siswa')>
+                    <option value="{{ $s->id }}" data-tipe="siswa" data-user-id="{{ $s->user?->id ?? '' }}" @selected(old('reference_id', $izinSakit->reference_id ?? '') == $s->id && old('tipe', $izinSakit->tipe ?? '') === 'siswa')>
                       {{ $s->nama_lengkap }}
                     </option>
                   @endforeach
                 </optgroup>
                 <optgroup label="Guru">
                   @foreach ($guruOptions as $g)
-                    <option value="{{ $g->id }}" data-tipe="guru" @selected(old('reference_id', $izinSakit->reference_id ?? '') == $g->id && old('tipe', $izinSakit->tipe ?? '') === 'guru')>
+                    <option value="{{ $g->id }}" data-tipe="guru" data-user-id="{{ $g->user?->id ?? '' }}" @selected(old('reference_id', $izinSakit->reference_id ?? '') == $g->id && old('tipe', $izinSakit->tipe ?? '') === 'guru')>
                       {{ $g->nama_lengkap }}
                     </option>
                   @endforeach
                 </optgroup>
                 <optgroup label="Staff TU">
                   @foreach ($staffOptions as $st)
-                    <option value="{{ $st->id }}" data-tipe="staff" @selected(old('reference_id', $izinSakit->reference_id ?? '') == $st->id && old('tipe', $izinSakit->tipe ?? '') === 'staff')>
+                    <option value="{{ $st->id }}" data-tipe="staff" data-user-id="{{ $st->user?->id ?? '' }}" @selected(old('reference_id', $izinSakit->reference_id ?? '') == $st->id && old('tipe', $izinSakit->tipe ?? '') === 'staff')>
                       {{ $st->nama_lengkap }}
                     </option>
                   @endforeach
@@ -76,7 +241,7 @@
 
             <div class="col-md-3">
               <label class="form-label">Jenis <span class="text-danger">*</span></label>
-              <select name="jenis" class="form-select @error('jenis') is-invalid @enderror" required>
+              <select name="jenis" class="form-select @error('jenis') is-invalid @enderror" id="jenisIzin" required>
                 <option value="">-- Pilih Jenis --</option>
                 @foreach (['sakit', 'izin'] as $j)
                   <option value="{{ $j }}" @selected(old('jenis', $izinSakit->jenis ?? '') === $j)>{{ ucfirst($j) }}</option>
@@ -90,6 +255,7 @@
             <div class="col-md-3">
               <label class="form-label">Tanggal Mulai <span class="text-danger">*</span></label>
               <input type="date" name="tanggal_mulai" class="form-control @error('tanggal_mulai') is-invalid @enderror"
+                id="tanggalMulai"
                 value="{{ old('tanggal_mulai', isset($izinSakit) ? $izinSakit->tanggal_mulai->format('Y-m-d') : '') }}"
                 required>
               @error('tanggal_mulai')
@@ -101,6 +267,7 @@
               <label class="form-label">Tanggal Selesai <span class="text-danger">*</span></label>
               <input type="date" name="tanggal_selesai"
                 class="form-control @error('tanggal_selesai') is-invalid @enderror"
+                id="tanggalSelesai"
                 value="{{ old('tanggal_selesai', isset($izinSakit) ? $izinSakit->tanggal_selesai->format('Y-m-d') : '') }}"
                 required>
               @error('tanggal_selesai')
@@ -142,11 +309,209 @@
           </div>
 
           <div class="mt-4 d-flex gap-2">
-            <button type="submit" class="btn btn-primary">{{ isset($izinSakit) ? 'Perbarui' : 'Simpan' }}</button>
+            <button type="submit" class="btn btn-primary" id="btnSubmit">{{ isset($izinSakit) ? 'Perbarui' : 'Simpan' }}</button>
             <a href="{{ route('admin.izin-sakit.index') }}" class="btn btn-secondary">Batal</a>
           </div>
         </form>
       </div>
     </div>
   </div>
+@endsection
+
+@section('page-script')
+<script>
+/**
+ * Quota Checker for Izin/Sakit Form
+ *
+ * Mengecek sisa kuota user via AJAX (check-quota endpoint)
+ * - Admin mode: menunggu user memilih tipe + nama + jenis + tanggal
+ * - Siswa/Guru mode: auto-check pada saat halaman dimuat
+ */
+document.addEventListener('DOMContentLoaded', function () {
+  const quotaCard      = document.getElementById('quotaCard');
+  const quotaLoading   = document.getElementById('quotaLoading');
+  const quotaError     = document.getElementById('quotaError');
+  const quotaGrid      = document.getElementById('quotaGrid');
+  const quotaGridContainer = document.getElementById('quotaGridContainer');
+  const quotaNoLimits  = document.getElementById('quotaNoLimits');
+  const quotaMessage   = document.getElementById('quotaMessage');
+  const quotaPeriod    = document.getElementById('quotaPeriod');
+  const btnSubmit      = document.getElementById('btnSubmit');
+
+  const tipeSelect     = document.getElementById('tipePengaju');
+  const refSelect      = document.getElementById('referenceId');
+  const jenisSelect    = document.getElementById('jenisIzin');
+  const tanggalMulai   = document.getElementById('tanggalMulai');
+  const tanggalSelesai = document.getElementById('tanggalSelesai');
+
+  // ─── State ────────────────────────────────────────────
+  var currentUserId = null;
+  var isSelfMode = false;
+  var checkTimeout = null;
+
+  // ─── Detect self-submission mode ──────────────────────
+  @auth
+    @if(auth()->user()->isRole(\App\Models\User::ROLE_SISWA) || auth()->user()->isRole(\App\Models\User::ROLE_GURU))
+      isSelfMode = true;
+      currentUserId = {{ auth()->id() }};
+      quotaCard.classList.remove('quota-card-hidden');
+      // Hide tipe & reference selectors for self mode
+      if (tipeSelect) tipeSelect.closest('.col-md-4').style.display = 'none';
+      if (refSelect) refSelect.closest('.col-md-8').style.display = 'none';
+      scheduleCheck();
+    @endif
+  @endauth
+
+  // ─── Event listeners ──────────────────────────────────
+  if (tipeSelect)     tipeSelect.addEventListener('change',     scheduleCheck);
+  if (refSelect)      refSelect.addEventListener('change',      scheduleCheck);
+  if (jenisSelect)    jenisSelect.addEventListener('change',    scheduleCheck);
+  if (tanggalMulai)   tanggalMulai.addEventListener('change',  scheduleCheck);
+  if (tanggalSelesai) tanggalSelesai.addEventListener('change', scheduleCheck);
+
+  // ─── Schedule check with debounce ─────────────────────
+  function scheduleCheck() {
+    if (checkTimeout) clearTimeout(checkTimeout);
+    checkTimeout = setTimeout(doCheck, 600);
+  }
+
+  // ─── Main check function ──────────────────────────────
+  function doCheck() {
+    var userId = currentUserId;
+
+    if (!isSelfMode) {
+      // Admin mode — cari user_id dari data-user-id pada option terpilih
+      var tipe = tipeSelect ? tipeSelect.value : '';
+      var refId = refSelect ? refSelect.value : '';
+
+      if (!tipe || !refId) {
+        quotaCard.classList.add('quota-card-hidden');
+        return;
+      }
+
+      var selectedOption = refSelect.options[refSelect.selectedIndex];
+      var resolvedUserId = selectedOption ? selectedOption.getAttribute('data-user-id') : '';
+
+      if (!resolvedUserId) {
+        // Tidak ada user_id — mungkin referensi belum punya akun
+        quotaCard.classList.remove('quota-card-hidden');
+        quotaLoading.style.display = 'none';
+        quotaError.style.display = 'block';
+        quotaError.textContent = 'Referensi terpilih belum memiliki akun pengguna. Kuota tidak dapat diperiksa.';
+        quotaGridContainer.style.display = 'none';
+        quotaNoLimits.style.display = 'none';
+        return;
+      }
+
+      userId = resolvedUserId;
+    }
+
+    var jenis = jenisSelect ? jenisSelect.value : '';
+    var startDate = tanggalMulai ? tanggalMulai.value : '';
+    var endDate = tanggalSelesai ? tanggalSelesai.value : '';
+
+    if (!userId || !jenis || !startDate || !endDate) {
+      return;
+    }
+
+    var leaveType = jenis === 'sakit' ? 'sick' : 'permission';
+
+    // Show loading
+    quotaCard.classList.remove('quota-card-hidden');
+    quotaLoading.style.display = 'flex';
+    quotaError.style.display = 'none';
+    quotaGridContainer.style.display = 'none';
+    quotaNoLimits.style.display = 'none';
+
+    var url = '{{ route("admin.leave-limits.check-quota") }}' +
+      '?user_id=' + encodeURIComponent(userId) +
+      '&leave_type=' + encodeURIComponent(leaveType) +
+      '&start_date=' + encodeURIComponent(startDate) +
+      '&end_date=' + encodeURIComponent(endDate) +
+      '&_=' + Date.now();
+
+    fetch(url)
+      .then(function (res) {
+        if (!res.ok) throw new Error('Network error');
+        return res.json();
+      })
+      .then(function (data) {
+        quotaLoading.style.display = 'none';
+
+        if (!data.success) {
+          quotaError.style.display = 'block';
+          quotaError.textContent = 'Gagal memeriksa kuota.';
+          return;
+        }
+
+        var balances = data.balances || [];
+
+        if (balances.length === 0) {
+          quotaNoLimits.style.display = 'block';
+          return;
+        }
+
+        // Show grid
+        quotaGridContainer.style.display = 'block';
+        quotaGrid.innerHTML = '';
+
+        // Set period info
+        var periodText = balances[0].period_code ? 'Periode: ' + balances[0].period_code : '';
+        quotaPeriod.textContent = periodText;
+
+        // Render each balance item
+        balances.forEach(function (item) {
+          var total = item.max_days + item.extra_days;
+          var used = item.used_days;
+          var remaining = item.remaining;
+          var pct = total > 0 ? Math.min(100, (used / total) * 100) : 0;
+
+          var barColor = pct >= 100 ? 'var(--das-danger)' : (pct >= 75 ? 'var(--das-warning)' : 'var(--das-success)');
+          var remClass = remaining <= 0 ? '--empty' : (remaining <= 3 ? '--low' : '--safe');
+
+          var div = document.createElement('div');
+          div.className = 'quota-item';
+          div.innerHTML =
+            '<div class="quota-item__name">' + escapeHtml(item.name) + '</div>' +
+            '<div class="quota-item__bar"><div class="quota-item__bar-fill" style="width:' + pct + '%;background:' + barColor + ';"></div></div>' +
+            '<div class="quota-item__stats">' +
+              '<span class="quota-item__remaining ' + remClass + '">' + remaining + ' / ' + total + '</span>' +
+              '<span class="quota-item__used">Terpakai ' + used + '</span>' +
+            '</div>';
+          quotaGrid.appendChild(div);
+        });
+
+        // Show message
+        if (data.allowed) {
+          quotaMessage.className = 'quota-message --success';
+          quotaMessage.innerHTML = '<i class="ti tabler-circle-check me-1"></i> Kuota mencukupi untuk pengajuan ini.';
+          quotaMessage.style.display = 'block';
+          if (btnSubmit) btnSubmit.disabled = false;
+        } else if (data.action_type === 'warning') {
+          quotaMessage.className = 'quota-message --warning';
+          quotaMessage.innerHTML = '<i class="ti tabler-alert-triangle me-1"></i> <strong>Perhatian:</strong> Kuota izin Anda menipis atau habis. Pengajuan tetap dapat dikirim, namun segera hubungi admin jika perlu dispensasi.';
+          quotaMessage.style.display = 'block';
+          if (btnSubmit) btnSubmit.disabled = false;
+        } else if (data.action_type === 'block') {
+          quotaMessage.className = 'quota-message --danger';
+          quotaMessage.innerHTML = '<i class="ti tabler-ban me-1"></i> <strong>Kuota Habis:</strong> Maaf, kuota izin Anda sudah habis. Pengajuan tidak dapat dilanjutkan. Hubungi admin untuk dispensasi.';
+          quotaMessage.style.display = 'block';
+          if (btnSubmit) btnSubmit.disabled = true;
+        }
+      })
+      .catch(function (err) {
+        quotaLoading.style.display = 'none';
+        quotaError.style.display = 'block';
+        quotaError.textContent = 'Terjadi kesalahan koneksi: ' + err.message;
+      });
+  }
+
+  // ─── Helper: escape HTML ──────────────────────────────
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+});
+</script>
 @endsection

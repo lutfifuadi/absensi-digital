@@ -577,7 +577,7 @@
        MODAL: BELUM ABSEN
   ═══════════════════════════════════════════════════════ --}}
   <div class="modal fade" id="modalBelumAbsen" tabindex="-1" aria-hidden="true" aria-labelledby="modalBelumAbsenLabel">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
       <div class="modal-content das-modal">
         <div class="das-modal__head">
           <h5 class="das-modal__title" id="modalBelumAbsenLabel"><i class="ti tabler-user-question me-2" aria-hidden="true"></i>Siswa Belum Absen</h5>
@@ -589,7 +589,38 @@
             <div class="das-modal__stat-label">Total Siswa Belum Absen Hari Ini</div>
             <div class="das-modal__stat-warn"><i class="ti tabler-alert-circle" aria-hidden="true"></i> Segera lakukan follow up.</div>
           </div>
-          <div class="das-modal__note">Fitur rincian daftar siswa di modal ini akan segera hadir pada update berikutnya.</div>
+          
+          {{-- Search Input --}}
+          <div class="mb-4">
+            <div class="input-group input-group-merge" style="border: 1px solid rgba(231, 236, 245, 0.08); border-radius: 5px; overflow: hidden; background: rgba(255, 255, 255, 0.02);">
+              <span class="input-group-text border-0 bg-transparent" id="siswa-search-icon" style="padding-left: 1rem;"><i class="ti tabler-search text-body-secondary fs-4"></i></span>
+              <input type="text" id="search-siswa-belum-absen" class="form-control border-0 bg-transparent text-white focus:ring-0" placeholder="Cari nama siswa atau kelas..." aria-label="Cari nama siswa atau kelas..." aria-describedby="siswa-search-icon" style="box-shadow: none; font-size: 0.88rem; padding: 0.6rem 0.5rem;">
+            </div>
+          </div>
+
+          {{-- Table Data --}}
+          <div class="table-responsive das-table-wrap mb-4" style="border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 5px; background: var(--das-surface-2);">
+            <table class="table table-hover das-table mb-0">
+              <thead>
+                <tr style="background: rgba(255, 255, 255, 0.03);">
+                  <th class="py-3 text-white text-center" style="width: 50px;">#</th>
+                  <th class="py-3 text-white">Nama Siswa</th>
+                  <th class="py-3 text-white">Kelas</th>
+                  <th class="py-3 text-white">Wali Kelas</th>
+                  <th class="py-3 text-white">No HP Orang Tua</th>
+                  <th class="py-3 text-white text-center" style="width: 130px;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-siswa-belum-absen">
+                <!-- Data loaded via AJAX -->
+              </tbody>
+            </table>
+          </div>
+
+          {{-- Pagination --}}
+          <div id="pagination-siswa-belum-absen" class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2">
+            <!-- Pagination loaded here -->
+          </div>
         </div>
         <div class="das-modal__foot">
           <button type="button" class="das-btn das-btn--ghost w-100" data-bs-dismiss="modal">Tutup</button>
@@ -788,6 +819,190 @@
           refreshDashboardData();
         }
       }, 60000);
+
+      /* ── AJAX MODAL SISWA BELUM ABSEN ── */
+      const modalBelumAbsen = document.getElementById('modalBelumAbsen');
+      const searchInput = document.getElementById('search-siswa-belum-absen');
+      const tbody = document.getElementById('tbody-siswa-belum-absen');
+      const paginationContainer = document.getElementById('pagination-siswa-belum-absen');
+      
+      let currentPage = 1;
+      let searchQuery = '';
+      let searchTimeout = null;
+
+      async function fetchSiswaBelumAbsen(page = 1, search = '') {
+        // Tampilkan loading skeleton/indicator
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center py-5">
+              <div class="spinner-border text-primary spinner-border-sm me-2" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <span class="text-body-secondary">Memuat data siswa...</span>
+            </td>
+          </tr>
+        `;
+        
+        try {
+          const url = new URL("{{ route('admin.dashboard.siswa-belum-absen') }}");
+          url.searchParams.append('page', page);
+          url.searchParams.append('search', search);
+          url.searchParams.append('per_page', 5); // 5 data per halaman agar pas di modal
+
+          const response = await fetch(url.toString(), {
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json'
+            }
+          });
+          const res = await response.json();
+
+          if (res.success) {
+            renderTableData(res.data, res.meta);
+            renderPagination(res.meta);
+          } else {
+            showError('Gagal memuat data.');
+          }
+        } catch (error) {
+          console.error('Fetch error:', error);
+          showError('Terjadi kesalahan jaringan.');
+        }
+      }
+
+      function renderTableData(data, meta) {
+        if (data.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" class="text-center text-body-secondary py-5">
+                <i class="ti tabler-search-off fs-1 d-block mb-2"></i>
+                Tidak ada siswa belum absen yang ditemukan.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        const startIdx = (meta.current_page - 1) * meta.per_page;
+        tbody.innerHTML = data.map((siswa, index) => {
+          const waButton = siswa.wa_url && siswa.wa_url !== '#'
+            ? `<a href="${siswa.wa_url}" target="_blank" class="btn btn-sm d-inline-flex align-items-center justify-content-center gap-1.5 px-3 py-1.5 text-white" style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); border: none; border-radius: 4px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.25); font-weight: 600; font-size: 0.75rem; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 15px rgba(37, 211, 102, 0.4)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 10px rgba(37, 211, 102, 0.25)';" onmousedown="this.style.transform='scale(0.98)';">
+                 <i class="ti tabler-brand-whatsapp fs-5"></i>
+                 <span>WhatsApp</span>
+               </a>`
+            : `<button class="btn btn-sm d-inline-flex align-items-center justify-content-center gap-1.5 px-3 py-1.5 text-white disabled" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; font-weight: 600; font-size: 0.75rem;" disabled>
+                 <i class="ti tabler-brand-whatsapp fs-5 text-body-secondary"></i>
+                 <span class="text-body-secondary">WhatsApp</span>
+               </button>`;
+
+          return `
+            <tr class="align-middle">
+              <td class="text-center font-monospace text-body-secondary" style="font-size: 0.8rem;">${startIdx + index + 1}</td>
+              <td>
+                <div class="d-flex align-items-center">
+                  <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(siswa.nama_lengkap)}&background=EF5A5A&color=fff&size=30" class="rounded-circle me-2.5" width="30" height="30" alt="" loading="lazy">
+                  <span class="fw-semibold text-white" style="font-size: 0.85rem;">${siswa.nama_lengkap}</span>
+                </div>
+              </td>
+              <td>
+                <span class="badge bg-label-primary px-2.5 py-1" style="font-size: 0.72rem; font-weight: 600; border-radius: 4px;">${siswa.kelas}</span>
+              </td>
+              <td class="text-body-secondary" style="font-size: 0.82rem;">${siswa.wali_kelas}</td>
+              <td class="font-monospace text-body-secondary" style="font-size: 0.82rem;">${siswa.no_hp_ortu || '-'}</td>
+              <td class="text-center py-2.5">${waButton}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      function renderPagination(meta) {
+        if (meta.last_page <= 1) {
+          paginationContainer.innerHTML = `<span class="text-body-secondary small">Menampilkan ${meta.total} data siswa</span>`;
+          return;
+        }
+
+        const from = (meta.current_page - 1) * meta.per_page + 1;
+        const to = Math.min(meta.current_page * meta.per_page, meta.total);
+
+        let paginationHtml = `<span class="text-body-secondary small">Menampilkan ${from}-${to} dari ${meta.total} data</span>`;
+        paginationHtml += `<div class="btn-group gap-1" role="group" aria-label="Navigasi modal">`;
+
+        // Prev Button
+        paginationHtml += `
+          <button type="button" class="btn btn-sm das-btn--ghost px-2.5 py-1 ${meta.current_page === 1 ? 'disabled' : ''}" 
+                  ${meta.current_page === 1 ? 'disabled' : ''} 
+                  onclick="changeModalPage(${meta.current_page - 1})">
+            <i class="ti tabler-chevron-left fs-5"></i>
+          </button>
+        `;
+
+        // Page Numbers (max 5 visible)
+        let startPage = Math.max(1, meta.current_page - 2);
+        let endPage = Math.min(meta.last_page, startPage + 4);
+        if (endPage - startPage < 4) {
+          startPage = Math.max(1, endPage - 4);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+          paginationHtml += `
+            <button type="button" class="btn btn-sm px-3 py-1 ${meta.current_page === i ? 'btn-primary fw-bold' : 'das-btn--ghost'}" 
+                    style="${meta.current_page === i ? 'border-radius: 4px;' : ''}"
+                    onclick="changeModalPage(${i})">
+              ${i}
+            </button>
+          `;
+        }
+
+        // Next Button
+        paginationHtml += `
+          <button type="button" class="btn btn-sm das-btn--ghost px-2.5 py-1 ${meta.current_page === meta.last_page ? 'disabled' : ''}" 
+                  ${meta.current_page === meta.last_page ? 'disabled' : ''} 
+                  onclick="changeModalPage(${meta.current_page + 1})">
+            <i class="ti tabler-chevron-right fs-5"></i>
+          </button>
+        `;
+
+        paginationHtml += `</div>`;
+        paginationContainer.innerHTML = paginationHtml;
+      }
+
+      function showError(message) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center text-danger py-4">
+              <i class="ti tabler-alert-circle fs-2 d-block mb-2"></i>
+              ${message}
+            </td>
+          </tr>
+        `;
+        paginationContainer.innerHTML = '';
+      }
+
+      window.changeModalPage = function(page) {
+        currentPage = page;
+        fetchSiswaBelumAbsen(currentPage, searchQuery);
+      };
+
+      // Event listener: show.bs.modal
+      if (modalBelumAbsen) {
+        modalBelumAbsen.addEventListener('show.bs.modal', function () {
+          currentPage = 1;
+          searchQuery = '';
+          if (searchInput) searchInput.value = '';
+          fetchSiswaBelumAbsen(currentPage, searchQuery);
+        });
+      }
+
+      // Debounced search input
+      if (searchInput) {
+        searchInput.addEventListener('input', function (e) {
+          clearTimeout(searchTimeout);
+          searchQuery = e.target.value;
+          currentPage = 1;
+          searchTimeout = setTimeout(() => {
+            fetchSiswaBelumAbsen(currentPage, searchQuery);
+          }, 400); // 400ms debounce
+        });
+      }
     });
   </script>
 @endsection

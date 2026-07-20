@@ -14,6 +14,8 @@ use App\Models\StaffTataUsaha;
 use App\Models\User;
 use App\Notifications\IzinDiajukanNotification;
 use App\Notifications\IzinDisetujuiNotification;
+use App\Services\LeaveLimitService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -22,6 +24,10 @@ use App\Jobs\SendWhatsAppMessage;
 
 class IzinSakitController extends Controller
 {
+    public function __construct(
+        private LeaveLimitService $leaveLimitService
+    ) {}
+
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -45,7 +51,7 @@ class IzinSakitController extends Controller
             $guru = $user->guru;
             $classIds = \App\Models\Kelas::where('wali_kelas_id', $guru?->id)->pluck('id');
             $siswaIdsInClass = \App\Models\Siswa::whereIn('kelas_id', $classIds)->pluck('id');
-            
+
             $query->where(function($q) use ($guru, $siswaIdsInClass) {
                 $q->where(function($sq) use ($guru) {
                     $sq->where('tipe', 'guru')->where('reference_id', $guru?->id);
@@ -69,9 +75,9 @@ class IzinSakitController extends Controller
 
     public function create()
     {
-        $siswaOptions = Siswa::orderBy('nama_lengkap')->get();
-        $guruOptions = Guru::orderBy('nama_lengkap')->get();
-        $staffOptions = StaffTataUsaha::orderBy('nama_lengkap')->get();
+        $siswaOptions = Siswa::with('user:id')->orderBy('nama_lengkap')->get();
+        $guruOptions = Guru::with('user:id')->orderBy('nama_lengkap')->get();
+        $staffOptions = StaffTataUsaha::with('user:id')->orderBy('nama_lengkap')->get();
 
         return view('admin.izin-sakit.form', compact('siswaOptions', 'guruOptions', 'staffOptions'));
     }
@@ -89,6 +95,43 @@ class IzinSakitController extends Controller
         ]);
 
         $this->validateReferenceId($data['tipe'], $data['reference_id']);
+
+        // ── Batasan Perizinan (PRD-001) ──────────────────────────────────────
+        // Dapatkan user_id dari reference
+        $pengajuUser = $this->resolveUserFromReference($data['tipe'], $data['reference_id']);
+
+        if ($pengajuUser) {
+            // Mapping jenis izin ke leave_type
+            $leaveType = $data['jenis'] === 'sakit' ? 'sick' : 'permission';
+
+            // Hitung jumlah hari
+            $start = \Carbon\Carbon::parse($data['tanggal_mulai']);
+            $end   = \Carbon\Carbon::parse($data['tanggal_selesai']);
+            $requestDays = $start->diffInDays($end) + 1;
+
+            // Validasi kuota
+            $quotaCheck = $this->leaveLimitService->validateQuota(
+                $pengajuUser,
+                $leaveType,
+                $requestDays
+            );
+
+            // Jika di-block, tolak pengajuan
+            if (!$quotaCheck['allowed'] && $quotaCheck['action_type'] === 'block') {
+                return back()
+                    ->withInput()
+                    ->with('error', 'Pengajuan ditolak: Kuota izin/' . $data['jenis'] . ' Anda sudah habis. Silakan hubungi admin untuk dispensasi.');
+            }
+
+            // Set overlimit flag
+            $data['is_overlimit'] = $quotaCheck['is_overlimit'];
+            $data['overlimit_reason'] = $quotaCheck['is_overlimit']
+                ? 'Melebihi batas kuota (' . $requestDays . ' hari diajukan, sisa: ' . ($quotaCheck['balances'][0]['remaining'] ?? 0) . ' hari)'
+                : null;
+            $data['is_dispensation'] = false;
+            $data['user_id'] = $pengajuUser->id;
+        }
+        // ─────────────────────────────────────────────────────────────────────
 
         if ($request->hasFile('lampiran')) {
             $data['lampiran'] = $request->file('lampiran')->store('izin-lampiran', 'public');
@@ -113,19 +156,39 @@ class IzinSakitController extends Controller
             if ($data['tipe'] === 'siswa') $nama = Siswa::find($data['reference_id'])?->nama_lengkap;
             elseif ($data['tipe'] === 'guru') $nama = Guru::find($data['reference_id'])?->nama_lengkap;
             elseif ($data['tipe'] === 'staff') $nama = StaffTataUsaha::find($data['reference_id'])?->nama_lengkap;
-            
+
             $pesan = "*AJUAN {$data['jenis']} BARU*\n\n";
             $pesan .= "Tipe: " . ucfirst($data['tipe']) . "\n";
             $pesan .= "Nama: {$nama}\n";
             $pesan .= "Tanggal: {$data['tanggal_mulai']} s.d {$data['tanggal_selesai']}\n";
             $pesan .= "Ket: {$data['keterangan']}\n\n";
             $pesan .= "Silakan cek di sistem untuk Approve/Reject.";
-            
+
             SendWhatsAppMessage::dispatch($nomorAdmin, $pesan, 'Notifikasi Admin Absensi', false);
         }
 
         return redirect()->route('admin.izin-sakit.index')
             ->with('success', 'Pengajuan izin/sakit berhasil disimpan.');
+    }
+
+    /**
+     * Resolve User model dari reference tipe & id.
+     */
+    protected function resolveUserFromReference(string $tipe, int $referenceId): ?User
+    {
+        if ($tipe === 'siswa') {
+            $siswa = Siswa::find($referenceId);
+            return $siswa?->user;
+        }
+        if ($tipe === 'guru') {
+            $guru = Guru::find($referenceId);
+            return $guru?->user;
+        }
+        if ($tipe === 'staff') {
+            $staff = StaffTataUsaha::find($referenceId);
+            return $staff?->user;
+        }
+        return null;
     }
 
     protected function validateReferenceId(string $tipe, int $referenceId): void
@@ -143,9 +206,9 @@ class IzinSakitController extends Controller
 
     public function edit(IzinSakit $izinSakit)
     {
-        $siswaOptions = Siswa::orderBy('nama_lengkap')->get();
-        $guruOptions = Guru::orderBy('nama_lengkap')->get();
-        $staffOptions = StaffTataUsaha::orderBy('nama_lengkap')->get();
+        $siswaOptions = Siswa::with('user:id')->orderBy('nama_lengkap')->get();
+        $guruOptions = Guru::with('user:id')->orderBy('nama_lengkap')->get();
+        $staffOptions = StaffTataUsaha::with('user:id')->orderBy('nama_lengkap')->get();
 
         return view('admin.izin-sakit.form', compact('izinSakit', 'siswaOptions', 'guruOptions', 'staffOptions'));
     }
@@ -183,6 +246,10 @@ class IzinSakitController extends Controller
             // Update absensi records if disetujui
             if ($data['status'] === 'disetujui') {
                 $this->updateAbsensiFromIzin($izinSakit, $data);
+
+                // ── Kurangi kuota user saat disetujui ────────────────────────
+                $this->deductLeaveQuota($izinSakit);
+                // ─────────────────────────────────────────────────────────────
             }
         }
 
@@ -203,6 +270,12 @@ class IzinSakitController extends Controller
 
     public function approve(Request $request, IzinSakit $izinSakit)
     {
+        // ── BUG-001: Guard double-approve ────────────────────────────────────
+        if ($izinSakit->status === 'disetujui') {
+            return back()->with('error', 'Izin ini sudah disetujui sebelumnya. Kuota tidak akan dipotong lagi.');
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         $action = $request->input('action', 'disetujui');
         if (! in_array($action, ['disetujui', 'ditolak'])) {
             $action = 'disetujui';
@@ -213,6 +286,10 @@ class IzinSakitController extends Controller
                 'tipe' => $izinSakit->tipe,
                 'jenis' => $izinSakit->jenis,
             ]);
+
+            // ── Kurangi kuota user saat disetujui ────────────────────────────
+            $this->deductLeaveQuota($izinSakit);
+            // ────────────────────────────────────────────────────────────────
         }
 
         $izinSakit->update([
@@ -232,6 +309,33 @@ class IzinSakitController extends Controller
         }
 
         return back()->with('success', 'Status izin berhasil diperbarui menjadi ' . $action . '.');
+    }
+
+    /**
+     * Kurangi kuota leave_balances saat izin disetujui.
+     */
+    protected function deductLeaveQuota(IzinSakit $izin): void
+    {
+        $pengajuUser = null;
+
+        // Jika user_id sudah terisi di record, gunakan itu
+        if ($izin->user_id) {
+            $pengajuUser = User::find($izin->user_id);
+        } else {
+            // Fallback: cari dari reference
+            $pengajuUser = $this->resolveUserFromReference($izin->tipe, $izin->reference_id);
+        }
+
+        if (!$pengajuUser) {
+            return;
+        }
+
+        $leaveType = $izin->jenis === 'sakit' ? 'sick' : 'permission';
+        $start = \Carbon\Carbon::parse($izin->tanggal_mulai);
+        $end   = \Carbon\Carbon::parse($izin->tanggal_selesai);
+        $usedDays = $start->diffInDays($end) + 1;
+
+        $this->leaveLimitService->deductQuota($pengajuUser, $leaveType, $usedDays);
     }
 
     protected function updateAbsensiFromIzin(IzinSakit $izin, array $data): void

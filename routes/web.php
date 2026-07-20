@@ -29,6 +29,7 @@ use App\Http\Controllers\Admin\JadwalPelajaranController;
 use App\Http\Controllers\Admin\JurusanController;
 use App\Http\Controllers\Admin\KegiatanController;
 use App\Http\Controllers\Admin\KelasController;
+use App\Http\Controllers\Admin\LeaveLimitController;
 use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Admin\NotificationTemplateController;
 use App\Http\Controllers\Admin\OrangTuaController;
@@ -349,6 +350,10 @@ Route::middleware([
     // ────────────────────────────────────────────────────────────────────────────
 
     Route::prefix('admin')->group(function () {
+        Route::get('/dashboard/siswa-belum-absen', [DashboardController::class, 'siswaBelumAbsen'])
+            ->middleware('role:super_admin,admin_sekolah,operator')
+            ->name('admin.dashboard.siswa-belum-absen');
+
         Route::get('/live-monitor', [DashboardController::class, 'liveMonitor'])
             ->middleware('role:super_admin,admin_sekolah')
             ->name('admin.live-monitor');
@@ -766,6 +771,24 @@ Route::middleware([
         Route::get('assignments', [AssignmentController::class, 'index'])->name('admin.assignments.index');
         Route::get('assignments/{assignment}', [AssignmentController::class, 'show'])->name('admin.assignments.show');
         Route::delete('assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('admin.assignments.destroy');
+
+        // ── BATASAN PERIZINAN (PRD-001) ─────────────────────────────────────
+        Route::prefix('leave-limits')->name('admin.leave-limits.')->middleware('role:super_admin,admin_sekolah,operator')->group(function () {
+            Route::get('/', [LeaveLimitController::class, 'index'])->name('index');
+            Route::get('/create', [LeaveLimitController::class, 'create'])->name('create');
+            Route::post('/', [LeaveLimitController::class, 'store'])->name('store');
+            Route::get('/{leaveLimit}/edit', [LeaveLimitController::class, 'edit'])->name('edit');
+            Route::put('/{leaveLimit}', [LeaveLimitController::class, 'update'])->name('update');
+            Route::delete('/{leaveLimit}', [LeaveLimitController::class, 'destroy'])->name('destroy');
+            Route::post('/{leaveLimit}/toggle-status', [LeaveLimitController::class, 'toggleStatus'])->name('toggle-status');
+            Route::get('/dispensation/{user}', [LeaveLimitController::class, 'dispensationForm'])->name('dispensation');
+            Route::post('/dispensation/{user}', [LeaveLimitController::class, 'grantDispensation'])->name('grant-dispensation');
+        });
+
+        // Endpoint AJAX check quota — bisa diakses role yg membuat izin
+        Route::get('/leave-limits/check-quota', [LeaveLimitController::class, 'checkQuota'])
+            ->name('admin.leave-limits.check-quota')
+            ->middleware('role:super_admin,admin_sekolah,operator,guru,siswa,staff_tu,wali_kelas');
 
         Route::post('izin-sakit/{izinSakit}/approve', [IzinSakitController::class, 'approve'])
             ->name('admin.izin-sakit.approve')

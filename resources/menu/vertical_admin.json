@@ -92,6 +92,12 @@
       "url": "/admin/izin-sakit"
     },
     {
+      "name": "Batasan Izin",
+      "icon": "menu-icon ti tabler-clipboard-list",
+      "slug": ["admin.leave-limits.index", "admin.leave-limits.create", "admin.leave-limits.edit"],
+      "url": "/admin/leave-limits"
+    },
+    {
       "name": "Penugasan Guru",
       "icon": "menu-icon ti tabler-book-upload",
       "slug": "admin.assignments.index",

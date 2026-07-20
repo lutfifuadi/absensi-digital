@@ -38,6 +38,11 @@ class PublicQrScanController extends Controller
      */
     public function index()
     {
+        if (auth()->check() && auth()->user()->hasAnyRole(['super_admin', 'admin_sekolah'])) {
+            session(['qr_scan_authenticated' => true]);
+            return redirect()->route('public.scan-qr.scan');
+        }
+
         // Jika sudah terautentikasi, langsung ke halaman scan
         if (session('qr_scan_authenticated')) {
             return redirect()->route('public.scan-qr.scan');

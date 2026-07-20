@@ -21,11 +21,17 @@ class IzinSakit extends Model
         'lampiran',
         'status',
         'disetujui_oleh',
+        'is_overlimit',
+        'overlimit_reason',
+        'is_dispensation',
+        'user_id',
     ];
 
     protected $casts = [
-        'tanggal_mulai' => 'date',
+        'tanggal_mulai'  => 'date',
         'tanggal_selesai' => 'date',
+        'is_overlimit'    => 'boolean',
+        'is_dispensation' => 'boolean',
     ];
 
     public function guru()
@@ -46,5 +52,13 @@ class IzinSakit extends Model
     public function approver()
     {
         return $this->belongsTo(User::class, 'disetujui_oleh');
+    }
+
+    /**
+     * User yang mengajukan izin (pelaku login).
+     */
+    public function pengaju()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }
