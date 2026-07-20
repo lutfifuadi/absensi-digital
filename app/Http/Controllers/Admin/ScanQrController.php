@@ -125,7 +125,7 @@ class ScanQrController extends Controller
 
     private function processGuruScan(string $qrCode): array
     {
-        $guru = Guru::where('qr_code', $qrCode)->first();
+        $guru = Guru::where('qr_code', $qrCode)->orWhere('nip', $qrCode)->first();
 
         if (! $guru) {
             return ['error' => 'QR code guru tidak dikenal. Pastikan QR code valid.'];
@@ -166,7 +166,7 @@ class ScanQrController extends Controller
 
     private function processStaffScan(string $qrCode): array
     {
-        $staff = StaffTataUsaha::where('qr_code', $qrCode)->first();
+        $staff = StaffTataUsaha::where('qr_code', $qrCode)->orWhere('nip', $qrCode)->first();
 
         if (! $staff) {
             return ['error' => 'QR code pegawai tidak dikenal. Pastikan QR code valid.'];

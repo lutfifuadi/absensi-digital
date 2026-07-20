@@ -10,4 +10,14 @@ class AbsensiStaff extends Model
     use HasFactory;
 
     protected $table = 'absensi_staff';
+
+    protected $fillable = [
+        'staff_id',
+        'tanggal',
+        'jam_masuk',
+        'jam_pulang',
+        'status',
+        'keterangan',
+        'metode',
+    ];
 }
