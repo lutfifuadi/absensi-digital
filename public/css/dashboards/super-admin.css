@@ -637,22 +637,22 @@
 
 .das-modal__stat {
   text-align: center;
-  padding: 1.5rem 1rem;
+  padding: 0.85rem 0.75rem;
   border-radius: var(--das-radius);
   background: var(--das-warning-soft);
   border: 1px solid rgba(240, 166, 59, 0.25);
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
-.das-modal__stat-val { font: 800 2.4rem/1 var(--das-font-display); color: var(--das-warning); }
-.das-modal__stat-label { font: 600 0.8rem var(--das-font-body); color: var(--das-text); margin-top: 0.4rem; }
+.das-modal__stat-val { font: 800 1.5rem/1 var(--das-font-display); color: var(--das-warning); }
+.das-modal__stat-label { font: 600 0.7rem var(--das-font-body); color: var(--das-text); margin-top: 0.15rem; }
 .das-modal__stat-warn {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  font: 500 0.72rem var(--das-font-body);
+  gap: 0.25rem;
+  font: 500 0.65rem var(--das-font-body);
   color: var(--das-warning);
-  margin-top: 0.6rem;
+  margin-top: 0.25rem;
 }
 
 .das-modal__note {

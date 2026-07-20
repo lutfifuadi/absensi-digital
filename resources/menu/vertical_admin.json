@@ -63,6 +63,36 @@
       ]
     },
     {
+      "name": "Absensi Siswa",
+      "icon": "menu-icon ti tabler-user-check",
+      "slug": ["admin.absensi-siswa.index", "admin.absensi-siswa.create", "admin.absensi-siswa.edit", "admin.absensi-siswa.bulk"],
+      "url": "/admin/absensi-siswa",
+      "submenu": [
+        {
+          "name": "Data Absensi Siswa",
+          "slug": "admin.absensi-siswa.index",
+          "url": "/admin/absensi-siswa"
+        },
+        {
+          "name": "Absensi Cepat (Bulk)",
+          "slug": "admin.absensi-siswa.bulk",
+          "url": "/admin/absensi-cepat"
+        }
+      ]
+    },
+    {
+      "name": "Absensi Guru",
+      "icon": "menu-icon ti tabler-presentation",
+      "slug": ["admin.absensi-guru.index", "admin.absensi-guru.create", "admin.absensi-guru.edit"],
+      "url": "/admin/absensi-guru"
+    },
+    {
+      "name": "Absensi Staff TU",
+      "icon": "menu-icon ti tabler-briefcase",
+      "slug": ["admin.absensi-staff.index", "admin.absensi-staff.create", "admin.absensi-staff.edit"],
+      "url": "/admin/absensi-staff"
+    },
+    {
       "name": "Absensi Kegiatan",
       "icon": "menu-icon ti tabler-calendar-check",
       "slug": ["admin.kegiatans.absensi", "admin.absensi-kegiatan.scan", "admin.absensi-kegiatan.rekap"],
