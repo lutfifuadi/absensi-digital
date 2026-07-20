@@ -622,9 +622,6 @@
             <!-- Pagination loaded here -->
           </div>
         </div>
-        <div class="das-modal__foot">
-          <button type="button" class="das-btn das-btn--ghost w-100" data-bs-dismiss="modal">Tutup</button>
-        </div>
       </div>
     </div>
   </div>
