@@ -606,7 +606,6 @@
                   <th class="py-3 text-white text-center" style="width: 50px;">#</th>
                   <th class="py-3 text-white">Nama Siswa</th>
                   <th class="py-3 text-white">Kelas</th>
-                  <th class="py-3 text-white">Wali Kelas</th>
                   <th class="py-3 text-white">No HP Orang Tua</th>
                   <th class="py-3 text-white text-center" style="width: 130px;">Aksi</th>
                 </tr>
@@ -831,7 +830,7 @@
         // Tampilkan loading skeleton/indicator
         tbody.innerHTML = `
           <tr>
-            <td colspan="6" class="text-center py-5">
+            <td colspan="5" class="text-center py-5">
               <div class="spinner-border text-primary spinner-border-sm me-2" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>
@@ -870,7 +869,7 @@
         if (data.length === 0) {
           tbody.innerHTML = `
             <tr>
-              <td colspan="6" class="text-center text-body-secondary py-5">
+              <td colspan="5" class="text-center text-body-secondary py-5">
                 <i class="ti tabler-search-off fs-1 d-block mb-2"></i>
                 Tidak ada siswa belum absen yang ditemukan.
               </td>
@@ -903,7 +902,6 @@
               <td>
                 <span class="badge bg-label-primary px-2.5 py-1" style="font-size: 0.72rem; font-weight: 600; border-radius: 4px;">${siswa.kelas}</span>
               </td>
-              <td class="text-body-secondary" style="font-size: 0.82rem;">${siswa.wali_kelas}</td>
               <td class="font-monospace text-body-secondary" style="font-size: 0.82rem;">${siswa.no_hp_ortu || '-'}</td>
               <td class="text-center py-2.5">${waButton}</td>
             </tr>
@@ -965,7 +963,7 @@
       function showError(message) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="6" class="text-center text-danger py-4">
+            <td colspan="5" class="text-center text-danger py-4">
               <i class="ti tabler-alert-circle fs-2 d-block mb-2"></i>
               ${message}
             </td>
