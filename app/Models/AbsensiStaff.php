@@ -20,4 +20,9 @@ class AbsensiStaff extends Model
         'keterangan',
         'metode',
     ];
+
+    public function staff()
+    {
+        return $this->belongsTo(StaffTataUsaha::class, 'staff_id');
+    }
 }
