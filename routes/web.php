@@ -605,6 +605,13 @@ Route::middleware([
             ->middleware('role:super_admin,admin_sekolah');
 
         // ── INPUT & MANAJEMEN PELANGGARAN SISWA (PRD-008 Phase 3) ──────────────
+        Route::get('pelanggaran-siswa/rekap', [\App\Http\Controllers\Admin\RekapPelanggaranController::class, 'index'])
+            ->name('admin.pelanggaran-siswa.rekap')
+            ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas');
+        Route::get('pelanggaran-siswa/siswa/{siswa}', [\App\Http\Controllers\Admin\RekapPelanggaranController::class, 'profilSiswa'])
+            ->name('admin.pelanggaran-siswa.profil-siswa')
+            ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas');
+
         Route::get('/api/internal/siswa/search', [\App\Http\Controllers\Admin\PelanggaranSiswaController::class, 'searchSiswa'])
             ->name('admin.pelanggaran.search-siswa')
             ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas,piket');

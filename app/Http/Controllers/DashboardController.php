@@ -448,12 +448,25 @@ return response()->json([
         return back()->with('error', 'Tidak dapat menghapus hari libur nasional.');
     }
 
-private function superAdminData(): array
+    private function superAdminData(): array
     {
         $today = Carbon::today();
+        $tahunId = session('tahun_akademik_id');
+
+        // Dapatkan data top 5 poin pelanggaran tertinggi tahun akademik aktif
+        $top5Pelanggaran = Siswa::where('tahun_akademik_id', $tahunId)
+            ->where('status', 'aktif')
+            ->withSum(['pelanggaranSiswa' => function($q) use ($tahunId) {
+                $q->where('tahun_akademik_id', $tahunId);
+            }], 'poin_saat_itu')
+            ->get()
+            ->filter(function($item) {
+                return $item->pelanggaran_siswa_sum_poin_saat_itu > 0;
+            })
+            ->sortByDesc('pelanggaran_siswa_sum_poin_saat_itu')
+            ->take(5);
 
         // ── Summary counts dengan cache query ───────────────────────────────
-        $tahunId = session('tahun_akademik_id');
         $totalSiswa = Cache::remember('superadmin_total_siswa_'.$tahunId, 60, function() use ($tahunId) {
             return Siswa::where('tahun_akademik_id', $tahunId)->count();
         });
@@ -659,7 +672,8 @@ private function superAdminData(): array
             'absensiGuruHariIni', 'absensiStaffHariIni',
             'palingAwal', 'palingAkhir', 'pengaturanArr',
             'tahunAkademikAktif',
-            'kehadiranPerKelas', 'monthlyStats', 'metodeAbsensi', 'recentLogs'
+            'kehadiranPerKelas', 'monthlyStats', 'metodeAbsensi', 'recentLogs',
+            'top5Pelanggaran'
         );
     }
 
@@ -668,6 +682,18 @@ private function superAdminData(): array
         $today = Carbon::today();
         $tahunId = session('tahun_akademik_id');
 
+        $top5Pelanggaran = Siswa::where('tahun_akademik_id', $tahunId)
+            ->where('status', 'aktif')
+            ->withSum(['pelanggaranSiswa' => function($q) use ($tahunId) {
+                $q->where('tahun_akademik_id', $tahunId);
+            }], 'poin_saat_itu')
+            ->get()
+            ->filter(function($item) {
+                return $item->pelanggaran_siswa_sum_poin_saat_itu > 0;
+            })
+            ->sortByDesc('pelanggaran_siswa_sum_poin_saat_itu')
+            ->take(5);
+
         return [
             'totalSiswa' => Siswa::where('tahun_akademik_id', $tahunId)->count(),
             'totalGuru'  => Guru::count(),
@@ -675,6 +701,7 @@ private function superAdminData(): array
             'totalIzinPending' => IzinSakit::where('status', 'pending')->count(),
             'totalAbsensiHariIni' => AbsensiSiswa::whereDate('tanggal', $today)->count(),
             'kegiatanAktif' => \App\Models\Kegiatan::whereDate('tanggal_pelaksanaan', $today)->count(),
+            'top5Pelanggaran' => $top5Pelanggaran,
         ];
     }
 
