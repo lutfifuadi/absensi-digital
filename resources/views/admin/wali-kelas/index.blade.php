@@ -114,9 +114,6 @@
         <a href="{{ route('admin.wali-kelas.cetak-qr') }}" class="btn das-btn --info">
           <i class="ti tabler-qrcode me-1"></i> Cetak QR Massal
         </a>
-        <a href="{{ route('admin.wali-kelas.create') }}" class="btn das-btn --primary">
-          <i class="ti tabler-plus me-1"></i> Tambah Wali Kelas
-        </a>
       </div>
     </div>
   </div>

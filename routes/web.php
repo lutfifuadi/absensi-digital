@@ -649,7 +649,7 @@ Route::middleware([
         Route::resource('wali-kelas', WaliKelasController::class)
             ->names('admin.wali-kelas')
             ->parameters(['wali-kelas' => 'guru'])
-            ->except(['show'])
+            ->except(['create', 'store', 'edit', 'update', 'show'])
             ->middleware('role:super_admin,admin_sekolah,operator');
 
         Route::get('staff-tata-usaha/cetak-qr', [StaffTataUsahaController::class, 'cetakQr'])

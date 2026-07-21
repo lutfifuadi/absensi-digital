@@ -101,8 +101,8 @@
                   title="Unduh QR" data-bs-toggle="tooltip">
                   <i class="ti tabler-qrcode fs-5"></i>
                 </a>
-                <a href="{{ route('admin.wali-kelas.edit', $profile->id) }}" class="action-btn text-warning"
-                  title="Ubah" data-bs-toggle="tooltip">
+                <a href="{{ route('admin.guru.edit', $profile->id) }}" class="action-btn text-warning"
+                  title="Ubah di data Guru" data-bs-toggle="tooltip">
                   <i class="ti tabler-pencil fs-5"></i>
                 </a>
                 <button type="button" class="action-btn text-danger btn-hapus-wali-kelas" title="Hapus"
@@ -111,8 +111,8 @@
                   <i class="ti tabler-trash fs-5"></i>
                 </button>
               @else
-                <a href="{{ route('admin.wali-kelas.create', ['user_id' => $item->id]) }}"
-                  class="action-btn text-warning" title="Lengkapi Profil Wali Kelas" data-bs-toggle="tooltip">
+                <a href="{{ route('admin.guru.create', ['user_id' => $item->id]) }}"
+                  class="action-btn text-warning" title="Lengkapi Profil Guru" data-bs-toggle="tooltip">
                   <i class="ti tabler-pencil fs-5"></i>
                 </a>
                 <button type="button" class="action-btn text-danger btn-hapus-user-wali-kelas" title="Hapus Akun"
@@ -130,7 +130,7 @@
             <div class="d-flex flex-column align-items-center gap-2 opacity-50">
               <i class="ti tabler-users-minus" style="font-size:2.5rem;"></i>
               <span class="small">Belum ada data wali kelas.</span>
-              <a href="{{ route('admin.wali-kelas.create') }}" class="btn btn-sm btn-label-info mt-1">
+              <a href="{{ route('admin.guru.create') }}" class="btn btn-sm btn-label-info mt-1">
                 <i class="ti tabler-plus me-1"></i> Tambah Sekarang
               </a>
             </div>

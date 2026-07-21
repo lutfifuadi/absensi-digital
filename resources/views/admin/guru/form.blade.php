@@ -7,49 +7,123 @@
         'resources/assets/vendor/libs/select2/select2.scss'
     ])
     <style>
-        .select2-container--default .select2-selection--multiple {
-            background-color: rgba(255, 255, 255, 0.05) !important;
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
-            color: #fff !important;
-            min-height: 38px;
+        /* ── Custom Role Checkbox ── */
+        .role-checkbox-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            user-select: none;
+            height: 100%;
         }
-        .select2-container--default.select2-container--focus .select2-selection--multiple {
-            border-color: #7367f0 !important;
+        .role-checkbox-card:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(115, 103, 240, 0.25);
         }
-        .select2-container--default .select2-selection--multiple .select2-selection__choice {
-            background-color: #7367f0 !important;
-            border: none !important;
-            color: #fff !important;
-            border-radius: 4px;
-            padding: 2px 8px;
+        .role-checkbox-card .form-check-input:checked ~ .role-checkbox-label {
+            color: #7367f0;
         }
-        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
-            color: #fff !important;
-            border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
-            margin-right: 5px !important;
+        .role-checkbox-card .form-check-input:checked ~ .role-checkbox-icon {
+            opacity: 1;
         }
-        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
-            background-color: rgba(255, 255, 255, 0.2) !important;
-            color: #fff !important;
+        .role-checkbox-card .form-check-input:checked {
+            background-color: #7367f0;
+            border-color: #7367f0;
         }
-        .select2-dropdown {
-            background-color: #2f3349 !important;
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
-            color: #fff !important;
+        .role-checkbox-card.is-checked {
+            background: rgba(115, 103, 240, 0.1);
+            border-color: rgba(115, 103, 240, 0.3);
         }
-        .select2-container--default .select2-results__option[aria-selected=true] {
-            background-color: rgba(115, 103, 240, 0.2) !important;
-            color: #fff !important;
+        .role-checkbox-card.is-disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
-        .select2-container--default .select2-results__option--highlighted[aria-selected] {
-            background-color: #7367f0 !important;
-            color: #fff !important;
+        .role-checkbox-card.is-disabled:hover {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.06);
         }
-        .select2-container--default .select2-search--inline .select2-search__field {
-            color: #fff !important;
+        .role-checkbox-icon {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            flex-shrink: 0;
+            transition: all 0.25s ease;
         }
-        .select2-container--default .select2-selection--multiple .select2-selection__rendered {
-            padding: 2px 6px !important;
+        .role-checkbox-icon i {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.6);
+            transition: color 0.25s ease;
+        }
+        .role-checkbox-card .form-check-input:checked ~ .role-checkbox-icon {
+            background: rgba(115, 103, 240, 0.2);
+        }
+        .role-checkbox-card .form-check-input:checked ~ .role-checkbox-icon i {
+            color: #7367f0;
+        }
+        .role-checkbox-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+            transition: color 0.25s ease;
+            line-height: 1.2;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        /* ── Kelas Dropdown Wrapper ── */
+        #kelas-wrapper {
+            transition: all 0.3s ease;
+        }
+        #kelas-wrapper.d-none {
+            display: none !important;
+        }
+        #kelas-wrapper:not(.d-none) {
+            animation: fadeSlideDown 0.3s ease forwards;
+        }
+        @keyframes fadeSlideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── Password Wrapper ── */
+        .password-wrapper {
+            position: relative;
+        }
+        .password-wrapper .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 1.1rem;
+            transition: color 0.2s;
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1;
+            z-index: 10;
+        }
+        .password-wrapper .toggle-password:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .password-wrapper .form-control {
+            padding-right: 40px !important;
         }
     </style>
 @endsection
@@ -57,35 +131,42 @@
 @section('content')
 
   {{-- HERO HEADER --}}
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card border-0 text-white overflow-hidden shadow-lg"
-        style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border-radius: 4px;">
-        <div class="card-body p-4">
-          <div class="d-flex align-items-center gap-3">
-            <div class="rounded d-flex align-items-center justify-content-center shadow-sm"
-              style="width:52px;height:52px;border-radius:12px !important;background:rgba(0,207,232,0.2);border:1px solid rgba(0,207,232,0.4);">
-              <i class="ti {{ $guru->exists ? 'tabler-pencil' : 'tabler-plus' }} text-info fs-3"></i>
-            </div>
-            <div>
-              <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-1" style="font-size:0.72rem;opacity:0.6;">
-                  <li class="breadcrumb-item"><a href="{{ route('admin.master-data') }}"
-                      class="text-white text-decoration-none">Master Data</a></li>
-                  <li class="breadcrumb-item"><a href="{{ route('admin.guru.index') }}"
-                      class="text-white text-decoration-none">Guru</a></li>
-                  <li class="breadcrumb-item active text-white">{{ $guru->exists ? 'Ubah' : 'Tambah' }}
-                  </li>
-                </ol>
-              </nav>
-              <h4 class="mb-0 text-white fw-bold" style="letter-spacing:-0.5px;">
-                {{ $guru->exists ? 'Ubah Data Guru' : 'Tambah Guru Baru' }}
-              </h4>
-            </div>
+  <div class="das-hero mb-4">
+      <div class="das-hero__bg"></div>
+      <div class="das-hero__glass"></div>
+      <div class="das-hero__grid-lines"></div>
+
+      <div class="das-hero__inner">
+          <div class="das-hero__identity">
+              <div class="das-hero__logo-wrapper">
+                  <div class="das-hero__logo-placeholder">
+                      <i class="ti {{ $guru->exists ? 'tabler-pencil' : 'tabler-plus' }} text-info"></i>
+                  </div>
+                  <div class="das-hero__logo-glow"></div>
+              </div>
+
+              <div class="das-hero__meta">
+                  <div class="das-hero__badge">
+                      <span class="pulse-dot"></span>
+                      <a href="{{ route('admin.master-data') }}" class="text-white-50 text-decoration-none">Master Data</a> / 
+                      <a href="{{ route('admin.guru.index') }}" class="text-white-50 text-decoration-none">Guru</a> / 
+                      <span class="text-white">{{ $guru->exists ? 'Ubah' : 'Tambah' }}</span>
+                  </div>
+                  <h4 class="das-hero__title text-gradient-gold">
+                      {{ $guru->exists ? 'Ubah Data Guru' : 'Tambah Guru Baru' }}
+                  </h4>
+                  <p class="das-hero__subtitle">
+                      {{ $guru->exists ? 'Silakan perbarui detail data tenaga pendidik di bawah ini.' : 'Lengkapi formulir untuk menambahkan tenaga pendidik baru.' }}
+                  </p>
+              </div>
           </div>
-        </div>
+
+          <div class="das-hero__actions">
+              <a href="{{ route('admin.guru.index') }}" class="btn das-btn --secondary">
+                  <i class="ti tabler-arrow-left me-1"></i> Kembali
+              </a>
+          </div>
       </div>
-    </div>
   </div>
 
   <div class="row">
@@ -188,12 +269,24 @@
                       <i class="ti tabler-book me-1 text-info"></i> Mata Pelajaran <span class="text-danger">*</span>
                     </label>
                     <select id="mapel_ids" name="mapel_ids[]"
-                      class="form-select select2 @error('mapel_ids') is-invalid @enderror" multiple data-placeholder="Pilih satu atau beberapa mata pelajaran..." required>
+                      class="select2 form-select @error('mapel_ids') is-invalid @enderror"
+                      multiple required data-placeholder="Ketik untuk mencari atau memilih mata pelajaran...">
                       @foreach ($mapelOptions as $mapel)
-                        <option value="{{ $mapel->id }}" {{ in_array($mapel->id, old('mapel_ids', $guru->mapels->pluck('id')->toArray())) ? 'selected' : '' }}>
-                          {{ $mapel->nama_mapel }}
-                        </option>
+                        @if (trim($mapel->nama_mapel) !== '-' && trim($mapel->nama_mapel) !== '')
+                          <option value="{{ $mapel->id }}" 
+                            @selected(in_array((string)$mapel->id, old('mapel_ids', $guru->mapels->pluck('id')->map(fn($id) => (string)$id)->toArray()), true))>
+                            {{ trim($mapel->nama_mapel) }}
+                          </option>
+                        @endif
                       @endforeach
+                      {{-- Handle old input tags that are custom strings (newly typed tags upon validation failure) --}}
+                      @if(old('mapel_ids'))
+                        @foreach(old('mapel_ids') as $oldId)
+                          @if(!is_numeric($oldId))
+                            <option value="{{ $oldId }}" selected>{{ $oldId }}</option>
+                          @endif
+                        @endforeach
+                      @endif
                     </select>
                   </div>
 
@@ -283,12 +376,76 @@
               </div>
             </div>
 
+            {{-- Section 4: Role & Akses Tambahan --}}
+            <div class="row g-4 mt-4">
+                <div class="col-12">
+                    <div class="p-4 rounded-3" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);">
+                        <h6 class="text-info fw-bold mb-3 d-flex align-items-center gap-2">
+                            <i class="ti tabler-shield-lock fs-5"></i> Role & Akses Tambahan
+                        </h6>
+
+                        <div class="row g-3">
+                            @php
+                                $roleIcons = [
+                                    'guru'      => 'tabler-user',
+                                    'wali_kelas'=> 'tabler-users',
+                                    'staff_tu'  => 'tabler-building-arch',
+                                    'piket'     => 'tabler-clock',
+                                ];
+                            @endphp
+
+                            @foreach($roleOptions as $role)
+                                @php
+                                    $isGuru   = $role === 'guru';
+                                    $isChecked = $isGuru || in_array($role, $userRoles ?? []);
+                                @endphp
+                                <div class="col-md-3 col-6">
+                                    <label class="role-checkbox-card {{ $isChecked ? 'is-checked' : '' }} {{ $isGuru ? 'is-disabled' : '' }}"
+                                        for="role_{{ $role }}">
+                                        <input class="form-check-input role-checkbox d-none" type="checkbox"
+                                            name="roles[]" value="{{ $role }}"
+                                            id="role_{{ $role }}"
+                                            {{ $isGuru ? 'checked disabled' : '' }}
+                                            {{ $isChecked ? 'checked' : '' }}>
+                                        <span class="role-checkbox-icon">
+                                            <i class="ti {{ $roleIcons[$role] ?? 'tabler-shield' }}"></i>
+                                        </span>
+                                        <span class="role-checkbox-label">
+                                            {{ ucwords(str_replace('_', ' ', $role)) }}
+                                        </span>
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        {{-- Dropdown Kelas — muncul hanya jika wali_kelas dipilih --}}
+                        <div id="kelas-wrapper" class="mt-4 {{ in_array('wali_kelas', $userRoles ?? []) ? '' : 'd-none' }}">
+                            <hr class="my-3" style="border-color:rgba(255,255,255,0.06);">
+                            <label class="form-label fw-semibold small mb-2" for="kelas_id">
+                                <i class="ti tabler-school me-1 text-info"></i> Pilih Kelas (Wali Kelas)
+                            </label>
+                            <select id="kelas_id" name="kelas_id"
+                                class="form-select select2-kelas @error('kelas_id') is-invalid @enderror"
+                                data-placeholder="Pilih kelas...">
+                                <option value="">— Pilih Kelas —</option>
+                                @foreach($kelasOptions as $kelas)
+                                    <option value="{{ $kelas->id }}"
+                                        {{ $kelasSaatIni && $kelasSaatIni->id == $kelas->id ? 'selected' : '' }}>
+                                        {{ $kelas->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="d-flex align-items-center justify-content-end gap-3 pt-4 mt-2 border-top"
               style="border-color:rgba(255,255,255,0.08) !important;">
-              <a href="{{ route('admin.guru.index') }}" class="btn btn-label-secondary">
+              <a href="{{ route('admin.guru.index') }}" class="btn das-btn --secondary">
                 <i class="ti tabler-arrow-left me-1"></i> Kembali
               </a>
-              <button type="submit" class="btn btn-info fw-semibold px-4 shadow-sm">
+              <button type="submit" class="btn das-btn --info fw-semibold px-4">
                 <i class="ti tabler-device-floppy me-1"></i>
                 {{ $guru->exists ? 'Perbarui Data' : 'Simpan Guru' }}
               </button>
@@ -329,17 +486,72 @@
 @endsection
 
 @section('page-script')
-    <script>
-        $(document).ready(function() {
-            // Inisialisasi Select2
-            $('.select2').each(function() {
-                const $this = $(this);
-                $this.wrap('<div class="position-relative"></div>').select2({
-                    placeholder: $this.data('placeholder'),
-                    dropdownParent: $this.parent(),
-                    width: '100%'
-                });
-            });
+  <script type="module">
+    $(function() {
+      // 1. Select2 for Mata Pelajaran (with tag support)
+      const $mapelSelect = $('#mapel_ids');
+      if ($mapelSelect.length) {
+        $mapelSelect.wrap('<div class="position-relative"></div>').select2({
+          placeholder: 'Ketik untuk mencari atau memilih mata pelajaran...',
+          dropdownParent: $mapelSelect.parent(),
+          width: '100%',
+          tags: true,
+          tokenSeparators: [',']
         });
-    </script>
+      }
+
+      // 2. Select2 for Kelas / select2-kelas
+      const $kelasSelect = $('.select2-kelas');
+      if ($kelasSelect.length) {
+        $kelasSelect.wrap('<div class="position-relative"></div>').select2({
+          placeholder: 'Pilih Kelas',
+          dropdownParent: $kelasSelect.parent(),
+          width: '100%'
+        });
+      }
+
+      // 3. Toggle Kelas Dropdown (wali_kelas)
+      const $waliKelasCheckbox = $('#role_wali_kelas');
+      const $kelasWrapper = $('#kelas-wrapper');
+
+      function toggleKelas(show) {
+        if (show) {
+          $kelasWrapper.removeClass('d-none');
+        } else {
+          $kelasWrapper.addClass('d-none');
+        }
+      }
+
+      if ($waliKelasCheckbox.length) {
+        toggleKelas($waliKelasCheckbox.is(':checked'));
+        $waliKelasCheckbox.on('change', function() {
+          toggleKelas($(this).is(':checked'));
+        });
+      }
+
+      // 4. Role Checkbox – visual card toggle
+      $(document).on('change', '.role-checkbox:not(:disabled)', function () {
+        var $card = $(this).closest('.role-checkbox-card');
+        if ($(this).is(':checked')) {
+          $card.addClass('is-checked');
+        } else {
+          $card.removeClass('is-checked');
+        }
+      });
+
+      // 5. Toggle password visibility
+      $(document).on('click', '.toggle-password', function() {
+        const targetId = $(this).data('target');
+        const $input = $('#' + targetId);
+        if ($input.length) {
+          const isPassword = $input.attr('type') === 'password';
+          $input.attr('type', isPassword ? 'text' : 'password');
+          const $icon = $(this).find('i');
+          if ($icon.length) {
+            $icon.toggleClass('tabler-eye tabler-eye-off');
+          }
+        }
+      });
+    });
+  </script>
 @endsection

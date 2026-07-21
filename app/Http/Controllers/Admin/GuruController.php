@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Guru;
 use App\Models\IdCardTemplate;
+use App\Models\Kelas;
+use App\Models\Mapel;
 use App\Models\Pengaturan;
 use App\Models\User;
 use App\Services\IdCardPdfService;
@@ -93,7 +95,7 @@ class GuruController extends Controller
             'nip' => 'required|string|max:50|unique:guru,nip',
             'jenis_kelamin' => 'required|in:L,P',
             'mapel_ids' => 'required|array|min:1',
-            'mapel_ids.*' => 'exists:mapels,id',
+            'mapel_ids.*' => 'required|string',
             'jabatan' => 'nullable|string|max:255',
             'no_hp' => 'nullable|string|max:50',
             'status' => 'required|in:aktif,nonaktif',
@@ -127,7 +129,24 @@ class GuruController extends Controller
                 ]);
             }
 
-            $mapelNames = \App\Models\Mapel::whereIn('id', $data['mapel_ids'])->pluck('nama_mapel')->toArray();
+            $finalMapelIds = [];
+            foreach ($data['mapel_ids'] as $item) {
+                if (is_numeric($item) && Mapel::where('id', $item)->exists()) {
+                    $finalMapelIds[] = (int) $item;
+                } else {
+                    $mapel = Mapel::firstOrCreate(
+                        ['nama_mapel' => trim($item)],
+                        [
+                            'kode_mapel' => strtoupper(substr(trim($item), 0, 3)),
+                            'kelompok' => 'Umum',
+                            'status' => 1,
+                        ]
+                    );
+                    $finalMapelIds[] = $mapel->id;
+                }
+            }
+
+            $mapelNames = Mapel::whereIn('id', $finalMapelIds)->pluck('nama_mapel')->toArray();
             $mataPelajaranStr = implode(', ', $mapelNames);
 
             $guru = Guru::create([
@@ -142,7 +161,7 @@ class GuruController extends Controller
                 'qr_code' => QrCodeGenerator::generate('GURU'),
             ]);
 
-            $guru->mapels()->sync($data['mapel_ids']);
+            $guru->mapels()->sync($finalMapelIds);
         });
 
         return redirect()->route('admin.guru.index')->with('success', 'Guru berhasil ditambahkan.');
@@ -151,7 +170,36 @@ class GuruController extends Controller
     public function edit(Guru $guru)
     {
         $mapelOptions = \App\Models\Mapel::where('status', 1)->orderBy('nama_mapel')->get();
-        return view('admin.guru.form', compact('guru', 'mapelOptions'));
+
+        $roleOptions = [
+            User::ROLE_GURU,
+            User::ROLE_WALI_KELAS,
+            User::ROLE_STAFF_TU,
+            User::ROLE_PIKET,
+        ];
+
+        $kelasOptions = Kelas::whereNull('wali_kelas_id')
+            ->orWhere('wali_kelas_id', $guru->id)
+            ->orderBy('nama')
+            ->get();
+
+        $userRoles = array_unique(
+            array_merge(
+                [$guru->user->role],
+                $guru->user->roles
+            )
+        );
+
+        $kelasSaatIni = Kelas::where('wali_kelas_id', $guru->id)->first();
+
+        return view('admin.guru.form', compact(
+            'guru',
+            'mapelOptions',
+            'roleOptions',
+            'kelasOptions',
+            'userRoles',
+            'kelasSaatIni'
+        ));
     }
 
     public function update(Request $request, Guru $guru)
@@ -161,19 +209,39 @@ class GuruController extends Controller
             'nip' => 'required|string|max:50|unique:guru,nip,' . $guru->id,
             'jenis_kelamin' => 'required|in:L,P',
             'mapel_ids' => 'required|array|min:1',
-            'mapel_ids.*' => 'exists:mapels,id',
+            'mapel_ids.*' => 'required|string',
             'jabatan' => 'nullable|string|max:255',
             'no_hp' => 'nullable|string|max:50',
             'status' => 'required|in:aktif,nonaktif',
             'email' => 'nullable|email|unique:users,email,' . $guru->user_id,
             'password' => 'nullable|string|min:8|confirmed',
+            'roles' => 'nullable|array',
+            'roles.*' => 'string|in:guru,wali_kelas,staff_tu,piket',
+            'kelas_id' => 'nullable|integer|exists:kelas,id',
         ]);
 
         $domainEmail = Pengaturan::where('key', 'website_lembaga')->value('value') ?? 'madrasah.sch.id';
         $email = $data['email'] ?? strtolower($data['nip']) . '@' . $domainEmail;
 
-        DB::transaction(function () use ($data, $guru, $email) {
-            $mapelNames = \App\Models\Mapel::whereIn('id', $data['mapel_ids'])->pluck('nama_mapel')->toArray();
+        DB::transaction(function () use ($request, $data, $guru, $email) {
+            $finalMapelIds = [];
+            foreach ($data['mapel_ids'] as $item) {
+                if (is_numeric($item) && Mapel::where('id', $item)->exists()) {
+                    $finalMapelIds[] = (int) $item;
+                } else {
+                    $mapel = Mapel::firstOrCreate(
+                        ['nama_mapel' => trim($item)],
+                        [
+                            'kode_mapel' => strtoupper(substr(trim($item), 0, 3)),
+                            'kelompok' => 'Umum',
+                            'status' => 1,
+                        ]
+                    );
+                    $finalMapelIds[] = $mapel->id;
+                }
+            }
+
+            $mapelNames = Mapel::whereIn('id', $finalMapelIds)->pluck('nama_mapel')->toArray();
             $mataPelajaranStr = implode(', ', $mapelNames);
 
             $guru->update([
@@ -186,7 +254,7 @@ class GuruController extends Controller
                 'status' => $data['status'],
             ]);
 
-            $guru->mapels()->sync($data['mapel_ids']);
+            $guru->mapels()->sync($finalMapelIds);
 
             $guru->user->update([
                 'name' => $data['nama_lengkap'],
@@ -196,6 +264,33 @@ class GuruController extends Controller
 
             if (! empty($data['password'])) {
                 $guru->user->update(['password' => Hash::make($data['password'])]);
+            }
+
+            // --- Multi-role & Wali Kelas ---
+            $user = $guru->user;
+
+            if ($request->has('roles')) {
+                $selectedRoles = $data['roles'];
+
+                // Primary role tetap 'guru', roles (JSON) adalah additional roles tanpa 'guru'
+                $user->role = User::ROLE_GURU;
+                $user->roles = array_values(array_filter($selectedRoles, fn($role) => $role !== User::ROLE_GURU));
+                $user->save();
+            }
+
+            if (in_array(User::ROLE_WALI_KELAS, $data['roles'] ?? [])) {
+                if (! empty($data['kelas_id'])) {
+                    // Null-kan wali_kelas_id di kelas lain yang sebelumnya mengarah ke guru ini
+                    Kelas::where('wali_kelas_id', $guru->id)
+                        ->where('id', '!=', $data['kelas_id'])
+                        ->update(['wali_kelas_id' => null]);
+
+                    // Set wali_kelas_id di kelas yang dipilih
+                    Kelas::where('id', $data['kelas_id'])->update(['wali_kelas_id' => $guru->id]);
+                }
+            } else {
+                // Jika wali_kelas tidak dipilih, null-kan semua wali_kelas_id yang mengarah ke guru ini
+                Kelas::where('wali_kelas_id', $guru->id)->update(['wali_kelas_id' => null]);
             }
         });
 
