@@ -251,16 +251,16 @@
             </div>
 
             <div class="das-hero__actions">
-                <a href="{{ route('admin.pengaturan.google-sheets-guru.index') }}" class="btn das-btn --purple">
-                    <i class="ti tabler-file-spreadsheet me-1"></i> GSheets Sync
+                <a href="{{ route('admin.pengaturan.google-sheets-guru.index') }}" class="btn das-btn --purple" title="GSheets Sync" data-bs-toggle="tooltip" data-bs-placement="top">
+                    <i class="ti tabler-file-spreadsheet"></i>
                 </a>
-                <button type="button" class="btn das-btn --secondary" data-bs-toggle="modal" data-bs-target="#importModal">
-                    <i class="ti tabler-file-import me-1"></i> Import
+                <button type="button" class="btn das-btn --secondary" data-bs-toggle="modal" data-bs-target="#importModal" title="Import" data-bs-toggle="tooltip" data-bs-placement="top">
+                    <i class="ti tabler-file-import"></i>
                 </button>
                 <div class="btn-group">
-                    <button type="button" class="btn das-btn --success dropdown-toggle" data-bs-toggle="dropdown"
-                        aria-expanded="false">
-                        <i class="ti tabler-download me-1"></i> Export
+                    <button type="button" class="btn das-btn --success dropdown-toggle hide-arrow" data-bs-toggle="dropdown"
+                        aria-expanded="false" title="Export" data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="ti tabler-download"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end das-modal border-0 shadow-lg" style="min-width: 200px;">
                         <li>
@@ -279,14 +279,17 @@
                         </li>
                     </ul>
                 </div>
-                <a href="{{ route('admin.guru.cetak-qr') }}" class="btn das-btn --warning">
-                    <i class="ti tabler-qrcode me-1"></i> Cetak QR
+                <a href="{{ route('admin.guru.cetak-qr') }}" class="btn das-btn --warning" title="Cetak QR" data-bs-toggle="tooltip" data-bs-placement="top">
+                    <i class="ti tabler-qrcode"></i>
                 </a>
-                <button type="button" class="btn das-btn --danger" data-bs-toggle="modal" data-bs-target="#deleteAllGuruModal">
-                    <i class="ti tabler-trash me-1"></i> Hapus Semua
+                <button type="button" class="btn das-btn --danger d-none" id="btnDeleteBulk" title="Hapus Terpilih" data-bs-toggle="tooltip" data-bs-placement="top">
+                    <i class="ti tabler-trash"></i> <span id="selectedGuruCount" class="badge bg-white text-danger ms-1" style="font-size: 0.7rem; padding: 2px 5px; border-radius: 4px;">0</span>
                 </button>
-                <a href="{{ route('admin.guru.create') }}" class="btn das-btn --primary">
-                    <i class="ti tabler-plus me-1"></i> Tambah Guru
+                <button type="button" class="btn das-btn --danger" data-bs-toggle="modal" data-bs-target="#deleteAllGuruModal" title="Hapus Semua" data-bs-toggle="tooltip" data-bs-placement="top">
+                    <i class="ti tabler-trash"></i>
+                </button>
+                <a href="{{ route('admin.guru.create') }}" class="btn das-btn --primary" title="Tambah Guru" data-bs-toggle="tooltip" data-bs-placement="top">
+                    <i class="ti tabler-plus"></i>
                 </a>
             </div>
         </div>
@@ -594,6 +597,9 @@
                         container.innerHTML = html;
                         container.style.opacity = '1';
                         container.style.pointerEvents = 'auto';
+
+                        // Reset select all checkbox and bulk button state
+                        updateBulkDeleteButtonState();
 
                         // re-init tooltips
                         const tooltipTriggerList = [].slice.call(document.querySelectorAll(
@@ -1074,6 +1080,156 @@
                     importSubmitBtn.innerHTML = '<i class="ti tabler-upload me-1"></i> Mulai Import';
                     importCancelBtn.disabled = false;
                     document.querySelectorAll('#importFormBody > div:not(#importProgressArea)').forEach(el => el.style.display = '');
+                });
+            }
+
+            // ─── Bulk Delete Handlers ──────────────────────────────────────────
+            function updateBulkDeleteButtonState() {
+                const checkedBoxes = document.querySelectorAll('.select-guru-cb:checked');
+                const checkedCount = checkedBoxes.length;
+                const btn = document.getElementById('btnDeleteBulk');
+                const countSpan = document.getElementById('selectedGuruCount');
+                
+                if (btn && countSpan) {
+                    if (checkedCount > 0) {
+                        countSpan.textContent = checkedCount;
+                        btn.classList.remove('d-none');
+                    } else {
+                        btn.classList.add('d-none');
+                    }
+                }
+            }
+
+            // Select All listener
+            document.addEventListener('change', function(e) {
+                if (e.target && e.target.id === 'selectAllGuru') {
+                    const isChecked = e.target.checked;
+                    document.querySelectorAll('.select-guru-cb').forEach(cb => {
+                        cb.checked = isChecked;
+                    });
+                    updateBulkDeleteButtonState();
+                }
+            });
+
+            // Individual checkbox listener
+            document.addEventListener('change', function(e) {
+                if (e.target && e.target.classList.contains('select-guru-cb')) {
+                    const allCbs = document.querySelectorAll('.select-guru-cb');
+                    const checkedCbs = document.querySelectorAll('.select-guru-cb:checked');
+                    const selectAll = document.getElementById('selectAllGuru');
+                    if (selectAll) {
+                        selectAll.checked = allCbs.length === checkedCbs.length && allCbs.length > 0;
+                    }
+                    updateBulkDeleteButtonState();
+                }
+            });
+
+            // Bulk Delete Click handler
+            const btnDeleteBulk = document.getElementById('btnDeleteBulk');
+            if (btnDeleteBulk) {
+                btnDeleteBulk.addEventListener('click', function() {
+                    const checkedBoxes = document.querySelectorAll('.select-guru-cb:checked');
+                    const ids = [];
+                    checkedBoxes.forEach(cb => ids.push(cb.value));
+
+                    if (ids.length === 0) return;
+
+                    Swal.fire({
+                        title: 'Hapus Guru Terpilih?',
+                        html: `<div class="mt-2">Apakah Anda yakin ingin menghapus <b class="text-danger">${ids.length} guru</b> yang dipilih secara permanen beserta akun user terkait?</div>`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, Hapus Terpilih',
+                        cancelButtonText: 'Batalkan',
+                        customClass: {
+                            popup: 'das-swal-popup',
+                            title: 'das-swal-title',
+                            htmlContainer: 'das-swal-html',
+                            confirmButton: 'btn btn-danger das-swal-confirm me-2',
+                            cancelButton: 'btn das-swal-cancel',
+                            icon: 'das-swal-icon'
+                        },
+                        buttonsStyling: false,
+                        showClass: {
+                            popup: 'animate__animated animate__fadeInUp animate__faster'
+                        },
+                        hideClass: {
+                            popup: 'animate__animated animate__fadeOutDown animate__faster'
+                        },
+                        background: 'transparent',
+                        backdrop: `rgba(0,0,10,0.4)`,
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
+
+                        btnDeleteBulk.disabled = true;
+                        btnDeleteBulk.innerHTML = '<i class="ti tabler-loader spinner me-1"></i> Menghapus...';
+
+                        fetch('{{ route("admin.guru.destroy-bulk") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({ ids: ids })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            btnDeleteBulk.disabled = false;
+                            btnDeleteBulk.innerHTML = '<i class="ti tabler-trash me-1"></i> Hapus Terpilih (<span id="selectedGuruCount">0</span>)';
+                            
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: data.message || 'Guru terpilih berhasil dihapus.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-success das-swal-confirm'
+                                    },
+                                    timer: 2000,
+                                    showConfirmButton: false,
+                                    background: 'transparent',
+                                });
+                                fetchData(1);
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal!',
+                                    text: data.message || 'Terjadi kesalahan.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-primary das-swal-confirm'
+                                    },
+                                    background: 'transparent',
+                                    buttonsStyling: false
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            btnDeleteBulk.disabled = false;
+                            btnDeleteBulk.innerHTML = '<i class="ti tabler-trash me-1"></i> Hapus Terpilih (<span id="selectedGuruCount">0</span>)';
+                            console.error('Bulk delete error:', err);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: 'Terjadi kesalahan koneksi.',
+                                customClass: {
+                                    popup: 'das-swal-popup',
+                                    title: 'das-swal-title',
+                                    htmlContainer: 'das-swal-html',
+                                    confirmButton: 'btn btn-primary das-swal-confirm'
+                                },
+                                background: 'transparent',
+                                buttonsStyling: false
+                            });
+                        });
+                    });
                 });
             }
 

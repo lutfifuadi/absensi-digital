@@ -299,26 +299,56 @@ class GuruController extends Controller
 
     public function destroy(Request $request, Guru $guru)
     {
+        $guruId = $guru->id;
         $user = $guru->user;
         $nama = $guru->nama_lengkap;
 
-        DB::transaction(function () use ($guru, $user) {
-            if ($user) {
-                $user->delete();
-            } else {
+        try {
+            DB::transaction(function () use ($guruId, $user, $guru, $nama) {
+                // Set NULL pada: kelas (wali_kelas_id), jadwal_pelajaran (guru_id), ekskul_absensi (pembina_id)
+                \App\Models\Kelas::where('wali_kelas_id', $guruId)->update(['wali_kelas_id' => null]);
+                \App\Models\JadwalPelajaran::where('guru_id', $guruId)->update(['guru_id' => null]);
+                \App\Models\EkskulAbsensi::where('pembina_id', $guruId)->update(['pembina_id' => null]);
+
+                // Hapus relasi: absensi_guru, ekskul_pembina, assignments, dan izin_sakit
+                \App\Models\AbsensiGuru::where('guru_id', $guruId)->delete();
+                \App\Models\EkskulPembina::where('guru_id', $guruId)->delete();
+                \App\Models\Assignment::where('guru_id', $guruId)->delete();
+                \App\Models\IzinSakit::where('tipe', 'guru')->where('reference_id', $guruId)->delete();
+
+                // Hapus entitas Guru dan model User terkait
                 $guru->delete();
+                if ($user) {
+                    $user->delete();
+                }
+
+                // Simpan catatan log aktivitas admin
+                \App\Models\ActivityLog::record(
+                    'DELETE',
+                    'Guru',
+                    "Menghapus data guru {$nama} beserta akun user dan relasi terkait."
+                );
+            });
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Guru {$nama} berhasil dihapus.",
+                ]);
             }
-        });
 
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => "Guru {$nama} berhasil dihapus.",
-            ]);
+            return redirect()->route('admin.guru.index')
+                ->with('success', 'Guru dan akun user berhasil dihapus.');
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghapus data guru: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->with('error', 'Gagal menghapus data guru: ' . $e->getMessage());
         }
-
-        return redirect()->route('admin.guru.index')
-            ->with('success', 'Guru dan akun user berhasil dihapus.');
     }
 
     /**
@@ -525,6 +555,57 @@ class GuruController extends Controller
             }
 
             return back()->with('error', 'Gagal menghapus semua data guru: ' . $e->getMessage());
+        }
+    }
+
+    public function destroyBulk(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'required|integer|exists:guru,id',
+        ]);
+
+        $guruIds = $request->input('ids');
+
+        try {
+            DB::transaction(function () use ($guruIds) {
+                $guruList = Guru::whereIn('id', $guruIds)->get();
+                $userIds = $guruList->pluck('user_id')->filter()->toArray();
+
+                // Set NULL pada: kelas (wali_kelas_id), jadwal_pelajaran (guru_id), ekskul_absensi (pembina_id)
+                \App\Models\Kelas::whereIn('wali_kelas_id', $guruIds)->update(['wali_kelas_id' => null]);
+                \App\Models\JadwalPelajaran::whereIn('guru_id', $guruIds)->update(['guru_id' => null]);
+                \App\Models\EkskulAbsensi::whereIn('pembina_id', $guruIds)->update(['pembina_id' => null]);
+
+                // Hapus relasi: absensi_guru, ekskul_pembina, assignments, dan izin_sakit
+                \App\Models\AbsensiGuru::whereIn('guru_id', $guruIds)->delete();
+                \App\Models\EkskulPembina::whereIn('guru_id', $guruIds)->delete();
+                \App\Models\Assignment::whereIn('guru_id', $guruIds)->delete();
+                \App\Models\IzinSakit::where('tipe', 'guru')->whereIn('reference_id', $guruIds)->delete();
+
+                // Hapus entitas Guru dan model User terkait
+                Guru::whereIn('id', $guruIds)->delete();
+                if (!empty($userIds)) {
+                    User::whereIn('id', $userIds)->delete();
+                }
+
+                // Simpan catatan log aktivitas admin
+                \App\Models\ActivityLog::record(
+                    'DELETE_BULK',
+                    'Guru',
+                    'Menghapus beberapa data guru beserta akun user dan relasi terkait (' . count($guruIds) . ' guru).'
+                );
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => count($guruIds) . ' data guru berhasil dihapus.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data guru terpilih: ' . $e->getMessage(),
+            ], 500);
         }
     }
 }

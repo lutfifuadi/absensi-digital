@@ -2,7 +2,9 @@
   <table class="table table-hover align-middle mb-0" style="color:inherit;">
     <thead style="background:rgba(255,255,255,0.04);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;opacity:0.7;">
       <tr>
-        <th class="ps-2 py-3" style="width:46px;">#</th>
+        <th class="ps-3 py-3" style="width:46px;">
+          <input class="form-check-input select-all-guru" type="checkbox" id="selectAllGuru">
+        </th>
         <th class="py-3 sortable cursor-pointer" data-sort-by="nama_lengkap" style="user-select: none;">
           Informasi Guru
           @if(($sortBy ?? '') === 'nama_lengkap')
@@ -41,7 +43,9 @@
           $inisial = strtoupper(substr($displayName, 0, 1)) . strtoupper(substr(strrchr($displayName, ' ') ?: $displayName, 1, 1));
         @endphp
         <tr class="guru-row-hover">
-          <td class="ps-4 text-white-50 small">{{ $guruUsers->firstItem() + $loop->index }}</td>
+          <td class="ps-3">
+            <input class="form-check-input select-guru-cb" type="checkbox" value="{{ $item->id }}" data-nama="{{ $displayName }}">
+          </td>
           <td>
             <div class="d-flex align-items-center gap-3">
               <div class="avatar avatar-md">

@@ -586,6 +586,10 @@ Route::middleware([
             ->name('admin.guru.destroy-all')
             ->middleware('role:super_admin,admin_sekolah');
 
+        Route::post('guru/destroy-bulk', [GuruController::class, 'destroyBulk'])
+            ->name('admin.guru.destroy-bulk')
+            ->middleware('role:super_admin,admin_sekolah');
+
         Route::resource('guru', GuruController::class)
             ->names('admin.guru')
             ->except(['show'])
