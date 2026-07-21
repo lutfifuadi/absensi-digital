@@ -3,10 +3,25 @@
         <thead style="background:rgba(255,255,255,0.04);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;opacity:0.7;">
             <tr>
                 <th class="ps-4 py-3" style="width:46px;">#</th>
-                <th class="py-3">Nama Orang Tua</th>
-                <th class="py-3">Akun</th>
+                <th class="py-3 sortable cursor-pointer" data-sort-by="name" style="user-select: none;">
+                    Nama Orang Tua
+                    @if(($sortBy ?? 'name') === 'name')
+                        <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
+                    @endif
+                </th>
+                <th class="py-3 sortable cursor-pointer" data-sort-by="email" style="user-select: none;">
+                    Akun
+                    @if(($sortBy ?? '') === 'email')
+                        <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
+                    @endif
+                </th>
                 <th class="py-3 text-center">Menghubungkan Siswa</th>
-                <th class="py-3 text-center">Status</th>
+                <th class="py-3 text-center sortable cursor-pointer" data-sort-by="status" style="user-select: none;">
+                    Status
+                    @if(($sortBy ?? '') === 'status')
+                        <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
+                    @endif
+                </th>
                 <th class="py-3 pe-4 text-end">Aksi</th>
             </tr>
         </thead>

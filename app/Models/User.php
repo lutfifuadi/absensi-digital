@@ -168,4 +168,19 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Siswa::class, 'siswa_ortu', 'ortu_user_id', 'siswa_id')->withTimestamps();
     }
+
+    public function konfigurasiPelanggaran()
+    {
+        return $this->hasMany(KonfigurasiPelanggaran::class, 'created_by');
+    }
+
+    public function pelanggaranSiswa()
+    {
+        return $this->hasMany(PelanggaranSiswa::class, 'dicatat_oleh');
+    }
+
+    public function pelanggaranSp()
+    {
+        return $this->hasMany(PelanggaranSp::class, 'diterbitkan_oleh');
+    }
 }

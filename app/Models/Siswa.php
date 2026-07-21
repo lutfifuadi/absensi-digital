@@ -97,4 +97,19 @@ class Siswa extends Model
     {
         return $this->hasMany(RiwayatKenaikanKelas::class, 'siswa_id');
     }
+
+    public function pelanggaranSiswa()
+    {
+        return $this->hasMany(PelanggaranSiswa::class, 'siswa_id');
+    }
+
+    public function pelanggaranSp()
+    {
+        return $this->hasMany(PelanggaranSp::class, 'siswa_id');
+    }
+
+    public function pelanggaranNotifLogs()
+    {
+        return $this->hasMany(PelanggaranNotifLog::class, 'siswa_id');
+    }
 }

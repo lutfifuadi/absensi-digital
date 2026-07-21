@@ -113,6 +113,17 @@
             border-color: rgba(115, 103, 240, 0.5) !important;
         }
 
+        #filterSearch::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        #filterSearch:focus {
+            outline: none;
+            box-shadow: none;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(115, 103, 240, 0.5) !important;
+        }
+
         .form-control,
         .form-select {
             background: rgba(255, 255, 255, 0.05) !important;
@@ -268,6 +279,37 @@
         </div>
     </div>
 
+    {{-- FILTER PANEL --}}
+    <div class="das-panel mb-4">
+        <div class="das-panel__body">
+            <form id="filterForm" method="GET" class="row gy-3 gx-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label text-white-50 small fw-bold">Cari Orang Tua</label>
+                    <input type="text" id="filterSearch" name="search" class="form-control"
+                        placeholder="Nama, email, username, No. HP..." value="{{ request('search') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-white-50 small fw-bold">Status</label>
+                    <select id="filterStatus" name="status" class="form-select">
+                        <option value="">Semua Status</option>
+                        <option value="aktif" @selected(request('status') === 'aktif')>Aktif</option>
+                        <option value="nonaktif" @selected(request('status') === 'nonaktif')>Nonaktif</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn das-btn --info w-100">
+                            <i class="ti tabler-search me-1"></i> Cari
+                        </button>
+                        <button type="button" id="resetFilterBtn" class="btn das-btn --secondary" title="Reset">
+                            <i class="ti tabler-refresh"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     {{-- TABLE DATA --}}
     <div class="das-panel">
         <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3"
@@ -276,14 +318,6 @@
                 <i class="ti tabler-list text-info"></i> Daftar Orang Tua
             </h6>
             <div class="d-flex align-items-center gap-3">
-                <div class="position-relative" style="max-width:300px;">
-                    <i class="ti tabler-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"
-                        style="font-size:0.85rem; pointer-events:none;"></i>
-                    <input type="text" id="searchInput" class="form-control border-0 text-white"
-                        placeholder="Cari nama, email, username..." value="{{ request('search') }}"
-                        style="background: rgba(255,255,255,0.05); height:38px; padding-left:2.2rem; font-size:0.85rem;">
-                </div>
-
                 <select id="perPageSelect" class="form-select border-0 text-white w-auto"
                     style="background: rgba(255,255,255,0.05); height:38px; font-size:0.85rem; cursor:pointer;">
                     <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
@@ -655,14 +689,21 @@
             }
 
             const container = document.getElementById('ortuTableContainer');
-            const searchInput = document.getElementById('searchInput');
             const perPageSelect = document.getElementById('perPageSelect');
+            const filterSearch = document.getElementById('filterSearch');
+            const filterStatus = document.getElementById('filterStatus');
+            const filterForm = document.getElementById('filterForm');
+            const resetFilterBtn = document.getElementById('resetFilterBtn');
             let searchTimeout;
 
+            let currentSortBy = '{{ $sortBy ?? 'name' }}';
+            let currentSortDir = '{{ $sortDir ?? 'asc' }}';
+
             function fetchData(page = 1) {
-                const search = encodeURIComponent(searchInput.value || '');
+                const search = encodeURIComponent(filterSearch.value || '');
                 const perPage = perPageSelect.value || 10;
-                const url = `{{ route('admin.orang-tua.index') }}?page=${page}&search=${search}&per_page=${perPage}`;
+                const status = filterStatus ? filterStatus.value || '' : '';
+                const url = `{{ route('admin.orang-tua.index') }}?page=${page}&search=${search}&per_page=${perPage}&sort_by=${currentSortBy}&sort_dir=${currentSortDir}&status=${status}`;
 
                 container.style.opacity = '0.5';
                 container.style.pointerEvents = 'none';
@@ -691,19 +732,59 @@
                     });
             }
 
-            searchInput.addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
+            // debounce search
+            if (filterSearch) {
+                filterSearch.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => fetchData(1), 450);
+                });
+            }
+
+            // filter status change
+            if (filterStatus) {
+                filterStatus.addEventListener('change', function() {
                     fetchData(1);
-                }, 400);
-            });
+                });
+            }
+
+            // form submit
+            if (filterForm) {
+                filterForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    fetchData(1);
+                });
+            }
+
+            // reset button
+            if (resetFilterBtn) {
+                resetFilterBtn.addEventListener('click', function() {
+                    if (filterSearch) filterSearch.value = '';
+                    if (filterStatus) filterStatus.value = '';
+                    fetchData(1);
+                });
+            }
 
             perPageSelect.addEventListener('change', function() {
                 fetchData(1);
             });
 
-            // Pagination Ajax
-            document.addEventListener('click', function(e) {
+            // sort clicks - delegated
+            container.addEventListener('click', function(e) {
+                const th = e.target.closest('th.sortable');
+                if (th) {
+                    const sortBy = th.dataset.sortBy;
+                    if (currentSortBy === sortBy) {
+                        currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSortBy = sortBy;
+                        currentSortDir = 'asc';
+                    }
+                    fetchData(1);
+                }
+            });
+
+            // pagination clicks
+            container.addEventListener('click', function(e) {
                 const pageBtn = e.target.closest('.das-page-btn');
                 if (pageBtn && !pageBtn.classList.contains('das-page-active') && !pageBtn.parentNode.classList.contains('disabled')) {
                     e.preventDefault();

@@ -20,9 +20,19 @@ class OrangTuaController extends Controller
     {
         $search = $request->query('search');
         $perPage = (int) $request->query('per_page', 10);
+        $sortBy = $request->query('sort_by', 'name');
+        $sortDir = $request->query('sort_dir', 'asc');
+        $status = $request->query('status');
+
+        $allowedSortColumns = ['name', 'email', 'username', 'status', 'created_at'];
+        $sortBy = in_array($sortBy, $allowedSortColumns) ? $sortBy : 'name';
+        $sortDir = in_array($sortDir, ['asc', 'desc']) ? $sortDir : 'asc';
 
         $orangTua = User::withRole(User::ROLE_ORANG_TUA)
             ->with('children')
+            ->when($status, function ($query, $status) {
+                $query->where('users.status', $status);
+            })
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
@@ -31,15 +41,15 @@ class OrangTuaController extends Controller
                       ->orWhere('no_hp', 'like', "%{$search}%");
                 });
             })
-            ->orderBy('name')
+            ->orderBy($sortBy, $sortDir)
             ->paginate($perPage)
             ->withQueryString();
 
         if ($request->ajax()) {
-            return view('admin.orang-tua.table', compact('orangTua'))->render();
+            return view('admin.orang-tua.table', compact('orangTua', 'sortBy', 'sortDir'))->render();
         }
 
-        return view('admin.orang-tua.index', compact('orangTua'));
+        return view('admin.orang-tua.index', compact('orangTua', 'sortBy', 'sortDir'));
     }
 
     /**
