@@ -12,8 +12,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory(10)->create();
-
+        // ==========================================
+        //  SEEDER DASAR (wajib untuk operasional)
+        // ==========================================
         $this->call(JurusanSeeder::class);
         $this->call(RolePermissionSeeder::class);
         $this->call(SampleUsersSeeder::class);
@@ -27,5 +28,11 @@ class DatabaseSeeder extends Seeder
         $this->call(WaAutoreplyKeywordSeeder::class);
         $this->call(KategoriPelanggaranSeeder::class);
         $this->call(JenisPelanggaranSeeder::class);
+
+        // ==========================================
+        //  DEMO DATA (untuk presentasi / testing)
+        //  Komentari baris di bawah jika tidak butuh
+        // ==========================================
+        $this->call(DemoDataSeeder::class);
     }
 }

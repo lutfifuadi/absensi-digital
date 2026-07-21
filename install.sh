@@ -22,6 +22,12 @@ echo "=========================================="
 # Pastikan dijalankan dari direktori aplikasi
 cd "$APP_PATH" || { echo "[ERROR] Path tidak ditemukan: $APP_PATH"; exit 1; }
 
+# Hapus file hot reload Vite jika ada agar tidak merusak aset di production
+if [ -f "public/hot" ]; then
+    echo "[INFO] Menghapus file public/hot reload..."
+    rm -f public/hot
+fi
+
 # ----------------------------------------------------------
 # 1. Persiapan folder wajib Laravel
 # ----------------------------------------------------------
@@ -113,11 +119,35 @@ if [ -n "$LATEST_URL" ]; then
         rm /tmp/absensi-siap-pakai.zip
         echo "[OK] public/build berhasil diekstrak."
     else
-        echo "[WARN] Gagal mengunduh build asset. Lanjutkan instalasi, tapi tampilan mungkin rusak."
-        echo "[WARN] Hubungi developer untuk mengirim build asset manual."
+        echo "[WARN] Gagal mengunduh build asset dari GitHub Release."
+        if command -v npm &>/dev/null; then
+            echo "[INFO] Mencoba kompilasi asset secara lokal di server..."
+            npm install --legacy-peer-deps
+            npm run build
+            if [ $? -eq 0 ]; then
+                echo "[OK] Kompilasi asset lokal berhasil."
+            else
+                echo "[ERROR] Kompilasi asset lokal gagal."
+            fi
+        else
+            echo "[WARN] npm tidak terinstall di server. public/build tidak dapat diperbarui secara lokal."
+            echo "[INFO] Jika repositori ini privat, pastikan Anda telah mengatur GITHUB_TOKEN di file .env server agar bisa mengunduh build asset."
+        fi
     fi
 else
-    echo "[WARN] Tidak ada release di GitHub. Hubungi developer untuk membuat release terlebih dahulu."
+    echo "[WARN] Tidak ada release di GitHub atau gagal mengunduh asset."
+    if command -v npm &>/dev/null; then
+        echo "[INFO] Mencoba kompilasi asset secara lokal di server..."
+        npm install --legacy-peer-deps
+        npm run build
+        if [ $? -eq 0 ]; then
+            echo "[OK] Kompilasi asset lokal berhasil."
+        else
+            echo "[ERROR] Kompilasi asset lokal gagal."
+        fi
+    else
+        echo "[WARN] npm tidak terinstall di server. Silakan hubungi developer untuk mengirim folder public/build secara manual."
+    fi
 fi
 
 # ----------------------------------------------------------

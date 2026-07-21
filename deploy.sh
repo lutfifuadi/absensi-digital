@@ -20,6 +20,12 @@ echo "=========================================="
 # Pastikan dijalankan dari direktori aplikasi
 cd "$APP_PATH" || { echo "[ERROR] Path tidak ditemukan: $APP_PATH"; exit 1; }
 
+# Hapus file hot reload Vite jika ada agar tidak merusak aset di production
+if [ -f "public/hot" ]; then
+    echo "[INFO] Menghapus file public/hot reload..."
+    rm -f public/hot
+fi
+
 # Muat variabel dari .env
 if [ -f ".env" ]; then
     # Cara lebih aman membaca .env untuk menghindari error valid identifier
@@ -160,7 +166,20 @@ if [ "$DOWNLOAD_OK" = true ] && [ -f "$TEMP_FILE" ]; then
     rm -f "$TEMP_FILE"
     echo "[OK] public/build berhasil diperbarui."
 else
-    echo "[WARN] Gagal mengunduh build asset. public/build tetap menggunakan versi sebelumnya."
+    echo "[WARN] Gagal mengunduh build asset dari GitHub Release."
+    if command -v npm &>/dev/null; then
+        echo "[INFO] Mencoba kompilasi asset secara lokal di server..."
+        npm install --legacy-peer-deps
+        npm run build
+        if [ $? -eq 0 ]; then
+            echo "[OK] Kompilasi asset lokal berhasil."
+        else
+            echo "[ERROR] Kompilasi asset lokal gagal."
+        fi
+    else
+        echo "[WARN] npm tidak terinstall di server. public/build tidak dapat diperbarui secara lokal."
+        echo "[INFO] Jika repositori ini privat, pastikan Anda telah mengatur GITHUB_TOKEN di file .env server agar bisa mengunduh build asset."
+    fi
 fi
 
 # ----------------------------------------------------------
