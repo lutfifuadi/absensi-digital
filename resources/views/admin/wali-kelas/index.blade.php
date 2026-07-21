@@ -209,6 +209,24 @@
     </div>
   </div>
 
+  <!-- Modal Konfirmasi Impersonate -->
+  <div class="modal fade" id="impersonateConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+      <div class="modal-content das-modal shadow-lg" style="border-radius: 5px !important; background: #1a1a2e; border: 1px solid rgba(255, 255, 255, 0.08);">
+        <div class="das-modal-head py-3 px-4" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: rgba(115, 103, 240, 0.05);">
+          <h5 class="das-modal-title" style="font-size: 1rem; font-weight: 700; color: #fff; margin: 0;"><i class="ti tabler-login me-2 text-success"></i> Konfirmasi Login As</h5>
+        </div>
+        <div class="das-modal-body p-4 text-white">
+          <p class="mb-0">Anda akan masuk ke dalam akun <b id="impersonateWkName" class="text-warning"></b>. Seluruh aktivitas akan dicatat dalam log sistem.</p>
+        </div>
+        <div class="d-flex justify-content-end gap-2 px-4 pb-4 pt-2">
+          <button type="button" class="btn btn-label-secondary w-50" data-bs-dismiss="modal">Batal</button>
+          <button type="button" id="confirmImpersonateBtn" class="btn btn-success w-50">Ya, Lanjutkan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 @endsection
 
 @section('vendor-script')
@@ -329,6 +347,49 @@
             currentSortDir = 'asc';
           }
           fetchData(1);
+        }
+      });
+
+      // delegation untuk button impersonate wk
+      container.addEventListener('click', function(e) {
+        const btnImpersonate = e.target.closest('.btn-impersonate-wk');
+        if (btnImpersonate) {
+          const url = btnImpersonate.dataset.url;
+          const nama = btnImpersonate.dataset.nama || 'Wali Kelas';
+
+          document.getElementById('impersonateWkName').textContent = nama;
+          const modalEl = document.getElementById('impersonateConfirmModal');
+          const confirmBtn = document.getElementById('confirmImpersonateBtn');
+          
+          confirmBtn.disabled = false;
+          confirmBtn.innerHTML = 'Ya, Lanjutkan';
+
+          const modal = new bootstrap.Modal(modalEl);
+          modal.show();
+
+          const newConfirmBtn = confirmBtn.cloneNode(true);
+          confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+          newConfirmBtn.addEventListener('click', function() {
+            newConfirmBtn.disabled = true;
+            newConfirmBtn.innerHTML = '<i class="ti tabler-loader spinner me-1"></i> Memproses...';
+            
+            modal.hide();
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            form.appendChild(csrfInput);
+
+            document.body.appendChild(form);
+            form.submit();
+          });
+          return;
         }
       });
 

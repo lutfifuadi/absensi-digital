@@ -92,7 +92,8 @@ class GuruController extends Controller
             'nama_lengkap' => 'required|string|max:255',
             'nip' => 'required|string|max:50|unique:guru,nip',
             'jenis_kelamin' => 'required|in:L,P',
-            'mata_pelajaran' => 'required|string|max:255',
+            'mapel_ids' => 'required|array|min:1',
+            'mapel_ids.*' => 'exists:mapels,id',
             'jabatan' => 'nullable|string|max:255',
             'no_hp' => 'nullable|string|max:50',
             'status' => 'required|in:aktif,nonaktif',
@@ -126,17 +127,22 @@ class GuruController extends Controller
                 ]);
             }
 
-            Guru::create([
+            $mapelNames = \App\Models\Mapel::whereIn('id', $data['mapel_ids'])->pluck('nama_mapel')->toArray();
+            $mataPelajaranStr = implode(', ', $mapelNames);
+
+            $guru = Guru::create([
                 'user_id' => $user->id,
                 'nip' => $data['nip'],
                 'nama_lengkap' => $data['nama_lengkap'],
                 'jenis_kelamin' => $data['jenis_kelamin'],
-                'mata_pelajaran' => $data['mata_pelajaran'],
+                'mata_pelajaran' => $mataPelajaranStr,
                 'jabatan' => $data['jabatan'] ?? null,
                 'no_hp' => $data['no_hp'] ?? null,
                 'status' => $data['status'],
                 'qr_code' => QrCodeGenerator::generate('GURU'),
             ]);
+
+            $guru->mapels()->sync($data['mapel_ids']);
         });
 
         return redirect()->route('admin.guru.index')->with('success', 'Guru berhasil ditambahkan.');
@@ -154,7 +160,8 @@ class GuruController extends Controller
             'nama_lengkap' => 'required|string|max:255',
             'nip' => 'required|string|max:50|unique:guru,nip,' . $guru->id,
             'jenis_kelamin' => 'required|in:L,P',
-            'mata_pelajaran' => 'required|string|max:255',
+            'mapel_ids' => 'required|array|min:1',
+            'mapel_ids.*' => 'exists:mapels,id',
             'jabatan' => 'nullable|string|max:255',
             'no_hp' => 'nullable|string|max:50',
             'status' => 'required|in:aktif,nonaktif',
@@ -166,15 +173,20 @@ class GuruController extends Controller
         $email = $data['email'] ?? strtolower($data['nip']) . '@' . $domainEmail;
 
         DB::transaction(function () use ($data, $guru, $email) {
+            $mapelNames = \App\Models\Mapel::whereIn('id', $data['mapel_ids'])->pluck('nama_mapel')->toArray();
+            $mataPelajaranStr = implode(', ', $mapelNames);
+
             $guru->update([
                 'nama_lengkap' => $data['nama_lengkap'],
                 'nip' => $data['nip'],
                 'jenis_kelamin' => $data['jenis_kelamin'],
-                'mata_pelajaran' => $data['mata_pelajaran'],
+                'mata_pelajaran' => $mataPelajaranStr,
                 'jabatan' => $data['jabatan'] ?? null,
                 'no_hp' => $data['no_hp'] ?? null,
                 'status' => $data['status'],
             ]);
+
+            $guru->mapels()->sync($data['mapel_ids']);
 
             $guru->user->update([
                 'name' => $data['nama_lengkap'],

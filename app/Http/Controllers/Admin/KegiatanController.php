@@ -32,6 +32,7 @@ class KegiatanController extends Controller
             'nama_kegiatan' => 'required|string|max:255',
             'jenis' => 'required|string',
             'tanggal_pelaksanaan' => 'nullable|date',
+            'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_pelaksanaan',
             'waktu_mulai' => 'nullable',
             'waktu_selesai' => 'nullable',
             'lokasi' => 'nullable|string',
@@ -50,6 +51,11 @@ class KegiatanController extends Controller
         // Jika tanggal_pelaksanaan dikirim kosong, set ke null
         if (empty($data['tanggal_pelaksanaan'])) {
             $data['tanggal_pelaksanaan'] = null;
+        }
+
+        // Ambil tanggal_selesai dari request. Jika kosong, set ke null.
+        if (empty($data['tanggal_selesai'])) {
+            $data['tanggal_selesai'] = null;
         }
 
         Kegiatan::create($data);
@@ -77,6 +83,7 @@ class KegiatanController extends Controller
             'nama_kegiatan' => 'required|string|max:255',
             'jenis' => 'required|string',
             'tanggal_pelaksanaan' => 'nullable|date',
+            'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_pelaksanaan',
             'waktu_mulai' => 'nullable',
             'waktu_selesai' => 'nullable',
             'lokasi' => 'nullable|string',
@@ -93,6 +100,11 @@ class KegiatanController extends Controller
         // Jika tanggal_pelaksanaan dikirim kosong, set ke null
         if (empty($data['tanggal_pelaksanaan'])) {
             $data['tanggal_pelaksanaan'] = null;
+        }
+
+        // Ambil tanggal_selesai dari request. Jika kosong, set ke null.
+        if (empty($data['tanggal_selesai'])) {
+            $data['tanggal_selesai'] = null;
         }
 
         $kegiatan->update($data);

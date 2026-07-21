@@ -159,11 +159,13 @@
             </td>
             <td>
               @if($k->tanggal_pelaksanaan)
-                <div class="text-white small fw-medium">{{ $k->tanggal_pelaksanaan->translatedFormat('d F Y') }}</div>
+                @if($k->tanggal_selesai && $k->tanggal_selesai->ne($k->tanggal_pelaksanaan))
+                  <div class="text-white small fw-medium">{{ $k->tanggal_pelaksanaan->translatedFormat('d M Y') }} - {{ $k->tanggal_selesai->translatedFormat('d M Y') }}</div>
+                @else
+                  <div class="text-white small fw-medium">{{ $k->tanggal_pelaksanaan->translatedFormat('d F Y') }}</div>
+                @endif
               @else
-                <div class="text-white small fw-medium">
-                  <span class="das-chip das-chip--warning" style="font-size:.6rem;padding:1px 8px;">Fleksibel</span>
-                </div>
+                <span class="das-chip das-chip--warning" style="font-size:.6rem;padding:1px 8px;">Fleksibel</span>
               @endif
               <div class="text-muted small mb-1" style="font-size:.7rem;">
                 <i class="ti tabler-clock" style="font-size:.8rem;"></i>
@@ -256,7 +258,7 @@
             </div>
             
             <div class="row g-3 mb-3">
-              <div class="col-6">
+              <div class="col-md-4 col-12">
                 <label class="das-form-label">Jenis <span class="text-danger">*</span></label>
                 <select name="jenis" class="form-select das-form-control" required>
                   <option value="EKSTRAKURIKULER">Ekstrakurikuler</option>
@@ -265,9 +267,13 @@
                   <option value="LAINNYA">Lainnya</option>
                 </select>
               </div>
-              <div class="col-6" id="tanggal_modal_wrapper">
-                <label class="das-form-label">Tanggal</label>
+              <div class="col-md-4 col-12" id="tanggal_modal_wrapper">
+                <label class="das-form-label">Tanggal Mulai</label>
                 <input type="date" name="tanggal_pelaksanaan" id="tanggal_pelaksanaan_modal" class="form-control das-form-control" value="{{ date('Y-m-d') }}">
+              </div>
+              <div class="col-md-4 col-12" id="tanggal_selesai_modal_wrapper">
+                <label class="das-form-label">Tanggal Selesai (Opsional)</label>
+                <input type="date" name="tanggal_selesai" id="tanggal_selesai_modal" class="form-control das-form-control">
               </div>
             </div>
 
@@ -344,12 +350,17 @@
   window.toggleTanggalModal = function(checkbox) {
     const wrapper = document.getElementById('tanggal_modal_wrapper');
     const tanggalInput = document.getElementById('tanggal_pelaksanaan_modal');
+    const selesaiWrapper = document.getElementById('tanggal_selesai_modal_wrapper');
+    const selesaiInput = document.getElementById('tanggal_selesai_modal');
 
     if (checkbox.checked) {
       wrapper.style.display = 'none';
       tanggalInput.value = '';
+      selesaiWrapper.style.display = 'none';
+      selesaiInput.value = '';
     } else {
       wrapper.style.display = 'block';
+      selesaiWrapper.style.display = 'block';
     }
   };
 

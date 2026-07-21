@@ -14,10 +14,15 @@ class AbsensiKegiatan extends Model
     protected $fillable = [
         'kegiatan_id',
         'siswa_id',
+        'tanggal_absen',
         'jam_absen',
         'status',
         'keterangan',
         'foto_bukti',
+    ];
+
+    protected $casts = [
+        'tanggal_absen' => 'date',
     ];
 
     public function kegiatan()

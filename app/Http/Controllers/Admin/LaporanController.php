@@ -384,4 +384,49 @@ class LaporanController extends Controller
         return redirect()->route('admin.laporan.index')
             ->with('success', 'Semua data kehadiran berhasil dihapus!');
     }
+
+    public function belumAbsen(Request $request)
+    {
+        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'))
+            ?? \App\Models\TahunAkademik::where('is_aktif', true)->value('id');
+
+        $user = auth()->user();
+        $activeRole = session('active_role', $user ? $user->role : 'guest');
+        $isWaliKelas = $activeRole === \App\Models\User::ROLE_WALI_KELAS;
+
+        if (!$isWaliKelas) {
+            abort(403, 'Akses khusus Wali Kelas.');
+        }
+
+        $tanggal = $request->input('tanggal', now()->toDateString());
+        $kelasWaliId = null;
+        $kelasWaliNama = '-';
+
+        $guru = $user->guru;
+        if ($guru) {
+            $kelasWali = Kelas::where('wali_kelas_id', $guru->id)
+                ->where('tahun_akademik_id', $tahunAjaranId)
+                ->first();
+            if ($kelasWali) {
+                $kelasWaliId = $kelasWali->id;
+                $kelasWaliNama = $kelasWali->nama;
+            }
+        }
+
+        $siswaBelumAbsen = collect();
+        if ($kelasWaliId) {
+            $siswaBelumAbsen = Siswa::where('kelas_id', $kelasWaliId)
+                ->where('status', 'aktif')
+                ->whereNotExists(function ($query) use ($tanggal) {
+                    $query->select(DB::raw(1))
+                        ->from('absensi_siswa')
+                        ->whereColumn('absensi_siswa.siswa_id', 'siswa.id')
+                        ->whereDate('absensi_siswa.tanggal', $tanggal);
+                })
+                ->orderBy('nama_lengkap')
+                ->get();
+        }
+
+        return view('admin.laporan.belum-absen', compact('siswaBelumAbsen', 'tanggal', 'kelasWaliNama', 'kelasWaliId'));
+    }
 }

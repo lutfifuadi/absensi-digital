@@ -177,6 +177,12 @@
                    class="form-control das-form-control">
           </div>
 
+          <div class="col-md-4 mb-3" id="tanggal_selesai_wrapper">
+            <label class="das-form-label" for="tanggal_selesai">Tanggal Selesai (Opsional)</label>
+            <input type="date" name="tanggal_selesai" id="tanggal_selesai" class="form-control das-form-control" value="{{ old('tanggal_selesai', $kegiatan->tanggal_selesai?->format('Y-m-d')) }}">
+            <div class="form-text text-white-50" style="font-size:.7rem;">Isi jika kegiatan berlangsung lebih dari 1 hari.</div>
+          </div>
+
           {{-- Tanpa Tanggal Pasti & Tanpa Batas Waktu --}}
           <div class="row g-3 mb-3">
             <div class="col-md-6">

@@ -162,9 +162,16 @@
 
           {{-- Tanggal --}}
           <div class="col-md-4" id="tanggal_wrapper">
-            <label class="das-form-label">Tanggal</label>
+            <label class="das-form-label">Tanggal Pelaksanaan</label>
             <input type="date" name="tanggal_pelaksanaan" id="tanggal_pelaksanaan" value="{{ old('tanggal_pelaksanaan', date('Y-m-d')) }}"
                    class="form-control das-form-control">
+          </div>
+
+          {{-- Tanggal Selesai --}}
+          <div class="col-md-4 mb-3" id="tanggal_selesai_wrapper">
+            <label class="das-form-label" for="tanggal_selesai">Tanggal Selesai (Opsional)</label>
+            <input type="date" name="tanggal_selesai" id="tanggal_selesai" class="form-control das-form-control" value="{{ old('tanggal_selesai') }}">
+            <div class="form-text text-white-50" style="font-size:.7rem;">Isi jika kegiatan berlangsung lebih dari 1 hari.</div>
           </div>
 
           {{-- Tanpa Tanggal Pasti --}}
@@ -426,13 +433,18 @@
     // Toggle tanggal berdasarkan checkbox tanpa tanggal pasti
     window.toggleTanggal = function(checkbox) {
       const tanggalWrapper = document.getElementById('tanggal_wrapper');
+      const tanggalSelesaiWrapper = document.getElementById('tanggal_selesai_wrapper');
       const tanggalInput = document.getElementById('tanggal_pelaksanaan');
+      const tanggalSelesaiInput = document.getElementById('tanggal_selesai');
 
       if (checkbox.checked) {
         tanggalWrapper.style.display = 'none';
+        tanggalSelesaiWrapper.style.display = 'none';
         tanggalInput.value = '';
+        tanggalSelesaiInput.value = '';
       } else {
         tanggalWrapper.style.display = 'block';
+        tanggalSelesaiWrapper.style.display = 'block';
       }
     };
 

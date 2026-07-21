@@ -22,4 +22,9 @@ class Mapel extends Model
     protected $casts = [
         'status' => 'boolean',
     ];
+
+    public function gurus()
+    {
+        return $this->belongsToMany(Guru::class, 'guru_mapel', 'mapel_id', 'guru_id')->withTimestamps();
+    }
 }

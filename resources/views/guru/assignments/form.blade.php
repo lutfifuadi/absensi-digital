@@ -2,6 +2,50 @@
 
 @section('title', isset($assignment) ? 'Edit Penugasan' : 'Buat Penugasan Baru')
 
+@section('vendor-style')
+    @vite([
+        'resources/assets/vendor/libs/select2/select2.scss'
+    ])
+    <style>
+        .select2-container--default .select2-selection--single {
+            background-color: rgba(15, 23, 42, 0.4) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: #fff !important;
+            height: 38px;
+            display: flex;
+            align-items: center;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #fff !important;
+            padding-left: 12px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 36px;
+        }
+        .select2-container--default.select2-container--focus .select2-selection--single {
+            border-color: #7367f0 !important;
+        }
+        .select2-dropdown {
+            background-color: #2f3349 !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            color: #fff !important;
+        }
+        .select2-container--default .select2-results__option[aria-selected=true] {
+            background-color: rgba(115, 103, 240, 0.2) !important;
+            color: #fff !important;
+        }
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #7367f0 !important;
+            color: #fff !important;
+        }
+        .select2-container--default .select2-search--dropdown .select2-search__field {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: #fff !important;
+        }
+    </style>
+@endsection
+
 @section('content')
   <div class="das-hero mb-4">
     <div class="das-hero__bg"></div>
@@ -67,7 +111,14 @@
 
           <div class="col-md-6 mb-3">
             <label class="form-label text-white fw-bold">Mata Pelajaran <span class="text-danger">*</span></label>
-            <input type="text" name="mata_pelajaran" class="form-control" placeholder="cth: Matematika, Fisika" value="{{ old('mata_pelajaran', $assignment->mata_pelajaran ?? '') }}" style="background: rgba(15, 23, 42, 0.4); color: white; border: 1px solid rgba(255,255,255,0.1);" required>
+            <select name="mata_pelajaran" class="form-select select2" style="background: rgba(15, 23, 42, 0.4); color: white; border: 1px solid rgba(255,255,255,0.1);" required data-placeholder="-- Pilih Mata Pelajaran --">
+              <option value="">-- Pilih Mata Pelajaran --</option>
+              @foreach ($mapelOptions as $mapel)
+                <option value="{{ $mapel->nama_mapel }}" @selected(old('mata_pelajaran', $assignment->mata_pelajaran ?? '') == $mapel->nama_mapel)>
+                  {{ $mapel->nama_mapel }}
+                </option>
+              @endforeach
+            </select>
           </div>
 
           <div class="col-md-6 mb-3">
@@ -105,4 +156,26 @@
       </form>
     </div>
   </div>
+@endsection
+
+@section('vendor-script')
+  @vite([
+    'resources/assets/vendor/libs/select2/select2.js'
+  ])
+@endsection
+
+@section('page-script')
+  <script>
+    $(document).ready(function() {
+      // Inisialisasi Select2
+      $('.select2').each(function() {
+        const $this = $(this);
+        $this.wrap('<div class="position-relative"></div>').select2({
+          placeholder: $this.data('placeholder'),
+          dropdownParent: $this.parent(),
+          width: '100%'
+        });
+      });
+    });
+  </script>
 @endsection

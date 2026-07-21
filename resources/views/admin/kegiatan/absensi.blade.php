@@ -183,6 +183,9 @@
               @endif
             </td>
             <td class="px-4 text-end">
+              <a href="{{ route('admin.absensi-kegiatan.live-board', $k->id) }}" class="das-btn das-btn--ghost das-btn--sm" target="_blank" title="Live Board & Scanner">
+                <i class="ti tabler-device-desktop-analytics"></i>
+              </a>
               <button class="das-btn das-btn--primary das-btn--sm" onclick="viewAbsensi({{ $k->id }}, '{{ $k->nama_kegiatan }}')">
                 <i class="ti tabler-checkbox me-1"></i> Absensi
               </button>

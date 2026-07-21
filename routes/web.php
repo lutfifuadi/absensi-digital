@@ -249,6 +249,9 @@ Route::middleware([
         Route::get('/siswa/{siswa}/profil', [SiswaController::class, 'profil'])->name('wali-kelas.siswa.profil');
         Route::get('/absensi-siswa', [AbsensiSiswaController::class, 'index'])->name('wali-kelas.absensi-siswa.index');
         Route::get('/rekap-harian', [LaporanController::class, 'rekapHarian'])->name('wali-kelas.rekap-harian');
+        Route::get('/belum-absen', [LaporanController::class, 'belumAbsen'])->name('wali-kelas.belum-absen');
+        Route::get('/absensi-manual', [AbsensiSiswaController::class, 'manualCreate'])->name('wali-kelas.absensi-manual.create');
+        Route::post('/absensi-manual', [AbsensiSiswaController::class, 'manualStore'])->name('wali-kelas.absensi-manual.store');
     });
 
     // ── PORTAL ORANG TUA ──────────────────────────────────────────────────────
@@ -413,6 +416,11 @@ Route::middleware([
         Route::get('absensi-kegiatan/rekap', [AbsensiKegiatanController::class, 'rekap'])
             ->name('admin.absensi-kegiatan.rekap')
             ->middleware('role:super_admin,admin_sekolah,operator');
+
+        Route::get('absensi-kegiatan/live-board/{kegiatan}', [AbsensiKegiatanController::class, 'liveBoard'])
+            ->name('admin.absensi-kegiatan.live-board');
+        Route::post('absensi-kegiatan/live-board/{kegiatan}/scan', [AbsensiKegiatanController::class, 'liveBoardScan'])
+            ->name('admin.absensi-kegiatan.live-board.scan');
 
         // ── MODUL EKSTRAKURIKULER ──────────────────────────────────────────────
         Route::resource('ekskul', EkskulController::class)

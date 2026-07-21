@@ -7,6 +7,7 @@ use App\Models\Kelas;
 use App\Models\Guru;
 use App\Models\Siswa;
 use App\Models\User;
+use App\Models\Mapel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -74,7 +75,8 @@ class AssignmentController extends Controller
         }
 
         $kelasOptions = Kelas::orderBy('nama')->get();
-        return view('guru.assignments.form', compact('kelasOptions'));
+        $mapelOptions = Mapel::where('status', 1)->orderBy('nama_mapel')->get();
+        return view('guru.assignments.form', compact('kelasOptions', 'mapelOptions'));
     }
 
     /**
@@ -129,7 +131,8 @@ class AssignmentController extends Controller
         }
 
         $kelasOptions = Kelas::orderBy('nama')->get();
-        return view('guru.assignments.form', compact('assignment', 'kelasOptions'));
+        $mapelOptions = Mapel::where('status', 1)->orderBy('nama_mapel')->get();
+        return view('guru.assignments.form', compact('assignment', 'kelasOptions', 'mapelOptions'));
     }
 
     /**

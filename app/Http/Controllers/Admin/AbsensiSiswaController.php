@@ -351,4 +351,107 @@ class AbsensiSiswaController extends Controller
         return redirect()->route('admin.absensi-siswa.index')
             ->with('success', "Berhasil menyimpan $count data absensi kelas.");
     }
+
+    public function manualCreate(Request $request)
+    {
+        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'))
+            ?? \App\Models\TahunAkademik::where('is_aktif', true)->value('id');
+
+        $user = auth()->user();
+        $activeRole = session('active_role', $user ? $user->role : 'guest');
+        $isWaliKelas = $activeRole === \App\Models\User::ROLE_WALI_KELAS;
+
+        if (!$isWaliKelas) {
+            abort(403, 'Akses khusus Wali Kelas.');
+        }
+
+        $guru = $user->guru;
+        $kelasWaliId = null;
+        $siswaOptions = collect();
+
+        if ($guru) {
+            $kelasWali = Kelas::where('wali_kelas_id', $guru->id)
+                ->where('tahun_akademik_id', $tahunAjaranId)
+                ->first();
+            if ($kelasWali) {
+                $kelasWaliId = $kelasWali->id;
+                $siswaOptions = Siswa::where('kelas_id', $kelasWaliId)
+                    ->where('status', 'aktif')
+                    ->orderBy('nama_lengkap')
+                    ->get();
+            }
+        }
+
+        $selectedSiswaId = $request->query('siswa_id');
+        $selectedTanggal = $request->query('tanggal', now()->toDateString());
+
+        return view('admin.absensi-siswa.manual', compact('siswaOptions', 'selectedSiswaId', 'selectedTanggal', 'kelasWaliId'));
+    }
+
+    public function manualStore(Request $request)
+    {
+        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'))
+            ?? \App\Models\TahunAkademik::where('is_aktif', true)->value('id');
+
+        $user = auth()->user();
+        $activeRole = session('active_role', $user ? $user->role : 'guest');
+        $isWaliKelas = $activeRole === \App\Models\User::ROLE_WALI_KELAS;
+
+        if (!$isWaliKelas) {
+            abort(403, 'Akses khusus Wali Kelas.');
+        }
+
+        $guru = $user->guru;
+        $kelasWaliId = null;
+        if ($guru) {
+            $kelasWali = Kelas::where('wali_kelas_id', $guru->id)
+                ->where('tahun_akademik_id', $tahunAjaranId)
+                ->first();
+            if ($kelasWali) {
+                $kelasWaliId = $kelasWali->id;
+            }
+        }
+
+        if (!$kelasWaliId) {
+            return back()->with('error', 'Anda belum ditugaskan sebagai wali kelas di tahun akademik ini.');
+        }
+
+        $data = $request->validate([
+            'siswa_id' => [
+                'required',
+                'exists:siswa,id',
+                \Illuminate\Validation\Rule::exists('siswa', 'id')->where('kelas_id', $kelasWaliId)
+            ],
+            'tanggal' => 'required|date',
+            'status' => 'required|in:hadir,sakit,izin,alpha,terlambat',
+            'keterangan' => 'nullable|string|max:500',
+        ]);
+
+        $duplicate = AbsensiSiswa::where('siswa_id', $data['siswa_id'])
+            ->whereDate('tanggal', $data['tanggal'])
+            ->exists();
+
+        if ($duplicate) {
+            return back()->withInput()->withErrors(['siswa_id' => 'Siswa sudah memiliki catatan absensi pada tanggal tersebut.']);
+        }
+
+        $activeJenjang = \App\Helpers\JenjangHelper::getActiveJenjang();
+        if (in_array($activeJenjang, ['SD/MI', 'SMP/MTs']) && $data['status'] === 'terlambat') {
+            $data['status'] = 'hadir';
+        }
+
+        AbsensiSiswa::create([
+            'siswa_id' => $data['siswa_id'],
+            'kelas_id' => $kelasWaliId,
+            'tanggal' => $data['tanggal'],
+            'status' => $data['status'],
+            'keterangan' => $data['keterangan'],
+            'guru_id' => $guru?->id,
+            'metode' => 'manual',
+            'jam_masuk' => ($data['status'] === 'hadir' || $data['status'] === 'terlambat') ? now()->format('H:i') : null,
+        ]);
+
+        return redirect()->route('wali-kelas.belum-absen', ['tanggal' => $data['tanggal']])
+            ->with('success', 'Absensi berhasil disimpan secara manual.');
+    }
 }

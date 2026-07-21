@@ -16,6 +16,7 @@ class Kegiatan extends Model
         'nama_kegiatan',
         'jenis',
         'tanggal_pelaksanaan',
+        'tanggal_selesai',
         'waktu_mulai',
         'waktu_selesai',
         'lokasi',
@@ -30,6 +31,7 @@ class Kegiatan extends Model
 
     protected $casts = [
         'tanggal_pelaksanaan' => 'date',
+        'tanggal_selesai' => 'date',
         'is_wajib' => 'boolean',
         'target_peserta' => 'array',
         'target_tingkat' => 'array',

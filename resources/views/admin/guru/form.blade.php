@@ -2,6 +2,58 @@
 
 @section('title', $guru->exists ? 'Ubah Guru' : 'Tambah Guru')
 
+@section('vendor-style')
+    @vite([
+        'resources/assets/vendor/libs/select2/select2.scss'
+    ])
+    <style>
+        .select2-container--default .select2-selection--multiple {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            color: #fff !important;
+            min-height: 38px;
+        }
+        .select2-container--default.select2-container--focus .select2-selection--multiple {
+            border-color: #7367f0 !important;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: #7367f0 !important;
+            border: none !important;
+            color: #fff !important;
+            border-radius: 4px;
+            padding: 2px 8px;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            color: #fff !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
+            margin-right: 5px !important;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            color: #fff !important;
+        }
+        .select2-dropdown {
+            background-color: #2f3349 !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            color: #fff !important;
+        }
+        .select2-container--default .select2-results__option[aria-selected=true] {
+            background-color: rgba(115, 103, 240, 0.2) !important;
+            color: #fff !important;
+        }
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #7367f0 !important;
+            color: #fff !important;
+        }
+        .select2-container--default .select2-search--inline .select2-search__field {
+            color: #fff !important;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+            padding: 2px 6px !important;
+        }
+    </style>
+@endsection
+
 @section('content')
 
   {{-- HERO HEADER --}}
@@ -132,14 +184,13 @@
                   </div>
 
                   <div class="mb-3">
-                    <label class="form-label fw-semibold small" for="mata_pelajaran">
+                    <label class="form-label fw-semibold small" for="mapel_ids">
                       <i class="ti tabler-book me-1 text-info"></i> Mata Pelajaran <span class="text-danger">*</span>
                     </label>
-                    <select id="mata_pelajaran" name="mata_pelajaran"
-                      class="form-select @error('mata_pelajaran') is-invalid @enderror" required>
-                      <option value="">Pilih Mata Pelajaran</option>
+                    <select id="mapel_ids" name="mapel_ids[]"
+                      class="form-select select2 @error('mapel_ids') is-invalid @enderror" multiple data-placeholder="Pilih satu atau beberapa mata pelajaran..." required>
                       @foreach ($mapelOptions as $mapel)
-                        <option value="{{ $mapel->nama_mapel }}" {{ old('mata_pelajaran', $guru->mata_pelajaran) === $mapel->nama_mapel ? 'selected' : '' }}>
+                        <option value="{{ $mapel->id }}" {{ in_array($mapel->id, old('mapel_ids', $guru->mapels->pluck('id')->toArray())) ? 'selected' : '' }}>
                           {{ $mapel->nama_mapel }}
                         </option>
                       @endforeach
@@ -269,4 +320,26 @@
     </div>
   </div>
 
+@endsection
+
+@section('vendor-script')
+    @vite([
+        'resources/assets/vendor/libs/select2/select2.js'
+    ])
+@endsection
+
+@section('page-script')
+    <script>
+        $(document).ready(function() {
+            // Inisialisasi Select2
+            $('.select2').each(function() {
+                const $this = $(this);
+                $this.wrap('<div class="position-relative"></div>').select2({
+                    placeholder: $this.data('placeholder'),
+                    dropdownParent: $this.parent(),
+                    width: '100%'
+                });
+            });
+        });
+    </script>
 @endsection

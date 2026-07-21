@@ -86,6 +86,16 @@
           </td>
           <td class="pe-4 text-end">
             <div class="d-flex justify-content-end gap-1">
+              @if ($item->id)
+                <button type="button"
+                  class="action-btn text-success btn-impersonate-wk"
+                  title="Login Sebagai Wali Kelas"
+                  data-bs-toggle="tooltip"
+                  data-url="{{ route('admin.impersonate.login-as', $item->id) }}"
+                  data-nama="{{ $displayName }}">
+                  <i class="ti tabler-login fs-5"></i>
+                </button>
+              @endif
               @if ($profile)
                 <a href="{{ route('admin.wali-kelas.generate-qr', $profile->id) }}" class="action-btn text-info"
                   title="Unduh QR" data-bs-toggle="tooltip">

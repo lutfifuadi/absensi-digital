@@ -35,6 +35,18 @@
       "url": "/wali-kelas/rekap-harian"
     },
     {
+      "name": "Belum Absen",
+      "icon": "menu-icon ti tabler-user-x",
+      "slug": "wali-kelas.belum-absen",
+      "url": "/wali-kelas/belum-absen"
+    },
+    {
+      "name": "Absensi Manual Cepat",
+      "icon": "menu-icon ti tabler-user-plus",
+      "slug": "wali-kelas.absensi-manual.create",
+      "url": "/wali-kelas/absensi-manual"
+    },
+    {
       "menuHeader": "Tugas Piket",
       "icon": "menu-icon ti tabler-shield-check"
     },

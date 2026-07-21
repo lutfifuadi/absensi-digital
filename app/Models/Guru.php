@@ -29,6 +29,11 @@ class Guru extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function mapels()
+    {
+        return $this->belongsToMany(Mapel::class, 'guru_mapel', 'guru_id', 'mapel_id')->withTimestamps();
+    }
+
     public function kelasSebagaiWali()
     {
         return $this->hasMany(Kelas::class, 'wali_kelas_id');
