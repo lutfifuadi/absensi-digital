@@ -212,13 +212,8 @@
 
     {{-- Pagination --}}
     @if ($batches->hasPages())
-      <div class="d-flex justify-content-between align-items-center py-3 px-4 border-top" style="border-color:rgba(255,255,255,0.08) !important;">
-        <span class="text-white-50 small">
-          Menampilkan {{ $batches->firstItem() }} sampai {{ $batches->lastItem() }} dari {{ $batches->total() }} batch
-        </span>
-        <div class="das-pagination">
-          {{ $batches->appends(request()->query())->links('vendor.pagination.bootstrap-5') }}
-        </div>
+      <div class="px-4 py-3 border-top" style="border-color:var(--das-border) !important;">
+        {{ $batches->appends(request()->query())->links() }}
       </div>
     @endif
   </div>
