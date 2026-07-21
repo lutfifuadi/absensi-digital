@@ -71,7 +71,7 @@
 </div>
 
 @if ($jenisPelanggarans->hasPages())
-  <div class="px-4 py-3 border-top" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+  <div class="px-4 py-3 border-top" style="border-color: var(--das-border) !important;">
     {{ $jenisPelanggarans->links('vendor.pagination.users') }}
   </div>
 @endif

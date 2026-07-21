@@ -54,6 +54,51 @@
       color: #ccc;
     }
 
+    /* PAGINATION */
+    .das-page-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      height: 32px;
+      padding: 0 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: transparent;
+      color: #888;
+      text-decoration: none;
+      transition: all 0.18s ease;
+      cursor: pointer;
+      line-height: 1;
+      font-family: inherit;
+    }
+
+    .das-page-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .das-page-active {
+      background: #7367f0 !important;
+      color: #fff !important;
+      border-color: #7367f0 !important;
+    }
+
+    .das-page-dots {
+      border-color: transparent;
+      background: transparent;
+      color: #555;
+      pointer-events: none;
+    }
+
+    .page-item.disabled .das-page-btn {
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
     /* SWEETALERT2 CUSTOM PREMIUM */
     .das-swal-popup {
       background: rgba(26, 26, 46, 0.95) !important;
