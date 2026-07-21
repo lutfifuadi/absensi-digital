@@ -32,7 +32,7 @@ fi
 # 1. Pull kode terbaru dari Git
 # ----------------------------------------------------------
 echo ""
-echo "[1/8] Pull kode terbaru dari Git..."
+echo "[1/6] Pull kode terbaru dari Git..."
 
 if [ -n "$GITHUB_TOKEN" ]; then
     echo "[INFO] Menggunakan GITHUB_TOKEN untuk autentikasi Git..."
@@ -63,91 +63,14 @@ fi
 # 2. Install / update Composer dependencies
 # ----------------------------------------------------------
 echo ""
-echo "[2/8] Install Composer dependencies..."
+echo "[2/6] Install Composer dependencies..."
 composer install --no-dev --optimize-autoloader --no-interaction
 
 # ----------------------------------------------------------
-# 3. Download public/build dari GitHub Release terbaru
+# 3. Salin .env jika belum ada & update GitHub config
 # ----------------------------------------------------------
 echo ""
-echo "[3/8] Download public/build dari GitHub Release..."
-
-ASSET_FILE="absensi-siap-pakai.zip"
-TEMP_FILE="/tmp/$ASSET_FILE"
-DOWNLOAD_OK=false
-
-# --- Metode 1: gh CLI (paling reliable) ---
-if command -v gh &>/dev/null; then
-    echo "[INFO] Mencoba download dengan gh CLI..."
-    TAG=$(gh release view --repo "$GITHUB_OWNER/$GITHUB_REPO" --json tagName --jq '.tagName' 2>/dev/null)
-    if [ -n "$TAG" ]; then
-        gh release download "$TAG" --repo "$GITHUB_OWNER/$GITHUB_REPO" \
-            --pattern "$ASSET_FILE" --dir "/tmp" --clobber 2>/dev/null
-        if [ $? -eq 0 ] && [ -f "$TEMP_FILE" ]; then
-            echo "[OK] Download berhasil via gh CLI (tag: $TAG)."
-            DOWNLOAD_OK=true
-        fi
-    fi
-fi
-
-# --- Metode 2: Download URL publik (tanpa token) ---
-if [ "$DOWNLOAD_OK" = false ]; then
-    echo "[INFO] Mencoba download dari URL publik GitHub..."
-    # Ambil tag release terbaru dari API (grep+cut, universal tanpa python/jq)
-    if [ -n "$GITHUB_TOKEN" ]; then
-        API_RESP=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest")
-    else
-        API_RESP=$(curl -s "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest")
-    fi
-    
-    TAG=$(echo "$API_RESP" | grep '"tag_name"' | cut -d '"' -f 4)
-
-    if [ -n "$TAG" ]; then
-        DOWNLOAD_URL="https://github.com/$GITHUB_OWNER/$GITHUB_REPO/releases/download/$TAG/$ASSET_FILE"
-        echo "[INFO] Mengunduh: $DOWNLOAD_URL"
-        
-        if wget -q --timeout=60 -O "$TEMP_FILE" "$DOWNLOAD_URL"; then
-            echo "[OK] Download berhasil via URL publik (tag: $TAG)."
-            DOWNLOAD_OK=true
-        else
-            echo "[WARN] Gagal download dari URL publik."
-        fi
-    else
-        echo "[WARN] Tidak dapat membaca tag release dari API."
-    fi
-fi
-
-# --- Metode 3: Cari browser_download_url langsung dari API ---
-if [ "$DOWNLOAD_OK" = false ] && [ -n "$API_RESP" ]; then
-    echo "[INFO] Mencari URL download dari API response..."
-    DOWNLOAD_URL=$(echo "$API_RESP" | grep "browser_download_url" | grep "$ASSET_FILE" | cut -d '"' -f 4 | head -1)
-    
-    if [ -n "$DOWNLOAD_URL" ]; then
-        echo "[INFO] Mengunduh: $DOWNLOAD_URL"
-        wget -q --timeout=60 -O "$TEMP_FILE" "$DOWNLOAD_URL"
-        if [ $? -eq 0 ]; then
-            echo "[OK] Download berhasil via browser_download_url."
-            DOWNLOAD_OK=true
-        fi
-    fi
-fi
-
-# --- Ekstrak jika berhasil download ---
-if [ "$DOWNLOAD_OK" = true ] && [ -f "$TEMP_FILE" ]; then
-    rm -rf public/build
-    unzip -o "$TEMP_FILE" 'public/build/*' -d "$APP_PATH" > /dev/null 2>&1
-    rm -f "$TEMP_FILE"
-    echo "[OK] public/build berhasil diperbarui."
-else
-    echo "[WARN] Gagal mengunduh build asset. public/build tetap menggunakan versi sebelumnya."
-fi
-
-# ----------------------------------------------------------
-# 4. Salin .env jika belum ada & update GitHub config
-# ----------------------------------------------------------
-echo ""
-echo "[4/8] Cek file .env..."
+echo "[3/6] Cek file .env..."
 if [ ! -f ".env" ]; then
     cp .env.example .env
     php artisan key:generate
@@ -169,10 +92,10 @@ else
 fi
 
 # ----------------------------------------------------------
-# 5. Jalankan migrasi database
+# 4. Jalankan migrasi database
 # ----------------------------------------------------------
 echo ""
-echo "[6/8] Migrasi database..."
+echo "[4/6] Migrasi database..."
 php artisan migrate --force
 
 # ----------------------------------------------------------
@@ -188,10 +111,10 @@ if [ ! -L "public/storage" ]; then
 fi
 
 # ----------------------------------------------------------
-# 6. Clear & cache ulang config
+# 5. Clear & cache ulang config
 # ----------------------------------------------------------
 echo ""
-echo "[7/8] Optimasi Laravel..."
+echo "[5/6] Optimasi Laravel..."
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
@@ -201,10 +124,10 @@ php artisan route:cache
 php artisan view:cache
 
 # ----------------------------------------------------------
-# 7. Perbaiki permission folder (Full Project for Dashboard Update)
+# 6. Perbaiki permission folder (Full Project for Dashboard Update)
 # ----------------------------------------------------------
 echo ""
-echo "[8/8] Set permission folder & ownership..."
+echo "[6/6] Set permission folder & ownership..."
 # Pastikan seluruh folder dimiliki oleh user web agar Dashboard bisa update file
 chown -R "$WEB_USER":"$WEB_USER" "$APP_PATH"
 chmod -R 775 storage bootstrap/cache
