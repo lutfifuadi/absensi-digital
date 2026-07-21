@@ -143,6 +143,28 @@
       "url": "/admin/ekskul"
     },
     {
+      "name": "Poin Pelanggaran",
+      "icon": "menu-icon ti tabler-swords",
+      "slug": ["admin.pelanggaran-siswa.index", "admin.pelanggaran-siswa.create", "admin.pelanggaran-siswa.rekap"],
+      "submenu": [
+        {
+          "name": "Daftar Pelanggaran",
+          "slug": "admin.pelanggaran-siswa.index",
+          "url": "/admin/pelanggaran-siswa"
+        },
+        {
+          "name": "Tambah Pelanggaran",
+          "slug": "admin.pelanggaran-siswa.create",
+          "url": "/admin/pelanggaran-siswa/create"
+        },
+        {
+          "name": "Rekap Pelanggaran",
+          "slug": "admin.pelanggaran-siswa.rekap",
+          "url": "/admin/pelanggaran-siswa/rekap"
+        }
+      ]
+    },
+    {
       "name": "Verifikasi Izin",
       "icon": "menu-icon ti tabler-stethoscope",
       "slug": "admin.izin-sakit.index",

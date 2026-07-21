@@ -588,6 +588,22 @@ Route::middleware([
             ->except(['show'])
             ->middleware('role:super_admin,admin_sekolah,operator');
 
+        // ── MASTER DATA & KONFIGURASI POINT PELANGGARAN SISWA (PRD-008) ──────
+        Route::resource('pelanggaran-kategori', \App\Http\Controllers\Admin\KategoriPelanggaranController::class)
+            ->names('admin.pelanggaran-kategori')
+            ->middleware('role:super_admin,admin_sekolah');
+        
+        Route::resource('pelanggaran-jenis', \App\Http\Controllers\Admin\JenisPelanggaranController::class)
+            ->names('admin.pelanggaran-jenis')
+            ->middleware('role:super_admin,admin_sekolah');
+
+        Route::get('pelanggaran-konfigurasi', [\App\Http\Controllers\Admin\KonfigurasiPelanggaranController::class, 'index'])
+            ->name('admin.pelanggaran-konfigurasi.index')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pelanggaran-konfigurasi', [\App\Http\Controllers\Admin\KonfigurasiPelanggaranController::class, 'save'])
+            ->name('admin.pelanggaran-konfigurasi.save')
+            ->middleware('role:super_admin,admin_sekolah');
+
         Route::get('wali-kelas/cetak-qr', [WaliKelasController::class, 'cetakQr'])
             ->name('admin.wali-kelas.cetak-qr')
             ->middleware('role:super_admin,admin_sekolah,operator');
