@@ -286,7 +286,7 @@
                 <div class="col-md-5">
                     <label class="form-label text-white-50 small fw-bold">Cari Orang Tua</label>
                     <input type="text" id="filterSearch" name="search" class="form-control"
-                        placeholder="Nama, email, username, No. HP..." value="{{ request('search') }}">
+                        placeholder="Nama ortu, email, username, No. HP, nama siswa..." value="{{ request('search') }}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label text-white-50 small fw-bold">Status</label>

@@ -16,11 +16,42 @@ use Illuminate\Support\Facades\Log;
 
 class StaffTataUsahaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $staff = StaffTataUsaha::with('user')->orderBy('nama_lengkap')->get();
+        $search = $request->query('search');
+        $perPage = (int) $request->query('per_page', 10);
+        $sortBy = $request->query('sort_by', 'nama_lengkap');
+        $sortDir = $request->query('sort_dir', 'asc');
+        $status = $request->query('status');
 
-        return view('admin.staff-tata-usaha.index', compact('staff'));
+        $allowedSortColumns = ['nama_lengkap', 'nip', 'jabatan', 'status', 'created_at'];
+        $sortBy = in_array($sortBy, $allowedSortColumns) ? $sortBy : 'nama_lengkap';
+        $sortDir = in_array($sortDir, ['asc', 'desc']) ? $sortDir : 'asc';
+
+        $staff = StaffTataUsaha::with('user')
+            ->when($status, function ($query, $status) {
+                $query->where('staff_tata_usaha.status', $status);
+            })
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('staff_tata_usaha.nama_lengkap', 'like', "%{$search}%")
+                      ->orWhere('staff_tata_usaha.nip', 'like', "%{$search}%")
+                      ->orWhere('staff_tata_usaha.jabatan', 'like', "%{$search}%")
+                      ->orWhere('staff_tata_usaha.no_hp', 'like', "%{$search}%")
+                      ->orWhereHas('user', function ($q) use ($search) {
+                          $q->where('email', 'like', "%{$search}%");
+                      });
+                });
+            })
+            ->orderBy($sortBy, $sortDir)
+            ->paginate($perPage)
+            ->withQueryString();
+
+        if ($request->ajax()) {
+            return view('admin.staff-tata-usaha.table', compact('staff', 'sortBy', 'sortDir'))->render();
+        }
+
+        return view('admin.staff-tata-usaha.index', compact('staff', 'sortBy', 'sortDir'));
     }
 
     public function create()

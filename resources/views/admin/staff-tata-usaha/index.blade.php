@@ -80,7 +80,7 @@
         <a href="{{ route('admin.staff-tata-usaha.cetak-qr') }}" class="btn das-btn --info">
           <i class="ti tabler-qrcode me-1"></i> Cetak QR Massal
         </a>
-        <button type="button" class="btn das-btn --purple" onclick="$('#cetakKartuStaffForm').toggleClass('d-none')">
+        <button type="button" class="btn das-btn --purple" id="toggleCetakKartuBtn">
           <i class="ti tabler-id me-1"></i> Cetak Kartu
         </button>
         <a href="{{ route('admin.staff-tata-usaha.create') }}" class="btn das-btn --primary">
@@ -100,122 +100,72 @@
     </div>
   @endif
 
+  {{-- FILTER PANEL --}}
+  <div class="das-panel mb-4">
+    <div class="das-panel__body">
+      <form id="filterForm" method="GET" class="row gy-3 gx-3 align-items-end">
+        <div class="col-md-5">
+          <label class="form-label text-white-50 small fw-bold">Cari Staff TU</label>
+          <input type="text" id="filterSearch" name="search" class="form-control"
+            placeholder="Nama, NIP, jabatan, No. HP, email..." value="{{ request('search') }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label text-white-50 small fw-bold">Status</label>
+          <select id="filterStatus" name="status" class="form-select">
+            <option value="">Semua Status</option>
+            <option value="aktif" @selected(request('status') === 'aktif')>Aktif</option>
+            <option value="nonaktif" @selected(request('status') === 'nonaktif')>Nonaktif</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn das-btn --info w-100">
+              <i class="ti tabler-search me-1"></i> Cari
+            </button>
+            <button type="button" id="resetFilterBtn" class="btn das-btn --secondary" title="Reset">
+              <i class="ti tabler-refresh"></i>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {{-- FORM CETAK KARTU PILIHAN --}}
+  <form id="cetakKartuStaffForm" method="POST" action="{{ route('admin.staff-tata-usaha.cetak-kartu-pilihan') }}" class="d-none mb-3">
+    @csrf
+    <div class="d-flex align-items-center gap-2 px-3 py-2 rounded-3" style="background: rgba(115, 103, 240, 0.1); border: 1px solid rgba(115, 103, 240, 0.2);">
+      <i class="ti tabler-id text-purple fs-5"></i>
+      <span class="small text-white-50">Dipilih: <strong id="staffSelectedCount">0</strong> staff</span>
+      <span class="text-white-50 mx-1">|</span>
+      <button type="button" class="btn btn-sm btn-label-secondary" onclick="$('.staff-checkbox').prop('checked', false).trigger('change');">
+        <i class="ti tabler-x"></i> Batal
+      </button>
+      <button type="submit" class="btn btn-sm btn-label-primary ms-auto">
+        <i class="ti tabler-printer me-1"></i> Cetak Kartu Pilihan
+      </button>
+    </div>
+  </form>
+
   {{-- TABLE CARD --}}
   <div class="das-panel">
-    <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between"
+    <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3"
       style="border-color:rgba(255,255,255,0.08) !important;">
       <h6 class="das-panel__title mb-0 d-flex align-items-center gap-2">
         <i class="ti tabler-list text-info"></i> Daftar Staff Administrasi
       </h6>
-      <span class="das-chip --info">{{ count($staff) }} Staff</span>
+      <div class="d-flex align-items-center gap-3">
+        <select id="perPageSelect" class="form-select border-0 text-white w-auto"
+          style="background: rgba(255,255,255,0.05); height:38px; font-size:0.85rem; cursor:pointer;">
+          <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+          <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+          <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+        </select>
+      </div>
     </div>
     <div class="das-panel__body p-0">
-      <form id="cetakKartuStaffForm" method="POST" action="{{ route('admin.staff-tata-usaha.cetak-kartu-pilihan') }}" class="d-none mb-3 px-3 pt-3">
-        @csrf
-        <div class="d-flex align-items-center gap-2 px-3 py-2 rounded-3" style="background: rgba(115, 103, 240, 0.1); border: 1px solid rgba(115, 103, 240, 0.2);">
-          <i class="ti tabler-id text-purple fs-5"></i>
-          <span class="small text-white-50">Dipilih: <strong id="staffSelectedCount">0</strong> staff</span>
-          <span class="text-white-50 mx-1">|</span>
-          <button type="button" class="btn btn-sm btn-label-secondary" onclick="$('.staff-checkbox').prop('checked', false).trigger('change');">
-            <i class="ti tabler-x"></i> Batal
-          </button>
-          <button type="submit" class="btn btn-sm btn-label-primary ms-auto">
-            <i class="ti tabler-printer me-1"></i> Cetak Kartu Pilihan
-          </button>
-        </div>
-      </form>
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0" style="color:inherit;">
-          <thead
-            style="background:rgba(255,255,255,0.04);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;opacity:0.7;">
-            <tr>
-              <th class="ps-2 py-3" style="width:40px;"><input type="checkbox" id="checkAllStaff" class="form-check-input"></th>
-              <th class="ps-2 py-3" style="width:46px;">#</th>
-              <th class="py-3">Informasi Staff</th>
-              <th class="py-3 d-none d-md-table-cell">NIP</th>
-              <th class="py-3">Jabatan</th>
-              <th class="py-3 text-center">Status</th>
-              <th class="py-3 d-none d-lg-table-cell">Role</th>
-              <th class="py-3 d-none d-xl-table-cell">Email Login</th>
-              <th class="py-3 pe-4 text-end">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse($staff as $item)
-              <tr class="staff-row-hover">
-                <td class="ps-2"><input type="checkbox" name="ids[]" value="{{ $item->id }}" class="form-check-input staff-checkbox"></td>
-                <td class="ps-4 text-white-50 small">{{ $loop->iteration }}</td>
-                <td>
-                  <div class="d-flex align-items-center gap-3">
-                    <div class="avatar avatar-md">
-                      <span class="avatar-initial rounded-circle bg-label-info" style="font-size:0.85rem;">
-                        {{ strtoupper(substr($item->nama_lengkap, 0, 1)) }}{{ strtoupper(substr(strrchr($item->nama_lengkap, ' ') ?: $item->nama_lengkap, 1, 1)) }}
-                      </span>
-                    </div>
-                    <div>
-                      <div class="fw-bold mb-0" style="font-size:0.9rem;">{{ $item->nama_lengkap }}</div>
-                      <div class="text-white-50 small" style="font-size:0.72rem;">{{ $item->no_hp ?? 'Internal' }}</div>
-                    </div>
-                  </div>
-                </td>
-                <td class="d-none d-md-table-cell text-white-50 small">
-                  {{ $item->nip }}
-                </td>
-                <td>
-                  <span class="badge bg-label-secondary px-2">{{ $item->jabatan ?? 'Staff' }}</span>
-                </td>
-                <td class="text-center">
-                  <span
-                    class="badge bg-label-{{ $item->status === 'aktif' ? 'success' : 'danger' }} text-capitalize px-2">{{ $item->status }}</span>
-                </td>
-                <td class="d-none d-lg-table-cell text-capitalize small text-white-50">
-                  @php
-                    $role = optional($item->user)->role;
-                  @endphp
-                  {{ $role ? str_replace('_', ' ', ucfirst($role)) : '-' }}
-                </td>
-                <td class="d-none d-xl-table-cell small text-white-50">
-                  {{ optional($item->user)->email ?? '-' }}
-                </td>
-                <td class="pe-4 text-end">
-                  <div class="d-flex justify-content-end gap-1">
-                    <a href="{{ route('admin.staff-tata-usaha.generate-qr', $item) }}" class="action-btn text-info"
-                      title="Unduh QR" data-bs-toggle="tooltip">
-                      <i class="ti tabler-qrcode fs-5"></i>
-                    </a>
-                    <a href="{{ route('admin.staff-tata-usaha.cetak-qr', ['staff_id' => $item->id]) }}" class="action-btn text-purple"
-                      title="Cetak Kartu" data-bs-toggle="tooltip">
-                      <i class="ti tabler-id fs-5"></i>
-                    </a>
-                    <a href="{{ route('admin.staff-tata-usaha.edit', $item) }}" class="action-btn text-warning"
-                      title="Ubah" data-bs-toggle="tooltip">
-                      <i class="ti tabler-pencil fs-5"></i>
-                    </a>
-                    <form action="{{ route('admin.staff-tata-usaha.destroy', $item) }}" method="POST" class="d-inline"
-                      onsubmit="return confirm('Yakin ingin menghapus staff ini?');">
-                      @csrf @method('DELETE')
-                      <button type="submit" class="action-btn text-danger" title="Hapus" data-bs-toggle="tooltip">
-                        <i class="ti tabler-trash fs-5"></i>
-                      </button>
-                    </form>
-                  </div>
-                </td>
-              </tr>
-            @empty
-              <tr>
-                <td colspan="9" class="text-center py-5">
-                  <div class="d-flex flex-column align-items-center gap-2 opacity-50">
-                    <i class="ti tabler-users-minus" style="font-size:2.5rem;"></i>
-                    <span class="small">Belum ada data staff TU.</span>
-                    <a href="{{ route('admin.staff-tata-usaha.create') }}" class="btn btn-sm btn-label-info mt-1">
-                      <i class="ti tabler-plus me-1"></i> Tambah Sekarang
-                    </a>
-                  </div>
-                </td>
-              </tr>
-            @endforelse
-          </tbody>
-        </table>
+      <div id="staffTableContainer">
+        @include('admin.staff-tata-usaha.table')
       </div>
     </div>
   </div>
@@ -230,19 +180,144 @@
         return new bootstrap.Tooltip(tooltipTriggerEl);
       });
 
-      // ─── Cetak Kartu Checkbox Logic ───────────────────────────────────
-      $(function() {
-        // Select All
-        $('#checkAllStaff').on('change', function() {
-          $('.staff-checkbox').prop('checked', $(this).is(':checked')).trigger('change');
-        });
+      const container = document.getElementById('staffTableContainer');
+      const perPageSelect = document.getElementById('perPageSelect');
+      const filterSearch = document.getElementById('filterSearch');
+      const filterStatus = document.getElementById('filterStatus');
+      const filterForm = document.getElementById('filterForm');
+      const resetFilterBtn = document.getElementById('resetFilterBtn');
+      let searchTimeout;
 
-        // Update counter
-        $(document).on('change', '.staff-checkbox', function() {
-          var count = $('.staff-checkbox:checked').length;
-          $('#staffSelectedCount').text(count);
+      let currentSortBy = '{{ $sortBy ?? 'nama_lengkap' }}';
+      let currentSortDir = '{{ $sortDir ?? 'asc' }}';
+
+      function fetchData(page = 1) {
+        const search = encodeURIComponent(filterSearch.value || '');
+        const perPage = perPageSelect.value || 10;
+        const status = filterStatus ? filterStatus.value || '' : '';
+        const url = `{{ route('admin.staff-tata-usaha.index') }}?page=${page}&search=${search}&per_page=${perPage}&sort_by=${currentSortBy}&sort_dir=${currentSortDir}&status=${status}`;
+
+        container.style.opacity = '0.5';
+        container.style.pointerEvents = 'none';
+
+        fetch(url, {
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          })
+          .then(res => res.text())
+          .then(html => {
+            container.innerHTML = html;
+            container.style.opacity = '1';
+            container.style.pointerEvents = 'auto';
+
+            // re-init tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function(tooltipTriggerEl) {
+              return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // re-init checkbox counter (karena checkbox di-render ulang)
+            updateStaffSelectedCount();
+
+            // re-init checkAll listener
+            const checkAll = document.getElementById('checkAllStaff');
+            if (checkAll) {
+              checkAll.addEventListener('change', function() {
+                $('.staff-checkbox').prop('checked', $(this).is(':checked')).trigger('change');
+              });
+            }
+          })
+          .catch(err => {
+            console.error('Fetch error:', err);
+            container.style.opacity = '1';
+            container.style.pointerEvents = 'auto';
+          });
+      }
+
+      function updateStaffSelectedCount() {
+        var count = $('.staff-checkbox:checked').length;
+        $('#staffSelectedCount').text(count);
+      }
+
+      // debounce search
+      if (filterSearch) {
+        filterSearch.addEventListener('input', function() {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => fetchData(1), 450);
         });
+      }
+
+      // filter status change
+      if (filterStatus) {
+        filterStatus.addEventListener('change', function() {
+          fetchData(1);
+        });
+      }
+
+      // form submit
+      if (filterForm) {
+        filterForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          fetchData(1);
+        });
+      }
+
+      // reset button
+      if (resetFilterBtn) {
+        resetFilterBtn.addEventListener('click', function() {
+          if (filterSearch) filterSearch.value = '';
+          if (filterStatus) filterStatus.value = '';
+          fetchData(1);
+        });
+      }
+
+      perPageSelect.addEventListener('change', function() {
+        fetchData(1);
       });
+
+      // sort clicks - delegated
+      container.addEventListener('click', function(e) {
+        const th = e.target.closest('th.sortable');
+        if (th) {
+          const sortBy = th.dataset.sortBy;
+          if (currentSortBy === sortBy) {
+            currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+          } else {
+            currentSortBy = sortBy;
+            currentSortDir = 'asc';
+          }
+          fetchData(1);
+        }
+      });
+
+      // pagination clicks - delegated
+      container.addEventListener('click', function(e) {
+        const pageBtn = e.target.closest('.das-page-btn');
+        if (pageBtn && !pageBtn.classList.contains('das-page-active') && !pageBtn.parentNode.classList.contains('disabled')) {
+          e.preventDefault();
+          const page = pageBtn.getAttribute('data-page') || pageBtn.textContent.trim();
+          if (page && !isNaN(page)) {
+            fetchData(page);
+          }
+        }
+      });
+
+      // ─── Cetak Kartu Toggle ───────────────────────────────────────────
+      const toggleCetakKartuBtn = document.getElementById('toggleCetakKartuBtn');
+      if (toggleCetakKartuBtn) {
+        toggleCetakKartuBtn.addEventListener('click', function() {
+          document.getElementById('cetakKartuStaffForm').classList.toggle('d-none');
+        });
+      }
+
+      // ─── Cetak Kartu Checkbox Logic ───────────────────────────────────
+      $(document).on('change', '.staff-checkbox', function() {
+        updateStaffSelectedCount();
+      });
+
+      // Checkbox update count awal
+      updateStaffSelectedCount();
     });
   </script>
 @endsection

@@ -38,7 +38,10 @@ class OrangTuaController extends Controller
                     $q->where('name', 'like', "%{$search}%")
                       ->orWhere('email', 'like', "%{$search}%")
                       ->orWhere('username', 'like', "%{$search}%")
-                      ->orWhere('no_hp', 'like', "%{$search}%");
+                      ->orWhere('no_hp', 'like', "%{$search}%")
+                      ->orWhereHas('children', function ($q) use ($search) {
+                          $q->where('nama_lengkap', 'like', "%{$search}%");
+                      });
                 });
             })
             ->orderBy($sortBy, $sortDir)

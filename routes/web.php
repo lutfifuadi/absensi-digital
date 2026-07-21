@@ -604,6 +604,21 @@ Route::middleware([
             ->name('admin.pelanggaran-konfigurasi.save')
             ->middleware('role:super_admin,admin_sekolah');
 
+        // ── INPUT & MANAJEMEN PELANGGARAN SISWA (PRD-008 Phase 3) ──────────────
+        Route::get('/api/internal/siswa/search', [\App\Http\Controllers\Admin\PelanggaranSiswaController::class, 'searchSiswa'])
+            ->name('admin.pelanggaran.search-siswa')
+            ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas,piket');
+        Route::get('/api/internal/siswa/{id}/poin', [\App\Http\Controllers\Admin\PelanggaranSiswaController::class, 'getSiswaPoin'])
+            ->name('admin.pelanggaran.get-siswa-poin')
+            ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas,piket');
+        Route::get('/pelanggaran/foto/{foto_id}', [\App\Http\Controllers\Admin\PelanggaranSiswaController::class, 'streamFoto'])
+            ->name('admin.pelanggaran.stream-foto')
+            ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas,piket');
+
+        Route::resource('pelanggaran', \App\Http\Controllers\Admin\PelanggaranSiswaController::class)
+            ->names('admin.pelanggaran')
+            ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas,piket');
+
         Route::get('wali-kelas/cetak-qr', [WaliKelasController::class, 'cetakQr'])
             ->name('admin.wali-kelas.cetak-qr')
             ->middleware('role:super_admin,admin_sekolah,operator');

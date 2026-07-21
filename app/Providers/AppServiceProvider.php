@@ -27,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
         // Daftarkan policy untuk Guide dan GuideCategory
         Gate::policy(Guide::class, GuidePolicy::class);
         Gate::policy(GuideCategory::class, GuidePolicy::class);
+        Gate::policy(\App\Models\PelanggaranSiswa::class, \App\Policies\PelanggaranSiswaPolicy::class);
 
         if (!file_exists(storage_path('installed'))) {
             return;

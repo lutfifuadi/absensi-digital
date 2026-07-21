@@ -38,17 +38,17 @@
     {
       "name": "Poin Pelanggaran",
       "icon": "menu-icon ti tabler-swords",
-      "slug": ["admin.pelanggaran-siswa.index", "admin.pelanggaran-siswa.create", "admin.pelanggaran-siswa.rekap"],
+      "slug": ["admin.pelanggaran.index", "admin.pelanggaran.create", "admin.pelanggaran.rekap"],
       "submenu": [
         {
           "name": "Daftar Pelanggaran",
-          "slug": "admin.pelanggaran-siswa.index",
-          "url": "/admin/pelanggaran-siswa"
+          "slug": "admin.pelanggaran.index",
+          "url": "/admin/pelanggaran"
         },
         {
           "name": "Tambah Pelanggaran",
-          "slug": "admin.pelanggaran-siswa.create",
-          "url": "/admin/pelanggaran-siswa/create"
+          "slug": "admin.pelanggaran.create",
+          "url": "/admin/pelanggaran/create"
         },
         {
           "name": "Rekap Pelanggaran",
