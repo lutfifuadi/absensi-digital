@@ -21,6 +21,10 @@ class AbsensiStaff extends Model
         'metode',
     ];
 
+    protected $casts = [
+        'tanggal' => 'date',
+    ];
+
     public function staff()
     {
         return $this->belongsTo(StaffTataUsaha::class, 'staff_id');

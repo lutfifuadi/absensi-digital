@@ -171,7 +171,7 @@ class QrCodeScanNipTest extends TestCase
 
         $this->assertDatabaseHas('absensi_staff', [
             'staff_id' => $staff->id,
-            'tanggal' => now()->toDateString(),
+            'tanggal' => now()->toDateString() . ' 00:00:00',
         ]);
     }
 
@@ -200,7 +200,7 @@ class QrCodeScanNipTest extends TestCase
 
         $this->assertDatabaseHas('absensi_staff', [
             'staff_id' => $staff->id,
-            'tanggal' => now()->toDateString(),
+            'tanggal' => now()->toDateString() . ' 00:00:00',
         ]);
     }
 }
