@@ -62,7 +62,7 @@
 @endsection
 
 @section('content')
-  <div x-data="createPelanggaranHandler()">
+  <div x-data="createPelanggaranHandler()" class="w-100">
     {{-- HERO HEADER --}}
     <div class="row mb-4">
       <div class="col-12">
@@ -168,7 +168,6 @@
                 <div class="autocomplete-results" x-show="showResults && searchResults.length > 0">
                   <template x-for="siswa in searchResults" :key="siswa.id">
                     <div class="autocomplete-item d-flex align-items-center" @click="selectSiswa(siswa)">
-                      <img :src="siswa.foto" alt="Avatar" class="rounded-circle me-3" width="30" height="30" style="object-fit: cover;">
                       <div>
                         <span class="fw-semibold text-white d-block" x-text="siswa.nama_lengkap"></span>
                         <span class="small text-muted" x-text="'NIS: ' + siswa.nis + ' | Kelas: ' + siswa.kelas_nama"></span>
@@ -256,7 +255,10 @@
             <div x-show="siswaSelected" x-transition>
               <!-- Info Singkat Siswa -->
               <div class="d-flex align-items-center justify-content-center flex-column mb-4">
-                <img :src="selectedSiswaData.foto" alt="Foto Siswa" class="rounded-circle mb-3 border border-light" width="72" height="72" style="object-fit: cover;">
+                <div class="rounded-circle mb-3 border border-light bg-label-info d-flex align-items-center justify-content-center shadow-sm" 
+                     style="width: 72px; height: 72px; margin: 0 auto;">
+                  <i class="ti tabler-user fs-1 text-info"></i>
+                </div>
                 <h5 class="text-white mb-1" x-text="selectedSiswaData.nama_lengkap"></h5>
                 <span class="badge bg-secondary mb-2" x-text="'Kelas: ' + selectedSiswaData.kelas_nama"></span>
                 <span class="small text-muted" x-text="'SP Aktif Saat Ini: ' + selectedSiswaData.level_sp"></span>
