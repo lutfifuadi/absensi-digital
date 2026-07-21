@@ -9,9 +9,14 @@ use Illuminate\Http\Request;
 
 class AbsensiStaffController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
+        $search = $request->query('search');
+        $status = $request->query('status');
+        $tanggal = $request->query('tanggal');
+        $perPage = (int) $request->query('per_page', 10);
+
         $query = AbsensiStaff::with('staff')->orderByDesc('tanggal');
 
         if ($user->role === \App\Models\User::ROLE_STAFF_TU) {
@@ -20,7 +25,29 @@ class AbsensiStaffController extends Controller
             $query->where('staff_id', $staff->id);
         }
 
-        $absensi = $query->get();
+        // Apply search filter (nama staff atau NIP)
+        $query->when($search, function ($q) use ($search) {
+            $q->whereHas('staff', function ($qStaff) use ($search) {
+                $qStaff->where('nama_lengkap', 'like', "%{$search}%")
+                    ->orWhere('nip', 'like', "%{$search}%");
+            });
+        });
+
+        // Apply status filter
+        $query->when($status, function ($q, $status) {
+            $q->where('status', $status);
+        });
+
+        // Apply date filter
+        $query->when($tanggal, function ($q, $tanggal) {
+            $q->whereDate('tanggal', $tanggal);
+        });
+
+        $absensi = $query->paginate($perPage)->withQueryString();
+
+        if ($request->ajax()) {
+            return view('admin.absensi-staff.table', compact('absensi'))->render();
+        }
 
         return view('admin.absensi-staff.index', compact('absensi'));
     }
