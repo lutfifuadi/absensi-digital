@@ -6,6 +6,7 @@ use App\Models\Guide;
 use App\Models\GuideCategory;
 use App\Policies\GuidePolicy;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Vite;
 
@@ -24,6 +25,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Global default pagination view — menggunakan gaya das-page-btn
+        Paginator::defaultView('vendor.pagination.users');
+        Paginator::defaultSimpleView('vendor.pagination.users');
+
         // Daftarkan policy untuk Guide dan GuideCategory
         Gate::policy(Guide::class, GuidePolicy::class);
         Gate::policy(GuideCategory::class, GuidePolicy::class);
