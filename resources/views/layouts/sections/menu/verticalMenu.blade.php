@@ -52,7 +52,7 @@
   <div class="menu-inner-shadow"></div>
 
   @php
-    $currentRole = auth()->check() ? auth()->user()->role : 'guest';
+    $currentRole = auth()->check() ? session('active_role', auth()->user()->role) : 'guest';
   @endphp
 
   <ul class="menu-inner py-1">

@@ -125,28 +125,6 @@
           "url": "/admin/pelanggaran-siswa/rekap"
         }
       ]
-    },
-    {
-      "menuHeader": "Portal Guru",
-      "icon": "menu-icon ti tabler-user-cog"
-    },
-    {
-      "name": "Absensi Saya",
-      "icon": "menu-icon ti tabler-user-check",
-      "slug": "guru.absensi.scan",
-      "url": "/guru/absensi/scan"
-    },
-    {
-      "name": "Pengajuan Izin",
-      "icon": "menu-icon ti tabler-stethoscope",
-      "slug": "guru.izin-sakit.index",
-      "url": "/guru/izin-sakit"
-    },
-    {
-      "name": "Penugasan Siswa",
-      "icon": "menu-icon ti tabler-book-upload",
-      "slug": "assignments",
-      "url": "/guru/assignments"
     }
   ]
 }

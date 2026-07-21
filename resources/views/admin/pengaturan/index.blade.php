@@ -323,6 +323,18 @@
 
             {{-- Row 1: Masuk Window --}}
             <div class="set-time-cards mb-3">
+              <div class="set-time-card set-time-card--masuk" style="border-style: dashed; opacity: 0.85;">
+                <div class="set-time-card__icon"><i class="ti tabler-clock-play"></i></div>
+                <div class="set-time-card__label">Jam Mulai Absensi</div>
+                <input type="time" name="jam_mulai_absensi" class="set-time-input"
+                  value="{{ old('jam_mulai_absensi', $settings['jam_mulai_absensi'] ?? '06:00') }}">
+                <div class="set-time-card__hint">Mulai buka absensi</div>
+              </div>
+              <div class="set-time-card__divider">
+                <div class="set-time-card__divider-line"></div>
+                <div class="set-time-card__divider-icon"><i class="ti tabler-arrow-right"></i></div>
+                <div class="set-time-card__divider-line"></div>
+              </div>
               <div class="set-time-card set-time-card--masuk">
                 <div class="set-time-card__icon"><i class="ti tabler-sun"></i></div>
                 <div class="set-time-card__label">Jam Masuk</div>

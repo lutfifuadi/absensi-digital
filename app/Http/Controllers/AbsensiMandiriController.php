@@ -34,10 +34,11 @@ class AbsensiMandiriController extends Controller
         }
 
         $settings = Pengaturan::whereIn('key', [
-            'jam_masuk', 'jam_batas_masuk', 'jam_pulang', 'jam_mulai_pulang', 'jam_akhir_pulang', 'toleransi_terlambat',
+            'jam_mulai_absensi', 'jam_masuk', 'jam_batas_masuk', 'jam_pulang', 'jam_mulai_pulang', 'jam_akhir_pulang', 'toleransi_terlambat',
             'latitude', 'longitude', 'radius_jarak_absen', 'minimal_akurasi_gps', 'deteksi_fake_gps'
         ])->pluck('value', 'key');
 
+        $jamMulaiAbsensi = !empty($settings['jam_mulai_absensi']) ? $settings['jam_mulai_absensi'] : '06:00';
         $jamMasuk       = $settings['jam_masuk']       ?? '07:00';
         $jamBatasMasuk  = $settings['jam_batas_masuk'] ?? '08:00';
         $jamMulaiPulang = $settings['jam_mulai_pulang'] ?? '14:00';
@@ -46,7 +47,7 @@ class AbsensiMandiriController extends Controller
 
         // Gunakan jam khusus kelas jika diatur
         if ($siswa->kelas_id) {
-            $kelas = Kelas::find($siswa->kelas_id);
+            $kelas = \App\Models\Kelas::find($siswa->kelas_id);
             if ($kelas && $kelas->kustomisasi_jam) {
                 if ($kelas->jam_masuk) {
                     $jamMasuk = \Carbon\Carbon::parse($kelas->jam_masuk)->format('H:i');
@@ -65,6 +66,14 @@ class AbsensiMandiriController extends Controller
         $detectFake     = ($settings['deteksi_fake_gps']  ?? 'Ya') === 'Ya';
 
         $currentTime = now()->format('H:i');
+
+        if ($currentTime < $jamMulaiAbsensi) {
+            return response()->json([
+                'success' => false,
+                'message' => "Absensi belum dibuka. Silakan kembali setelah pukul " . substr($jamMulaiAbsensi, 0, 5) . " WIB."
+            ]);
+        }
+
         $currentTimeFull = now();
         $tanggal     = now()->toDateString();
         

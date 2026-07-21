@@ -21,6 +21,7 @@ class PublicQrScanController extends Controller
     {
         return Cache::remember('absensi_settings', now()->addDay(), function () {
             return Pengaturan::whereIn('key', [
+                'jam_mulai_absensi',
                 'jam_masuk', 
                 'jam_batas_masuk', 
                 'jam_pulang', 
@@ -114,6 +115,7 @@ class PublicQrScanController extends Controller
         
         $settings       = $this->getCachedSettings();
 
+        $jamMulaiAbsensi = !empty($settings['jam_mulai_absensi']) ? $settings['jam_mulai_absensi'] : '06:00';
         $jamMasuk       = $settings['jam_masuk']       ?? '07:00';
         $jamBatasMasuk  = $settings['jam_batas_masuk'] ?? '08:00';
         $jamPulang      = $settings['jam_pulang']      ?? '15:00';
@@ -123,6 +125,14 @@ class PublicQrScanController extends Controller
 
         $currentTime    = now()->format('H:i:s');
         $tanggal        = now()->toDateString();
+
+        // Bandingkan currentTime dengan jamMulaiAbsensi (substring 5 karakter pertama currentTime dengan jamMulaiAbsensi)
+        if (substr($currentTime, 0, 5) < $jamMulaiAbsensi) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Absensi belum dibuka. Sesi scan dimulai pukul ' . substr($jamMulaiAbsensi, 0, 5) . ' WIB.',
+            ]);
+        }
 
         // 1. Cek apakah ini Siswa
         $siswa = Siswa::with('kelas')->where('qr_code', $qrCode)->first();
@@ -523,6 +533,7 @@ class PublicQrScanController extends Controller
 
         $settings = $this->getCachedSettings();
 
+        $jamMulaiAbsensi = !empty($settings['jam_mulai_absensi']) ? $settings['jam_mulai_absensi'] : '06:00';
         $jamMasuk       = $settings['jam_masuk']       ?? '07:00';
         $jamBatasMasuk  = $settings['jam_batas_masuk'] ?? '08:00';
         $jamPulang      = $settings['jam_pulang']      ?? '15:00';
@@ -532,6 +543,14 @@ class PublicQrScanController extends Controller
 
         $currentTime    = now()->format('H:i:s');
         $tanggal        = now()->toDateString();
+
+        // Bandingkan currentTime dengan jamMulaiAbsensi (substring 5 karakter pertama currentTime dengan jamMulaiAbsensi)
+        if (substr($currentTime, 0, 5) < $jamMulaiAbsensi) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Absensi belum dibuka. Sesi scan dimulai pukul ' . substr($jamMulaiAbsensi, 0, 5) . ' WIB.',
+            ]);
+        }
 
         // Helper untuk invalidate leaderboard cache
         $forgetCache = function() {

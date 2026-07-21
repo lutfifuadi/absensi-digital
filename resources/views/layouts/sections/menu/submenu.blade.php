@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
   @if (isset($menu))
     @foreach ($menu as $submenu)
       @php
-        $currentRole = auth()->check() ? auth()->user()->role : 'guest';
+        $currentRole = auth()->check() ? session('active_role', auth()->user()->role) : 'guest';
       @endphp
       @if (isset($submenu->roles) && !in_array($currentRole, $submenu->roles, true))
         @continue

@@ -103,6 +103,7 @@ class PengaturanController extends Controller
         // Legacy
         'logo_sekolah'         => '',
         'logo_url'            => '',
+        'jam_mulai_absensi'    => '06:00',
         'jam_masuk'            => '07:00',
         'jam_batas_masuk'      => '08:00',
         'jam_pulang'           => '15:00',
@@ -201,6 +202,15 @@ class PengaturanController extends Controller
             'tanda_tangan_kepala_sekolah' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
             'cap_sekolah'                 => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
         ]);
+
+        if ($request->has('jam_mulai_absensi') && $request->has('jam_masuk')) {
+            $jamMulai = $request->input('jam_mulai_absensi');
+            $jamMasuk = $request->input('jam_masuk');
+            
+            if ($jamMulai && $jamMasuk && strtotime($jamMulai) >= strtotime($jamMasuk)) {
+                return back()->withInput()->with('error', 'Jam mulai absensi harus bernilai lebih awal dari jam masuk.');
+            }
+        }
 
         $data = $request->except(['_token', 'logo_sekolah', 'logo_url', 'logo_dinas', 'logo_dinas_url', 'tanda_tangan_kepala_sekolah', 'ttd_url', 'cap_sekolah', 'cap_url', 'google_drive_credentials_file']);
         
