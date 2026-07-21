@@ -185,8 +185,8 @@
         </div>
         <div class="col-6 col-md-1">
           <select id="perPageSelect" name="per_page" class="form-select border-secondary text-white">
-            <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
-            <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15</option>
+            <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+            <option value="15" {{ request('per_page') == 15 ? 'selected' : '' }}>15</option>
             <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
             <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
           </select>

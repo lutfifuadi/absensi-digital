@@ -31,10 +31,10 @@ class JenisPelanggaranController extends Controller
             $query->where('is_aktif', $request->input('is_aktif'));
         }
 
-        $perPage = (int) $request->input('per_page', 15);
+        $perPage = (int) $request->input('per_page', 10);
         $allowedPerPage = [10, 25, 50, 100, 15];
         if (!in_array($perPage, $allowedPerPage)) {
-            $perPage = 15;
+            $perPage = 10;
         }
 
         $jenisPelanggarans = $query->orderBy('kategori_id')->orderBy('nama')->paginate($perPage)->withQueryString();
