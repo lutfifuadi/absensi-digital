@@ -33,6 +33,9 @@ Schedule::command(\App\Console\Commands\CheckQueueHealth::class)
 
 Schedule::command('model:prune', ['--model' => \App\Models\DeployLog::class])->daily();
 
+// Jadwal: setiap jam hapus log autoreply yang sudah lebih dari 24 jam
+Schedule::command('wa-autoreply:clean-logs')->hourly();
+
 if (file_exists(storage_path('installed'))) {
     try {
         $syncEnabled = Pengaturan::where('key', 'master_db_sync_enabled')->value('value') ?? 'Ya';

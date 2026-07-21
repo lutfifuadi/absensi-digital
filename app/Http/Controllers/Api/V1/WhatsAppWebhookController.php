@@ -12,6 +12,7 @@ use App\Models\AbsensiSiswa;
 use App\Jobs\SendWhatsAppMessage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
+use App\Models\WaAutoreplyLog;
 
 class WhatsAppWebhookController extends Controller
 {
@@ -48,6 +49,13 @@ class WhatsAppWebhookController extends Controller
                     'message' => 'Payload tidak lengkap.'
                 ], 200);
             }
+
+            // Log awal: pesan diterima
+            Log::info('WhatsApp Autoreply: Pesan diterima', [
+                'sender' => $sender,
+                'message' => $messageRaw,
+                'ip' => $request->ip()
+            ]);
 
             // 4. Pencegahan Infinite Loop
             $botSender = Pengaturan::where('key', 'wa_autoreply_sender')->value('value');
@@ -107,6 +115,16 @@ class WhatsAppWebhookController extends Controller
                 $isValidationRequired = false;
             }
 
+            // Log: keyword match
+            Log::info('WhatsApp Autoreply: Keyword match', [
+                'sender' => $sender,
+                'message' => $message,
+                'keyword' => $matchedKeyword?->keyword ?? 'default_bantuan',
+                'match_type' => $matchedKeyword?->match_type ?? 'default',
+                'template_type' => $templateType,
+                'is_validation_required' => $isValidationRequired,
+            ]);
+
             // Dapatkan content template
             $templateContent = NotificationTemplate::where('type', $templateType)->value('content');
             if (empty($templateContent)) {
@@ -114,9 +132,9 @@ class WhatsAppWebhookController extends Controller
                 $templateContent = "Halo, ketik menu bantuan untuk mengetahui daftar keyword layanan kami.";
             }
 
-            // Ambil kustom sender dan api_key untuk autoreply
-            $customSender = Pengaturan::where('key', 'wa_autoreply_sender')->value('value');
-            $customApiKey = Pengaturan::where('key', 'wa_autoreply_api_key')->value('value');
+            // Ambil sender dan api_key dari konfigurasi notifikasi
+            $customSender = Pengaturan::where('key', 'wa_nomor_notifikasi')->value('value');
+            $customApiKey = Pengaturan::where('key', 'wa_api_key')->value('value');
 
             // 8. Proses Keyword & Autentikasi
             if (!$isValidationRequired) {
@@ -133,6 +151,19 @@ class WhatsAppWebhookController extends Controller
                     $customSender,
                     $customApiKey
                 );
+
+                // Log: static message sent
+                $this->logAutoreply([
+                    'sender' => $sender,
+                    'message' => $messageRaw,
+                    'keyword_used' => $matchedKeyword?->keyword,
+                    'match_type' => $matchedKeyword?->match_type,
+                    'template_type' => $templateType,
+                    'student_found' => false,
+                    'is_success' => true,
+                    'response_sent' => true,
+                    'ip_address' => $request->ip(),
+                ]);
             } else {
                 // Cari data siswa berdasarkan no_hp_ortu atau no_hp yang sama dengan pengirim
                 // Kita cari dengan pembersihan karakter non-digit agar pencocokan no hp fleksibel
@@ -161,6 +192,22 @@ class WhatsAppWebhookController extends Controller
                         $customSender,
                         $customApiKey
                     );
+
+                    // Log: student not found, unrecognized number template
+                    $this->logAutoreply([
+                        'sender' => $sender,
+                        'message' => $messageRaw,
+                        'keyword_used' => $matchedKeyword?->keyword,
+                        'match_type' => $matchedKeyword?->match_type,
+                        'template_type' => 'autoreply_nomor_tak_dikenal',
+                        'student_found' => false,
+                        'is_success' => true,
+                        'response_sent' => true,
+                        'ip_address' => $request->ip(),
+                    ]);
+                    Log::info('WhatsApp Autoreply: Nomor tidak dikenal, kirim template nomor_tak_dikenal', [
+                        'sender' => $sender,
+                    ]);
                 } else {
                     // Loop untuk masing-masing siswa (karena 1 nomor ortu bisa memiliki multi-siswa)
                     foreach ($siswaList as $siswa) {
@@ -176,6 +223,27 @@ class WhatsAppWebhookController extends Controller
                             $customApiKey
                         );
                     }
+
+                    // Log: dynamic message sent to validated students
+                    $studentNames = $siswaList->pluck('nama_lengkap')->toArray();
+                    $this->logAutoreply([
+                        'sender' => $sender,
+                        'message' => $messageRaw,
+                        'keyword_used' => $matchedKeyword?->keyword,
+                        'match_type' => $matchedKeyword?->match_type,
+                        'template_type' => $templateType,
+                        'student_found' => true,
+                        'student_details' => $studentNames,
+                        'is_success' => true,
+                        'response_sent' => true,
+                        'ip_address' => $request->ip(),
+                    ]);
+                    Log::info('WhatsApp Autoreply: Pesan dinamis dikirim', [
+                        'sender' => $sender,
+                        'keyword' => $matchedKeyword?->keyword,
+                        'template_type' => $templateType,
+                        'students' => $studentNames,
+                    ]);
                 }
             }
 
@@ -190,10 +258,40 @@ class WhatsAppWebhookController extends Controller
                 'payload' => $request->all()
             ]);
 
+            // Log ke database
+            try {
+                $this->logAutoreply([
+                    'sender' => $request->input('sender') ?? 'unknown',
+                    'message' => $request->input('message') ?? '',
+                    'is_success' => false,
+                    'error_message' => $e->getMessage(),
+                    'response_sent' => false,
+                    'ip_address' => $request->ip(),
+                ]);
+            } catch (\Exception $logErr) {
+                // ignore log error
+            }
+
             return response()->json([
                 'status' => false,
                 'message' => 'Terjadi kesalahan sistem.'
             ], 500);
+        }
+    }
+
+    /**
+     * Catat log autoreply ke database
+     */
+    private function logAutoreply(array $data): void
+    {
+        try {
+            WaAutoreplyLog::create($data);
+            
+            // Bersihkan log yang sudah lebih dari 24 jam (efisiensi tanpa cron)
+            WaAutoreplyLog::where('created_at', '<', now()->subDay())->delete();
+            
+        } catch (\Exception $e) {
+            Log::warning('Gagal menyimpan log autoreply: ' . $e->getMessage());
         }
     }
 
