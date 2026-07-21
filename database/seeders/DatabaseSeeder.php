@@ -30,9 +30,13 @@ class DatabaseSeeder extends Seeder
         $this->call(JenisPelanggaranSeeder::class);
 
         // ==========================================
-        //  DEMO DATA (untuk presentasi / testing)
-        //  Komentari baris di bawah jika tidak butuh
+        //  DEMO DATA (khusus local/testing)
+        //  Hanya jalan jika APP_ENV=local atau --demo
+        //  LIVE SITE: biarkan tetap dikomentari!
         // ==========================================
-        $this->call(DemoDataSeeder::class);
+        // if (app()->environment('local')) {
+        //     $this->call(DemoDataSeeder::class);
+        // }
+        // $this->call(DemoDataSeeder::class);
     }
 }

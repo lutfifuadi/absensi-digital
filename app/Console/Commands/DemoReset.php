@@ -41,6 +41,13 @@ class DemoReset extends Command
      */
     public function handle(): int
     {
+        // 🔒 PROTEKSI: Hanya jalan di environment local/demo
+        if (!app()->environment(['local', 'demo'])) {
+            $this->components->error('❌ DemoReset hanya bisa dijalankan di environment local atau demo!');
+            $this->line('   Gunakan APP_ENV=local atau APP_ENV=demo untuk mengaktifkan.');
+            return self::FAILURE;
+        }
+
         // Mode: Generate dump
         if ($this->option('generate')) {
             return $this->generateDump();

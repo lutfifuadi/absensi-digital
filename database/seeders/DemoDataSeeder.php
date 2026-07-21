@@ -29,6 +29,13 @@ class DemoDataSeeder extends Seeder
      */
     public function run(): void
     {
+        // 🔒 PROTEKSI: Hanya jalan di environment local/demo
+        if (!app()->environment(['local', 'demo'])) {
+            $this->command?->error('❌ DemoDataSeeder hanya bisa dijalankan di environment local atau demo!');
+            $this->command?->line('   Gunakan APP_ENV=local atau APP_ENV=demo untuk mengaktifkan.');
+            return;
+        }
+
         $this->command?->warn('⏳ Memulai DemoDataSeeder...');
 
         // ================================================================
