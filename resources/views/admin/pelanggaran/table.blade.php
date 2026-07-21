@@ -1,64 +1,67 @@
-<div class="table-responsive text-nowrap">
-  <table class="table table-hover border-top table-striped-dark">
-    <thead class="table-dark">
+<div class="table-responsive">
+  <table class="table table-hover align-middle mb-0" style="color:inherit;">
+    <thead style="background:rgba(255,255,255,0.04);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;opacity:0.7;">
       <tr>
-        <th class="text-center" style="width: 50px;">No</th>
-        <th>Siswa</th>
-        <th>Kelas</th>
-        <th>Pelanggaran / Kategori</th>
-        <th class="text-center">Tanggal Kejadian</th>
-        <th class="text-center">Poin</th>
-        <th>Pencatat</th>
-        <th class="text-center" style="width: 120px;">Aksi</th>
+        <th class="ps-4 py-3" style="width:46px;">#</th>
+        <th class="py-3">Siswa</th>
+        <th class="py-3 text-center">Kelas</th>
+        <th class="py-3">Pelanggaran / Kategori</th>
+        <th class="py-3 text-center">Tanggal Kejadian</th>
+        <th class="py-3 text-center">Poin</th>
+        <th class="py-3">Pencatat</th>
+        <th class="py-3 pe-4 text-end" style="width: 120px;">Aksi</th>
       </tr>
     </thead>
-    <tbody class="table-border-bottom-0 text-light">
+    <tbody>
       @forelse($pelanggarans as $index => $p)
         <tr class="pelanggaran-row-hover">
-          <td class="text-center fw-semibold">
+          <td class="ps-4 text-white-50 small">
             {{ ($pelanggarans->currentPage() - 1) * $pelanggarans->perPage() + $index + 1 }}
           </td>
           <td>
-            <div class="d-flex align-items-center">
-              <img src="{{ $p->siswa->foto ? asset('storage/foto-siswa/' . $p->siswa->foto) : asset('assets/img/avatars/1.png') }}" 
-                   alt="Avatar" 
-                   class="rounded-circle me-3" 
-                   width="32" 
-                   height="32" 
-                   style="object-fit: cover;">
+            <div class="d-flex align-items-center gap-3">
+              <div class="avatar avatar-md">
+                @if($p->siswa->foto && file_exists(public_path('storage/foto-siswa/' . $p->siswa->foto)))
+                  <img src="{{ asset('storage/foto-siswa/' . $p->siswa->foto) }}" alt="Avatar" class="rounded-circle" style="object-fit: cover; width:100%; height:100%;">
+                @else
+                  <span class="avatar-initial rounded-circle bg-label-{{ $p->siswa->jenis_kelamin === 'L' ? 'info' : 'danger' }}" style="font-size:0.85rem;">
+                    {{ strtoupper(substr($p->siswa->nama_lengkap, 0, 1)) }}{{ strtoupper(substr(strrchr($p->siswa->nama_lengkap, ' ') ?: $p->siswa->nama_lengkap, 1, 1)) }}
+                  </span>
+                @endif
+              </div>
               <div>
-                <span class="fw-semibold text-white d-block">{{ $p->siswa->nama_lengkap }}</span>
-                <span class="small text-muted">NIS: {{ $p->siswa->nis }}</span>
+                <span class="fw-bold mb-0" style="font-size:0.9rem; color:#fff;">{{ $p->siswa->nama_lengkap }}</span>
+                <span class="text-white-50 small d-block" style="font-size:0.72rem;">NIS: {{ $p->siswa->nis }}</span>
               </div>
             </div>
           </td>
-          <td>
-            <span class="badge bg-secondary">{{ $p->siswa->kelas?->nama ?: 'Tidak Ada Kelas' }}</span>
+          <td class="text-center">
+            <span class="badge bg-label-info px-2 py-1">{{ $p->siswa->kelas?->nama ?: 'Tidak Ada Kelas' }}</span>
           </td>
           <td>
             <div>
-              <span class="fw-medium text-white d-block text-wrap" style="max-width: 250px;">{{ $p->jenisPelanggaran?->nama }}</span>
-              <span class="badge bg-label-info mt-1">{{ $p->jenisPelanggaran?->kategori?->nama }}</span>
+              <span class="fw-medium text-white d-block text-wrap" style="max-width: 250px; font-size:0.9rem;">{{ $p->jenisPelanggaran?->nama }}</span>
+              <span class="badge bg-label-primary mt-1" style="font-size:0.7rem;">{{ $p->jenisPelanggaran?->kategori?->nama }}</span>
             </div>
           </td>
-          <td class="text-center">
+          <td class="text-center text-white-50 small">
             {{ $p->tanggal_kejadian->format('d-m-Y') }}
           </td>
           <td class="text-center">
-            <span class="badge bg-danger rounded-pill fw-bold">+{{ $p->poin_saat_itu }}</span>
+            <span class="badge bg-label-danger px-2 py-1 fw-bold">+{{ $p->poin_saat_itu }}</span>
           </td>
           <td>
-            <span class="small text-muted">{{ $p->pencatat?->name ?: 'System' }}</span>
+            <span class="small text-white-50">{{ $p->pencatat?->name ?: 'System' }}</span>
           </td>
-          <td class="text-center">
-            <div class="d-flex align-items-center justify-content-center gap-2">
+          <td class="pe-4 text-end">
+            <div class="d-flex justify-content-end gap-1">
               <!-- Detail Pelanggaran -->
               <a href="{{ route('admin.pelanggaran.show', $p->id) }}" 
                  class="action-btn text-info" 
                  data-bs-toggle="tooltip" 
                  data-bs-placement="top" 
                  title="Detail Pelanggaran">
-                <i class="ti ti-eye"></i>
+                <i class="ti tabler-eye fs-5"></i>
               </a>
 
               <!-- Edit Pelanggaran -->
@@ -68,7 +71,7 @@
                    data-bs-toggle="tooltip" 
                    data-bs-placement="top" 
                    title="Edit Pelanggaran">
-                  <i class="ti ti-edit"></i>
+                  <i class="ti tabler-pencil fs-5"></i>
                 </a>
               @endcan
 
@@ -80,7 +83,7 @@
                         data-bs-toggle="tooltip" 
                         data-bs-placement="top" 
                         title="Hapus Pelanggaran">
-                  <i class="ti ti-trash"></i>
+                  <i class="ti tabler-trash fs-5"></i>
                 </button>
               @endcan
             </div>
@@ -88,11 +91,11 @@
         </tr>
       @empty
         <tr>
-          <td colspan="8" class="text-center py-5 text-muted">
-            <div class="mb-3">
-              <i class="ti ti-alert-triangle fs-1 text-warning"></i>
+          <td colspan="8" class="text-center py-5">
+            <div class="d-flex flex-column align-items-center gap-2 opacity-50">
+              <i class="ti tabler-alert-triangle text-warning" style="font-size:2.5rem;"></i>
+              <span class="small">Tidak ada riwayat catatan pelanggaran siswa yang ditemukan.</span>
             </div>
-            Tidak ada riwayat catatan pelanggaran siswa yang ditemukan.
           </td>
         </tr>
       @endforelse
@@ -101,12 +104,7 @@
 </div>
 
 @if($pelanggarans->hasPages())
-  <div class="card-footer border-top-0 d-flex justify-content-between align-items-center py-3">
-    <div class="small text-muted">
-      Menampilkan {{ $pelanggarans->firstItem() }} s/d {{ $pelanggarans->lastItem() }} dari {{ $pelanggarans->total() }} data
-    </div>
-    <div class="pagination-container">
-      {{ $pelanggarans->links('pagination::bootstrap-5') }}
-    </div>
+  <div class="px-4 py-3 border-top" style="border-color: rgba(255,255,255,0.08) !important;">
+    {{ $pelanggarans->links('vendor.pagination.users') }}
   </div>
 @endif
