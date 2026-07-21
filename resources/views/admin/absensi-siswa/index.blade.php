@@ -29,6 +29,91 @@
       transform: translateY(-2px);
       background: rgba(255, 255, 255, 0.1);
     }
+
+    /* SEARCH INPUT STYLING (sama seperti halaman siswa) */
+    #filterSearch::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    #filterSearch:focus {
+      outline: none;
+      box-shadow: none;
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: rgba(115, 103, 240, 0.5) !important;
+    }
+
+    .form-control,
+    .form-select {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      color: #fff !important;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: var(--bs-info) !important;
+    }
+
+    .form-control::placeholder,
+    #filterSearch::placeholder {
+      color: rgba(255, 255, 255, 0.35) !important;
+    }
+
+    #perPageSelect option {
+      background: #1a1a2e;
+      color: #ccc;
+    }
+
+    #perPageSelect:focus {
+      outline: none;
+      box-shadow: none;
+    }
+
+    /* PAGINATION (sama seperti halaman siswa) */
+    .das-page-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      height: 32px;
+      padding: 0 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: transparent;
+      color: #888;
+      text-decoration: none;
+      transition: all 0.18s ease;
+      cursor: pointer;
+      line-height: 1;
+      font-family: inherit;
+    }
+
+    .das-page-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .das-page-active {
+      background: #7367f0 !important;
+      color: #fff !important;
+      border-color: #7367f0 !important;
+    }
+
+    .das-page-dots {
+      border-color: transparent;
+      background: transparent;
+      color: #555;
+      pointer-events: none;
+    }
+
+    .page-item.disabled .das-page-btn {
+      opacity: 0.35;
+      pointer-events: none;
+    }
   </style>
 @endsection
 
@@ -85,103 +170,84 @@
   @endif
 
   {{-- ═══════════════════════════════════════════════════════
-       SECTION 2: DATA TABLE
+       SECTION 2: FILTER PANEL
   ═══════════════════════════════════════════════════════ --}}
   <div class="das-panel mb-4">
-    <div class="das-panel__head">
-      <div class="das-panel__title">
-        <span class="das-panel__icon-dot --info"></span>
-        Daftar Kehadiran Terbaru
-      </div>
-      <div class="das-chip --info">{{ count($absensi) }} Baris Data</div>
+    <div class="das-panel__body">
+      <form id="filterForm" method="GET" class="row gy-3 gx-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label text-white-50 small fw-bold">Cari Nama Siswa</label>
+          <input type="text" id="filterSearch" name="search" class="form-control"
+            placeholder="Cari nama siswa..." value="{{ $search ?? '' }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label text-white-50 small fw-bold">Filter Kelas</label>
+          <select id="filterKelas" name="kelas_id" class="form-select">
+            <option value="">Semua Kelas</option>
+            @foreach ($kelasOptions as $k)
+              <option value="{{ $k->id }}" @selected(($selectedKelasId ?? '') == $k->id)>{{ $k->nama }}</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label text-white-50 small fw-bold">Status</label>
+          <select id="filterStatus" name="status" class="form-select">
+            <option value="">Semua Status</option>
+            <option value="hadir" @selected(($selectedStatus ?? '') === 'hadir')>Hadir</option>
+            <option value="sakit" @selected(($selectedStatus ?? '') === 'sakit')>Sakit</option>
+            <option value="izin" @selected(($selectedStatus ?? '') === 'izin')>Izin</option>
+            <option value="alpha" @selected(($selectedStatus ?? '') === 'alpha')>Alpha</option>
+            <option value="terlambat" @selected(($selectedStatus ?? '') === 'terlambat')>Terlambat</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label text-white-50 small fw-bold">Tanggal Dari</label>
+          <input type="date" id="filterTanggalFrom" name="tanggal_from" class="form-control"
+            value="{{ $tanggalFrom ?? '' }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label text-white-50 small fw-bold">Tanggal Sampai</label>
+          <input type="date" id="filterTanggalTo" name="tanggal_to" class="form-control"
+            value="{{ $tanggalTo ?? '' }}">
+        </div>
+        <div class="col-md-1">
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn das-btn --info w-100">
+              <i class="ti tabler-search"></i>
+            </button>
+            <button type="button" id="resetFilterBtn" class="btn das-btn --secondary" title="Reset">
+              <i class="ti tabler-refresh"></i>
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
-    <div class="table-responsive">
-      <table class="das-table">
-        <thead>
-          <tr>
-            <th class="text-center" width="50">#</th>
-            <th>NAMA SISWA</th>
-            <th>KELAS</th>
-            <th class="text-center">TANGGAL</th>
-            <th class="text-center">JAM MASUK</th>
-            <th class="text-center">JAM PULANG</th>
-            <th class="text-center">STATUS</th>
-            <th class="text-center">METODE</th>
-            @if(!$isWaliKelas)
-            <th class="text-end pe-4">AKSI</th>
-            @endif
-          </tr>
-        </thead>
-        <tbody>
-          @forelse($absensi as $item)
-            <tr>
-              <td class="text-center text-white-50">{{ $loop->iteration }}</td>
-              <td>
-                <div class="d-flex align-items-center gap-2">
-                  <img src="https://ui-avatars.com/api/?name={{ urlencode($item->siswa->nama_lengkap ?? '-') }}&background=7367f0&color=fff"
-                       class="das-avatar" width="28">
-                  <span class="fw-semibold text-white">{{ $item->siswa->nama_lengkap ?? '-' }}</span>
-                </div>
-              </td>
-              <td><span class="das-chip --info">{{ $item->kelas->nama ?? '-' }}</span></td>
-              <td class="text-center">{{ $item->tanggal->format('d M Y') }}</td>
-              <td class="text-center">
-                <span class="fw-bold text-warning">{{ $item->jam_masuk ?? '-' }}</span>
-              </td>
-              <td class="text-center">
-                <span class="fw-bold text-info">{{ $item->jam_pulang ?? '-' }}</span>
-              </td>
-              <td class="text-center">
-                <span class="das-chip --{{ match ($item->status) {
-                    'hadir' => 'success',
-                    'sakit' => 'info',
-                    'izin' => 'warning',
-                    'alpha' => 'danger',
-                    'terlambat' => 'primary',
-                    default => 'dark',
-                } }}">
-                  {{ ucfirst($item->status) }}
-                </span>
-              </td>
-              <td class="text-center">
-                <span class="badge bg-label-{{ $item->metode === 'qr' ? 'primary' : 'secondary' }} px-2 py-1">
-                  {{ strtoupper($item->metode) }}
-                </span>
-              </td>
-              @if(!$isWaliKelas)
-              <td class="pe-4 text-end">
-                <div class="d-flex justify-content-end gap-1">
-                  <a href="{{ route('admin.absensi-siswa.edit', $item) }}" class="absensi-action-btn text-warning"
-                    title="Edit" data-bs-toggle="tooltip">
-                    <i class="ti tabler-pencil fs-5"></i>
-                  </a>
-                  <button type="button" class="absensi-action-btn text-danger" title="Hapus" data-bs-toggle="tooltip"
-                    onclick="confirmDelete(
-                      '{{ route('admin.absensi-siswa.destroy', $item) }}',
-                      '{{ addslashes($item->siswa->nama_lengkap ?? '-') }}',
-                      '{{ $item->tanggal->format('d M Y') }}'
-                    )">
-                    <i class="ti tabler-trash fs-5"></i>
-                  </button>
-                </div>
-              </td>
-              @endif
-            </tr>
-          @empty
-            <tr>
-              <td colspan="{{ $isWaliKelas ? 8 : 9 }}">
-                <div class="das-empty-state">
-                  <i class="ti tabler-calendar-off"></i>
-                  <span>Belum ada data absensi tercatat.</span>
-                  @if(!$isWaliKelas)
-                  <a href="{{ route('admin.absensi-siswa.create') }}" class="das-btn das-btn--primary mt-2">Tambah Kehadiran</a>
-                  @endif
-                </div>
-              </td>
-            </tr>
-          @endforelse
-        </tbody>
-      </table>
+  </div>
+
+  {{-- ═══════════════════════════════════════════════════════
+       SECTION 3: DATA TABLE
+  ═══════════════════════════════════════════════════════ --}}
+  <div class="das-panel">
+    <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3"
+      style="border-color:rgba(255,255,255,0.08) !important;">
+      <h6 class="das-panel__title mb-0 d-flex align-items-center gap-2">
+        <i class="ti tabler-list text-info"></i> Daftar Kehadiran
+      </h6>
+      <div class="d-flex align-items-center gap-3">
+        <select id="perPageSelect" class="form-select border-0 text-white w-auto"
+          style="background: rgba(255,255,255,0.05); height:38px; font-size:0.85rem; cursor:pointer;">
+          <option value="10" {{ ($perPage ?? 50) == 10 ? 'selected' : '' }}>10</option>
+          <option value="25" {{ ($perPage ?? 50) == 25 ? 'selected' : '' }}>25</option>
+          <option value="50" {{ ($perPage ?? 50) == 50 ? 'selected' : '' }}>50</option>
+          <option value="100" {{ ($perPage ?? 50) == 100 ? 'selected' : '' }}>100</option>
+        </select>
+        <span class="das-chip --info d-none d-sm-inline-flex">{{ method_exists($absensi, 'total') ? $absensi->total() : count($absensi) }} Baris Data</span>
+      </div>
+    </div>
+    <div class="das-panel__body p-0">
+      <div id="table-container">
+        @include('admin.absensi-siswa.table')
+      </div>
     </div>
   </div>
 
@@ -239,6 +305,142 @@
       const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
       tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+
+      // ═══════════════════════════════════════════════════════
+      // AJAX LIVE SEARCH — SAMA PERSIS POLA SISWA
+      // ═══════════════════════════════════════════════════════
+
+      const container = document.getElementById('table-container');
+      const perPageSelect = document.getElementById('perPageSelect');
+      const filterSearch = document.getElementById('filterSearch');
+      const filterKelas = document.getElementById('filterKelas');
+      const filterStatus = document.getElementById('filterStatus');
+      const filterTanggalFrom = document.getElementById('filterTanggalFrom');
+      const filterTanggalTo = document.getElementById('filterTanggalTo');
+      const filterForm = document.getElementById('filterForm');
+      const resetFilterBtn = document.getElementById('resetFilterBtn');
+      let searchTimeout;
+
+      let currentSortBy = '{{ $sortBy ?? 'tanggal' }}';
+      let currentSortDir = '{{ $sortDir ?? 'desc' }}';
+
+      function fetchData(page = 1) {
+        const search = encodeURIComponent(filterSearch.value || '');
+        const perPage = perPageSelect.value || 50;
+        const kelasId = filterKelas.value || '';
+        const status = filterStatus.value || '';
+        const tanggalFrom = filterTanggalFrom.value || '';
+        const tanggalTo = filterTanggalTo.value || '';
+        const url = `{{ route('admin.absensi-siswa.index') }}?page=${page}&search=${search}&per_page=${perPage}&sort_by=${currentSortBy}&sort_dir=${currentSortDir}&kelas_id=${kelasId}&status=${status}&tanggal_from=${tanggalFrom}&tanggal_to=${tanggalTo}`;
+
+        container.style.opacity = '0.5';
+        container.style.pointerEvents = 'none';
+
+        fetch(url, {
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          })
+          .then(res => res.text())
+          .then(html => {
+            container.innerHTML = html;
+            container.style.opacity = '1';
+            container.style.pointerEvents = 'auto';
+
+            // re-init tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function(tooltipTriggerEl) {
+              return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+          })
+          .catch(err => {
+            console.error('Fetch error:', err);
+            container.style.opacity = '1';
+            container.style.pointerEvents = 'auto';
+          });
+      }
+
+      // debounce search
+      if (filterSearch) {
+        filterSearch.addEventListener('input', function() {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => fetchData(1), 450);
+        });
+      }
+
+      // auto-submit on dropdown/date change
+      if (filterKelas) {
+        filterKelas.addEventListener('change', function() {
+          fetchData(1);
+        });
+      }
+
+      if (filterStatus) {
+        filterStatus.addEventListener('change', function() {
+          fetchData(1);
+        });
+      }
+
+      if (filterTanggalFrom) {
+        filterTanggalFrom.addEventListener('change', function() {
+          fetchData(1);
+        });
+      }
+
+      if (filterTanggalTo) {
+        filterTanggalTo.addEventListener('change', function() {
+          fetchData(1);
+        });
+      }
+
+      if (filterForm) {
+        filterForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          fetchData(1);
+        });
+      }
+
+      if (resetFilterBtn) {
+        resetFilterBtn.addEventListener('click', function() {
+          if (filterSearch) filterSearch.value = '';
+          if (filterKelas) filterKelas.value = '';
+          if (filterStatus) filterStatus.value = '';
+          if (filterTanggalFrom) filterTanggalFrom.value = '';
+          if (filterTanggalTo) filterTanggalTo.value = '';
+          fetchData(1);
+        });
+      }
+
+      if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+          fetchData(1);
+        });
+      }
+
+      // pagination clicks (delegated)
+      container.addEventListener('click', function(e) {
+        const link = e.target.closest('a.das-page-btn');
+        if (link) {
+          e.preventDefault();
+          const page = link.dataset.page || new URL(link.href).searchParams.get('page') || 1;
+          fetchData(page);
+        }
+      });
+
+      // sort clicks (delegated)
+      container.addEventListener('click', function(e) {
+        const th = e.target.closest('th.sortable');
+        if (th) {
+          const sortBy = th.dataset.sortBy;
+          if (currentSortBy === sortBy) {
+            currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+          } else {
+            currentSortBy = sortBy;
+            currentSortDir = 'asc';
+          }
+          fetchData(1);
+        }
       });
     });
 

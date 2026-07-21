@@ -4,11 +4,6 @@
 
 @section('page-style')
   <style>
-    .glass-card {
-      background: rgba(255, 255, 255, 0.04) !important;
-      border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    }
-
     .form-control,
     .form-select {
       background: rgba(255, 255, 255, 0.05) !important;
@@ -35,44 +30,43 @@
 
 @section('content')
 
-  {{-- HERO HEADER --}}
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card border-0 text-white overflow-hidden shadow-lg"
-        style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border-radius: 12px;">
-        <div class="card-body p-4">
-          <div class="row align-items-center">
-            <div class="col-md-7">
-              <div class="d-flex align-items-center gap-3">
-                <div class="rounded d-flex align-items-center justify-content-center shadow-sm"
-                  style="width:52px;height:52px;border-radius:12px !important;background:rgba(0,207,232,0.2);border:1px solid rgba(0,207,232,0.4);">
-                  <i class="ti tabler-bolt text-info fs-3"></i>
-                </div>
-                <div>
-                  <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-1" style="font-size:0.72rem;opacity:0.6;">
-                      <li class="breadcrumb-item"><span class="text-white opacity-50">Absensi</span></li>
-                      <li class="breadcrumb-item active text-white">Absensi Cepat</li>
-                    </ol>
-                  </nav>
-                  <h4 class="mb-0 text-white fw-bold" style="letter-spacing:-0.5px;">Absensi Cepat</h4>
-                  <p class="mb-0 text-white opacity-60 small">Input absensi massal untuk memproses data seluruh kelas dalam satu langkah.</p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-5 text-md-end mt-3 mt-md-0">
-               <div class="badge bg-black bg-opacity-25 p-2 px-3 border border-white border-opacity-10 text-white">
-                  Shortcut Keyboard: <span class="text-info ms-1">Angka 1-5</span>
-               </div>
-            </div>
+  {{-- ═══════════════════════════════════════════════════════
+       HERO HEADER
+  ═══════════════════════════════════════════════════════ --}}
+  <div class="das-hero mb-4">
+    <div class="das-hero__bg"></div>
+    <div class="das-hero__glass"></div>
+    <div class="das-hero__grid-lines"></div>
+
+    <div class="das-hero__inner">
+      <div class="das-hero__identity">
+        <div class="das-hero__logo-wrapper">
+          <div class="das-hero__logo-placeholder">
+            <i class="ti tabler-bolt text-info"></i>
           </div>
+          <div class="das-hero__logo-glow"></div>
+        </div>
+
+        <div class="das-hero__meta">
+          <div class="das-hero__badge">
+            <span class="pulse-dot"></span>
+            Absensi / Absensi Cepat
+          </div>
+          <h4 class="das-hero__title text-gradient-gold">Absensi Cepat</h4>
+          <p class="das-hero__subtitle">Input absensi massal untuk memproses data seluruh kelas dalam satu langkah.</p>
+        </div>
+      </div>
+
+      <div class="das-hero__actions">
+        <div class="badge bg-black bg-opacity-25 p-2 px-3 border border-white border-opacity-10 text-white rounded-pill">
+          <i class="ti tabler-keyboard me-1"></i> Shortcut Keyboard: <span class="text-info ms-1 fw-bold">Angka 1-5</span>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="card glass-card mb-4">
-    <div class="card-body">
+  <div class="das-panel mb-4">
+    <div class="das-panel__body">
       <form action="{{ route('admin.absensi-cepat') }}" method="GET" id="form-filter">
         <div class="row align-items-end g-3">
           <div class="col-md-4">
@@ -100,7 +94,7 @@
             <input type="date" name="tanggal" id="tanggal_filter" class="form-control" value="{{ request('tanggal', now()->toDateString()) }}">
           </div>
           <div class="col-md-2">
-            <button type="submit" class="btn btn-info w-100 fw-bold">
+            <button type="submit" class="btn das-btn --info w-100">
               <i class="ti tabler-refresh me-1"></i> Muat Siswa
             </button>
           </div>
@@ -115,23 +109,24 @@
       <input type="hidden" name="kelas_id" value="{{ $selectedKelasId }}">
       <input type="hidden" name="tanggal" id="tanggal_submit" value="{{ request('tanggal', now()->toDateString()) }}">
 
-      <div class="card glass-card overflow-hidden mb-4">
-        <div class="card-header border-bottom d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 py-3" style="background:transparent; border-color: rgba(255,255,255,0.08) !important;">
-          <h6 class="mb-0 text-white d-flex align-items-center gap-2">
-            <i class="ti tabler-users-group text-info"></i> Daftar Siswa — <span class="text-info">{{ $siswa[0]->kelas->nama ?? '' }}</span>
-          </h6>
+      <div class="das-panel overflow-hidden mb-4">
+        <div class="das-panel__head">
+          <div class="das-panel__title">
+            <span class="das-panel__icon-dot --info"></span>
+            Daftar Siswa — <span class="text-info">{{ $siswa[0]->kelas->nama ?? '' }}</span>
+          </div>
           <div class="d-flex gap-2">
-            <button type="button" class="btn btn-sm btn-label-success" onclick="markAll('hadir')">
+            <button type="button" class="btn das-btn --success" onclick="markAll('hadir')">
               <i class="ti tabler-check me-1"></i> Tandai Semua Hadir
             </button>
-            <button type="button" class="btn btn-sm btn-label-secondary" onclick="resetForm()">
+            <button type="button" class="btn das-btn --secondary" onclick="resetForm()">
               <i class="ti tabler-rotate me-1"></i> Reset
             </button>
           </div>
         </div>
         <div class="table-responsive">
-          <table class="table align-middle mb-0" style="color:inherit;">
-            <thead style="background:rgba(255,255,255,0.02); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.8px; opacity:0.7;">
+          <table class="das-table align-middle mb-0">
+            <thead>
               <tr>
                 <th width="50" class="text-center ps-4">NO</th>
                 <th>NAMA SISWA</th>
@@ -189,26 +184,23 @@
             </tbody>
           </table>
         </div>
-        <div class="card-footer border-top p-4" style="background:rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.08) !important;">
-          <div class="row align-items-center">
-            <div class="col-md-9 mb-3 mb-md-0">
-                 <div class="d-flex flex-wrap gap-4 fs-6 fw-bold" id="summary-badge">
-                  <div class="text-success d-flex align-items-center gap-1"><i class="ti tabler-circle-check fs-5"></i> <span id="sum-h">0</span> Hadir</div>
-                  <div class="text-info d-flex align-items-center gap-1"><i class="ti tabler-stethoscope fs-5"></i> <span id="sum-s">0</span> Sakit</div>
-                  <div class="text-warning d-flex align-items-center gap-1"><i class="ti tabler-file-description fs-5"></i> <span id="sum-i">0</span> Izin</div>
-                  <div class="text-danger d-flex align-items-center gap-1"><i class="ti tabler-x fs-5"></i> <span id="sum-a">0</span> Alpha</div>
-                  @if(!in_array($activeJenjang, ['SD/MI', 'SMP/MTs']))
-                    <div class="text-primary d-flex align-items-center gap-1"><i class="ti tabler-clock fs-5"></i> <span id="sum-t">0</span> Telat</div>
-                  @else
-                    <div class="d-none"><span id="sum-t">0</span></div>
-                  @endif
-                </div>
-            </div>
-            <div class="col-md-3 text-md-end">
-               <button type="submit" class="btn btn-info px-4 py-2 fw-bold shadow-sm">
-                 <i class="ti tabler-device-floppy me-2"></i> Simpan Absensi
-               </button>
-            </div>
+        <div class="border-top p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3"
+          style="border-color:rgba(255,255,255,0.08) !important; background:rgba(255,255,255,0.02);">
+          <div class="d-flex flex-wrap gap-4 fw-bold" id="summary-badge" style="font-size:0.85rem;">
+            <div class="text-success d-flex align-items-center gap-1"><i class="ti tabler-circle-check fs-5"></i> <span id="sum-h">0</span> Hadir</div>
+            <div class="text-info d-flex align-items-center gap-1"><i class="ti tabler-stethoscope fs-5"></i> <span id="sum-s">0</span> Sakit</div>
+            <div class="text-warning d-flex align-items-center gap-1"><i class="ti tabler-file-description fs-5"></i> <span id="sum-i">0</span> Izin</div>
+            <div class="text-danger d-flex align-items-center gap-1"><i class="ti tabler-x fs-5"></i> <span id="sum-a">0</span> Alpha</div>
+            @if(!in_array($activeJenjang, ['SD/MI', 'SMP/MTs']))
+              <div class="text-primary d-flex align-items-center gap-1"><i class="ti tabler-clock fs-5"></i> <span id="sum-t">0</span> Telat</div>
+            @else
+              <div class="d-none"><span id="sum-t">0</span></div>
+            @endif
+          </div>
+          <div class="flex-shrink-0">
+            <button type="submit" class="btn das-btn --info px-4">
+              <i class="ti tabler-device-floppy me-2"></i> Simpan Absensi
+            </button>
           </div>
         </div>
       </div>
@@ -219,8 +211,8 @@
        <div class="text-info fw-medium">Tidak ada siswa aktif ditemukan di kelas ini.</div>
     </div>
   @else
-    <div class="card glass-card">
-      <div class="card-body text-center py-5">
+    <div class="das-panel">
+      <div class="das-panel__body text-center py-5">
         <div class="avatar avatar-xl bg-label-info mx-auto mb-4 shadow-sm" style="width:72px; height:72px;">
           <span class="avatar-initial rounded-circle"><i class="ti tabler-users-group fs-1"></i></span>
         </div>

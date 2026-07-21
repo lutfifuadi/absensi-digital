@@ -11,20 +11,46 @@ use Illuminate\Http\Request;
 
 class AbsensiSiswaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
         $activeRole = session('active_role', $user ? $user->role : 'guest');
         $isWaliKelas = $activeRole === \App\Models\User::ROLE_WALI_KELAS;
 
-        $query = AbsensiSiswa::with(['siswa:id,nama_lengkap,kelas_id', 'kelas:id,nama', 'guru:id,nama_lengkap'])
-            ->orderByDesc('tanggal');
+        // ── Filter / search params ──
+        $search        = $request->query('search');
+        $perPage       = (int) $request->query('per_page', 50);
+        $sortBy        = $request->query('sort_by', 'tanggal');
+        $sortDir       = $request->query('sort_dir', 'desc');
+        $selectedKelasId = $request->query('kelas_id');
+        $selectedStatus  = $request->query('status');
+        $tanggalFrom   = $request->query('tanggal_from');
+        $tanggalTo     = $request->query('tanggal_to');
 
+        // Validate perPage
+        $allowedPerPage = [10, 25, 50, 100];
+        if (!in_array($perPage, $allowedPerPage)) {
+            $perPage = 50;
+        }
+
+        // Validate sort
+        $allowedSorts = ['tanggal', 'status'];
+        if (!in_array($sortBy, $allowedSorts)) {
+            $sortBy = 'tanggal';
+        }
+        if (!in_array($sortDir, ['asc', 'desc'])) {
+            $sortDir = 'desc';
+        }
+
+        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
+
+        $query = AbsensiSiswa::with(['siswa:id,nama_lengkap,kelas_id', 'kelas:id,nama', 'guru:id,nama_lengkap']);
+
+        // ── Wali kelas restriction ──
         if ($isWaliKelas) {
             $guru = $user->guru;
             $kelasWaliId = null;
             if ($guru) {
-                $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
                 $kelasWali = \App\Models\Kelas::where('wali_kelas_id', $guru->id)
                     ->where('tahun_akademik_id', $tahunAjaranId)
                     ->first();
@@ -36,15 +62,71 @@ class AbsensiSiswaController extends Controller
             if ($kelasWaliId) {
                 // Saring absensi siswa yang ada di kelas bimbingan wali kelas saja
                 $query->where('absensi_siswa.kelas_id', $kelasWaliId);
+                // Paksa filter kelas ke kelas wali kelas
+                $selectedKelasId = $kelasWaliId;
             } else {
                 // Jika wali kelas belum memiliki kelas di TA aktif, paksa kosongkan data absensi
                 $query->whereNull('absensi_siswa.id');
             }
         }
 
-        $absensi = $query->paginate(50);
+        // ── Filters ──
+        if ($search) {
+            $query->whereHas('siswa', function ($q) use ($search) {
+                $q->where('nama_lengkap', 'like', "%{$search}%");
+            });
+        }
 
-        return view('admin.absensi-siswa.index', compact('absensi', 'isWaliKelas'));
+        if ($selectedKelasId) {
+            $query->where('absensi_siswa.kelas_id', $selectedKelasId);
+        }
+
+        if ($selectedStatus) {
+            $query->where('absensi_siswa.status', $selectedStatus);
+        }
+
+        if ($tanggalFrom) {
+            $query->whereDate('absensi_siswa.tanggal', '>=', $tanggalFrom);
+        }
+
+        if ($tanggalTo) {
+            $query->whereDate('absensi_siswa.tanggal', '<=', $tanggalTo);
+        }
+
+        // ── Sorting ──
+        $query->orderBy('absensi_siswa.' . $sortBy, $sortDir);
+
+        $absensi = $query->paginate($perPage)->withQueryString();
+
+        // ── Kelas options for filter dropdown ──
+        if ($isWaliKelas) {
+            $kelasWali = $user->guru
+                ? \App\Models\Kelas::where('wali_kelas_id', $user->guru->id)
+                    ->where('tahun_akademik_id', $tahunAjaranId)
+                    ->first()
+                : null;
+            $kelasOptions = $kelasWali
+                ? \App\Models\Kelas::where('id', $kelasWali->id)->get()
+                : collect();
+        } else {
+            $kelasOptions = \App\Models\Kelas::orderBy('nama');
+            if ($tahunAjaranId) {
+                $kelasOptions->where('tahun_akademik_id', $tahunAjaranId);
+            }
+            $kelasOptions = $kelasOptions->get();
+        }
+
+        // ── AJAX: return only table partial ──
+        if ($request->ajax()) {
+            return view('admin.absensi-siswa.table', compact('absensi', 'sortBy', 'sortDir', 'isWaliKelas'))->render();
+        }
+
+        return view('admin.absensi-siswa.index', compact(
+            'absensi', 'isWaliKelas', 'kelasOptions',
+            'sortBy', 'sortDir', 'perPage',
+            'search', 'selectedKelasId', 'selectedStatus',
+            'tanggalFrom', 'tanggalTo'
+        ));
     }
 
     public function create()
