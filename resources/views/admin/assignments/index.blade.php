@@ -2,6 +2,8 @@
 
 @section('title', 'Monitor Penugasan Guru')
 
+@php use Illuminate\Support\Str; @endphp
+
 @section('page-style')
   <style>
     .assignment-row-hover {
