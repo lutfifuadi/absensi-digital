@@ -98,7 +98,7 @@
               <td class="py-3 text-white">{{ $a->tanggal_tugas->format('d M Y') }}</td>
               <td class="text-white fw-bold">{{ $a->kelas->nama ?? '-' }}</td>
               <td class="text-white-50">{{ $a->mata_pelajaran }}</td>
-              <td class="text-white-50">{{ \Str::limit($a->judul, 40) }}</td>
+              <td class="text-white-50">{{ \Illuminate\Support\Str::limit($a->judul, 40) }}</td>
               <td>
                 @if ($a->file_lampiran)
                   <a href="{{ asset('storage/' . $a->file_lampiran) }}" target="_blank" class="btn btn-xs btn-outline-info">
