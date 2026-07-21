@@ -1142,6 +1142,12 @@ Route::middleware([
             ->middleware('role:super_admin,admin_sekolah');
 
         // Notification Templates
+        Route::get('notification-templates/export', [NotificationTemplateController::class, 'export'])
+            ->name('admin.notification-templates.export')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('notification-templates/import', [NotificationTemplateController::class, 'import'])
+            ->name('admin.notification-templates.import')
+            ->middleware('role:super_admin,admin_sekolah');
         Route::resource('notification-templates', NotificationTemplateController::class)
             ->names('admin.notification-templates')
             ->middleware('role:super_admin,admin_sekolah');

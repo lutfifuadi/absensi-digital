@@ -109,4 +109,75 @@ class NotificationTemplateController extends Controller
         $template->delete();
         return back()->with('success', 'Template notifikasi berhasil dihapus.');
     }
+
+    /**
+     * Export all notification templates as JSON.
+     */
+    public function export()
+    {
+        $templates = NotificationTemplate::all(['type', 'content']);
+        $filename = 'template-notifikasi-' . date('Y-m-d') . '.json';
+
+        return response()->streamDownload(function () use ($templates) {
+            echo $templates->toJson(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        }, $filename, [
+            'Content-Type' => 'application/json',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    /**
+     * Import notification templates from JSON file.
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'import_file' => 'required|file|mimes:json|max:2048',
+        ]);
+
+        $file = $request->file('import_file');
+        $content = file_get_contents($file->getRealPath());
+        $data = json_decode($content, true);
+
+        // Validasi format JSON
+        if (!is_array($data)) {
+            return back()->with('error', 'Format file JSON tidak valid. Harus berupa array.');
+        }
+
+        $count = 0;
+        $errors = [];
+
+        foreach ($data as $index => $item) {
+            if (!isset($item['type']) || !isset($item['content'])) {
+                $errors[] = 'Baris ke-' . ($index + 1) . ': field "type" dan "content" wajib ada.';
+                continue;
+            }
+
+            // Validasi type harus string
+            if (!is_string($item['type']) || empty(trim($item['type']))) {
+                $errors[] = 'Baris ke-' . ($index + 1) . ': "type" harus berupa string dan tidak kosong.';
+                continue;
+            }
+
+            // Validasi content harus string
+            if (!is_string($item['content'])) {
+                $errors[] = 'Baris ke-' . ($index + 1) . ': "content" harus berupa string.';
+                continue;
+            }
+
+            NotificationTemplate::updateOrCreate(
+                ['type' => trim($item['type'])],
+                ['content' => $item['content']]
+            );
+            $count++;
+        }
+
+        $message = "Berhasil mengimpor {$count} template notifikasi.";
+        if (!empty($errors)) {
+            $message .= ' Namun, ' . count($errors) . ' baris dilewati karena kesalahan: ' . implode('; ', $errors);
+            return back()->with('error', $message);
+        }
+
+        return back()->with('success', $message);
+    }
 }

@@ -748,18 +748,21 @@ return response()->json([
                 'total_izin_bulan_ini' => 0,
                 'total_jam_mengajar' => 0,
                 'attendance_streak' => 0,
+                'rekapBulanan' => ['hadir' => 0, 'terlambat' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0],
+                'rawAbsensiBulan' => collect(),
+                'holidays' => [],
+                'month' => (int)now()->month,
+                'year' => (int)now()->year,
             ];
         }
 
-        // Hitung total jam mengajar bulan ini (asumsi 1 kehadiran guru = X jam, tapi mari kita ambil dari JadwalPelajaran atau hitung secara dummy karena belum ada struktur 'jam_mengajar' spesifik)
-        // Kita hitung jumlah mapel/jadwal yang diajar guru ini bulan ini
-        // Atau jika AbsensiGuru hanya mencatat kehadiran harian, kita gunakan kehadiran harian * 8 jam (asumsi 8 jam per hari).
+        // Hitung total jam mengajar bulan ini
         $jamMengajar = AbsensiGuru::where('guru_id', $guru->id)
                                   ->whereMonth('tanggal', now()->month)
                                   ->whereIn('status', ['hadir', 'terlambat'])
-                                  ->count() * 8; // Asumsi 8 jam per hari
+                                  ->count() * 8;
 
-        // Hitung Attendance Streak (Consecutive days hadir)
+        // Hitung Attendance Streak
         $streakGuru = 0;
         $absensiLaluGuru = AbsensiGuru::where('guru_id', $guru->id)
                                 ->whereIn('status', ['hadir', 'terlambat'])
@@ -770,9 +773,52 @@ return response()->json([
             if (Carbon::parse($tgl)->isSameDay($checkDateGuru) || Carbon::parse($tgl)->isSameDay($checkDateGuru->copy()->subDay()) && (Carbon::parse($tgl)->isWeekday() || \App\Models\Holiday::where('tanggal', $tgl)->exists() == false)) {
                 $streakGuru++;
                 $checkDateGuru = Carbon::parse($tgl)->subDay();
-                // skip weekends if needed, simplified here
             } else {
                 break;
+            }
+        }
+
+        // ── Data Kalender & Riwayat ─────────────────────────────────────
+        $month = (int) request()->query('month', now()->month);
+        $year  = (int) request()->query('year', now()->year);
+
+        // Rekap bulanan
+        $statsRaw = AbsensiGuru::where('guru_id', $guru->id)
+            ->whereMonth('tanggal', $month)
+            ->whereYear('tanggal', $year)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->toArray();
+
+        $rekapBulanan = [
+            'hadir'     => $statsRaw['hadir'] ?? 0,
+            'terlambat' => $statsRaw['terlambat'] ?? 0,
+            'sakit'     => $statsRaw['sakit'] ?? 0,
+            'izin'      => $statsRaw['izin'] ?? 0,
+            'alpha'     => $statsRaw['alpha'] ?? 0,
+        ];
+
+        // Raw absensi bulanan untuk kalender
+        $startOfMonth = Carbon::create($year, $month, 1)->startOfDay();
+        $endOfMonth   = $startOfMonth->copy()->endOfMonth();
+
+        $rawAbsensiBulan = AbsensiGuru::where('guru_id', $guru->id)
+            ->whereBetween('tanggal', [$startOfMonth, $endOfMonth])
+            ->get()
+            ->keyBy(function ($item) {
+                return $item->tanggal->toDateString();
+            });
+
+        // Hari libur
+        $holidaysCollection = Holiday::whereBetween('tanggal', [$startOfMonth, $endOfMonth])->get();
+        $holidays = [];
+        foreach ($holidaysCollection as $h) {
+            $dateStr = $h->tanggal->toDateString();
+            if (isset($holidays[$dateStr])) {
+                $holidays[$dateStr] .= ' | ' . $h->nama;
+            } else {
+                $holidays[$dateStr] = $h->nama;
             }
         }
 
@@ -782,6 +828,11 @@ return response()->json([
             'total_izin_bulan_ini' => AbsensiGuru::where('guru_id', $guru->id)->whereIn('status', ['sakit', 'izin'])->whereMonth('tanggal', now()->month)->count(),
             'total_jam_mengajar' => $jamMengajar,
             'attendance_streak' => $streakGuru,
+            'rekapBulanan' => $rekapBulanan,
+            'rawAbsensiBulan' => $rawAbsensiBulan,
+            'holidays' => $holidays,
+            'month' => $month,
+            'year' => $year,
         ];
     }
 

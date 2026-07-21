@@ -33,16 +33,166 @@
   .das-hero__title { font-size: 1.5rem; font-weight: 800; color: white; margin: 0 0 4px; }
   .das-hero__welcome { margin: 0; font-size: .88rem; color: rgba(255,255,255,.6); }
 
-  /* BUTTONS */
-  .das-btn { display: inline-flex; align-items: center; gap: 5px; font-size: .75rem; font-weight: 600; padding: .5rem 1rem; border-radius: 5px; border: 1px solid transparent; cursor: pointer; transition: all .18s ease; text-decoration: none; white-space: nowrap; }
-  .das-btn--primary { background: var(--das-primary); color: white !important; border-color: var(--das-primary); }
-  .das-btn--primary:hover { background: #6259e8; transform: translateY(-2px); }
-  .das-btn--ghost { background: transparent; border-color: var(--das-border); color: #999 !important; }
-  .das-btn--ghost:hover { background: var(--das-surface-hover); color: white !important; }
-  .das-btn--info { background: var(--das-info); color: white !important; border-color: var(--das-info); }
-  .das-btn--info:hover { background: #00b4cc; transform: translateY(-2px); }
-  .das-btn--secondary { background: rgba(168,179,191,.15); border-color: rgba(168,179,191,.3); color: #a8b3bf !important; }
-  .das-btn--secondary:hover { background: rgba(168,179,191,.25); color: white !important; }
+  /* ── BUTTONS ─────────────────────────────────────────── */
+  .das-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .75rem;
+    font-weight: 700;
+    padding: .55rem 1.25rem;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all .25s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Shine overlay */
+  .das-btn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity .4s ease;
+    pointer-events: none;
+  }
+  .das-btn:hover::after {
+    opacity: 1;
+  }
+
+  /* Primary — Gradient Ungu Premium */
+  .das-btn--primary {
+    background: linear-gradient(135deg, #7367f0 0%, #5e50ee 100%);
+    color: white !important;
+    border-color: rgba(115, 103, 240, 0.4);
+    box-shadow: 0 4px 16px rgba(115, 103, 240, 0.25);
+  }
+  .das-btn--primary:hover {
+    background: linear-gradient(135deg, #8579f5 0%, #6b5df0 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(115, 103, 240, 0.4);
+    border-color: rgba(115, 103, 240, 0.6);
+  }
+
+  /* Ghost */
+  .das-btn--ghost {
+    background: transparent;
+    border-color: var(--das-border);
+    color: #999 !important;
+  }
+  .das-btn--ghost:hover {
+    background: var(--das-surface-hover);
+    color: white !important;
+    transform: translateY(-1px);
+  }
+
+  /* Info — Gradient Cyan/Biru Premium */
+  .das-btn--info {
+    background: linear-gradient(135deg, #00cfe8 0%, #00b4cc 100%);
+    color: white !important;
+    border-color: rgba(0, 207, 232, 0.4);
+    box-shadow: 0 4px 16px rgba(0, 207, 232, 0.25);
+  }
+  .das-btn--info:hover {
+    background: linear-gradient(135deg, #08ddf5 0%, #00c4dd 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(0, 207, 232, 0.4);
+    border-color: rgba(0, 207, 232, 0.6);
+  }
+
+  /* Secondary — Glass Premium */
+  .das-btn--secondary {
+    background: linear-gradient(135deg, rgba(168, 179, 191, 0.18) 0%, rgba(168, 179, 191, 0.08) 100%);
+    border-color: rgba(168, 179, 191, 0.25);
+    color: #c8d0d6 !important;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  .das-btn--secondary:hover {
+    background: linear-gradient(135deg, rgba(168, 179, 191, 0.28) 0%, rgba(168, 179, 191, 0.14) 100%);
+    border-color: rgba(168, 179, 191, 0.45);
+    color: white !important;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Success — Gradient Hijau Premium */
+  .das-btn--success {
+    background: linear-gradient(135deg, #28c76f 0%, #1fad5e 100%);
+    color: white !important;
+    border-color: rgba(40, 199, 111, 0.4);
+    box-shadow: 0 4px 16px rgba(40, 199, 111, 0.25);
+  }
+  .das-btn--success:hover {
+    background: linear-gradient(135deg, #33d77b 0%, #26bc69 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(40, 199, 111, 0.4);
+    border-color: rgba(40, 199, 111, 0.6);
+  }
+
+  /* Warning — Gradient Oranye Premium */
+  .das-btn--warning {
+    background: linear-gradient(135deg, #ff9f43 0%, #f0892a 100%);
+    color: white !important;
+    border-color: rgba(255, 159, 67, 0.4);
+    box-shadow: 0 4px 16px rgba(255, 159, 67, 0.25);
+  }
+  .das-btn--warning:hover {
+    background: linear-gradient(135deg, #ffab54 0%, #fa9335 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(255, 159, 67, 0.4);
+  }
+
+  /* Danger — Gradient Merah Premium */
+  .das-btn--danger {
+    background: linear-gradient(135deg, #ea5455 0%, #d63a3b 100%);
+    color: white !important;
+    border-color: rgba(234, 84, 85, 0.4);
+    box-shadow: 0 4px 16px rgba(234, 84, 85, 0.25);
+  }
+  .das-btn--danger:hover {
+    background: linear-gradient(135deg, #f26364 0%, #e04445 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(234, 84, 85, 0.4);
+    border-color: rgba(234, 84, 85, 0.6);
+  }
+
+  /* Icon animation in buttons */
+  .das-btn i {
+    transition: transform .3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 1.1rem;
+  }
+  .das-btn:hover i {
+    transform: scale(1.15);
+  }
+  .das-btn--info:hover i.tabler-download {
+    animation: btn-icon-bounce 0.6s ease;
+  }
+  .das-btn--secondary:hover i.tabler-upload {
+    animation: btn-icon-bounce 0.6s ease;
+  }
+  .das-btn--primary:hover i.tabler-plus {
+    animation: btn-icon-spin 0.5s ease;
+  }
+
+  @keyframes btn-icon-bounce {
+    0%, 100% { transform: translateY(0) scale(1.15); }
+    40% { transform: translateY(-4px) scale(1.2); }
+    60% { transform: translateY(-2px) scale(1.18); }
+  }
+  @keyframes btn-icon-spin {
+    0% { transform: rotate(0deg) scale(1.15); }
+    100% { transform: rotate(180deg) scale(1.15); }
+  }
 
   /* PANEL */
   .das-panel { background: var(--das-surface); border: 1px solid var(--das-border); border-radius: var(--das-radius); overflow: hidden; backdrop-filter: blur(6px); }
@@ -168,7 +318,13 @@
           <p class="das-hero__welcome">Kelola pesan WhatsApp otomatis yang dikirim ke orang tua siswa.</p>
         </div>
       </div>
-      <div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="{{ route('admin.notification-templates.export') }}" class="das-btn das-btn--info shadow-sm">
+          <i class="ti tabler-download"></i> Export JSON
+        </a>
+        <button type="button" class="das-btn das-btn--success shadow-sm" data-bs-toggle="modal" data-bs-target="#importModal">
+          <i class="ti tabler-upload"></i> Import JSON
+        </button>
         <a href="{{ route('admin.notification-templates.create') }}" class="das-btn das-btn--primary shadow-sm">
           <i class="ti tabler-plus me-1"></i> Buat Redaksi Baru
         </a>
@@ -325,9 +481,52 @@
             </div>
             <div class="d-flex gap-2 justify-content-center pt-2">
               <button type="button" class="das-btn das-btn--ghost" data-bs-dismiss="modal">Batal</button>
-              <button type="submit" class="das-btn das-btn--primary px-4"
-                      style="background-color:var(--das-danger);border-color:var(--das-danger);">
-                Hapus Sekarang
+              <button type="submit" class="das-btn das-btn--danger px-4">
+                <i class="ti tabler-trash-x me-1"></i> Hapus Sekarang
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {{-- ── MODAL IMPORT ─────────────────────────────────── --}}
+  <div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content das-modal shadow-lg">
+        <div class="das-modal-head d-flex align-items-center justify-content-between"
+             style="background:rgba(0,207,232,.05);border-bottom-color:rgba(0,207,232,.15);">
+          <h5 class="das-modal-title"><i class="ti tabler-upload me-2" style="color:var(--das-info);"></i>Import Template Notifikasi</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form action="{{ route('admin.notification-templates.import') }}" method="POST" enctype="multipart/form-data">
+          @csrf
+          <div class="das-modal-body">
+            <div class="text-center mb-4">
+              <div class="d-flex align-items-center justify-content-center mx-auto mb-3"
+                   style="width:70px;height:70px;background:rgba(0,207,232,.1);border:1px solid rgba(0,207,232,.2);border-radius:5px;">
+                <i class="ti tabler-file-import" style="color:var(--das-info);font-size:1.75rem;"></i>
+              </div>
+              <h4 class="text-white mb-2" style="font-size:1rem;">Upload File JSON</h4>
+              <p class="text-muted small mb-0">Upload file JSON hasil export untuk mengimpor template notifikasi. Template dengan <code class="text-info">type</code> yang sudah ada akan diperbarui kontennya.</p>
+            </div>
+
+            <div class="mb-4">
+              <label for="import_file" class="form-label text-white-50 small fw-bold mb-2">
+                <i class="ti tabler-file-text me-1"></i> File JSON
+              </label>
+              <input type="file" name="import_file" id="import_file" class="form-control"
+                     accept=".json,application/json" required>
+              <div class="form-text text-muted small mt-2">
+                <i class="ti tabler-info-circle me-1"></i> Format: JSON, maksimal 2 MB.
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-center pt-2">
+              <button type="button" class="das-btn das-btn--ghost" data-bs-dismiss="modal">Batal</button>
+              <button type="submit" class="das-btn das-btn--info px-4">
+                <i class="ti tabler-upload me-1"></i> Import Sekarang
               </button>
             </div>
           </div>
