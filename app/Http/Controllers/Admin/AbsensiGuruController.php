@@ -9,9 +9,38 @@ use Illuminate\Http\Request;
 
 class AbsensiGuruController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $absensi = AbsensiGuru::with('guru')->orderByDesc('tanggal')->get();
+        $search = $request->query('search');
+        $status = $request->query('status');
+        $tanggal = $request->query('tanggal');
+        $perPage = (int) $request->query('per_page', 10);
+
+        $query = AbsensiGuru::with('guru')->orderByDesc('tanggal');
+
+        // Apply search filter (nama guru atau NIP)
+        $query->when($search, function ($q) use ($search) {
+            $q->whereHas('guru', function ($qGuru) use ($search) {
+                $qGuru->where('nama_lengkap', 'like', "%{$search}%")
+                    ->orWhere('nip', 'like', "%{$search}%");
+            });
+        });
+
+        // Apply status filter
+        $query->when($status, function ($q, $status) {
+            $q->where('status', $status);
+        });
+
+        // Apply date filter
+        $query->when($tanggal, function ($q, $tanggal) {
+            $q->whereDate('tanggal', $tanggal);
+        });
+
+        $absensi = $query->paginate($perPage)->withQueryString();
+
+        if ($request->ajax()) {
+            return view('admin.absensi-guru.table', compact('absensi'))->render();
+        }
 
         return view('admin.absensi-guru.index', compact('absensi'));
     }
