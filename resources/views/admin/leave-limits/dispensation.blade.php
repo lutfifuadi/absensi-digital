@@ -235,7 +235,7 @@
       <div class="das-hero__meta">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb-premium">
-            <li><a href="{{ route('admin.dashboard') }}"><i class="ti tabler-home" style="font-size:0.75rem;"></i></a></li>
+            <li><a href="{{ route('dashboard') }}"><i class="ti tabler-home" style="font-size:0.75rem;"></i></a></li>
             <span class="sep">/</span>
             <li><a href="{{ route('admin.leave-limits.index') }}">Batasan Izin</a></li>
             <span class="sep">/</span>

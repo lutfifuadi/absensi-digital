@@ -599,7 +599,7 @@ class LeaveLimitTest extends TestCase
 
         $this->actingAs($this->admin);
 
-        $response = $this->getJson(route('admin.leave-limits.check-quota', [
+        $response = $this->getJson(route('admin.izin-sakit.check-quota', [
             'user_id'    => $this->siswa->id,
             'leave_type' => 'all',
             'start_date' => now()->format('Y-m-d'),
@@ -635,7 +635,7 @@ class LeaveLimitTest extends TestCase
 
         $this->actingAs($this->admin);
 
-        $response = $this->getJson(route('admin.leave-limits.check-quota', [
+        $response = $this->getJson(route('admin.izin-sakit.check-quota', [
             'user_id'    => $this->siswa->id,
             'leave_type' => 'all',
             'start_date' => now()->format('Y-m-d'),

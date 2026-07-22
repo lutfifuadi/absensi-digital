@@ -131,188 +131,265 @@
 @endsection
 
 @section('content')
-  {{-- ═══════════════════════════════════════════════════════
-       QUOTA INFO CARD
-  ═══════════════════════════════════════════════════════ --}}
-  <div id="quotaCard" class="quota-card quota-card-hidden">
-    <div class="quota-card__head">
-      <div class="quota-card__head-icon">
-        <i class="ti tabler-chart-bar"></i>
-      </div>
-      <h6 class="quota-card__title">Sisa Kuota Izin / Sakit</h6>
-      <span id="quotaPeriod" class="ms-auto text-white-50" style="font-size:0.6rem;"></span>
-    </div>
-    <div class="quota-card__body">
-      {{-- Loading --}}
-      <div id="quotaLoading" class="quota-loading" style="display:none;">
-        <div class="spinner"></div>
-        <span>Memeriksa sisa kuota...</span>
-      </div>
 
-      {{-- Error --}}
-      <div id="quotaError" class="quota-message --danger" style="display:none;"></div>
-
-      {{-- Grid --}}
-      <div id="quotaGridContainer" style="display:none;">
-        <div id="quotaGrid" class="quota-grid"></div>
-        <div id="quotaMessage" class="quota-message" style="display:none;"></div>
-      </div>
-
-      {{-- No limits --}}
-      <div id="quotaNoLimits" class="quota-message --success" style="display:none;">
-        <i class="ti tabler-circle-check me-1"></i> Tidak ada batasan kuota untuk akun Anda.
+  {{-- HERO HEADER --}}
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 text-white overflow-hidden shadow-lg"
+        style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border-radius: 4px;">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-3">
+            <div class="rounded d-flex align-items-center justify-content-center shadow-sm"
+              style="width:52px;height:52px;border-radius:12px !important;background:rgba(0,207,232,0.2);border:1px solid rgba(0,207,232,0.4);">
+              <i class="ti {{ isset($izinSakit) ? 'tabler-pencil' : 'tabler-plus' }} text-info fs-3"></i>
+            </div>
+            <div>
+              <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1" style="font-size:0.72rem;opacity:0.6;">
+                  @auth
+                    @if(auth()->user()->isRole(\App\Models\User::ROLE_SISWA))
+                      <li class="breadcrumb-item"><a href="#" class="text-white text-decoration-none">Siswa</a></li>
+                      <li class="breadcrumb-item"><a href="{{ route('admin.izin-sakit.index') }}"
+                          class="text-white text-decoration-none">Izin & Sakit</a></li>
+                    @elseif(auth()->user()->isRole(\App\Models\User::ROLE_GURU))
+                      <li class="breadcrumb-item"><a href="#" class="text-white text-decoration-none">Guru</a></li>
+                      <li class="breadcrumb-item"><a href="{{ route('admin.izin-sakit.index') }}"
+                          class="text-white text-decoration-none">Izin & Sakit</a></li>
+                    @else
+                      <li class="breadcrumb-item"><a href="{{ route('admin.master-data') }}"
+                          class="text-white text-decoration-none">Admin</a></li>
+                      <li class="breadcrumb-item"><span class="text-white">Master Data</span></li>
+                      <li class="breadcrumb-item"><a href="{{ route('admin.izin-sakit.index') }}"
+                          class="text-white text-decoration-none">Izin & Sakit</a></li>
+                    @endif
+                  @else
+                    <li class="breadcrumb-item"><a href="{{ route('admin.izin-sakit.index') }}"
+                        class="text-white text-decoration-none">Izin & Sakit</a></li>
+                  @endauth
+                  <li class="breadcrumb-item active text-white">{{ isset($izinSakit) ? 'Ubah' : 'Tambah' }}</li>
+                </ol>
+              </nav>
+              <h4 class="mb-0 text-white fw-bold" style="letter-spacing:-0.5px;">
+                {{ isset($izinSakit) ? 'Ubah Pengajuan Izin/Sakit' : 'Tambah Pengajuan Izin/Sakit' }}
+              </h4>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  {{-- ═══════════════════════════════════════════════════════
-       BREADCRUMB & FORM
-  ═══════════════════════════════════════════════════════ --}}
-  <div class="container-xxl flex-grow-1 container-p-y">
-    <h4 class="fw-bold py-3 mb-4">
-      <span class="text-muted fw-light">Admin / <a href="{{ route('admin.izin-sakit.index') }}">Izin & Sakit</a> /</span>
-      {{ isset($izinSakit) ? 'Edit Pengajuan' : 'Tambah Pengajuan' }}
-    </h4>
+  {{-- QUOTA INFO CARD --}}
+  <div class="row mb-4">
+    <div class="col-12">
+      <div id="quotaCard" class="quota-card quota-card-hidden mb-0">
+        <div class="quota-card__head">
+          <div class="quota-card__head-icon">
+            <i class="ti tabler-chart-bar"></i>
+          </div>
+          <h6 class="quota-card__title">Sisa Kuota Izin / Sakit</h6>
+          <span id="quotaPeriod" class="ms-auto text-white-50" style="font-size:0.6rem;"></span>
+        </div>
+        <div class="quota-card__body">
+          {{-- Loading --}}
+          <div id="quotaLoading" class="quota-loading" style="display:none;">
+            <div class="spinner"></div>
+            <span>Memeriksa sisa kuota...</span>
+          </div>
 
-    @if ($errors->any())
-      <div class="alert alert-danger mb-4">
-        <ul class="mb-0">
-          @foreach ($errors->all() as $e)
-            <li>{{ $e }}</li>
-          @endforeach
-        </ul>
+          {{-- Error --}}
+          <div id="quotaError" class="quota-message --danger" style="display:none;"></div>
+
+          {{-- Grid --}}
+          <div id="quotaGridContainer" style="display:none;">
+            <div id="quotaGrid" class="quota-grid"></div>
+            <div id="quotaMessage" class="quota-message" style="display:none;"></div>
+          </div>
+
+          {{-- No limits --}}
+          <div id="quotaNoLimits" class="quota-message --success" style="display:none;">
+            <i class="ti tabler-circle-check me-1"></i> Tidak ada batasan kuota untuk akun Anda.
+          </div>
+        </div>
       </div>
-    @endif
+    </div>
+  </div>
 
-    <div class="card">
-      <div class="card-body">
-        <form
-          action="{{ isset($izinSakit) ? route('admin.izin-sakit.update', $izinSakit) : route('admin.izin-sakit.store') }}"
-          method="POST" enctype="multipart/form-data">
-          @csrf
-          @if (isset($izinSakit))
-            @method('PUT')
-          @endif
+  <div class="row">
+    <div class="col-12">
 
-          <div class="row gy-3">
-            <div class="col-md-4">
-              <label class="form-label">Tipe <span class="text-danger">*</span></label>
-              <select name="tipe" class="form-select @error('tipe') is-invalid @enderror" id="tipePengaju" required>
-                <option value="">-- Pilih Tipe --</option>
-                @foreach (['siswa', 'guru', 'staff'] as $t)
-                  <option value="{{ $t }}" @selected(old('tipe', $izinSakit->tipe ?? '') === $t)>{{ ucfirst($t) }}</option>
-                @endforeach
-              </select>
-              @error('tipe')
-                <div class="invalid-feedback">{{ $message }}</div>
-              @enderror
-            </div>
+      @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible d-flex align-items-start gap-2 mb-4 border-0 shadow-sm"
+          style="border-radius:8px; background: rgba(234, 84, 85, 0.15); color: #ea5455;">
+          <i class="ti tabler-alert-circle fs-5 mt-1 flex-shrink-0"></i>
+          <ul class="mb-0 ps-3 small">
+            @foreach ($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
+          <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        </div>
+      @endif
 
-            <div class="col-md-8">
-              <label class="form-label">Nama <span class="text-danger">*</span></label>
-              <select name="reference_id" class="form-select @error('reference_id') is-invalid @enderror" id="referenceId" required>
-                <option value="">-- Pilih Nama --</option>
-                <optgroup label="Siswa">
-                  @foreach ($siswaOptions as $s)
-                    <option value="{{ $s->id }}" data-tipe="siswa" data-user-id="{{ $s->user?->id ?? '' }}" @selected(old('reference_id', $izinSakit->reference_id ?? '') == $s->id && old('tipe', $izinSakit->tipe ?? '') === 'siswa')>
-                      {{ $s->nama_lengkap }}
-                    </option>
-                  @endforeach
-                </optgroup>
-                <optgroup label="Guru">
-                  @foreach ($guruOptions as $g)
-                    <option value="{{ $g->id }}" data-tipe="guru" data-user-id="{{ $g->user?->id ?? '' }}" @selected(old('reference_id', $izinSakit->reference_id ?? '') == $g->id && old('tipe', $izinSakit->tipe ?? '') === 'guru')>
-                      {{ $g->nama_lengkap }}
-                    </option>
-                  @endforeach
-                </optgroup>
-                <optgroup label="Staff TU">
-                  @foreach ($staffOptions as $st)
-                    <option value="{{ $st->id }}" data-tipe="staff" data-user-id="{{ $st->user?->id ?? '' }}" @selected(old('reference_id', $izinSakit->reference_id ?? '') == $st->id && old('tipe', $izinSakit->tipe ?? '') === 'staff')>
-                      {{ $st->nama_lengkap }}
-                    </option>
-                  @endforeach
-                </optgroup>
-              </select>
-              @error('reference_id')
-                <div class="invalid-feedback">{{ $message }}</div>
-              @enderror
-            </div>
-
-            <div class="col-md-3">
-              <label class="form-label">Jenis <span class="text-danger">*</span></label>
-              <select name="jenis" class="form-select @error('jenis') is-invalid @enderror" id="jenisIzin" required>
-                <option value="">-- Pilih Jenis --</option>
-                @foreach (['sakit', 'izin'] as $j)
-                  <option value="{{ $j }}" @selected(old('jenis', $izinSakit->jenis ?? '') === $j)>{{ ucfirst($j) }}</option>
-                @endforeach
-              </select>
-              @error('jenis')
-                <div class="invalid-feedback">{{ $message }}</div>
-              @enderror
-            </div>
-
-            <div class="col-md-3">
-              <label class="form-label">Tanggal Mulai <span class="text-danger">*</span></label>
-              <input type="date" name="tanggal_mulai" class="form-control @error('tanggal_mulai') is-invalid @enderror"
-                id="tanggalMulai"
-                value="{{ old('tanggal_mulai', isset($izinSakit) ? $izinSakit->tanggal_mulai->format('Y-m-d') : '') }}"
-                required>
-              @error('tanggal_mulai')
-                <div class="invalid-feedback">{{ $message }}</div>
-              @enderror
-            </div>
-
-            <div class="col-md-3">
-              <label class="form-label">Tanggal Selesai <span class="text-danger">*</span></label>
-              <input type="date" name="tanggal_selesai"
-                class="form-control @error('tanggal_selesai') is-invalid @enderror"
-                id="tanggalSelesai"
-                value="{{ old('tanggal_selesai', isset($izinSakit) ? $izinSakit->tanggal_selesai->format('Y-m-d') : '') }}"
-                required>
-              @error('tanggal_selesai')
-                <div class="invalid-feedback">{{ $message }}</div>
-              @enderror
-            </div>
-
+      <div class="card border-0 shadow-sm"
+        style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08) !important;">
+        <div class="card-header border-bottom py-3 d-flex align-items-center gap-2"
+          style="border-color:rgba(255,255,255,0.08) !important;background:transparent;">
+          <i class="ti tabler-forms text-info"></i>
+          <h6 class="card-title mb-0">Formulir Pengajuan</h6>
+        </div>
+        <div class="card-body p-4">
+          <form
+            action="{{ isset($izinSakit) ? route('admin.izin-sakit.update', $izinSakit) : route('admin.izin-sakit.store') }}"
+            method="POST" enctype="multipart/form-data">
+            @csrf
             @if (isset($izinSakit))
-              <div class="col-md-3">
-                <label class="form-label">Status</label>
-                <select name="status" class="form-select">
-                  @foreach (['pending', 'disetujui', 'ditolak'] as $s)
-                    <option value="{{ $s }}" @selected(old('status', $izinSakit->status) === $s)>{{ ucfirst($s) }}</option>
-                  @endforeach
-                </select>
-              </div>
+              @method('PUT')
             @endif
 
-            <div class="col-md-12">
-              <label class="form-label">Keterangan</label>
-              <textarea name="keterangan" class="form-control" rows="3">{{ old('keterangan', $izinSakit->keterangan ?? '') }}</textarea>
-            </div>
+            <div class="row g-4">
+              <div class="col-md-4">
+                <label class="form-label fw-semibold small" for="tipePengaju">
+                  <i class="ti tabler-user-cog me-1 text-info"></i> Tipe <span class="text-danger">*</span>
+                </label>
+                <select name="tipe" class="form-select @error('tipe') is-invalid @enderror" id="tipePengaju" required>
+                  <option value="">-- Pilih Tipe --</option>
+                  @foreach (['siswa', 'guru', 'staff'] as $t)
+                    <option value="{{ $t }}" @selected(old('tipe', $izinSakit->tipe ?? '') === $t)>{{ ucfirst($t) }}</option>
+                  @endforeach
+                </select>
+                @error('tipe')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+              </div>
 
-            <div class="col-md-6">
-              <label class="form-label">Lampiran Surat (maks. 100KB — JPG/PNG/PDF)</label>
-              @if (isset($izinSakit) && $izinSakit->lampiran)
-                <div class="mb-2">
-                  <a href="{{ Storage::url($izinSakit->lampiran) }}" target="_blank" class="btn btn-sm btn-info">Lihat
-                    Lampiran Lama</a>
+              <div class="col-md-8">
+                <label class="form-label fw-semibold small" for="referenceId">
+                  <i class="ti tabler-user me-1 text-info"></i> Nama <span class="text-danger">*</span>
+                </label>
+                <select name="reference_id" class="form-select @error('reference_id') is-invalid @enderror" id="referenceId" required>
+                  <option value="">-- Pilih Nama --</option>
+                  <optgroup label="Siswa">
+                    @foreach ($siswaOptions as $s)
+                      <option value="{{ $s->id }}" data-tipe="siswa" data-user-id="{{ $s->user?->id ?? '' }}" @selected(old('reference_id', $izinSakit->reference_id ?? '') == $s->id && old('tipe', $izinSakit->tipe ?? '') === 'siswa')>
+                        {{ $s->nama_lengkap }}
+                      </option>
+                    @endforeach
+                  </optgroup>
+                  <optgroup label="Guru">
+                    @foreach ($guruOptions as $g)
+                      <option value="{{ $g->id }}" data-tipe="guru" data-user-id="{{ $g->user?->id ?? '' }}" @selected(old('reference_id', $izinSakit->reference_id ?? '') == $g->id && old('tipe', $izinSakit->tipe ?? '') === 'guru')>
+                        {{ $g->nama_lengkap }}
+                      </option>
+                    @endforeach
+                  </optgroup>
+                  <optgroup label="Staff TU">
+                    @foreach ($staffOptions as $st)
+                      <option value="{{ $st->id }}" data-tipe="staff" data-user-id="{{ $st->user?->id ?? '' }}" @selected(old('reference_id', $izinSakit->reference_id ?? '') == $st->id && old('tipe', $izinSakit->tipe ?? '') === 'staff')>
+                        {{ $st->nama_lengkap }}
+                      </option>
+                    @endforeach
+                  </optgroup>
+                </select>
+                @error('reference_id')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+              </div>
+
+              <div class="col-md-3">
+                <label class="form-label fw-semibold small" for="jenisIzin">
+                  <i class="ti tabler-clipboard-text me-1 text-info"></i> Jenis <span class="text-danger">*</span>
+                </label>
+                <select name="jenis" class="form-select @error('jenis') is-invalid @enderror" id="jenisIzin" required>
+                  <option value="">-- Pilih Jenis --</option>
+                  @foreach (['sakit', 'izin'] as $j)
+                    <option value="{{ $j }}" @selected(old('jenis', $izinSakit->jenis ?? '') === $j)>{{ ucfirst($j) }}</option>
+                  @endforeach
+                </select>
+                @error('jenis')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+              </div>
+
+              <div class="col-md-3">
+                <label class="form-label fw-semibold small" for="tanggalMulai">
+                  <i class="ti tabler-calendar me-1 text-info"></i> Tanggal Mulai <span class="text-danger">*</span>
+                </label>
+                <input type="date" name="tanggal_mulai" class="form-control @error('tanggal_mulai') is-invalid @enderror"
+                  id="tanggalMulai"
+                  value="{{ old('tanggal_mulai', isset($izinSakit) ? $izinSakit->tanggal_mulai->format('Y-m-d') : '') }}"
+                  required>
+                @error('tanggal_mulai')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+              </div>
+
+              <div class="col-md-3">
+                <label class="form-label fw-semibold small" for="tanggalSelesai">
+                  <i class="ti tabler-calendar-due me-1 text-info"></i> Tanggal Selesai <span class="text-danger">*</span>
+                </label>
+                <input type="date" name="tanggal_selesai"
+                  class="form-control @error('tanggal_selesai') is-invalid @enderror"
+                  id="tanggalSelesai"
+                  value="{{ old('tanggal_selesai', isset($izinSakit) ? $izinSakit->tanggal_selesai->format('Y-m-d') : '') }}"
+                  required>
+                @error('tanggal_selesai')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+              </div>
+
+              @if (isset($izinSakit))
+                <div class="col-md-3">
+                  <label class="form-label fw-semibold small" for="statusIzin">
+                    <i class="ti tabler-circle-check me-1 text-info"></i> Status
+                  </label>
+                  <select name="status" class="form-select" id="statusIzin">
+                    @foreach (['pending', 'disetujui', 'ditolak'] as $s)
+                      <option value="{{ $s }}" @selected(old('status', $izinSakit->status) === $s)>{{ ucfirst($s) }}</option>
+                    @endforeach
+                  </select>
                 </div>
               @endif
-              <input type="file" name="lampiran" class="form-control @error('lampiran') is-invalid @enderror"
-                accept=".jpg,.jpeg,.png,.pdf">
-              <small class="text-muted">Upload file baru untuk mengganti lampiran lama.</small>
-              @error('lampiran')
-                <div class="invalid-feedback">{{ $message }}</div>
-              @enderror
-            </div>
-          </div>
 
-          <div class="mt-4 d-flex gap-2">
-            <button type="submit" class="btn btn-primary" id="btnSubmit">{{ isset($izinSakit) ? 'Perbarui' : 'Simpan' }}</button>
-            <a href="{{ route('admin.izin-sakit.index') }}" class="btn btn-secondary">Batal</a>
-          </div>
-        </form>
+              <div class="col-md-12">
+                <label class="form-label fw-semibold small" for="keterangan">
+                  <i class="ti tabler-note me-1 text-info"></i> Keterangan
+                </label>
+                <textarea id="keterangan" name="keterangan" class="form-control" rows="3">{{ old('keterangan', $izinSakit->keterangan ?? '') }}</textarea>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small" for="lampiran">
+                  <i class="ti tabler-paperclip me-1 text-info"></i> Lampiran Surat (maks. 100KB — JPG/PNG/PDF)
+                </label>
+                @if (isset($izinSakit) && $izinSakit->lampiran)
+                  <div class="mb-2">
+                    <a href="{{ Storage::url($izinSakit->lampiran) }}" target="_blank" class="btn btn-sm btn-info">
+                      <i class="ti tabler-eye me-1"></i> Lihat Lampiran Lama
+                    </a>
+                  </div>
+                @endif
+                <input type="file" name="lampiran" id="lampiran" class="form-control @error('lampiran') is-invalid @enderror"
+                  accept=".jpg,.jpeg,.png,.pdf">
+                <small class="text-muted d-block mt-1">Upload file baru untuk mengganti lampiran lama.</small>
+                @error('lampiran')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-end gap-3 pt-4 mt-2 border-top"
+              style="border-color:rgba(255,255,255,0.08) !important;">
+              <a href="{{ route('admin.izin-sakit.index') }}" class="btn btn-label-secondary">
+                <i class="ti tabler-arrow-left me-1"></i> Batal
+              </a>
+              <button type="submit" class="btn btn-info fw-semibold px-4 shadow-sm" id="btnSubmit">
+                <i class="ti tabler-device-floppy me-1"></i>
+                {{ isset($izinSakit) ? 'Perbarui' : 'Simpan' }}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>
@@ -355,9 +432,25 @@ document.addEventListener('DOMContentLoaded', function () {
       isSelfMode = true;
       currentUserId = {{ auth()->id() }};
       quotaCard.classList.remove('quota-card-hidden');
-      // Hide tipe & reference selectors for self mode
-      if (tipeSelect) tipeSelect.closest('.col-md-4').style.display = 'none';
-      if (refSelect) refSelect.closest('.col-md-8').style.display = 'none';
+      // Hide tipe & reference selectors for self mode and remove required validation on front-end
+      if (tipeSelect) {
+        tipeSelect.closest('.col-md-4').style.display = 'none';
+        tipeSelect.removeAttribute('required');
+        @if(auth()->user()->isRole(\App\Models\User::ROLE_SISWA))
+          tipeSelect.value = 'siswa';
+        @elseif(auth()->user()->isRole(\App\Models\User::ROLE_GURU))
+          tipeSelect.value = 'guru';
+        @endif
+      }
+      if (refSelect) {
+        refSelect.closest('.col-md-8').style.display = 'none';
+        refSelect.removeAttribute('required');
+        @if(auth()->user()->isRole(\App\Models\User::ROLE_SISWA) && auth()->user()->siswa)
+          refSelect.value = "{{ auth()->user()->siswa->id }}";
+        @elseif(auth()->user()->isRole(\App\Models\User::ROLE_GURU) && auth()->user()->guru)
+          refSelect.value = "{{ auth()->user()->guru->id }}";
+        @endif
+      }
       scheduleCheck();
     @endif
   @endauth
@@ -423,7 +516,7 @@ document.addEventListener('DOMContentLoaded', function () {
     quotaGridContainer.style.display = 'none';
     quotaNoLimits.style.display = 'none';
 
-    var url = '{{ route("admin.leave-limits.check-quota") }}' +
+    var url = '{{ route("admin.izin-sakit.check-quota") }}' +
       '?user_id=' + encodeURIComponent(userId) +
       '&leave_type=' + encodeURIComponent(leaveType) +
       '&start_date=' + encodeURIComponent(startDate) +

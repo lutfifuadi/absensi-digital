@@ -836,8 +836,8 @@ Route::middleware([
         });
 
         // Endpoint AJAX check quota — bisa diakses role yg membuat izin
-        Route::get('/leave-limits/check-quota', [LeaveLimitController::class, 'checkQuota'])
-            ->name('admin.leave-limits.check-quota')
+        Route::get('/izin-sakit/check-quota', [LeaveLimitController::class, 'checkQuota'])
+            ->name('admin.izin-sakit.check-quota')
             ->middleware('role:super_admin,admin_sekolah,operator,guru,siswa,staff_tu,wali_kelas');
 
         Route::post('izin-sakit/{izinSakit}/approve', [IzinSakitController::class, 'approve'])
