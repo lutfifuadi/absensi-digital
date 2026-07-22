@@ -99,6 +99,41 @@
         </div>
       </div>
 
+      {{-- Open Graph & Link Preview --}}
+      <div class="set-panel mb-4">
+        <div class="set-panel__head">
+          <div class="set-panel__title-wrap">
+            <div class="set-panel__icon --primary"><i class="ti tabler-photo"></i></div>
+            <div>
+              <div class="set-panel__title">Open Graph & Link Preview (WhatsApp / Medsos)</div>
+              <div class="set-panel__sub">Tampilkan atau sembunyikan gambar logo dan kartu preview saat link website dibagikan via WhatsApp.</div>
+            </div>
+          </div>
+        </div>
+        <div class="set-panel__body">
+          <div class="set-form-grid">
+            <div class="set-field set-field--full">
+              <div class="form-check form-switch form-check-lg">
+                <input class="form-check-input" type="checkbox" id="wa_og_preview_enabled_check"
+                       style="width:3rem;height:1.5rem;"
+                       onchange="document.getElementById('wa_og_preview_enabled').value = this.checked ? 'Ya' : 'Tidak'"
+                       {{ ($settings['wa_og_preview_enabled'] ?? 'Ya') === 'Ya' ? 'checked' : '' }}>
+                <label class="form-check-label fs-6 fw-semibold ms-2" for="wa_og_preview_enabled_check">
+                  Tampilkan Gambar Preview Logo & Kartu Link Preview
+                </label>
+              </div>
+              <input type="hidden" name="wa_og_preview_enabled" id="wa_og_preview_enabled"
+                     value="{{ ($settings['wa_og_preview_enabled'] ?? 'Ya') }}">
+              <div class="set-field-hint --info mt-3">
+                <i class="ti tabler-info-circle"></i>
+                <b>Aktif (Ya):</b> WhatsApp akan merender gambar logo instansi dan deskripsi saat balasan berisi link.<br>
+                <b>Nonaktif (Tidak):</b> Tag preview disembunyikan sehingga balasan WhatsApp murni berupa teks biasa tanpa gambar preview.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="set-panel mb-4">
         <div class="set-panel__head">
           <div class="set-panel__title-wrap">

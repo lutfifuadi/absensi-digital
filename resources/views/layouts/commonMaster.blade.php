@@ -63,6 +63,7 @@
         $siteLogo = asset($siteLogo);
     }
 
+    $ogPreviewEnabled = \App\Models\Pengaturan::where('key', 'wa_og_preview_enabled')->value('value') ?? 'Ya';
     $pageTitle = trim($__env->yieldContent('title'));
     if ($pageTitle) {
         $fullTitle = \Illuminate\Support\Str::contains($pageTitle, $siteName) ? $pageTitle : ($pageTitle . ' | ' . $siteName);
@@ -74,6 +75,7 @@
   <meta name="description" content="{{ $siteDesc }}" />
   <meta name="keywords" content="{{ config('variables.templateKeyword') ? config('variables.templateKeyword') : 'presensi, portal presensi, absensi digital' }}" />
 
+  @if(($ogPreviewEnabled ?? 'Ya') === 'Ya')
   <!-- Open Graph Meta Tags (WhatsApp, Facebook, Social Share) -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="{{ $siteName }}" />
@@ -87,6 +89,7 @@
   <meta name="twitter:title" content="{{ $fullTitle }}" />
   <meta name="twitter:description" content="{{ $siteDesc }}" />
   <meta name="twitter:image" content="{{ $siteLogo }}" />
+  @endif
 
   <meta name="robots" content="noindex, nofollow" />
   <!-- Preload critical font assets -->

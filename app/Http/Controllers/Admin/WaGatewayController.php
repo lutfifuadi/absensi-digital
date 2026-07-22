@@ -12,6 +12,7 @@ class WaGatewayController extends Controller
 {
     private array $waKeys = [
         'wa_gateway_enabled',
+        'wa_og_preview_enabled',
         'link_server_wa',
         'wa_api_key',
         'wa_nomor_admin',
@@ -49,6 +50,7 @@ class WaGatewayController extends Controller
 
         // Defaults untuk field baru
         if (empty($settings['wa_gateway_enabled'])) $settings['wa_gateway_enabled'] = 'Ya';
+        if (empty($settings['wa_og_preview_enabled'])) $settings['wa_og_preview_enabled'] = 'Ya';
         if (empty($settings['link_server_wa'])) $settings['link_server_wa'] = 'https://wa.lutfifuadi.my.id/send-message';
 
         // Defaults WA Pengaduan
@@ -77,6 +79,7 @@ class WaGatewayController extends Controller
     public function update(Request $request)
     {
         $request->validate([
+            'wa_og_preview_enabled'             => 'nullable|in:Ya,Tidak',
             'link_server_wa'                    => 'nullable|url|max:255',
             'wa_api_key'                        => 'nullable|string|max:255',
             'wa_nomor_admin'                    => 'nullable|string|max:20|regex:/^[0-9+]+$/',
