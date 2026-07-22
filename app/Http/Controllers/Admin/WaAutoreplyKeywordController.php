@@ -89,7 +89,7 @@ class WaAutoreplyKeywordController extends Controller
         $templateTypes = $keywords->pluck('notification_template_type')->unique()->filter()->values();
         $templates = NotificationTemplate::whereIn('type', $templateTypes)
             ->orWhere('type', 'like', 'autoreply_%')
-            ->get(['type', 'content', 'description', 'is_active']);
+            ->get(['type', 'content']);
 
         $exportData = [
             'app'          => 'Aplikasi-Presensi',
@@ -135,9 +135,7 @@ class WaAutoreplyKeywordController extends Controller
                         NotificationTemplate::updateOrCreate(
                             ['type' => $t['type']],
                             [
-                                'content'     => $t['content'],
-                                'description' => $t['description'] ?? null,
-                                'is_active'   => $t['is_active'] ?? 1,
+                                'content' => $t['content'],
                             ]
                         );
                         $importedTemplatesCount++;
