@@ -164,17 +164,44 @@ class DeployService
             $this->runProcess(['php', 'artisan', 'optimize'], 120);
             $logOutput .= "[OK] php artisan optimize\n";
 
-            // Update database version setting to match new code version (running in separate process to load new files)
+            // Update database version setting to match new code version
             try {
-                $versionProcess = new Process(['php', '-r', 'echo (include "config/app.php")["version"] ?? "";'], base_path(), $this->env);
-                $versionProcess->run();
-                if ($versionProcess->isSuccessful() && !empty(trim($versionProcess->getOutput()))) {
-                    $newVersion = trim($versionProcess->getOutput());
+                $targetVersion = \App\Models\Pengaturan::where('key', 'update_available_version')->value('value');
+
+                if (empty($targetVersion)) {
+                    $commitInfo = $this->getCurrentCommitInfo();
+                    $targetVersion = $commitInfo['version'] ?? null;
+                }
+
+                if (!empty($targetVersion) && $targetVersion !== 'N/A') {
+                    $cleanVersion = ltrim(trim($targetVersion), 'v');
+
+                    // 1. Update Database
                     \App\Models\Pengaturan::updateOrCreate(
                         ['key' => 'app_version'],
-                        ['value' => $newVersion]
+                        ['value' => $cleanVersion, 'group' => 'update']
                     );
-                    $logOutput .= "[OK] Database version updated to: {$newVersion}\n";
+
+                    // 2. Update .env file
+                    $envPath = base_path('.env');
+                    if (\Illuminate\Support\Facades\File::exists($envPath)) {
+                        $content = \Illuminate\Support\Facades\File::get($envPath);
+                        if (str_contains($content, 'APP_VERSION=')) {
+                            $content = preg_replace('/APP_VERSION=.*/', 'APP_VERSION=' . $cleanVersion, $content);
+                        } else {
+                            $content .= "\nAPP_VERSION=" . $cleanVersion;
+                        }
+                        \Illuminate\Support\Facades\File::put($envPath, $content);
+                    }
+
+                    // 3. Clear cached update available info so system knows it's now updated
+                    \App\Models\Pengaturan::whereIn('key', ['update_available_version', 'update_changelog', 'update_package_url'])->delete();
+                    \App\Models\Pengaturan::updateOrCreate(
+                        ['key' => 'update_last_check'],
+                        ['value' => now()->toDateTimeString(), 'group' => 'update']
+                    );
+
+                    $logOutput .= "[OK] Database & .env version updated to: {$cleanVersion}\n";
                 }
             } catch (\Exception $e) {
                 $logOutput .= "[WARNING] Failed to update database version: " . $e->getMessage() . "\n";

@@ -40,16 +40,34 @@ class UpdateController extends Controller
                 
                 $versionInfo = $deployService->checkVersion();
                 if (isset($versionInfo['behind']) && $versionInfo['behind'] > 0) {
+                    $gitVersion = $result['latest_version'] ?? 'Update via Git';
+
+                    // Cek jika ada tag versi terbaru di remote origin/main
+                    try {
+                        $tagProcess = new \Symfony\Component\Process\Process(['git', 'describe', '--tags', 'origin/main'], base_path());
+                        $tagProcess->run();
+                        if ($tagProcess->isSuccessful() && !empty(trim($tagProcess->getOutput()))) {
+                            $gitVersion = ltrim(trim($tagProcess->getOutput()), 'v');
+                        }
+                    } catch (\Exception $ex) {}
+
                     $result['status'] = true;
                     $result['update_available'] = true;
-                    $result['latest_version'] = 'Update via Git';
-                    $result['changelog'] = "Terdapat {$versionInfo['behind']} pembaruan (commit) baru di GitHub. Klik 'Perbarui' untuk melakukan penarikan kode dan update aset otomatis.";
+                    $result['latest_version'] = $gitVersion;
+                    $result['changelog'] = "Terdapat {$versionInfo['behind']} pembaruan (commit) baru di GitHub. Klik 'Install Pembaruan' untuk melakukan pembaruan otomatis.";
                     $result['update_data'] = [
-                        'latest_version' => 'Update via Git',
+                        'latest_version' => $gitVersion,
                         'changelog' => "Terdapat {$versionInfo['behind']} pembaruan (commit) baru di GitHub.",
                         'package_url' => '',
                         'release_date' => now()->toDateTimeString()
                     ];
+
+                    if ($gitVersion && $gitVersion !== 'Update via Git') {
+                        \App\Models\Pengaturan::updateOrCreate(
+                            ['key' => 'update_available_version'],
+                            ['value' => $gitVersion, 'group' => 'update']
+                        );
+                    }
                 }
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::warning('Git update check error: ' . $e->getMessage());
@@ -142,6 +160,10 @@ class UpdateController extends Controller
 
             try {
                 $deployService->runDeploy($request->user(), $deployLog, $progress);
+                try {
+                    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+                } catch (\Throwable $e) {}
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Sistem (Git Deploy) berhasil diperbarui ke versi terbaru.'
