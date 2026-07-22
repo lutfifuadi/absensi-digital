@@ -2,6 +2,14 @@
 
 @section('title', 'Izin & Sakit')
 
+@section('vendor-style')
+  @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
+@endsection
+
+@section('vendor-script')
+  @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.js'])
+@endsection
+
 @section('page-style')
   <style>
     .izin-sakit-row-hover {
@@ -28,6 +36,112 @@
     .izin-sakit-action-btn:hover {
       transform: translateY(-2px);
       background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* SWEETALERT2 ULTRA-PREMIUM UI/UX DESIGN SYSTEM */
+    .das-swal-popup {
+      background: #1e1e30 !important;
+      background: linear-gradient(145deg, #1e1e30 0%, #161625 100%) !important;
+      backdrop-filter: blur(20px) saturate(180%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      border-radius: 12px !important;
+      padding: 2rem 1.75rem 1.75rem !important;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(115, 103, 240, 0.1) !important;
+      width: 440px !important;
+      max-width: 90vw !important;
+    }
+
+    .das-swal-icon {
+      margin: 0.25rem auto 1.25rem !important;
+      border-width: 2px !important;
+      transform: scale(1.1);
+    }
+    .das-swal-icon.swal2-question {
+      border-color: #00cfe8 !important;
+      color: #00cfe8 !important;
+    }
+    .das-swal-icon.swal2-warning {
+      border-color: #ff9f43 !important;
+      color: #ff9f43 !important;
+    }
+    .das-swal-icon.swal2-error {
+      border-color: #ea5455 !important;
+      color: #ea5455 !important;
+    }
+
+    .das-swal-title {
+      color: #ffffff !important;
+      font-weight: 700 !important;
+      font-size: 1.35rem !important;
+      letter-spacing: -0.3px !important;
+      text-align: center !important;
+      padding: 0 !important;
+      margin-bottom: 0.5rem !important;
+    }
+
+    .das-swal-html {
+      color: rgba(255, 255, 255, 0.75) !important;
+      font-size: 0.92rem !important;
+      line-height: 1.5 !important;
+      margin: 0.75rem 0 1.5rem !important;
+      padding: 0 !important;
+    }
+
+    .das-swal-actions {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 12px !important;
+      margin-top: 1.25rem !important;
+      width: 100% !important;
+    }
+
+    .das-swal-confirm-approve {
+      background: linear-gradient(135deg, #28c76f 0%, #20b061 100%) !important;
+      color: #fff !important;
+      padding: 0.65rem 1.5rem !important;
+      font-weight: 600 !important;
+      font-size: 0.85rem !important;
+      border-radius: 8px !important;
+      border: none !important;
+      box-shadow: 0 4px 14px rgba(40, 199, 111, 0.35) !important;
+      transition: all 0.2s ease !important;
+    }
+    .das-swal-confirm-approve:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 6px 20px rgba(40, 199, 111, 0.5) !important;
+    }
+
+    .das-swal-confirm-danger {
+      background: linear-gradient(135deg, #ea5455 0%, #d64344 100%) !important;
+      color: #fff !important;
+      padding: 0.65rem 1.5rem !important;
+      font-weight: 600 !important;
+      font-size: 0.85rem !important;
+      border-radius: 8px !important;
+      border: none !important;
+      box-shadow: 0 4px 14px rgba(234, 84, 85, 0.35) !important;
+      transition: all 0.2s ease !important;
+    }
+    .das-swal-confirm-danger:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 6px 20px rgba(234, 84, 85, 0.5) !important;
+    }
+
+    .das-swal-cancel {
+      background: rgba(255, 255, 255, 0.06) !important;
+      color: rgba(255, 255, 255, 0.8) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      padding: 0.65rem 1.5rem !important;
+      font-weight: 600 !important;
+      font-size: 0.85rem !important;
+      border-radius: 8px !important;
+      transition: all 0.2s ease !important;
+    }
+    .das-swal-cancel:hover {
+      background: rgba(255, 255, 255, 0.12) !important;
+      color: #fff !important;
+      border-color: rgba(255, 255, 255, 0.25) !important;
     }
   </style>
 @endsection
@@ -180,22 +294,28 @@
                     <span class="text-muted">–</span>
                   @endif
                 </td>
+                @php
+                  $namaPengaju = match($item->tipe) {
+                      'siswa' => $item->siswa->nama_lengkap ?? 'Siswa',
+                      'guru' => $item->guru->nama_lengkap ?? 'Guru',
+                      'staff' => $item->staff->nama_lengkap ?? 'Staff',
+                      default => 'Pengajuan'
+                  };
+                @endphp
                 <td class="pe-4 text-end">
                   <div class="d-flex justify-content-end gap-1 flex-wrap">
                     @if ($item->status === 'pending' && auth()->user()->role !== 'siswa')
                       <form action="{{ route('admin.izin-sakit.approve', $item) }}" method="POST" class="d-inline">
                         @csrf
                         <input type="hidden" name="action" value="disetujui">
-                        <button class="izin-sakit-action-btn text-success" title="Setujui" data-bs-toggle="tooltip"
-                          onclick="return confirm('Setujui izin ini?')">
+                        <button type="button" class="izin-sakit-action-btn text-success btn-approve-confirm" title="Setujui" data-bs-toggle="tooltip" data-nama="{{ $namaPengaju }}">
                           <i class="ti tabler-check fs-5"></i>
                         </button>
                       </form>
                       <form action="{{ route('admin.izin-sakit.approve', $item) }}" method="POST" class="d-inline">
                         @csrf
                         <input type="hidden" name="action" value="ditolak">
-                        <button class="izin-sakit-action-btn text-danger" title="Tolak" data-bs-toggle="tooltip"
-                          onclick="return confirm('Tolak izin ini?')">
+                        <button type="button" class="izin-sakit-action-btn text-danger btn-reject-confirm" title="Tolak" data-bs-toggle="tooltip" data-nama="{{ $namaPengaju }}">
                           <i class="ti tabler-x fs-5"></i>
                         </button>
                       </form>
@@ -204,10 +324,9 @@
                       title="Edit" data-bs-toggle="tooltip">
                       <i class="ti tabler-pencil fs-5"></i>
                     </a>
-                    <form action="{{ route('admin.izin-sakit.destroy', $item) }}" method="POST" class="d-inline"
-                      onsubmit="return confirm('Hapus pengajuan ini?')">
+                    <form action="{{ route('admin.izin-sakit.destroy', $item) }}" method="POST" class="d-inline">
                       @csrf @method('DELETE')
-                      <button class="izin-sakit-action-btn text-danger" title="Hapus" data-bs-toggle="tooltip">
+                      <button type="button" class="izin-sakit-action-btn text-danger btn-delete-confirm" title="Hapus" data-bs-toggle="tooltip" data-nama="{{ $namaPengaju }}">
                         <i class="ti tabler-trash fs-5"></i>
                       </button>
                     </form>
@@ -232,4 +351,106 @@
       <div class="card-footer">{{ $izinSakit->links() }}</div>
     @endif
   </div>
+@endsection
+
+@section('page-script')
+  <script type="module">
+    $(function() {
+      // Setujui Modal Confirm
+      $('.btn-approve-confirm').on('click', function(e) {
+        e.preventDefault();
+        const form = $(this).closest('form');
+        const nama = $(this).data('nama') || 'pengajuan ini';
+
+        Swal.fire({
+          title: 'Setujui Pengajuan?',
+          html: `<div class="mb-1">Apakah Anda yakin ingin menyetujui pengajuan izin/sakit untuk:</div><div class="fw-bold text-info fs-6 mt-1">${nama}</div>`,
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: '<i class="ti tabler-check me-1"></i> Ya, Setujui',
+          cancelButtonText: 'Batal',
+          customClass: {
+            popup: 'das-swal-popup',
+            icon: 'das-swal-icon',
+            title: 'das-swal-title',
+            htmlContainer: 'das-swal-html',
+            actions: 'das-swal-actions',
+            confirmButton: 'btn das-swal-confirm-approve',
+            cancelButton: 'btn das-swal-cancel'
+          },
+          buttonsStyling: false,
+          reverseButtons: true,
+          focusCancel: true
+        }).then(function(result) {
+          if (result.isConfirmed) {
+            form.submit();
+          }
+        });
+      });
+
+      // Tolak Modal Confirm
+      $('.btn-reject-confirm').on('click', function(e) {
+        e.preventDefault();
+        const form = $(this).closest('form');
+        const nama = $(this).data('nama') || 'pengajuan ini';
+
+        Swal.fire({
+          title: 'Tolak Pengajuan?',
+          html: `<div class="mb-1">Apakah Anda yakin ingin menolak pengajuan izin/sakit untuk:</div><div class="fw-bold text-warning fs-6 mt-1">${nama}</div>`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: '<i class="ti tabler-x me-1"></i> Ya, Tolak',
+          cancelButtonText: 'Batal',
+          customClass: {
+            popup: 'das-swal-popup',
+            icon: 'das-swal-icon',
+            title: 'das-swal-title',
+            htmlContainer: 'das-swal-html',
+            actions: 'das-swal-actions',
+            confirmButton: 'btn das-swal-confirm-danger',
+            cancelButton: 'btn das-swal-cancel'
+          },
+          buttonsStyling: false,
+          reverseButtons: true,
+          focusCancel: true
+        }).then(function(result) {
+          if (result.isConfirmed) {
+            form.submit();
+          }
+        });
+      });
+
+      // Hapus Modal Confirm
+      $('.btn-delete-confirm').on('click', function(e) {
+        e.preventDefault();
+        const form = $(this).closest('form');
+        const nama = $(this).data('nama') || 'pengajuan ini';
+
+        Swal.fire({
+          title: 'Hapus Pengajuan?',
+          html: `<div class="mb-1">Data pengajuan izin/sakit untuk:</div><div class="fw-bold text-danger fs-6 my-1">${nama}</div><div class="small text-white-50">akan dihapus secara permanen dari sistem.</div>`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: '<i class="ti tabler-trash me-1"></i> Ya, Hapus',
+          cancelButtonText: 'Batal',
+          customClass: {
+            popup: 'das-swal-popup',
+            icon: 'das-swal-icon',
+            title: 'das-swal-title',
+            htmlContainer: 'das-swal-html',
+            actions: 'das-swal-actions',
+            confirmButton: 'btn das-swal-confirm-danger',
+            cancelButton: 'btn das-swal-cancel'
+          },
+          buttonsStyling: false,
+          reverseButtons: true,
+          focusCancel: true
+        }).then(function(result) {
+          if (result.isConfirmed) {
+            form.submit();
+          }
+        });
+      });
+    });
+  </script>
 @endsection

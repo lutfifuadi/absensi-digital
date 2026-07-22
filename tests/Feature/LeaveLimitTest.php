@@ -646,4 +646,77 @@ class LeaveLimitTest extends TestCase
         $this->assertFalse($response->json('allowed'));
         $this->assertTrue($response->json('is_overlimit'));
     }
+
+    /** @test */
+    public function student_can_check_quota_via_ajax()
+    {
+        LeaveLimit::factory()->create([
+            'target_roles' => ['siswa'],
+            'leave_type'   => 'all',
+            'max_days'     => 3,
+            'period'       => 'monthly',
+            'action_type'  => 'block',
+            'is_active'    => true,
+        ]);
+
+        $this->actingAs($this->siswa);
+
+        $response = $this->getJson(route('admin.izin-sakit.check-quota', [
+            'user_id'    => $this->siswa->id,
+            'leave_type' => 'all',
+            'start_date' => now()->format('Y-m-d'),
+            'end_date'   => now()->addDay()->format('Y-m-d'),
+        ]));
+
+        $response->assertStatus(200);
+        $this->assertTrue($response->json('allowed'));
+    }
+
+    /** @test */
+    public function admin_can_approve_izin_sakit()
+    {
+        $ta = \App\Models\TahunAkademik::create([
+            'nama' => '2026/2027',
+            'semester' => 'ganjil',
+            'tanggal_mulai' => '2026-07-01',
+            'tanggal_selesai' => '2026-12-31',
+            'is_aktif' => true,
+        ]);
+
+        $kelas = \App\Models\Kelas::create([
+            'nama' => 'X RPL 1',
+            'tingkat' => '10',
+            'tahun_akademik_id' => $ta->id,
+        ]);
+
+        $siswaRecord = \App\Models\Siswa::create([
+            'user_id'      => $this->siswa->id,
+            'nis'          => '12345',
+            'nisn'         => '67890',
+            'nama_lengkap' => 'Siswa Test',
+            'jenis_kelamin'=> 'L',
+            'tempat_lahir' => 'Jakarta',
+            'tanggal_lahir'=> '2000-01-01',
+            'kelas_id'     => $kelas->id,
+        ]);
+
+        $izin = \App\Models\IzinSakit::create([
+            'tipe' => 'siswa',
+            'reference_id' => $siswaRecord->id,
+            'tanggal_mulai' => now()->format('Y-m-d'),
+            'tanggal_selesai' => now()->addDay()->format('Y-m-d'),
+            'jenis' => 'sakit',
+            'status' => 'pending',
+            'user_id' => $this->siswa->id,
+        ]);
+
+        $this->actingAs($this->admin);
+
+        $response = $this->post(route('admin.izin-sakit.approve', $izin), [
+            'action' => 'disetujui',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertEquals('disetujui', $izin->fresh()->status);
+    }
 }

@@ -2,8 +2,56 @@
 
 @section('title', isset($izinSakit) ? 'Ubah Pengajuan Izin/Sakit' : 'Tambah Pengajuan Izin/Sakit')
 
+@section('vendor-style')
+  @vite(['resources/assets/vendor/libs/select2/select2.scss'])
+@endsection
+
+@section('vendor-script')
+  @vite(['resources/assets/vendor/libs/select2/select2.js'])
+@endsection
+
 @section('page-style')
 <style>
+  /* Select2 theme override */
+  .select2-container {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .select2-container--default .select2-selection--single {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    height: 38px !important;
+    border-radius: 6px !important;
+  }
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #fff !important;
+    line-height: 36px !important;
+    padding-left: 12px !important;
+  }
+  .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px !important;
+  }
+  .select2-dropdown {
+    background-color: #2f3349 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #fff !important;
+    z-index: 1060 !important;
+  }
+  .select2-container--default .select2-results__option[aria-selected=true] {
+    background-color: rgba(115, 103, 240, 0.2) !important;
+    color: #fff !important;
+  }
+  .select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #7367f0 !important;
+    color: #fff !important;
+  }
+  .select2-container--default .select2-search--dropdown .select2-search__field {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+  }
+
   /* ── Quota Info Card ───────────────────────────────── */
   .quota-card {
     background: var(--das-surface);
@@ -267,7 +315,7 @@
                 <label class="form-label fw-semibold small" for="referenceId">
                   <i class="ti tabler-user me-1 text-info"></i> Nama <span class="text-danger">*</span>
                 </label>
-                <select name="reference_id" class="form-select @error('reference_id') is-invalid @enderror" id="referenceId" required>
+                <select name="reference_id" class="form-select select2 @error('reference_id') is-invalid @enderror" id="referenceId" data-placeholder="-- Pilih Nama --" required>
                   <option value="">-- Pilih Nama --</option>
                   <optgroup label="Siswa">
                     @foreach ($siswaOptions as $s)
@@ -396,77 +444,85 @@
 @endsection
 
 @section('page-script')
-<script>
-/**
- * Quota Checker for Izin/Sakit Form
- *
- * Mengecek sisa kuota user via AJAX (check-quota endpoint)
- * - Admin mode: menunggu user memilih tipe + nama + jenis + tanggal
- * - Siswa/Guru mode: auto-check pada saat halaman dimuat
- */
-document.addEventListener('DOMContentLoaded', function () {
-  const quotaCard      = document.getElementById('quotaCard');
-  const quotaLoading   = document.getElementById('quotaLoading');
-  const quotaError     = document.getElementById('quotaError');
-  const quotaGrid      = document.getElementById('quotaGrid');
-  const quotaGridContainer = document.getElementById('quotaGridContainer');
-  const quotaNoLimits  = document.getElementById('quotaNoLimits');
-  const quotaMessage   = document.getElementById('quotaMessage');
-  const quotaPeriod    = document.getElementById('quotaPeriod');
-  const btnSubmit      = document.getElementById('btnSubmit');
+  <script type="module">
+    $(function() {
+      const $refSelect = $('#referenceId');
+      if ($refSelect.length) {
+        $refSelect.wrap('<div class="position-relative w-100"></div>').select2({
+          width: '100%',
+          placeholder: $refSelect.data('placeholder') || '-- Pilih Nama --',
+          allowClear: true,
+          dropdownParent: $refSelect.parent()
+        });
 
-  const tipeSelect     = document.getElementById('tipePengaju');
-  const refSelect      = document.getElementById('referenceId');
-  const jenisSelect    = document.getElementById('jenisIzin');
-  const tanggalMulai   = document.getElementById('tanggalMulai');
-  const tanggalSelesai = document.getElementById('tanggalSelesai');
+        const tipeSelect = document.getElementById('tipePengaju');
 
-  // ─── State ────────────────────────────────────────────
-  var currentUserId = null;
-  var isSelfMode = false;
-  var checkTimeout = null;
+        // Synchronize Select2 change event with quota checker
+        $refSelect.on('change', function () {
+          var selectedOpt = this.options[this.selectedIndex];
+          if (selectedOpt && selectedOpt.value) {
+            var optTipe = selectedOpt.getAttribute('data-tipe');
+            if (optTipe && tipeSelect && !tipeSelect.value) {
+              tipeSelect.value = optTipe;
+            }
+          }
+          if (typeof window.scheduleCheck === 'function') {
+            window.scheduleCheck();
+          }
+        });
 
-  // ─── Detect self-submission mode ──────────────────────
-  @auth
-    @if(auth()->user()->isRole(\App\Models\User::ROLE_SISWA) || auth()->user()->isRole(\App\Models\User::ROLE_GURU))
-      isSelfMode = true;
-      currentUserId = {{ auth()->id() }};
-      quotaCard.classList.remove('quota-card-hidden');
-      // Hide tipe & reference selectors for self mode and remove required validation on front-end
-      if (tipeSelect) {
-        tipeSelect.closest('.col-md-4').style.display = 'none';
-        tipeSelect.removeAttribute('required');
-        @if(auth()->user()->isRole(\App\Models\User::ROLE_SISWA))
-          tipeSelect.value = 'siswa';
-        @elseif(auth()->user()->isRole(\App\Models\User::ROLE_GURU))
-          tipeSelect.value = 'guru';
-        @endif
+        if (tipeSelect) {
+          tipeSelect.addEventListener('change', function () {
+            if ($refSelect.val()) {
+              var selectedOpt = $refSelect[0].options[$refSelect[0].selectedIndex];
+              if (selectedOpt && selectedOpt.getAttribute('data-tipe') !== this.value) {
+                $refSelect.val('').trigger('change.select2');
+              }
+            }
+          });
+        }
       }
-      if (refSelect) {
-        refSelect.closest('.col-md-8').style.display = 'none';
-        refSelect.removeAttribute('required');
-        @if(auth()->user()->isRole(\App\Models\User::ROLE_SISWA) && auth()->user()->siswa)
-          refSelect.value = "{{ auth()->user()->siswa->id }}";
-        @elseif(auth()->user()->isRole(\App\Models\User::ROLE_GURU) && auth()->user()->guru)
-          refSelect.value = "{{ auth()->user()->guru->id }}";
-        @endif
-      }
-      scheduleCheck();
-    @endif
-  @endauth
+    });
+  </script>
 
-  // ─── Event listeners ──────────────────────────────────
-  if (tipeSelect)     tipeSelect.addEventListener('change',     scheduleCheck);
-  if (refSelect)      refSelect.addEventListener('change',      scheduleCheck);
-  if (jenisSelect)    jenisSelect.addEventListener('change',    scheduleCheck);
-  if (tanggalMulai)   tanggalMulai.addEventListener('change',  scheduleCheck);
-  if (tanggalSelesai) tanggalSelesai.addEventListener('change', scheduleCheck);
+  <script>
+  /**
+   * Quota Checker for Izin/Sakit Form
+   *
+   * Mengecek sisa kuota user via AJAX (check-quota endpoint)
+   * - Admin mode: menunggu user memilih tipe + nama + jenis + tanggal
+   * - Siswa/Guru mode: auto-check pada saat halaman dimuat
+   */
+  var scheduleCheck;
 
-  // ─── Schedule check with debounce ─────────────────────
-  function scheduleCheck() {
-    if (checkTimeout) clearTimeout(checkTimeout);
-    checkTimeout = setTimeout(doCheck, 600);
-  }
+  document.addEventListener('DOMContentLoaded', function () {
+    const quotaCard      = document.getElementById('quotaCard');
+    const quotaLoading   = document.getElementById('quotaLoading');
+    const quotaError     = document.getElementById('quotaError');
+    const quotaGrid      = document.getElementById('quotaGrid');
+    const quotaGridContainer = document.getElementById('quotaGridContainer');
+    const quotaNoLimits  = document.getElementById('quotaNoLimits');
+    const quotaMessage   = document.getElementById('quotaMessage');
+    const quotaPeriod    = document.getElementById('quotaPeriod');
+    const btnSubmit      = document.getElementById('btnSubmit');
+
+    const tipeSelect     = document.getElementById('tipePengaju');
+    const refSelect      = document.getElementById('referenceId');
+    const jenisSelect    = document.getElementById('jenisIzin');
+    const tanggalMulai   = document.getElementById('tanggalMulai');
+    const tanggalSelesai = document.getElementById('tanggalSelesai');
+
+    // ─── State ────────────────────────────────────────────
+    var currentUserId = null;
+    var isSelfMode = false;
+    var checkTimeout = null;
+
+    // ─── Schedule check with debounce ─────────────────────
+    scheduleCheck = function() {
+      if (checkTimeout) clearTimeout(checkTimeout);
+      checkTimeout = setTimeout(doCheck, 600);
+    };
+    window.scheduleCheck = scheduleCheck;
 
   // ─── Main check function ──────────────────────────────
   function doCheck() {
@@ -523,9 +579,20 @@ document.addEventListener('DOMContentLoaded', function () {
       '&end_date=' + encodeURIComponent(endDate) +
       '&_=' + Date.now();
 
-    fetch(url)
+    fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
       .then(function (res) {
-        if (!res.ok) throw new Error('Network error');
+        if (!res.ok) {
+          return res.json().then(function (err) {
+            throw new Error(err.message || 'Server error (' + res.status + ')');
+          }).catch(function () {
+            throw new Error('Server error (' + res.status + ')');
+          });
+        }
         return res.json();
       })
       .then(function (data) {

@@ -33,3 +33,6 @@ class IzinDisetujuiNotification extends Notification
             'status'  => $this->izin->status,
             'pesan'   => "Pengajuan {$this->izin->jenis} untuk {$nama} telah " . ($this->izin->status === 'disetujui' ? 'disetujui' : 'ditolak') . ".",
             'url'     => route('admin.izin-sakit.edit', $this->izin),
+        ];
+    }
+}
