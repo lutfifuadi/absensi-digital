@@ -2,6 +2,14 @@
 
 @section('title', 'Jadwal Pelajaran')
 
+@section('vendor-style')
+  @vite(['resources/assets/vendor/libs/select2/select2.scss'])
+@endsection
+
+@section('vendor-script')
+  @vite(['resources/assets/vendor/libs/select2/select2.js'])
+@endsection
+
 @section('page-style')
   <style>
     .jadwal-row-hover {
@@ -294,7 +302,6 @@
                 pelajaran.</small>
             </div>
           </div>
-          <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
         </div>
 
         <form id="formJadwal" method="POST">
@@ -322,8 +329,8 @@
                 <label class="form-label fw-semibold small" for="modal_kelas_id">
                   <i class="ti tabler-door me-1 text-info"></i> Kelas <span class="text-danger">*</span>
                 </label>
-                <select id="modal_kelas_id" name="kelas_id" class="form-select @error('kelas_id') is-invalid @enderror"
-                  required>
+                <select id="modal_kelas_id" name="kelas_id" class="select2 form-select @error('kelas_id') is-invalid @enderror"
+                  required data-placeholder="-- Pilih Kelas --">
                   <option value="">-- Pilih Kelas --</option>
                   @foreach ($kelasOptions as $k)
                     <option value="{{ $k->id }}" @selected(old('kelas_id') == $k->id)>{{ $k->nama }}</option>
@@ -336,7 +343,8 @@
                 <label class="form-label fw-semibold small" for="modal_guru_id">
                   <i class="ti tabler-user-check me-1 text-info"></i> Guru Pengampu
                 </label>
-                <select id="modal_guru_id" name="guru_id" class="form-select @error('guru_id') is-invalid @enderror">
+                <select id="modal_guru_id" name="guru_id" class="select2 form-select @error('guru_id') is-invalid @enderror"
+                  data-placeholder="-- Pilih Guru (Opsional) --">
                   <option value="">-- Pilih Guru (Opsional) --</option>
                   @foreach ($guruOptions as $g)
                     <option value="{{ $g->id }}" @selected(old('guru_id') == $g->id)>{{ $g->nama_lengkap }}</option>
@@ -349,9 +357,13 @@
                 <label class="form-label fw-semibold small" for="modal_mata_pelajaran">
                   <i class="ti tabler-book me-1 text-info"></i> Mata Pelajaran <span class="text-danger">*</span>
                 </label>
-                <input id="modal_mata_pelajaran" name="mata_pelajaran" type="text"
-                  class="form-control @error('mata_pelajaran') is-invalid @enderror" placeholder="Contoh: Matematika"
-                  value="{{ old('mata_pelajaran') }}" required>
+                <select id="modal_mata_pelajaran" name="mata_pelajaran" class="select2 form-select @error('mata_pelajaran') is-invalid @enderror"
+                  required data-placeholder="-- Pilih Mata Pelajaran --">
+                  <option value="">-- Pilih Mata Pelajaran --</option>
+                  @foreach ($mapelOptions as $m)
+                    <option value="{{ $m->nama_mapel }}" @selected(old('mata_pelajaran') === $m->nama_mapel)>{{ $m->nama_mapel }}</option>
+                  @endforeach
+                </select>
               </div>
 
               {{-- Hari --}}
@@ -359,7 +371,8 @@
                 <label class="form-label fw-semibold small" for="modal_hari">
                   <i class="ti tabler-calendar-event me-1 text-info"></i> Hari <span class="text-danger">*</span>
                 </label>
-                <select id="modal_hari" name="hari" class="form-select @error('hari') is-invalid @enderror" required>
+                <select id="modal_hari" name="hari" class="select2 form-select @error('hari') is-invalid @enderror" required
+                  data-placeholder="-- Pilih Hari --">
                   <option value="">-- Pilih Hari --</option>
                   @foreach ($hariOptions as $h)
                     <option value="{{ $h }}" @selected(old('hari') === $h)>{{ $h }}</option>
@@ -447,6 +460,20 @@
 @endsection
 
 @section('page-script')
+  <script type="module">
+    $(function() {
+      const select2 = $('.select2');
+      if (select2.length) {
+        select2.each(function () {
+          var $this = $(this);
+          $this.wrap('<div class="position-relative"></div>').select2({
+            placeholder: $this.data('placeholder'),
+            dropdownParent: $('#modalJadwal')
+          });
+        });
+      }
+    });
+  </script>
   <script>
     const jadwalStoreUrl = "{{ route('admin.jadwal.store') }}";
     const jadwalBaseUrl = "{{ url('admin/jadwal') }}";
@@ -456,10 +483,10 @@
       form.action = jadwalStoreUrl;
       document.getElementById('methodSpoofJadwal').innerHTML = '';
 
-      document.getElementById('modal_kelas_id').value = '';
-      document.getElementById('modal_guru_id').value = '';
-      document.getElementById('modal_mata_pelajaran').value = '';
-      document.getElementById('modal_hari').value = '';
+      $('#modal_kelas_id').val('').trigger('change');
+      $('#modal_guru_id').val('').trigger('change');
+      $('#modal_hari').val('').trigger('change');
+      $('#modal_mata_pelajaran').val('').trigger('change');
       document.getElementById('modal_jam_mulai').value = '';
       document.getElementById('modal_jam_selesai').value = '';
 
@@ -477,10 +504,10 @@
       form.action = jadwalBaseUrl + '/' + data.id;
       document.getElementById('methodSpoofJadwal').innerHTML = '<input type="hidden" name="_method" value="PUT">';
 
-      document.getElementById('modal_kelas_id').value = data.kelas_id;
-      document.getElementById('modal_guru_id').value = data.guru_id || '';
-      document.getElementById('modal_mata_pelajaran').value = data.mata_pelajaran;
-      document.getElementById('modal_hari').value = data.hari;
+      $('#modal_kelas_id').val(data.kelas_id).trigger('change');
+      $('#modal_guru_id').val(data.guru_id || '').trigger('change');
+      $('#modal_hari').val(data.hari).trigger('change');
+      $('#modal_mata_pelajaran').val(data.mata_pelajaran).trigger('change');
       document.getElementById('modal_jam_mulai').value = data.jam_mulai;
       document.getElementById('modal_jam_selesai').value = data.jam_selesai;
 

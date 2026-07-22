@@ -2,6 +2,35 @@
 
 @section('title', isset($jadwal) ? 'Ubah Jadwal' : 'Tambah Jadwal')
 
+@section('vendor-style')
+  @vite([
+    'resources/assets/vendor/libs/select2/select2.scss'
+  ])
+@endsection
+
+@section('vendor-script')
+  @vite([
+    'resources/assets/vendor/libs/select2/select2.js'
+  ])
+@endsection
+
+@section('page-script')
+  <script type="module">
+    $(function() {
+      const select2 = $('.select2');
+      if (select2.length) {
+        select2.each(function () {
+          var $this = $(this);
+          $this.wrap('<div class="position-relative"></div>').select2({
+            placeholder: $this.data('placeholder'),
+            dropdownParent: $this.parent()
+          });
+        });
+      }
+    });
+  </script>
+@endsection
+
 @section('content')
 
   {{-- HERO HEADER --}}
@@ -72,7 +101,8 @@
                 <label class="form-label fw-semibold small" for="kelas_id">
                   <i class="ti tabler-door me-1 text-info"></i> Kelas <span class="text-danger">*</span>
                 </label>
-                <select id="kelas_id" name="kelas_id" class="form-select @error('kelas_id') is-invalid @enderror" required>
+                <select id="kelas_id" name="kelas_id" class="select2 form-select @error('kelas_id') is-invalid @enderror" required
+                  data-placeholder="-- Pilih Kelas --">
                   <option value="">-- Pilih Kelas --</option>
                   @foreach ($kelasOptions as $k)
                     <option value="{{ $k->id }}" @selected(old('kelas_id', $jadwal->kelas_id ?? '') == $k->id)>{{ $k->nama }}</option>
@@ -88,7 +118,8 @@
                 <label class="form-label fw-semibold small" for="guru_id">
                   <i class="ti tabler-user-check me-1 text-info"></i> Guru Pengampu
                 </label>
-                <select id="guru_id" name="guru_id" class="form-select @error('guru_id') is-invalid @enderror">
+                <select id="guru_id" name="guru_id" class="select2 form-select @error('guru_id') is-invalid @enderror"
+                  data-placeholder="-- Pilih Guru (Opsional) --">
                   <option value="">-- Pilih Guru (Opsional) --</option>
                   @foreach ($guruOptions as $g)
                     <option value="{{ $g->id }}" @selected(old('guru_id', $jadwal->guru_id ?? '') == $g->id)>{{ $g->nama_lengkap }}</option>
@@ -104,9 +135,13 @@
                 <label class="form-label fw-semibold small" for="mata_pelajaran">
                   <i class="ti tabler-book me-1 text-info"></i> Mata Pelajaran <span class="text-danger">*</span>
                 </label>
-                <input id="mata_pelajaran" name="mata_pelajaran" type="text"
-                  class="form-control @error('mata_pelajaran') is-invalid @enderror" placeholder="Contoh: Matematika"
-                  value="{{ old('mata_pelajaran', $jadwal->mata_pelajaran ?? '') }}" required>
+                <select id="mata_pelajaran" name="mata_pelajaran" class="select2 form-select @error('mata_pelajaran') is-invalid @enderror" required
+                  data-placeholder="-- Pilih Mata Pelajaran --">
+                  <option value="">-- Pilih Mata Pelajaran --</option>
+                  @foreach ($mapelOptions as $m)
+                    <option value="{{ $m->nama_mapel }}" @selected(old('mata_pelajaran', $jadwal->mata_pelajaran ?? '') == $m->nama_mapel)>{{ $m->nama_mapel }}</option>
+                  @endforeach
+                </select>
                 @error('mata_pelajaran')
                   <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -117,7 +152,8 @@
                 <label class="form-label fw-semibold small" for="hari">
                   <i class="ti tabler-calendar-event me-1 text-info"></i> Hari <span class="text-danger">*</span>
                 </label>
-                <select id="hari" name="hari" class="form-select @error('hari') is-invalid @enderror" required>
+                <select id="hari" name="hari" class="select2 form-select @error('hari') is-invalid @enderror" required
+                  data-placeholder="-- Pilih Hari --">
                   <option value="">-- Pilih Hari --</option>
                   @foreach ($hariOptions as $h)
                     <option value="{{ $h }}" @selected(old('hari', $jadwal->hari ?? '') === $h)>{{ $h }}</option>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Guru;
 use App\Models\JadwalPelajaran;
 use App\Models\Kelas;
+use App\Models\Mapel;
 use Illuminate\Http\Request;
 
 class JadwalPelajaranController extends Controller
@@ -14,11 +15,19 @@ class JadwalPelajaranController extends Controller
 
     public function index(Request $request)
     {
-        $kelasOptions = Kelas::orderBy('nama')->get();
+        $tahunAjaranId = session('tahun_akademik_id') ?? \App\Models\TahunAkademik::where('is_aktif', true)->value('id');
+
+        $kelasOptions = Kelas::where('tahun_akademik_id', $tahunAjaranId)->orderBy('nama')->get();
         $guruOptions = Guru::orderBy('nama_lengkap')->get();
+        $mapelOptions = Mapel::orderBy('nama_mapel')->get();
         $hariOptions = $this->hariOptions;
 
-        $query = JadwalPelajaran::with(['kelas', 'guru'])->orderByRaw("FIELD(hari,'Senin','Selasa','Rabu','Kamis','Jumat','Sabtu')")->orderBy('jam_mulai');
+        $query = JadwalPelajaran::with(['kelas', 'guru'])
+            ->whereHas('kelas', function($q) use ($tahunAjaranId) {
+                $q->where('tahun_akademik_id', $tahunAjaranId);
+            })
+            ->orderByRaw("FIELD(hari,'Senin','Selasa','Rabu','Kamis','Jumat','Sabtu')")
+            ->orderBy('jam_mulai');
 
         if ($request->filled('kelas_id')) {
             $query->where('kelas_id', $request->kelas_id);
@@ -26,16 +35,18 @@ class JadwalPelajaranController extends Controller
 
         $jadwal = $query->paginate(50)->withQueryString();
 
-        return view('admin.jadwal.index', compact('jadwal', 'kelasOptions', 'guruOptions', 'hariOptions'));
+        return view('admin.jadwal.index', compact('jadwal', 'kelasOptions', 'guruOptions', 'mapelOptions', 'hariOptions'));
     }
 
     public function create()
     {
-        $kelasOptions = Kelas::orderBy('nama')->get();
+        $tahunAjaranId = session('tahun_akademik_id') ?? \App\Models\TahunAkademik::where('is_aktif', true)->value('id');
+        $kelasOptions = Kelas::where('tahun_akademik_id', $tahunAjaranId)->orderBy('nama')->get();
         $guruOptions = Guru::orderBy('nama_lengkap')->get();
+        $mapelOptions = Mapel::orderBy('nama_mapel')->get();
         $hariOptions = $this->hariOptions;
 
-        return view('admin.jadwal.form', compact('kelasOptions', 'guruOptions', 'hariOptions'));
+        return view('admin.jadwal.form', compact('kelasOptions', 'guruOptions', 'mapelOptions', 'hariOptions'));
     }
 
     public function store(Request $request)
@@ -43,7 +54,7 @@ class JadwalPelajaranController extends Controller
         $data = $request->validate([
             'kelas_id'       => 'required|exists:kelas,id',
             'guru_id'        => 'nullable|exists:guru,id',
-            'mata_pelajaran' => 'required|string|max:100',
+            'mata_pelajaran' => 'required|exists:mapels,nama_mapel',
             'hari'           => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
             'jam_mulai'      => 'required|date_format:H:i',
             'jam_selesai'    => 'required|date_format:H:i|after:jam_mulai',
@@ -56,11 +67,13 @@ class JadwalPelajaranController extends Controller
 
     public function edit(JadwalPelajaran $jadwal)
     {
-        $kelasOptions = Kelas::orderBy('nama')->get();
+        $tahunAjaranId = session('tahun_akademik_id') ?? \App\Models\TahunAkademik::where('is_aktif', true)->value('id');
+        $kelasOptions = Kelas::where('tahun_akademik_id', $tahunAjaranId)->orderBy('nama')->get();
         $guruOptions = Guru::orderBy('nama_lengkap')->get();
+        $mapelOptions = Mapel::orderBy('nama_mapel')->get();
         $hariOptions = $this->hariOptions;
 
-        return view('admin.jadwal.form', compact('jadwal', 'kelasOptions', 'guruOptions', 'hariOptions'));
+        return view('admin.jadwal.form', compact('jadwal', 'kelasOptions', 'guruOptions', 'mapelOptions', 'hariOptions'));
     }
 
     public function update(Request $request, JadwalPelajaran $jadwal)
@@ -68,7 +81,7 @@ class JadwalPelajaranController extends Controller
         $data = $request->validate([
             'kelas_id'       => 'required|exists:kelas,id',
             'guru_id'        => 'nullable|exists:guru,id',
-            'mata_pelajaran' => 'required|string|max:100',
+            'mata_pelajaran' => 'required|exists:mapels,nama_mapel',
             'hari'           => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
             'jam_mulai'      => 'required|date_format:H:i',
             'jam_selesai'    => 'required|date_format:H:i|after:jam_mulai',

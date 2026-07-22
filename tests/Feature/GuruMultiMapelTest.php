@@ -54,7 +54,7 @@ class GuruMultiMapelTest extends TestCase
             'nama_lengkap' => 'Budi Sudarsono, S.Pd',
             'nip' => '198808082010011001',
             'jenis_kelamin' => 'L',
-            'mapel_ids' => [$this->mapelMatematika->id, $this->mapelFisika->id],
+            'mapel_ids' => [(string) $this->mapelMatematika->id, (string) $this->mapelFisika->id],
             'jabatan' => 'Guru Pertama',
             'no_hp' => '081234567890',
             'status' => 'aktif',
@@ -108,11 +108,12 @@ class GuruMultiMapelTest extends TestCase
             'nama_lengkap' => 'Budi Sudarsono, S.Pd (Updated)',
             'nip' => '198808082010011001',
             'jenis_kelamin' => 'L',
-            'mapel_ids' => [$this->mapelFisika->id],
+            'mapel_ids' => [(string) $this->mapelFisika->id],
             'jabatan' => 'Guru Madya',
             'no_hp' => '081234567890',
             'status' => 'aktif',
             'email' => 'budi.new@sekolah.sch.id',
+            'roles' => ['guru'],
         ];
 
         $response = $this->put(route('admin.guru.update', $guru->id), $data);

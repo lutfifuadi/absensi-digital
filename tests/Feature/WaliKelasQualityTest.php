@@ -69,10 +69,10 @@ class WaliKelasQualityTest extends TestCase
                 'tahun_akademik_id' => $this->tahun->id,
                 'active_role' => User::ROLE_SUPER_ADMIN
             ])
-            ->get(route('admin.wali-kelas.create'));
+            ->get(route('admin.guru.create'));
 
         $response->assertStatus(200);
-        $response->assertViewIs('admin.wali-kelas.form');
+        $response->assertViewIs('admin.guru.form');
         $response->assertViewHas('mapelOptions');
         $response->assertViewHas('guru');
     }
@@ -98,10 +98,10 @@ class WaliKelasQualityTest extends TestCase
                 'tahun_akademik_id' => $this->tahun->id,
                 'active_role' => User::ROLE_SUPER_ADMIN
             ])
-            ->get(route('admin.wali-kelas.edit', $guru->id));
+            ->get(route('admin.guru.edit', $guru->id));
 
         $response->assertStatus(200);
-        $response->assertViewIs('admin.wali-kelas.form');
+        $response->assertViewIs('admin.guru.form');
         $response->assertViewHas('guru');
         $response->assertViewHas('mapelOptions');
     }

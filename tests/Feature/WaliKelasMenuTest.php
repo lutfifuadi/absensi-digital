@@ -35,12 +35,12 @@ class WaliKelasMenuTest extends TestCase
     {
         // Route-route yang dipakai di menu Wali Kelas (vertical_admin.json):
         // 1. admin.wali-kelas.index
-        // 2. admin.wali-kelas.create
-        // 3. admin.wali-kelas.edit
+        // 2. admin.guru.create (karena form create wali kelas dilebur ke form create guru / dikelola di master guru)
+        // 3. admin.guru.edit (karena form edit wali kelas dilebur ke form edit guru / dikelola di master guru)
         
         $this->assertTrue(Route::has('admin.wali-kelas.index'));
-        $this->assertTrue(Route::has('admin.wali-kelas.create'));
-        $this->assertTrue(Route::has('admin.wali-kelas.edit'));
+        $this->assertTrue(Route::has('admin.guru.create'));
+        $this->assertTrue(Route::has('admin.guru.edit'));
     }
 
     /**

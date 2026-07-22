@@ -85,7 +85,28 @@ class GuruController extends Controller
 
         $mapelOptions = \App\Models\Mapel::where('status', 1)->orderBy('nama_mapel')->get();
 
-        return view('admin.guru.form', compact('guru', 'user', 'mapelOptions'));
+        $roleOptions = [
+            User::ROLE_GURU,
+            User::ROLE_WALI_KELAS,
+            User::ROLE_STAFF_TU,
+            User::ROLE_PIKET,
+        ];
+
+        $kelasOptions = Kelas::whereNull('wali_kelas_id')->orderBy('nama')->get();
+
+        $userRoles = ['guru'];
+        if ($user) {
+            $userRoles = array_unique(
+                array_merge(
+                    [$user->role],
+                    $user->roles ?? []
+                )
+            );
+        }
+
+        $kelasSaatIni = null;
+
+        return view('admin.guru.form', compact('guru', 'user', 'mapelOptions', 'roleOptions', 'kelasOptions', 'userRoles', 'kelasSaatIni'));
     }
 
     public function store(Request $request)
