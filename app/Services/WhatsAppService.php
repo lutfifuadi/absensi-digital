@@ -20,8 +20,11 @@ class WhatsAppService
     {
         // on/off toggle khusus WA Gateway (terpisah dari jenis_notifikasi_ortu)
         $waEnabled = Pengaturan::where('key', 'wa_gateway_enabled')->value('value');
-        $this->isEnabled = ($waEnabled === null ? true : $waEnabled === 'Ya')
-            && Pengaturan::where('key', 'jenis_notifikasi_ortu')->value('value') === 'WhatsApp (WA)';
+        $waAutoreplyEnabled = Pengaturan::where('key', 'wa_autoreply_enabled')->value('value');
+        
+        $this->isEnabled = (($waEnabled === null || $waEnabled === 'Ya')
+            && Pengaturan::where('key', 'jenis_notifikasi_ortu')->value('value') === 'WhatsApp (WA)')
+            || $waAutoreplyEnabled === 'Ya';
 
         $link = Pengaturan::where('key', 'link_server_wa')->value('value') ?: 'https://wa.lutfifuadi.my.id/send-message';
         $this->baseUrl = rtrim(str_replace(['/send-message', '/send-media', '/check-number', '/send-location'], '', $link), '/');

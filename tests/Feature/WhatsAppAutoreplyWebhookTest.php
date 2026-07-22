@@ -183,4 +183,51 @@ class WhatsAppAutoreplyWebhookTest extends TestCase
 
         $response->assertStatus(200);
     }
+
+    public function test_webhook_authenticated_keyword_absen_success_using_from_parameter()
+    {
+        Queue::fake();
+
+        // Daftarkan keyword #absen butuh validasi
+        WaAutoreplyKeyword::create([
+            'keyword' => '#absen',
+            'match_type' => 'exact',
+            'is_validation_required' => true,
+            'is_active' => true,
+            'notification_template_type' => 'autoreply_absen'
+        ]);
+
+        // Buat siswa terdaftar
+        $siswa = Siswa::create([
+            'nama_lengkap' => 'Budi Santoso',
+            'no_hp_ortu' => '08123456789',
+            'nis' => '12345',
+            'nisn' => '1234567890',
+            'status' => 'aktif',
+            'jenis_kelamin' => 'L',
+            'tempat_lahir' => 'Jakarta',
+            'tanggal_lahir' => '2010-01-01',
+            'kelas_id' => 1,
+            'tahun_akademik_id' => 1,
+            'user_id' => \App\Models\User::factory()->create()->id
+        ]);
+
+        // Absen hari ini
+        AbsensiSiswa::create([
+            'siswa_id' => $siswa->id,
+            'kelas_id' => 1,
+            'tanggal' => Carbon::today(),
+            'jam_masuk' => '07:15',
+            'status' => 'hadir',
+            'metode' => 'QR'
+        ]);
+
+        // Menggunakan parameter 'from' alih-alih 'sender'
+        $response = $this->postJson('/api/v1/webhook/whatsapp-autoreply?token=rahasia123', [
+            'from' => '628123456789',
+            'message' => '#absen'
+        ]);
+
+        $response->assertStatus(200);
+    }
 }

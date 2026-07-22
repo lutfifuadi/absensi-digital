@@ -39,8 +39,8 @@ class WhatsAppWebhookController extends Controller
                 ], 200);
             }
 
-            // 3. Ambil Payload dari Fonnte
-            $sender = $request->input('sender');
+            // 3. Ambil Payload dari Fonnte / MPWA
+            $sender = $request->input('from') ?: $request->input('sender');
             $messageRaw = $request->input('message');
 
             if (empty($sender) || empty($messageRaw)) {
