@@ -47,31 +47,47 @@
   @php
     $siteName = \App\Models\Pengaturan::where('key', 'nama_lembaga')->value('value')
       ?? \App\Models\Pengaturan::where('key', 'nama_sekolah')->value('value')
-      ?? config('variables.templateName');
+      ?? config('app.name', 'Portal Presensi');
+
+    $siteDesc = \App\Models\Pengaturan::where('key', 'deskripsi_lembaga')->value('value')
+      ?? \App\Models\Pengaturan::where('key', 'deskripsi_sekolah')->value('value')
+      ?? \App\Models\Pengaturan::where('key', 'site_description')->value('value')
+      ?? ('Sistem Informasi dan Portal Presensi Digital Resmi ' . $siteName);
+
+    $siteLogo = \App\Models\Pengaturan::where('key', 'logo_url')->value('value')
+      ?? \App\Models\Pengaturan::where('key', 'logo_sekolah')->value('value')
+      ?? \App\Models\Pengaturan::where('key', 'logo')->value('value')
+      ?? asset('assets/img/favicon/favicon.ico');
+
+    if (!empty($siteLogo) && !filter_var($siteLogo, FILTER_VALIDATE_URL)) {
+        $siteLogo = asset($siteLogo);
+    }
+
     $pageTitle = trim($__env->yieldContent('title'));
+    if ($pageTitle) {
+        $fullTitle = \Illuminate\Support\Str::contains($pageTitle, $siteName) ? $pageTitle : ($pageTitle . ' | ' . $siteName);
+    } else {
+        $fullTitle = 'Portal Presensi ' . $siteName;
+    }
   @endphp
-  <title>
-    @if($pageTitle)
-      {{ $pageTitle }}
-      @unless(\Illuminate\Support\Str::contains($pageTitle, $siteName))
-        | {{ $siteName }}
-      @endunless
-    @else
-      {{ $siteName }}
-    @endif
-  </title>
-  <meta name="description"
-    content="{{ config('variables.templateDescription') ? config('variables.templateDescription') : '' }}" />
-  <meta name="keywords"
-    content="{{ config('variables.templateKeyword') ? config('variables.templateKeyword') : '' }}" />
-  <meta property="og:title" content="{{ config('variables.ogTitle') ? config('variables.ogTitle') : '' }}" />
-  <meta property="og:type" content="{{ config('variables.ogType') ? config('variables.ogType') : '' }}" />
-  <meta property="og:url" content="{{ config('variables.productPage') ? config('variables.productPage') : '' }}" />
-  <meta property="og:image" content="{{ config('variables.ogImage') ? config('variables.ogImage') : '' }}" />
-  <meta property="og:description"
-    content="{{ config('variables.templateDescription') ? config('variables.templateDescription') : '' }}" />
-  <meta property="og:site_name"
-    content="{{ config('variables.creatorName') ? config('variables.creatorName') : '' }}" />
+  <title>{{ $fullTitle }}</title>
+  <meta name="description" content="{{ $siteDesc }}" />
+  <meta name="keywords" content="{{ config('variables.templateKeyword') ? config('variables.templateKeyword') : 'presensi, portal presensi, absensi digital' }}" />
+
+  <!-- Open Graph Meta Tags (WhatsApp, Facebook, Social Share) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="{{ $siteName }}" />
+  <meta property="og:title" content="{{ $fullTitle }}" />
+  <meta property="og:description" content="{{ $siteDesc }}" />
+  <meta property="og:image" content="{{ $siteLogo }}" />
+  <meta property="og:url" content="{{ url()->current() }}" />
+
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{{ $fullTitle }}" />
+  <meta name="twitter:description" content="{{ $siteDesc }}" />
+  <meta name="twitter:image" content="{{ $siteLogo }}" />
+
   <meta name="robots" content="noindex, nofollow" />
   <!-- Preload critical font assets -->
   <link rel="preload" href="{{ asset('assets/fonts/ProductSans-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
