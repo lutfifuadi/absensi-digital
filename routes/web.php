@@ -883,6 +883,12 @@ Route::middleware([
             ->middleware('role:super_admin,admin_sekolah');
 
         // WA Autoreply Keywords CRUD
+        Route::get('wa-gateway/keywords/export', [\App\Http\Controllers\Admin\WaAutoreplyKeywordController::class, 'export'])
+            ->name('admin.wa-gateway.keywords.export')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('wa-gateway/keywords/import', [\App\Http\Controllers\Admin\WaAutoreplyKeywordController::class, 'import'])
+            ->name('admin.wa-gateway.keywords.import')
+            ->middleware('role:super_admin,admin_sekolah');
         Route::get('wa-gateway/keywords', [\App\Http\Controllers\Admin\WaAutoreplyKeywordController::class, 'index'])
             ->name('admin.wa-gateway.keywords.index')
             ->middleware('role:super_admin,admin_sekolah');

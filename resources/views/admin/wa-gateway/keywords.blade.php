@@ -51,9 +51,17 @@
   <a href="{{ route('admin.wa-gateway.index') }}" class="btn btn-sm btn-outline-secondary">
     <i class="ti tabler-arrow-left me-1"></i>Kembali ke WA Gateway
   </a>
-  <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddKeyword">
-    <i class="ti tabler-plus me-1"></i>Tambah Keyword
-  </button>
+  <div class="d-flex gap-2 align-items-center flex-wrap">
+    <a href="{{ route('admin.wa-gateway.keywords.export') }}" class="btn btn-sm btn-outline-success">
+      <i class="ti tabler-download me-1"></i>Export JSON
+    </a>
+    <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalImportKeyword">
+      <i class="ti tabler-upload me-1"></i>Import JSON
+    </button>
+    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddKeyword">
+      <i class="ti tabler-plus me-1"></i>Tambah Keyword
+    </button>
+  </div>
 </div>
 
 {{-- Panel Daftar Keyword --}}
@@ -197,6 +205,34 @@
         <div class="modal-footer border-top-0 d-flex gap-2 justify-content-end">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 5px;">Batal</button>
           <button type="submit" class="btn btn-primary" style="border-radius: 5px;">Simpan Keyword</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{{-- MODAL IMPORT KEYWORD --}}
+<div class="modal fade" id="modalImportKeyword" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content text-white" style="background: #1e293b; border: 1px solid var(--das-border); border-radius: 5px;">
+      <div class="modal-header border-bottom-0">
+        <h5 class="modal-title text-white fw-bold"><i class="ti tabler-file-import me-2 text-info"></i>Import Keyword Autoreply</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ route('admin.wa-gateway.keywords.import') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        <div class="modal-body">
+          <div class="alert alert-info py-2 px-3 mb-3 small" style="background: rgba(13,202,240,0.1); border: 1px solid rgba(13,202,240,0.25); color: #6edff6;">
+            <i class="ti tabler-info-circle me-1"></i> File JSON hasil Export akan mengimpor semua keyword beserta template jawabannya secara otomatis.
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-bold text-uppercase">Pilih File JSON <span class="text-danger">*</span></label>
+            <input type="file" name="json_file" class="form-control text-white bg-dark border-secondary" accept=".json,application/json" required style="border-radius: 5px;">
+          </div>
+        </div>
+        <div class="modal-footer border-top-0 d-flex gap-2 justify-content-end">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 5px;">Batal</button>
+          <button type="submit" class="btn btn-info text-dark fw-bold" style="border-radius: 5px;"><i class="ti tabler-upload me-1"></i>Mulai Import</button>
         </div>
       </form>
     </div>
