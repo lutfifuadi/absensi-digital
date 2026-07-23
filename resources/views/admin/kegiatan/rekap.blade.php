@@ -220,7 +220,7 @@
             <td class="text-center">
               <div style="display:flex;align-items:center;justify-content:center;gap:6px;color:#ccc;font-size:.82rem;">
                 <i class="ti tabler-clock-play" style="color:var(--das-success);font-size:.9rem;"></i>
-                {{ $log->jam_absen->format('H:i:s') }}
+                {{ is_string($log->jam_absen) ? $log->jam_absen : ($log->jam_absen?->format('H:i:s') ?? '-') }}
               </div>
             </td>
             <td class="text-center">
