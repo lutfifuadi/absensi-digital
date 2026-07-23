@@ -125,7 +125,7 @@ class ScanQrController extends Controller
 
     private function processGuruScan(string $qrCode): array
     {
-        $guru = Guru::where('qr_code', $qrCode)->orWhere('nip', $qrCode)->first();
+        $guru = Guru::where('qr_code', $qrCode)->orWhere('qr_code_nip', $qrCode)->orWhere('nip', $qrCode)->first();
 
         if (! $guru) {
             return ['error' => 'QR code guru tidak dikenal. Pastikan QR code valid.'];

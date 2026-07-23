@@ -180,6 +180,7 @@ class GuruController extends Controller
                 'no_hp' => $data['no_hp'] ?? null,
                 'status' => $data['status'],
                 'qr_code' => QrCodeGenerator::generate('GURU'),
+                'qr_code_nip' => $data['nip'],
             ]);
 
             $guru->mapels()->sync($finalMapelIds);
@@ -273,6 +274,8 @@ class GuruController extends Controller
                 'jabatan' => $data['jabatan'] ?? null,
                 'no_hp' => $data['no_hp'] ?? null,
                 'status' => $data['status'],
+                'qr_code' => $guru->qr_code ?? QrCodeGenerator::generate('GURU'),
+                'qr_code_nip' => $data['nip'],
             ]);
 
             $guru->mapels()->sync($finalMapelIds);
@@ -397,8 +400,11 @@ class GuruController extends Controller
      */
     public function generateQrSatu(Guru $guru)
     {
-        if (! $guru->qr_code) {
-            $guru->update(['qr_code' => QrCodeGenerator::generate('GURU')]);
+        if (! $guru->qr_code || ! $guru->qr_code_nip) {
+            $guru->update([
+                'qr_code' => $guru->qr_code ?? QrCodeGenerator::generate('GURU'),
+                'qr_code_nip' => $guru->qr_code_nip ?? $guru->nip,
+            ]);
         }
 
         $template = IdCardTemplate::where('type', 'guru')->active()->first();
@@ -410,6 +416,106 @@ class GuruController extends Controller
             Log::error('Gagal generate kartu guru: ' . $e->getMessage());
             return back()->with('error', 'Gagal mencetak kartu: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Re-generate dual QR Code (ID Unik & NIP) untuk 1 guru.
+     */
+    public function regenerateQr(Request $request, Guru $guru)
+    {
+        $newQrCode = QrCodeGenerator::generate('GURU');
+        $guru->update([
+            'qr_code' => $newQrCode,
+            'qr_code_nip' => $guru->nip,
+        ]);
+
+        \App\Models\ActivityLog::record(
+            'UPDATE',
+            'Guru',
+            "Re-generate QR Code untuk Guru {$guru->nama_lengkap} (NIP: {$guru->nip})."
+        );
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "QR Code untuk Guru {$guru->nama_lengkap} berhasil diperbarui.",
+                'qr_code' => $newQrCode,
+                'qr_code_nip' => $guru->nip,
+                'qr_code_unik_uri' => QrCodeGenerator::renderDataUri($newQrCode, 200),
+                'qr_code_nip_uri'  => QrCodeGenerator::renderDataUri($guru->nip, 200),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'QR Code Guru berhasil diperbarui.');
+    }
+
+    /**
+     * Re-generate dual QR Code untuk beberapa guru sekaligus (Bulk).
+     */
+    public function regenerateQrBulk(Request $request)
+    {
+        $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'integer|exists:guru,id',
+        ]);
+
+        $guruList = Guru::whereIn('id', $request->ids)->get();
+
+        DB::transaction(function () use ($guruList) {
+            foreach ($guruList as $guru) {
+                $guru->update([
+                    'qr_code' => QrCodeGenerator::generate('GURU'),
+                    'qr_code_nip' => $guru->nip,
+                ]);
+            }
+
+            \App\Models\ActivityLog::record(
+                'UPDATE_BULK',
+                'Guru',
+                'Re-generate QR Code massal untuk ' . count($guruList) . ' guru.'
+            );
+        });
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => count($guruList) . ' QR Code Guru berhasil diperbarui.',
+            ]);
+        }
+
+        return redirect()->back()->with('success', count($guruList) . ' QR Code Guru berhasil diperbarui.');
+    }
+
+    /**
+     * Re-generate dual QR Code untuk SELURUH guru di database.
+     */
+    public function regenerateQrAll(Request $request)
+    {
+        $guruList = Guru::all();
+
+        DB::transaction(function () use ($guruList) {
+            foreach ($guruList as $guru) {
+                $guru->update([
+                    'qr_code' => QrCodeGenerator::generate('GURU'),
+                    'qr_code_nip' => $guru->nip,
+                ]);
+            }
+
+            \App\Models\ActivityLog::record(
+                'UPDATE_ALL',
+                'Guru',
+                'Re-generate QR Code untuk seluruh data guru (' . count($guruList) . ' guru).'
+            );
+        });
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Seluruh QR Code Guru (' . count($guruList) . ' guru) berhasil diperbarui.',
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Seluruh QR Code Guru berhasil diperbarui.');
     }
 
     /**

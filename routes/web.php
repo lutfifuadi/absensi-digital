@@ -570,6 +570,18 @@ Route::middleware([
             ->name('admin.guru.generate-qr')
             ->middleware('role:super_admin,admin_sekolah,operator');
 
+        Route::post('guru/{guru}/regenerate-qr', [GuruController::class, 'regenerateQr'])
+            ->name('admin.guru.regenerate-qr')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+
+        Route::post('guru/regenerate-qr-bulk', [GuruController::class, 'regenerateQrBulk'])
+            ->name('admin.guru.regenerate-qr-bulk')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+
+        Route::post('guru/regenerate-qr-all', [GuruController::class, 'regenerateQrAll'])
+            ->name('admin.guru.regenerate-qr-all')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+
         Route::get('guru/export', [GuruController::class, 'export'])
             ->name('admin.guru.export')
             ->middleware('role:super_admin,admin_sekolah,operator');

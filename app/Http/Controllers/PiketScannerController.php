@@ -191,8 +191,8 @@ class PiketScannerController extends Controller
             ]);
         }
 
-        // 2. Jika bukan siswa, cek apakah Guru
-        $guru = Guru::where('qr_code', $qrCode)->orWhere('nip', $qrCode)->first();
+        // 2. Jika bukan siswa, cek apakah Guru (bisa scan QR Unik, QR NIP, atau NIP mentah)
+        $guru = Guru::where('qr_code', $qrCode)->orWhere('qr_code_nip', $qrCode)->orWhere('nip', $qrCode)->first();
         if ($guru) {
             $absensi = AbsensiGuru::where('guru_id', $guru->id)
                 ->whereDate('tanggal', $tanggal)

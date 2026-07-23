@@ -62,6 +62,7 @@ class GuruImport implements ToModel, WithHeadingRow, WithValidation, SkipsEmptyR
                     'no_hp' => trim($row['no_hp'] ?? ''),
                     'status' => strtolower(trim($row['status'])) == 'aktif' ? 'aktif' : 'nonaktif',
                     'qr_code' => QrCodeGenerator::generate('GURU'),
+                    'qr_code_nip' => $nip,
                 ]
             );
         });

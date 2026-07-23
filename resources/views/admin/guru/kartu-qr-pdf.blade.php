@@ -101,7 +101,20 @@
         @foreach ($row as $guru)
           <td>
             <div class="card">
-              <img src="{{ $qrImages[$guru->id] }}" alt="QR {{ $guru->qr_code }}">
+              <div style="margin-bottom: 6px;">
+                @if(is_array($qrImages[$guru->id] ?? null))
+                  <div style="display: inline-block; text-align: center; margin: 0 3px;">
+                    <img src="{{ $qrImages[$guru->id]['unik'] }}" alt="QR Unik" style="width: 75px; height: 75px; margin-bottom:2px;">
+                    <div style="font-size: 7px; color: #444; font-weight: bold;">QR ID Unik</div>
+                  </div>
+                  <div style="display: inline-block; text-align: center; margin: 0 3px;">
+                    <img src="{{ $qrImages[$guru->id]['nip'] }}" alt="QR NIP" style="width: 75px; height: 75px; margin-bottom:2px;">
+                    <div style="font-size: 7px; color: #444; font-weight: bold;">QR NIP</div>
+                  </div>
+                @else
+                  <img src="{{ $qrImages[$guru->id] }}" alt="QR {{ $guru->qr_code }}">
+                @endif
+              </div>
               <div class="nama">{{ $guru->nama_lengkap }}</div>
               <div class="nip">NIP: {{ $guru->nip }}</div>
               <div class="mapel">{{ $guru->mata_pelajaran }}</div>

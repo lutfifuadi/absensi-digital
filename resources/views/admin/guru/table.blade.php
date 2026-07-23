@@ -87,9 +87,17 @@
                 <i class="ti tabler-login fs-5"></i>
               </button>
               @endif
-              <a href="{{ route('admin.guru.generate-qr', $item->id) }}" class="action-btn text-info" title="Unduh QR" data-bs-toggle="tooltip">
+              <a href="{{ route('admin.guru.generate-qr', $item->id) }}" class="action-btn text-info" title="Unduh Kartu QR" data-bs-toggle="tooltip">
                 <i class="ti tabler-qrcode fs-5"></i>
               </a>
+              <button type="button"
+                class="action-btn text-primary btn-regenerate-qr-guru"
+                title="Re-generate Dual QR Code (Unik & NIP)"
+                data-bs-toggle="tooltip"
+                data-url="{{ route('admin.guru.regenerate-qr', $item->id) }}"
+                data-nama="{{ $item->nama_lengkap }}">
+                <i class="ti tabler-refresh fs-5"></i>
+              </button>
               <a href="{{ route('admin.guru.edit', $item->id) }}" class="action-btn text-warning" title="Ubah" data-bs-toggle="tooltip">
                 <i class="ti tabler-pencil fs-5"></i>
               </a>

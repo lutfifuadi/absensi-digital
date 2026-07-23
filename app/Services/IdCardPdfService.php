@@ -218,11 +218,19 @@ class IdCardPdfService
         // Jika template null → fallback kartu QR lama
         if (! $template) {
             $qrImages = $guruList->mapWithKeys(function ($guru) {
-                if (! $guru->qr_code) {
-                    $guru->update(['qr_code' => QrCodeGenerator::generate('GURU')]);
+                if (! $guru->qr_code || ! $guru->qr_code_nip) {
+                    $guru->update([
+                        'qr_code' => $guru->qr_code ?? QrCodeGenerator::generate('GURU'),
+                        'qr_code_nip' => $guru->qr_code_nip ?? $guru->nip,
+                    ]);
                     $guru->refresh();
                 }
-                return [$guru->id => QrCodeGenerator::renderDataUri($guru->qr_code, 160)];
+                return [
+                    $guru->id => [
+                        'unik' => QrCodeGenerator::renderDataUri($guru->qr_code, 160),
+                        'nip'  => QrCodeGenerator::renderDataUri($guru->qr_code_nip ?? $guru->nip, 160),
+                    ]
+                ];
             });
 
             $namaSekolah = $lembaga['nama_sekolah'];
@@ -233,8 +241,11 @@ class IdCardPdfService
         }
 
         $entities = $guruList->map(function ($guru) use ($masaBerlakuDefault) {
-            if (! $guru->qr_code) {
-                $guru->update(['qr_code' => QrCodeGenerator::generate('GURU')]);
+            if (! $guru->qr_code || ! $guru->qr_code_nip) {
+                $guru->update([
+                    'qr_code' => $guru->qr_code ?? QrCodeGenerator::generate('GURU'),
+                    'qr_code_nip' => $guru->qr_code_nip ?? $guru->nip,
+                ]);
                 $guru->refresh();
             }
 
@@ -242,6 +253,7 @@ class IdCardPdfService
             $guru->_masa_berlaku = $masaBerlakuDefault;
             $guru->_foto_base64  = $this->fotoToBase64($guru->foto ?? '');
             $guru->_qr_base64    = QrCodeGenerator::renderDataUri($guru->qr_code, 200);
+            $guru->_qr_nip_base64 = QrCodeGenerator::renderDataUri($guru->qr_code_nip ?? $guru->nip, 200);
             $guru->_posisi       = $guru->jabatan ?? ('Guru ' . $guru->mata_pelajaran);
 
             return $guru;

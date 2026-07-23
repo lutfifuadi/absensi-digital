@@ -141,52 +141,74 @@
             box-shadow: none;
         }
 
-        /* SWEETALERT2 CUSTOM PREMIUM */
+        /* SWEETALERT2 CUSTOM PREMIUM (RADIUS MAX 5PX & DIVIDERS) */
         .das-swal-popup {
-            background: rgba(26, 26, 46, 0.95) !important;
+            background: rgba(26, 26, 46, 0.96) !important;
             backdrop-filter: blur(16px) saturate(180%) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
             border-radius: 5px !important;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !important;
+            padding: 1.5rem !important;
         }
 
         .das-swal-title {
             color: #fff !important;
             font-weight: 700 !important;
-            font-size: 1.5rem !important;
+            font-size: 1.25rem !important;
             text-align: center !important;
             width: 100% !important;
             max-width: none !important;
             max-inline-size: none !important;
+            padding-bottom: 12px !important;
+            margin-bottom: 14px !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+            letter-spacing: 0.3px;
         }
 
         .das-swal-html {
-            color: rgba(255, 255, 255, 0.7) !important;
-            font-size: 0.95rem !important;
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-size: 0.92rem !important;
+            line-height: 1.5 !important;
+            padding-bottom: 14px !important;
+            margin-bottom: 12px !important;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .das-swal-actions {
+            display: flex !important;
+            justify-content: flex-end !important;
+            gap: 10px !important;
+            width: 100% !important;
+            margin-top: 8px !important;
         }
 
         .das-swal-confirm {
-            padding: 10px 24px !important;
+            padding: 9px 22px !important;
             font-weight: 600 !important;
             border-radius: 5px !important;
-            font-size: 0.875rem !important;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 4px 12px rgba(234, 84, 85, 0.3) !important;
+            font-size: 0.85rem !important;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 12px rgba(115, 103, 240, 0.3) !important;
         }
 
         .das-swal-cancel {
-            padding: 10px 24px !important;
+            padding: 9px 22px !important;
             font-weight: 600 !important;
             border-radius: 5px !important;
-            font-size: 0.875rem !important;
-            background: rgba(255, 255, 255, 0.05) !important;
+            font-size: 0.85rem !important;
+            background: rgba(255, 255, 255, 0.06) !important;
+            color: rgba(255, 255, 255, 0.8) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        }
+
+        .das-swal-cancel:hover {
+            background: rgba(255, 255, 255, 0.12) !important;
             color: #fff !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
         }
 
         .das-swal-icon {
-            border-color: rgba(255, 255, 255, 0.1) !important;
+            border-color: rgba(255, 255, 255, 0.12) !important;
+            margin-bottom: 12px !important;
         }
 
         .hover-bg-primary-light:hover {
@@ -282,6 +304,12 @@
                 <a href="{{ route('admin.guru.cetak-qr') }}" class="btn das-btn --warning" title="Cetak QR" data-bs-toggle="tooltip" data-bs-placement="top">
                     <i class="ti tabler-qrcode"></i>
                 </a>
+                <button type="button" class="btn das-btn --purple" id="btnRegenerateQrAll" title="Re-generate QR Semua Guru" data-bs-toggle="tooltip" data-bs-placement="top">
+                    <i class="ti tabler-refresh"></i>
+                </button>
+                <button type="button" class="btn das-btn --purple d-none" id="btnRegenerateQrBulk" title="Re-generate QR Terpilih" data-bs-toggle="tooltip" data-bs-placement="top">
+                    <i class="ti tabler-refresh me-1"></i> QR (<span id="selectedGuruQrCount" class="badge bg-white text-purple" style="font-size: 0.7rem; padding: 2px 5px; border-radius: 4px;">0</span>)
+                </button>
                 <button type="button" class="btn das-btn --danger d-none" id="btnDeleteBulk" title="Hapus Terpilih" data-bs-toggle="tooltip" data-bs-placement="top">
                     <i class="ti tabler-trash"></i> <span id="selectedGuruCount" class="badge bg-white text-danger ms-1" style="font-size: 0.7rem; padding: 2px 5px; border-radius: 4px;">0</span>
                 </button>
@@ -680,8 +708,88 @@
                 }
             });
 
-            // Individual delete AJAX handler (delegated)
+            // Individual delete & regenerate AJAX handler (delegated)
             container.addEventListener('click', function(e) {
+                const btnRegen = e.target.closest('.btn-regenerate-qr-guru');
+                if (btnRegen) {
+                    const url = btnRegen.dataset.url;
+                    const nama = btnRegen.dataset.nama || 'Guru';
+
+                    Swal.fire({
+                        title: 'Re-generate Dual QR Code?',
+                        html: `<div>Apakah Anda yakin ingin memperbarui <b>QR Code Unik & QR Code NIP</b> untuk <b class="text-info">"${nama}"</b>? QR Code lama tidak akan berlaku lagi.</div>`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, Re-generate',
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true,
+                        customClass: {
+                            popup: 'das-swal-popup',
+                            title: 'das-swal-title',
+                            htmlContainer: 'das-swal-html',
+                            actions: 'das-swal-actions',
+                            confirmButton: 'btn btn-primary das-swal-confirm',
+                            cancelButton: 'btn das-swal-cancel',
+                            icon: 'das-swal-icon'
+                        },
+                        buttonsStyling: false,
+                        background: 'transparent',
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
+
+                        btnRegen.disabled = true;
+
+                        fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            btnRegen.disabled = false;
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: data.message || 'QR Code berhasil diperbarui.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-success das-swal-confirm'
+                                    },
+                                    timer: 2000,
+                                    showConfirmButton: false,
+                                    background: 'transparent',
+                                });
+                                fetchData(1);
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal!',
+                                    text: data.message || 'Terjadi kesalahan.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-primary das-swal-confirm'
+                                    },
+                                    background: 'transparent',
+                                    buttonsStyling: false
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            btnRegen.disabled = false;
+                            console.error('Regenerate QR error:', err);
+                        });
+                    });
+                    return;
+                }
+
                 const btnImpersonate = e.target.closest('.btn-impersonate-guru');
                 if (btnImpersonate) {
                     const url = btnImpersonate.dataset.url;
@@ -733,16 +841,18 @@
 
                 Swal.fire({
                     title: 'Hapus Guru?',
-                    html: `<div class="mt-2">Data <b class="text-danger">"${nama}"</b> akan dihapus secara permanen beserta akun user terkait.</div>`,
+                    html: `<div>Data <b class="text-danger">"${nama}"</b> akan dihapus secara permanen beserta akun user terkait.</div>`,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Ya, Hapus Data',
                     cancelButtonText: 'Batalkan',
+                    reverseButtons: true,
                     customClass: {
                         popup: 'das-swal-popup',
                         title: 'das-swal-title',
                         htmlContainer: 'das-swal-html',
-                        confirmButton: 'btn btn-danger das-swal-confirm me-2',
+                        actions: 'das-swal-actions',
+                        confirmButton: 'btn btn-danger das-swal-confirm',
                         cancelButton: 'btn das-swal-cancel',
                         icon: 'das-swal-icon'
                     },
@@ -1083,19 +1193,29 @@
                 });
             }
 
-            // ─── Bulk Delete Handlers ──────────────────────────────────────────
+            // ─── Bulk Delete & Bulk QR Handlers ──────────────────────────────
             function updateBulkDeleteButtonState() {
                 const checkedBoxes = document.querySelectorAll('.select-guru-cb:checked');
                 const checkedCount = checkedBoxes.length;
-                const btn = document.getElementById('btnDeleteBulk');
+                const btnDel = document.getElementById('btnDeleteBulk');
+                const btnQr = document.getElementById('btnRegenerateQrBulk');
                 const countSpan = document.getElementById('selectedGuruCount');
+                const countQrSpan = document.getElementById('selectedGuruQrCount');
                 
-                if (btn && countSpan) {
+                if (btnDel && countSpan) {
                     if (checkedCount > 0) {
                         countSpan.textContent = checkedCount;
-                        btn.classList.remove('d-none');
+                        btnDel.classList.remove('d-none');
                     } else {
-                        btn.classList.add('d-none');
+                        btnDel.classList.add('d-none');
+                    }
+                }
+                if (btnQr && countQrSpan) {
+                    if (checkedCount > 0) {
+                        countQrSpan.textContent = checkedCount;
+                        btnQr.classList.remove('d-none');
+                    } else {
+                        btnQr.classList.add('d-none');
                     }
                 }
             }
@@ -1141,11 +1261,13 @@
                         showCancelButton: true,
                         confirmButtonText: 'Ya, Hapus Terpilih',
                         cancelButtonText: 'Batalkan',
+                        reverseButtons: true,
                         customClass: {
                             popup: 'das-swal-popup',
                             title: 'das-swal-title',
                             htmlContainer: 'das-swal-html',
-                            confirmButton: 'btn btn-danger das-swal-confirm me-2',
+                            actions: 'das-swal-actions',
+                            confirmButton: 'btn btn-danger das-swal-confirm',
                             cancelButton: 'btn das-swal-cancel',
                             icon: 'das-swal-icon'
                         },
@@ -1228,6 +1350,182 @@
                                 background: 'transparent',
                                 buttonsStyling: false
                             });
+                        });
+                    });
+                });
+            }
+
+            // Bulk Regenerate QR Click handler
+            const btnRegenerateQrBulk = document.getElementById('btnRegenerateQrBulk');
+            if (btnRegenerateQrBulk) {
+                btnRegenerateQrBulk.addEventListener('click', function() {
+                    const checkedBoxes = document.querySelectorAll('.select-guru-cb:checked');
+                    const ids = [];
+                    checkedBoxes.forEach(cb => ids.push(cb.value));
+
+                    if (ids.length === 0) return;
+
+                    Swal.fire({
+                        title: 'Re-generate Dual QR Code Terpilih?',
+                        html: `<div>Apakah Anda yakin ingin memperbarui <b>QR Code (Unik & NIP)</b> untuk <b class="text-primary">${ids.length} guru</b> yang dipilih?</div>`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, Re-generate Terpilih',
+                        cancelButtonText: 'Batalkan',
+                        reverseButtons: true,
+                        customClass: {
+                            popup: 'das-swal-popup',
+                            title: 'das-swal-title',
+                            htmlContainer: 'das-swal-html',
+                            actions: 'das-swal-actions',
+                            confirmButton: 'btn btn-primary das-swal-confirm',
+                            cancelButton: 'btn das-swal-cancel',
+                            icon: 'das-swal-icon'
+                        },
+                        buttonsStyling: false,
+                        background: 'transparent',
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
+
+                        btnRegenerateQrBulk.disabled = true;
+                        btnRegenerateQrBulk.innerHTML = '<i class="ti tabler-loader spinner me-1"></i> Memproses...';
+
+                        fetch('{{ route("admin.guru.regenerate-qr-bulk") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({ ids: ids })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            btnRegenerateQrBulk.disabled = false;
+                            btnRegenerateQrBulk.innerHTML = '<i class="ti tabler-refresh me-1"></i> QR (<span id="selectedGuruQrCount">0</span>)';
+                            
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: data.message || 'QR Code terpilih berhasil diperbarui.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-success das-swal-confirm'
+                                    },
+                                    timer: 2000,
+                                    showConfirmButton: false,
+                                    background: 'transparent',
+                                });
+                                fetchData(1);
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal!',
+                                    text: data.message || 'Terjadi kesalahan.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-primary das-swal-confirm'
+                                    },
+                                    background: 'transparent',
+                                    buttonsStyling: false
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            btnRegenerateQrBulk.disabled = false;
+                            btnRegenerateQrBulk.innerHTML = '<i class="ti tabler-refresh me-1"></i> QR (<span id="selectedGuruQrCount">0</span>)';
+                            console.error('Bulk regenerate QR error:', err);
+                        });
+                    });
+                });
+            }
+
+            // Regenerate All QR Click handler
+            const btnRegenerateQrAll = document.getElementById('btnRegenerateQrAll');
+            if (btnRegenerateQrAll) {
+                btnRegenerateQrAll.addEventListener('click', function() {
+                    Swal.fire({
+                        title: 'Re-generate QR Code SEMUA Guru?',
+                        html: `<div>Apakah Anda yakin ingin memperbarui <b>QR Code (Unik & NIP)</b> untuk <b class="text-danger">SELURUH DATA GURU</b>? Semua QR Code lama tidak akan berlaku lagi.</div>`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, Re-generate Semua',
+                        cancelButtonText: 'Batalkan',
+                        reverseButtons: true,
+                        customClass: {
+                            popup: 'das-swal-popup',
+                            title: 'das-swal-title',
+                            htmlContainer: 'das-swal-html',
+                            actions: 'das-swal-actions',
+                            confirmButton: 'btn btn-primary das-swal-confirm',
+                            cancelButton: 'btn das-swal-cancel',
+                            icon: 'das-swal-icon'
+                        },
+                        buttonsStyling: false,
+                        background: 'transparent',
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
+
+                        btnRegenerateQrAll.disabled = true;
+                        const originalHtml = btnRegenerateQrAll.innerHTML;
+                        btnRegenerateQrAll.innerHTML = '<i class="ti tabler-loader spinner"></i>';
+
+                        fetch('{{ route("admin.guru.regenerate-qr-all") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            btnRegenerateQrAll.disabled = false;
+                            btnRegenerateQrAll.innerHTML = originalHtml;
+                            
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: data.message || 'Seluruh QR Code Guru berhasil diperbarui.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-success das-swal-confirm'
+                                    },
+                                    timer: 2000,
+                                    showConfirmButton: false,
+                                    background: 'transparent',
+                                });
+                                fetchData(1);
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal!',
+                                    text: data.message || 'Terjadi kesalahan.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-primary das-swal-confirm'
+                                    },
+                                    background: 'transparent',
+                                    buttonsStyling: false
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            btnRegenerateQrAll.disabled = false;
+                            btnRegenerateQrAll.innerHTML = originalHtml;
+                            console.error('Regenerate all QR error:', err);
                         });
                     });
                 });

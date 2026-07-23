@@ -22,6 +22,7 @@ class Guru extends Model
         'foto',
         'status',
         'qr_code',
+        'qr_code_nip',
     ];
 
     public function user()

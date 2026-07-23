@@ -454,20 +454,47 @@
         </div>
       </div>
 
-      {{-- QR CODE PREVIEW (Only for Edit) --}}
-      @if ($guru->exists && $guru->qr_code)
+      {{-- DUAL QR CODE PREVIEW (Only for Edit) --}}
+      @if ($guru->exists)
         <div class="card border-0 shadow-sm mt-4"
           style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08) !important;">
+          <div class="card-header border-bottom py-3 d-flex align-items-center gap-2"
+            style="border-color:rgba(255,255,255,0.08) !important;background:transparent;">
+            <i class="ti tabler-qrcode text-info"></i>
+            <h6 class="card-title mb-0">Dual QR Code Guru (ID Unik & NIP)</h6>
+          </div>
           <div class="card-body p-4">
-            <div class="d-flex align-items-center gap-4">
-              <div class="bg-white p-2 rounded shadow-sm">
-                <img src="{{ App\Support\QrCodeGenerator::renderDataUri($guru->qr_code, 120) }}" alt="QR Code Guru"
-                  class="img-fluid" />
+            <div class="row g-4">
+              {{-- QR Code 1: ID Unik (UUID) --}}
+              <div class="col-md-6">
+                <div class="p-3 rounded-3 h-100 d-flex align-items-center gap-3"
+                  style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);">
+                  <div class="bg-white p-2 rounded shadow-sm flex-shrink-0">
+                    <img src="{{ App\Support\QrCodeGenerator::renderDataUri($guru->qr_code ?? App\Support\QrCodeGenerator::generate('GURU'), 110) }}"
+                      alt="QR Code ID Unik" class="img-fluid" style="width:110px; height:110px;" />
+                  </div>
+                  <div>
+                    <span class="badge bg-label-primary mb-1"><i class="ti tabler-shield-check me-1"></i> QR Code ID Unik</span>
+                    <p class="text-white-50 extra-small mb-2">Kode QR unik berbasis UUID untuk absensi tingkat keamanan tinggi.</p>
+                    <code class="px-2 py-1 rounded bg-label-info text-info fw-bold extra-small text-break">{{ $guru->qr_code }}</code>
+                  </div>
+                </div>
               </div>
-              <div>
-                <h6 class="mb-1 text-white fw-bold">ID Card QR Code</h6>
-                <p class="text-white-50 small mb-2">Kode QR ini digunakan untuk proses absensi mandiri guru.</p>
-                <code class="px-2 py-1 rounded bg-label-info text-info fw-bold">{{ $guru->qr_code }}</code>
+
+              {{-- QR Code 2: NIP Guru --}}
+              <div class="col-md-6">
+                <div class="p-3 rounded-3 h-100 d-flex align-items-center gap-3"
+                  style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);">
+                  <div class="bg-white p-2 rounded shadow-sm flex-shrink-0">
+                    <img src="{{ App\Support\QrCodeGenerator::renderDataUri($guru->qr_code_nip ?? $guru->nip, 110) }}"
+                      alt="QR Code NIP" class="img-fluid" style="width:110px; height:110px;" />
+                  </div>
+                  <div>
+                    <span class="badge bg-label-success mb-1"><i class="ti tabler-id me-1"></i> QR Code NIP (Terdeteksi)</span>
+                    <p class="text-white-50 extra-small mb-2">Kode QR berbasis NIP resmi guru yang langsung dapat di-scan oleh sistem.</p>
+                    <code class="px-2 py-1 rounded bg-label-success text-success fw-bold extra-small text-break">{{ $guru->qr_code_nip ?? $guru->nip }}</code>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
