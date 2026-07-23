@@ -2,6 +2,19 @@
 
 @section('title', 'Staff TU')
 
+@section('vendor-style')
+  @vite([
+    'resources/assets/vendor/libs/animate-css/animate.scss',
+    'resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'
+  ])
+@endsection
+
+@section('vendor-script')
+  @vite([
+    'resources/assets/vendor/libs/sweetalert2/sweetalert2.js'
+  ])
+@endsection
+
 @section('page-style')
   <style>
     .staff-row-hover {
