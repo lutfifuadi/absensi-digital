@@ -4,60 +4,187 @@
 
 @section('page-style')
   <style>
-    .master-menu-card {
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    /* Premium Glassmorphism Variables & Style */
+    :root {
+      --glass-bg: rgba(15, 23, 42, 0.45);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-glow-primary: rgba(115, 103, 240, 0.15);
+      --glass-glow-success: rgba(40, 199, 111, 0.15);
+      --glass-glow-info: rgba(0, 207, 232, 0.15);
+      --glass-glow-warning: rgba(255, 159, 67, 0.15);
+      --glass-glow-danger: rgba(234, 84, 85, 0.15);
     }
 
-    .master-menu-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25) !important;
-    }
-
-    .master-menu-card .card-body {
+    /* Glass Card Standard */
+    .glass-card-mewah {
+      background: var(--glass-bg) !important;
+      backdrop-filter: blur(16px) saturate(180%) !important;
+      -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+      border: 1px solid var(--glass-border) !important;
+      border-radius: 16px !important;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
       position: relative;
       overflow: hidden;
     }
 
-    .master-menu-card .card-body::before {
+    .glass-card-mewah::before {
       content: '';
       position: absolute;
-      top: -30px;
-      right: -30px;
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      opacity: 0.07;
-      background: currentColor;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 1;
     }
 
-    .sub-item-link {
+    /* Metric Cards Accent & Hover Effect */
+    .metric-card {
+      padding: 1.5rem;
+    }
+    
+    .metric-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 5%;
+      width: 90%;
+      height: 3px;
+      border-radius: 3px 3px 0 0;
+      opacity: 0.6;
+      transition: all 0.3s ease;
+    }
+
+    .metric-card-primary::after { background: var(--das-primary); }
+    .metric-card-success::after { background: var(--das-success); }
+    .metric-card-info::after { background: var(--das-info); }
+    .metric-card-warning::after { background: var(--das-warning); }
+
+    .metric-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(255, 255, 255, 0.18) !important;
+      box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px 2px var(--hover-glow) !important;
+    }
+
+    .metric-card-primary:hover { --hover-glow: var(--glass-glow-primary); }
+    .metric-card-success:hover { --hover-glow: var(--glass-glow-success); }
+    .metric-card-info:hover { --hover-glow: var(--glass-glow-info); }
+    .metric-card-warning:hover { --hover-glow: var(--glass-glow-warning); }
+
+    /* Search Dropdown / Overlay */
+    .search-overlay-box {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      z-index: 1050;
+      background: rgba(15, 22, 42, 0.92) !important;
+      backdrop-filter: blur(20px) saturate(190%) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      border-radius: 12px;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8), 0 0 25px 2px rgba(115, 103, 240, 0.15);
+      max-height: 450px;
+      overflow-y: auto;
+    }
+
+    /* Glowing Title */
+    .text-gradient-gold-luxury {
+      background: linear-gradient(135deg, #ffffff 10%, #ffd700 60%, #ff8c00 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 30px rgba(255, 215, 0, 0.15);
+    }
+
+    /* Sub-menu Navigation Links */
+    .sub-item-link-glass {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      border-radius: 8px;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
       text-decoration: none;
       font-size: 0.875rem;
       font-weight: 500;
-      transition: background 0.15s ease, transform 0.15s ease;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(255, 255, 255, 0.04);
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.02);
+      color: rgba(255, 255, 255, 0.7);
     }
 
-    .sub-item-link:hover {
-      background: rgba(255, 255, 255, 0.1);
-      transform: translateX(3px);
+    .sub-item-link-glass:hover {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1);
     }
 
-    .section-label {
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      opacity: 0.5;
-      margin-bottom: 12px;
-      padding-left: 2px;
+    /* Pulsing Badge & Dot */
+    .pulsing-badge-danger {
+      position: relative;
+      display: inline-flex;
+    }
+
+    .pulsing-badge-danger::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      border-radius: 50px;
+      background: var(--das-danger);
+      opacity: 0.8;
+      animation: pulse-glow 1.5s infinite ease-in-out;
+      z-index: -1;
+    }
+
+    @keyframes pulse-glow {
+      0% {
+        transform: scale(0.95);
+        opacity: 0.8;
+      }
+      50% {
+        transform: scale(1.25);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(0.95);
+        opacity: 0;
+      }
+    }
+
+    .pulse-dot-active {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background-color: var(--das-success);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--das-success);
+      animation: pulse-dot-anim 2s infinite;
+    }
+
+    @keyframes pulse-dot-anim {
+      0% { box-shadow: 0 0 0 0 rgba(40, 199, 111, 0.7); }
+      70% { box-shadow: 0 0 0 6px rgba(40, 199, 111, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(40, 199, 111, 0); }
+    }
+
+    /* Custom Scrollbar for Search Box */
+    .search-overlay-box::-webkit-scrollbar {
+      width: 6px;
+    }
+    .search-overlay-box::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .search-overlay-box::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+    }
+    .search-overlay-box::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.25);
     }
   </style>
 @endsection
@@ -65,38 +192,300 @@
 @section('content')
 
   {{-- ═══════════════════════════════════════════════════════
-       SECTION 1: HERO HEADER
+       HERO SECTION & INTEGRATED LIVE SEARCH
   ═══════════════════════════════════════════════════════ --}}
-  <div class="das-hero mb-4">
+  <div class="das-hero mb-4 position-relative" style="min-height: 220px; overflow: visible;">
     <div class="das-hero__bg"></div>
-    <div class="das-hero__glass"></div>
+    <div class="das-hero__glass" style="backdrop-filter: blur(12px) saturate(180%); background: rgba(15, 23, 42, 0.45); border: 1px solid rgba(255, 255, 255, 0.08);"></div>
     <div class="das-hero__grid-lines"></div>
 
-    <div class="das-hero__inner">
-      <div class="das-hero__identity">
-        <div class="das-hero__logo-wrapper">
-          <div class="das-hero__logo-placeholder">
-            <i class="ti tabler-database"></i>
-          </div>
-          <div class="das-hero__logo-glow"></div>
+    <div class="das-hero__inner p-4 p-md-5 d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-4" style="z-index: 2; position: relative;">
+      <div class="das-hero__identity d-flex align-items-center gap-3">
+        <div class="das-hero__logo-wrapper" style="width: 64px; height: 64px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; display: flex; align-items: center; justify-content: center; position: relative;">
+          <i class="ti tabler-database fs-2 text-warning"></i>
+          <div class="das-hero__logo-glow" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; background: radial-gradient(circle, rgba(255, 215, 0, 0.2) 0%, transparent 70%); pointer-events: none;"></div>
         </div>
 
         <div class="das-hero__meta">
-          <div class="das-hero__badge">
-            <span class="pulse-dot"></span>
-            Sistem Administrasi Sekolah
+          <div class="das-hero__badge d-inline-flex align-items-center gap-2 mb-2" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); padding: 4px 12px; border-radius: 30px; font-size: 0.75rem; color: rgba(255,255,255,0.85);">
+            <span class="pulse-dot-active"></span>
+            Control Center
           </div>
-          <h4 class="das-hero__title text-gradient-gold">Master Data</h4>
-          <p class="das-hero__subtitle">Kelola seluruh data inti sekolah dalam satu panel terintegrasi.</p>
+          <h3 class="das-hero__title text-gradient-gold-luxury mb-1 fw-bold">Master Data</h3>
+          <p class="das-hero__subtitle text-white-50 mb-0 small" style="max-width: 480px;">Kelola dan pantau seluruh data inti akademik dan logistik sekolah dari satu pusat kendali.</p>
+        </div>
+      </div>
+
+      {{-- Search Area (Alpine.js State Management) --}}
+      <div class="das-hero__search flex-grow-1" style="max-width: 450px; position: relative;" x-data="{
+          searchQuery: '',
+          searchResults: null,
+          loading: false,
+          showResults: false,
+          search() {
+              if (this.searchQuery.trim() === '') {
+                  this.searchResults = null;
+                  this.showResults = false;
+                  return;
+              }
+              this.loading = true;
+              this.showResults = true;
+              fetch(`/admin/master-data/search?q=${encodeURIComponent(this.searchQuery)}`)
+                  .then(res => res.json())
+                  .then(data => {
+                      this.searchResults = data;
+                      this.loading = false;
+                  })
+                  .catch(err => {
+                      console.error(err);
+                      this.loading = false;
+                  });
+          },
+          clear() {
+              this.searchQuery = '';
+              this.searchResults = null;
+              this.showResults = false;
+          }
+      }" @click.away="showResults = false">
+        <div class="input-group input-group-merge shadow-lg" style="border-radius: 12px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px);">
+          <span class="input-group-text bg-transparent border-0 text-white-50 px-3"><i class="ti tabler-search"></i></span>
+          <input 
+            type="text" 
+            class="form-control bg-transparent border-0 text-white placeholder-light px-2" 
+            placeholder="Cari Siswa, Guru, Kelas, atau Mapel..." 
+            style="box-shadow: none;"
+            x-model="searchQuery" 
+            @input.debounce.300ms="search()"
+            @focus="if(searchQuery.trim() !== '') showResults = true"
+          >
+          <span class="input-group-text bg-transparent border-0 px-3 cursor-pointer" x-show="searchQuery !== ''" @click="clear()" style="display: none;">
+            <i class="ti tabler-x text-white-50"></i>
+          </span>
+          <span class="input-group-text bg-transparent border-0 px-3" x-show="loading" style="display: none;">
+            <span class="spinner-border spinner-border-sm text-warning" role="status"></span>
+          </span>
+        </div>
+
+        {{-- Live Search Results Box --}}
+        <div class="search-overlay-box p-3" x-show="showResults" x-transition style="display: none;">
+          <template x-if="searchResults && (searchResults.siswa.length === 0 && searchResults.guru.length === 0 && searchResults.kelas.length === 0 && searchResults.mapel.length === 0)">
+            <div class="text-center py-4">
+              <i class="ti tabler-search-off fs-1 text-muted mb-2 d-block"></i>
+              <span class="text-white-50 small">Tidak ditemukan hasil untuk "<strong class="text-white" x-text="searchQuery"></strong>"</span>
+            </div>
+          </template>
+
+          <template x-if="searchResults">
+            <div class="d-flex flex-column gap-3">
+              {{-- Category: Siswa --}}
+              <template x-if="searchResults.siswa && searchResults.siswa.length > 0">
+                <div>
+                  <div class="d-flex align-items-center gap-2 mb-2 text-primary border-bottom border-secondary border-opacity-10 pb-1">
+                    <i class="ti tabler-users fs-5"></i>
+                    <span class="fw-bold text-uppercase tracking-wider" style="font-size: 0.72rem;">Siswa</span>
+                  </div>
+                  <div class="list-group list-group-flush gap-1">
+                    <template x-for="item in searchResults.siswa" :key="item.id">
+                      <a :href="`/admin/siswa/${item.id}`" class="list-group-item list-group-item-action bg-transparent border-0 rounded p-2 text-white d-flex justify-content-between align-items-center sub-item-link-glass">
+                        <div>
+                          <div class="fw-semibold text-white" x-text="item.nama_lengkap"></div>
+                          <div class="text-white-50" style="font-size: 0.75rem;">NIS: <span x-text="item.nis || '-'"></span> | NISN: <span x-text="item.nisn || '-'"></span></div>
+                        </div>
+                        <i class="ti tabler-chevron-right text-muted"></i>
+                      </a>
+                    </template>
+                  </div>
+                </div>
+              </template>
+
+              {{-- Category: Guru --}}
+              <template x-if="searchResults.guru && searchResults.guru.length > 0">
+                <div>
+                  <div class="d-flex align-items-center gap-2 mb-2 text-success border-bottom border-secondary border-opacity-10 pb-1">
+                    <i class="ti tabler-chalkboard-teacher fs-5"></i>
+                    <span class="fw-bold text-uppercase tracking-wider" style="font-size: 0.72rem;">Guru</span>
+                  </div>
+                  <div class="list-group list-group-flush gap-1">
+                    <template x-for="item in searchResults.guru" :key="item.id">
+                      <a :href="`/admin/guru/${item.id}`" class="list-group-item list-group-item-action bg-transparent border-0 rounded p-2 text-white d-flex justify-content-between align-items-center sub-item-link-glass">
+                        <div>
+                          <div class="fw-semibold text-white" x-text="item.nama_lengkap"></div>
+                          <div class="text-white-50" style="font-size: 0.75rem;">NIP: <span x-text="item.nip || '-'"></span></div>
+                        </div>
+                        <i class="ti tabler-chevron-right text-muted"></i>
+                      </a>
+                    </template>
+                  </div>
+                </div>
+              </template>
+
+              {{-- Category: Kelas --}}
+              <template x-if="searchResults.kelas && searchResults.kelas.length > 0">
+                <div>
+                  <div class="d-flex align-items-center gap-2 mb-2 text-info border-bottom border-secondary border-opacity-10 pb-1">
+                    <i class="ti tabler-door fs-5"></i>
+                    <span class="fw-bold text-uppercase tracking-wider" style="font-size: 0.72rem;">Kelas</span>
+                  </div>
+                  <div class="list-group list-group-flush gap-1">
+                    <template x-for="item in searchResults.kelas" :key="item.id">
+                      <a :href="`/admin/kelas/${item.id}`" class="list-group-item list-group-item-action bg-transparent border-0 rounded p-2 text-white d-flex justify-content-between align-items-center sub-item-link-glass">
+                        <div>
+                          <div class="fw-semibold text-white" x-text="item.nama"></div>
+                        </div>
+                        <i class="ti tabler-chevron-right text-muted"></i>
+                      </a>
+                    </template>
+                  </div>
+                </div>
+              </template>
+
+              {{-- Category: Mapel --}}
+              <template x-if="searchResults.mapel && searchResults.mapel.length > 0">
+                <div>
+                  <div class="d-flex align-items-center gap-2 mb-2 text-warning border-bottom border-secondary border-opacity-10 pb-1">
+                    <i class="ti tabler-books fs-5"></i>
+                    <span class="fw-bold text-uppercase tracking-wider" style="font-size: 0.72rem;">Mata Pelajaran</span>
+                  </div>
+                  <div class="list-group list-group-flush gap-1">
+                    <template x-for="item in searchResults.mapel" :key="item.id">
+                      <a :href="`/admin/mapel`" class="list-group-item list-group-item-action bg-transparent border-0 rounded p-2 text-white d-flex justify-content-between align-items-center sub-item-link-glass">
+                        <div>
+                          <div class="fw-semibold text-white" x-text="item.nama_mapel"></div>
+                          <div class="text-white-50" style="font-size: 0.75rem;">Kode: <span x-text="item.kode_mapel || '-'"></span></div>
+                        </div>
+                        <i class="ti tabler-chevron-right text-muted"></i>
+                      </a>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </template>
         </div>
       </div>
     </div>
   </div>
 
   {{-- ═══════════════════════════════════════════════════════
-       SECTION 2: DATA AKADEMIK
+       QUICK ACTIONS AREA
   ═══════════════════════════════════════════════════════ --}}
-  <div class="section-label">Data Akademik</div>
+  <div class="glass-card-mewah mb-4 p-3 d-flex flex-wrap align-items-center gap-3">
+    <div class="text-white-50 small fw-bold text-uppercase tracking-wider me-2" style="font-size: 0.7rem;">
+      <i class="ti tabler-bolt text-warning me-1"></i> Quick Add:
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{{ route('admin.siswa.create') }}" class="btn btn-sm btn-label-primary d-flex align-items-center gap-1" style="border-radius: 8px;">
+        <i class="ti tabler-user-plus" style="font-size: 0.9rem;"></i> Siswa
+      </a>
+      <a href="{{ route('admin.guru.create') }}" class="btn btn-sm btn-label-success d-flex align-items-center gap-1" style="border-radius: 8px;">
+        <i class="ti tabler-circle-plus" style="font-size: 0.9rem;"></i> Guru
+      </a>
+      <a href="{{ route('admin.kelas.create') }}" class="btn btn-sm btn-label-info d-flex align-items-center gap-1" style="border-radius: 8px;">
+        <i class="ti tabler-square-plus" style="font-size: 0.9rem;"></i> Kelas
+      </a>
+      <a href="{{ route('admin.upload-massal.index') }}" class="btn btn-sm btn-label-warning d-flex align-items-center gap-1" style="border-radius: 8px;">
+        <i class="ti tabler-cloud-upload" style="font-size: 0.9rem;"></i> Import Data
+      </a>
+    </div>
+  </div>
+
+  {{-- ═══════════════════════════════════════════════════════
+       METRICS CARDS GRID
+  ═══════════════════════════════════════════════════════ --}}
+  <div class="row g-4 mb-5">
+    {{-- Card Siswa --}}
+    <div class="col-sm-6 col-xl-3">
+      <div class="glass-card-mewah metric-card metric-card-primary h-100">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <span class="text-white-50 small text-uppercase tracking-wider fw-semibold">Total Siswa</span>
+            <h2 class="mb-0 text-white fw-bold mt-1" style="font-size: 2.2rem; letter-spacing: -1px;">{{ number_format($totalSiswa) }}</h2>
+          </div>
+          <span class="avatar avatar-md rounded bg-label-primary shadow-sm" style="width: 45px; height: 45px; border-radius: 12px !important;">
+            <i class="ti tabler-users fs-4"></i>
+          </span>
+        </div>
+        <div class="d-flex align-items-center justify-content-between pt-2 border-top border-secondary border-opacity-10 mt-2">
+          <span class="text-white-50 small">Siswa Aktif Terdaftar</span>
+          <a href="{{ route('admin.siswa.index') }}" class="text-primary text-decoration-none small fw-semibold d-flex align-items-center gap-1">
+            Kelola <i class="ti tabler-arrow-right" style="font-size: 0.8rem;"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {{-- Card Guru --}}
+    <div class="col-sm-6 col-xl-3">
+      <div class="glass-card-mewah metric-card metric-card-success h-100">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <span class="text-white-50 small text-uppercase tracking-wider fw-semibold">Total Guru</span>
+            <h2 class="mb-0 text-white fw-bold mt-1" style="font-size: 2.2rem; letter-spacing: -1px;">{{ number_format($totalGuru) }}</h2>
+          </div>
+          <span class="avatar avatar-md rounded bg-label-success shadow-sm" style="width: 45px; height: 45px; border-radius: 12px !important;">
+            <i class="ti tabler-chalkboard-teacher fs-4"></i>
+          </span>
+        </div>
+        <div class="d-flex align-items-center justify-content-between pt-2 border-top border-secondary border-opacity-10 mt-2">
+          <span class="text-white-50 small">Pendidik Aktif</span>
+          <a href="{{ route('admin.guru.index') }}" class="text-success text-decoration-none small fw-semibold d-flex align-items-center gap-1">
+            Kelola <i class="ti tabler-arrow-right" style="font-size: 0.8rem;"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {{-- Card Kelas --}}
+    <div class="col-sm-6 col-xl-3">
+      <div class="glass-card-mewah metric-card metric-card-info h-100">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <span class="text-white-50 small text-uppercase tracking-wider fw-semibold">Total Kelas</span>
+            <h2 class="mb-0 text-white fw-bold mt-1" style="font-size: 2.2rem; letter-spacing: -1px;">{{ number_format($totalKelas) }}</h2>
+          </div>
+          <span class="avatar avatar-md rounded bg-label-info shadow-sm" style="width: 45px; height: 45px; border-radius: 12px !important;">
+            <i class="ti tabler-door fs-4"></i>
+          </span>
+        </div>
+        <div class="d-flex align-items-center justify-content-between pt-2 border-top border-secondary border-opacity-10 mt-2">
+          <span class="text-white-50 small">Rombongan Belajar</span>
+          <a href="{{ route('admin.kelas.index') }}" class="text-info text-decoration-none small fw-semibold d-flex align-items-center gap-1">
+            Kelola <i class="ti tabler-arrow-right" style="font-size: 0.8rem;"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {{-- Card Mapel --}}
+    <div class="col-sm-6 col-xl-3">
+      <div class="glass-card-mewah metric-card metric-card-warning h-100">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <span class="text-white-50 small text-uppercase tracking-wider fw-semibold">Mata Pelajaran</span>
+            <h2 class="mb-0 text-white fw-bold mt-1" style="font-size: 2.2rem; letter-spacing: -1px;">{{ number_format($totalMapel) }}</h2>
+          </div>
+          <span class="avatar avatar-md rounded bg-label-warning shadow-sm" style="width: 45px; height: 45px; border-radius: 12px !important;">
+            <i class="ti tabler-books fs-4"></i>
+          </span>
+        </div>
+        <div class="d-flex align-items-center justify-content-between pt-2 border-top border-secondary border-opacity-10 mt-2">
+          <span class="text-white-50 small">Mapel Aktif</span>
+          <a href="{{ route('admin.mapel.index') }}" class="text-warning text-decoration-none small fw-semibold d-flex align-items-center gap-1">
+            Kelola <i class="ti tabler-arrow-right" style="font-size: 0.8rem;"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{-- ═══════════════════════════════════════════════════════
+       CATEGORIZED NAVIGATION SECTIONS
+  ═══════════════════════════════════════════════════════ --}}
+  
+  {{-- 1. Data Akademik --}}
+  <div class="section-label text-white-50 mb-3 fw-bold tracking-wider" style="font-size: 0.75rem; text-transform: uppercase;">
+    <i class="ti tabler-books text-warning me-1"></i> Data Akademik
+  </div>
   <div class="row g-4 mb-5">
     @php
       $akademik = [
@@ -111,27 +500,27 @@
     @foreach ($akademik as $item)
       <div class="col-sm-6 col-xl-4">
         <a href="{{ $item['route'] }}" class="text-decoration-none h-100 d-block">
-          <div class="das-panel h-100 master-menu-card">
-            <div class="das-panel__body p-4">
-              <div class="avatar avatar-md mb-3">
-                <span class="avatar-initial rounded bg-label-{{ $item['color'] }} shadow-sm">
-                  <i class="ti {{ $item['icon'] }} fs-4"></i>
-                </span>
-              </div>
-              <h6 class="mb-1 text-white fw-bold">{{ $item['title'] }}</h6>
-              <p class="text-white-50 mb-3 small">{{ $item['desc'] }}</p>
-              <span class="das-chip --{{ $item['color'] }} small">Buka <i class="ti tabler-arrow-right ms-1"></i></span>
+          <div class="glass-card-mewah h-100 p-4">
+            <div class="avatar avatar-md mb-3" style="width: 42px; height: 42px;">
+              <span class="avatar-initial rounded bg-label-{{ $item['color'] }} shadow-sm">
+                <i class="ti {{ $item['icon'] }} fs-4"></i>
+              </span>
             </div>
+            <h6 class="mb-1 text-white fw-bold">{{ $item['title'] }}</h6>
+            <p class="text-white-50 mb-3 small" style="min-height: 38px;">{{ $item['desc'] }}</p>
+            <span class="badge bg-label-{{ $item['color'] }} d-inline-flex align-items-center gap-1" style="font-size: 0.75rem; border-radius: 6px; padding: 6px 10px;">
+              Buka Modul <i class="ti tabler-arrow-right ms-1"></i>
+            </span>
           </div>
         </a>
       </div>
     @endforeach
   </div>
 
-  {{-- ═══════════════════════════════════════════════════════
-       SECTION 3: DATA PENGGUNA
-  ═══════════════════════════════════════════════════════ --}}
-  <div class="section-label">Data Pengguna</div>
+  {{-- 2. Data Pengguna --}}
+  <div class="section-label text-white-50 mb-3 fw-bold tracking-wider" style="font-size: 0.75rem; text-transform: uppercase;">
+    <i class="ti tabler-users text-primary me-1"></i> Data Pengguna
+  </div>
   <div class="row g-4 mb-5">
     @php
       $pengguna = [
@@ -145,108 +534,107 @@
 
     @foreach ($pengguna as $item)
       <div class="col-sm-6 col-xl-4">
-        <div class="das-panel h-100 master-menu-card">
-          <div class="das-panel__body p-4">
-            <div class="d-flex align-items-center gap-3 mb-3">
-              <div class="avatar avatar-md">
-                <span class="avatar-initial rounded bg-label-{{ $item['color'] }} shadow-sm">
-                  <i class="ti {{ $item['icon'] }} fs-4"></i>
-                </span>
-              </div>
-              <div>
-                <h6 class="mb-0 text-white fw-bold">{{ $item['title'] }}</h6>
-                <small class="text-white-50">Manajemen {{ $item['title'] }}</small>
-              </div>
+        <div class="glass-card-mewah h-100 p-4">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="avatar avatar-md" style="width: 42px; height: 42px;">
+              <span class="avatar-initial rounded bg-label-{{ $item['color'] }} shadow-sm">
+                <i class="ti {{ $item['icon'] }} fs-4"></i>
+              </span>
             </div>
-            <p class="text-white-50 small mb-3">{{ $item['desc'] }}</p>
-            <a href="{{ $item['route'] }}" class="sub-item-link text-white w-100 d-flex align-items-center gap-2">
-              <i class="ti tabler-external-link text-{{ $item['color'] }}"></i> {{ $item['btn'] }}
-            </a>
+            <div>
+              <h6 class="mb-0 text-white fw-bold">{{ $item['title'] }}</h6>
+              <small class="text-white-50" style="font-size: 0.75rem;">Manajemen {{ $item['title'] }}</small>
+            </div>
           </div>
+          <p class="text-white-50 small mb-3" style="min-height: 38px;">{{ $item['desc'] }}</p>
+          <a href="{{ $item['route'] }}" class="sub-item-link-glass text-white w-100 d-flex align-items-center gap-2">
+            <i class="ti tabler-external-link text-{{ $item['color'] }}"></i> {{ $item['btn'] }}
+          </a>
         </div>
       </div>
     @endforeach
   </div>
 
-  {{-- ═══════════════════════════════════════════════════════
-       SECTION 4: ABSENSI & PELAPORAN
-  ═══════════════════════════════════════════════════════ --}}
-  <div class="section-label">Absensi & Pelaporan</div>
+  {{-- 3. Absensi & Pelaporan --}}
+  <div class="section-label text-white-50 mb-3 fw-bold tracking-wider" style="font-size: 0.75rem; text-transform: uppercase;">
+    <i class="ti tabler-clipboard-check text-danger me-1"></i> Absensi & Pelaporan
+  </div>
   <div class="row g-4">
     {{-- Absensi --}}
     <div class="col-sm-6 col-xl-4">
-      <div class="das-panel h-100 master-menu-card">
-        <div class="das-panel__body p-4">
-          <div class="d-flex align-items-center gap-3 mb-3">
-            <div class="avatar avatar-md">
-              <span class="avatar-initial rounded bg-label-danger shadow-sm">
-                <i class="ti tabler-clipboard-check fs-4"></i>
-              </span>
-            </div>
-            <div>
-              <h6 class="mb-0 text-white fw-bold">Absensi</h6>
-              <small class="text-white-50">Log Kehadiran</small>
-            </div>
+      <div class="glass-card-mewah h-100 p-4">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="avatar avatar-md" style="width: 42px; height: 42px;">
+            <span class="avatar-initial rounded bg-label-danger shadow-sm">
+              <i class="ti tabler-clipboard-check fs-4"></i>
+            </span>
           </div>
-          <p class="text-white-50 small mb-3">Akses data absensi harian seluruh entitas.</p>
-          <div class="d-flex flex-column gap-2">
-            <a href="{{ route('admin.absensi-siswa.index') }}" class="sub-item-link text-white">
-              <i class="ti tabler-users text-primary"></i> Absensi Siswa
-            </a>
-            <a href="{{ route('admin.absensi-guru.index') }}" class="sub-item-link text-white">
-              <i class="ti tabler-user-check text-success"></i> Absensi Guru
-            </a>
-            <a href="{{ route('admin.absensi-staff.index') }}" class="sub-item-link text-white">
-              <i class="ti tabler-briefcase text-warning"></i> Absensi Staff TU
-            </a>
+          <div>
+            <h6 class="mb-0 text-white fw-bold">Absensi</h6>
+            <small class="text-white-50" style="font-size: 0.75rem;">Log Kehadiran</small>
           </div>
+        </div>
+        <p class="text-white-50 small mb-3">Akses data absensi harian seluruh entitas.</p>
+        <div class="d-flex flex-column gap-2">
+          <a href="{{ route('admin.absensi-siswa.index') }}" class="sub-item-link-glass text-white">
+            <i class="ti tabler-users text-primary"></i> Absensi Siswa
+          </a>
+          <a href="{{ route('admin.absensi-guru.index') }}" class="sub-item-link-glass text-white">
+            <i class="ti tabler-user-check text-success"></i> Absensi Guru
+          </a>
+          <a href="{{ route('admin.absensi-staff.index') }}" class="sub-item-link-glass text-white">
+            <i class="ti tabler-briefcase text-warning"></i> Absensi Staff TU
+          </a>
         </div>
       </div>
     </div>
 
-    {{-- Izin & Sakit --}}
+    {{-- Izin & Sakit (with Red Pulsing Badge if pending > 0) --}}
     <div class="col-sm-6 col-xl-4">
-      <div class="das-panel h-100 master-menu-card">
-        <div class="das-panel__body p-4">
-          <div class="d-flex align-items-center gap-3 mb-3">
-            <div class="avatar avatar-md">
-              <span class="avatar-initial rounded bg-label-info shadow-sm">
-                <i class="ti tabler-notes-medical fs-4"></i>
-              </span>
-            </div>
-            <div>
-              <h6 class="mb-0 text-white fw-bold">Izin & Sakit</h6>
-              <small class="text-white-50">Pengajuan & Verifikasi</small>
-            </div>
+      <div class="glass-card-mewah h-100 p-4">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="avatar avatar-md" style="width: 42px; height: 42px;">
+            <span class="avatar-initial rounded bg-label-info shadow-sm">
+              <i class="ti tabler-notes-medical fs-4"></i>
+            </span>
           </div>
-          <p class="text-white-50 small mb-3">Verifikasi berkas pengajuan izin dan sakit.</p>
-          <a href="{{ route('admin.izin-sakit.index') }}" class="sub-item-link text-white w-100 mt-2">
-            <i class="ti tabler-file-medical text-info"></i> Kelola Izin & Sakit
-          </a>
+          <div>
+            <h6 class="mb-0 text-white fw-bold">Izin & Sakit</h6>
+            <small class="text-white-50" style="font-size: 0.75rem;">Pengajuan & Verifikasi</small>
+          </div>
         </div>
+        <p class="text-white-50 small mb-3">Verifikasi berkas pengajuan izin dan sakit.</p>
+        <a href="{{ route('admin.izin-sakit.index') }}" class="sub-item-link-glass text-white w-100 mt-2 d-flex justify-content-between align-items-center">
+          <span class="d-flex align-items-center gap-2">
+            <i class="ti tabler-file-medical text-info"></i> Kelola Izin & Sakit
+          </span>
+          @if ($pendingIzinCount > 0)
+            <span class="badge rounded-pill bg-danger pulsing-badge-danger fw-bold" style="padding: 5px 8px; font-size: 0.7rem;">
+              {{ $pendingIzinCount }} Pending
+            </span>
+          @endif
+        </a>
       </div>
     </div>
 
     {{-- Laporan --}}
     <div class="col-sm-6 col-xl-4">
-      <div class="das-panel h-100 master-menu-card">
-        <div class="das-panel__body p-4">
-          <div class="d-flex align-items-center gap-3 mb-3">
-            <div class="avatar avatar-md">
-              <span class="avatar-initial rounded bg-label-secondary shadow-sm">
-                <i class="ti tabler-chart-bar fs-4"></i>
-              </span>
-            </div>
-            <div>
-              <h6 class="mb-0 text-white fw-bold">Laporan & Rekap</h6>
-              <small class="text-white-50">Analitik & Export</small>
-            </div>
+      <div class="glass-card-mewah h-100 p-4">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="avatar avatar-md" style="width: 42px; height: 42px;">
+            <span class="avatar-initial rounded bg-label-secondary shadow-sm">
+              <i class="ti tabler-chart-bar fs-4"></i>
+            </span>
           </div>
-          <p class="text-white-50 small mb-3">Generate laporan kehadiran bulanan.</p>
-          <a href="{{ route('admin.laporan.index') }}" class="sub-item-link text-white w-100 mt-2">
-            <i class="ti tabler-table-export text-secondary"></i> Buka Modul Laporan
-          </a>
+          <div>
+            <h6 class="mb-0 text-white fw-bold">Laporan & Rekap</h6>
+            <small class="text-white-50" style="font-size: 0.75rem;">Analitik & Export</small>
+          </div>
         </div>
+        <p class="text-white-50 small mb-3">Generate laporan kehadiran bulanan.</p>
+        <a href="{{ route('admin.laporan.index') }}" class="sub-item-link-glass text-white w-100 mt-2">
+          <i class="ti tabler-table-export text-secondary"></i> Buka Modul Laporan
+        </a>
       </div>
     </div>
   </div>

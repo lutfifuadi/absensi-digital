@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\GoogleSheetsSettingController;
 use App\Http\Controllers\Admin\GoogleSheetsGuruSettingController;
 use App\Http\Controllers\Admin\GuideCategoryController;
 use App\Http\Controllers\Admin\GuruController;
+use App\Http\Controllers\Admin\MasterDataController;
 use App\Http\Controllers\Admin\MapelController;
 use App\Http\Controllers\Admin\IdCardTemplateController;
 use App\Http\Controllers\Admin\ImpersonateController;
@@ -396,9 +397,8 @@ Route::middleware([
             ->middleware('role:super_admin')
             ->name('admin.activity-log.destroy-all');
 
-        Route::get('/master-data', function () {
-            return view('admin.master-data');
-        })->middleware('role:super_admin,admin_sekolah,operator')->name('admin.master-data');
+        Route::get('/master-data', [MasterDataController::class, 'index'])->middleware('role:super_admin,admin_sekolah,operator')->name('admin.master-data');
+        Route::get('/master-data/search', [MasterDataController::class, 'search'])->middleware('role:super_admin,admin_sekolah,operator')->name('admin.master-data.search');
 
         // ── MODUL KEGIATAN KHUSUS ──────────────────────────────────────────────
         Route::resource('kegiatan', KegiatanController::class)
