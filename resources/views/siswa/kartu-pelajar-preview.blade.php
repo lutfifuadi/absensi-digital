@@ -510,14 +510,13 @@
 
         <!-- PHOTO -->
         @if(isset($elements['photo']) && $elements['photo']['show'])
+          @php
+            $logoFallback = !empty($logoBase64) ? $logoBase64 : (!empty($logoUrl) ? $logoUrl : (!empty($logoSekolah) ? asset('uploads/logo/' . $logoSekolah) : asset('assets/img/avatars/1.png')));
+            $photoSrc = !empty($fotoBase64) ? $fotoBase64 : $logoFallback;
+          @endphp
           <div class="template-element" style="left: {{ $elements['photo']['x'] }}pt; top: {{ $elements['photo']['y'] }}pt;">
-            @if($fotoBase64)
-              <img class="template-photo" src="{{ $fotoBase64 }}" 
-                   style="width: {{ $elements['photo']['w'] }}pt; height: {{ $elements['photo']['h'] }}pt;" alt="Foto">
-            @else
-              <img class="template-photo" src="{{ asset('assets/img/avatars/1.png') }}" 
-                   style="width: {{ $elements['photo']['w'] }}pt; height: {{ $elements['photo']['h'] }}pt;" alt="Default Foto">
-            @endif
+            <img class="template-photo" src="{{ $photoSrc }}" 
+                 style="width: {{ $elements['photo']['w'] }}pt; height: {{ $elements['photo']['h'] }}pt; object-fit: contain;" alt="Foto Siswa">
           </div>
         @endif
 

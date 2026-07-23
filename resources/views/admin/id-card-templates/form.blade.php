@@ -640,10 +640,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 div.style.width = el.w + 'px';
                 div.style.height = el.h + 'px';
                 if (key === 'photo') {
+                    const defaultLogo = (lembaga && (lembaga.logo_base64 || lembaga.logo_url)) ? (lembaga.logo_base64 || lembaga.logo_url) : null;
                     if (sample && sample.photo) {
                         div.innerHTML = `<img src="${sample.photo}" style="width:100%; height:100%; object-fit:cover;">`;
+                    } else if (defaultLogo) {
+                        div.innerHTML = `<img src="${defaultLogo}" style="width:100%; height:100%; object-fit:contain; background:#fff; padding:2px;">`;
                     } else {
-                        div.innerHTML = '<i class="ti tabler-user"></i> FOTO';
+                        div.innerHTML = '<i class="ti tabler-school"></i> LOGO FOTO';
                     }
                 } else if (key === 'qr') {
                     // Determine the QR data from sample (nisn for students, nip for guru/staff, fallback to 'ABSENSI')

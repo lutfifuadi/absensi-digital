@@ -170,8 +170,10 @@ class IdCardPdfService
                 ->download("{$label}.pdf");
         }
 
+        $logoFallback = $lembaga['logo_base64'] ?: ($lembaga['logo_url'] ?? '');
+
         // Siapkan data entitas dengan masa berlaku, foto base64, QR base64
-        $entities = $siswaList->map(function ($siswa) use ($jumlahTahun) {
+        $entities = $siswaList->map(function ($siswa) use ($jumlahTahun, $logoFallback) {
             // Pastikan ada QR
             if (! $siswa->qr_code) {
                 $fallback = $siswa->nisn ?: QrCodeGenerator::generate('SISWA');
@@ -180,7 +182,7 @@ class IdCardPdfService
             }
 
             $masaBerlaku = $this->hitungMasaBerlakuSiswa($siswa, $jumlahTahun);
-            $fotoBase64  = $this->fotoToBase64($siswa->foto ?? '');
+            $fotoBase64  = $this->fotoToBase64($siswa->foto ?? '', $logoFallback);
             $qrBase64    = QrCodeGenerator::renderDataUri($siswa->qr_code, 200);
 
             $siswa->_nis = $siswa->nis;
@@ -240,7 +242,9 @@ class IdCardPdfService
                 ->download("{$label}.pdf");
         }
 
-        $entities = $guruList->map(function ($guru) use ($masaBerlakuDefault) {
+        $logoFallback = $lembaga['logo_base64'] ?: ($lembaga['logo_url'] ?? '');
+
+        $entities = $guruList->map(function ($guru) use ($masaBerlakuDefault, $logoFallback) {
             if (! $guru->qr_code || ! $guru->qr_code_nip) {
                 $guru->update([
                     'qr_code' => $guru->qr_code ?? QrCodeGenerator::generate('GURU'),
@@ -251,7 +255,7 @@ class IdCardPdfService
 
             $guru->_nip = $guru->nip;
             $guru->_masa_berlaku = $masaBerlakuDefault;
-            $guru->_foto_base64  = $this->fotoToBase64($guru->foto ?? '');
+            $guru->_foto_base64  = $this->fotoToBase64($guru->foto ?? '', $logoFallback);
             $guru->_qr_base64    = QrCodeGenerator::renderDataUri($guru->qr_code, 200);
             $guru->_qr_nip_base64 = QrCodeGenerator::renderDataUri($guru->qr_code_nip ?? $guru->nip, 200);
             $guru->_posisi       = $guru->jabatan ?? ('Guru ' . $guru->mata_pelajaran);
@@ -287,7 +291,9 @@ class IdCardPdfService
             abort(422, 'Template ID Card untuk Staff tidak ditemukan. Silakan buat dan aktifkan template terlebih dahulu.');
         }
 
-        $entities = $staffList->map(function ($staff) use ($masaBerlakuDefault) {
+        $logoFallback = $lembaga['logo_base64'] ?: ($lembaga['logo_url'] ?? '');
+
+        $entities = $staffList->map(function ($staff) use ($masaBerlakuDefault, $logoFallback) {
             if (! $staff->qr_code || ! $staff->qr_code_nip) {
                 $staff->update([
                     'qr_code' => $staff->qr_code ?? QrCodeGenerator::generate('STAFF'),
@@ -298,7 +304,7 @@ class IdCardPdfService
 
             $staff->_nip = $staff->nip;
             $staff->_masa_berlaku = $masaBerlakuDefault;
-            $staff->_foto_base64  = $this->fotoToBase64($staff->foto ?? '');
+            $staff->_foto_base64  = $this->fotoToBase64($staff->foto ?? '', $logoFallback);
             $staff->_qr_base64    = QrCodeGenerator::renderDataUri($staff->qr_code, 200);
             $staff->_qr_nip_base64 = QrCodeGenerator::renderDataUri($staff->qr_code_nip ?? $staff->nip, 200);
             $staff->_posisi       = $staff->jabatan ?? 'Staff Tata Usaha';
@@ -316,23 +322,26 @@ class IdCardPdfService
     /**
      * Konversi foto entitas ke base64.
      * Path foto ada di storage/app/public/
+     * Jika foto kosong/gagal muat, gunakan $fallbackLogoBase64 (Logo Sekolah).
      *
      * @param  string  $fotoPath  Relative path dari storage/app/public/
+     * @param  string  $fallbackLogoBase64
      * @return string
      */
-    private function fotoToBase64(string $fotoPath): string
+    private function fotoToBase64(string $fotoPath, string $fallbackLogoBase64 = ''): string
     {
         if (empty($fotoPath)) {
-            return '';
+            return $fallbackLogoBase64;
         }
 
         // Check if Google Drive File ID
         if (strlen($fotoPath) > 30 && !str_contains($fotoPath, '/') && !str_contains($fotoPath, '\\')) {
             try {
-                return app(\App\Services\GoogleDriveService::class)->getPhotoBase64($fotoPath);
+                $driveBase64 = app(\App\Services\GoogleDriveService::class)->getPhotoBase64($fotoPath);
+                return !empty($driveBase64) ? $driveBase64 : $fallbackLogoBase64;
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('IdCardPdfService: Gagal mengambil base64 dari Google Drive: ' . $e->getMessage());
-                return '';
+                return $fallbackLogoBase64;
             }
         }
 
@@ -340,7 +349,7 @@ class IdCardPdfService
         $data     = @file_get_contents($fullPath);
 
         if ($data === false) {
-            return '';
+            return $fallbackLogoBase64;
         }
 
         $ext  = strtolower(pathinfo($fotoPath, PATHINFO_EXTENSION));

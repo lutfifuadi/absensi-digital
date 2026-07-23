@@ -82,33 +82,33 @@
         <!-- PHOTO -->
         @if($elements['photo']['show'])
         @php
-            $fotoPath = '';
-            if(is_array($entity)) {
-                $fotoPath = $entity['photo'] ? $entity['photo'] : public_path('assets/img/avatars/1.png');
+            $logoFallback = $lembagaData['logo_base64'] ?? ($lembagaData['logo_url'] ?? '');
+            $fotoBase64 = '';
+
+            if (is_array($entity)) {
+                $fotoBase64 = !empty($entity['photo']) ? $entity['photo'] : $logoFallback;
             } else {
-                // Gunakan _foto_base64 jika sudah disiapkan oleh IdCardPdfService
-                if (isset($entity->_foto_base64) && $entity->_foto_base64) {
+                if (isset($entity->_foto_base64) && !empty($entity->_foto_base64)) {
                     $fotoBase64 = $entity->_foto_base64;
                 } else {
-                    $fotoPath = $entity->foto ? storage_path('app/public/' . $entity->foto) : public_path('assets/img/avatars/1.png');
-                    $fotoBase64 = '';
-                }
-            }
-            
-            if (!isset($fotoBase64) || empty($fotoBase64)) {
-                $fotoBase64 = '';
-                if($fotoPath && file_exists($fotoPath)) {
-                    $fotoData = @file_get_contents($fotoPath);
-                    if ($fotoData !== false) {
-                        $fotoBase64 = 'data:image/' . pathinfo($fotoPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($fotoData);
+                    $fotoPath = !empty($entity->foto) ? storage_path('app/public/' . $entity->foto) : '';
+                    if (!empty($fotoPath) && file_exists($fotoPath)) {
+                        $fotoData = @file_get_contents($fotoPath);
+                        $fotoBase64 = ($fotoData !== false) ? 'data:image/' . pathinfo($fotoPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode($fotoData) : $logoFallback;
+                    } else {
+                        $fotoBase64 = $logoFallback;
                     }
                 }
+            }
+
+            if (empty($fotoBase64)) {
+                $fotoBase64 = $logoFallback;
             }
         @endphp
         <div class="element" style="left: {{ $elements['photo']['x'] }}pt; top: {{ $elements['photo']['y'] }}pt; z-index: {{ $elements['photo']['z_index'] ?? 10 }};">
             @if($fotoBase64)
             <img class="photo" src="{{ $fotoBase64 }}" 
-                 style="width: {{ $elements['photo']['w'] }}pt; height: {{ $elements['photo']['h'] }}pt;">
+                 style="width: {{ $elements['photo']['w'] }}pt; height: {{ $elements['photo']['h'] }}pt; object-fit: contain;">
             @endif
         </div>
         @endif
