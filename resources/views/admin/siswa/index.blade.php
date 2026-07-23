@@ -272,19 +272,19 @@
 
             <div class="das-hero__actions">
                 @if(!$isWaliKelas)
-                <button type="button" class="btn das-btn --purple" id="generateOrtuBtn">
-                    <i class="ti tabler-key me-1"></i> Generate Ortu
+                <button type="button" class="btn das-btn --purple" id="generateOrtuBtn" title="Generate Akun Ortu">
+                    <i class="ti tabler-key"></i>
                 </button>
-                <button type="button" class="btn das-btn --warning" id="syncGoogleSheetBtn">
-                    <i class="ti tabler-refresh me-1"></i> Google Sheet
+                <button type="button" class="btn das-btn --warning" id="syncGoogleSheetBtn" title="Sinkronisasi Google Sheet">
+                    <i class="ti tabler-refresh"></i>
                 </button>
-                <button type="button" class="btn das-btn --secondary" data-bs-toggle="modal" data-bs-target="#importModal">
-                    <i class="ti tabler-file-import me-1"></i> Import
+                <button type="button" class="btn das-btn --secondary" data-bs-toggle="modal" data-bs-target="#importModal" title="Import Data">
+                    <i class="ti tabler-file-import"></i>
                 </button>
                 <div class="btn-group">
                     <button type="button" class="btn das-btn --success dropdown-toggle" data-bs-toggle="dropdown"
-                        aria-expanded="false">
-                        <i class="ti tabler-download me-1"></i> Export
+                        aria-expanded="false" title="Export Data">
+                        <i class="ti tabler-download"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end das-modal border-0 shadow-lg" style="min-width: 200px;">
                         <li>
@@ -303,22 +303,22 @@
                         </li>
                     </ul>
                 </div>
-                <button type="button" class="btn das-btn --danger" data-bs-toggle="modal" data-bs-target="#deleteAllModal">
-                    <i class="ti tabler-trash me-1"></i> Hapus Siswa
+                <button type="button" class="btn das-btn --danger" data-bs-toggle="modal" data-bs-target="#deleteAllModal" title="Hapus Semua Siswa">
+                    <i class="ti tabler-trash"></i>
                 </button>
                 @endif
 
-                <button type="button" class="btn das-btn --purple" id="generateAllBarcodeBtn">
-                    <i class="ti tabler-barcode me-1"></i> Generate Barcode
+                <button type="button" class="btn das-btn --purple" id="generateAllBarcodeBtn" title="Generate Barcode">
+                    <i class="ti tabler-barcode"></i>
                 </button>
                 
-                <button type="button" class="btn das-btn --info" data-bs-toggle="modal" data-bs-target="#downloadBarcodeModal">
-                    <i class="ti tabler-download me-1"></i> Unduh Barcode
+                <button type="button" class="btn das-btn --info" data-bs-toggle="modal" data-bs-target="#downloadBarcodeModal" title="Unduh Barcode">
+                    <i class="ti tabler-download"></i>
                 </button>
 
                 @if(!$isWaliKelas)
-                <a href="{{ route('admin.siswa.create') }}" class="btn das-btn --primary">
-                    <i class="ti tabler-plus me-1"></i> Tambah Siswa
+                <a href="{{ route('admin.siswa.create') }}" class="btn das-btn --primary" title="Tambah Siswa Baru">
+                    <i class="ti tabler-plus"></i>
                 </a>
                 @endif
             </div>
