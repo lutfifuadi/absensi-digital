@@ -602,9 +602,9 @@
     <div class="panel-header">
       <div class="panel-title">
         @if($mode === 'pulang')
-          🏆 <span>10 Siswa Pulang Paling Awal</span>
+          🏆 <span>10 Pulang Paling Awal</span>
         @else
-          🏆 <span>10 Siswa Hadir Paling Awal</span>
+          🏆 <span>10 Hadir Paling Awal</span>
         @endif
       </div>
       <div style="font-size:.7rem; color:var(--muted);">{{ \Carbon\Carbon::today()->translatedFormat('d F Y') }}</div>
@@ -614,7 +614,7 @@
       <table class="lb-table" id="table-awal">
         <thead><tr>
           <th class="rank-cell">#</th>
-          <th class="name-cell">Nama Siswa</th>
+          <th class="name-cell">Nama / Identitas</th>
           <th class="jam-col">Jam</th>
           <th class="status-col">Status</th>
         </tr></thead>
@@ -645,7 +645,7 @@
               </td>
             </tr>
           @empty
-            <tr><td colspan="4"><div class="empty-state"><span class="icon">🌅</span><p>Belum ada siswa yang hadir hari ini</p></div></td></tr>
+            <tr><td colspan="4"><div class="empty-state"><span class="icon">🌅</span><p>Belum ada data hadir hari ini</p></div></td></tr>
           @endforelse
         </tbody>
       </table>
@@ -665,7 +665,7 @@
       <table class="lb-table">
         <thead><tr>
           <th class="rank-cell">#</th>
-          <th class="name-cell">Nama Siswa</th>
+          <th class="name-cell">Nama / Identitas</th>
           <th class="jam-col">Jam</th>
           <th class="status-col">Status</th>
         </tr></thead>
@@ -717,15 +717,15 @@
       <!-- Widget Counter Besar Futuristik -->
       <div class="counter-widget">
         @if($mode === 'pulang')
-          <div class="counter-title">Total Siswa Pulang Hari Ini</div>
+          <div class="counter-title">Total Civitas Pulang Hari Ini</div>
         @else
-          <div class="counter-title">Total Siswa Hadir Hari Ini</div>
+          <div class="counter-title">Total Kehadiran Hari Ini</div>
         @endif
         <div class="counter-value">
           <span class="current" id="s-hadir-large">{{ $stats['hadir'] }}</span>
           <span class="slash">/</span>
           <span class="total-cap" id="large-total-kapasitas">{{ $totalKapasitasSiswa }}</span>
-          <span class="unit">Siswa</span>
+          <span class="unit">Orang</span>
         </div>
       </div>
 
@@ -754,7 +754,7 @@
 
       <div style="text-align:center; color: var(--muted); font-size: 0.85rem; max-width: 280px; line-height: 1.4;">
         <p style="color: #fff; font-weight: 700; margin-bottom: 0.25rem;">SIAP SCANNING</p>
-        <p>Silakan tap kartu RFID atau scan QR-Code siswa pada scanner</p>
+        <p>Silakan tap kartu RFID atau scan QR-Code pada scanner</p>
       </div>
 
       <!-- Result toast -->

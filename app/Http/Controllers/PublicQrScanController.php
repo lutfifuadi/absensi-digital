@@ -590,8 +590,8 @@ class PublicQrScanController extends Controller
         $announcement = $settings['announcement_text']   ?? null;
 
         [$leaderboardAwal, $leaderboardTerbaru, $stats] = $this->getLeaderboardData($mode);
-        $totalKapasitasSiswa = Cache::remember('total_siswa_count', now()->addDay(), function () {
-            return Siswa::count();
+        $totalKapasitasSiswa = Cache::remember('total_civitas_count', now()->addMinutes(10), function () {
+            return Siswa::count() + Guru::count() + StaffTataUsaha::count();
         });
 
         return view('public.live-board', compact(
@@ -654,7 +654,7 @@ class PublicQrScanController extends Controller
                     return response()->json([
                         'success' => false,
                         'already' => true,
-                        'message' => $siswa->nama_lengkap . ' sudah melakukan scan pulang pada jam ' . $absensi->jam_pulang . '.',
+                        'message' => $siswa->nama_lengkap . ' sudah scan pulang pada jam ' . $absensi->jam_pulang . '.',
                     ]);
                 }
 
@@ -676,7 +676,7 @@ class PublicQrScanController extends Controller
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Sudah waktunya pulang! Jam pulang ' . $siswa->nama_lengkap . ' berhasil dicatat.',
+                    'message' => 'Hati-hati di jalan! Jam pulang ' . $siswa->nama_lengkap . ' berhasil dicatat.',
                     'siswa'   => ['nama' => $siswa->nama_lengkap, 'kelas' => $siswa->kelas?->nama ?? '-', 'jam' => $currentTime],
                 ]);
             }
@@ -714,7 +714,7 @@ class PublicQrScanController extends Controller
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Absensi masuk berhasil dicatat!',
+                    'message' => 'Absensi berhasil dicatat!',
                     'siswa'   => ['nama' => $siswa->nama_lengkap, 'kelas' => $siswa->kelas?->nama ?? '-', 'jam' => $currentTime, 'status' => $status],
                 ]);
             }
@@ -738,7 +738,7 @@ class PublicQrScanController extends Controller
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Sudah waktunya pulang! Jam pulang ' . $siswa->nama_lengkap . ' berhasil dicatat.',
+                    'message' => 'Hati-hati di jalan! Jam pulang ' . $siswa->nama_lengkap . ' berhasil dicatat.',
                     'siswa'   => ['nama' => $siswa->nama_lengkap, 'kelas' => $siswa->kelas?->nama ?? '-', 'jam' => $currentTime],
                 ]);
             }
@@ -1161,42 +1161,63 @@ class PublicQrScanController extends Controller
             $awal    = $sortedAwal->slice(0, 10);
             $terbaru = $sortedTerbaru->slice(0, 10);
 
-            if ($mode === 'pulang') {
-                // Under 'pulang' mode: stats should count total checked-out and remaining
-                $totalSiswa = Cache::remember('total_siswa_count', now()->addDay(), function () {
-                    return Siswa::count();
-                });
-                
-                $checkedOut = AbsensiSiswa::whereDate('tanggal', $today)
-                    ->whereNotNull('jam_pulang')
-                    ->count();
+            $totalCivitas = Cache::remember('total_civitas_count', now()->addMinutes(10), function () {
+                return Siswa::count() + Guru::count() + StaffTataUsaha::count();
+            });
 
-                $remaining = max(0, $totalSiswa - $checkedOut);
+            if ($mode === 'pulang') {
+                $checkedOutSiswa = AbsensiSiswa::whereDate('tanggal', $today)->whereNotNull('jam_pulang')->count();
+                $checkedOutGuru  = AbsensiGuru::whereDate('tanggal', $today)->whereNotNull('jam_pulang')->count();
+                $checkedOutStaff = AbsensiStaff::whereDate('tanggal', $today)->whereNotNull('jam_pulang')->count();
+
+                $checkedOutTotal = $checkedOutSiswa + $checkedOutGuru + $checkedOutStaff;
+                $remaining = max(0, $totalCivitas - $checkedOutTotal);
 
                 $stats = [
-                    'hadir'     => $checkedOut, // Gunakan key 'hadir' agar sinkron dengan template view
+                    'hadir'     => $checkedOutTotal,
                     'sakit'     => 0,
                     'izin'      => 0,
                     'alpha'     => 0,
                     'terlambat' => 0,
-                    'total'     => $totalSiswa,
-                    'pulang'    => $checkedOut,
+                    'total'     => $totalCivitas,
+                    'pulang'    => $checkedOutTotal,
                     'remaining' => $remaining,
                 ];
             } else {
-                $rawStats = AbsensiSiswa::whereDate('tanggal', $today)
+                $siswaStats = AbsensiSiswa::whereDate('tanggal', $today)
                     ->selectRaw('status, COUNT(*) as total')
                     ->groupBy('status')
                     ->pluck('total', 'status')
                     ->toArray();
 
+                $guruStats = AbsensiGuru::whereDate('tanggal', $today)
+                    ->selectRaw('status, COUNT(*) as total')
+                    ->groupBy('status')
+                    ->pluck('total', 'status')
+                    ->toArray();
+
+                $staffStats = AbsensiStaff::whereDate('tanggal', $today)
+                    ->selectRaw('status, COUNT(*) as total')
+                    ->groupBy('status')
+                    ->pluck('total', 'status')
+                    ->toArray();
+
+                $hadirCount = ($siswaStats['hadir'] ?? 0) + ($siswaStats['terlambat'] ?? 0)
+                            + ($guruStats['hadir'] ?? 0)  + ($guruStats['terlambat'] ?? 0)
+                            + ($staffStats['hadir'] ?? 0) + ($staffStats['terlambat'] ?? 0);
+
+                $sakitCount = ($siswaStats['sakit'] ?? 0) + ($guruStats['sakit'] ?? 0) + ($staffStats['sakit'] ?? 0);
+                $izinCount  = ($siswaStats['izin'] ?? 0)  + ($guruStats['izin'] ?? 0)  + ($staffStats['izin'] ?? 0);
+                $alphaCount = ($siswaStats['alpha'] ?? 0) + ($guruStats['alpha'] ?? 0) + ($staffStats['alpha'] ?? 0);
+                $terlambatCount = ($siswaStats['terlambat'] ?? 0) + ($guruStats['terlambat'] ?? 0) + ($staffStats['terlambat'] ?? 0);
+
                 $stats = [
-                    'hadir'    => ($rawStats['hadir']    ?? 0) + ($rawStats['terlambat'] ?? 0),
-                    'sakit'    => $rawStats['sakit']    ?? 0,
-                    'izin'     => $rawStats['izin']     ?? 0,
-                    'alpha'    => $rawStats['alpha']    ?? 0,
-                    'terlambat'=> $rawStats['terlambat']?? 0,
-                    'total'    => array_sum($rawStats),
+                    'hadir'    => $hadirCount,
+                    'sakit'    => $sakitCount,
+                    'izin'     => $izinCount,
+                    'alpha'    => $alphaCount,
+                    'terlambat'=> $terlambatCount,
+                    'total'    => $totalCivitas,
                 ];
             }
 
