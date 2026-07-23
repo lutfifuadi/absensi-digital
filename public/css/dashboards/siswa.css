@@ -647,7 +647,7 @@
   }
 
   .das-hero__clock {
-    display: none !important;
+    display: flex !important;
   }
 
   .das-stats-row {

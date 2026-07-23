@@ -816,7 +816,7 @@ class SiswaController extends Controller
         // Riwayat absensi paginated
         $absensi = AbsensiSiswa::where('siswa_id', $siswa->id)
             ->orderByDesc('tanggal')
-            ->paginate(15);
+            ->paginate(10);
 
         // Riwayat izin/sakit
         $izinSakit = IzinSakit::where('tipe', 'siswa')
@@ -1075,6 +1075,104 @@ class SiswaController extends Controller
             'total' => $setting->sync_total_rows ?? 0,
             'processed' => $setting->sync_processed_rows ?? 0,
             'message' => $setting->last_sync_message ?? '',
+        ]);
+    }
+
+    /**
+     * Inisialisasi/verifikasi kesiapan barcode seluruh siswa (NIS valid).
+     */
+    public function generateAllBarcode(Request $request)
+    {
+        $siswaList = Siswa::all();
+        $updatedCount = 0;
+
+        DB::transaction(function () use ($siswaList, &$updatedCount) {
+            foreach ($siswaList as $siswa) {
+                $changed = false;
+                
+                // Pastikan NIS valid (tidak null/kosong)
+                if (empty($siswa->nis)) {
+                    $fallback = $siswa->nisn ?: 'SISWA' . sprintf('%04d', $siswa->id);
+                    $siswa->nis = $fallback;
+                    $changed = true;
+                }
+
+                // Kita juga bisa sekalian memastikan QR Code terisi
+                if (empty($siswa->qr_code)) {
+                    $siswa->qr_code = $siswa->nisn ?: QrCodeGenerator::generate('SISWA');
+                    $changed = true;
+                }
+
+                if ($changed) {
+                    $siswa->save();
+                    $updatedCount++;
+                }
+            }
+
+            \App\Models\ActivityLog::record(
+                'UPDATE_ALL',
+                'Siswa',
+                "Verifikasi kesiapan barcode seluruh siswa. Total siswa: " . count($siswaList) . ", Diperbarui: {$updatedCount}."
+            );
+        });
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Kesiapan barcode seluruh siswa ({$siswaList->count()} siswa) berhasil diverifikasi. {$updatedCount} data diperbarui.",
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Kesiapan barcode seluruh siswa berhasil diverifikasi.");
+    }
+
+    /**
+     * Unduh massal barcode per kelas (dalam bentuk ZIP berisi gambar PNG).
+     */
+    public function downloadBarcodeKelas(Request $request)
+    {
+        $kelasId = $request->query('kelas_id');
+        if (!$kelasId) {
+            return redirect()->back()->with('error', 'Silakan pilih kelas terlebih dahulu.');
+        }
+
+        $kelas = Kelas::findOrFail($kelasId);
+        $siswaList = Siswa::where('kelas_id', $kelasId)->get();
+
+        if ($siswaList->isEmpty()) {
+            return redirect()->back()->with('error', "Tidak ada data siswa di kelas {$kelas->nama}.");
+        }
+
+        $className = preg_replace('/[^A-Za-z0-9\-]/', '_', $kelas->nama);
+        $zipName = "barcode-kelas-{$className}.zip";
+
+        return new \Symfony\Component\HttpFoundation\StreamedResponse(function () use ($siswaList, $zipName) {
+            $zip = new \ZipStream\ZipStream(
+                outputName: $zipName,
+                sendHttpHeaders: false
+            );
+
+            $generator = new \Picqer\Barcode\BarcodeGeneratorPNG();
+
+            foreach ($siswaList as $siswa) {
+                // Gunakan NIS, jika tidak ada fallback ke NISN, lalu ke SISWA_id
+                $nis = preg_replace('/[^A-Za-z0-9]/', '', $siswa->nis ?: $siswa->nisn ?: 'SISWA' . $siswa->id);
+                $studentName = preg_replace('/[^A-Za-z0-9\s\-]/', '', $siswa->nama_lengkap);
+                $studentName = str_replace(' ', '_', $studentName);
+                $fileName = "{$nis}_{$studentName}.png";
+
+                try {
+                    $barcodeData = $generator->getBarcode($nis, $generator::TYPE_CODE_128);
+                    $zip->addFile($fileName, $barcodeData);
+                } catch (\Exception $e) {
+                    // Skip jika gagal
+                }
+            }
+
+            $zip->finish();
+        }, 200, [
+            'Content-Type' => 'application/zip',
+            'Content-Disposition' => 'attachment; filename="' . $zipName . '"',
         ]);
     }
 }

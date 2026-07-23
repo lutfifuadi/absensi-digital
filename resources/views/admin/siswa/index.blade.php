@@ -270,8 +270,8 @@
                 </div>
             </div>
 
-            @if(!$isWaliKelas)
             <div class="das-hero__actions">
+                @if(!$isWaliKelas)
                 <button type="button" class="btn das-btn --purple" id="generateOrtuBtn">
                     <i class="ti tabler-key me-1"></i> Generate Ortu
                 </button>
@@ -306,11 +306,22 @@
                 <button type="button" class="btn das-btn --danger" data-bs-toggle="modal" data-bs-target="#deleteAllModal">
                     <i class="ti tabler-trash me-1"></i> Hapus Siswa
                 </button>
+                @endif
+
+                <button type="button" class="btn das-btn --purple" id="generateAllBarcodeBtn">
+                    <i class="ti tabler-barcode me-1"></i> Generate Barcode
+                </button>
+                
+                <button type="button" class="btn das-btn --info" data-bs-toggle="modal" data-bs-target="#downloadBarcodeModal">
+                    <i class="ti tabler-download me-1"></i> Unduh Barcode
+                </button>
+
+                @if(!$isWaliKelas)
                 <a href="{{ route('admin.siswa.create') }}" class="btn das-btn --primary">
                     <i class="ti tabler-plus me-1"></i> Tambah Siswa
                 </a>
+                @endif
             </div>
-            @endif
         </div>
     </div>
 
@@ -646,6 +657,37 @@
                     <button type="button" class="btn btn-label-secondary w-50" data-bs-dismiss="modal">Batal</button>
                     <button type="button" id="confirmImpersonateBtn" class="btn btn-success w-50">Ya, Lanjutkan</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Download Barcode Kelas -->
+    <div class="modal fade" id="downloadBarcodeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content das-modal shadow-lg">
+                <div class="das-modal-head d-flex align-items-center justify-content-between">
+                    <h5 class="das-modal-title"><i class="ti tabler-barcode me-2 text-info"></i>Unduh Barcode Kelas</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('admin.siswa.download-barcode-kelas') }}" method="GET">
+                    <div class="das-modal-body">
+                        <div class="mb-3">
+                            <label class="form-label text-white-50">Pilih Kelas</label>
+                            <select name="kelas_id" class="form-select" required>
+                                <option value="">— Pilih Kelas —</option>
+                                @foreach ($kelasOptions as $k)
+                                    <option value="{{ $k->id }}">{{ $k->nama }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="px-4 pb-4 pt-2 d-flex gap-2">
+                        <button type="button" class="btn btn-label-secondary w-100" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="ti tabler-download me-1"></i> Unduh ZIP
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -1051,6 +1093,116 @@
             }
             if (exportCsvBtn) {
                 exportCsvBtn.addEventListener('click', () => handleExport('csv'));
+            }
+
+            // Generate All Barcode
+            const generateAllBarcodeBtn = document.getElementById('generateAllBarcodeBtn');
+            if (generateAllBarcodeBtn) {
+                generateAllBarcodeBtn.addEventListener('click', function() {
+                    Swal.fire({
+                        title: 'Generate/Verifikasi Barcode?',
+                        html: '<div class="text-center px-2">' +
+                              '  <p class="text-white-50 mb-3" style="font-size:0.92rem; line-height:1.6;">' +
+                              '    Sistem akan memverifikasi seluruh data siswa. Siswa yang belum memiliki NIS valid akan diberikan NIS otomatis berbasis NISN atau format default agar siap discan.' +
+                              '  </p>' +
+                              '</div>',
+                        iconHtml: '<div class="rounded-circle d-flex align-items-center justify-content-center" style="width:70px; height:70px; background: rgba(115, 103, 240, 0.15); border: 2px solid rgba(115, 103, 240, 0.3); box-shadow: 0 0 15px rgba(115, 103, 240, 0.4);"><i class="ti tabler-barcode text-purple fs-1" style="font-size: 2.5rem !important;"></i></div>',
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="ti tabler-bolt me-1"></i> Mulai Proses',
+                        cancelButtonText: 'Batal',
+                        customClass: {
+                            popup: 'das-swal-popup',
+                            title: 'das-swal-title',
+                            htmlContainer: 'das-swal-html',
+                            confirmButton: 'btn das-btn --purple px-4 py-2 me-3',
+                            cancelButton: 'btn das-btn das-swal-cancel px-4 py-2',
+                            icon: 'border-0'
+                        },
+                        buttonsStyling: false,
+                        showClass: {
+                            popup: 'animate__animated animate__fadeInUp animate__faster'
+                        },
+                        hideClass: {
+                            popup: 'animate__animated animate__fadeOutDown animate__faster'
+                        },
+                        background: 'transparent',
+                        backdrop: `rgba(0,0,10,0.4)`,
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
+
+                        Swal.fire({
+                            title: 'Memproses Barcode...',
+                            html: '<div class="text-center px-2">' +
+                                  '  <p class="text-white-50 mb-3" style="font-size:0.92rem;">Sedang memverifikasi data dan menyiapkan barcode...</p>' +
+                                  '  <div class="d-flex align-items-center justify-content-center gap-2 p-2 rounded" style="background: rgba(115, 103, 240, 0.08); border: 1px dashed rgba(115, 103, 240, 0.2);">' +
+                                  '    <i class="ti tabler-loader spinner text-purple fs-4"></i>' +
+                                  '    <span class="text-purple extra-small fw-semibold">Mohon tunggu sebentar...</span>' +
+                                  '  </div>' +
+                                  '</div>',
+                            iconHtml: '<div class="rounded-circle d-flex align-items-center justify-content-center" style="width:70px; height:70px; background: rgba(115, 103, 240, 0.15); border: 2px solid rgba(115, 103, 240, 0.3);"><i class="ti tabler-loader spinner text-purple fs-1" style="font-size: 2.5rem !important;"></i></div>',
+                            showConfirmButton: false,
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            customClass: {
+                                popup: 'das-swal-popup',
+                                title: 'das-swal-title',
+                                htmlContainer: 'das-swal-html',
+                                icon: 'border-0'
+                            },
+                            buttonsStyling: false,
+                            background: 'transparent',
+                            backdrop: `rgba(0,0,10,0.45)`,
+                        });
+
+                        fetch('{{ route('admin.siswa.generate-all-barcode') }}', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: data.message || 'Kesiapan barcode siswa berhasil diverifikasi.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-success das-swal-confirm'
+                                    },
+                                    timer: 3000,
+                                    showConfirmButton: false,
+                                    background: 'transparent',
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            } else {
+                                throw new Error(data.message || 'Terjadi kesalahan.');
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error:', err);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal!',
+                                text: err.message || 'Terjadi kesalahan saat memproses barcode.',
+                                customClass: {
+                                    popup: 'das-swal-popup',
+                                    title: 'das-swal-title',
+                                    htmlContainer: 'das-swal-html',
+                                    confirmButton: 'btn btn-primary das-swal-confirm'
+                                },
+                                background: 'transparent',
+                                buttonsStyling: false
+                            });
+                        });
+                    });
+                });
             }
 
             // Generate Ortu Massal

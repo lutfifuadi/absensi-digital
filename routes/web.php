@@ -772,6 +772,14 @@ Route::middleware([
             ->name('admin.siswa.generate-qr')
             ->middleware('role:super_admin,admin_sekolah,operator');
 
+        Route::post('siswa/generate-all-barcode', [SiswaController::class, 'generateAllBarcode'])
+            ->name('admin.siswa.generate-all-barcode')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+
+        Route::get('siswa/download-barcode-kelas', [SiswaController::class, 'downloadBarcodeKelas'])
+            ->name('admin.siswa.download-barcode-kelas')
+            ->middleware('role:super_admin,admin_sekolah,operator,wali_kelas');
+
         Route::get('siswa/{siswa}/profil', [SiswaController::class, 'profil'])
             ->name('admin.siswa.profil')
             ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator');

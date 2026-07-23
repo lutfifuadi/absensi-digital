@@ -5,8 +5,15 @@
 @section('page-style')
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ asset('css/dashboards/super-admin.css') }}?v=4.3">
   <link rel="stylesheet" href="{{ asset('css/dashboards/siswa.css') }}?v=1.0">
+  <style>
+    .barcode-svg-container svg {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  </style>
 @endsection
 
 @section('content')
@@ -50,19 +57,18 @@
     $freqLate = (int)(\App\Models\Pengaturan::where('key', 'freq_bunyi_late')->value('value') ?: 349);
     $freqCheckout = (int)(\App\Models\Pengaturan::where('key', 'freq_bunyi_checkout')->value('value') ?: 392);
     
-    // Antitesis error @json parser limitasi Laravel (koma di dalam @json memicu ParseError)
     $chartDaysCategories = !empty($chartDays) ? $chartDays : ['Sn','Sl','Rb','Km','Jm','Sb','Mg'];
   @endphp
 
   {{-- ═══════════════════════════════════════════════════════
        SECTION 1: HERO HEADER — Identitas Siswa + Live Clock
   ═══════════════════════════════════════════════════════ --}}
-  <div class="das-hero das-hero--with-stats mb-4">
-    <div class="das-hero__bg"></div>
-    <div class="das-hero__glass"></div>
-    <div class="das-hero__grid-lines"></div>
+  <div class="das-hero mb-6">
+    <div class="das-hero__bg" aria-hidden="true"></div>
+    <div class="das-hero__scanline" aria-hidden="true"></div>
+    <div class="das-hero__grid-lines" aria-hidden="true"></div>
 
-    <div class="das-hero__inner">
+    <div class="das-hero__inner flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-4">
       {{-- Identitas Siswa --}}
       <div class="das-hero__identity">
         <div class="das-hero__logo-wrapper">
@@ -70,7 +76,7 @@
             <img src="{{ asset('uploads/logo/' . $logoSekolah) }}" alt="Logo" class="das-hero__logo">
           @else
             <div class="das-hero__logo-placeholder">
-              <i class="ti tabler-school"></i>
+              <i class="ti tabler-school fs-2"></i>
             </div>
           @endif
           <div class="das-hero__logo-glow"></div>
@@ -78,99 +84,158 @@
 
         <div class="das-hero__meta">
           <div class="das-hero__badge">
-            <span class="pulse-dot"></span>
+            <span class="das-hero__pulse-dot" aria-hidden="true"></span>
             Portal Siswa Aktif
           </div>
-          <h1 class="das-hero__school text-gradient-gold">{{ $namaSekolah }}</h1>
-          <p class="das-hero__welcome">Selamat datang kembali, <strong>{{ $user->name }}</strong> 👋</p>
+          <h3 class="das-hero__school text-gradient-gold mb-1" style="font-size: 1.35rem; line-height: 1.3;">{{ $namaSekolah }}</h3>
+          <p class="das-hero__welcome mb-0">Selamat datang kembali, <strong>{{ $user->name }}</strong> 👋</p>
         </div>
       </div>
 
-      {{-- Clock --}}
+      {{-- Clock Widget --}}
       <div class="das-hero__clock" role="status" aria-live="off">
         <div class="das-hero__date">{{ now()->locale('id')->translatedFormat('l, d F Y') }}</div>
         <div class="das-hero__time">
           <span id="live-clock">00:00:00</span>
-          <span class="das-hero__live-badge">
-            <span class="das-hero__pulse-dot" aria-hidden="true"></span>LIVE
-          </span>
+          <span class="das-hero__live-badge"><span class="das-hero__pulse-dot" aria-hidden="true"></span>LIVE</span>
         </div>
         <div class="das-hero__tz">WAKTU INDONESIA BARAT (WIB)</div>
       </div>
     </div>
+  </div>{{-- /das-hero --}}
 
-    {{-- STATS ROW (Mengambang di bawah hero) --}}
-    <div class="das-stats-row">
-      <div class="das-stat-card das-stat-card--warning">
-        <div class="das-stat-card__icon">
-          <i class="ti tabler-door"></i>
-        </div>
-        <div class="das-stat-card__body">
-          <div class="das-stat-card__val">{{ $kelasNama }}</div>
-          <div class="das-stat-card__label">Kelas Aktif</div>
-        </div>
-      </div>
 
-      <a href="{{ route('admin.izin-sakit.index') }}" class="das-stat-card das-stat-card--info text-decoration-none">
-        <div class="das-stat-card__icon">
-          <i class="ti tabler-circle-check"></i>
-        </div>
-        <div class="das-stat-card__body">
-          <div class="das-stat-card__val">{{ $izinDisetujui }} / {{ $totalIzinSaya }}</div>
-          <div class="das-stat-card__label">Izin Disetujui</div>
-        </div>
-        <div class="das-stat-card__side-info">
-          <div class="das-stat-card__arrow"><i class="ti tabler-chevron-right"></i></div>
-        </div>
-      </a>
-
-      <div class="das-stat-card das-stat-card--success">
-        <div class="das-stat-card__icon">
-          <i class="ti tabler-flame"></i>
-        </div>
-        <div class="das-stat-card__body">
-          <div class="das-stat-card__val">{{ $attendance_streak ?? 0 }} Hari</div>
-          <div class="das-stat-card__label">Kehadiran Beruntun</div>
+  {{-- ═══════════════════════════════════════════════════════
+       SECTION 2: STATS ROW — 4 Card Statistik Dynamic
+  ═══════════════════════════════════════════════════════ --}}
+  <div class="row g-6 mb-6">
+    {{-- Card 1: Kelas Aktif --}}
+    <div class="col-lg-3 col-sm-6">
+      <div class="card card-grad-primary h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-2">
+            <div class="avatar me-4">
+              <span class="avatar-initial rounded bg-label-primary">
+                <i class="ti tabler-door fs-4"></i>
+              </span>
+            </div>
+            <h4 class="mb-0 fw-semibold text-truncate">{{ $kelasNama }}</h4>
+          </div>
+          <p class="mb-1 text-body-secondary text-nowrap">Kelas Saya</p>
+          <p class="mb-0">
+            <span class="text-primary fw-medium me-2">Kelas Aktif</span>
+            <small class="text-body-secondary">semester ini</small>
+          </p>
         </div>
       </div>
     </div>
-  </div>
+
+    {{-- Card 2: Streak Kehadiran --}}
+    <div class="col-lg-3 col-sm-6">
+      <div class="card card-grad-success h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-2">
+            <div class="avatar me-4">
+              <span class="avatar-initial rounded bg-label-success">
+                <i class="ti tabler-flame fs-4"></i>
+              </span>
+            </div>
+            <h4 class="mb-0 fw-semibold">{{ $attendance_streak ?? 0 }} Hari</h4>
+          </div>
+          <p class="mb-1 text-body-secondary text-nowrap">Kehadiran Beruntun</p>
+          <p class="mb-0">
+            <span class="text-success fw-medium me-2">Streak Aktif</span>
+            <small class="text-body-secondary">tanpa terlambat</small>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {{-- Card 3: Izin Disetujui --}}
+    <div class="col-lg-3 col-sm-6">
+      <a href="{{ route('siswa.izin-sakit.index') }}" class="text-decoration-none">
+        <div class="card card-grad-info h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center mb-2">
+              <div class="avatar me-4">
+                <span class="avatar-initial rounded bg-label-info">
+                  <i class="ti tabler-clipboard-check fs-4"></i>
+                </span>
+              </div>
+              <h4 class="mb-0 fw-semibold">{{ $izinDisetujui }} / {{ $totalIzinSaya }}</h4>
+            </div>
+            <p class="mb-1 text-body-secondary text-nowrap">Izin Disetujui</p>
+            <p class="mb-0">
+              <span class="text-info fw-medium me-2">Surat Izin/Sakit</span>
+              <small class="text-body-secondary">lihat detail <i class="ti tabler-chevron-right ms-1"></i></small>
+            </p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    {{-- Card 4: Persentase Kehadiran --}}
+    <div class="col-lg-3 col-sm-6">
+      <div class="card card-grad-warning h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-2">
+            <div class="avatar me-4">
+              <span class="avatar-initial rounded bg-label-warning">
+                <i class="ti tabler-percentage fs-4"></i>
+              </span>
+            </div>
+            <h4 class="mb-0 fw-semibold">{{ $persentaseKehadiran ?? 0 }}%</h4>
+          </div>
+          <p class="mb-1 text-body-secondary text-nowrap">Tingkat Kehadiran</p>
+          <p class="mb-0">
+            <span class="text-warning fw-medium me-2">{{ $statsHadir ?? 0 }} dari {{ $totalAbsenBulanIni ?? 0 }} hari</span>
+            <small class="text-body-secondary">bulan ini</small>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>{{-- /row g-6 mb-6 (Stats Row) --}}
+
 
   {{-- ═══════════════════════════════════════════════════════
-       SECTION 1.5: KONFIRMASI KEHADIRAN PELEPASAN (Khusus Kelas XII)
+       SECTION 3: KONFIRMASI KEHADIRAN PELEPASAN (Khusus Kelas XII)
   ═══════════════════════════════════════════════════════ --}}
   @if($siswaRecord && $siswaRecord->kelas && (trim($siswaRecord->kelas->tingkat) === 'XII' || trim($siswaRecord->kelas->tingkat) === '12'))
-    <div class="row mb-4">
+    <div class="row mb-6">
       <div class="col-12">
         @if($absenPelepasan)
-          <div class="das-panel" style="border-left: 4px solid var(--das-success) !important; background: rgba(40, 199, 111, 0.06);">
-            <div class="das-panel__body p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div class="card border border-success border-opacity-20 shadow-sm" style="background: rgba(40, 199, 111, 0.08);">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
               <div class="d-flex align-items-center gap-3">
-                <div class="avatar avatar-md bg-label-success rounded p-1"><i class="ti tabler-circle-check fs-4"></i></div>
+                <div class="avatar avatar-md">
+                  <span class="avatar-initial rounded bg-label-success"><i class="ti tabler-circle-check fs-3"></i></span>
+                </div>
                 <div>
                   <h6 class="mb-0 text-success fw-bold">Presensi Pelepasan Terkonfirmasi!</h6>
-                  <p class="text-white-50 mb-0 small">Anda telah terkonfirmasi <strong>HADIR</strong> pada acara pelepasan kelas XII.</p>
+                  <p class="text-body-secondary mb-0 small">Anda telah terkonfirmasi <strong>HADIR</strong> pada acara pelepasan kelas XII.</p>
                 </div>
               </div>
-              <div class="text-md-end text-start">
-                <span class="badge bg-label-success p-2 px-3 border border-success border-opacity-20 font-monospace">
+              <div>
+                <span class="badge bg-label-success p-2 px-3 border border-success border-opacity-20 font-monospace fs-6">
                   Jam Absen: {{ \Carbon\Carbon::parse($absenPelepasan->jam_absen)->format('H:i:s') }}
                 </span>
               </div>
             </div>
           </div>
         @else
-          <div class="das-panel" style="border-left: 4px solid var(--das-danger) !important; background: rgba(234, 84, 85, 0.06);">
-            <div class="das-panel__body p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div class="card border border-danger border-opacity-20 shadow-sm" style="background: rgba(234, 84, 85, 0.08);">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
               <div class="d-flex align-items-center gap-3">
-                <div class="avatar avatar-md bg-label-danger rounded p-1"><i class="ti tabler-circle-x fs-4"></i></div>
+                <div class="avatar avatar-md">
+                  <span class="avatar-initial rounded bg-label-danger"><i class="ti tabler-circle-x fs-3"></i></span>
+                </div>
                 <div>
                   <h6 class="mb-0 text-danger fw-bold">Presensi Pelepasan Belum Tercatat</h6>
-                  <p class="text-white-50 mb-0 small">Silakan tunjukkan QR Code pada Kartu Pelepasan Anda kepada panitia saat acara berlangsung.</p>
+                  <p class="text-body-secondary mb-0 small">Silakan tunjukkan QR Code pada Kartu Pelepasan Anda kepada panitia saat acara berlangsung.</p>
                 </div>
               </div>
               <div>
-                <span class="badge bg-label-danger p-2 px-3 border border-danger border-opacity-20">
+                <span class="badge bg-label-danger p-2 px-3 border border-danger border-opacity-20 fs-6">
                   BELUM HADIR
                 </span>
               </div>
@@ -181,116 +246,150 @@
     </div>
   @endif
 
+
   {{-- ═══════════════════════════════════════════════════════
-       SECTION 2: ACTION CARDS — Tombol Download Kartu yang Menonjol
+       SECTION 4: ACTION CARDS — Tombol Download Kartu Pelajar & Pelepasan
   ═══════════════════════════════════════════════════════ --}}
   @php
     $isKelasXII = $siswaRecord && $siswaRecord->kelas && (trim($siswaRecord->kelas->tingkat) === 'XII' || trim($siswaRecord->kelas->tingkat) === '12');
   @endphp
-  <div class="siswa-action-row" @if($isKelasXII) style="margin-top: 0.5rem !important;" @endif>
-    <div class="row g-3">
-      @if($siswaRecord && $siswaRecord->kelas && (trim($siswaRecord->kelas->tingkat) === 'XII' || trim($siswaRecord->kelas->tingkat) === '12'))
-      <div class="col-md-6 col-12">
-        <a href="{{ route('siswa.download-kartu-pelepasan') }}" class="siswa-action-card siswa-action-card--warning">
-          <div class="siswa-action-card__icon">
-            <i class="ti tabler-id"></i>
+  <div class="row g-6 mb-6">
+    @if($isKelasXII)
+    <div class="col-md-6 col-12">
+      <a href="{{ route('siswa.download-kartu-pelepasan') }}" class="text-decoration-none">
+        <div class="card card-grad-gold h-100 shadow-sm hover-elevation">
+          <div class="card-body p-4 d-flex align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="avatar avatar-lg">
+                <span class="avatar-initial rounded bg-label-warning fs-3"><i class="ti tabler-id"></i></span>
+              </div>
+              <div>
+                <h6 class="mb-1 text-white fw-bold">Unduh Kartu Pelepasan</h6>
+                <small class="text-body-secondary">Khusus siswa kelas XII — cetak tanda kelulusan</small>
+              </div>
+            </div>
+            <div class="avatar avatar-sm">
+              <span class="avatar-initial rounded-circle bg-label-warning"><i class="ti tabler-chevron-right"></i></span>
+            </div>
           </div>
-          <div class="siswa-action-card__body">
-            <div class="siswa-action-card__title">Unduh Kartu Pelepasan</div>
-            <div class="siswa-action-card__subtitle">Khusus siswa kelas XII — unduh kartu tanda kelulusan</div>
+        </div>
+      </a>
+    </div>
+    @endif
+
+    <div class="@if($isKelasXII) col-md-6 @else col-12 @endif col-12">
+      <a href="{{ route('siswa.download-kartu') }}" target="_blank" class="text-decoration-none">
+        <div class="card card-grad-primary h-100 shadow-sm hover-elevation">
+          <div class="card-body p-4 d-flex align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="avatar avatar-lg">
+                <span class="avatar-initial rounded bg-label-primary fs-3"><i class="ti tabler-id-badge"></i></span>
+              </div>
+              <div>
+                <h6 class="mb-1 text-white fw-bold">Unduh Kartu Pelajar</h6>
+                <small class="text-body-secondary">Kartu identitas resmi siswa — cetak atau simpan</small>
+              </div>
+            </div>
+            <div class="avatar avatar-sm">
+              <span class="avatar-initial rounded-circle bg-label-primary"><i class="ti tabler-chevron-right"></i></span>
+            </div>
           </div>
-          <div class="siswa-action-card__arrow">
-            <i class="ti tabler-chevron-right"></i>
-          </div>
-        </a>
-      </div>
-      @endif
-      <div class="@if($siswaRecord && $siswaRecord->kelas && (trim($siswaRecord->kelas->tingkat) === 'XII' || trim($siswaRecord->kelas->tingkat) === '12')) col-md-6 @else col-12 @endif col-12">
-        <a href="{{ route('siswa.download-kartu') }}" target="_blank" class="siswa-action-card siswa-action-card--primary">
-          <div class="siswa-action-card__icon">
-            <i class="ti tabler-id-badge"></i>
-          </div>
-          <div class="siswa-action-card__body">
-            <div class="siswa-action-card__title">Unduh Kartu Pelajar</div>
-            <div class="siswa-action-card__subtitle">Kartu identitas siswa — cetak atau simpan sebagai bukti</div>
-          </div>
-          <div class="siswa-action-card__arrow">
-            <i class="ti tabler-chevron-right"></i>
-          </div>
-        </a>
-      </div>
+        </div>
+      </a>
     </div>
   </div>
 
-  {{-- ═══════════════════════════════════════════════════════
-       SECTION 2B: [NEW] STATS CARD PERSONAL — Kehadiran Bulan Ini
-  ═══════════════════════════════════════════════════════ --}}
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="d-flex align-items-center gap-2 mb-3">
-        <span class="das-panel__icon-dot --success" style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #28c76f;"></span>
-        <h5 class="mb-0 fw-bold" style="font-size: 0.95rem;">Ringkasan Bulan Ini</h5>
-      </div>
-      <div class="siswa-stats-row">
-        <div class="siswa-stat-card siswa-stat-card--success">
-          <div class="siswa-stat-card__icon text-success"><i class="ti tabler-circle-check"></i></div>
-          <div class="siswa-stat-card__value text-success siswa-animate-count" id="count-hadir">0</div>
-          <div class="siswa-stat-card__label">Hadir</div>
-        </div>
-        <div class="siswa-stat-card siswa-stat-card--warning">
-          <div class="siswa-stat-card__icon text-warning"><i class="ti tabler-heart"></i></div>
-          <div class="siswa-stat-card__value text-warning siswa-animate-count" id="count-sakit">0</div>
-          <div class="siswa-stat-card__label">Sakit</div>
-        </div>
-        <div class="siswa-stat-card siswa-stat-card--info">
-          <div class="siswa-stat-card__icon text-info"><i class="ti tabler-clipboard-check"></i></div>
-          <div class="siswa-stat-card__value text-info siswa-animate-count" id="count-izin">0</div>
-          <div class="siswa-stat-card__label">Izin</div>
-        </div>
-        <div class="siswa-stat-card siswa-stat-card--danger">
-          <div class="siswa-stat-card__icon text-danger"><i class="ti tabler-ban"></i></div>
-          <div class="siswa-stat-card__value text-danger siswa-animate-count" id="count-alpha">0</div>
-          <div class="siswa-stat-card__label">Alpha</div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   {{-- ═══════════════════════════════════════════════════════
-       SECTION 2C: [NEW] PROGRESS BAR — Persentase Kehadiran
+       SECTION 5: RINGKASAN REKAP BULAN INI & PROGRESS BAR
   ═══════════════════════════════════════════════════════ --}}
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="siswa-progress-card">
-        <div class="siswa-progress-header">
-          <span class="siswa-progress-label"><i class="ti tabler-trending-up me-1"></i> Persentase Kehadiran Bulan Ini</span>
-          <span class="siswa-progress-value" id="progress-text">{{ $persentaseKehadiran ?? 0 }}%</span>
+  <div class="card card-grad-primary mb-6">
+    <div class="card-header pb-2 d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2">
+        <div class="avatar">
+          <span class="avatar-initial rounded bg-label-success">
+            <i class="ti tabler-chart-dots fs-4"></i>
+          </span>
         </div>
-        <div class="siswa-progress-bar-track">
-          <div class="siswa-progress-bar-fill" id="progress-fill" style="width: 0%;" data-target="{{ $persentaseKehadiran ?? 0 }}"></div>
+        <div>
+          <h5 class="card-title mb-0">Ringkasan Kehadiran Bulan Ini</h5>
+          <small class="text-body-secondary">Statistik & akumulasi presensi</small>
         </div>
-        <div class="siswa-progress-footer">
+      </div>
+      <span class="badge bg-label-success p-2">Bulan Ini</span>
+    </div>
+    <div class="card-body pt-3">
+      <div class="row g-4 mb-4 text-center">
+        <div class="col-6 col-md-3">
+          <div class="p-3 rounded bg-label-success bg-opacity-10 border border-success border-opacity-10">
+            <div class="avatar mx-auto mb-2"><span class="avatar-initial rounded bg-label-success"><i class="ti tabler-circle-check fs-4"></i></span></div>
+            <h3 class="mb-0 text-success fw-bold" id="count-hadir">0</h3>
+            <small class="text-body-secondary fw-semibold">Hadir</small>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-3 rounded bg-label-warning bg-opacity-10 border border-warning border-opacity-10">
+            <div class="avatar mx-auto mb-2"><span class="avatar-initial rounded bg-label-warning"><i class="ti tabler-heart fs-4"></i></span></div>
+            <h3 class="mb-0 text-warning fw-bold" id="count-sakit">0</h3>
+            <small class="text-body-secondary fw-semibold">Sakit</small>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-3 rounded bg-label-info bg-opacity-10 border border-info border-opacity-10">
+            <div class="avatar mx-auto mb-2"><span class="avatar-initial rounded bg-label-info"><i class="ti tabler-clipboard-check fs-4"></i></span></div>
+            <h3 class="mb-0 text-info fw-bold" id="count-izin">0</h3>
+            <small class="text-body-secondary fw-semibold">Izin</small>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-3 rounded bg-label-danger bg-opacity-10 border border-danger border-opacity-10">
+            <div class="avatar mx-auto mb-2"><span class="avatar-initial rounded bg-label-danger"><i class="ti tabler-ban fs-4"></i></span></div>
+            <h3 class="mb-0 text-danger fw-bold" id="count-alpha">0</h3>
+            <small class="text-body-secondary fw-semibold">Alpha</small>
+          </div>
+        </div>
+      </div>
+
+      {{-- Progress Bar --}}
+      <div class="siswa-progress-card border p-3 rounded bg-label-secondary bg-opacity-10">
+        <div class="siswa-progress-header d-flex justify-content-between mb-2">
+          <span class="siswa-progress-label small fw-bold text-body"><i class="ti tabler-trending-up me-1 text-primary"></i> Persentase Kehadiran Bulan Ini</span>
+          <span class="siswa-progress-value fw-bold text-primary" id="progress-text">{{ $persentaseKehadiran ?? 0 }}%</span>
+        </div>
+        <div class="siswa-progress-bar-track progress" style="height: 10px; border-radius: 6px;">
+          <div class="siswa-progress-bar-fill progress-bar bg-success" id="progress-fill" style="width: 0%; border-radius: 6px;" data-target="{{ $persentaseKehadiran ?? 0 }}"></div>
+        </div>
+        <div class="siswa-progress-footer d-flex justify-content-between mt-2 small text-body-secondary">
           <span>{{ $statsHadir ?? 0 }} hari hadir</span>
-          <span>{{ $totalAbsenBulanIni ?? 0 }} total hari</span>
+          <span>{{ $totalAbsenBulanIni ?? 0 }} total hari efektif</span>
         </div>
       </div>
     </div>
   </div>
 
+
   {{-- ═══════════════════════════════════════════════════════
-       SECTION 3: MAIN CONTENT — Absensi & Panduan
+       SECTION 6: MAIN CONTENT — Absensi Mandiri & Geofencing / Barcode
   ═══════════════════════════════════════════════════════ --}}
-  <div class="row gy-4 mb-4">
+  <div class="row g-6 mb-6">
     {{-- ABSENSI MANDIRI PANEL --}}
     <div class="col-lg-8 col-md-12">
-      <div class="das-panel h-100">
-        <div class="das-panel__head">
-          <div class="das-panel__title">
-            <span class="das-panel__icon-dot --danger"></span>
-            Absensi Mandiri (Lokasi Terdeteksi)
+      <div class="card card-grad-primary h-100">
+        <div class="card-header pb-2 d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <div class="avatar">
+              <span class="avatar-initial rounded bg-label-primary">
+                <i class="ti tabler-gps fs-4"></i>
+              </span>
+            </div>
+            <div>
+              <h5 class="card-title mb-0">Absensi Mandiri (GPS Location)</h5>
+              <small class="text-body-secondary">Presensi berbasis koordinat Geofencing</small>
+            </div>
           </div>
+          <span class="badge bg-label-primary p-2">GPS Active</span>
         </div>
-        <div class="das-panel__body d-flex flex-column justify-content-center align-items-center text-center py-4" style="min-height: 250px;">
+        <div class="card-body pt-3 d-flex flex-column justify-content-center align-items-center text-center" style="min-height: 250px;">
           @if($absensiSaya && $absensiSaya->jam_masuk && $absensiSaya->jam_pulang)
             {{-- KASUS 1: SUDAH MASUK & PULANG --}}
             <div class="text-center py-3 w-100">
@@ -303,12 +402,12 @@
               <div class="d-flex gap-3 justify-content-center flex-wrap">
                 <div class="p-3 rounded border d-flex flex-column align-items-center justify-content-center" 
                      style="min-width: 130px; background: rgba(40, 199, 111, 0.08); border-color: rgba(40, 199, 111, 0.2) !important; backdrop-filter: blur(10px);">
-                  <span class="text-success small fw-bold text-uppercase mb-1" style="font-size:0.6rem; letter-spacing:1px;">Jam Masuk</span>
+                  <span class="text-success small fw-bold text-uppercase mb-1" style="font-size:0.65rem; letter-spacing:1px;">Jam Masuk</span>
                   <div class="text-success fw-bold font-monospace fs-4" style="text-shadow: 0 0 10px rgba(40, 199, 111, 0.3);">{{ $absensiSaya->jam_masuk }}</div>
                 </div>
                 <div class="p-3 rounded border d-flex flex-column align-items-center justify-content-center" 
                      style="min-width: 130px; background: rgba(0, 207, 232, 0.08); border-color: rgba(0, 207, 232, 0.2) !important; backdrop-filter: blur(10px);">
-                  <span class="text-info small fw-bold text-uppercase mb-1" style="font-size:0.6rem; letter-spacing:1px;">Jam Pulang</span>
+                  <span class="text-info small fw-bold text-uppercase mb-1" style="font-size:0.65rem; letter-spacing:1px;">Jam Pulang</span>
                   <div class="text-info fw-bold font-monospace fs-4" style="text-shadow: 0 0 10px rgba(0, 207, 232, 0.3);">{{ $absensiSaya->jam_pulang }}</div>
                 </div>
               </div>
@@ -364,247 +463,309 @@
                 <span class="avatar-initial rounded-circle"><i class="ti tabler-lock fs-1"></i></span>
               </div>
               <h5 class="text-white fw-bold">Absensi Mandiri Nonaktif</h5>
-              <p class="text-white-50 opacity-50 small mx-auto" style="max-width:320px;">Silakan hubungi Guru Piket atau Wali Kelas untuk melakukan pencatatan kehadiran.</p>
+              <p class="text-body-secondary small mx-auto" style="max-width:320px;">Silakan hubungi Guru Piket atau Wali Kelas untuk melakukan pencatatan kehadiran.</p>
             </div>
           @endif
         </div>
       </div>
     </div>
 
-    {{-- PANDUAN GEOFENCING PANEL --}}
+    {{-- PANDUAN & BARCODE PANEL --}}
     <div class="col-lg-4 col-md-12">
-      <div class="das-panel h-100">
-        <div class="das-panel__head">
-          <div class="das-panel__title">
-            <span class="das-panel__icon-dot --info"></span>
-            Panduan Geofencing
+      <div class="card shadow-sm mb-6">
+        <div class="card-header pb-2">
+          <div class="d-flex align-items-center gap-2">
+            <div class="avatar">
+              <span class="avatar-initial rounded bg-label-info">
+                <i class="ti tabler-gps fs-4"></i>
+              </span>
+            </div>
+            <div>
+              <h5 class="card-title mb-0">Panduan Geofencing</h5>
+              <small class="text-body-secondary">Akses lokasi perangkat</small>
+            </div>
           </div>
         </div>
-        <div class="das-panel__body d-flex flex-column justify-content-between p-4">
+        <div class="card-body pt-3">
           <div class="d-flex flex-column gap-3">
             <div class="d-flex align-items-start gap-3">
               <div class="text-info fs-4 position-relative" style="top:2px;"><i class="ti tabler-gps"></i></div>
               <div>
-                <div class="text-white small fw-bold mb-1">Aktifkan GPS Perangkat</div>
-                <p class="text-white-50 small mb-0 opacity-75">Pastikan fitur Lokasi/GPS menyala sebelum menekan tombol absen.</p>
+                <div class="fw-bold small mb-1">Aktifkan GPS Perangkat</div>
+                <p class="text-body-secondary small mb-0">Pastikan fitur Lokasi/GPS menyala sebelum menekan tombol absen.</p>
               </div>
             </div>
             <div class="d-flex align-items-start gap-3">
               <div class="text-info fs-4 position-relative" style="top:2px;"><i class="ti tabler-browser-check"></i></div>
               <div>
-                <div class="text-white small fw-bold mb-1">Izinkan Akses Browser</div>
-                <p class="text-white-50 small mb-0 opacity-75">Tekan "Allow/Izinkan" saat browser meminta informasi lokasi Anda.</p>
+                <div class="fw-bold small mb-1">Izinkan Akses Browser</div>
+                <p class="text-body-secondary small mb-0">Tekan "Allow/Izinkan" saat browser meminta informasi lokasi Anda.</p>
               </div>
             </div>
           </div>
           
-          <div class="mt-4 p-3 bg-black bg-opacity-20 rounded border border-white border-opacity-10">
+          <div class="mt-3 p-3 bg-label-warning bg-opacity-10 rounded border border-warning border-opacity-10">
             <div class="d-flex align-items-center gap-2 text-warning mb-1">
               <i class="ti tabler-alert-triangle small"></i>
               <span class="small fw-bold">Penting:</span>
             </div>
-            <p class="text-white-50 mb-0" style="font-size: 0.75rem; line-height: 1.4;">Absensi mandiri hanya dapat dilakukan jika posisi GPS Anda berada dalam radius area madrasah yang ditentukan.</p>
+            <p class="text-body-secondary mb-0" style="font-size: 0.75rem; line-height: 1.4;">Absensi mandiri hanya dapat dilakukan jika posisi GPS Anda berada dalam radius area madrasah yang ditentukan.</p>
           </div>
         </div>
       </div>
+
+      @if($siswaRecord)
+      {{-- BARCODE PERPUSTAKAAN PANEL --}}
+      <div class="card card-grad-gold" x-data="{ enlarged: false }">
+        <div class="card-header pb-2">
+          <div class="d-flex align-items-center gap-2">
+            <div class="avatar">
+              <span class="avatar-initial rounded bg-label-warning">
+                <i class="ti tabler-barcode fs-4"></i>
+              </span>
+            </div>
+            <div>
+              <h5 class="card-title mb-0">Barcode Perpustakaan 1D</h5>
+              <small class="text-body-secondary">Tunjukkan ke petugas perpustakaan</small>
+            </div>
+          </div>
+        </div>
+        <div class="card-body pt-3 text-center">
+          <p class="text-body-secondary small mb-3">Tunjukkan barcode ini untuk peminjaman buku perpustakaan.</p>
+          
+          <div class="p-3 bg-white rounded mb-2 d-flex align-items-center justify-content-center border shadow-sm mx-auto"
+               :style="enlarged ? 'filter: brightness(1.15); transform: scale(1.1); transition: all 0.3s ease; margin: 15px 0; width: 100%; height: 110px;' : 'transition: all 0.3s ease; width: 100%; height: 75px;'">
+               <div class="barcode-svg-container" style="width: 100%; height: 100%;">
+                   {!! App\Support\BarcodeGenerator::renderSvg($siswaRecord->nis ?: $siswaRecord->nisn ?: 'SISWA' . $siswaRecord->id) !!}
+               </div>
+          </div>
+          
+          <div class="font-monospace text-body small mb-3 fw-bold">ID Perpus: {{ App\Support\BarcodeGenerator::getFormattedData($siswaRecord->nis ?: $siswaRecord->nisn ?: 'SISWA' . $siswaRecord->id) }}</div>
+          
+          <button type="button" class="btn btn-sm btn-outline-warning w-100"
+                  @click="enlarged = !enlarged">
+            <i class="ti me-1" :class="enlarged ? 'tabler-zoom-out' : 'tabler-zoom-in'"></i>
+            <span x-text="enlarged ? 'Kecilkan' : 'Perbesar Barcode'"></span>
+          </button>
+        </div>
+      </div>
+      @endif
     </div>
   </div>
 
+
   {{-- ═══════════════════════════════════════════════════════
-       SECTION 3B: [NEW] CHART — Tren Kehadiran 7 Hari + Donut
+       SECTION 7: ANALYTICS CHARTS — Tren 7 Hari & Donut
   ═══════════════════════════════════════════════════════ --}}
-  <div class="row gy-4 mb-4">
+  <div class="row g-6 mb-6">
     <div class="col-lg-8">
-      <div class="siswa-chart-card">
-        <div class="das-panel__head">
-          <div class="das-panel__title">
-            <span class="das-panel__icon-dot --success"></span>
-            Tren Kehadiran — 7 Hari Terakhir
+      <div class="card card-grad-primary h-100">
+        <div class="card-header pb-2 d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <div class="avatar">
+              <span class="avatar-initial rounded bg-label-success">
+                <i class="ti tabler-chart-area-line fs-4"></i>
+              </span>
+            </div>
+            <div>
+              <h5 class="card-title mb-0">Tren Kehadiran — 7 Hari Terakhir</h5>
+              <small class="text-body-secondary">Grafik aktivitas presensi</small>
+            </div>
           </div>
         </div>
-        <div class="siswa-chart-mount">
-          <div id="siswaAreaChart"></div>
+        <div class="card-body pt-3">
+          <div id="siswaAreaChart" style="min-height: 220px;"></div>
         </div>
       </div>
     </div>
     <div class="col-lg-4">
-      <div class="siswa-chart-card">
-        <div class="das-panel__head">
-          <div class="das-panel__title">
-            <span class="das-panel__icon-dot --warning"></span>
-            Distribusi Bulan Ini
+      <div class="card card-grad-primary h-100">
+        <div class="card-header pb-2 d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <div class="avatar">
+              <span class="avatar-initial rounded bg-label-warning">
+                <i class="ti tabler-chart-pie fs-4"></i>
+              </span>
+            </div>
+            <div>
+              <h5 class="card-title mb-0">Distribusi Bulan Ini</h5>
+              <small class="text-body-secondary">Komposisi status</small>
+            </div>
           </div>
         </div>
-        <div class="siswa-chart-mount">
-          <div id="siswaDonutChart"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {{-- ═══════════════════════════════════════════════════════
-       SECTION 3C: [NEW] RIWAYAT ABSENSI — 5 Entri Terbaru
-  ═══════════════════════════════════════════════════════ --}}
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="siswa-log-card">
-        <div class="das-panel__head">
-          <div class="das-panel__title">
-            <span class="das-panel__icon-dot --info"></span>
-            Riwayat Absensi Terbaru
-          </div>
-          <div class="das-panel__head-meta">
-            <a href="{{ route('siswa.izin-sakit.index') }}" class="das-btn das-btn--ghost" style="font-size:0.72rem;">
-              <i class="ti tabler-external-link me-1"></i> Lihat Semua
-            </a>
-          </div>
-        </div>
-        <div class="das-panel__body p-0">
-          <div class="table-responsive">
-            <table class="siswa-log-table">
-              <thead>
-                <tr>
-                  <th>Tanggal</th>
-                  <th>Jam Masuk</th>
-                  <th>Jam Pulang</th>
-                  <th>Status</th>
-                  <th>Metode</th>
-                </tr>
-              </thead>
-              <tbody>
-                @forelse($riwayatAbsensi as $item)
-                <tr>
-                  <td>
-                    <span style="font-weight:600; color:var(--das-text, #E7ECF5);">
-                      {{ \Carbon\Carbon::parse($item->tanggal)->locale('id')->translatedFormat('d M Y') }}
-                    </span>
-                  </td>
-                  <td>
-                    @if($item->jam_masuk)
-                      <span class="siswa-log-table__time">{{ \Carbon\Carbon::parse($item->jam_masuk)->format('H:i') }}</span>
-                    @else
-                      <span style="color:var(--das-text-dim, #5B6478);">—</span>
-                    @endif
-                  </td>
-                  <td>
-                    @if($item->jam_pulang)
-                      <span class="siswa-log-table__time">{{ \Carbon\Carbon::parse($item->jam_pulang)->format('H:i') }}</span>
-                    @else
-                      <span style="color:var(--das-text-dim, #5B6478);">—</span>
-                    @endif
-                  </td>
-                  <td>
-                    @php
-                      $statusBadge = match($item->status) {
-                        'hadir', 'terlambat' => 'bg-label-success',
-                        'sakit' => 'bg-label-info',
-                        'izin' => 'bg-label-warning',
-                        'alpha' => 'bg-label-danger',
-                        default => 'bg-label-secondary'
-                      };
-                      $statusText = match($item->status) {
-                        'hadir' => 'Hadir',
-                        'terlambat' => 'Terlambat',
-                        'sakit' => 'Sakit',
-                        'izin' => 'Izin',
-                        'alpha' => 'Alpha',
-                        default => ucfirst($item->status)
-                      };
-                    @endphp
-                    <span class="badge {{ $statusBadge }}">{{ $statusText }}</span>
-                  </td>
-                  <td>
-                    @php
-                      $metodeIcon = match($item->metode) {
-                        'mandiri' => '<i class="ti tabler-gps me-1"></i> GPS Mandiri',
-                        'qr' => '<i class="ti tabler-qrcode me-1"></i> Scan QR',
-                        'manual' => '<i class="ti tabler-edit me-1"></i> Manual',
-                        default => '<i class="ti tabler-help-circle me-1"></i> ' . ucfirst($item->metode ?? '—')
-                      };
-                    @endphp
-                    <span style="font-size:0.75rem;">{!! $metodeIcon !!}</span>
-                  </td>
-                </tr>
-                @empty
-                <tr>
-                  <td colspan="5">
-                    <div class="siswa-log-empty">
-                      <i class="ti tabler-history"></i>
-                      Belum ada riwayat absensi yang tercatat
-                    </div>
-                  </td>
-                </tr>
-                @endforelse
-              </tbody>
-            </table>
-          </div>
+        <div class="card-body pt-3">
+          <div id="siswaDonutChart" style="min-height: 220px;"></div>
         </div>
       </div>
     </div>
   </div>
 
+
   {{-- ═══════════════════════════════════════════════════════
-       SECTION 4: [UPDATED] QUICK MENU GRID — 8 Item
+       SECTION 8: RIWAYAT ABSENSI TERBARU (5 Entri)
   ═══════════════════════════════════════════════════════ --}}
-  <div class="row gy-4">
-    <div class="col-12">
-      <div class="das-panel">
-        <div class="das-panel__head">
-          <div class="das-panel__title">
-            <span class="das-panel__icon-dot --primary"></span>
-            Menu Cepat
-          </div>
+  <div class="card shadow-sm mb-6">
+    <div class="card-header pb-2 d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2">
+        <div class="avatar">
+          <span class="avatar-initial rounded bg-label-info">
+            <i class="ti tabler-history fs-4"></i>
+          </span>
         </div>
-        <div class="das-panel__body">
-          <div class="siswa-quick-grid">
-            {{-- 1. Izin & Sakit --}}
-            <a href="{{ route('siswa.izin-sakit.index') }}" class="siswa-quick-item siswa-quick-item--success">
-              <span class="siswa-quick-item__icon"><i class="ti tabler-stethoscope"></i></span>
-              <span class="siswa-quick-item__label">Izin &amp; Sakit</span>
-            </a>
-            {{-- 2. Papan Peringkat --}}
-            <a href="{{ route('siswa.leaderboard') }}" class="siswa-quick-item siswa-quick-item--warning">
-              <span class="siswa-quick-item__icon"><i class="ti tabler-trophy"></i></span>
-              <span class="siswa-quick-item__label">Papan Peringkat</span>
-            </a>
-            {{-- 3. Riwayat Absensi --}}
-            <a href="{{ route('siswa.izin-sakit.index') }}" class="siswa-quick-item siswa-quick-item--info">
-              <span class="siswa-quick-item__icon"><i class="ti tabler-history"></i></span>
-              <span class="siswa-quick-item__label">Riwayat Absensi</span>
-            </a>
-            {{-- 4. Jadwal --}}
-            <a href="{{ route('siswa.assignments.index') }}" class="siswa-quick-item siswa-quick-item--primary">
-              <span class="siswa-quick-item__icon"><i class="ti tabler-calendar"></i></span>
-              <span class="siswa-quick-item__label">Jadwal</span>
-            </a>
-            {{-- 5. Profil Saya --}}
-            <a href="{{ route('siswa.profile') }}" class="siswa-quick-item siswa-quick-item--info">
-              <span class="siswa-quick-item__icon"><i class="ti tabler-user"></i></span>
-              <span class="siswa-quick-item__label">Profil Saya</span>
-            </a>
-            {{-- 6. Download Kartu --}}
-            <a href="{{ route('siswa.download-kartu') }}" target="_blank" class="siswa-quick-item siswa-quick-item--primary">
-              <span class="siswa-quick-item__icon"><i class="ti tabler-id-badge"></i></span>
-              <span class="siswa-quick-item__label">Download Kartu</span>
-            </a>
-            {{-- 7. Pengaturan --}}
-            <a href="{{ route('siswa.profile') }}" class="siswa-quick-item siswa-quick-item--secondary">
-              <span class="siswa-quick-item__icon"><i class="ti tabler-settings"></i></span>
-              <span class="siswa-quick-item__label">Pengaturan</span>
-            </a>
-            {{-- 8. Bantuan --}}
-            <a href="#" class="siswa-quick-item siswa-quick-item--secondary">
-              <span class="siswa-quick-item__icon"><i class="ti tabler-help-circle"></i></span>
-              <span class="siswa-quick-item__label">Bantuan</span>
-            </a>
-          </div>
+        <div>
+          <h5 class="card-title mb-0">Riwayat Absensi Terbaru</h5>
+          <small class="text-body-secondary">5 Catatan presensi terakhir</small>
         </div>
+      </div>
+      <a href="{{ route('siswa.izin-sakit.index') }}" class="btn btn-sm btn-label-secondary">
+        <i class="ti tabler-external-link me-1"></i> Lihat Semua
+      </a>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive text-nowrap">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Tanggal</th>
+              <th>Jam Masuk</th>
+              <th>Jam Pulang</th>
+              <th>Status</th>
+              <th>Metode</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse($riwayatAbsensi as $item)
+            <tr>
+              <td class="fw-medium">
+                {{ \Carbon\Carbon::parse($item->tanggal)->locale('id')->translatedFormat('d M Y') }}
+              </td>
+              <td>
+                @if($item->jam_masuk)
+                  <span class="font-monospace fw-bold text-info">{{ \Carbon\Carbon::parse($item->jam_masuk)->format('H:i') }}</span>
+                @else
+                  <span class="text-body-secondary">—</span>
+                @endif
+              </td>
+              <td>
+                @if($item->jam_pulang)
+                  <span class="font-monospace text-body-secondary">{{ \Carbon\Carbon::parse($item->jam_pulang)->format('H:i') }}</span>
+                @else
+                  <span class="text-body-secondary">—</span>
+                @endif
+              </td>
+              <td>
+                @php
+                  $statusBadge = match($item->status) {
+                    'hadir', 'terlambat' => 'bg-label-success',
+                    'sakit' => 'bg-label-info',
+                    'izin' => 'bg-label-warning',
+                    'alpha' => 'bg-label-danger',
+                    default => 'bg-label-secondary'
+                  };
+                  $statusText = match($item->status) {
+                    'hadir' => 'Hadir',
+                    'terlambat' => 'Terlambat',
+                    'sakit' => 'Sakit',
+                    'izin' => 'Izin',
+                    'alpha' => 'Alpha',
+                    default => ucfirst($item->status)
+                  };
+                @endphp
+                <span class="badge {{ $statusBadge }}">{{ $statusText }}</span>
+              </td>
+              <td>
+                @php
+                  $metodeIcon = match($item->metode) {
+                    'mandiri' => '<i class="ti tabler-gps me-1"></i> GPS Mandiri',
+                    'qr' => '<i class="ti tabler-qrcode me-1"></i> Scan QR',
+                    'manual' => '<i class="ti tabler-edit me-1"></i> Manual',
+                    default => '<i class="ti tabler-help-circle me-1"></i> ' . ucfirst($item->metode ?? '—')
+                  };
+                @endphp
+                <span class="small">{!! $metodeIcon !!}</span>
+              </td>
+            </tr>
+            @empty
+            <tr>
+              <td colspan="5" class="text-center py-5 text-body-secondary">
+                <i class="ti tabler-history fs-2 d-block mb-2"></i>
+                Belum ada riwayat absensi yang tercatat.
+              </td>
+            </tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+  {{-- ═══════════════════════════════════════════════════════
+       SECTION 9: MENU CEPAT GRID
+  ═══════════════════════════════════════════════════════ --}}
+  <div class="card card-grad-gold mb-6">
+    <div class="card-header pb-2 d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2">
+        <div class="avatar">
+          <span class="avatar-initial rounded bg-label-warning">
+            <i class="ti tabler-layout-grid fs-4"></i>
+          </span>
+        </div>
+        <div>
+          <h5 class="card-title mb-0">Menu Cepat</h5>
+          <small class="text-body-secondary">Akses layanan portal siswa</small>
+        </div>
+      </div>
+    </div>
+    <div class="card-body pt-3">
+      <div class="siswa-quick-grid">
+        {{-- 1. Izin & Sakit --}}
+        <a href="{{ route('siswa.izin-sakit.index') }}" class="siswa-quick-item siswa-quick-item--success text-decoration-none">
+          <span class="siswa-quick-item__icon"><i class="ti tabler-stethoscope fs-4"></i></span>
+          <span class="siswa-quick-item__label">Izin &amp; Sakit</span>
+        </a>
+        {{-- 2. Papan Peringkat --}}
+        <a href="{{ route('siswa.leaderboard') }}" class="siswa-quick-item siswa-quick-item--warning text-decoration-none">
+          <span class="siswa-quick-item__icon"><i class="ti tabler-trophy fs-4"></i></span>
+          <span class="siswa-quick-item__label">Papan Peringkat</span>
+        </a>
+        {{-- 3. Riwayat Absensi --}}
+        <a href="{{ route('siswa.izin-sakit.index') }}" class="siswa-quick-item siswa-quick-item--info text-decoration-none">
+          <span class="siswa-quick-item__icon"><i class="ti tabler-history fs-4"></i></span>
+          <span class="siswa-quick-item__label">Riwayat Absensi</span>
+        </a>
+        {{-- 4. Penugasan --}}
+        <a href="{{ route('siswa.assignments.index') }}" class="siswa-quick-item siswa-quick-item--primary text-decoration-none">
+          <span class="siswa-quick-item__icon"><i class="ti tabler-clipboard-list fs-4"></i></span>
+          <span class="siswa-quick-item__label">Penugasan</span>
+        </a>
+        {{-- 5. Profil Saya --}}
+        <a href="{{ route('siswa.profile') }}" class="siswa-quick-item siswa-quick-item--info text-decoration-none">
+          <span class="siswa-quick-item__icon"><i class="ti tabler-user fs-4"></i></span>
+          <span class="siswa-quick-item__label">Profil Saya</span>
+        </a>
+        {{-- 6. Download Kartu --}}
+        <a href="{{ route('siswa.download-kartu') }}" target="_blank" class="siswa-quick-item siswa-quick-item--primary text-decoration-none">
+          <span class="siswa-quick-item__icon"><i class="ti tabler-id-badge fs-4"></i></span>
+          <span class="siswa-quick-item__label">Download Kartu</span>
+        </a>
+        {{-- 7. Pengaturan --}}
+        <a href="{{ route('siswa.profile') }}" class="siswa-quick-item siswa-quick-item--secondary text-decoration-none">
+          <span class="siswa-quick-item__icon"><i class="ti tabler-settings fs-4"></i></span>
+          <span class="siswa-quick-item__label">Pengaturan</span>
+        </a>
+        {{-- 8. Bantuan --}}
+        <a href="{{ route('public.bantuan') }}" class="siswa-quick-item siswa-quick-item--secondary text-decoration-none">
+          <span class="siswa-quick-item__icon"><i class="ti tabler-help-circle fs-4"></i></span>
+          <span class="siswa-quick-item__label">Bantuan</span>
+        </a>
       </div>
     </div>
   </div>
 @endsection
 
 @push('scripts')
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const btnMasuk = document.getElementById('btnAbsenMasuk');
@@ -797,7 +958,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    /* ── COUNTER ANIMATION (requestAnimationFrame, respects reduced motion) ── */
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function animateCounter(el, target, duration = 1000) {
@@ -813,7 +973,6 @@ document.addEventListener('DOMContentLoaded', function () {
         requestAnimationFrame(step);
     }
 
-    // Animate stats counters
     function initCounters() {
         const counters = [
             { id: 'count-hadir', target: {{ $statsHadir ?? 0 }} },
@@ -830,22 +989,19 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     initCounters();
 
-    /* ── PROGRESS BAR ANIMATION ── */
     const progressFill = document.getElementById('progress-fill');
     if (progressFill) {
         const target = parseFloat(progressFill.getAttribute('data-target')) || 0;
         setTimeout(function() {
             progressFill.style.width = target + '%';
-            // Change color based on value
             if (target < 50) {
-                progressFill.classList.add('siswa-progress-bar-fill--danger');
+                progressFill.classList.add('bg-danger');
             } else if (target < 75) {
-                progressFill.classList.add('siswa-progress-bar-fill--warning');
+                progressFill.classList.add('bg-warning');
             }
         }, 300);
     }
 
-    /* ── APEX: AREA CHART (7 Hari) ── */
     if (typeof ApexCharts !== 'undefined') {
         const chartFont = "'Inter', 'Plus Jakarta Sans', sans-serif";
         const areaEl = document.querySelector('#siswaAreaChart');
@@ -903,7 +1059,6 @@ document.addEventListener('DOMContentLoaded', function () {
             areaChart.render();
         }
 
-        /* ── APEX: DONUT CHART ── */
         const donutEl = document.querySelector('#siswaDonutChart');
         let donutChart;
         if (donutEl) {
