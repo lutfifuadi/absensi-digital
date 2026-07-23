@@ -159,91 +159,106 @@
       </div>
       <div class="card-body">
         <div class="list-group list-group-flush">
-          <a href="javascript:void(0);" class="list-group-item list-group-item-action active p-3 rounded mb-2">
-            <div class="d-flex w-100 justify-content-between align-items-center mb-1">
-              <small class="fw-bold font-monospace">#PGD-SCH-0142</small>
-              <span class="badge bg-warning text-dark">SEDANG DITINDAKLANJUTI</span>
+          @forelse($pengaduanList as $p)
+            @php
+              $isActive = $activePengaduan && $activePengaduan->id === $p->id;
+            @endphp
+            <a href="{{ route('ortu.pengaduan', ['id' => $p->id]) }}" class="list-group-item list-group-item-action {{ $isActive ? 'active' : '' }} p-3 rounded mb-2">
+              <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                <small class="fw-bold font-monospace {{ $isActive ? 'text-white' : 'text-muted' }}">#{{ $p->kode_unik }}</small>
+                <span class="badge bg-{{ $p->status_color }} {{ $p->status === 'baru' ? 'text-dark' : '' }}">{{ strtoupper($p->status_label) }}</span>
+              </div>
+              <h6 class="mb-1 fw-bold {{ $isActive ? 'text-white' : '' }}">{{ Str::limit($p->kategori, 40) }}</h6>
+              <small class="{{ $isActive ? 'text-white opacity-75' : 'text-muted' }}">
+                Tanggal: {{ $p->created_at->translatedFormat('d F Y H:i') }} WIB
+              </small>
+            </a>
+          @empty
+            <div class="text-center py-5">
+              <div class="avatar avatar-md mx-auto mb-3 bg-label-secondary">
+                <i class="ti tabler-message-off fs-3"></i>
+              </div>
+              <p class="text-muted mb-0">Belum ada riwayat pengaduan</p>
             </div>
-            <h6 class="mb-1 text-white fw-bold">Kipas Angin Ruang Kelas Mati</h6>
-            <small class="opacity-75">Kategori: Sarana Prasarana • Hari ini 09:15 WIB</small>
-          </a>
-
-          <a href="javascript:void(0);" class="list-group-item list-group-item-action p-3 rounded mb-2">
-            <div class="d-flex w-100 justify-content-between align-items-center mb-1">
-              <small class="fw-bold font-monospace">#PGD-SCH-0135</small>
-              <span class="badge bg-success">SELESAI DITANGANI</span>
-            </div>
-            <h6 class="mb-1 fw-bold">Konfirmasi Absensi Masuk Hari Senin</h6>
-            <small class="text-muted">Kategori: Presensi • 21 Juli 2026</small>
-          </a>
+          @endforelse
         </div>
       </div>
     </div>
   </div>
 
   <div class="col-md-7">
-    <div class="card">
-      <div class="card-header border-bottom">
-        <div class="d-flex justify-content-between align-items-start">
-          <div>
-            <span class="text-muted font-monospace small">#PGD-SCH-0142</span>
-            <h5 class="mb-0 fw-bold">Kipas Angin Ruang Kelas Mati</h5>
+    @if($activePengaduan)
+      <div class="card">
+        <div class="card-header border-bottom">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <span class="text-muted font-monospace small">#{{ $activePengaduan->kode_unik }}</span>
+              <h5 class="mb-0 fw-bold">{{ $activePengaduan->kategori }}</h5>
+            </div>
+            <span class="badge bg-label-{{ $activePengaduan->status_color }}">{{ strtoupper($activePengaduan->status_label) }}</span>
           </div>
-          <span class="badge bg-label-warning">SEDANG DITINDAKLANJUTI</span>
+        </div>
+        <div class="card-body pt-4">
+          <!-- Detail deskripsi pengaduan -->
+          <div class="mb-4 p-3 bg-light rounded text-dark" style="background-color: rgba(255,255,255,0.03) !important; border: 1px solid rgba(255,255,255,0.08);">
+            <h6 class="fw-bold text-white mb-2">Deskripsi Pengaduan:</h6>
+            <p class="mb-0 text-muted" style="white-space: pre-line;">{{ $activePengaduan->deskripsi }}</p>
+            @if($activePengaduan->catatan_admin)
+              <div class="mt-3 pt-3 border-top border-secondary-subtle">
+                <h6 class="fw-bold text-warning mb-1">Catatan Admin:</h6>
+                <p class="mb-0 text-warning" style="white-space: pre-line;">{{ $activePengaduan->catatan_admin }}</p>
+              </div>
+            @endif
+          </div>
+
+          <!-- Visual Timeline Stepper -->
+          <h6 class="fw-bold text-white mb-3"><i class="ti tabler-history me-1"></i> Riwayat Status Pengaduan</h6>
+          <ul class="timeline timeline-dashed">
+            @forelse($activeLogs as $log)
+              @php
+                $color = 'secondary';
+                if ($log->status_ke === 'baru') $color = 'warning';
+                elseif ($log->status_ke === 'diproses') $color = 'info';
+                elseif ($log->status_ke === 'selesai') $color = 'success';
+                elseif ($log->status_ke === 'ditolak') $color = 'danger';
+
+                // Label bahasa Indonesia untuk status_ke
+                $statusLabel = match($log->status_ke) {
+                  'baru' => 'Baru',
+                  'diproses' => 'Diproses',
+                  'selesai' => 'Selesai',
+                  'ditolak' => 'Ditolak',
+                  default => ucfirst($log->status_ke)
+                };
+              @endphp
+              <li class="timeline-item timeline-item-transparent pb-4">
+                <span class="timeline-point timeline-point-{{ $color }}"></span>
+                <div class="timeline-event">
+                  <div class="timeline-header mb-1">
+                    <h6 class="mb-0 fw-bold text-{{ $color }}">{{ strtoupper($statusLabel) }}</h6>
+                    <small class="text-muted">{{ $log->created_at->translatedFormat('d M Y H:i') }} WIB</small>
+                  </div>
+                  <p class="mb-2 text-muted">{{ $log->catatan ?? 'Status pengaduan diubah.' }}</p>
+                  <div class="badge bg-label-secondary">Diubah oleh: {{ ucfirst($log->diubah_oleh) }}</div>
+                </div>
+              </li>
+            @empty
+              <li class="text-muted small">Belum ada riwayat perubahan status</li>
+            @endforelse
+          </ul>
         </div>
       </div>
-      <div class="card-body pt-4">
-        <!-- Visual Timeline Stepper -->
-        <ul class="timeline timeline-dashed">
-          <li class="timeline-item timeline-item-transparent pb-4">
-            <span class="timeline-point timeline-point-success"></span>
-            <div class="timeline-event">
-              <div class="timeline-header mb-1">
-                <h6 class="mb-0 fw-bold">📥 Pengaduan Diterima Sistem</h6>
-                <small class="text-muted">09:15 WIB</small>
-              </div>
-              <p class="mb-2">Pengaduan berhasil terkirim dan tercatat di database sekolah.</p>
-              <div class="badge bg-label-secondary">Penanggung Jawab: Sistem E-Absensi</div>
-            </div>
-          </li>
-
-          <li class="timeline-item timeline-item-transparent pb-4">
-            <span class="timeline-point timeline-point-success"></span>
-            <div class="timeline-event">
-              <div class="timeline-header mb-1">
-                <h6 class="mb-0 fw-bold">🔍 Verifikasi Wali Kelas</h6>
-                <small class="text-muted">09:30 WIB</small>
-              </div>
-              <p class="mb-2">Wali Kelas mengonfirmasi kendala dan menugaskan Tim Sarpras.</p>
-              <div class="badge bg-label-secondary">Penanggung Jawab: Wali Kelas</div>
-            </div>
-          </li>
-
-          <li class="timeline-item timeline-item-transparent pb-4">
-            <span class="timeline-point timeline-point-warning"></span>
-            <div class="timeline-event">
-              <div class="timeline-header mb-1">
-                <h6 class="mb-0 fw-bold text-warning">🛠️ Pengecekan Lapangan (BERLANGSUNG)</h6>
-                <small class="text-muted">10:00 WIB</small>
-              </div>
-              <p class="mb-2">Tim Sarpras sedang melakukan penggantian unit kipas angin.</p>
-              <div class="badge bg-label-warning">Penanggung Jawab: Tim Sarpras Sekolah</div>
-            </div>
-          </li>
-
-          <li class="timeline-item timeline-item-transparent">
-            <span class="timeline-point timeline-point-secondary"></span>
-            <div class="timeline-event">
-              <div class="timeline-header mb-1">
-                <h6 class="mb-0 text-muted">✅ Verifikasi Selesai</h6>
-                <small class="text-muted">Estimasi 11:30 WIB</small>
-              </div>
-              <p class="mb-0 text-muted">Menunggu konfirmasi perbaikan selesai.</p>
-            </div>
-          </li>
-        </ul>
+    @else
+      <div class="card">
+        <div class="card-body text-center py-5">
+          <div class="avatar avatar-lg mx-auto mb-3 bg-label-secondary" style="width: 80px; height: 80px;">
+            <i class="ti tabler-message-dots fs-1"></i>
+          </div>
+          <h5 class="fw-bold text-white">Detail Pengaduan</h5>
+          <p class="text-muted mx-auto" style="max-width: 320px;">Pilih salah satu pengaduan di sebelah kiri untuk melihat detail status dan riwayat tindak lanjut.</p>
+        </div>
       </div>
-    </div>
+    @endif
   </div>
 </div>
 

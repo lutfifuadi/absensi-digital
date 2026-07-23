@@ -143,6 +143,26 @@
       "url": "/admin/ekskul"
     },
     {
+      "name": "Gamifikasi & Peringkat",
+      "icon": "menu-icon ti tabler-trophy",
+      "slug": ["admin.gamifikasi.index", "admin.gamifikasi.rekap"],
+      "url": "/admin/gamifikasi",
+      "submenu": [
+        {
+          "name": "Papan Peringkat",
+          "icon": "menu-icon ti tabler-trophy",
+          "slug": "admin.gamifikasi.index",
+          "url": "/admin/gamifikasi"
+        },
+        {
+          "name": "Rekap Gamifikasi",
+          "icon": "menu-icon ti tabler-chart-bar",
+          "slug": "admin.gamifikasi.rekap",
+          "url": "/admin/gamifikasi/rekap"
+        }
+      ]
+    },
+    {
       "name": "Poin Pelanggaran",
       "icon": "menu-icon ti tabler-swords",
       "slug": ["admin.pelanggaran.index", "admin.pelanggaran.create", "admin.pelanggaran.rekap"],

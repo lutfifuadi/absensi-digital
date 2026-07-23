@@ -33,6 +33,7 @@ class IdCardTemplateController extends Controller
             'elements' => [
                 'photo' => ['x' => 39, 'y' => 50, 'w' => 75, 'h' => 100, 'z_index' => 1, 'show' => true],
                 'qr' => ['x' => 49, 'y' => 165, 'w' => 55, 'h' => 55, 'z_index' => 1, 'show' => true],
+                'barcode' => ['x' => 39, 'y' => 195, 'w' => 75, 'h' => 25, 'z_index' => 1, 'show' => false],
                 'name' => ['x' => 0, 'y' => 20, 'size' => 10, 'color' => '#000000', 'z_index' => 1, 'show' => true, 'align' => 'center', 'bold' => true, 'italic' => false, 'transform' => 'uppercase'],
                 'nis' => ['x' => 0, 'y' => 32, 'size' => 7, 'color' => '#555555', 'z_index' => 1, 'show' => true, 'align' => 'center', 'bold' => true, 'italic' => false, 'transform' => 'none'],
                 'nisn' => ['x' => 0, 'y' => 40, 'size' => 7, 'color' => '#555555', 'z_index' => 1, 'show' => true, 'align' => 'center', 'bold' => true, 'italic' => false, 'transform' => 'none'],
@@ -191,6 +192,7 @@ class IdCardTemplateController extends Controller
             'elements' => [
                 'photo' => ['x' => 39, 'y' => 50, 'w' => 75, 'h' => 100, 'z_index' => 1, 'show' => true],
                 'qr' => ['x' => 49, 'y' => 165, 'w' => 55, 'h' => 55, 'z_index' => 1, 'show' => true],
+                'barcode' => ['x' => 39, 'y' => 195, 'w' => 75, 'h' => 25, 'z_index' => 1, 'show' => false],
                 'name' => ['x' => 0, 'y' => 20, 'size' => 10, 'color' => '#000000', 'z_index' => 1, 'show' => true, 'align' => 'center', 'bold' => true, 'italic' => false, 'transform' => 'uppercase'],
                 'nis' => ['x' => 0, 'y' => 32, 'size' => 7, 'color' => '#555555', 'z_index' => 1, 'show' => true, 'align' => 'center', 'bold' => true, 'italic' => false, 'transform' => 'none'],
                 'nisn' => ['x' => 0, 'y' => 40, 'size' => 7, 'color' => '#555555', 'z_index' => 1, 'show' => true, 'align' => 'center', 'bold' => true, 'italic' => false, 'transform' => 'none'],

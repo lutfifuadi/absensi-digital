@@ -260,7 +260,7 @@
 
                     <div class="accordion" id="elementAccordion">
                         @php
-                            $orderedStandard = ['photo', 'qr', 'name', 'id_number', 'nis', 'nisn', 'nip', 'class', 'gender', 'ttl', 'masa_berlaku', 'logo_lembaga', 'logo_dinas', 'nama_lembaga', 'alamat_lembaga', 'tempat_tanggal_terbit', 'ttd_kepala_sekolah', 'cap_lembaga', 'nama_kepala_sekolah', 'nip_kepala_sekolah'];
+                            $orderedStandard = ['photo', 'qr', 'barcode', 'name', 'id_number', 'nis', 'nisn', 'nip', 'class', 'gender', 'ttl', 'masa_berlaku', 'logo_lembaga', 'logo_dinas', 'nama_lembaga', 'alamat_lembaga', 'tempat_tanggal_terbit', 'ttd_kepala_sekolah', 'cap_lembaga', 'nama_kepala_sekolah', 'nip_kepala_sekolah'];
                             $customTextKeys = [];
                             if (isset($template->config['elements'])) {
                                 foreach (array_keys($template->config['elements']) as $ek) {
@@ -292,6 +292,8 @@
                                         Foto
                                     @elseif($el === 'qr')
                                         QR Code
+                                    @elseif($el === 'barcode')
+                                        Barcode 1D
                                     @elseif($el === 'name')
                                         Nama Lengkap
                                     @elseif($el === 'id_number')
@@ -357,7 +359,7 @@
                                             <label class="small">Z-Index</label>
                                             <input type="number" class="form-control form-control-sm config-sync" data-el="{{ $el }}" data-prop="z_index" min="1" default="1">
                                         </div>
-                                        @if(in_array($el, ['photo', 'qr', 'logo_lembaga', 'logo_dinas', 'ttd_kepala_sekolah', 'cap_lembaga']))
+                                        @if(in_array($el, ['photo', 'qr', 'barcode', 'logo_lembaga', 'logo_dinas', 'ttd_kepala_sekolah', 'cap_lembaga']))
                                         <div class="col-6">
                                             <label class="small">Lebar (W)</label>
                                             <input type="number" class="form-control form-control-sm config-sync" data-el="{{ $el }}" data-prop="w">
@@ -541,6 +543,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const names = {
             'photo': 'Foto',
             'qr': 'QR Code',
+            'barcode': 'Barcode 1D',
             'name': 'Nama Lengkap',
             'nis': 'NIS (Siswa)',
             'nisn': 'NISN (Siswa)',
@@ -611,7 +614,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const div = document.createElement('div');
-            const isImageEl = ['photo', 'qr', 'logo_lembaga', 'logo_dinas', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(key);
+            const isImageEl = ['photo', 'qr', 'barcode', 'logo_lembaga', 'logo_dinas', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(key);
             const isDividerEl = key.startsWith('divider_');
             
             if (isDividerEl) {
@@ -650,6 +653,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}`;
                     div.innerHTML = `<img src="${qrUrl}" style="width:100%; height:100%; object-fit:contain; background:#fff; padding:2px;">`;
+                } else if (key === 'barcode') {
+                    const barcodeSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 30" preserveAspectRatio="none"><rect width="100%" height="100%" fill="#ffffff"/><path d="M5 5h3v20H5zm5 0h2v20h-2zm4 0h1v20h-1zm3 0h4v20h-4zm6 0h2v20h-2zm4 0h1v20h-1zm3 0h3v20h-3zm5 0h2v20h-2zm4 0h4v20h-4zm6 0h1v20h-1zm3 0h3v20h-3zm5 0h2v20h-2zm4 0h1v20h-1zm3 0h4v20h-4zm6 0h2v20h-2zm4 0h2v20h-2zm5 0h3v20h-5z" fill="#000000"/></svg>`;
+                    div.innerHTML = `<div style="width:100%; height:100%; background:#fff; padding:2px; display:flex; align-items:center; justify-content:center;">${barcodeSvg}</div>`;
                 } else if (key === 'logo_lembaga') {
                     if (lembaga && lembaga.logo_base64) {
                         div.innerHTML = `<img src="${lembaga.logo_base64}" style="width:100%; height:100%; object-fit:contain;">`;

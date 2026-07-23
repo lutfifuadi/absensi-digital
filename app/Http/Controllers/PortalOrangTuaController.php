@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AbsensiSiswa;
 use App\Models\IzinSakit;
 use App\Models\Siswa;
+use App\Models\Pengaduan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -299,11 +300,39 @@ class PortalOrangTuaController extends Controller
     /**
      * Halaman Layanan Pengaduan Portal Ortu.
      */
-    public function pengaduan()
+    public function pengaduan(Request $request)
     {
-        if (view()->exists('portal-ortu.pengaduan')) {
-            return view('portal-ortu.pengaduan');
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $noHp = $user->no_hp;
+
+        // Ambil daftar pengaduan berdasarkan nomor_wa ortu, urutkan terbaru dari atas
+        $pengaduanList = Pengaduan::where('nomor_wa', $noHp)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $activePengaduan = null;
+        $activeLogs = collect();
+
+        if ($pengaduanList->isNotEmpty()) {
+            // Tentukan pengaduan aktif berdasarkan parameter id, default pertama di list
+            $activeId = $request->query('id');
+            if ($activeId) {
+                $activePengaduan = $pengaduanList->firstWhere('id', $activeId);
+            }
+
+            // Jika id parameter tidak ditemukan atau tidak dikirim, ambil yang pertama
+            if (!$activePengaduan) {
+                $activePengaduan = $pengaduanList->first();
+            }
+
+            if ($activePengaduan) {
+                // Ambil logs dan urutkan
+                $activeLogs = $activePengaduan->logs()->orderBy('created_at', 'asc')->get();
+            }
         }
-        return view('content.ortu.pengaduan');
+
+        $viewName = view()->exists('portal-ortu.pengaduan') ? 'portal-ortu.pengaduan' : 'content.ortu.pengaduan';
+        return view($viewName, compact('pengaduanList', 'activePengaduan', 'activeLogs'));
     }
 }

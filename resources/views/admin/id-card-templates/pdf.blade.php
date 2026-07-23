@@ -247,6 +247,19 @@
         </div>
         @endif
 
+        <!-- Barcode 1D -->
+        @if(isset($elements['barcode']) && $elements['barcode']['show'])
+        @php
+            $barcodeVal = is_array($entity) 
+                ? ($entity['nis'] ?? $entity['nip'] ?? $entity['id_number'] ?? '00010001') 
+                : ($entity->_nis ?? $entity->nis ?? $entity->_nip ?? $entity->nip ?? '00010001');
+            $barcodeData = \App\Support\BarcodeGenerator::renderPngBase64($barcodeVal);
+        @endphp
+        <div class="element" style="left: {{ $elements['barcode']['x'] }}pt; top: {{ $elements['barcode']['y'] }}pt; z-index: {{ $elements['barcode']['z_index'] ?? 10 }};">
+            <img class="barcode" src="{{ $barcodeData }}" style="width: {{ $elements['barcode']['w'] }}pt; height: {{ $elements['barcode']['h'] }}pt; background:#fff; padding: 2pt;">
+        </div>
+        @endif
+
         {{-- ===== ELEMEN BARU LEMBAGA ===== --}}
 
         <!-- Logo Lembaga -->
