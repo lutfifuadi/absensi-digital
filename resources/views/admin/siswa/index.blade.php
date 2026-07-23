@@ -1390,7 +1390,7 @@
 
                             const total = ids.length;
                             let processed = 0;
-                            const batchSize = 25;
+                            const batchSize = 50;
 
                             // Step 2: Display progress modal
                             Swal.fire({
