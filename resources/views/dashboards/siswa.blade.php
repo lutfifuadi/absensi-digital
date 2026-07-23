@@ -416,7 +416,7 @@
             {{-- KASUS 2: ABSEN MANDIRI AKTIF --}}
             <div class="w-100 py-2 px-3" style="max-width: 500px;">
               <div class="row g-3">
-                <div class="col-6">
+                <div class="col-12">
                   @if($absensiSaya && $absensiSaya->jam_masuk)
                     <div class="p-3 rounded h-100 border d-flex flex-column align-items-center justify-content-center" 
                          style="background: rgba(40, 199, 111, 0.08); border-color: rgba(40, 199, 111, 0.2) !important; backdrop-filter: blur(10px); min-height: 110px;">
@@ -425,13 +425,13 @@
                       <div class="text-success small fw-bold mt-1 text-uppercase" style="font-size:0.6rem; letter-spacing:0.5px;">Tercatat Masuk</div>
                     </div>
                   @else
-                    <button type="button" class="btn btn-primary btn-lg w-100 py-3 fw-bold shadow-lg h-100 d-flex flex-column align-items-center justify-content-center gap-1" id="btnAbsenMasuk">
+                    <button type="button" class="btn btn-primary btn-lg w-100 py-3 fw-bold shadow-lg h-100 d-flex align-items-center justify-content-center gap-2" id="btnAbsenMasuk">
                       <i class="ti tabler-login fs-2"></i>
                       <span>Absen Masuk</span>
                     </button>
                   @endif
                 </div>
-                <div class="col-6">
+                <div class="col-12">
                   @if($absensiSaya && $absensiSaya->jam_pulang)
                     <div class="p-3 rounded h-100 border d-flex flex-column align-items-center justify-content-center" 
                          style="background: rgba(0, 207, 232, 0.08); border-color: rgba(0, 207, 232, 0.2) !important; backdrop-filter: blur(10px); min-height: 110px;">
@@ -440,7 +440,7 @@
                       <div class="text-info small fw-bold mt-1 text-uppercase" style="font-size:0.6rem; letter-spacing:0.5px;">Tercatat Pulang</div>
                     </div>
                   @else
-                    <button type="button" class="btn btn-warning btn-lg w-100 py-3 fw-bold shadow-lg h-100 d-flex flex-column align-items-center justify-content-center gap-1 {{ !$absensiSaya ? 'opacity-50' : '' }}" id="btnAbsenPulang" {{ !$absensiSaya ? 'disabled' : '' }}>
+                    <button type="button" class="btn btn-warning btn-lg w-100 py-3 fw-bold shadow-lg h-100 d-flex align-items-center justify-content-center gap-2 {{ !$absensiSaya ? 'opacity-50' : '' }}" id="btnAbsenPulang" {{ !$absensiSaya ? 'disabled' : '' }}>
                       <i class="ti tabler-logout fs-2"></i>
                       <span>Absen Pulang</span>
                     </button>
