@@ -272,13 +272,16 @@
 
             <div class="das-hero__actions">
                 @if(!$isWaliKelas)
-                <button type="button" class="btn das-btn --purple" id="generateOrtuBtn" title="Generate Akun Ortu">
+                <button type="button" class="btn das-btn --purple" id="generateOrtuBtn" data-bs-toggle="tooltip" title="Generate Akun Ortu">
                     <i class="ti tabler-key"></i>
                 </button>
-                <button type="button" class="btn das-btn --warning" id="syncGoogleSheetBtn" title="Sinkronisasi Google Sheet">
+                <button type="button" class="btn das-btn --warning" id="resetAllPasswordBtn" data-bs-toggle="tooltip" title="Reset All Password Siswa">
+                    <i class="ti tabler-lock-open"></i>
+                </button>
+                <button type="button" class="btn das-btn --warning" id="syncGoogleSheetBtn" data-bs-toggle="tooltip" title="Sinkronisasi Google Sheet">
                     <i class="ti tabler-refresh"></i>
                 </button>
-                <button type="button" class="btn das-btn --secondary" data-bs-toggle="modal" data-bs-target="#importModal" title="Import Data">
+                <button type="button" class="btn das-btn --secondary" data-bs-toggle="modal" data-bs-target="#importModal" data-bs-toggle="tooltip" title="Import Data">
                     <i class="ti tabler-file-import"></i>
                 </button>
                 <div class="btn-group">
@@ -803,6 +806,58 @@
                 }
             });
 
+            // Select All Checkbox Handler (Delegated, so it works after table is updated)
+            container.addEventListener('change', function(e) {
+                const selectAllCheckbox = e.target.closest('#selectAllSiswa');
+                if (selectAllCheckbox) {
+                    const checkboxes = container.querySelectorAll('.siswa-checkbox');
+                    checkboxes.forEach(cb => {
+                        cb.checked = selectAllCheckbox.checked;
+                    });
+                    updateResetButtonState();
+                }
+
+                const singleCheckbox = e.target.closest('.siswa-checkbox');
+                if (singleCheckbox) {
+                    const selectAllCheckbox = container.querySelector('#selectAllSiswa');
+                    if (selectAllCheckbox) {
+                        const total = container.querySelectorAll('.siswa-checkbox').length;
+                        const checked = container.querySelectorAll('.siswa-checkbox:checked').length;
+                        selectAllCheckbox.checked = (total === checked && total > 0);
+                        selectAllCheckbox.indeterminate = (checked > 0 && checked < total);
+                    }
+                    updateResetButtonState();
+                }
+            });
+
+            function updateResetButtonState() {
+                const resetAllBtn = document.getElementById('resetAllPasswordBtn');
+                if (!resetAllBtn) return;
+                
+                const checkedCount = container.querySelectorAll('.siswa-checkbox:checked').length;
+                
+                if (checkedCount > 0) {
+                    resetAllBtn.classList.remove('--warning');
+                    resetAllBtn.classList.add('--primary');
+                    resetAllBtn.setAttribute('title', `Reset Password ${checkedCount} Siswa Terpilih`);
+                    
+                    // Update bootstrap tooltip if available
+                    const tooltip = bootstrap.Tooltip.getInstance(resetAllBtn);
+                    if (tooltip) {
+                        tooltip.setContent({ '.tooltip-inner': `Reset Password ${checkedCount} Siswa Terpilih` });
+                    }
+                } else {
+                    resetAllBtn.classList.remove('--primary');
+                    resetAllBtn.classList.add('--warning');
+                    resetAllBtn.setAttribute('title', 'Reset All Password Siswa');
+                    
+                    const tooltip = bootstrap.Tooltip.getInstance(resetAllBtn);
+                    if (tooltip) {
+                        tooltip.setContent({ '.tooltip-inner': 'Reset All Password Siswa' });
+                    }
+                }
+            }
+
             // sort clicks (capture delegated events)
             container.addEventListener('click', function(e) {
                 const th = e.target.closest('th.sortable');
@@ -1191,6 +1246,265 @@
                                 icon: 'error',
                                 title: 'Gagal!',
                                 text: err.message || 'Terjadi kesalahan saat memproses barcode.',
+                                customClass: {
+                                    popup: 'das-swal-popup',
+                                    title: 'das-swal-title',
+                                    htmlContainer: 'das-swal-html',
+                                    confirmButton: 'btn btn-primary das-swal-confirm'
+                                },
+                                background: 'transparent',
+                                buttonsStyling: false
+                            });
+                        });
+                    });
+                });
+            }
+
+            // Reset All Password / Terpilih
+            const resetAllPasswordBtn = document.getElementById('resetAllPasswordBtn');
+            if (resetAllPasswordBtn) {
+                resetAllPasswordBtn.addEventListener('click', function() {
+                    const checkedCheckboxes = document.querySelectorAll('.siswa-checkbox:checked');
+                    const selectedIds = Array.from(checkedCheckboxes).map(cb => cb.value);
+                    const isSpecific = selectedIds.length > 0;
+
+                    const titleText = isSpecific 
+                        ? `Reset password ${selectedIds.length} siswa terpilih?` 
+                        : 'Reset password seluruh siswa aktif?';
+                    const confirmHtml = isSpecific
+                        ? `Tindakan ini akan mereset password <b class="text-warning">${selectedIds.length} siswa terpilih</b> menjadi default (NISN atau format default lainnya). Silakan masukkan password administrator Anda untuk melanjutkan.`
+                        : 'Tindakan ini akan mereset password seluruh siswa menjadi default (biasanya NISN atau format default lainnya). Silakan masukkan password administrator Anda untuk melanjutkan.';
+
+                    Swal.fire({
+                        title: titleText,
+                        html: '<div class="text-center px-2">' +
+                              '  <p class="text-white-50 mb-3" style="font-size:0.92rem; line-height:1.6;">' +
+                              confirmHtml +
+                              '  </p>' +
+                              '  <input type="password" id="adminPassword" class="form-control text-center bg-dark border-secondary text-white" placeholder="Masukkan Password Admin" autofocus>' +
+                              '</div>',
+                        iconHtml: '<div class="rounded-circle d-flex align-items-center justify-content-center" style="width:70px; height:70px; background: rgba(255, 159, 67, 0.15); border: 2px solid rgba(255, 159, 67, 0.3); box-shadow: 0 0 15px rgba(255, 159, 67, 0.4);"><i class="ti tabler-lock-open text-warning fs-1" style="font-size: 2.5rem !important;"></i></div>',
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="ti tabler-shield-lock me-1"></i> Reset Password',
+                        cancelButtonText: 'Batal',
+                        customClass: {
+                            popup: 'das-swal-popup',
+                            title: 'das-swal-title',
+                            htmlContainer: 'das-swal-html',
+                            confirmButton: 'btn btn-warning das-swal-confirm px-4 py-2 me-3',
+                            cancelButton: 'btn das-btn das-swal-cancel px-4 py-2',
+                            icon: 'border-0'
+                        },
+                        buttonsStyling: false,
+                        showClass: {
+                            popup: 'animate__animated animate__fadeInUp animate__faster'
+                        },
+                        hideClass: {
+                            popup: 'animate__animated animate__fadeOutDown animate__faster'
+                        },
+                        background: 'transparent',
+                        backdrop: `rgba(0,0,10,0.4)`,
+                        preConfirm: () => {
+                            const password = Swal.getPopup().querySelector('#adminPassword').value;
+                            if (!password) {
+                                Swal.showValidationMessage(`Password administrator wajib diisi!`);
+                            }
+                            return { password: password };
+                        }
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
+
+                        const adminPassword = result.value.password;
+
+                        // Step 1: Loading modal initial detection
+                        Swal.fire({
+                            title: 'Menyiapkan Reset Password...',
+                            html: '<div class="text-center px-2">' +
+                                  '  <p class="text-white-50 mb-3" style="font-size:0.92rem;">Mengambil daftar siswa yang akan di-reset...</p>' +
+                                  '  <div class="d-flex align-items-center justify-content-center gap-2 p-2 rounded" style="background: rgba(255, 159, 67, 0.08); border: 1px dashed rgba(255, 159, 67, 0.2);">' +
+                                  '    <i class="ti tabler-loader spinner text-warning fs-4"></i>' +
+                                  '    <span class="text-warning extra-small fw-semibold">Mohon tunggu sebentar...</span>' +
+                                  '  </div>' +
+                                  '</div>',
+                            iconHtml: '<div class="rounded-circle d-flex align-items-center justify-content-center" style="width:70px; height:70px; background: rgba(255, 159, 67, 0.15); border: 2px solid rgba(255, 159, 67, 0.3);"><i class="ti tabler-loader spinner text-warning fs-1" style="font-size: 2.5rem !important;"></i></div>',
+                            showConfirmButton: false,
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            customClass: {
+                                popup: 'das-swal-popup',
+                                title: 'das-swal-title',
+                                htmlContainer: 'das-swal-html',
+                                icon: 'border-0'
+                            },
+                            buttonsStyling: false,
+                            background: 'transparent',
+                            backdrop: `rgba(0,0,10,0.45)`,
+                        });
+
+                        // Get target student IDs
+                        const getTargetIds = isSpecific
+                            ? Promise.resolve(selectedIds)
+                            : fetch('{{ route('admin.siswa.reset-password-all') }}', {
+                                  method: 'POST',
+                                  headers: {
+                                      'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                      'X-Requested-With': 'XMLHttpRequest',
+                                      'Content-Type': 'application/json',
+                                      'Accept': 'application/json'
+                                  },
+                                  body: JSON.stringify({
+                                      password: adminPassword,
+                                      get_ids: 1
+                                  })
+                              })
+                              .then(res => {
+                                  if (!res.ok) {
+                                      return res.json().then(data => {
+                                          throw new Error(data.message || `HTTP error! status: ${res.status}`);
+                                      });
+                                  }
+                                  return res.json();
+                              })
+                              .then(data => {
+                                  if (!data.success) throw new Error(data.message || 'Gagal mengambil data siswa');
+                                  return data.ids || [];
+                              });
+
+                        getTargetIds.then(ids => {
+                            if (!ids || ids.length === 0) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Perhatian!',
+                                    text: 'Tidak ada data siswa yang perlu di-reset.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-warning das-swal-confirm'
+                                    },
+                                    background: 'transparent',
+                                    buttonsStyling: false
+                                });
+                                return;
+                            }
+
+                            const total = ids.length;
+                            let processed = 0;
+                            const batchSize = 25;
+
+                            // Step 2: Display progress modal
+                            Swal.fire({
+                                title: 'Mereset Password Siswa...',
+                                html: '<div class="text-center px-2">' +
+                                      '  <p id="reset-progress-text" class="text-white-50 mb-3" style="font-size:0.92rem;">Memproses reset password untuk ' + total + ' siswa...</p>' +
+                                      '  <div class="progress mb-3" style="height: 12px; background: rgba(255, 255, 255, 0.08); border-radius: 6px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.05);">' +
+                                      '    <div id="reset-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" style="width: 0%; height: 100%; transition: width 0.3s ease; border-radius: 6px;"></div>' +
+                                      '  </div>' +
+                                      '  <div class="d-flex align-items-center justify-content-center gap-2 p-2 rounded mb-2" style="background: rgba(255, 159, 67, 0.08); border: 1px dashed rgba(255, 159, 67, 0.2);">' +
+                                      '    <i class="ti tabler-loader spinner text-warning fs-4"></i>' +
+                                      '    <span class="text-warning extra-small fw-semibold">Harap tunggu, proses berjalan secara bertahap...</span>' +
+                                      '  </div>' +
+                                      '</div>',
+                                iconHtml: '<div class="rounded-circle d-flex align-items-center justify-content-center" style="width:70px; height:70px; background: rgba(255, 159, 67, 0.15); border: 2px solid rgba(255, 159, 67, 0.3);"><i class="ti tabler-lock-open text-warning fs-1" style="font-size: 2.5rem !important;"></i></div>',
+                                showConfirmButton: false,
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                customClass: {
+                                    popup: 'das-swal-popup',
+                                    title: 'das-swal-title',
+                                    htmlContainer: 'das-swal-html',
+                                    icon: 'border-0'
+                                },
+                                buttonsStyling: false,
+                                background: 'transparent',
+                                backdrop: `rgba(0,0,10,0.45)`,
+                            });
+
+                            // Batch processing recursive function
+                            function processNextBatch() {
+                                if (processed >= total) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil!',
+                                        text: `Berhasil me-reset password untuk ${total} akun siswa.`,
+                                        customClass: {
+                                            popup: 'das-swal-popup',
+                                            title: 'das-swal-title',
+                                            htmlContainer: 'das-swal-html',
+                                            confirmButton: 'btn btn-success das-swal-confirm'
+                                        },
+                                        timer: 2500,
+                                        showConfirmButton: false,
+                                        background: 'transparent',
+                                    }).then(() => {
+                                        fetchData(1);
+                                    });
+                                    return;
+                                }
+
+                                const batch = ids.slice(processed, processed + batchSize);
+
+                                fetch('{{ route('admin.siswa.reset-password-all') }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        password: adminPassword,
+                                        siswa_ids: batch
+                                    })
+                                })
+                                .then(res => {
+                                    if (!res.ok) {
+                                        return res.json().then(data => {
+                                            throw new Error(data.message || `HTTP error! status: ${res.status}`);
+                                        });
+                                    }
+                                    return res.json();
+                                })
+                                .then(data => {
+                                    if (data.success) {
+                                        processed += batch.length;
+                                        const percent = Math.min(Math.round((processed / total) * 100), 100);
+                                        const progressBar = document.getElementById('reset-progress-bar');
+                                        const progressText = document.getElementById('reset-progress-text');
+                                        if (progressBar) progressBar.style.width = percent + '%';
+                                        if (progressText) progressText.textContent = `Mereset password ${processed} dari ${total} siswa (${percent}%)...`;
+                                        
+                                        processNextBatch();
+                                    } else {
+                                        throw new Error(data.message || 'Terjadi kesalahan saat mereset batch.');
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error('Error batch reset:', err);
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Gagal!',
+                                        text: err.message || 'Terjadi kesalahan saat mereset password.',
+                                        customClass: {
+                                            popup: 'das-swal-popup',
+                                            title: 'das-swal-title',
+                                            htmlContainer: 'das-swal-html',
+                                            confirmButton: 'btn btn-primary das-swal-confirm'
+                                        },
+                                        background: 'transparent',
+                                        buttonsStyling: false
+                                    });
+                                });
+                            }
+
+                            processNextBatch();
+                        })
+                        .catch(err => {
+                            console.error('Error fetching target IDs:', err);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal!',
+                                text: err.message || 'Terjadi kesalahan saat memuat data.',
                                 customClass: {
                                     popup: 'das-swal-popup',
                                     title: 'das-swal-title',

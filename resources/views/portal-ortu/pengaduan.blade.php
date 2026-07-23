@@ -168,7 +168,7 @@
                 <small class="fw-bold font-monospace {{ $isActive ? 'text-white' : 'text-muted' }}">#{{ $p->kode_unik }}</small>
                 <span class="badge bg-{{ $p->status_color }} {{ $p->status === 'baru' ? 'text-dark' : '' }}">{{ strtoupper($p->status_label) }}</span>
               </div>
-              <h6 class="mb-1 fw-bold {{ $isActive ? 'text-white' : '' }}">{{ Str::limit($p->kategori, 40) }}</h6>
+              <h6 class="mb-1 fw-bold {{ $isActive ? 'text-white' : '' }}">{{ \Illuminate\Support\Str::limit($p->kategori, 40) }}</h6>
               <small class="{{ $isActive ? 'text-white opacity-75' : 'text-muted' }}">
                 Tanggal: {{ $p->created_at->translatedFormat('d F Y H:i') }} WIB
               </small>

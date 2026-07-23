@@ -751,6 +751,10 @@ Route::middleware([
             ->name('admin.siswa.sync-google-sheet')
             ->middleware('role:super_admin,admin_sekolah,operator');
 
+        Route::post('siswa/reset-password-all', [SiswaController::class, 'resetPasswordAll'])
+            ->name('admin.siswa.reset-password-all')
+            ->middleware('role:super_admin,admin_sekolah', 'throttle:6,1');
+
         Route::post('siswa/generate-ortu-massal', [SiswaController::class, 'generateOrtuMassal'])
             ->name('admin.siswa.generate-ortu-massal')
             ->middleware('role:super_admin,admin_sekolah,operator');

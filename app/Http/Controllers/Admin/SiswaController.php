@@ -1175,4 +1175,120 @@ class SiswaController extends Controller
             'Content-Disposition' => 'attachment; filename="' . $zipName . '"',
         ]);
     }
+
+    /**
+     * Reset password all siswa to their NISN, with fallback to NIS or 'siswa123'.
+     */
+    public function resetPasswordAll(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string',
+            'siswa_ids' => 'nullable|array',
+            'siswa_ids.*' => 'integer|exists:siswa,id',
+        ]);
+
+        if (!Hash::check($request->password, $request->user()->password)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Password administrator salah.'
+                ], 422);
+            }
+            return redirect()->back()->with('error', 'Password administrator salah.');
+        }
+
+        // 1. Return student IDs if requested for batch processing
+        if ($request->has('get_ids')) {
+            try {
+                $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
+                $query = Siswa::whereHas('user');
+
+                if ($tahunAjaranId) {
+                    $query->where(function ($q) use ($tahunAjaranId) {
+                        $q->where('tahun_akademik_id', $tahunAjaranId)
+                          ->orWhereNull('tahun_akademik_id');
+                    });
+                }
+
+                $siswaIds = $query->pluck('id');
+
+                return response()->json([
+                    'success' => true,
+                    'ids' => $siswaIds
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mengambil data siswa: ' . $e->getMessage()
+                ], 500);
+            }
+        }
+
+        DB::beginTransaction();
+        try {
+            $siswaIds = $request->input('siswa_ids');
+            $query = Siswa::with('user');
+            
+            if (!empty($siswaIds)) {
+                $query->whereIn('id', $siswaIds);
+            }
+            
+            $siswaList = $query->get();
+            $count = 0;
+            $hashedCache = [];
+
+            foreach ($siswaList as $siswa) {
+                if ($siswa->user) {
+                    // Password prioritizes NISN, fallback to NIS, then 'siswa123'
+                    $passwordRaw = !empty($siswa->nisn) ? $siswa->nisn : (!empty($siswa->nis) ? $siswa->nis : 'siswa123');
+
+                    if (!isset($hashedCache[$passwordRaw])) {
+                        $hashedCache[$passwordRaw] = Hash::make($passwordRaw);
+                    }
+
+                    $siswa->user->update([
+                        'password' => $hashedCache[$passwordRaw]
+                    ]);
+                    $count++;
+                }
+            }
+
+            DB::commit();
+
+            $logMessage = !empty($siswaIds) 
+                ? "Reset password untuk " . count($siswaIds) . " siswa terpilih." 
+                : "Reset password massal untuk {$count} akun Siswa.";
+
+            ActivityLog::record(
+                'RESET_PASSWORD_ALL',
+                'Siswa',
+                $logMessage
+            );
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => !empty($siswaIds)
+                        ? "Berhasil me-reset password untuk " . count($siswaIds) . " siswa terpilih."
+                        : "Berhasil me-reset password untuk {$count} akun Siswa."
+                ]);
+            }
+
+            return redirect()->back()->with('success', !empty($siswaIds)
+                ? "Berhasil me-reset password untuk " . count($siswaIds) . " siswa terpilih."
+                : "Berhasil me-reset password untuk {$count} akun Siswa.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error resetPasswordAll: ' . $e->getMessage());
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal me-reset password massal: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Gagal me-reset password massal: ' . $e->getMessage());
+        }
+    }
 }

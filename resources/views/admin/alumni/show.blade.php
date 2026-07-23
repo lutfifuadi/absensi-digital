@@ -248,7 +248,7 @@
                           </td>
                           <td><span class="das-chip --{{ $is->jenis == 'sakit' ? 'info' : 'warning' }}">{{ $is->jenis }}</span></td>
                           <td><span class="badge bg-label-{{ $is->status == 'disetujui' ? 'success' : ($is->status == 'pending' ? 'warning' : 'danger') }}">{{ $is->status }}</span></td>
-                          <td class="small">{{ Str::limit($is->keterangan, 30) }}</td>
+                           <td class="small">{{ \Illuminate\Support\Str::limit($is->keterangan, 30) }}</td>
                        </tr>
                     @empty
                        <tr><td colspan="4" class="text-center py-5 text-muted">Belum ada data izin/sakit.</td></tr>

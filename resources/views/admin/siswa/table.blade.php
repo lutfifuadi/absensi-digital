@@ -2,6 +2,9 @@
   <table class="table table-hover align-middle mb-0" style="color:inherit;">
     <thead style="background:rgba(255,255,255,0.04);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;opacity:0.7;">
       <tr>
+        <th class="ps-3 py-3" style="width:40px;">
+          <input class="form-check-input select-all-siswa-checkbox" type="checkbox" id="selectAllSiswa">
+        </th>
         <th class="ps-2 py-3" style="width:46px;">#</th>
         <th class="py-3 sortable cursor-pointer" data-sort-by="nama_lengkap" style="user-select: none;">
           Informasi Siswa
@@ -34,6 +37,9 @@
     <tbody>
       @forelse($siswa as $item)
         <tr class="siswa-row-hover">
+          <td class="ps-3">
+            <input class="form-check-input siswa-checkbox" type="checkbox" value="{{ $item->id }}">
+          </td>
           <td class="ps-4 text-white-50 small">{{ $siswa->firstItem() + $loop->index }}</td>
           <td>
             <div class="d-flex align-items-center gap-3">
@@ -105,7 +111,7 @@
         </tr>
       @empty
         <tr>
-          <td colspan="6" class="text-center py-5">
+          <td colspan="8" class="text-center py-5">
             <div class="d-flex flex-column align-items-center gap-2 opacity-50">
               <i class="ti tabler-users-minus" style="font-size:2.5rem;"></i>
               <span class="small">Belum ada data siswa.</span>

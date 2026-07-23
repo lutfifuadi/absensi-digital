@@ -282,9 +282,9 @@
               @forelse($jurusanList as $jurusan)
                 <div class="col-md-2 col-4">
                   <div class="form-check">
-                    <input class="form-check-input jurusan-checkbox" type="checkbox" name="target_jurusan[]" value="{{ $jurusan }}" id="jurusan_{{ Str::slug($jurusan) }}"
+                    <input class="form-check-input jurusan-checkbox" type="checkbox" name="target_jurusan[]" value="{{ $jurusan }}" id="jurusan_{{ \Illuminate\Support\Str::slug($jurusan) }}"
                            {{ in_array($jurusan, old('target_jurusan', [])) ? 'checked' : '' }}>
-                    <label class="form-check-label text-white small" for="jurusan_{{ Str::slug($jurusan) }}">
+                    <label class="form-check-label text-white small" for="jurusan_{{ \Illuminate\Support\Str::slug($jurusan) }}">
                       {{ $jurusan }}
                     </label>
                   </div>
