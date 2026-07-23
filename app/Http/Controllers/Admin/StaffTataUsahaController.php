@@ -93,6 +93,7 @@ class StaffTataUsahaController extends Controller
                 'no_hp' => $data['no_hp'] ?? null,
                 'status' => $data['status'],
                 'qr_code' => QrCodeGenerator::generate('STAFF'),
+                'qr_code_nip' => $data['nip'],
             ]);
         });
 
@@ -128,6 +129,7 @@ class StaffTataUsahaController extends Controller
                 'jabatan' => $data['jabatan'] ?? null,
                 'no_hp' => $data['no_hp'] ?? null,
                 'status' => $data['status'],
+                'qr_code_nip' => $data['nip'],
             ]);
 
             $staffTataUsaha->user->update([
@@ -149,6 +151,76 @@ class StaffTataUsahaController extends Controller
         $staffTataUsaha->delete();
 
         return redirect()->route('admin.staff-tata-usaha.index')->with('success', 'Staff TU berhasil dihapus.');
+    }
+
+    /**
+     * Re-generate Dual QR Code untuk 1 Staff (AJAX).
+     */
+    public function regenerateQr(Request $request, StaffTataUsaha $staffTataUsaha)
+    {
+        $newQrCode = QrCodeGenerator::generate('STAFF');
+        $newQrCodeNip = $staffTataUsaha->nip;
+
+        $staffTataUsaha->update([
+            'qr_code'     => $newQrCode,
+            'qr_code_nip' => $newQrCodeNip,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Dual QR Code untuk {$staffTataUsaha->nama_lengkap} berhasil diperbarui.",
+            'qr_code' => $newQrCode,
+            'qr_code_nip' => $newQrCodeNip,
+        ]);
+    }
+
+    /**
+     * Re-generate Dual QR Code Terpilih (Bulk AJAX).
+     */
+    public function regenerateQrBulk(Request $request)
+    {
+        $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'integer|exists:staff_tata_usaha,id',
+        ]);
+
+        $staffs = StaffTataUsaha::whereIn('id', $request->ids)->get();
+        $count = 0;
+
+        foreach ($staffs as $staff) {
+            $staff->update([
+                'qr_code'     => QrCodeGenerator::generate('STAFF'),
+                'qr_code_nip' => $staff->nip,
+            ]);
+            $count++;
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Dual QR Code untuk {$count} staff berhasil diperbarui.",
+        ]);
+    }
+
+    /**
+     * Re-generate Dual QR Code untuk SELURUH Staff (All AJAX).
+     */
+    public function regenerateQrAll(Request $request)
+    {
+        $staffs = StaffTataUsaha::all();
+        $count = 0;
+
+        foreach ($staffs as $staff) {
+            $staff->update([
+                'qr_code'     => QrCodeGenerator::generate('STAFF'),
+                'qr_code_nip' => $staff->nip,
+            ]);
+            $count++;
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Dual QR Code untuk SELURUH ({$count}) staff berhasil diperbarui.",
+        ]);
     }
 
     /**
@@ -180,8 +252,11 @@ class StaffTataUsahaController extends Controller
      */
     public function generateQrSatu(StaffTataUsaha $staffTataUsaha)
     {
-        if (! $staffTataUsaha->qr_code) {
-            $staffTataUsaha->update(['qr_code' => QrCodeGenerator::generate('STAFF')]);
+        if (! $staffTataUsaha->qr_code || ! $staffTataUsaha->qr_code_nip) {
+            $staffTataUsaha->update([
+                'qr_code' => $staffTataUsaha->qr_code ?? QrCodeGenerator::generate('STAFF'),
+                'qr_code_nip' => $staffTataUsaha->qr_code_nip ?? $staffTataUsaha->nip,
+            ]);
         }
 
         $template = IdCardTemplate::where('type', 'staff')->active()->first();

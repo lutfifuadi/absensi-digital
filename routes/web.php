@@ -681,6 +681,18 @@ Route::middleware([
             ->name('admin.staff-tata-usaha.generate-qr')
             ->middleware('role:super_admin,admin_sekolah,operator');
 
+        Route::post('staff-tata-usaha/{staffTataUsaha}/regenerate-qr', [StaffTataUsahaController::class, 'regenerateQr'])
+            ->name('admin.staff-tata-usaha.regenerate-qr')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+
+        Route::post('staff-tata-usaha/regenerate-qr-bulk', [StaffTataUsahaController::class, 'regenerateQrBulk'])
+            ->name('admin.staff-tata-usaha.regenerate-qr-bulk')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+
+        Route::post('staff-tata-usaha/regenerate-qr-all', [StaffTataUsahaController::class, 'regenerateQrAll'])
+            ->name('admin.staff-tata-usaha.regenerate-qr-all')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+
         Route::resource('staff-tata-usaha', StaffTataUsahaController::class)
             ->names('admin.staff-tata-usaha')
             ->except(['show'])

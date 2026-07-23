@@ -73,6 +73,14 @@
                                 title="Unduh QR" data-bs-toggle="tooltip">
                                 <i class="ti tabler-qrcode fs-5"></i>
                             </a>
+                            <button type="button"
+                                class="action-btn text-primary btn-regenerate-qr-staff"
+                                title="Re-generate Dual QR Code"
+                                data-bs-toggle="tooltip"
+                                data-url="{{ route('admin.staff-tata-usaha.regenerate-qr', $item) }}"
+                                data-nama="{{ $item->nama_lengkap }}">
+                                <i class="ti tabler-refresh fs-5"></i>
+                            </button>
                             <a href="{{ route('admin.staff-tata-usaha.edit', $item) }}" class="action-btn text-warning"
                                 title="Ubah" data-bs-toggle="tooltip">
                                 <i class="ti tabler-pencil fs-5"></i>

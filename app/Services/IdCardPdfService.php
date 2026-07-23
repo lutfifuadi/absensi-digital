@@ -288,8 +288,11 @@ class IdCardPdfService
         }
 
         $entities = $staffList->map(function ($staff) use ($masaBerlakuDefault) {
-            if (! $staff->qr_code) {
-                $staff->update(['qr_code' => QrCodeGenerator::generate('STAFF')]);
+            if (! $staff->qr_code || ! $staff->qr_code_nip) {
+                $staff->update([
+                    'qr_code' => $staff->qr_code ?? QrCodeGenerator::generate('STAFF'),
+                    'qr_code_nip' => $staff->qr_code_nip ?? $staff->nip,
+                ]);
                 $staff->refresh();
             }
 
@@ -297,6 +300,7 @@ class IdCardPdfService
             $staff->_masa_berlaku = $masaBerlakuDefault;
             $staff->_foto_base64  = $this->fotoToBase64($staff->foto ?? '');
             $staff->_qr_base64    = QrCodeGenerator::renderDataUri($staff->qr_code, 200);
+            $staff->_qr_nip_base64 = QrCodeGenerator::renderDataUri($staff->qr_code_nip ?? $staff->nip, 200);
             $staff->_posisi       = $staff->jabatan ?? 'Staff Tata Usaha';
 
             return $staff;

@@ -7,6 +7,8 @@ use App\Models\AbsensiGuru;
 use App\Models\Pengaturan;
 use App\Models\Siswa;
 use App\Models\Guru;
+use App\Models\StaffTataUsaha;
+use App\Models\AbsensiStaff;
 use App\Support\QrScanLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -342,16 +344,98 @@ class PublicQrScanController extends Controller
             ]);
         }
 
-        // 3. Tidak ditemukan
+        // 3. Jika bukan siswa & guru, cek apakah Staff Tata Usaha
+        $staff = StaffTataUsaha::where('qr_code', $qrCode)->orWhere('qr_code_nip', $qrCode)->orWhere('nip', $qrCode)->first();
+        if ($staff) {
+            $absensi = AbsensiStaff::where('staff_id', $staff->id)
+                ->whereDate('tanggal', $tanggal)
+                ->first();
+
+            // LOGIKA PULANG STAFF
+            if ($absensi && $currentTime >= $jamMulaiPulang) {
+                if ($currentTime > $jamAkhirPulang) {
+                    return response()->json(['success' => false, 'message' => 'Sesi scan pulang sudah ditutup.']);
+                }
+                
+                if ($absensi->jam_pulang) {
+                    return response()->json([
+                        'success' => false,
+                        'already' => true,
+                        'message' => 'Staff: ' . $staff->nama_lengkap . ' sudah melakukan scan pulang.',
+                    ]);
+                }
+
+                $absensi->update(['jam_pulang' => $currentTime]);
+                Cache::forget('live_board_leaderboard_data');
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Berhasil! Jam pulang Staff ' . $staff->nama_lengkap . ' tercatat.',
+                    'siswa'   => ['nama' => $staff->nama_lengkap, 'kelas' => 'STAFF TU', 'jam' => $currentTime],
+                ]);
+            }
+
+            if ($absensi) {
+                return response()->json(['success' => false, 'already' => true, 'message' => 'Staff sudah tercatat hadir.',]);
+            }
+
+            if ($currentTime > $jamBatasMasuk) {
+                return response()->json(['success' => false, 'message' => 'Sesi scan masuk staff sudah ditutup.']);
+            }
+
+            $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i:s');
+            $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
+
+            try {
+                AbsensiStaff::create([
+                    'staff_id'   => $staff->id,
+                    'tanggal'    => $tanggal,
+                    'jam_masuk'  => $currentTime,
+                    'status'     => $status,
+                    'keterangan' => 'Scan QR publik oleh guru piket',
+                    'metode'     => 'qr',
+                ]);
+                Cache::forget('live_board_leaderboard_data');
+            } catch (\Illuminate\Database\QueryException $e) {
+                if ($e->errorInfo[1] === 1062) {
+                    return response()->json([
+                        'success' => false,
+                        'already' => true,
+                        'message' => 'Staff ' . $staff->nama_lengkap . ' sudah tercatat hadir hari ini.',
+                    ]);
+                }
+                throw $e;
+            }
+
+            QrScanLogger::info('QR_SCAN_STAFF_SUCCESS', [
+                'ip'    => $ip,
+                'staff' => $staff->nama_lengkap,
+                'jam'   => $currentTime,
+                'tanggal' => $tanggal,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Berhasil! Absensi staff tercatat.',
+                'siswa'   => [
+                    'nama'   => $staff->nama_lengkap,
+                    'kelas'  => 'STAFF TU',
+                    'jam'    => $currentTime,
+                    'status' => $status,
+                ],
+            ]);
+        }
+
+        // 4. Tidak ditemukan
         QrScanLogger::error('QR_NOT_FOUND', [
             'ip'      => $ip,
             'qr_code' => substr($qrCode, 0, 20) . (strlen($qrCode) > 20 ? '...' : ''),
-            'ket'     => 'QR code tidak dikenal (Siswa/Guru)',
+            'ket'     => 'QR code tidak dikenal (Siswa/Guru/Staff)',
         ]);
 
         return response()->json([
             'success' => false,
-            'message' => 'QR code tidak dikenal. Pastikan QR code siswa atau guru valid.',
+            'message' => 'QR code tidak dikenal. Pastikan QR code siswa, guru, atau staff valid.',
         ]);
     }
 
@@ -842,6 +926,136 @@ class PublicQrScanController extends Controller
                 'siswa'   => ['nama' => $guru->nama_lengkap, 'kelas' => 'GURU', 'jam' => $currentTime],
             ]);
         }
+
+        // 3. Cek Staff Tata Usaha (bisa scan QR Unik, QR NIP, atau NIP mentah)
+        $staff = StaffTataUsaha::where('qr_code', $qrCode)->orWhere('qr_code_nip', $qrCode)->orWhere('nip', $qrCode)->first();
+        if ($staff) {
+            $absensi = AbsensiStaff::where('staff_id', $staff->id)->whereDate('tanggal', $tanggal)->first();
+
+            // PULANG MODE STAFF
+            if ($mode === 'pulang') {
+                if ($absensi && $absensi->jam_pulang) {
+                    return response()->json([
+                        'success' => false,
+                        'already' => true,
+                        'message' => 'Staff: ' . $staff->nama_lengkap . ' sudah scan pulang.',
+                    ]);
+                }
+
+                if ($absensi) {
+                    $absensi->update(['jam_pulang' => $currentTime]);
+                } else {
+                    AbsensiStaff::create([
+                        'staff_id'   => $staff->id,
+                        'tanggal'    => $tanggal,
+                        'jam_masuk'  => null,
+                        'jam_pulang' => $currentTime,
+                        'status'     => 'hadir',
+                        'keterangan' => 'Scan QR Live Board Pulang',
+                        'metode'     => 'qr',
+                    ]);
+                }
+                $forgetCache();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Selamat beristirahat! Jam pulang Staff ' . $staff->nama_lengkap . ' berhasil dicatat.',
+                    'siswa'   => ['nama' => $staff->nama_lengkap, 'kelas' => 'STAFF TU', 'jam' => $currentTime],
+                ]);
+            }
+
+            // MASUK MODE STAFF
+            if ($mode === 'masuk') {
+                if ($absensi && $absensi->jam_masuk) {
+                    return response()->json([
+                        'success' => false,
+                        'already' => true,
+                        'message' => 'Staff ' . $staff->nama_lengkap . ' sudah tercatat hadir.',
+                    ]);
+                }
+
+                $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i:s');
+                $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
+
+                if ($absensi) {
+                    $absensi->update([
+                        'jam_masuk' => $currentTime,
+                        'status'    => $status,
+                    ]);
+                } else {
+                    AbsensiStaff::create([
+                        'staff_id'   => $staff->id,
+                        'tanggal'    => $tanggal,
+                        'jam_masuk'  => $currentTime,
+                        'status'     => $status,
+                        'keterangan' => 'Scan QR Live Board Masuk',
+                        'metode'     => 'qr',
+                    ]);
+                }
+                $forgetCache();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Absensi Staff berhasil dicatat!',
+                    'siswa'   => ['nama' => $staff->nama_lengkap, 'kelas' => 'STAFF TU', 'jam' => $currentTime],
+                ]);
+            }
+
+            // OTOMATIS STAFF MODE
+            if ($absensi && $currentTime >= $jamMulaiPulang) {
+                if ($currentTime > $jamAkhirPulang) {
+                    return response()->json(['success' => false, 'message' => 'Sesi scan pulang sudah ditutup.']);
+                }
+                if ($absensi->jam_pulang) {
+                    return response()->json(['success' => false, 'already' => true, 'message' => 'Sudah scan pulang.',]);
+                }
+                $absensi->update(['jam_pulang' => $currentTime]);
+                $forgetCache();
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Selamat beristirahat! Jam pulang Staff ' . $staff->nama_lengkap . ' berhasil dicatat.',
+                    'siswa'   => ['nama' => $staff->nama_lengkap, 'kelas' => 'STAFF TU', 'jam' => $currentTime],
+                ]);
+            }
+
+            if ($absensi) {
+                return response()->json(['success' => false, 'already' => true, 'message' => 'Staff sudah tercatat hadir.']);
+            }
+
+            if ($currentTime > $jamBatasMasuk) {
+                return response()->json(['success' => false, 'message' => 'Sesi scan masuk staff sudah ditutup.']);
+            }
+
+            $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i:s');
+            $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
+
+            try {
+                AbsensiStaff::create([
+                    'staff_id'   => $staff->id,
+                    'tanggal'    => $tanggal,
+                    'jam_masuk'  => $currentTime,
+                    'status'     => $status,
+                    'keterangan' => 'Scan QR Live Board',
+                    'metode'     => 'qr',
+                ]);
+                $forgetCache();
+            } catch (\Illuminate\Database\QueryException $e) {
+                if ($e->errorInfo[1] === 1062) {
+                    return response()->json([
+                        'success' => false,
+                        'already' => true,
+                        'message' => 'Staff ' . $staff->nama_lengkap . ' sudah tercatat hadir hari ini.',
+                    ]);
+                }
+                throw $e;
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Absensi Staff berhasil dicatat!',
+                'siswa'   => ['nama' => $staff->nama_lengkap, 'kelas' => 'STAFF TU', 'jam' => $currentTime],
+            ]);
+        }
         return response()->json(['success' => false, 'message' => 'QR code tidak dikenal.']);
     }
 
@@ -885,17 +1099,21 @@ class PublicQrScanController extends Controller
             // Jika mode = otomatis, default ke whereNotNull('jam_masuk')
             $siswaQuery = AbsensiSiswa::with('siswa.kelas')->whereDate('tanggal', $today);
             $guruQuery = AbsensiGuru::with('guru')->whereDate('tanggal', $today);
+            $staffQuery = AbsensiStaff::with('staff')->whereDate('tanggal', $today);
 
             if ($mode === 'pulang') {
                 $siswaQuery->whereNotNull('jam_pulang');
                 $guruQuery->whereNotNull('jam_pulang');
+                $staffQuery->whereNotNull('jam_pulang');
             } else {
                 $siswaQuery->whereNotNull('jam_masuk')->whereIn('status', ['hadir', 'terlambat']);
                 $guruQuery->whereNotNull('jam_masuk')->whereIn('status', ['hadir', 'terlambat']);
+                $staffQuery->whereNotNull('jam_masuk')->whereIn('status', ['hadir', 'terlambat']);
             }
 
             $absensiSiswa = $siswaQuery->get();
             $absensiGuru = $guruQuery->get();
+            $absensiStaff = $staffQuery->get();
 
             // 3. Gabungkan dan Map ke struktur seragam
             $all = collect();
@@ -921,6 +1139,18 @@ class PublicQrScanController extends Controller
                     'status' => $ag->status,
                     'type'   => 'guru',
                     'original' => $ag
+                ]);
+            }
+
+            foreach ($absensiStaff as $ast) {
+                $jamVal = $mode === 'pulang' ? $ast->jam_pulang : $ast->jam_masuk;
+                $all->push((object)[
+                    'nama'   => $ast->staff->nama_lengkap ?? '-',
+                    'kelas'  => 'STAFF TU',
+                    'jam'    => $jamVal,
+                    'status' => $ast->status,
+                    'type'   => 'staff',
+                    'original' => $ast
                 ]);
             }
 
