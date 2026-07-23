@@ -2,6 +2,14 @@
 
 @section('title', 'Laporkan Data Tidak Valid')
 
+@section('vendor-style')
+  @vite(['resources/assets/vendor/libs/select2/select2.scss'])
+@endsection
+
+@section('vendor-script')
+  @vite(['resources/assets/vendor/libs/jquery/jquery.js', 'resources/assets/vendor/libs/select2/select2.js'])
+@endsection
+
 @section('content')
 <style>
   .rounded-2, .form-control, .form-select, .btn, .card, .modal-content, .alert, .badge {
@@ -34,6 +42,58 @@
   .form-control:focus, .form-select:focus {
     border-color: #696cff !important;
     box-shadow: 0 0 0 0.25rem rgba(105, 108, 255, 0.25) !important;
+  }
+
+  /* Select2 Dark Theme Override */
+  .select2-container {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .select2-container--default .select2-selection--single {
+    background-color: #0f172a !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+    height: 40px !important;
+    border-radius: 4px !important;
+  }
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #ffffff !important;
+    line-height: 38px !important;
+    padding-left: 12px !important;
+  }
+  .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 38px !important;
+  }
+  .select2-dropdown {
+    background-color: #1e293b !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+    z-index: 1060 !important;
+    border-radius: 4px !important;
+  }
+  .select2-container--default .select2-results__option[aria-selected=true] {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    color: #ffffff !important;
+  }
+  .select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #696cff !important;
+    color: #ffffff !important;
+  }
+  .select2-container--default .select2-search--dropdown .select2-search__field {
+    background-color: #0f172a !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+    border-radius: 4px !important;
+  }
+  .select2-container--default .select2-results__group {
+    color: #cbd5e1 !important;
+    font-weight: 600;
+  }
+  .select2-results__option {
+    border-radius: 4px !important;
+  }
+  .select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #475569 !important;
   }
 
   /* Modals overrides */
@@ -120,11 +180,26 @@
               <label for="kategori" class="form-label fw-semibold text-secondary">
                 <i class="ti tabler-category me-1" style="color: #94a3b8;"></i> Kategori <span class="text-danger">*</span>
               </label>
-              <input type="text" class="form-control rounded-2" id="kategori" name="kategori"
-                     placeholder="Contoh: Nama salah, NIS tidak sesuai..." required
-                     minlength="3" maxlength="100"
-                     style="padding: 0.6rem 0.8rem;">
-              <div class="invalid-feedback" id="kategori-error">Silakan isi kategori pengaduan (min. 3 karakter)</div>
+              <select class="form-select select2 rounded-2" id="kategori" name="kategori" required
+                      data-placeholder="— Pilih Kategori Pengaduan —">
+                <option value="">— Pilih Kategori Pengaduan —</option>
+                <optgroup label="Ketidakvalidan Status Presensi">
+                  <option value="Kehadiran Tercatat Alpa (Padahal Hadir)">Kehadiran Tercatat Alpa (Padahal Hadir)</option>
+                  <option value="Status Izin/Sakit Belum Diperbarui">Status Izin/Sakit Belum Diperbarui</option>
+                  <option value="Jam Presensi / Terlambat Tidak Sesuai">Jam Presensi / Terlambat Tidak Sesuai</option>
+                  <option value="Perbedaan Data Rekapitulasi Bulanan">Perbedaan Data Rekapitulasi Bulanan</option>
+                </optgroup>
+                <optgroup label="Kendala Teknis & Aplikasi">
+                  <option value="Gagal Scan QR / Sensor RFID">Gagal Scan QR / Sensor RFID</option>
+                  <option value="Masalah Aplikasi / GPS (Presensi Mandiri)">Masalah Aplikasi / GPS (Presensi Mandiri)</option>
+                  <option value="Notifikasi Presensi Tidak Masuk / Salah">Notifikasi Presensi Tidak Masuk / Salah</option>
+                </optgroup>
+                <optgroup label="Kesalahan Data Profil">
+                  <option value="Biodata Profil Salah (Nama/NIS/Kelas)">Biodata Profil Salah (Nama/NIS/Kelas)</option>
+                </optgroup>
+                <option value="Lainnya">Lainnya</option>
+              </select>
+              <div class="invalid-feedback" id="kategori-error">Silakan pilih kategori pengaduan</div>
             </div>
 
             {{-- Deskripsi --}}
@@ -262,6 +337,51 @@ document.addEventListener('DOMContentLoaded', function() {
   const modalKodeUnik = document.getElementById('modalKodeUnik');
   const btnCekStatus = document.getElementById('btnCekStatus');
   const errorModalMessage = document.getElementById('errorModalMessage');
+
+  // ── Inisialisasi Select2 untuk Kategori ──
+  function initSelect2() {
+    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
+      const $kategori = jQuery('#kategori');
+      if ($kategori.length) {
+        $kategori.wrap('<div class="position-relative"></div>').select2({
+          placeholder: $kategori.data('placeholder'),
+          dropdownParent: $kategori.parent()
+        });
+
+        // Sinkronisasi dengan validasi JS
+        $kategori.on('change', function() {
+          validateField(this);
+        });
+      }
+    } else {
+      // Jika jQuery atau select2 belum terdefinisi (misal karena loading async/modular Vite), coba lagi setelah window load atau jeda singkat
+      setTimeout(initSelect2, 50);
+    }
+  }
+
+  // Jalankan inisialisasi Select2 secara aman
+  if (document.readyState === 'complete') {
+    initSelect2();
+  } else {
+    window.addEventListener('load', initSelect2);
+  }
+
+  // helper untuk sinkronisasi value kategori jika select2 digunakan
+  function getKategoriValue() {
+    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
+      return jQuery('#kategori').val();
+    }
+    return document.getElementById('kategori').value;
+  }
+
+  // helper untuk trigger reset kategori select2
+  function resetKategoriSelect2() {
+    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
+      jQuery('#kategori').val('').trigger('change.select2');
+    } else {
+      document.getElementById('kategori').value = '';
+    }
+  }
 
   // ── Character counter for deskripsi ──
   deskripsi.addEventListener('input', function() {
@@ -402,8 +522,11 @@ document.addEventListener('DOMContentLoaded', function() {
       valid = false;
     }
 
-    // Status select check
+    // Select check
     if (field === 'status_pelapor' && input.value === '') {
+      valid = false;
+    }
+    if (field === 'kategori' && getKategoriValue() === '') {
       valid = false;
     }
 
@@ -530,6 +653,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // Reset form
       form.reset();
+      resetKategoriSelect2();
       form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
       deskripsiCount.textContent = '0';
 

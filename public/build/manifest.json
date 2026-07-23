@@ -782,6 +782,12 @@
     "src": "resources/assets/js/front-page-pricing.js",
     "isEntry": true
   },
+  "resources/assets/js/guru-form.js": {
+    "file": "assets/guru-form-eFQldeJo.js",
+    "name": "guru-form",
+    "src": "resources/assets/js/guru-form.js",
+    "isEntry": true
+  },
   "resources/assets/js/main.js": {
     "file": "assets/main-Ccsc20-B.js",
     "name": "main",

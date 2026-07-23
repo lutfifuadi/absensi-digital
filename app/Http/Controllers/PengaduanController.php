@@ -177,11 +177,11 @@ class PengaduanController extends Controller
     public function cekWa(Request $request)
     {
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
-            'nomor_wa' => ['required', 'string', 'regex:/^08[0-9]{8,13}$/'],
+            'nomor_wa' => ['required', 'string', 'regex:/^(08|628)[0-9]{8,13}$/'],
         ], [
             'nomor_wa.required' => 'Nomor WhatsApp wajib diisi.',
             'nomor_wa.string'   => 'Nomor WhatsApp harus berupa string.',
-            'nomor_wa.regex'    => 'Nomor WhatsApp tidak valid. Format harus diawali dengan 08 dan memiliki panjang 10-15 digit.',
+            'nomor_wa.regex'    => 'Nomor WhatsApp tidak valid. Format harus diawali dengan 08 atau 628 dan memiliki panjang 10-16 digit.',
         ]);
 
         if ($validator->fails()) {

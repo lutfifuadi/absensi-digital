@@ -14,6 +14,45 @@ use Illuminate\Support\Facades\Log;
 class PengaduanController extends Controller
 {
     /**
+     * Check for unhandled 'baru' complaints for real-time popup alert (supports multi-ticket queue).
+     */
+    public function checkNew(Request $request)
+    {
+        $baruList = Pengaduan::where('status', 'baru')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        if ($baruList->isEmpty()) {
+            return response()->json([
+                'has_new' => false,
+                'total_baru' => 0,
+                'items' => []
+            ]);
+        }
+
+        $items = $baruList->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'kode_unik' => $item->kode_unik,
+                'nama_lengkap' => $item->nama_lengkap,
+                'status_pelapor' => $item->status_pelapor,
+                'kategori' => $item->kategori,
+                'deskripsi' => $item->deskripsi,
+                'nomor_wa' => $item->nomor_wa,
+                'created_at_human' => $item->created_at->diffForHumans(),
+                'created_at_formatted' => $item->created_at->format('d M Y H:i'),
+                'detail_url' => route('admin.pengaduan.show', $item->id),
+            ];
+        });
+
+        return response()->json([
+            'has_new' => true,
+            'total_baru' => $baruList->count(),
+            'items' => $items,
+        ]);
+    }
+
+    /**
      * Display a listing of pengaduan.
      */
     public function index(Request $request)

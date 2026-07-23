@@ -216,6 +216,9 @@
   {{-- ── Floating AI Chat Widget ─────────────────────────────────────────── --}}
   @auth
     @livewire('admin.floating-chat')
+    @if(in_array(auth()->user()->role ?? '', ['super_admin', 'admin_sekolah', 'operator', 'guru', 'wali_kelas', 'piket', 'staff_tu']))
+      @include('layouts.sections.urgent_pengaduan_alert')
+    @endif
   @endauth
   {{-- ────────────────────────────────────────────────────────────────────── --}}
 

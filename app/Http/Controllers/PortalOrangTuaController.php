@@ -295,4 +295,15 @@ class PortalOrangTuaController extends Controller
                 'password_success' => true
             ]);
     }
+
+    /**
+     * Halaman Layanan Pengaduan Portal Ortu.
+     */
+    public function pengaduan()
+    {
+        if (view()->exists('portal-ortu.pengaduan')) {
+            return view('portal-ortu.pengaduan');
+        }
+        return view('content.ortu.pengaduan');
+    }
 }

@@ -309,6 +309,9 @@ Route::middleware([
         Route::post('/izin-sakit', [PortalOrangTuaController::class, 'izinSakitStore'])->name('ortu.izin-sakit.store');
         Route::delete('/izin-sakit/{id}', [PortalOrangTuaController::class, 'izinSakitDestroy'])->name('ortu.izin-sakit.destroy');
 
+        // Layanan Pengaduan Portal Ortu
+        Route::get('/pengaduan', [PortalOrangTuaController::class, 'pengaduan'])->name('ortu.pengaduan');
+
         // Pengaturan Profil & Ganti Password Ortu
         Route::get('/pengaturan', [PortalOrangTuaController::class, 'pengaturan'])->name('ortu.pengaturan');
         Route::put('/pengaturan/profil', [PortalOrangTuaController::class, 'updateProfil'])->name('ortu.pengaturan.profil');
@@ -1252,7 +1255,8 @@ Route::middleware([
             ->middleware('role:super_admin');
 
         // ── PENGADUAN DATA TIDAK VALID (PRD-002) ─────────────────────────
-        Route::prefix('pengaduan')->name('admin.pengaduan.')->middleware('role:super_admin,admin_sekolah,operator')->group(function () {
+        Route::prefix('pengaduan')->name('admin.pengaduan.')->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas,piket,staff_tu')->group(function () {
+            Route::get('/check-new', [\App\Http\Controllers\Admin\PengaduanController::class, 'checkNew'])->name('check-new');
             Route::get('/', [\App\Http\Controllers\Admin\PengaduanController::class, 'index'])->name('index');
             Route::delete('/reset', [\App\Http\Controllers\Admin\PengaduanController::class, 'reset'])->name('reset')->middleware('role:super_admin');
             Route::get('/{pengaduan}', [\App\Http\Controllers\Admin\PengaduanController::class, 'show'])->name('show');

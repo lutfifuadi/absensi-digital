@@ -33,6 +33,34 @@ class AbsensiMandiriController extends Controller
             return response()->json(['success' => false, 'message' => 'Data profil siswa tidak ditemukan.']);
         }
 
+        $tanggal = now()->toDateString();
+        if (\App\Models\Holiday::isSiswaHoliday($siswa, $tanggal)) {
+            $holidayName = \App\Models\Holiday::whereDate('tanggal', $tanggal)
+                ->where(function ($query) use ($siswa) {
+                    $tingkat = $siswa->kelas?->tingkat;
+                    $kelasId = $siswa->kelas_id;
+                    $query->where(function ($q) {
+                        $q->whereNull('tingkat')->whereNull('kelas_id');
+                    });
+                    if ($tingkat) {
+                        $query->orWhere(function ($q) use ($tingkat) {
+                            $q->where('tingkat', $tingkat)->whereNull('kelas_id');
+                        });
+                    }
+                    if ($kelasId) {
+                        $query->orWhere(function ($q) use ($kelasId) {
+                            $q->where('kelas_id', $kelasId);
+                        });
+                    }
+                })
+                ->value('nama') ?? 'Hari Libur';
+
+            return response()->json([
+                'success' => false,
+                'message' => "Absensi mandiri ditolak. Hari ini adalah Hari Libur: {$holidayName}."
+            ]);
+        }
+
         $settings = Pengaturan::whereIn('key', [
             'jam_mulai_absensi', 'jam_masuk', 'jam_batas_masuk', 'jam_pulang', 'jam_mulai_pulang', 'jam_akhir_pulang', 'toleransi_terlambat',
             'latitude', 'longitude', 'radius_jarak_absen', 'minimal_akurasi_gps', 'deteksi_fake_gps'

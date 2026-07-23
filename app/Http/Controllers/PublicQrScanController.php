@@ -140,6 +140,33 @@ class PublicQrScanController extends Controller
         $siswa = Siswa::with('kelas')->where('qr_code', $qrCode)->first();
 
         if ($siswa) {
+            if (\App\Models\Holiday::isSiswaHoliday($siswa, $tanggal)) {
+                $holidayName = \App\Models\Holiday::whereDate('tanggal', $tanggal)
+                    ->where(function ($query) use ($siswa) {
+                        $tingkat = $siswa->kelas?->tingkat;
+                        $kelasId = $siswa->kelas_id;
+                        $query->where(function ($q) {
+                            $q->whereNull('tingkat')->whereNull('kelas_id');
+                        });
+                        if ($tingkat) {
+                            $query->orWhere(function ($q) use ($tingkat) {
+                                $q->where('tingkat', $tingkat)->whereNull('kelas_id');
+                            });
+                        }
+                        if ($kelasId) {
+                            $query->orWhere(function ($q) use ($kelasId) {
+                                $q->where('kelas_id', $kelasId);
+                            });
+                        }
+                    })
+                    ->value('nama') ?? 'Hari Libur';
+
+                return response()->json([
+                    'success' => false,
+                    'message' => "Absensi ditolak. Hari ini adalah Hari Libur: {$holidayName}.",
+                ]);
+            }
+
             $absensi = AbsensiSiswa::where('siswa_id', $siswa->id)
                 ->whereDate('tanggal', $tanggal)
                 ->first();
@@ -646,6 +673,33 @@ class PublicQrScanController extends Controller
         // 1. Cek Siswa
         $siswa = Siswa::with('kelas')->where('qr_code', $qrCode)->first();
         if ($siswa) {
+            if (\App\Models\Holiday::isSiswaHoliday($siswa, $tanggal)) {
+                $holidayName = \App\Models\Holiday::whereDate('tanggal', $tanggal)
+                    ->where(function ($query) use ($siswa) {
+                        $tingkat = $siswa->kelas?->tingkat;
+                        $kelasId = $siswa->kelas_id;
+                        $query->where(function ($q) {
+                            $q->whereNull('tingkat')->whereNull('kelas_id');
+                        });
+                        if ($tingkat) {
+                            $query->orWhere(function ($q) use ($tingkat) {
+                                $q->where('tingkat', $tingkat)->whereNull('kelas_id');
+                            });
+                        }
+                        if ($kelasId) {
+                            $query->orWhere(function ($q) use ($kelasId) {
+                                $q->where('kelas_id', $kelasId);
+                            });
+                        }
+                    })
+                    ->value('nama') ?? 'Hari Libur';
+
+                return response()->json([
+                    'success' => false,
+                    'message' => "Absensi ditolak. Hari ini adalah Hari Libur: {$holidayName}.",
+                ]);
+            }
+
             $absensi = AbsensiSiswa::where('siswa_id', $siswa->id)->whereDate('tanggal', $tanggal)->first();
 
             // PULANG MODE

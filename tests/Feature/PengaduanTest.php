@@ -218,7 +218,7 @@ class PengaduanTest extends TestCase
         $response->assertStatus(422)
             ->assertJson([
                 'valid'   => false,
-                'message' => 'Nomor WhatsApp tidak valid. Format harus diawali dengan 08 dan memiliki panjang 10-15 digit.',
+                'message' => 'Nomor WhatsApp tidak valid. Format harus diawali dengan 08 atau 628 dan memiliki panjang 10-16 digit.',
             ]);
     }
 
@@ -346,10 +346,12 @@ class PengaduanTest extends TestCase
     public function test_admin_access_as_wrong_role(): void
     {
         $user = User::factory()->create([
-            'role' => User::ROLE_GURU, // bukan super_admin, admin_sekolah, atau operator
+            'role' => User::ROLE_SISWA, // bukan super_admin, admin_sekolah, operator, guru, wali_kelas, piket, atau staff_tu
         ]);
 
+        // Simulasikan session('active_role') agar middleware memvalidasi peran ini
         $response = $this->actingAs($user)
+            ->withSession(['active_role' => User::ROLE_SISWA])
             ->get('/admin/pengaduan');
 
         $response->assertStatus(403);

@@ -40,6 +40,12 @@
       ]
     },
     {
+      "name": "Layanan Pengaduan",
+      "icon": "menu-icon ti tabler-message-dots",
+      "slug": "ortu.pengaduan",
+      "url": "/ortu/pengaduan"
+    },
+    {
       "name": "Pengaturan & Password",
       "icon": "menu-icon ti tabler-settings",
       "slug": "ortu.pengaturan",

@@ -27,7 +27,7 @@ class StorePengaduanRequest extends FormRequest
             'status_pelapor' => ['required', Rule::in(['siswa', 'orang_tua'])],
             'kategori'       => ['required', 'string', 'min:3', 'max:100'],
             'deskripsi'      => ['required', 'string', 'min:10', 'max:2000'],
-            'nomor_wa'       => ['required', 'string', 'min:10', 'max:15', 'regex:/^08[0-9]{8,13}$/'],
+            'nomor_wa'       => ['required', 'string', 'min:10', 'max:16', 'regex:/^(08|628)[0-9]{8,13}$/'],
         ];
     }
 
@@ -51,9 +51,9 @@ class StorePengaduanRequest extends FormRequest
             'deskripsi.min'           => 'Deskripsi minimal 10 karakter.',
             'deskripsi.max'           => 'Deskripsi maksimal 2000 karakter.',
             'nomor_wa.required'       => 'Nomor WhatsApp wajib diisi.',
-            'nomor_wa.regex'          => 'Nomor WhatsApp harus diawali 08 dan berisi 10-15 digit.',
+            'nomor_wa.regex'          => 'Nomor WhatsApp tidak valid. Format harus diawali dengan 08 atau 628 dan memiliki panjang 10-16 digit.',
             'nomor_wa.min'            => 'Nomor WhatsApp minimal 10 digit.',
-            'nomor_wa.max'            => 'Nomor WhatsApp maksimal 15 digit.',
+            'nomor_wa.max'            => 'Nomor WhatsApp maksimal 16 digit.',
         ];
     }
 }

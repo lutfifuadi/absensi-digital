@@ -332,4 +332,108 @@ class HolidayScopeTest extends TestCase
         $this->assertStringNotContainsString('Libur Tingkat XII', $holidayNames);
         $this->assertStringNotContainsString('Libur Kelas XII', $holidayNames);
     }
+
+    /**
+     * Test siswa attendance is rejected on holidays.
+     */
+    public function test_absensi_siswa_is_rejected_on_holiday(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-08-05 07:30:00'));
+        $today = '2026-08-05';
+
+        // 1. Buat Tahun Akademik
+        $tahun = TahunAkademik::create([
+            'nama' => '2026/2027',
+            'semester' => 'ganjil',
+            'tanggal_mulai' => '2026-07-01',
+            'tanggal_selesai' => '2026-12-31',
+            'is_aktif' => true,
+        ]);
+
+        // 2. Buat Kelas
+        $kelas = Kelas::create([
+            'nama' => 'X RPL 1',
+            'tingkat' => 'X',
+            'tahun_akademik_id' => $tahun->id,
+            'is_aktif_absensi' => true,
+        ]);
+
+        // 3. Buat User Siswa dan Siswa
+        $siswaUser = User::factory()->create(['role' => User::ROLE_SISWA]);
+        $siswa = Siswa::create([
+            'user_id' => $siswaUser->id,
+            'nis' => '12345',
+            'nisn' => '1234567890',
+            'nama_lengkap' => 'Siswa Test Holiday',
+            'jenis_kelamin' => 'L',
+            'tempat_lahir' => 'Jakarta',
+            'tanggal_lahir' => '2010-01-01',
+            'kelas_id' => $kelas->id,
+            'tahun_akademik_id' => $tahun->id,
+            'status' => 'aktif',
+            'qr_code' => 'QR-HOLIDAY-TEST',
+        ]);
+
+        // Setup default Pengaturan
+        \App\Models\Pengaturan::updateOrCreate(['key' => 'jam_mulai_absensi'], ['value' => '06:00', 'group' => 'absensi']);
+        \App\Models\Pengaturan::updateOrCreate(['key' => 'jam_masuk'], ['value' => '07:00', 'group' => 'absensi']);
+        \App\Models\Pengaturan::updateOrCreate(['key' => 'jam_batas_masuk'], ['value' => '08:00', 'group' => 'absensi']);
+        \App\Models\Pengaturan::updateOrCreate(['key' => 'toleransi_terlambat'], ['value' => '15', 'group' => 'absensi']);
+        \App\Models\Pengaturan::updateOrCreate(['key' => 'izinkan_lokasi_absensi_mandiri'], ['value' => 'Ya', 'group' => 'absensi']);
+        \App\Models\Pengaturan::updateOrCreate(['key' => 'latitude'], ['value' => '-6.922405', 'group' => 'absensi']);
+        \App\Models\Pengaturan::updateOrCreate(['key' => 'longitude'], ['value' => '107.5717651', 'group' => 'absensi']);
+        \App\Models\Pengaturan::updateOrCreate(['key' => 'radius_jarak_absen'], ['value' => '900', 'group' => 'absensi']);
+        \App\Models\Pengaturan::updateOrCreate(['key' => 'minimal_akurasi_gps'], ['value' => '100', 'group' => 'absensi']);
+        \App\Models\Pengaturan::updateOrCreate(['key' => 'deteksi_fake_gps'], ['value' => 'Tidak', 'group' => 'absensi']);
+        \App\Models\Pengaturan::updateOrCreate(['key' => 'lock_device_pc'], ['value' => 'Tidak', 'group' => 'absensi']);
+
+        // 4. Buat Hari Libur
+        Holiday::create([
+            'tanggal' => $today,
+            'nama' => 'Libur Nasional Keren',
+            'jenis' => 'national',
+            'is_national_holiday' => true,
+            'tingkat' => null,
+            'kelas_id' => null,
+        ]);
+
+        // A. Public QR Scan Process
+        $response = $this->withSession(['qr_scan_authenticated' => true])
+            ->postJson('/scan-qr/process', [
+                'qr_code' => 'QR-HOLIDAY-TEST'
+            ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => false,
+            'message' => 'Absensi ditolak. Hari ini adalah Hari Libur: Libur Nasional Keren.'
+        ]);
+
+        // B. Live Board Scan Process
+        $responseLive = $this->postJson('/live-board/scan', [
+            'qr_code' => 'QR-HOLIDAY-TEST',
+            'mode' => 'masuk'
+        ]);
+
+        $responseLive->assertStatus(200);
+        $responseLive->assertJson([
+            'success' => false,
+            'message' => 'Absensi ditolak. Hari ini adalah Hari Libur: Libur Nasional Keren.'
+        ]);
+
+        // C. Absensi Mandiri Process
+        $responseMandiri = $this->actingAs($siswaUser)
+            ->withSession(['active_role' => 'siswa'])
+            ->postJson('/siswa/absensi-mandiri', [
+                'lat' => '-6.922405',
+                'lng' => '107.5717651',
+                'accuracy' => 10
+            ]);
+
+        $responseMandiri->assertStatus(200);
+        $responseMandiri->assertJson([
+            'success' => false,
+            'message' => 'Absensi mandiri ditolak. Hari ini adalah Hari Libur: Libur Nasional Keren.'
+        ]);
+    }
 }
