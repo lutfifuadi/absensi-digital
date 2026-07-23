@@ -512,7 +512,7 @@
                 <div class="urgent-meta-item">
                     <span class="urgent-meta-label">KATEGORI & NO. WA</span>
                     <div>
-                        <span class="badge bg-primary bg-opacity-20 text-primary fw-bold mb-1" id="urgModalCategory">-</span>
+                        <span class="badge bg-primary bg-opacity-20 text-white fw-bold mb-1" id="urgModalCategory">-</span>
                         <div style="font-size: 0.8rem; color: #9CA3AF;" id="urgModalWa">
                             <i class="ti tabler-brand-whatsapp me-1"></i><span id="urgModalWaText">-</span>
                         </div>
