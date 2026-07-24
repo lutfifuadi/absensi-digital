@@ -137,6 +137,7 @@ class GamifikasiRekapService
                     $q->orderByDesc('calculated_at')->limit(1);
                 },
                 'studentBadges.badge:id,name,icon',
+                'studentGamificationStat',
             ])
             ->where('status', 'aktif');
 
@@ -168,6 +169,8 @@ class GamifikasiRekapService
                 DB::raw("SUM(CASE WHEN status = 'Sakit' OR status = 'sakit' THEN 1 ELSE 0 END) AS total_sakit"),
                 DB::raw("SUM(CASE WHEN status = 'Izin' OR status = 'izin' THEN 1 ELSE 0 END) AS total_izin"),
                 DB::raw("SUM(CASE WHEN status = 'Alpha' OR status = 'alpha' THEN 1 ELSE 0 END) AS total_alpha"),
+                DB::raw("SUM(points_earned) AS total_points_earned"),
+                DB::raw("SUM(CASE WHEN is_early_bird = 1 OR is_early_bird = true THEN 1 ELSE 0 END) AS total_early_bird"),
                 DB::raw('COUNT(*) AS total_absensi')
             );
 
@@ -195,9 +198,22 @@ class GamifikasiRekapService
 
             $totalHadir = (int) ($stats->total_hadir ?? 0);
             $totalTerlambat = (int) ($stats->total_terlambat ?? 0);
+            $totalSakit = (int) ($stats->total_sakit ?? 0);
+            $totalIzin = (int) ($stats->total_izin ?? 0);
             $totalAlpha = (int) ($stats->total_alpha ?? 0);
 
-            $skorDinamis = ($totalHadir * 10) + ($totalTerlambat * 5) - ($totalAlpha * 10);
+            // Logika penghitungan baru
+            // Hadir tepat waktu (kita asumsikan status Hadir adalah tepat waktu)
+            $poinDasar = ($totalHadir * 10) + ($totalTerlambat * 5) + ($totalSakit * 2) + ($totalIzin * 2) - ($totalAlpha * 10);
+            
+            // Note: Perhitungan Early Bird dan Streak biasanya diproses harian saat absensi dibuat.
+            // Jika ingin dihitung rekap, kita butuh baca tabel points_earned pada absensi_siswa
+            // Untuk sekarang, karena `points_earned` dan `is_early_bird` baru ditambahkan, 
+            // query perlu disesuaikan untuk mengambil sum dari points_earned (jika sudah berjalan)
+            // Namun, untuk kompatibilitas ke belakang, jika points_earned masih 0, kita pakai hitungan dinamis ini
+            $totalPointsEarned = (int) ($stats->total_points_earned ?? 0);
+
+            $skorDinamis = $totalPointsEarned > 0 ? $totalPointsEarned : $poinDasar;
 
             $isDinamis = ($startDate && $endDate) || is_null($leaderboard);
 
@@ -225,6 +241,9 @@ class GamifikasiRekapService
                 'rank'            => $rank,
                 'jumlah_badge'    => $siswa->studentBadges->count(),
                 'badge_list'      => $badgeList->values()->toArray(),
+                'total_early_bird' => (int) ($stats->total_early_bird ?? 0),
+                'current_streak'   => $siswa->studentGamificationStat->current_streak ?? 0,
+                'longest_streak'   => $siswa->studentGamificationStat->longest_streak ?? 0,
             ];
         });
 

@@ -93,6 +93,11 @@ class Siswa extends Model
         return $this->hasMany(StudentLeaderboard::class, 'siswa_id');
     }
 
+    public function studentGamificationStat()
+    {
+        return $this->hasOne(\App\Models\StudentGamificationStat::class);
+    }
+
     public function riwayatKenaikanKelas()
     {
         return $this->hasMany(RiwayatKenaikanKelas::class, 'siswa_id');

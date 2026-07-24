@@ -97,7 +97,7 @@
     <div class="das-hero__identity">
       <div class="das-hero__logo-wrapper">
         <div class="das-hero__logo-placeholder">
-          <i class="ti tabler-trophy"></i>
+          <i class="ti tabler-trophy text-info"></i>
         </div>
         <div class="das-hero__logo-glow"></div>
       </div>
@@ -111,8 +111,8 @@
       </div>
     </div>
     <div class="das-hero__actions">
-      <button class="das-btn das-btn--primary shadow-lg" onclick="calculateLeaderboard()">
-        <i class="ti tabler-refresh"></i> Hitung Ulang Skor
+      <button class="btn das-btn --primary" onclick="calculateLeaderboard()">
+        <i class="ti tabler-refresh me-1"></i> Hitung Ulang Skor
       </button>
     </div>
   </div>
@@ -226,7 +226,7 @@
           <span class="das-panel__icon-dot --warning"></span>
           Badge Mastery
         </div>
-        <button class="das-btn das-btn--ghost-sm text-primary p-0" onclick="openBadgeModal()">
+        <button class="btn das-btn --ghost-sm d-flex align-items-center gap-1 text-primary p-0" onclick="openBadgeModal()">
           <i class="ti tabler-circle-plus fs-4"></i>
         </button>
       </div>
@@ -435,7 +435,7 @@
       <div class="row g-3 align-items-end">
         <div class="col-md">
           <label class="form-label text-white-50 small fw-bold mb-1">PILIH PERIODE</label>
-          <select x-model="periode" @change="fetchRekap()" class="form-select form-select-sm bg-dark border-0 text-white" style="border-radius: 5px !important;">
+           <select x-model="periode" @change="fetchRekap()" class="form-select form-select-sm" style="border-radius: 5px !important;">
             <option value="semua">Semua Waktu</option>
             <option value="minggu">Minggu Ini</option>
             <option value="bulan">Bulan Ini</option>
@@ -445,7 +445,7 @@
         </div>
         <div class="col-md">
           <label class="form-label text-white-50 small fw-bold mb-1">PILIH KELAS</label>
-          <select x-model="kelasId" @change="fetchRekap()" class="form-select form-select-sm bg-dark border-0 text-white" style="border-radius: 5px !important;">
+           <select x-model="kelasId" @change="fetchRekap()" class="form-select form-select-sm" style="border-radius: 5px !important;">
             <option value="">Semua Kelas</option>
             @foreach($kelasList ?? [] as $kls)
               <option value="{{ $kls->id }}">{{ $kls->nama }}</option>
@@ -457,23 +457,23 @@
           <input type="month"
                  x-model="bulan"
                  @change="fetchRekap()"
-                 class="form-control form-control-sm bg-dark border-0 text-white"
-                 style="color-scheme:dark; border-radius: 5px !important;">
+                  class="form-control form-control-sm"
+                  style="color-scheme:dark; border-radius: 5px !important;">
         </div>
         <div class="col-md-auto d-flex gap-2">
-          <button class="das-btn das-btn--primary das-btn--sm"
+          <button class="btn das-btn --info"
                    @click="fetchRekap()"
                    :disabled="loading"
                    style="border-radius: 5px !important;">
-            <span x-show="!loading" x-cloak><i class="ti tabler-search"></i> Tampilkan Rekap</span>
+            <span x-show="!loading" x-cloak><i class="ti tabler-search me-1"></i> Tampilkan Rekap</span>
             <span x-show="loading" x-cloak>
               <span class="d-inline-flex align-items-center gap-1">
                 <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Memuat...
               </span>
             </span>
           </button>
-          <button class="das-btn das-btn--secondary das-btn--sm" @click="resetFilter()" style="border-radius: 5px !important;">
-            <i class="ti tabler-x"></i> Reset
+          <button class="btn das-btn --secondary" @click="resetFilter()" style="border-radius: 5px !important;">
+            <i class="ti tabler-x me-1"></i> Reset
           </button>
         </div>
       </div>
@@ -490,7 +490,7 @@
       <div class="d-flex align-items-center gap-2">
         {{-- Export Dropdown --}}
         <div class="position-relative" x-data>
-          <button class="das-btn das-btn--ghost-sm d-flex align-items-center gap-1"
+          <button class="btn das-btn --ghost-sm d-flex align-items-center gap-1"
                   @click="exportOpen = !exportOpen"
                   @click.outside="exportOpen = false"
                   :disabled="!loaded">
@@ -606,26 +606,20 @@
       {{-- ── SUB-TABS NAVIGATION ────────────────────────────────────────── --}}
       <div class="d-flex align-items-center gap-1 mb-3 pb-2"
            style="border-bottom:1px solid rgba(255,255,255,.07);">
-        <button class="das-btn das-btn--sm"
-                :class="activeSubTab === 'siswa'
-                  ? 'das-btn--primary'
-                  : 'das-btn--ghost-sm'"
+        <button class="btn das-btn"
+                :class="activeSubTab === 'siswa' ? '--primary' : '--secondary'"
                 @click="activeSubTab = 'siswa'">
-          <i class="ti tabler-users"></i> Rekap Siswa
+          <i class="ti tabler-users me-1"></i> Rekap Siswa
         </button>
-        <button class="das-btn das-btn--sm"
-                :class="activeSubTab === 'kelas'
-                  ? 'das-btn--primary'
-                  : 'das-btn--ghost-sm'"
+        <button class="btn das-btn"
+                :class="activeSubTab === 'kelas' ? '--primary' : '--secondary'"
                 @click="activeSubTab = 'kelas'">
-          <i class="ti tabler-school"></i> Rekap Kelas
+          <i class="ti tabler-school me-1"></i> Rekap Kelas
         </button>
-        <button class="das-btn das-btn--sm"
-                :class="activeSubTab === 'badge'
-                  ? 'das-btn--primary'
-                  : 'das-btn--ghost-sm'"
+        <button class="btn das-btn"
+                :class="activeSubTab === 'badge' ? '--primary' : '--secondary'"
                 @click="activeSubTab = 'badge'">
-          <i class="ti tabler-award"></i> Rekap Badge
+          <i class="ti tabler-award me-1"></i> Rekap Badge
         </button>
       </div>
 
@@ -935,30 +929,30 @@
           <div class="row gy-3">
             <div class="col-12">
               <label class="form-label text-white-50 small fw-bold">NAMA BADGE</label>
-              <input type="text" id="badgeName" class="form-control bg-dark border-0 text-white" placeholder="Contoh: Sang Juara Absensi">
+              <input type="text" id="badgeName" class="form-control" placeholder="Contoh: Sang Juara Absensi">
             </div>
             <div class="col-md-6">
               <label class="form-label text-white-50 small fw-bold">ICON (TABLER)</label>
-              <input type="text" id="badgeIcon" class="form-control bg-dark border-0 text-white" placeholder="tabler-star">
+              <input type="text" id="badgeIcon" class="form-control" placeholder="tabler-star">
             </div>
             <div class="col-md-6">
               <label class="form-label text-white-50 small fw-bold">TIPE</label>
-              <select id="badgeType" class="form-select bg-dark border-0 text-white">
+              <select id="badgeType" class="form-select">
                 <option value="individual">Individual</option>
                 <option value="class">Kelas</option>
               </select>
             </div>
             <div class="col-12">
               <label class="form-label text-white-50 small fw-bold">DESKRIPSI</label>
-              <textarea id="badgeDescription" class="form-control bg-dark border-0 text-white" rows="2"></textarea>
+              <textarea id="badgeDescription" class="form-control" rows="2"></textarea>
             </div>
             <div class="col-md-6">
               <label class="form-label text-white-50 small fw-bold">JUMLAH HARI</label>
-              <input type="number" id="badgeRequirement" class="form-control bg-dark border-0 text-white" value="30">
+              <input type="number" id="badgeRequirement" class="form-control" value="30">
             </div>
             <div class="col-md-6">
               <label class="form-label text-white-50 small fw-bold">SYARAT</label>
-              <select id="badgeRequirementType" class="form-select bg-dark border-0 text-white">
+              <select id="badgeRequirementType" class="form-select">
                 <option value="consecutive">Beruntun</option>
                 <option value="total">Total Akumulasi</option>
               </select>
@@ -967,8 +961,8 @@
         </form>
       </div>
       <div class="d-flex gap-2 p-4 pt-0">
-        <button type="button" class="das-btn das-btn--secondary w-100" data-bs-dismiss="modal">Batal</button>
-        <button type="button" class="das-btn das-btn--primary w-100" onclick="saveBadge()">Simpan Achievement</button>
+        <button type="button" class="btn das-btn --secondary w-100" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn das-btn --primary w-100" onclick="saveBadge()">Simpan Achievement</button>
       </div>
     </div>
   </div>

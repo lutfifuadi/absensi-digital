@@ -24,6 +24,8 @@ class AbsensiSiswa extends Model
         'keterangan',
         'guru_id',
         'metode',
+        'is_early_bird',
+        'points_earned'
     ];
 
     protected $casts = [

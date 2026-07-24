@@ -14,6 +14,7 @@ class AbsensiSiswaObserver
     public function created(AbsensiSiswa $absensiSiswa): void
     {
         $this->kirimNotifikasiKeOrtu($absensiSiswa);
+        $this->hitungPoinGamifikasi($absensiSiswa);
     }
 
     /**
@@ -116,5 +117,61 @@ class AbsensiSiswaObserver
             true,          // validateNumber=true: cek dulu ke API sebelum kirim
             $siswa->id
         )->delay(now()->addSeconds($delaySecs));
+    }
+
+    private function hitungPoinGamifikasi(AbsensiSiswa $absensi): void
+    {
+        $statusLower = strtolower($absensi->status);
+        $poin = 0;
+        $isEarlyBird = false;
+
+        // 1. Poin Dasar
+        match($statusLower) {
+            'hadir'     => $poin = 10,
+            'terlambat' => $poin = 5,
+            'sakit', 'izin' => $poin = 2,
+            'alpha'     => $poin = -10,
+            default     => $poin = 0,
+        };
+
+        // 2. Early Bird: jam masuk <= 06:00
+        if (in_array($statusLower, ['hadir', 'terlambat'])) {
+            $jamMasuk = $absensi->jam_masuk ? substr($absensi->jam_masuk, 0, 5) : null;
+            if ($jamMasuk && $jamMasuk <= '06:00') {
+                $poin += 5;
+                $isEarlyBird = true;
+            }
+        }
+
+        // 3. Streak
+        $stat = \App\Models\StudentGamificationStat::firstOrCreate(
+            ['siswa_id' => $absensi->siswa_id],
+            [
+                'current_streak'       => 0,
+                'longest_streak'       => 0,
+                'last_attendance_date' => null,
+            ]
+        );
+
+        if (in_array($statusLower, ['hadir', 'terlambat'])) {
+            $stat->current_streak += 1;
+            if ($stat->current_streak > $stat->longest_streak) {
+                $stat->longest_streak = $stat->current_streak;
+            }
+            if ($stat->current_streak >= 5) {
+                $poin += 5;
+            }
+            $stat->last_attendance_date = now()->toDateString(); // hanya update saat hadir
+        } else {
+            $stat->current_streak = 0;
+        }
+
+        $stat->save();
+
+        // 4. Simpan poin ke absensi
+        \App\Models\AbsensiSiswa::where('id', $absensi->id)->update([
+            'points_earned' => $poin,
+            'is_early_bird' => $isEarlyBird,
+        ]);
     }
 }

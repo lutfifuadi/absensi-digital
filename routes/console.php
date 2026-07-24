@@ -36,6 +36,9 @@ Schedule::command('model:prune', ['--model' => \App\Models\DeployLog::class])->d
 // Jadwal: setiap jam hapus log autoreply yang sudah lebih dari 24 jam
 Schedule::command('wa-autoreply:clean-logs')->hourly();
 
+// Jadwal: setiap hari jam 23.00 proses poin gamifikasi siswa (early bird, streak, poin dasar)
+Schedule::command(\App\Console\Commands\ProsesGamifikasiHarian::class)->dailyAt('23:00');
+
 if (file_exists(storage_path('installed'))) {
     try {
         $syncEnabled = Pengaturan::where('key', 'master_db_sync_enabled')->value('value') ?? 'Ya';

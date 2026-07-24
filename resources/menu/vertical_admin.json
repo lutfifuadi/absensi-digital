@@ -11,10 +11,6 @@
       "url": "/dashboard"
     },
     {
-      "menuHeader": "Asisten AI",
-      "icon": "menu-icon ti tabler-message-chatbot"
-    },
-    {
       "name": "Asisten AI",
       "icon": "menu-icon ti tabler-message-chatbot",
       "slug": "admin.ai-chat.index",
@@ -65,8 +61,7 @@
     {
       "name": "Absensi Siswa",
       "icon": "menu-icon ti tabler-user-check",
-      "slug": ["admin.absensi-siswa.index", "admin.absensi-siswa.create", "admin.absensi-siswa.edit", "admin.absensi-siswa.bulk"],
-      "url": "/admin/absensi-siswa",
+      "slug": ["admin.absensi-siswa.index", "admin.absensi-siswa.bulk"],
       "submenu": [
         {
           "name": "Data Absensi Siswa",
@@ -74,7 +69,7 @@
           "url": "/admin/absensi-siswa"
         },
         {
-          "name": "Absensi Cepat (Bulk)",
+          "name": "Absensi Cepat",
           "slug": "admin.absensi-siswa.bulk",
           "url": "/admin/absensi-cepat"
         }
@@ -83,20 +78,19 @@
     {
       "name": "Absensi Guru",
       "icon": "menu-icon ti tabler-presentation",
-      "slug": ["admin.absensi-guru.index", "admin.absensi-guru.create", "admin.absensi-guru.edit"],
+      "slug": "admin.absensi-guru.index",
       "url": "/admin/absensi-guru"
     },
     {
       "name": "Absensi Staff TU",
       "icon": "menu-icon ti tabler-briefcase",
-      "slug": ["admin.absensi-staff.index", "admin.absensi-staff.create", "admin.absensi-staff.edit"],
+      "slug": "admin.absensi-staff.index",
       "url": "/admin/absensi-staff"
     },
     {
       "name": "Absensi Kegiatan",
       "icon": "menu-icon ti tabler-calendar-check",
       "slug": ["admin.kegiatans.absensi", "admin.absensi-kegiatan.scan", "admin.absensi-kegiatan.rekap"],
-      "url": "/admin/kegiatans/absensi",
       "submenu": [
         {
           "name": "Daftar Kegiatan",
@@ -118,87 +112,18 @@
     {
       "name": "Izin & Sakit",
       "icon": "menu-icon ti tabler-stethoscope",
-      "slug": "admin.izin-sakit.index",
-      "url": "/admin/izin-sakit"
-    },
-    {
-      "name": "Batasan Izin",
-      "icon": "menu-icon ti tabler-clipboard-list",
-      "slug": ["admin.leave-limits.index", "admin.leave-limits.create", "admin.leave-limits.edit"],
-      "url": "/admin/leave-limits"
-    },
-    {
-      "name": "Penugasan Guru",
-      "icon": "menu-icon ti tabler-book-upload",
-      "slug": "admin.assignments.index",
-      "url": "/admin/assignments"
-    },
-    {
-      "name": "Ekstrakurikuler",
-      "icon": "menu-icon ti tabler-star",
-      "slug": "admin.ekskul",
-      "url": "/admin/ekskul"
-    },
-    {
-      "name": "Pelepasan",
-      "icon": "menu-icon ti tabler-award",
-      "slug": "admin.pelepasan.index",
-      "url": "/admin/pelepasan"
-    },
-    {
-      "name": "Gamifikasi & Peringkat",
-      "icon": "menu-icon ti tabler-trophy",
-      "slug": ["admin.gamifikasi.index", "admin.gamifikasi.rekap"],
-      "url": "/admin/gamifikasi",
+      "slug": ["admin.izin-sakit.index", "admin.leave-limits.index"],
       "submenu": [
         {
-          "name": "Papan Peringkat",
-          "icon": "menu-icon ti tabler-trophy",
-          "slug": "admin.gamifikasi.index",
-          "url": "/admin/gamifikasi"
+          "name": "Data Izin & Sakit",
+          "slug": "admin.izin-sakit.index",
+          "url": "/admin/izin-sakit"
         },
         {
-          "name": "Rekap Gamifikasi",
-          "icon": "menu-icon ti tabler-chart-bar",
-          "slug": "admin.gamifikasi.rekap",
-          "url": "/admin/gamifikasi/rekap"
-        }
-      ]
-    },
-    {
-      "name": "Poin Pelanggaran",
-      "icon": "menu-icon ti tabler-swords",
-      "slug": ["admin.pelanggaran.index", "admin.pelanggaran.create", "admin.pelanggaran.rekap", "admin.pelanggaran-kategori.index", "admin.pelanggaran-jenis.index", "admin.pelanggaran-konfigurasi.index"],
-      "submenu": [
-        {
-          "name": "Daftar Pelanggaran",
-          "slug": "admin.pelanggaran.index",
-          "url": "/admin/pelanggaran"
-        },
-        {
-          "name": "Tambah Pelanggaran",
-          "slug": "admin.pelanggaran.create",
-          "url": "/admin/pelanggaran/create"
-        },
-        {
-          "name": "Rekap Pelanggaran",
-          "slug": "admin.pelanggaran-siswa.rekap",
-          "url": "/admin/pelanggaran-siswa/rekap"
-        },
-        {
-          "name": "Kategori Pelanggaran",
-          "slug": "admin.pelanggaran-kategori.index",
-          "url": "/admin/pelanggaran-kategori"
-        },
-        {
-          "name": "Jenis Pelanggaran",
-          "slug": "admin.pelanggaran-jenis.index",
-          "url": "/admin/pelanggaran-jenis"
-        },
-        {
-          "name": "Pengaturan SP",
-          "slug": "admin.pelanggaran-konfigurasi.index",
-          "url": "/admin/pelanggaran-konfigurasi"
+          "name": "Batasan Izin",
+          "icon": "menu-icon ti tabler-clipboard-list",
+          "slug": "admin.leave-limits.index",
+          "url": "/admin/leave-limits"
         }
       ]
     },
@@ -209,28 +134,25 @@
     {
       "name": "Data Civitas",
       "icon": "menu-icon ti tabler-users-group",
-      "slug": ["admin.siswa.index", "admin.upload-massal.index", "admin.siswa.naik-kelas-massal", "admin.guru.index", "admin.wali-kelas.index", "admin.wali-kelas.create", "admin.wali-kelas.edit", "admin.orang-tua.index", "admin.staff-tata-usaha.index", "admin.alumni.index"],
+      "slug": ["admin.siswa.index", "admin.siswa.naik-kelas-massal", "admin.upload-massal.index", "admin.guru.index", "admin.wali-kelas.index", "admin.orang-tua.index", "admin.staff-tata-usaha.index", "admin.alumni.index"],
       "submenu": [
         {
           "name": "Siswa",
           "icon": "menu-icon ti tabler-users",
-          "slug": ["admin.siswa.index", "admin.upload-massal.index", "admin.siswa.naik-kelas-massal"],
+          "slug": ["admin.siswa.index", "admin.siswa.naik-kelas-massal", "admin.upload-massal.index"],
           "submenu": [
             {
               "name": "Data Siswa",
-              "icon": "menu-icon ti tabler-users",
               "slug": "admin.siswa.index",
               "url": "/admin/siswa"
             },
             {
               "name": "Naik Kelas Massal",
-              "icon": "menu-icon ti tabler-trending-up",
               "slug": "admin.siswa.naik-kelas-massal",
               "url": "/admin/siswa/naik-kelas-massal"
             },
             {
               "name": "Upload Massal Foto",
-              "icon": "menu-icon ti tabler-cloud-upload",
               "slug": "admin.upload-massal.index",
               "url": "/admin/upload-massal"
             }
@@ -245,7 +167,7 @@
         {
           "name": "Wali Kelas",
           "icon": "menu-icon ti tabler-users-group",
-          "slug": ["admin.wali-kelas.index", "admin.wali-kelas.create", "admin.wali-kelas.edit"],
+          "slug": "admin.wali-kelas.index",
           "url": "/admin/wali-kelas"
         },
         {
@@ -314,10 +236,27 @@
       ]
     },
     {
+      "name": "Penugasan Guru",
+      "icon": "menu-icon ti tabler-book-upload",
+      "slug": "admin.assignments.index",
+      "url": "/admin/assignments"
+    },
+    {
+      "name": "Ekstrakurikuler",
+      "icon": "menu-icon ti tabler-star",
+      "slug": "admin.ekskul",
+      "url": "/admin/ekskul"
+    },
+    {
+      "name": "Pelepasan",
+      "icon": "menu-icon ti tabler-award",
+      "slug": "admin.pelepasan.index",
+      "url": "/admin/pelepasan"
+    },
+    {
       "name": "Cetak Kartu",
       "icon": "menu-icon ti tabler-id",
       "slug": ["admin.cetak-kartu.index", "admin.id-card-templates.index"],
-      "url": "/admin/cetak-kartu",
       "submenu": [
         {
           "name": "Cetak ID Card",
@@ -334,20 +273,92 @@
       ]
     },
     {
+      "menuHeader": "Evaluasi Siswa",
+      "icon": "menu-icon ti tabler-chart-area-line"
+    },
+    {
+      "name": "Monitoring Kehadiran",
+      "icon": "menu-icon ti tabler-chart-area-line",
+      "slug": ["admin.dashboard.siswa-alfa"],
+      "submenu": [
+        {
+          "name": "Dashboard Siswa Alfa",
+          "icon": "menu-icon ti tabler-user-off",
+          "slug": "admin.dashboard.siswa-alfa",
+          "url": "/admin/dashboard/siswa-alfa"
+        }
+      ]
+    },
+    {
+      "name": "Gamifikasi & Peringkat",
+      "icon": "menu-icon ti tabler-trophy",
+      "slug": ["admin.gamifikasi.index", "admin.gamifikasi.rekap"],
+      "submenu": [
+        {
+          "name": "Papan Peringkat",
+          "icon": "menu-icon ti tabler-trophy",
+          "slug": "admin.gamifikasi.index",
+          "url": "/admin/gamifikasi"
+        },
+        {
+          "name": "Rekap Gamifikasi",
+          "icon": "menu-icon ti tabler-chart-bar",
+          "slug": "admin.gamifikasi.rekap",
+          "url": "/admin/gamifikasi/rekap"
+        }
+      ]
+    },
+    {
+      "name": "Poin Pelanggaran",
+      "icon": "menu-icon ti tabler-swords",
+      "slug": ["admin.pelanggaran.index", "admin.pelanggaran.create", "admin.pelanggaran-siswa.rekap", "admin.pelanggaran-kategori.index", "admin.pelanggaran-jenis.index", "admin.pelanggaran-konfigurasi.index"],
+      "submenu": [
+        {
+          "name": "Daftar Pelanggaran",
+          "slug": "admin.pelanggaran.index",
+          "url": "/admin/pelanggaran"
+        },
+        {
+          "name": "Tambah Pelanggaran",
+          "slug": "admin.pelanggaran.create",
+          "url": "/admin/pelanggaran/create"
+        },
+        {
+          "name": "Rekap Pelanggaran",
+          "slug": "admin.pelanggaran-siswa.rekap",
+          "url": "/admin/pelanggaran-siswa/rekap"
+        },
+        {
+          "name": "Kategori Pelanggaran",
+          "slug": "admin.pelanggaran-kategori.index",
+          "url": "/admin/pelanggaran-kategori"
+        },
+        {
+          "name": "Jenis Pelanggaran",
+          "slug": "admin.pelanggaran-jenis.index",
+          "url": "/admin/pelanggaran-jenis"
+        },
+        {
+          "name": "Pengaturan SP",
+          "slug": "admin.pelanggaran-konfigurasi.index",
+          "url": "/admin/pelanggaran-konfigurasi"
+        }
+      ]
+    },
+    {
       "menuHeader": "Layanan",
       "icon": "menu-icon ti tabler-headset"
     },
     {
       "name": "Pengaduan Data",
       "icon": "menu-icon ti tabler-report",
-      "slug": ["admin.pengaduan.index", "admin.pengaduan.show"],
+      "slug": "admin.pengaduan.index",
       "url": "/admin/pengaduan"
     },
     {
       "name": "Panduan",
       "icon": "menu-icon ti tabler-book",
-      "slug": ["admin.guides"],
-      "url": "/admin/guides",
+      "slug": ["admin.guides.index", "admin.guide-categories.index"],
       "submenu": [
         {
           "name": "Semua Panduan",

@@ -82,11 +82,101 @@ class InnovationController extends Controller
             ->where('tanggal', $date)
             ->get();
 
+        // LOGIKA PENILAIAN BARU DAN UPDATE KE DATABASE
+        // Urutkan siswa berdasarkan waktu masuk untuk Early Bird (Filter yang punya jam masuk)
+        // Kita butuh mengambil ulang absensi dengan collection methods agar benar-benar iterasi record yg sama
+        $absensiHadir = $absensi->whereIn('status', ['Hadir', 'hadir', 'Terlambat', 'terlambat'])
+            ->filter(fn($item) => !empty($item->jam_masuk))
+            ->sortBy('jam_masuk')
+            ->values();
+        
+        $earlyBirdThreshold = '06:00';
+
+        foreach ($absensi as $absen) {
+            $poin = 0;
+            $isEarlyBird = false;
+
+            // 1. Standarisasi Poin Dasar
+            $statusLower = strtolower($absen->status);
+            if ($statusLower === 'hadir') {
+                $poin += 10;
+            } elseif ($statusLower === 'terlambat') {
+                $poin += 5;
+            } elseif ($statusLower === 'sakit' || $statusLower === 'izin') {
+                $poin += 2;
+            } elseif ($statusLower === 'alpha') {
+                $poin -= 10;
+            }
+
+            // 2. Bonus Early Bird
+            if (in_array($statusLower, ['hadir', 'terlambat'])) {
+                $index = false;
+                foreach ($absensiHadir as $i => $item) {
+                    if ($item->id === $absen->id) {
+                        $index = $i;
+                        break;
+                    }
+                }
+                
+                // Tambah jika index 0-4 (5 pertama) ATAU jika jam masuk <= 06:00
+                $jamMasuk = $absen->jam_masuk ? substr($absen->jam_masuk, 0, 5) : null;
+                
+                // Strict comparison with boolean return for Early Bird conditions
+                $isTop5 = ($index !== false && $index < 5);
+                $isBeforeTime = ($jamMasuk && $jamMasuk <= $earlyBirdThreshold);
+                
+                if ($isTop5 || $isBeforeTime) {
+                    $poin += 5;
+                    $isEarlyBird = true;
+                }
+            }
+
+            // 3. Bonus Konsistensi (Streak)
+            $gamificationStat = \App\Models\StudentGamificationStat::firstOrCreate(
+                ['siswa_id' => $absen->siswa_id]
+            );
+
+            if ($statusLower === 'hadir' || $statusLower === 'terlambat') {
+                // Asumsi hadir = tepat waktu
+                $gamificationStat->current_streak += 1;
+                
+                if ($gamificationStat->current_streak > $gamificationStat->longest_streak) {
+                    $gamificationStat->longest_streak = $gamificationStat->current_streak;
+                }
+                
+                // Jika streak >= 5, beri bonus (misal multiplier, atau bonus poin fixed)
+                if ($gamificationStat->current_streak >= 5) {
+                    $poin += 5; // Extra 5 point for streak
+                }
+            } else {
+                // Streak putus jika tidak hadir tepat waktu
+                $gamificationStat->current_streak = 0;
+            }
+
+            $gamificationStat->last_attendance_date = clone now();
+            $gamificationStat->save();
+
+            // Update record absensi dengan poin yang dihitung akhir
+            $absen->points_earned = $poin;
+            $absen->is_early_bird = $isEarlyBird;
+            
+            \App\Models\AbsensiSiswa::where('id', $absen->id)
+                ->update([
+                    'points_earned' => $poin,
+                    'is_early_bird' => $isEarlyBird
+                ]);
+        }
+
+        // Hitung ulang statistik kelas setelah poin ditambahkan
+        // Panggil ulang dari DB untuk mengambil nilai poin yang baru terupdate
+        $absensi = AbsensiSiswa::where('kelas_id', $kelasId)
+            ->where('tanggal', $date)
+            ->get();
         $total = $absensi->count();
-        $hadir = $absensi->where('status', 'Hadir')->count();
-        $terlambat = $absensi->where('status', 'Terlambat')->count();
-        $sakit = $absensi->where('status', 'Sakit')->count();
-        $izin = $absensi->where('status', 'Izin')->count();
+        $hadir = $absensi->whereIn('status', ['Hadir', 'hadir'])->count();
+        $terlambat = $absensi->whereIn('status', ['Terlambat', 'terlambat'])->count();
+        $sakit = $absensi->whereIn('status', ['Sakit', 'sakit'])->count();
+        $izin = $absensi->whereIn('status', ['Izin', 'izin'])->count();
         $alpha = $total - $hadir - $terlambat - $sakit - $izin;
 
         $percentageKehadiran = $total > 0 ? ($hadir / $total) * 100 : 0;
@@ -329,12 +419,28 @@ class InnovationController extends Controller
                 ->get();
 
             $totalAttendance = $absensis->count();
-            $totalHadir = $absensis->whereIn('status', ['Hadir', 'Terlambat'])->count();
-            $totalIzinSakit = $absensis->whereIn('status', ['Sakit', 'Izin'])->count();
-            $totalAlpha = $absensis->where('status', 'Alpha')->count();
-
-            // Formula skor keaktifan
-            $score = ($totalHadir * 10) + ($totalIzinSakit * 2) + ($totalAlpha * -10);
+            $totalHadir = $absensis->whereIn('status', ['Hadir', 'hadir', 'Terlambat', 'terlambat'])->count();
+            
+            // Ambil skor dari field points_earned (Gamifikasi Baru)
+            // Jika kosong, hitung manual seperti base point untuk kompatibilitas data lama
+            $score = 0;
+            foreach ($absensis as $absen) {
+                if (isset($absen->points_earned) && $absen->points_earned != 0) {
+                    $score += $absen->points_earned;
+                } else {
+                    // Fallback hitung manual
+                    $statusLower = strtolower($absen->status);
+                    if ($statusLower === 'hadir') {
+                        $score += 10;
+                    } elseif ($statusLower === 'terlambat') {
+                        $score += 5;
+                    } elseif ($statusLower === 'sakit' || $statusLower === 'izin') {
+                        $score += 2;
+                    } elseif ($statusLower === 'alpha') {
+                        $score -= 10;
+                    }
+                }
+            }
 
             if ($totalAttendance > 0) {
                 $studentScores[] = [
