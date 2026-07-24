@@ -30,7 +30,7 @@
 
   /* ── Layout Container ── */
   .dash-wrapper {
-    padding: clamp(12px, 3vw, 28px);
+    padding: clamp(12px, 3%, 28px);
     max-width: 1400px;
     margin: 0 auto;
   }
@@ -58,7 +58,7 @@
   .hero-banner {
     background: linear-gradient(135deg, #1d4ed8 0%, #0891b2 55%, #0e7490 100%);
     border-radius: var(--radius-card);
-    padding: clamp(20px, 4vw, 40px) clamp(20px, 4vw, 40px);
+    padding: clamp(20px, 4%, 40px) clamp(20px, 4%, 40px);
     position: relative;
     overflow: hidden;
     box-shadow: 0 8px 32px rgba(14,116,144,0.4);
@@ -82,8 +82,8 @@
     pointer-events: none;
   }
   .hero-icon-wrap {
-    width: clamp(48px, 8vw, 72px);
-    height: clamp(48px, 8vw, 72px);
+    width: clamp(48px, 8%, 72px);
+    height: clamp(48px, 8%, 72px);
     border-radius: 18px;
     background: rgba(255,255,255,0.18);
     backdrop-filter: blur(12px);
@@ -92,22 +92,22 @@
     flex-shrink: 0;
     box-shadow: 0 4px 16px rgba(0,0,0,0.2);
   }
-  .hero-icon-wrap i { font-size: clamp(1.4rem, 3vw, 2rem); color: #fff; }
+  .hero-icon-wrap i { font-size: clamp(1.4rem, 3%, 2rem); color: #fff; }
   .hero-title {
-    font-size: clamp(1.05rem, 2.5vw, 1.4rem);
+    font-size: clamp(1.05rem, 2.5%, 1.4rem);
     font-weight: 800;
     letter-spacing: -0.5px;
     color: #fff;
     margin: 0;
   }
   .hero-subtitle {
-    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    font-size: clamp(0.9rem, 2%, 1.1rem);
     color: rgba(255,255,255,0.85);
     font-weight: 600;
     margin: 2px 0 0;
   }
   .hero-desc {
-    font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+    font-size: clamp(0.75rem, 1.5%, 0.875rem);
     color: rgba(255,255,255,0.65);
     margin: 0;
     max-width: 480px;
@@ -132,13 +132,13 @@
   .stat-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: clamp(10px, 2vw, 18px);
+    gap: clamp(10px, 2%, 18px);
   }
   @media (min-width: 768px) {
     .stat-grid { grid-template-columns: repeat(4, 1fr); }
   }
   .stat-card {
-    padding: clamp(16px, 2.5vw, 28px) clamp(14px, 2vw, 20px);
+    padding: clamp(16px, 2.5%, 28px) clamp(14px, 2%, 20px);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -146,22 +146,22 @@
     gap: 8px;
   }
   .stat-pill {
-    width: clamp(40px, 6vw, 52px);
-    height: clamp(40px, 6vw, 52px);
+    width: clamp(40px, 6%, 52px);
+    height: clamp(40px, 6%, 52px);
     border-radius: 14px;
     display: flex; align-items: center; justify-content: center;
-    font-size: clamp(1.1rem, 2vw, 1.35rem);
+    font-size: clamp(1.1rem, 2%, 1.35rem);
     flex-shrink: 0;
   }
   .stat-value {
-    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    font-size: clamp(1.6rem, 4%, 2.2rem);
     font-weight: 800;
     color: var(--text-primary);
     line-height: 1;
     letter-spacing: -1px;
   }
   .stat-label {
-    font-size: clamp(0.58rem, 1.2vw, 0.65rem);
+    font-size: clamp(0.58rem, 1.2%, 0.65rem);
     text-transform: uppercase;
     letter-spacing: 1.2px;
     font-weight: 700;
@@ -172,7 +172,7 @@
   .chart-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: clamp(10px, 2vw, 18px);
+    gap: clamp(10px, 2%, 18px);
   }
   @media (min-width: 768px) {
     .chart-grid { grid-template-columns: 340px 1fr; }
@@ -181,13 +181,13 @@
     .chart-grid { grid-template-columns: 360px 1fr; }
   }
   .chart-card-header {
-    padding: clamp(14px, 2vw, 20px) clamp(16px, 2.5vw, 24px);
+    padding: clamp(14px, 2%, 20px) clamp(16px, 2.5%, 24px);
   }
   .chart-card-body {
-    padding: clamp(10px, 2vw, 16px) clamp(16px, 2.5vw, 24px) clamp(16px, 2.5vw, 24px);
+    padding: clamp(10px, 2%, 16px) clamp(16px, 2.5%, 24px) clamp(16px, 2.5%, 24px);
   }
   .chart-title {
-    font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+    font-size: clamp(0.8rem, 1.5%, 0.9rem);
     font-weight: 700;
     color: var(--text-primary);
     margin: 0;
@@ -201,10 +201,11 @@
   .donut-empty {
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    padding: clamp(30px, 6vw, 60px) 20px;
+    padding: clamp(30px, 6%, 60px) 20px;
     gap: 10px;
     color: var(--text-muted);
     font-size: 0.82rem;
+    width: 100%;
   }
 
   /* ── Quick Action Cards ── */
@@ -214,39 +215,39 @@
     letter-spacing: 1.8px;
     font-weight: 700;
     color: var(--text-muted);
-    margin-bottom: clamp(10px, 2vw, 16px);
+    margin-bottom: clamp(10px, 2%, 16px);
     padding-left: 2px;
   }
   .action-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: clamp(10px, 2vw, 18px);
+    gap: clamp(10px, 2%, 18px);
   }
   @media (min-width: 992px) {
     .action-grid { grid-template-columns: repeat(4, 1fr); }
   }
   .action-card-body {
-    padding: clamp(16px, 2.5vw, 24px);
+    padding: clamp(16px, 2.5%, 24px);
     display: flex;
     flex-direction: column;
     height: 100%;
   }
   .action-avatar {
-    width: clamp(40px, 5vw, 48px);
-    height: clamp(40px, 5vw, 48px);
+    width: clamp(40px, 5%, 48px);
+    height: clamp(40px, 5%, 48px);
     border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
-  .action-avatar i { font-size: clamp(1.1rem, 2vw, 1.35rem); }
+  .action-avatar i { font-size: clamp(1.1rem, 2%, 1.35rem); }
   .action-title {
-    font-size: clamp(0.82rem, 1.5vw, 0.95rem);
+    font-size: clamp(0.82rem, 1.5%, 0.95rem);
     font-weight: 700;
     color: var(--text-primary);
     margin: 0;
   }
   .action-desc {
-    font-size: clamp(0.72rem, 1.2vw, 0.8rem);
+    font-size: clamp(0.72rem, 1.2%, 0.8rem);
     color: var(--text-muted);
     flex-grow: 1;
     margin: 0;
@@ -254,12 +255,13 @@
   }
   .action-btn {
     border-radius: 10px !important;
-    padding: clamp(8px, 1.5vw, 10px) 16px !important;
-    font-size: clamp(0.75rem, 1.2vw, 0.82rem) !important;
+    padding: clamp(8px, 1.5%, 10px) 16px !important;
+    font-size: clamp(0.75rem, 1.2%, 0.82rem) !important;
     font-weight: 700 !important;
     margin-top: auto;
     transition: all 0.2s ease !important;
     display: flex; align-items: center; justify-content: center; gap: 4px;
+    width: 100%;
   }
 
   /* ── Mobile Specific Tweaks ── */
@@ -300,7 +302,7 @@
   }
 
   /* ── Divider spacing ── */
-  .section-gap { margin-bottom: clamp(16px, 3vw, 28px); }
+  .section-gap { margin-bottom: clamp(16px, 3%, 28px); }
 </style>
 @endpush
 
@@ -452,7 +454,7 @@
         @if($absensiHariIni > 0)
           <div id="chartDonut" style="width:100%;"></div>
         @else
-          <div class="donut-empty w-100">
+          <div class="donut-empty">
             <i class="ti tabler-chart-donut-off" style="font-size:2.5rem;opacity:0.2;"></i>
             <span>Belum ada data absensi hari ini.</span>
           </div>
@@ -493,7 +495,7 @@
           <h6 class="action-title">{{ $card['title'] }}</h6>
         </div>
         <p class="action-desc mb-3">{{ $card['desc'] }}</p>
-        <a href="{{ $card['route'] }}" class="btn btn-label-{{ $card['color'] }} action-btn w-100">
+        <a href="{{ $card['route'] }}" class="btn btn-label-{{ $card['color'] }} action-btn">
           Buka Modul <i class="ti tabler-chevron-right" style="font-size:0.8rem;"></i>
         </a>
       </div>

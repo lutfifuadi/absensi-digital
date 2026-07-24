@@ -4,7 +4,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
+    width: 100%;
     height: 100vh;
     background-color: rgba(11, 15, 25, 0.76);
     backdrop-filter: blur(16px) saturate(180%);
@@ -354,7 +354,7 @@
     box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.8), 0 0 30px rgba(115, 103, 240, 0.25) !important;
     padding: 1.5rem 1.75rem !important;
     width: 440px !important;
-    max-width: 92vw !important;
+    max-width: 92% !important;
     color: #F9FAFB !important;
     backdrop-filter: blur(14px) saturate(180%) !important;
     -webkit-backdrop-filter: blur(14px) saturate(180%) !important;
