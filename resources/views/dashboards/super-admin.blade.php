@@ -149,7 +149,7 @@
   {{-- ═══════════════════════════════════════════════════════
        SECTION 1B2: WIDGET BELUM ABSEN — Mini Chart + Daftar Siswa
   ═══════════════════════════════════════════════════════ --}}
-  @if($belumAbsen > 0)
+  @if($belumAbsen > 0 || $isWeekend)
   <div class="row g-4 mb-6">
     <div class="col-12">
       <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, rgba(234,84,85,0.06) 0%, rgba(234,84,85,0.02) 100%); border: 1px solid rgba(234,84,85,0.15) !important; border-radius: 12px;">
@@ -168,10 +168,9 @@
                 @else
                   <h5 class="mb-0 fw-bold" style="color: #ea5455;">{{ $belumAbsen }} Siswa Belum Absen</h5>
                   <small class="text-body-secondary">Hari ini — dari {{ $totalSiswaWajibAbsen }} siswa wajib absen</small>
-              @endif
+                @endif
+              </div>
             </div>
-            @endif
-          </div>
             @if(!$isWeekend)
             <a href="{{ route('admin.dashboard.belum-absen') }}" class="btn btn-sm btn-label-danger d-inline-flex align-items-center gap-1 fw-semibold">
               <i class="ti tabler-arrow-right"></i> Lihat Semua
