@@ -504,4 +504,107 @@ class PengaturanController extends Controller
             'message' => 'Tema UI berhasil direset ke default.'
         ]);
     }
+
+    /**
+     * Export semua pengaturan ke file JSON (kecuali data sensitif).
+     */
+    public function exportSettings()
+    {
+        $sensitiveKeywords = ['password', 'credentials', 'secret', 'token'];
+
+        $settings = Pengaturan::select('key', 'value', 'group')
+            ->get()
+            ->filter(function ($item) use ($sensitiveKeywords) {
+                foreach ($sensitiveKeywords as $keyword) {
+                    if (str_contains(strtolower($item->key), $keyword)) {
+                        return false;
+                    }
+                }
+                return true;
+            })
+            ->values()
+            ->toArray();
+
+        $payload = [
+            'exported_at'  => now()->toIso8601String(),
+            'app_version'  => '1.0',
+            'settings'     => $settings,
+        ];
+
+        $json     = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $filename = 'pengaturan-backup-' . now()->format('Y-m-d') . '.json';
+
+        return response()->streamDownload(function () use ($json) {
+            echo $json;
+        }, $filename, [
+            'Content-Type'        => 'application/json',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    /**
+     * Import pengaturan dari file JSON.
+     */
+    public function importSettings(Request $request)
+    {
+        $request->validate([
+            'settings_file' => 'required|file|mimes:json|max:512',
+        ], [
+            'settings_file.required' => 'File JSON wajib diunggah.',
+            'settings_file.mimes'    => 'File harus berformat JSON.',
+            'settings_file.max'      => 'Ukuran file maksimal 512 KB.',
+        ]);
+
+        try {
+            $file    = $request->file('settings_file');
+            $content = file_get_contents($file->getRealPath());
+            $decoded = json_decode($content, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return back()->with('error', 'File JSON tidak valid atau rusak.');
+            }
+
+            if (!isset($decoded['settings']) || !is_array($decoded['settings'])) {
+                return back()->with('error', 'Struktur file tidak valid. Pastikan file memiliki key "settings" berupa array.');
+            }
+
+            $sensitiveKeywords = ['password', 'credentials', 'secret', 'token'];
+            $imported = 0;
+            $skipped  = 0;
+
+            foreach ($decoded['settings'] as $item) {
+                if (!isset($item['key']) || !array_key_exists('value', $item)) {
+                    $skipped++;
+                    continue;
+                }
+
+                $isSensitive = false;
+                foreach ($sensitiveKeywords as $keyword) {
+                    if (str_contains(strtolower($item['key']), $keyword)) {
+                        $isSensitive = true;
+                        break;
+                    }
+                }
+
+                if ($isSensitive) {
+                    $skipped++;
+                    continue;
+                }
+
+                Pengaturan::updateOrCreate(
+                    ['key' => $item['key']],
+                    ['value' => $item['value'], 'group' => $item['group'] ?? null]
+                );
+
+                $imported++;
+            }
+
+            Cache::flush();
+
+            return back()->with('success', "Import berhasil! {$imported} pengaturan diperbarui" . ($skipped > 0 ? ", {$skipped} item dilewati (sensitif/tidak valid)." : "."));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Gagal import pengaturan: ' . $e->getMessage());
+            return back()->with('error', 'Gagal memproses file import: ' . $e->getMessage());
+        }
+    }
 }

@@ -77,6 +77,91 @@
   </div>
 @endif
 
+@if (session('error'))
+  <div class="set-toast mb-4" style="background: rgba(234, 84, 85, 0.12); border-color: rgba(234, 84, 85, 0.25);">
+    <div class="set-toast__icon" style="color: #ea5455;"><i class="ti tabler-alert-circle"></i></div>
+    <div class="set-toast__msg" style="color: #fecaca;">{{ session('error') }}</div>
+    <button type="button" class="set-toast__close" data-bs-dismiss="alert">
+      <i class="ti tabler-x"></i>
+    </button>
+  </div>
+@endif
+
+@can('role:super_admin')
+@endcan
+{{-- ── BACKUP & RESTORE PANEL (super_admin only) ── --}}
+@if(auth()->user()->isSuperAdmin())
+<div class="card mb-4" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;">
+  <div class="card-body p-4">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0"
+           style="width:44px;height:44px;background:rgba(105,108,255,0.15);">
+        <i class="ti tabler-database-export fs-5" style="color:#696cff;"></i>
+      </div>
+      <div>
+        <h6 class="mb-0 fw-semibold text-white">Backup &amp; Restore Pengaturan</h6>
+        <small class="text-muted">Export pengaturan ke JSON atau restore dari file backup. Data sensitif (password, token, credentials) tidak ikut diexport.</small>
+      </div>
+    </div>
+
+    <div class="row g-3 align-items-start">
+
+      {{-- ── EXPORT ── --}}
+      <div class="col-12 col-md-auto">
+        <a href="{{ route('admin.pengaturan.export') }}"
+           class="btn btn-outline-primary d-inline-flex align-items-center gap-2">
+          <i class="ti tabler-download"></i>
+          Export Pengaturan (.json)
+        </a>
+        <div class="text-muted mt-1" style="font-size:0.78rem;">
+          <i class="ti tabler-info-circle me-1"></i>Unduh seluruh pengaturan sebagai file JSON
+        </div>
+      </div>
+
+      {{-- ── DIVIDER ── --}}
+      <div class="col-12 col-md-auto d-none d-md-flex align-items-center">
+        <div style="width:1px;height:60px;background:rgba(255,255,255,0.1);"></div>
+      </div>
+
+      {{-- ── IMPORT ── --}}
+      <div class="col-12 col-md">
+        <form action="{{ route('admin.pengaturan.import') }}"
+              method="POST"
+              enctype="multipart/form-data"
+              class="d-flex flex-column flex-sm-row align-items-sm-end gap-2">
+          @csrf
+          <div class="flex-grow-1">
+            <label for="settings_file" class="form-label text-muted mb-1" style="font-size:0.82rem;">
+              <i class="ti tabler-file-upload me-1"></i>Pilih file backup (.json)
+            </label>
+            <input type="file"
+                   class="form-control form-control-sm @error('settings_file') is-invalid @enderror"
+                   id="settings_file"
+                   name="settings_file"
+                   accept=".json"
+                   required>
+            @error('settings_file')
+              <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+          </div>
+          <button type="submit"
+                  class="btn btn-outline-warning d-inline-flex align-items-center gap-2 flex-shrink-0"
+                  onclick="return confirm('Yakin ingin mengimport pengaturan? Pengaturan yang ada akan ditimpa.')">
+            <i class="ti tabler-upload"></i>
+            Import
+          </button>
+        </form>
+        <div class="text-muted mt-1" style="font-size:0.78rem;">
+          <i class="ti tabler-alert-triangle me-1" style="color:#ff9f43;"></i>
+          Hanya file JSON hasil export yang didukung. Maks. 512 KB.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+@endif
+
 {{-- ── MAIN LAYOUT ── --}}
 {{-- ─────────────────────────────
      HORIZONTAL TAB BAR

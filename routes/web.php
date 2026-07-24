@@ -957,6 +957,12 @@ Route::middleware([
         Route::post('pengaturan/clear-cache', [PengaturanController::class, 'clearCache'])
             ->name('admin.pengaturan.clear-cache')
             ->middleware('role:super_admin');
+        Route::get('pengaturan/export', [PengaturanController::class, 'exportSettings'])
+            ->name('admin.pengaturan.export')
+            ->middleware('role:super_admin');
+        Route::post('pengaturan/import', [PengaturanController::class, 'importSettings'])
+            ->name('admin.pengaturan.import')
+            ->middleware('role:super_admin');
 
         // Update Sistem
         Route::get('update', [UpdateController::class, 'index'])
