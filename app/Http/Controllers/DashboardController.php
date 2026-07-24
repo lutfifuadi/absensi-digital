@@ -680,7 +680,7 @@ return response()->json([
             return Siswa::where('tahun_akademik_id', $tahunId)
                 ->where('status', 'aktif')
                 ->whereNotIn('id', $sudahAbsenIds)
-                ->with('kelas:id,nama')
+                ->with(['kelas:id,nama,wali_kelas_id', 'kelas.waliKelas:id,nama_lengkap'])
                 ->select('id', 'nama_lengkap', 'kelas_id', 'no_hp_ortu')
                 ->orderBy('nama_lengkap')
                 ->take(5)
@@ -689,6 +689,7 @@ return response()->json([
                     'id' => $s->id,
                     'nama' => $s->nama_lengkap,
                     'kelas' => $s->kelas->nama ?? '-',
+                    'wali_kelas' => $s->kelas->waliKelas->nama_lengkap ?? '-',
                     'no_ortu' => $s->no_hp_ortu ?? '-',
                     'wa_url' => $s->no_hp_ortu ? 'https://wa.me/' . preg_replace('/[^0-9]/', '', $s->no_hp_ortu) : '#',
                 ])

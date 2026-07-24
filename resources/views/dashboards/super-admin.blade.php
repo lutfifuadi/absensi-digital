@@ -217,7 +217,7 @@
                       <tr style="background: rgba(255,255,255,0.03);">
                         <th class="text-white fw-semibold py-2 ps-3">Nama</th>
                         <th class="text-white fw-semibold py-2">Kelas</th>
-                        <th class="text-white fw-semibold py-2 text-end pe-3" style="width: 100px;">Aksi</th>
+                        <th class="text-white fw-semibold py-2 pe-3">Wali Kelas</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -232,14 +232,8 @@
                           </div>
                         </td>
                         <td><span class="badge bg-label-info fw-semibold" style="font-size: 0.68rem;">{{ $siswa['kelas'] }}</span></td>
-                        <td class="text-end pe-3">
-                          @if($siswa['wa_url'] !== '#')
-                          <a href="{{ $siswa['wa_url'] }}" target="_blank" class="btn btn-sm d-inline-flex align-items-center gap-1 px-2 py-1 text-white fw-semibold" style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); border: none; border-radius: 4px; font-size: 0.68rem;">
-                            <i class="ti tabler-brand-whatsapp"></i> WA
-                          </a>
-                          @else
-                          <span class="text-body-secondary small">-</span>
-                          @endif
+                        <td class="pe-3">
+                          <span class="text-body-secondary small">{{ $siswa['wali_kelas'] }}</span>
                         </td>
                       </tr>
                       @endforeach
