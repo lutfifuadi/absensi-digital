@@ -6,6 +6,7 @@ use App\Models\AbsensiSiswa;
 use App\Models\IzinSakit;
 use App\Models\Siswa;
 use App\Models\Pengaduan;
+use App\Support\QrCodeGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -29,7 +30,42 @@ class PortalOrangTuaController extends Controller
             })
             ->firstOrFail();
 
-        return view('portal-ortu.profil-anak', compact('anak'));
+        // Riwayat absensi paginated
+        $absensi = AbsensiSiswa::where('siswa_id', $anak->id)
+            ->orderByDesc('tanggal')
+            ->paginate(10);
+
+        // Riwayat izin/sakit
+        $izinSakit = IzinSakit::where('tipe', 'siswa')
+            ->where('reference_id', $anak->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        // Statistik ringkasan
+        $statsRaw = AbsensiSiswa::where('siswa_id', $anak->id)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->toArray();
+
+        $stats = [
+            'hadir' => $statsRaw['hadir'] ?? 0,
+            'sakit' => $statsRaw['sakit'] ?? 0,
+            'izin' => $statsRaw['izin'] ?? 0,
+            'alpha' => $statsRaw['alpha'] ?? 0,
+            'terlambat' => $statsRaw['terlambat'] ?? 0,
+            'total' => array_sum($statsRaw) ?: 1, // avoid div zero
+        ];
+
+        // QR Code for display
+        if (empty($anak->qr_code)) {
+            $fallback = $anak->nisn ?: QrCodeGenerator::generate('SISWA');
+            $anak->update(['qr_code' => $fallback]);
+            $anak->refresh();
+        }
+        $qrImage = QrCodeGenerator::renderDataUri($anak->qr_code, 150);
+
+        return view('portal-ortu.profil-anak', compact('anak', 'absensi', 'izinSakit', 'stats', 'qrImage'));
     }
 
     /**
