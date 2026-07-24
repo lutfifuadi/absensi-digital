@@ -637,6 +637,53 @@ return response()->json([
         $absensiGuruHariIni  = AbsensiGuru::whereDate('tanggal', $today)->count();
         $absensiStaffHariIni = AbsensiStaff::whereDate('tanggal', $today)->count();
 
+        // ── Widget: Belum Absen per Kelas (top 5) ─────────────────────
+        $belumAbsenPerKelas = Cache::remember('superadmin_belum_absen_kelas_'.$today->toDateString(), 5, function() use ($today, $tahunId) {
+            return Kelas::where('tahun_akademik_id', $tahunId)
+                ->withCount(['siswa' => fn($q) => $q->where('status', 'aktif')])
+                ->get()
+                ->map(function($k) use ($today) {
+                    $sudahAbsen = AbsensiSiswa::where('kelas_id', $k->id)
+                        ->whereDate('tanggal', $today)
+                        ->count();
+                    $belumAbsen = max(0, $k->siswa_count - $sudahAbsen);
+                    return [
+                        'nama' => $k->nama,
+                        'belum_absen' => $belumAbsen,
+                        'total_siswa' => $k->siswa_count,
+                    ];
+                })
+                ->filter(fn($k) => $k['belum_absen'] > 0)
+                ->sortByDesc('belum_absen')
+                ->take(10)
+                ->values()
+                ->toArray();
+        });
+
+        // ── Widget: Daftar siswa belum absen (limit 5) ──────────────────
+        $listBelumAbsen = Cache::remember('superadmin_list_belum_absen_'.$today->toDateString(), 5, function() use ($today, $tahunId) {
+            $sudahAbsenIds = AbsensiSiswa::whereDate('tanggal', $today)
+                ->pluck('siswa_id')
+                ->unique();
+
+            return Siswa::where('tahun_akademik_id', $tahunId)
+                ->where('status', 'aktif')
+                ->whereNotIn('id', $sudahAbsenIds)
+                ->with('kelas:id,nama')
+                ->select('id', 'nama_lengkap', 'kelas_id', 'no_hp_ortu')
+                ->orderBy('nama_lengkap')
+                ->take(5)
+                ->get()
+                ->map(fn($s) => [
+                    'id' => $s->id,
+                    'nama' => $s->nama_lengkap,
+                    'kelas' => $s->kelas->nama ?? '-',
+                    'no_ortu' => $s->no_hp_ortu ?? '-',
+                    'wa_url' => $s->no_hp_ortu ? 'https://wa.me/' . preg_replace('/[^0-9]/', '', $s->no_hp_ortu) : '#',
+                ])
+                ->toArray();
+        });
+
         // ── Leaderboards (limit, select spesifik) ────────────────────────────
         $palingAwal = AbsensiSiswa::whereDate('tanggal', $today)
             ->whereNotNull('jam_masuk')
@@ -673,7 +720,8 @@ return response()->json([
             'palingAwal', 'palingAkhir', 'pengaturanArr',
             'tahunAkademikAktif',
             'kehadiranPerKelas', 'monthlyStats', 'metodeAbsensi', 'recentLogs',
-            'top5Pelanggaran'
+            'top5Pelanggaran',
+            'belumAbsenPerKelas', 'listBelumAbsen'
         );
     }
 

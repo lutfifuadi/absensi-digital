@@ -1214,8 +1214,8 @@ Route::middleware([
             ->middleware('role:super_admin,admin_sekolah');
 
         // Dashboard Siswa Alfa (PRD-014)
-        Route::get('dashboard/siswa-alfa', [\App\Http\Controllers\DashboardAlfaController::class, 'index'])
-            ->name('admin.dashboard.siswa-alfa')
+        Route::get('dashboard/belum-absen', [\App\Http\Controllers\DashboardAlfaController::class, 'index'])
+            ->name('admin.dashboard.belum-absen')
             ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas');
 
         // Gamifikasi

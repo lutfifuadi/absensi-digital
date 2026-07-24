@@ -147,6 +147,115 @@
 
 
   {{-- ═══════════════════════════════════════════════════════
+       SECTION 1B2: WIDGET BELUM ABSEN — Mini Chart + Daftar Siswa
+  ═══════════════════════════════════════════════════════ --}}
+  @if($belumAbsen > 0)
+  <div class="row g-4 mb-6">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, rgba(234,84,85,0.06) 0%, rgba(234,84,85,0.02) 100%); border: 1px solid rgba(234,84,85,0.15) !important; border-radius: 12px;">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center justify-content-between mb-4">
+            <div class="d-flex align-items-center gap-3">
+              <div class="avatar">
+                <span class="avatar-initial rounded" style="background: rgba(234,84,85,0.12); color: #ea5455;">
+                  <i class="ti tabler-user-off fs-4"></i>
+                </span>
+              </div>
+              <div>
+                <h5 class="mb-0 fw-bold" style="color: #ea5455;">{{ $belumAbsen }} Siswa Belum Absen</h5>
+                <small class="text-body-secondary">Hari ini — dari {{ $totalSiswaWajibAbsen }} siswa wajib absen</small>
+              </div>
+            </div>
+            <a href="{{ route('admin.dashboard.belum-absen') }}" class="btn btn-sm btn-label-danger d-inline-flex align-items-center gap-1 fw-semibold">
+              <i class="ti tabler-arrow-right"></i> Lihat Semua
+            </a>
+          </div>
+
+          <div class="row g-4">
+            {{-- Kiri: Mini Bar Chart per Kelas --}}
+            <div class="col-lg-5 col-md-6">
+              <h6 class="text-body-secondary small fw-semibold mb-3"><i class="ti tabler-chart-bar me-1"></i> Top 10 Kelas Belum Absen</h6>
+              @if(count($belumAbsenPerKelas) > 0)
+                @foreach($belumAbsenPerKelas as $item)
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <span class="text-body-secondary small" style="min-width: 70px;">{{ $item['nama'] }}</span>
+                  <div class="flex-grow-1" style="height: 20px; background: rgba(234,84,85,0.08); border-radius: 4px; overflow: hidden;">
+                    <div style="height: 100%; width: {{ $totalSiswaWajibAbsen > 0 ? round(($item['belum_absen'] / max(1, max(array_column($belumAbsenPerKelas, 'belum_absen'))) * 100)) : 0 }}%; background: linear-gradient(90deg, #ea5455, #f06464); border-radius: 4px; transition: width 0.6s ease;"></div>
+                  </div>
+                  <span class="badge bg-label-danger fw-bold" style="font-size: 0.72rem; min-width: 28px; text-align: center;">{{ $item['belum_absen'] }}</span>
+                </div>
+                @endforeach
+              @else
+                <div class="text-center text-body-secondary py-4">
+                  <i class="ti tabler-mood-happy fs-3 d-block mb-1" style="color: rgba(40,199,111,0.4);"></i>
+                  <small>Semua kelas sudah lengkap absennya</small>
+                </div>
+              @endif
+            </div>
+
+            {{-- Kanan: Daftar Nama Siswa --}}
+            <div class="col-lg-7 col-md-6">
+              <h6 class="text-body-secondary small fw-semibold mb-3"><i class="ti tabler-users me-1"></i> Siswa Belum Absen</h6>
+              @if(count($listBelumAbsen) > 0)
+                <div class="table-responsive" style="border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; background: rgba(255,255,255,0.02);">
+                  <table class="table table-hover align-middle mb-0" style="font-size: 0.82rem;">
+                    <thead>
+                      <tr style="background: rgba(255,255,255,0.03);">
+                        <th class="text-white fw-semibold py-2 ps-3">Nama</th>
+                        <th class="text-white fw-semibold py-2">Kelas</th>
+                        <th class="text-white fw-semibold py-2 text-end pe-3" style="width: 100px;">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @foreach($listBelumAbsen as $siswa)
+                      <tr style="border-color: rgba(255,255,255,0.04);">
+                        <td class="ps-3">
+                          <div class="d-flex align-items-center gap-2">
+                            <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(115,103,240,0.15); color: #a5a2f7; font-weight: 700; font-size: 0.7rem; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                              {{ substr($siswa['nama'], 0, 1) }}
+                            </div>
+                            <span class="text-white fw-medium">{{ $siswa['nama'] }}</span>
+                          </div>
+                        </td>
+                        <td><span class="badge bg-label-info fw-semibold" style="font-size: 0.68rem;">{{ $siswa['kelas'] }}</span></td>
+                        <td class="text-end pe-3">
+                          @if($siswa['wa_url'] !== '#')
+                          <a href="{{ $siswa['wa_url'] }}" target="_blank" class="btn btn-sm d-inline-flex align-items-center gap-1 px-2 py-1 text-white fw-semibold" style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); border: none; border-radius: 4px; font-size: 0.68rem;">
+                            <i class="ti tabler-brand-whatsapp"></i> WA
+                          </a>
+                          @else
+                          <span class="text-body-secondary small">-</span>
+                          @endif
+                        </td>
+                      </tr>
+                      @endforeach
+                    </tbody>
+                  </table>
+                </div>
+                @if($belumAbsen > 5)
+                <div class="text-center mt-2">
+                  <a href="{{ route('admin.dashboard.belum-absen') }}" class="text-danger small fw-semibold text-decoration-none">
+                    + {{ $belumAbsen - 5 }} siswa lainnya <i class="ti tabler-arrow-right"></i>
+                  </a>
+                </div>
+                @endif
+              @else
+                <div class="text-center text-body-secondary py-4">
+                  <i class="ti tabler-mood-happy fs-3 d-block mb-1" style="color: rgba(40,199,111,0.4);"></i>
+                  <small>Semua siswa sudah absen hari ini</small>
+                </div>
+              @endif
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+  @endif
+
+
+  {{-- ═══════════════════════════════════════════════════════
        SECTION 1C: INFO AKADEMIK + QUICK MENU
   ═══════════════════════════════════════════════════════ --}}
   <div class="row g-6 mb-6">

@@ -279,13 +279,13 @@
     {
       "name": "Monitoring Kehadiran",
       "icon": "menu-icon ti tabler-chart-area-line",
-      "slug": ["admin.dashboard.siswa-alfa"],
+      "slug": ["admin.dashboard.belum-absen"],
       "submenu": [
         {
-          "name": "Dashboard Siswa Alfa",
+          "name": "Dashboard Belum Absen",
           "icon": "menu-icon ti tabler-user-off",
-          "slug": "admin.dashboard.siswa-alfa",
-          "url": "/admin/dashboard/siswa-alfa"
+          "slug": "admin.dashboard.belum-absen",
+          "url": "/admin/dashboard/belum-absen"
         }
       ]
     },

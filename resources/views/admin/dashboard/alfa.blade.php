@@ -1,6 +1,6 @@
 @extends('layouts/layoutMaster')
 
-@section('title', 'Dashboard Siswa Alfa')
+@section('title', 'Dashboard Siswa Belum Absen')
 
 @section('vendor-style')
     @vite([
@@ -19,7 +19,7 @@
 
 @section('page-style')
 <style>
-    /* ── Summary Stat Card Alfa ─────────────────────────────── */
+    /* ── Summary Stat Card ──────────────────────────────────── */
     .alfa-stat-card {
         background: rgba(234, 84, 85, 0.07);
         border: 1px solid rgba(234, 84, 85, 0.2);
@@ -154,16 +154,16 @@
                 <div class="das-hero__meta">
                     <div class="das-hero__badge">
                         <span class="pulse-dot"></span>
-                        Dashboard / Siswa Alfa
+                        Dashboard / Siswa Belum Absen
                     </div>
-                    <h4 class="das-hero__title text-gradient-gold">Dashboard Pemantauan Siswa Alfa</h4>
-                    <p class="das-hero__subtitle">Pantau tingkat ketidakhadiran siswa tanpa keterangan <span class="text-danger fw-bold">(alfa)</span> secara real-time.</p>
+                    <h4 class="das-hero__title text-gradient-gold">Dashboard Pemantauan Belum Absen</h4>
+                    <p class="das-hero__subtitle">Pantau siswa yang <span class="text-danger fw-bold">belum melakukan absensi</span> hari ini secara real-time.</p>
                 </div>
             </div>
 
             <div class="das-hero__actions">
-                {{-- Filter Form di Hero Actions --}}
-                <form method="GET" action="{{ route('admin.dashboard.siswa-alfa') }}" class="d-flex flex-wrap gap-2 align-items-center">
+                {{-- Filter Form --}}
+                <form method="GET" action="{{ route('admin.dashboard.belum-absen') }}" class="d-flex flex-wrap gap-2 align-items-center">
                     <select name="kelas_id" class="select2 form-select" style="width: 200px;" data-placeholder="Semua Kelas">
                         <option value="">Semua Kelas</option>
                         @foreach($kelasList as $kelas)
@@ -190,22 +190,21 @@
     ═══════════════════════════════════════════════════════ --}}
     <div class="row g-4 mb-4">
 
-        {{-- Summary Card (1/3) --}}
+        {{-- Summary Card --}}
         <div class="col-lg-4">
             <div class="alfa-stat-card h-100">
                 <div>
-                    <h6 class="text-white-50 fw-semibold small mb-3">TOTAL ALFA 7 HARI</h6>
+                    <h6 class="text-white-50 fw-semibold small mb-3">BELUM ABSEN HARI INI</h6>
                     <div class="d-flex align-items-center gap-3 mb-3">
                         <div class="alfa-stat-icon">
                             <i class="ti tabler-user-off"></i>
                         </div>
-                        <span class="alfa-stat-number">{{ $totalAlfa7Hari ?? 0 }}</span>
+                        <span class="alfa-stat-number">{{ $totalBelumAbsenHariIni }}</span>
                     </div>
-                    <span class="alfa-stat-label">Siswa alfa dalam 7 hari terakhir</span>
+                    <span class="alfa-stat-label">dari {{ $totalSiswaAktif }} siswa aktif</span>
                 </div>
 
                 <div class="mt-4">
-                    {{-- Filter Info --}}
                     <div class="filter-info-bar d-flex align-items-center gap-2">
                         <i class="ti tabler-filter fs-6 text-danger"></i>
                         <span>
@@ -227,13 +226,13 @@
             </div>
         </div>
 
-        {{-- Line Chart (2/3) --}}
+        {{-- Line Chart --}}
         <div class="col-lg-8">
             <div class="das-panel h-100">
                 <div class="das-panel__head">
                     <h6 class="das-panel__title">
                         <span class="das-panel__icon-dot --danger"></span>
-                        Tren Siswa Alfa
+                        Tren Belum Absen
                         <span class="das-chip --danger ms-2">{{ count($lineChartData) }} Hari</span>
                     </h6>
                 </div>
@@ -253,25 +252,25 @@
     </div>
 
     {{-- ═══════════════════════════════════════════════════════
-         SECTION 3: BAR CHART (FULL WIDTH)
+         SECTION 3: BAR CHART
     ═══════════════════════════════════════════════════════ --}}
     <div class="das-panel mb-4">
         <div class="das-panel__head">
             <h6 class="das-panel__title">
                 <span class="das-panel__icon-dot --danger"></span>
-                Kelas dengan Tingkat Alfa Tertinggi
+                Kelas dengan Jumlah Belum Absen Tertinggi
             </h6>
         </div>
         <div class="das-panel__body">
             <p class="text-white-50 small mb-3">
                 <i class="ti tabler-info-circle me-1"></i>
-                Grafik batang menampilkan distribusi siswa alfa per kelas.
+                Grafik batang menampilkan distribusi siswa yang belum absen per kelas.
             </p>
             <div class="alfa-chart-wrap">
                 @if(count($barChartData) == 0)
                     <div class="alfa-empty-chart">
                         <i class="ti tabler-chart-bar-off" style="font-size: 2.5rem;"></i>
-                        <span class="small">Tidak ada data kelas untuk periode ini.</span>
+                        <span class="small">Semua siswa sudah absen. Tidak ada data.</span>
                     </div>
                 @endif
                 <div id="barChart"></div>
@@ -286,7 +285,7 @@
         <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3"
             style="border-color: rgba(255,255,255,0.08) !important;">
             <h6 class="das-panel__title mb-0 d-flex align-items-center gap-2">
-                <i class="ti tabler-list text-danger"></i> Detail Siswa Alfa
+                <i class="ti tabler-list text-danger"></i> Detail Siswa Belum Absen
             </h6>
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <div class="filter-info-bar d-flex align-items-center gap-2">
@@ -300,7 +299,7 @@
                     </span>
                 </div>
                 <span class="das-chip --danger">
-                    {{ method_exists($detailAlfa, 'total') ? $detailAlfa->total() : $detailAlfa->count() }} Siswa
+                    {{ method_exists($detailBelumAbsen, 'total') ? $detailBelumAbsen->total() : $detailBelumAbsen->count() }} Siswa
                 </span>
             </div>
         </div>
@@ -313,34 +312,34 @@
                             <th>NIS</th>
                             <th>Nama Lengkap</th>
                             <th>Kelas</th>
-                            <th>Tanggal</th>
+                            <th>No. HP Orang Tua</th>
                             <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($detailAlfa as $index => $alfa)
+                        @forelse($detailBelumAbsen as $index => $siswa)
                         <tr class="alfa-row-hover">
-                            <td>{{ $detailAlfa->firstItem() + $index }}</td>
-                            <td class="fw-semibold text-white">{{ $alfa->siswa->nis ?? '-' }}</td>
+                            <td>{{ $detailBelumAbsen->firstItem() + $index }}</td>
+                            <td class="fw-semibold text-white">{{ $siswa->nis ?? '-' }}</td>
                             <td>
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="alfa-avatar">
-                                        {{ substr($alfa->siswa->nama ?? 'U', 0, 1) }}
+                                        {{ substr($siswa->nama_lengkap ?? 'U', 0, 1) }}
                                     </div>
-                                    <span>{{ $alfa->siswa->nama ?? 'Siswa Tidak Ditemukan' }}</span>
+                                    <span>{{ $siswa->nama_lengkap ?? '-' }}</span>
                                 </div>
                             </td>
                             <td>
                                 <span class="das-chip --info">
-                                    {{ $alfa->siswa->kelas->nama ?? '-' }}
+                                    {{ $siswa->kelas->nama ?? '-' }}
                                 </span>
                             </td>
-                            <td class="text-danger fw-semibold">
-                                {{ \Carbon\Carbon::parse($alfa->tanggal)->format('d M Y') }}
+                            <td class="text-white-50">
+                                {{ $siswa->no_hp_ortu ?? '-' }}
                             </td>
                             <td class="text-center">
                                 @php
-                                    $noOrtu = preg_replace('/[^0-9]/', '', $alfa->siswa->no_telp_ortu ?? '');
+                                    $noOrtu = preg_replace('/[^0-9]/', '', $siswa->no_hp_ortu ?? '');
                                 @endphp
                                 @if($noOrtu)
                                 <a href="https://wa.me/{{ $noOrtu }}" target="_blank" rel="noopener noreferrer"
@@ -357,8 +356,8 @@
                         <tr>
                             <td colspan="6" class="text-center py-5">
                                 <div class="d-flex flex-column align-items-center justify-content-center gap-2">
-                                    <i class="ti tabler-user-off" style="font-size: 2.5rem; color: rgba(234,84,85,0.3);"></i>
-                                    <p class="text-muted small mb-0">Tidak ada data siswa alfa untuk filter yang dipilih.</p>
+                                    <i class="ti tabler-user-check" style="font-size: 2.5rem; color: rgba(40,199,111,0.3);"></i>
+                                    <p class="text-muted small mb-0">Semua siswa sudah absen. Tidak ada yang perlu ditindaklanjuti.</p>
                                 </div>
                             </td>
                         </tr>
@@ -368,9 +367,9 @@
             </div>
 
             {{-- Pagination --}}
-            @if(method_exists($detailAlfa, 'links') && $detailAlfa->hasPages())
+            @if(method_exists($detailBelumAbsen, 'links') && $detailBelumAbsen->hasPages())
             <div class="px-4 py-3 border-top" style="border-color: rgba(255,255,255,0.08) !important;">
-                {{ $detailAlfa->links() }}
+                {{ $detailBelumAbsen->links() }}
             </div>
             @endif
         </div>
@@ -399,16 +398,15 @@
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Data dari Controller
         const barChartLabels = @json($barChartLabels);
         const barChartData   = @json($barChartData);
         const lineChartLabels = @json($lineChartLabels);
         const lineChartData   = @json($lineChartData);
 
-        // ── Bar Chart (Kelas Tertinggi) ────────────────────────────────────
+        // ── Bar Chart ──────────────────────────────────────────
         if (document.querySelector('#barChart') && barChartData.length > 0) {
             const barChart = new ApexCharts(document.querySelector('#barChart'), {
-                series: [{ name: 'Jumlah Alfa', data: barChartData }],
+                series: [{ name: 'Belum Absen', data: barChartData }],
                 chart: {
                     type: 'bar',
                     height: 320,
@@ -452,10 +450,10 @@
             barChart.render();
         }
 
-        // ── Line Chart (Tren Waktu) ────────────────────────────────────────
+        // ── Line Chart ─────────────────────────────────────────
         if (document.querySelector('#lineChart') && lineChartData.length > 0) {
             const lineChart = new ApexCharts(document.querySelector('#lineChart'), {
-                series: [{ name: 'Siswa Alfa', data: lineChartData }],
+                series: [{ name: 'Belum Absen', data: lineChartData }],
                 chart: {
                     height: 300,
                     type: 'line',
