@@ -188,6 +188,15 @@
     {{-- ═══════════════════════════════════════════════════════
          SECTION 2: SUMMARY + LINE CHART
     ═══════════════════════════════════════════════════════ --}}
+    @if($isWeekend)
+    <div class="das-panel" style="text-align: center; padding: 3rem 1rem;">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem; opacity: 0.3;">
+            <i class="ti tabler-calendar-off"></i>
+        </div>
+        <h5 class="text-white fw-bold mb-2">Hari Libur</h5>
+        <p class="text-body-secondary mb-0">Hari ini {{ \Carbon\Carbon::today()->translatedFormat('l') }} — tidak ada aktivitas absensi siswa</p>
+    </div>
+    @else
     <div class="row g-4 mb-4">
 
         {{-- Summary Card --}}
@@ -250,6 +259,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     {{-- ═══════════════════════════════════════════════════════
          SECTION 3: BAR CHART

@@ -14,6 +14,7 @@ class DashboardAlfaController extends Controller
     public function index(Request $request)
     {
         $today = Carbon::today();
+        $isWeekend = $today->isSaturday() || $today->isSunday();
         $start7Days = Carbon::now()->subDays(6)->startOfDay();
 
         // Filter
@@ -83,22 +84,30 @@ class DashboardAlfaController extends Controller
         }
 
         // ══════════════════════════════════════════════════════════
-        // 4. Line Chart: Tren Belum Absen per Hari (7 hari terakhir)
+        // 4. Line Chart: Tren Belum Absen per Hari (7 hari kerja terakhir, skip weekend)
         // ══════════════════════════════════════════════════════════
         $trendDates = [];
         $trendData = [];
 
-        for ($date = $start7Days->copy(); $date->lte($today); $date->addDay()) {
-            $dateStr = $date->format('Y-m-d');
+        // Kumpulkan 7 hari kerja terakhir
+        $hariKerja = collect();
+        $tmp = $today->copy();
+        while ($hariKerja->count() < 7) {
+            if (!$tmp->isSaturday() && !$tmp->isSunday()) {
+                $hariKerja->prepend($tmp->copy());
+            }
+            $tmp->subDay();
+        }
 
-            // Siswa aktif di tanggal ini
-            $idsAktif = Siswa::where('status', 'aktif')->pluck('id');
+        $idsAktifAll = Siswa::where('status', 'aktif')->pluck('id');
+        foreach ($hariKerja as $date) {
+            $dateStr = $date->format('Y-m-d');
             $sudahAbsen = AbsensiSiswa::where('tanggal', $dateStr)
-                ->whereIn('siswa_id', $idsAktif)
+                ->whereIn('siswa_id', $idsAktifAll)
                 ->count();
 
             $trendDates[] = $date->format('d M');
-            $trendData[] = $idsAktif->count() - $sudahAbsen;
+            $trendData[] = $idsAktifAll->count() - $sudahAbsen;
         }
 
         // ══════════════════════════════════════════════════════════
@@ -123,6 +132,7 @@ class DashboardAlfaController extends Controller
         $kelasList = Kelas::orderBy('nama')->get();
 
         $data = [
+            'isWeekend' => $isWeekend,
             'totalSiswaAktif' => $totalSiswaAktif,
             'totalBelumAbsenHariIni' => $totalBelumAbsenHariIni,
             'barChartLabels' => $barChartLabels,

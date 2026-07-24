@@ -451,6 +451,7 @@ return response()->json([
     private function superAdminData(): array
     {
         $today = Carbon::today();
+        $isWeekend = $today->isSaturday() || $today->isSunday();
         $tahunId = session('tahun_akademik_id');
 
         // Dapatkan data top 5 poin pelanggaran tertinggi tahun akademik aktif
@@ -499,7 +500,7 @@ return response()->json([
         $izinCount     = $statusHariIni['izin']      ?? 0;
         $alphaCount    = $statusHariIni['alpha']     ?? 0;
         $terlambatCount = $statusHariIni['terlambat'] ?? 0;
-        $belumAbsen    = max(0, $totalSiswaWajibAbsen - $totalAbsensiHariIni);
+        $belumAbsen    = $isWeekend ? 0 : max(0, $totalSiswaWajibAbsen - $totalAbsensiHariIni);
 
         $tingkatKehadiran = $totalSiswaWajibAbsen > 0 
             ? round((($hadirCount + $terlambatCount) / $totalSiswaWajibAbsen) * 100, 1) 
@@ -586,23 +587,33 @@ return response()->json([
                 ->get();
         });
 
-        // ── Bar chart: 7-day multi-series (optimasi: single query) ────────────────
+        // ── Bar chart: 7-hari kerja (skip Sabtu & Minggu) ────────────────
         $chartDays   = [];
         $chartHadir  = [];
         $chartSakit  = [];
         $chartIzin   = [];
         $chartAlpha  = [];
 
-        $startDate = $today->copy()->subDays(6);
-        $allStats = AbsensiSiswa::whereBetween('tanggal', [$startDate, $today])
+        // Kumpulkan 7 hari kerja terakhir (termasuk hari ini jika weekday)
+        $hariKerja = collect();
+        $tmp = $today->copy();
+        while ($hariKerja->count() < 7) {
+            if (!$tmp->isSaturday() && !$tmp->isSunday()) {
+                $hariKerja->prepend($tmp->copy());
+            }
+            $tmp->subDay();
+        }
+
+        $startDate = $hariKerja->first();
+        $endDate   = $hariKerja->last();
+        $allStats = AbsensiSiswa::whereBetween('tanggal', [$startDate, $endDate])
             ->select('tanggal', 'status')
             ->selectRaw('COUNT(*) as total')
             ->groupBy('tanggal', 'status')
             ->get()
             ->groupBy(fn($item) => $item->tanggal->toDateString());
 
-        for ($i = 6; $i >= 0; $i--) {
-            $date = $today->copy()->subDays($i);
+        foreach ($hariKerja as $date) {
             $chartDays[] = $date->translatedFormat('D d/m');
 
             $dayData = $allStats[$date->toDateString()] ?? collect();
@@ -637,8 +648,8 @@ return response()->json([
         $absensiGuruHariIni  = AbsensiGuru::whereDate('tanggal', $today)->count();
         $absensiStaffHariIni = AbsensiStaff::whereDate('tanggal', $today)->count();
 
-        // ── Widget: Belum Absen per Kelas (top 5) ─────────────────────
-        $belumAbsenPerKelas = Cache::remember('superadmin_belum_absen_kelas_'.$today->toDateString(), 5, function() use ($today, $tahunId) {
+        // ── Widget: Belum Absen per Kelas (hari kerja saja) ─────────────────────
+        $belumAbsenPerKelas = $isWeekend ? [] : Cache::remember('superadmin_belum_absen_kelas_'.$today->toDateString(), 5, function() use ($today, $tahunId) {
             return Kelas::where('tahun_akademik_id', $tahunId)
                 ->withCount(['siswa' => fn($q) => $q->where('status', 'aktif')])
                 ->get()
@@ -660,8 +671,8 @@ return response()->json([
                 ->toArray();
         });
 
-        // ── Widget: Daftar siswa belum absen (limit 5) ──────────────────
-        $listBelumAbsen = Cache::remember('superadmin_list_belum_absen_'.$today->toDateString(), 5, function() use ($today, $tahunId) {
+        // ── Widget: Daftar siswa belum absen (hari kerja saja) ──────────────────
+        $listBelumAbsen = $isWeekend ? [] : Cache::remember('superadmin_list_belum_absen_'.$today->toDateString(), 5, function() use ($today, $tahunId) {
             $sudahAbsenIds = AbsensiSiswa::whereDate('tanggal', $today)
                 ->pluck('siswa_id')
                 ->unique();
@@ -721,7 +732,8 @@ return response()->json([
             'tahunAkademikAktif',
             'kehadiranPerKelas', 'monthlyStats', 'metodeAbsensi', 'recentLogs',
             'top5Pelanggaran',
-            'belumAbsenPerKelas', 'listBelumAbsen'
+            'belumAbsenPerKelas', 'listBelumAbsen',
+            'isWeekend'
         );
     }
 

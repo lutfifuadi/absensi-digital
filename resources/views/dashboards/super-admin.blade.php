@@ -162,16 +162,30 @@
                 </span>
               </div>
               <div>
-                <h5 class="mb-0 fw-bold" style="color: #ea5455;">{{ $belumAbsen }} Siswa Belum Absen</h5>
-                <small class="text-body-secondary">Hari ini — dari {{ $totalSiswaWajibAbsen }} siswa wajib absen</small>
-              </div>
+                @if($isWeekend)
+                  <h5 class="mb-0 fw-bold" style="color: #ea5455;"><i class="ti tabler-calendar-off me-1"></i> Hari Libur</h5>
+                  <small class="text-body-secondary">Hari ini {{ \Carbon\Carbon::today()->translatedFormat('l') }} — tidak ada absensi siswa</small>
+                @else
+                  <h5 class="mb-0 fw-bold" style="color: #ea5455;">{{ $belumAbsen }} Siswa Belum Absen</h5>
+                  <small class="text-body-secondary">Hari ini — dari {{ $totalSiswaWajibAbsen }} siswa wajib absen</small>
+              @endif
             </div>
+            @endif
+          </div>
+            @if(!$isWeekend)
             <a href="{{ route('admin.dashboard.belum-absen') }}" class="btn btn-sm btn-label-danger d-inline-flex align-items-center gap-1 fw-semibold">
               <i class="ti tabler-arrow-right"></i> Lihat Semua
             </a>
+            @endif
           </div>
 
           <div class="row g-4">
+            @if($isWeekend)
+            <div class="col-12 text-center py-4">
+              <i class="ti tabler-calendar-off fs-1 d-block mb-2" style="color: rgba(234,84,85,0.3);"></i>
+              <span class="text-body-secondary">Tidak ada data absensi di hari libur</span>
+            </div>
+            @else
             {{-- Kiri: Mini Bar Chart per Kelas --}}
             <div class="col-lg-5 col-md-6">
               <h6 class="text-body-secondary small fw-semibold mb-3"><i class="ti tabler-chart-bar me-1"></i> Top 10 Kelas Belum Absen</h6>
