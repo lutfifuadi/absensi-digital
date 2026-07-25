@@ -74,17 +74,22 @@ class AbsensiMandiriController extends Controller
         $jamAkhirPulang = $settings['jam_akhir_pulang'] ?? '17:00';
         $toleransi      = (int)($settings['toleransi_terlambat'] ?? 15);
 
-        // Gunakan jam khusus kelas jika diatur
+        // Gunakan jadwal per kelas per hari (PRD-016)
         if ($siswa->kelas_id) {
-            $kelas = \App\Models\Kelas::find($siswa->kelas_id);
-            if ($kelas && $kelas->kustomisasi_jam) {
-                if ($kelas->jam_masuk) {
-                    $jamMasuk = \Carbon\Carbon::parse($kelas->jam_masuk)->format('H:i');
-                    $jamBatasMasuk = \Carbon\Carbon::parse($kelas->jam_masuk)->addMinutes($toleransi)->format('H:i');
-                }
-                if ($kelas->jam_pulang) {
-                    $jamMulaiPulang = \Carbon\Carbon::parse($kelas->jam_pulang)->format('H:i');
-                }
+            $jadwalKelas = \App\Helpers\JadwalAbsensiHelper::getJadwalForKelas($siswa->kelas_id);
+            $jamMulaiAbsensi = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_mulai_absensi']) ?? '06:00';
+            $jamMasuk        = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_masuk']) ?? '07:00';
+            $jamBatasMasuk   = \Carbon\Carbon::parse($jamMasuk)->addMinutes($toleransi)->format('H:i');
+            $jamPulang       = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_pulang']) ?? '15:00';
+            $jamMulaiPulang  = $jamPulang;
+            $jamAkhirPulang  = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_akhir_pulang']) ?? '17:00';
+
+            // Cek apakah hari ini libur untuk kelas ini
+            if ($jadwalKelas['is_libur']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Hari ini adalah hari libur untuk kelas Anda.',
+                ]);
             }
         }
 

@@ -8,6 +8,7 @@ use App\Models\Guru;
 use App\Models\TahunAkademik;
 use App\Models\Siswa;
 use App\Models\ClassLeaderboard;
+use App\Models\KelasJadwalAbsensi;
 
 class Kelas extends Model
 {
@@ -55,5 +56,14 @@ class Kelas extends Model
     public function classLeaderboard()
     {
         return $this->hasMany(ClassLeaderboard::class, 'kelas_id');
+    }
+
+    /**
+     * Relasi ke jadwal absensi per hari.
+     * Satu kelas memiliki banyak jadwal absensi (per hari).
+     */
+    public function jadwalAbsensi()
+    {
+        return $this->hasMany(KelasJadwalAbsensi::class);
     }
 }

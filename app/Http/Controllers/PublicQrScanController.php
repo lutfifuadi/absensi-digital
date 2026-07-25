@@ -143,6 +143,26 @@ class PublicQrScanController extends Controller
         $siswa = Siswa::with('kelas')->where('qr_code', $qrCode)->first();
 
         if ($siswa) {
+            // PRD-016: Load jadwal absensi per kelas per hari
+            if ($siswa->kelas_id) {
+                $jadwalKelas = \App\Helpers\JadwalAbsensiHelper::getJadwalForKelas($siswa->kelas_id);
+                $jamMulaiAbsensi = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_mulai_absensi']) ?? '06:00';
+                $jamMasuk        = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_masuk']) ?? '07:00';
+                $jamPulang       = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_pulang']) ?? '15:00';
+                $jamAkhirPulang  = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_akhir_pulang']) ?? '17:00';
+                $jamMulaiPulang  = $jamPulang;
+                $toleransi       = (int)($settings['toleransi_terlambat'] ?? 15);
+                $jamBatasMasuk   = \Carbon\Carbon::parse($jamMasuk)->addMinutes($toleransi)->format('H:i');
+
+                // Cek apakah hari ini libur untuk kelas ini
+                if ($jadwalKelas['is_libur']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Hari ini adalah hari libur untuk kelas ' . $siswa->kelas?->nama . '.',
+                    ]);
+                }
+            }
+
             if (\App\Models\Holiday::isSiswaHoliday($siswa, $tanggal)) {
                 $holidayName = \App\Models\Holiday::whereDate('tanggal', $tanggal)
                     ->where(function ($query) use ($siswa) {

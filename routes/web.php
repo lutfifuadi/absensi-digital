@@ -560,6 +560,27 @@ Route::middleware([
             ->name('admin.kelas.execute-copy')
             ->middleware('role:super_admin,admin_sekolah,operator');
 
+        // ── KELOLA JAM ABSENSI PER KELAS PER HARI (PRD-016) ────────────────────
+        Route::get('jadwal-absensi', [\App\Http\Controllers\Admin\JadwalAbsensiController::class, 'index'])
+            ->name('admin.jadwal-absensi.index')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+        Route::get('jadwal-absensi/{kelas}', [\App\Http\Controllers\Admin\JadwalAbsensiController::class, 'show'])
+            ->name('admin.jadwal-absensi.show')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+        Route::post('jadwal-absensi', [\App\Http\Controllers\Admin\JadwalAbsensiController::class, 'store'])
+            ->name('admin.jadwal-absensi.store')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+        Route::post('jadwal-absensi/store-all', [\App\Http\Controllers\Admin\JadwalAbsensiController::class, 'storeAll'])
+            ->name('admin.jadwal-absensi.store-all')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+        Route::post('jadwal-absensi/bulk-apply', [\App\Http\Controllers\Admin\JadwalAbsensiController::class, 'bulkApply'])
+            ->name('admin.jadwal-absensi.bulk-apply')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+        Route::delete('jadwal-absensi/{kelas}', [\App\Http\Controllers\Admin\JadwalAbsensiController::class, 'destroy'])
+            ->name('admin.jadwal-absensi.destroy')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+        // ─────────────────────────────────────────────────────────────────────────
+
         Route::get('guru/cetak-qr', [GuruController::class, 'cetakQr'])
             ->name('admin.guru.cetak-qr')
             ->middleware('role:super_admin,admin_sekolah,operator');
