@@ -572,8 +572,8 @@
         <div class="modal-header">
           <div class="d-flex align-items-center gap-3">
             <div class="modal-icon-header"
-              style="background:rgba(255,159,67,0.2);border:1px solid rgba(255,159,67,0.35);">
-              <i class="ti tabler-clock-edit text-warning fs-5"></i>
+              style="background:rgba(255,184,0,0.2);border:1px solid rgba(255,184,0,0.35);">
+              <i class="ti tabler-clock-edit fs-5" style="color:#ffb800 !important;"></i>
             </div>
             <div>
               <h5 class="modal-title mb-0 text-white fw-bold">Kelola Jadwal Absensi</h5>
@@ -617,8 +617,8 @@
         <div class="modal-header">
           <div class="d-flex align-items-center gap-3">
             <div class="modal-icon-header"
-              style="background:rgba(255,159,67,0.2);border:1px solid rgba(255,159,67,0.35);">
-              <i class="ti tabler-copy text-warning fs-5"></i>
+              style="background:rgba(255,184,0,0.2);border:1px solid rgba(255,184,0,0.35);">
+              <i class="ti tabler-copy fs-5" style="color:#ffb800 !important;"></i>
             </div>
             <div>
               <h5 class="modal-title mb-0 text-white fw-bold">Copy Jadwal dari Kelas Lain</h5>
@@ -867,7 +867,7 @@
           <div class="jadwal-hari-card ${isLibur ? 'is-libur' : ''}" id="card-${hari}" data-hari="${hari}">
             <div class="jadwal-hari-header">
               <h6>
-                <i class="ti ${HARI_ICONS[hari]} me-1" style="font-size:0.85rem;"></i>
+                <i class="ti ${HARI_ICONS[hari]} me-1" style="font-size:0.85rem; color:#ffb800 !important;"></i>
                 ${HARI_LABELS[hari]}
               </h6>
               <label class="jadwal-toggle">
