@@ -75,15 +75,90 @@ class IzinSakitController extends Controller
 
     public function create()
     {
-        $siswaOptions = Siswa::with('user:id')->orderBy('nama_lengkap')->get();
-        $guruOptions = Guru::with('user:id')->orderBy('nama_lengkap')->get();
-        $staffOptions = StaffTataUsaha::with('user:id')->orderBy('nama_lengkap')->get();
+        $user = Auth::user();
+        $isSelf = false;
+        $selfType = null;
+        $selfReferenceId = null;
+        $selfName = null;
 
-        return view('admin.izin-sakit.form', compact('siswaOptions', 'guruOptions', 'staffOptions'));
+        $selfModel = null;
+
+        if ($user->isRole(User::ROLE_SISWA)) {
+            $siswa = $user->siswa;
+            if (!$siswa) abort(404, 'Data siswa tidak ditemukan.');
+            $siswa->load('kelas');
+            $isSelf = true;
+            $selfType = 'siswa';
+            $selfReferenceId = $siswa->id;
+            $selfName = $siswa->nama_lengkap;
+            $selfModel = $siswa;
+
+            $siswaOptions = collect([$siswa]);
+            $guruOptions = collect([]);
+            $staffOptions = collect([]);
+        } elseif ($user->isRole(User::ROLE_GURU)) {
+            $guru = $user->guru;
+            if (!$guru) abort(404, 'Data guru tidak ditemukan.');
+            $isSelf = true;
+            $selfType = 'guru';
+            $selfReferenceId = $guru->id;
+            $selfName = $guru->nama_lengkap;
+            $selfModel = $guru;
+
+            $siswaOptions = collect([]);
+            $guruOptions = collect([$guru]);
+            $staffOptions = collect([]);
+        } elseif ($user->isRole(User::ROLE_STAFF_TU)) {
+            $staff = $user->staff;
+            if (!$staff) abort(404, 'Data staff tidak ditemukan.');
+            $isSelf = true;
+            $selfType = 'staff';
+            $selfReferenceId = $staff->id;
+            $selfName = $staff->nama_lengkap;
+            $selfModel = $staff;
+
+            $siswaOptions = collect([]);
+            $guruOptions = collect([]);
+            $staffOptions = collect([$staff]);
+        } else {
+            $siswaOptions = Siswa::with('user:id')->orderBy('nama_lengkap')->get();
+            $guruOptions = Guru::with('user:id')->orderBy('nama_lengkap')->get();
+            $staffOptions = StaffTataUsaha::with('user:id')->orderBy('nama_lengkap')->get();
+        }
+
+        return view('admin.izin-sakit.form', compact(
+            'siswaOptions', 'guruOptions', 'staffOptions',
+            'isSelf', 'selfType', 'selfReferenceId', 'selfName', 'selfModel'
+        ));
     }
 
     public function store(Request $request)
     {
+        $user = Auth::user();
+
+        if ($user->isRole(User::ROLE_SISWA)) {
+            $siswa = $user->siswa;
+            if (!$siswa) abort(404, 'Data siswa tidak ditemukan.');
+            $request->merge([
+                'tipe' => 'siswa',
+                'reference_id' => $siswa->id,
+            ]);
+        } elseif ($user->isRole(User::ROLE_GURU)) {
+            $guru = $user->guru;
+            if (!$guru) abort(404, 'Data guru tidak ditemukan.');
+            $request->merge([
+                'tipe' => 'guru',
+                'reference_id' => $guru->id,
+            ]);
+        } elseif ($user->isRole(User::ROLE_STAFF_TU)) {
+            $staff = $user->staff;
+            if (!$staff) abort(404, 'Data staff tidak ditemukan.');
+            $request->merge([
+                'tipe' => 'staff',
+                'reference_id' => $staff->id,
+            ]);
+        }
+
         $data = $request->validate([
             'tipe'           => 'required|in:siswa,guru,staff',
             'reference_id'   => 'required|integer',
@@ -167,8 +242,7 @@ class IzinSakitController extends Controller
             SendWhatsAppMessage::dispatch($nomorAdmin, $pesan, 'Notifikasi Admin Absensi', false);
         }
 
-        return redirect()->route('admin.izin-sakit.index')
-            ->with('success', 'Pengajuan izin/sakit berhasil disimpan.');
+        return $this->redirectIndexForUser($user, 'Pengajuan izin/sakit berhasil disimpan.');
     }
 
     /**
@@ -206,11 +280,62 @@ class IzinSakitController extends Controller
 
     public function edit(IzinSakit $izinSakit)
     {
-        $siswaOptions = Siswa::with('user:id')->orderBy('nama_lengkap')->get();
-        $guruOptions = Guru::with('user:id')->orderBy('nama_lengkap')->get();
-        $staffOptions = StaffTataUsaha::with('user:id')->orderBy('nama_lengkap')->get();
+        $user = Auth::user();
+        $selfModel = null;
 
-        return view('admin.izin-sakit.form', compact('izinSakit', 'siswaOptions', 'guruOptions', 'staffOptions'));
+        if ($user->isRole(User::ROLE_SISWA)) {
+            $siswa = $user->siswa;
+            if (!$siswa || $izinSakit->tipe !== 'siswa' || $izinSakit->reference_id !== $siswa->id) {
+                abort(403, 'Akses ditolak.');
+            }
+            $siswa->load('kelas');
+            $isSelf = true;
+            $selfType = 'siswa';
+            $selfReferenceId = $siswa->id;
+            $selfName = $siswa->nama_lengkap;
+            $selfModel = $siswa;
+
+            $siswaOptions = collect([$siswa]);
+            $guruOptions = collect([]);
+            $staffOptions = collect([]);
+        } elseif ($user->isRole(User::ROLE_GURU)) {
+            $guru = $user->guru;
+            if (!$guru || $izinSakit->tipe !== 'guru' || $izinSakit->reference_id !== $guru->id) {
+                abort(403, 'Akses ditolak.');
+            }
+            $isSelf = true;
+            $selfType = 'guru';
+            $selfReferenceId = $guru->id;
+            $selfName = $guru->nama_lengkap;
+            $selfModel = $guru;
+
+            $siswaOptions = collect([]);
+            $guruOptions = collect([$guru]);
+            $staffOptions = collect([]);
+        } elseif ($user->isRole(User::ROLE_STAFF_TU)) {
+            $staff = $user->staff;
+            if (!$staff || $izinSakit->tipe !== 'staff' || $izinSakit->reference_id !== $staff->id) {
+                abort(403, 'Akses ditolak.');
+            }
+            $isSelf = true;
+            $selfType = 'staff';
+            $selfReferenceId = $staff->id;
+            $selfName = $staff->nama_lengkap;
+            $selfModel = $staff;
+
+            $siswaOptions = collect([]);
+            $guruOptions = collect([]);
+            $staffOptions = collect([$staff]);
+        } else {
+            $siswaOptions = Siswa::with('user:id')->orderBy('nama_lengkap')->get();
+            $guruOptions = Guru::with('user:id')->orderBy('nama_lengkap')->get();
+            $staffOptions = StaffTataUsaha::with('user:id')->orderBy('nama_lengkap')->get();
+        }
+
+        return view('admin.izin-sakit.form', compact(
+            'izinSakit', 'siswaOptions', 'guruOptions', 'staffOptions',
+            'isSelf', 'selfType', 'selfReferenceId', 'selfName', 'selfModel'
+        ));
     }
 
     public function update(Request $request, IzinSakit $izinSakit)
@@ -376,8 +501,7 @@ class IzinSakitController extends Controller
         }
         $izinSakit->delete();
 
-        return redirect()->route('admin.izin-sakit.index')
-            ->with('success', 'Pengajuan izin/sakit berhasil dihapus.');
+        return $this->redirectIndexForUser(Auth::user(), 'Pengajuan izin/sakit berhasil dihapus.');
     }
 
     public function markRead(Request $request)
@@ -391,5 +515,17 @@ class IzinSakitController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    private function redirectIndexForUser(?User $user, string $message): RedirectResponse
+    {
+        $user = $user ?? Auth::user();
+        if ($user?->isRole(User::ROLE_SISWA)) {
+            return redirect()->route('siswa.izin-sakit.index')->with('success', $message);
+        }
+        if ($user?->isRole(User::ROLE_GURU)) {
+            return redirect()->route('guru.izin-sakit.index')->with('success', $message);
+        }
+        return redirect()->route('admin.izin-sakit.index')->with('success', $message);
     }
 }

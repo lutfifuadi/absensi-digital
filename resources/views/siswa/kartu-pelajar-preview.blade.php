@@ -448,20 +448,42 @@
     object-fit: cover;
     z-index: 1;
   }
-  .template-element {
+  .template-element, .element {
     position: absolute;
-    z-index: 10;
+    line-height: 1.2;
   }
-  .template-photo {
+  .element.text {
+    font-family: inherit;
+  }
+  .photo {
     border: 1px solid #ccc;
     object-fit: cover;
   }
-  .template-qr {
+  .qr {
     background: #fff;
     object-fit: contain;
   }
-  .template-text {
-    font-weight: bold;
+  .barcode {
+    background: #fff;
+    padding: 2pt;
+    object-fit: contain;
+  }
+  .element-divider {
+    position: absolute;
+    z-index: 9;
+  }
+
+  .kp-cards-flex {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2.5rem;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .kp-card-side-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   /* Scale for smaller screens */
@@ -481,258 +503,71 @@
 @endsection
 
 @section('content')
+@php
+  $elementsFront = $template ? ($template->front_elements ?? ($config['front']['elements'] ?? ($config['elements'] ?? []))) : [];
+  $elementsBack  = $template ? ($template->back_elements ?? ($config['back']['elements'] ?? null)) : null;
+  $hasBack       = $template ? ($template->has_back_side ?? (!empty($elementsBack) && collect($elementsBack)->contains('show', true))) : false;
+@endphp
+
 <div class="kp-wrapper">
   <div class="kp-title">
     Preview Kartu Pelajar
-    <small>Klik tombol download untuk menyimpan sebagai gambar</small>
+    <small>Klik tombol download untuk menyimpan kartu sebagai gambar (PNG)</small>
   </div>
 
   <div class="kp-scale-wrapper">
     @if($template && $config)
-      {{-- ====== KARTU PELAJAR TEMPLATE KUSTOM ====== --}}
-      <div class="kp-card-container template-wrapper" id="kartuPelajar" 
-           style="
-             width: {{ $config['canvas']['width'] }}pt; 
-             height: {{ $config['canvas']['height'] }}pt; 
-             border-radius: 0 !important;
-             @if($bgBase64) background-image: url('{{ $bgBase64 }}'); background-size: cover; background-position: center; @endif
-           ">
-
-        @php
-          $elements = $config['elements'];
-          $masaBerlakuText = $siswa->_masa_berlaku ?? 'Selama menjadi siswa aktif';
-          if (isset($elements['masa_berlaku']) && $elements['masa_berlaku']['show']) {
-              $service = app(\App\Services\IdCardPdfService::class);
-              $jumlahTahun = $lembagaData['jumlah_tahun_sekolah'] ?? 3;
-              $masaBerlakuText = $service->hitungMasaBerlakuSiswa($siswa, $jumlahTahun);
-          }
-        @endphp
-
-        <!-- PHOTO -->
-        @if(isset($elements['photo']) && $elements['photo']['show'])
-          @php
-            $logoFallback = !empty($logoBase64) ? $logoBase64 : (!empty($logoUrl) ? $logoUrl : (!empty($logoSekolah) ? asset('uploads/logo/' . $logoSekolah) : asset('assets/img/avatars/1.png')));
-            $photoSrc = !empty($fotoBase64) ? $fotoBase64 : $logoFallback;
-          @endphp
-          <div class="template-element" style="left: {{ $elements['photo']['x'] }}pt; top: {{ $elements['photo']['y'] }}pt;">
-            <img class="template-photo" src="{{ $photoSrc }}" 
-                 style="width: {{ $elements['photo']['w'] }}pt; height: {{ $elements['photo']['h'] }}pt; object-fit: contain;" alt="Foto Siswa">
+      {{-- ====== KARTU PELAJAR TEMPLATE KUSTOM (FRONT & BACK) ====== --}}
+      <div class="kp-cards-flex">
+        {{-- SISI DEPAN (FRONT) --}}
+        <div class="kp-card-side-box">
+          @if($hasBack)
+            <div class="badge bg-warning text-dark mb-3 px-3 py-2 shadow-sm" style="font-size: 0.85rem; letter-spacing: 1px; font-weight: 700; border-radius: 20px;">
+              <i class="ti tabler-credit-card me-1"></i> SISI DEPAN
+            </div>
+          @endif
+          <div class="kp-card-container template-wrapper" id="kartuPelajarFront" 
+               style="
+                 width: {{ $config['canvas']['width'] ?? 153 }}pt; 
+                 height: {{ $config['canvas']['height'] ?? 243 }}pt; 
+                 border-radius: {{ $config['canvas']['border_radius'] ?? 5 }}pt !important;
+                 @if(!empty($bgBase64)) background-image: url('{{ $bgBase64 }}'); background-size: cover; background-position: center; @endif
+               ">
+            @include('admin.id-card-templates._elements_render', [
+              'elements' => $elementsFront,
+              'entity' => $siswa,
+              'lembagaData' => $lembagaData,
+              'template' => $template
+            ])
           </div>
-        @endif
+        </div>
 
-        <!-- Name -->
-        @if(isset($elements['name']) && $elements['name']['show'])
-          <div class="template-element template-text" style="
-              left: {{ $elements['name']['align'] == 'center' ? 0 : $elements['name']['x'] . 'pt' }}; 
-              top: {{ $elements['name']['y'] }}pt;
-              width: {{ $elements['name']['align'] == 'center' ? '100%' : 'auto' }};
-              text-align: {{ $elements['name']['align'] }};
-              font-size: {{ $elements['name']['size'] }}pt;
-              color: {{ $elements['name']['color'] }};
-          ">
-            {{ strtoupper($siswa->nama_lengkap) }}
+        {{-- SISI BELAKANG (BACK) --}}
+        @if($hasBack && !empty($elementsBack))
+        <div class="kp-card-side-box">
+          <div class="badge bg-info text-white mb-3 px-3 py-2 shadow-sm" style="font-size: 0.85rem; letter-spacing: 1px; font-weight: 700; border-radius: 20px;">
+            <i class="ti tabler-credit-card-off me-1"></i> SISI BELAKANG
           </div>
-        @endif
-
-        <!-- ID Card (NIS) -->
-        @if(isset($elements['id_number']) && $elements['id_number']['show'])
-          <div class="template-element template-text" style="
-              left: {{ $elements['id_number']['align'] == 'center' ? 0 : $elements['id_number']['x'] . 'pt' }}; 
-              top: {{ $elements['id_number']['y'] }}pt;
-              width: {{ $elements['id_number']['align'] == 'center' ? '100%' : 'auto' }};
-              text-align: {{ $elements['id_number']['align'] }};
-              font-size: {{ $elements['id_number']['size'] }}pt;
-              color: {{ $elements['id_number']['color'] }};
-          ">
-            {{ $siswa->nis }}
+          <div class="kp-card-container template-wrapper" id="kartuPelajarBack" 
+               style="
+                 width: {{ $config['canvas']['width'] ?? 153 }}pt; 
+                 height: {{ $config['canvas']['height'] ?? 243 }}pt; 
+                 border-radius: {{ $config['canvas']['border_radius'] ?? 5 }}pt !important;
+                 @if(!empty($bgBackBase64)) background-image: url('{{ $bgBackBase64 }}'); background-size: cover; background-position: center; @endif
+               ">
+            @include('admin.id-card-templates._elements_render', [
+              'elements' => $elementsBack,
+              'entity' => $siswa,
+              'lembagaData' => $lembagaData,
+              'template' => $template
+            ])
           </div>
-        @endif
-
-        <!-- NIS (Siswa) -->
-        @if(isset($elements['nis']) && $elements['nis']['show'])
-          <div class="template-element template-text" style="
-              left: {{ ($elements['nis']['align'] ?? 'center') == 'center' ? 0 : $elements['nis']['x'] . 'pt' }}; 
-              top: {{ $elements['nis']['y'] }}pt;
-              width: {{ ($elements['nis']['align'] ?? 'center') == 'center' ? '100%' : 'auto' }};
-              text-align: {{ $elements['nis']['align'] ?? 'center' }};
-              font-size: {{ $elements['nis']['size'] ?? 12 }}pt;
-              color: {{ $elements['nis']['color'] ?? '#555555' }};
-          ">
-            {{ $siswa->nis }}
-          </div>
-        @endif
-
-        <!-- NISN (Siswa) -->
-        @if(isset($elements['nisn']) && $elements['nisn']['show'])
-          <div class="template-element template-text" style="
-              left: {{ ($elements['nisn']['align'] ?? 'center') == 'center' ? 0 : $elements['nisn']['x'] . 'pt' }}; 
-              top: {{ $elements['nisn']['y'] }}pt;
-              width: {{ ($elements['nisn']['align'] ?? 'center') == 'center' ? '100%' : 'auto' }};
-              text-align: {{ $elements['nisn']['align'] ?? 'center' }};
-              font-size: {{ $elements['nisn']['size'] ?? 12 }}pt;
-              color: {{ $elements['nisn']['color'] ?? '#555555' }};
-          ">
-            {{ $siswa->nisn }}
-          </div>
-        @endif
-
-        <!-- Class -->
-        @if(isset($elements['class']) && $elements['class']['show'])
-          <div class="template-element template-text" style="
-              left: {{ $elements['class']['align'] == 'center' ? 0 : $elements['class']['x'] . 'pt' }}; 
-              top: {{ $elements['class']['y'] }}pt;
-              width: {{ $elements['class']['align'] == 'center' ? '100%' : 'auto' }};
-              text-align: {{ $elements['class']['align'] }};
-              font-size: {{ $elements['class']['size'] }}pt;
-              color: {{ $elements['class']['color'] }};
-          ">
-            {{ $siswa->kelas->nama ?? '-' }}
-          </div>
-        @endif
-
-        <!-- QR Code -->
-        @if(isset($elements['qr']) && $elements['qr']['show'])
-          <div class="template-element" style="left: {{ $elements['qr']['x'] }}pt; top: {{ $elements['qr']['y'] }}pt;">
-            <img class="template-qr" src="{{ $qrImage }}" style="width: {{ $elements['qr']['w'] }}pt; height: {{ $elements['qr']['h'] }}pt;" alt="QR Code">
-          </div>
-        @endif
-
-        <!-- Logo Lembaga -->
-        @if(isset($elements['logo_lembaga']) && $elements['logo_lembaga']['show'] && $lembagaData['logo_base64'])
-          <div class="template-element" style="left: {{ $elements['logo_lembaga']['x'] }}pt; top: {{ $elements['logo_lembaga']['y'] }}pt;">
-            <img src="{{ $lembagaData['logo_base64'] }}" style="width: {{ $elements['logo_lembaga']['w'] ?? 40 }}pt; height: {{ $elements['logo_lembaga']['h'] ?? 40 }}pt; object-fit: contain;" alt="Logo Lembaga">
-          </div>
-        @endif
-
-        <!-- Nama Lembaga -->
-        @if(isset($elements['nama_lembaga']) && $elements['nama_lembaga']['show'])
-          <div class="template-element template-text" style="
-              left: {{ ($elements['nama_lembaga']['align'] ?? 'left') == 'center' ? 0 : $elements['nama_lembaga']['x'] . 'pt' }};
-              top: {{ $elements['nama_lembaga']['y'] }}pt;
-              width: {{ ($elements['nama_lembaga']['align'] ?? 'left') == 'center' ? '100%' : 'auto' }};
-              text-align: {{ $elements['nama_lembaga']['align'] ?? 'left' }};
-              font-size: {{ $elements['nama_lembaga']['size'] ?? 8 }}pt;
-              color: {{ $elements['nama_lembaga']['color'] ?? '#000000' }};
-          ">
-            {{ $lembagaData['nama_sekolah'] }}
-          </div>
-        @endif
-
-        <!-- Alamat Lembaga -->
-        @if(isset($elements['alamat_lembaga']) && $elements['alamat_lembaga']['show'])
-          <div class="template-element" style="
-              left: {{ ($elements['alamat_lembaga']['align'] ?? 'left') == 'center' ? 0 : $elements['alamat_lembaga']['x'] . 'pt' }};
-              top: {{ $elements['alamat_lembaga']['y'] }}pt;
-              width: {{ ($elements['alamat_lembaga']['align'] ?? 'left') == 'center' ? '100%' : 'auto' }};
-              text-align: {{ $elements['alamat_lembaga']['align'] ?? 'left' }};
-              font-size: {{ $elements['alamat_lembaga']['size'] ?? 7 }}pt;
-              color: {{ $elements['alamat_lembaga']['color'] ?? '#333333' }};
-          ">
-            {{ $lembagaData['alamat_lembaga'] }}
-          </div>
-        @endif
-
-        <!-- Jenis Kelamin -->
-        @if(isset($elements['gender']) && $elements['gender']['show'])
-          <div class="template-element template-text" style="
-              left: {{ ($elements['gender']['align'] ?? 'left') == 'center' ? 0 : $elements['gender']['x'] . 'pt' }};
-              top: {{ $elements['gender']['y'] }}pt;
-              width: {{ ($elements['gender']['align'] ?? 'left') == 'center' ? '100%' : 'auto' }};
-              text-align: {{ $elements['gender']['align'] ?? 'left' }};
-              font-size: {{ $elements['gender']['size'] ?? 8 }}pt;
-              color: {{ $elements['gender']['color'] ?? '#000000' }};
-          ">
-            {{ $siswa->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan' }}
-          </div>
-        @endif
-
-        <!-- TTL -->
-        @if(isset($elements['ttl']) && $elements['ttl']['show'] && $siswa->tempat_lahir && $siswa->tanggal_lahir)
-          <div class="template-element" style="
-              left: {{ ($elements['ttl']['align'] ?? 'left') == 'center' ? 0 : $elements['ttl']['x'] . 'pt' }};
-              top: {{ $elements['ttl']['y'] }}pt;
-              width: {{ ($elements['ttl']['align'] ?? 'left') == 'center' ? '100%' : 'auto' }};
-              text-align: {{ $elements['ttl']['align'] ?? 'left' }};
-              font-size: {{ $elements['ttl']['size'] ?? 7 }}pt;
-              color: {{ $elements['ttl']['color'] ?? '#333333' }};
-          ">
-            {{ $siswa->tempat_lahir }}, {{ \Carbon\Carbon::parse($siswa->tanggal_lahir)->isoFormat('D MMMM Y') }}
-          </div>
-        @endif
-
-        <!-- Masa Berlaku -->
-        @if(isset($elements['masa_berlaku']) && $elements['masa_berlaku']['show'])
-          <div class="template-element" style="
-              left: {{ ($elements['masa_berlaku']['align'] ?? 'left') == 'center' ? 0 : $elements['masa_berlaku']['x'] . 'pt' }};
-              top: {{ $elements['masa_berlaku']['y'] }}pt;
-              width: {{ ($elements['masa_berlaku']['align'] ?? 'left') == 'center' ? '100%' : 'auto' }};
-              text-align: {{ $elements['masa_berlaku']['align'] ?? 'left' }};
-              font-size: {{ $elements['masa_berlaku']['size'] ?? 7 }}pt;
-              color: {{ $elements['masa_berlaku']['color'] ?? '#333333' }};
-          ">
-            {{ $masaBerlakuText }}
-          </div>
-        @endif
-
-        <!-- Tempat Tanggal Terbit -->
-        @if(isset($elements['tempat_tanggal_terbit']) && $elements['tempat_tanggal_terbit']['show'])
-          <div class="template-element" style="
-              left: {{ ($elements['tempat_tanggal_terbit']['align'] ?? 'left') == 'center' ? 0 : $elements['tempat_tanggal_terbit']['x'] . 'pt' }};
-              top: {{ $elements['tempat_tanggal_terbit']['y'] }}pt;
-              width: {{ ($elements['tempat_tanggal_terbit']['align'] ?? 'left') == 'center' ? '100%' : 'auto' }};
-              text-align: {{ $elements['tempat_tanggal_terbit']['align'] ?? 'left' }};
-              font-size: {{ $elements['tempat_tanggal_terbit']['size'] ?? 7 }}pt;
-              color: {{ $elements['tempat_tanggal_terbit']['color'] ?? '#333333' }};
-          ">
-            {{ $lembagaData['kota_penerbitan'] }}, {{ now()->locale('id')->isoFormat('D MMMM Y') }}
-          </div>
-        @endif
-
-        <!-- TTD Kepala Sekolah -->
-        @if(isset($elements['ttd_kepala_sekolah']) && $elements['ttd_kepala_sekolah']['show'] && $lembagaData['ttd_base64'])
-          <div class="template-element" style="left: {{ $elements['ttd_kepala_sekolah']['x'] }}pt; top: {{ $elements['ttd_kepala_sekolah']['y'] }}pt;">
-            <img src="{{ $lembagaData['ttd_base64'] }}" style="width: {{ $elements['ttd_kepala_sekolah']['w'] ?? 60 }}pt; height: {{ $elements['ttd_kepala_sekolah']['h'] ?? 30 }}pt; object-fit: contain;" alt="TTD">
-          </div>
-        @endif
-
-        <!-- Cap Lembaga -->
-        @if(isset($elements['cap_lembaga']) && $elements['cap_lembaga']['show'] && $lembagaData['cap_base64'])
-          <div class="template-element" style="left: {{ $elements['cap_lembaga']['x'] }}pt; top: {{ $elements['cap_lembaga']['y'] }}pt;">
-            <img src="{{ $lembagaData['cap_base64'] }}" style="width: {{ $elements['cap_lembaga']['w'] ?? 50 }}pt; height: {{ $elements['cap_lembaga']['h'] ?? 50 }}pt; object-fit: contain;" alt="Cap">
-          </div>
-        @endif
-
-        <!-- Nama Kepala Sekolah -->
-        @if(isset($elements['nama_kepala_sekolah']) && $elements['nama_kepala_sekolah']['show'])
-          <div class="template-element template-text" style="
-              left: {{ ($elements['nama_kepala_sekolah']['align'] ?? 'center') == 'center' ? 0 : $elements['nama_kepala_sekolah']['x'] . 'pt' }};
-              top: {{ $elements['nama_kepala_sekolah']['y'] }}pt;
-              width: {{ ($elements['nama_kepala_sekolah']['align'] ?? 'center') == 'center' ? '100%' : 'auto' }};
-              text-align: {{ $elements['nama_kepala_sekolah']['align'] ?? 'center' }};
-              font-size: {{ $elements['nama_kepala_sekolah']['size'] ?? 8 }}pt;
-              color: {{ $elements['nama_kepala_sekolah']['color'] ?? '#000000' }};
-          ">
-            {{ $lembagaData['nama_kepala_lembaga'] }}
-          </div>
-        @endif
-
-        <!-- NIP Kepala Sekolah -->
-        @if(isset($elements['nip_kepala_sekolah']) && $elements['nip_kepala_sekolah']['show'])
-          <div class="template-element" style="
-              left: {{ ($elements['nip_kepala_sekolah']['align'] ?? 'center') == 'center' ? 0 : $elements['nip_kepala_sekolah']['x'] . 'pt' }};
-              top: {{ $elements['nip_kepala_sekolah']['y'] }}pt;
-              width: {{ ($elements['nip_kepala_sekolah']['align'] ?? 'center') == 'center' ? '100%' : 'auto' }};
-              text-align: {{ $elements['nip_kepala_sekolah']['align'] ?? 'center' }};
-              font-size: {{ $elements['nip_kepala_sekolah']['size'] ?? 7 }}pt;
-              color: {{ $elements['nip_kepala_sekolah']['color'] ?? '#333333' }};
-          ">
-            NIP. {{ $lembagaData['nip_kepala_lembaga'] }}
-          </div>
+        </div>
         @endif
       </div>
     @else
       {{-- ====== KARTU PELAJAR FALLBACK (QR & DATA STANDARD) ====== --}}
-      <div class="kp-card-container kp-card-fallback" id="kartuPelajar">
+      <div class="kp-card-container kp-card-fallback" id="kartuPelajarFront">
         {{-- Background --}}
         <div class="kp-bg">
           <div class="kp-deco-circle kp-deco-1"></div>
@@ -829,13 +664,23 @@
 
   {{-- Action Buttons --}}
   <div class="kp-actions">
-    <button type="button" class="kp-btn-download" id="btnDownloadKartu" onclick="downloadKartu()">
-      <i class="ti tabler-download" style="font-size:18px;"></i>
-      Download Kartu (PNG)
-    </button>
+    @if($template && $config && $hasBack && !empty($elementsBack))
+      <button type="button" class="kp-btn-download" id="btnDownloadFront" onclick="downloadCard('kartuPelajarFront', 'Kartu_Pelajar_Depan_{{ $siswa->nama_lengkap }}_{{ $siswa->nis }}', 'btnDownloadFront')">
+        <i class="ti tabler-download me-1"></i> Download Sisi Depan
+      </button>
+      <button type="button" class="kp-btn-download" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);" id="btnDownloadBack" onclick="downloadCard('kartuPelajarBack', 'Kartu_Pelajar_Belakang_{{ $siswa->nama_lengkap }}_{{ $siswa->nis }}', 'btnDownloadBack')">
+        <i class="ti tabler-download me-1"></i> Download Sisi Belakang
+      </button>
+      <button type="button" class="kp-btn-download" style="background: linear-gradient(135deg, #059669, #047857);" id="btnDownloadBoth" onclick="downloadBothSides()">
+        <i class="ti tabler-files me-1"></i> Download Depan & Belakang
+      </button>
+    @else
+      <button type="button" class="kp-btn-download" id="btnDownloadKartu" onclick="downloadCard('kartuPelajarFront', 'Kartu_Pelajar_{{ $siswa->nama_lengkap }}_{{ $siswa->nis }}', 'btnDownloadKartu')">
+        <i class="ti tabler-download me-1"></i> Download Kartu (PNG)
+      </button>
+    @endif
     <a href="{{ route('dashboard') }}" class="kp-btn-back">
-      <i class="ti tabler-arrow-left" style="font-size:16px;"></i>
-      Kembali ke Dashboard
+      <i class="ti tabler-arrow-left me-1"></i> Kembali ke Dashboard
     </a>
   </div>
 </div>
@@ -844,26 +689,22 @@
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-function downloadKartu() {
-  const btn = document.getElementById('btnDownloadKartu');
-  const card = document.getElementById('kartuPelajar');
+function downloadCard(cardId, filename, btnId) {
+  const btn = document.getElementById(btnId);
+  const card = document.getElementById(cardId);
   const wrapper = document.querySelector('.kp-scale-wrapper');
 
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Memproses...';
+  if (!card) return;
+
+  const originalHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Memproses...';
+  }
 
   // Simpan style transform asli sebelum render
   const originalTransform = wrapper ? wrapper.style.transform : '';
   const originalMarginBottom = wrapper ? wrapper.style.marginBottom : '';
-
-  // Hitung lebar dan tinggi kartu
-  @if($template && $config)
-    const cardWidth = Math.round({{ $config['canvas']['width'] }} * 1.33333); // convert pt to px
-    const cardHeight = Math.round({{ $config['canvas']['height'] }} * 1.33333);
-  @else
-    const cardWidth = 1011;
-    const cardHeight = 638;
-  @endif
 
   // Nonaktifkan transform scaling sementara agar html2canvas membaca dimensi asli
   if (wrapper) {
@@ -871,30 +712,29 @@ function downloadKartu() {
     wrapper.style.marginBottom = '0';
   }
 
-  // Tambahkan sedikit delay untuk memastikan layout terhitung ulang oleh browser
   setTimeout(() => {
     html2canvas(card, {
-      scale: 6,
+      scale: 5,
       useCORS: true,
       allowTaint: true,
       backgroundColor: null,
       imageTimeout: 0,
     }).then(function(canvas) {
-      // Kembalikan style transform asli setelah render selesai
       if (wrapper) {
         wrapper.style.transform = originalTransform;
         wrapper.style.marginBottom = originalMarginBottom;
       }
 
       const link = document.createElement('a');
-      link.download = 'Kartu_Pelajar_{{ $siswa->nama_lengkap }}_{{ $siswa->nis }}.png';
+      link.download = filename + '.png';
       link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
 
-      btn.disabled = false;
-      btn.innerHTML = '<i class="ti tabler-download" style="font-size:18px;"></i> Download Kartu (PNG)';
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
     }).catch(function(err) {
-      // Kembalikan style transform asli jika terjadi error
       if (wrapper) {
         wrapper.style.transform = originalTransform;
         wrapper.style.marginBottom = originalMarginBottom;
@@ -902,10 +742,34 @@ function downloadKartu() {
 
       console.error('Gagal generate kartu:', err);
       alert('Gagal membuat gambar kartu. Silakan coba lagi.');
-      btn.disabled = false;
-      btn.innerHTML = '<i class="ti tabler-download" style="font-size:18px;"></i> Download Kartu (PNG)';
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
     });
   }, 350);
+}
+
+function downloadBothSides() {
+  const btn = document.getElementById('btnDownloadBoth');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Mengunduh Sisi Depan...';
+  }
+  downloadCard('kartuPelajarFront', 'Kartu_Pelajar_Depan_{{ $siswa->nama_lengkap }}_{{ $siswa->nis }}', 'btnDownloadFront');
+  
+  setTimeout(() => {
+    if (btn) {
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Mengunduh Sisi Belakang...';
+    }
+    downloadCard('kartuPelajarBack', 'Kartu_Pelajar_Belakang_{{ $siswa->nama_lengkap }}_{{ $siswa->nis }}', 'btnDownloadBack');
+    setTimeout(() => {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ti tabler-files me-1"></i> Download Depan & Belakang';
+      }
+    }, 1000);
+  }, 1200);
 }
 </script>
 @endpush

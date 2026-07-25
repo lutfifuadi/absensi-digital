@@ -136,10 +136,12 @@ class PortalSiswaController extends Controller
             }
         }
 
-        // 4. Background template
+        // 4. Background template (Front & Back)
         $bgBase64 = null;
         if ($template && $template->background_path) {
-            if (strlen($template->background_path) > 30 && !str_contains($template->background_path, '/') && !str_contains($template->background_path, '\\')) {
+            if (str_starts_with($template->background_path, 'http://') || str_starts_with($template->background_path, 'https://')) {
+                $bgBase64 = $template->background_path;
+            } elseif (strlen($template->background_path) > 30 && !str_contains($template->background_path, '/') && !str_contains($template->background_path, '\\')) {
                 try {
                     $bgBase64 = app(\App\Services\GoogleDriveService::class)->getPhotoBase64($template->background_path);
                 } catch (\Exception $e) {
@@ -157,11 +159,36 @@ class PortalSiswaController extends Controller
             }
         }
 
+        $bgBackBase64 = null;
+        if ($template && $template->background_path_back) {
+            if (str_starts_with($template->background_path_back, 'http://') || str_starts_with($template->background_path_back, 'https://')) {
+                $bgBackBase64 = $template->background_path_back;
+            } elseif (strlen($template->background_path_back) > 30 && !str_contains($template->background_path_back, '/') && !str_contains($template->background_path_back, '\\')) {
+                try {
+                    $bgBackBase64 = app(\App\Services\GoogleDriveService::class)->getPhotoBase64($template->background_path_back);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('PortalSiswaController: Gagal load background back dari Google Drive: ' . $e->getMessage());
+                }
+            } else {
+                $fullBgPath = storage_path('app/public/' . $template->background_path_back);
+                if (file_exists($fullBgPath)) {
+                    $ext = strtolower(pathinfo($template->background_path_back, PATHINFO_EXTENSION));
+                    $bgData = @file_get_contents($fullBgPath);
+                    if ($bgData !== false) {
+                        $bgBackBase64 = 'data:image/' . $ext . ';base64,' . base64_encode($bgData);
+                    }
+                }
+            }
+        }
+
         // Tahun akademik
         $tahunAkademik = \App\Models\TahunAkademik::where('is_aktif', true)->value('nama')
             ?? (date('Y') . '/' . (date('Y') + 1));
 
-        $lembagaData = [
+        $pdfService = app(\App\Services\IdCardPdfService::class);
+        $lembagaDataService = $pdfService->getLembagaData();
+
+        $lembagaData = array_merge($lembagaDataService, [
             'nama_sekolah' => $namaSekolah,
             'alamat_lembaga' => Pengaturan::where('key', 'alamat_lembaga')->value('value') ?? '',
             'email_lembaga' => Pengaturan::where('key', 'email_lembaga')->value('value') ?? '',
@@ -169,15 +196,20 @@ class PortalSiswaController extends Controller
             'nama_kepala_lembaga' => Pengaturan::where('key', 'nama_kepala_lembaga')->value('value') ?? '',
             'nip_kepala_lembaga' => Pengaturan::where('key', 'nip_kepala_lembaga')->value('value') ?? '',
             'kota_penerbitan' => Pengaturan::where('key', 'kota_penerbitan')->value('value') ?? '',
-            'logo_base64' => $logoSekolah,
-            'ttd_base64' => $ttdBase64,
-            'cap_base64' => $capBase64,
-        ];
+            'logo_base64' => $logoSekolah ?: ($lembagaDataService['logo_base64'] ?? null),
+            'ttd_base64' => $ttdBase64 ?: ($lembagaDataService['ttd_base64'] ?? null),
+            'cap_base64' => $capBase64 ?: ($lembagaDataService['cap_base64'] ?? null),
+        ]);
+
+        // Attach dynamic attributes to $siswa for _elements_render compatibility
+        $siswa->_foto_base64 = $fotoBase64;
+        $siswa->_qr_base64   = $qrImage;
+        $siswa->_masa_berlaku = $pdfService->hitungMasaBerlakuSiswa($siswa, $lembagaData['jumlah_tahun_sekolah'] ?? 3);
 
         $config = $template ? $template->config : null;
 
         return view('siswa.kartu-pelajar-preview', compact(
-            'siswa', 'template', 'config', 'qrImage', 'fotoBase64', 'bgBase64', 'tahunAkademik', 'lembagaData'
+            'siswa', 'template', 'config', 'qrImage', 'fotoBase64', 'bgBase64', 'bgBackBase64', 'tahunAkademik', 'lembagaData'
         ));
     }
 
