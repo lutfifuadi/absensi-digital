@@ -41,12 +41,11 @@
   @endif
 
   <!-- Menu Search -->
-  <div class="menu-search-wrapper px-4 py-2 mb-2 d-none d-lg-block">
-    <div class="input-group input-group-merge">
-      <span class="input-group-text border-0 bg-transparent ps-0" style="color: var(--das-text-dim, #8b96ab)"><i class="ti tabler-search fs-5"></i></span>
-      <input type="text" id="menu-search-input" class="form-control border-0 bg-transparent ps-2" placeholder="Cari menu..." style="box-shadow: none; font-size: 0.85rem; color: inherit;" autocomplete="off">
+  <div class="menu-search-wrapper px-4 py-3 mb-2 d-none d-lg-block">
+    <div class="input-group input-group-merge rounded-pill" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.15); overflow: hidden;">
+      <span class="input-group-text border-0 bg-transparent ps-3" style="color: rgba(255, 255, 255, 0.7);"><i class="ti tabler-search fs-6"></i></span>
+      <input type="text" id="menu-search-input" class="form-control border-0 bg-transparent ps-2 text-white placeholder-white-50" placeholder="Cari menu..." style="box-shadow: none; font-size: 0.82rem; outline: none;" autocomplete="off">
     </div>
-    <div style="height: 1px; background: rgba(255,255,255,0.06); margin-top: 5px;"></div>
   </div>
 
   <div class="menu-inner-shadow"></div>
@@ -125,8 +124,7 @@
 
 <style>
   /* Sembunyikan input search saat menu collapsed */
-  .layout-menu-collapsed .menu-search-wrapper,
-  .layout-menu:not(.layout-menu-expanded) .menu-search-wrapper {
+  html.layout-menu-collapsed .menu-search-wrapper {
     display: none !important;
   }
 </style>
