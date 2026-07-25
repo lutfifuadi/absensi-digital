@@ -199,6 +199,9 @@
     #layout-menu.menu-vertical, .menu-vertical {
       background: var(--das-sidebar-bg) !important;
     }
+    .menu-inner-shadow {
+      display: none !important;
+    }
   </style>
 
   <!-- Include Scripts for customizer, helper, analytics, config -->
