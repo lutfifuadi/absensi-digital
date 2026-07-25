@@ -11,6 +11,7 @@ use App\Models\StaffTataUsaha;
 use App\Models\AbsensiStaff;
 use App\Support\QrScanLogger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
 
@@ -114,7 +115,7 @@ class PublicQrScanController extends Controller
 
         $ip             = $request->ip();
         $qrCode         = $data['qr_code'];
-        
+
         $settings       = $this->getCachedSettings();
 
         $jamMulaiAbsensi = !empty($settings['jam_mulai_absensi']) ? $settings['jam_mulai_absensi'] : '06:00';
@@ -135,6 +136,8 @@ class PublicQrScanController extends Controller
                 'message' => 'Absensi belum dibuka. Sesi scan dimulai pukul ' . substr($jamMulaiAbsensi, 0, 5) . ' WIB.',
             ]);
         }
+
+        return DB::transaction(function () use ($request, $ip, $qrCode, $settings, $jamMasuk, $jamBatasMasuk, $jamPulang, $jamMulaiPulang, $jamAkhirPulang, $toleransi, $currentTime, $tanggal) {
 
         // 1. Cek apakah ini Siswa
         $siswa = Siswa::with('kelas')->where('qr_code', $qrCode)->first();
@@ -464,6 +467,7 @@ class PublicQrScanController extends Controller
             'success' => false,
             'message' => 'QR code tidak dikenal. Pastikan QR code siswa, guru, atau staff valid.',
         ]);
+        });
     }
 
     /**
@@ -663,6 +667,8 @@ class PublicQrScanController extends Controller
             ]);
         }
 
+        return DB::transaction(function () use ($mode, $qrCode, $ip, $jamMasuk, $jamBatasMasuk, $jamMulaiPulang, $jamAkhirPulang, $toleransi, $currentTime, $tanggal) {
+
         // Helper untuk invalidate leaderboard cache
         $forgetCache = function() {
             Cache::forget('live_board_leaderboard_data_otomatis');
@@ -715,16 +721,23 @@ class PublicQrScanController extends Controller
                 if ($absensi) {
                     $absensi->update(['jam_pulang' => $currentTime]);
                 } else {
-                    AbsensiSiswa::create([
-                        'siswa_id'   => $siswa->id,
-                        'kelas_id'   => $siswa->kelas_id,
-                        'tanggal'    => $tanggal,
-                        'jam_masuk'  => null,
-                        'jam_pulang' => $currentTime,
-                        'status'     => 'hadir',
-                        'keterangan' => 'Scan QR Live Board Pulang',
-                        'metode'     => 'qr',
-                    ]);
+                    try {
+                        AbsensiSiswa::create([
+                            'siswa_id'   => $siswa->id,
+                            'kelas_id'   => $siswa->kelas_id,
+                            'tanggal'    => $tanggal,
+                            'jam_masuk'  => null,
+                            'jam_pulang' => $currentTime,
+                            'status'     => 'hadir',
+                            'keterangan' => 'Scan QR Live Board Pulang',
+                            'metode'     => 'qr',
+                        ]);
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        if ($e->errorInfo[1] === 1062) {
+                            return response()->json(['success' => false, 'already' => true, 'message' => $siswa->nama_lengkap . ' sudah tercatat pulang hari ini.']);
+                        }
+                        throw $e;
+                    }
                 }
                 $forgetCache();
 
@@ -754,15 +767,22 @@ class PublicQrScanController extends Controller
                         'status'    => $status,
                     ]);
                 } else {
-                    AbsensiSiswa::create([
-                        'siswa_id'   => $siswa->id,
-                        'kelas_id'   => $siswa->kelas_id,
-                        'tanggal'    => $tanggal,
-                        'jam_masuk'  => $currentTime,
-                        'status'     => $status,
-                        'keterangan' => 'Scan QR Live Board Masuk',
-                        'metode'     => 'qr',
-                    ]);
+                    try {
+                        AbsensiSiswa::create([
+                            'siswa_id'   => $siswa->id,
+                            'kelas_id'   => $siswa->kelas_id,
+                            'tanggal'    => $tanggal,
+                            'jam_masuk'  => $currentTime,
+                            'status'     => $status,
+                            'keterangan' => 'Scan QR Live Board Masuk',
+                            'metode'     => 'qr',
+                        ]);
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        if ($e->errorInfo[1] === 1062) {
+                            return response()->json(['success' => false, 'already' => true, 'message' => $siswa->nama_lengkap . ' sudah tercatat hadir hari ini.']);
+                        }
+                        throw $e;
+                    }
                 }
                 $forgetCache();
 
@@ -855,15 +875,22 @@ class PublicQrScanController extends Controller
                 if ($absensi) {
                     $absensi->update(['jam_pulang' => $currentTime]);
                 } else {
-                    AbsensiGuru::create([
-                        'guru_id'    => $guru->id,
-                        'tanggal'    => $tanggal,
-                        'jam_masuk'  => null,
-                        'jam_pulang' => $currentTime,
-                        'status'     => 'hadir',
-                        'keterangan' => 'Scan QR Live Board Pulang',
-                        'metode'     => 'qr',
-                    ]);
+                    try {
+                        AbsensiGuru::create([
+                            'guru_id'    => $guru->id,
+                            'tanggal'    => $tanggal,
+                            'jam_masuk'  => null,
+                            'jam_pulang' => $currentTime,
+                            'status'     => 'hadir',
+                            'keterangan' => 'Scan QR Live Board Pulang',
+                            'metode'     => 'qr',
+                        ]);
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        if ($e->errorInfo[1] === 1062) {
+                            return response()->json(['success' => false, 'already' => true, 'message' => 'Guru ' . $guru->nama_lengkap . ' sudah tercatat pulang hari ini.']);
+                        }
+                        throw $e;
+                    }
                 }
                 $forgetCache();
 
@@ -893,14 +920,21 @@ class PublicQrScanController extends Controller
                         'status'    => $status,
                     ]);
                 } else {
-                    AbsensiGuru::create([
-                        'guru_id'    => $guru->id,
-                        'tanggal'    => $tanggal,
-                        'jam_masuk'  => $currentTime,
-                        'status'     => $status,
-                        'keterangan' => 'Scan QR Live Board Masuk',
-                        'metode'     => 'qr',
-                    ]);
+                    try {
+                        AbsensiGuru::create([
+                            'guru_id'    => $guru->id,
+                            'tanggal'    => $tanggal,
+                            'jam_masuk'  => $currentTime,
+                            'status'     => $status,
+                            'keterangan' => 'Scan QR Live Board Masuk',
+                            'metode'     => 'qr',
+                        ]);
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        if ($e->errorInfo[1] === 1062) {
+                            return response()->json(['success' => false, 'already' => true, 'message' => 'Guru ' . $guru->nama_lengkap . ' sudah tercatat hadir hari ini.']);
+                        }
+                        throw $e;
+                    }
                 }
                 $forgetCache();
 
@@ -999,15 +1033,22 @@ class PublicQrScanController extends Controller
                 if ($absensi) {
                     $absensi->update(['jam_pulang' => $currentTime]);
                 } else {
-                    AbsensiStaff::create([
-                        'staff_id'   => $staff->id,
-                        'tanggal'    => $tanggal,
-                        'jam_masuk'  => null,
-                        'jam_pulang' => $currentTime,
-                        'status'     => 'hadir',
-                        'keterangan' => 'Scan QR Live Board Pulang',
-                        'metode'     => 'qr',
-                    ]);
+                    try {
+                        AbsensiStaff::create([
+                            'staff_id'   => $staff->id,
+                            'tanggal'    => $tanggal,
+                            'jam_masuk'  => null,
+                            'jam_pulang' => $currentTime,
+                            'status'     => 'hadir',
+                            'keterangan' => 'Scan QR Live Board Pulang',
+                            'metode'     => 'qr',
+                        ]);
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        if ($e->errorInfo[1] === 1062) {
+                            return response()->json(['success' => false, 'already' => true, 'message' => 'Staff ' . $staff->nama_lengkap . ' sudah tercatat pulang hari ini.']);
+                        }
+                        throw $e;
+                    }
                 }
                 $forgetCache();
 
@@ -1037,14 +1078,21 @@ class PublicQrScanController extends Controller
                         'status'    => $status,
                     ]);
                 } else {
-                    AbsensiStaff::create([
-                        'staff_id'   => $staff->id,
-                        'tanggal'    => $tanggal,
-                        'jam_masuk'  => $currentTime,
-                        'status'     => $status,
-                        'keterangan' => 'Scan QR Live Board Masuk',
-                        'metode'     => 'qr',
-                    ]);
+                    try {
+                        AbsensiStaff::create([
+                            'staff_id'   => $staff->id,
+                            'tanggal'    => $tanggal,
+                            'jam_masuk'  => $currentTime,
+                            'status'     => $status,
+                            'keterangan' => 'Scan QR Live Board Masuk',
+                            'metode'     => 'qr',
+                        ]);
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        if ($e->errorInfo[1] === 1062) {
+                            return response()->json(['success' => false, 'already' => true, 'message' => 'Staff ' . $staff->nama_lengkap . ' sudah tercatat hadir hari ini.']);
+                        }
+                        throw $e;
+                    }
                 }
                 $forgetCache();
 
@@ -1111,6 +1159,7 @@ class PublicQrScanController extends Controller
             ]);
         }
         return response()->json(['success' => false, 'message' => 'QR code tidak dikenal.']);
+    });
     }
 
 

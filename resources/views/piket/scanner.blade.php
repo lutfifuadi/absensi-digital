@@ -134,14 +134,13 @@
     }
     .btn-switch.active { display: flex; }
 
-    /* Result Toast Inside Camera */
+    /* Result Toast Inside Camera — Translucent per-type */
     .result-toast {
       position: absolute;
       bottom: 1rem;
       left: 50%;
-      transform: translateX(-50%) translateY(20px);
+      transform: translateX(-50%);
       width: 90%;
-      background: rgba(30, 30, 47, 0.95);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: var(--das-radius);
@@ -152,9 +151,21 @@
       z-index: 30;
       opacity: 0;
       visibility: hidden;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: opacity 0.2s ease, visibility 0.2s ease;
     }
-    .result-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    .result-toast.success {
+      background: rgba(40, 199, 111, 0.85);
+      border-color: rgba(40, 199, 111, 0.3);
+    }
+    .result-toast.warning {
+      background: rgba(255, 159, 67, 0.85);
+      border-color: rgba(255, 159, 67, 0.3);
+    }
+    .result-toast.error {
+      background: rgba(234, 84, 85, 0.85);
+      border-color: rgba(234, 84, 85, 0.3);
+    }
+    .result-toast.show { opacity: 1; visibility: visible; }
     .toast-inner { display: flex; align-items: center; gap: 0.8rem; }
     .toast-icon { width: 42px; height: 42px; border-radius: var(--das-radius); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
     .success .toast-icon { background: rgba(40, 199, 111, 0.1); color: var(--das-success); border: 1px solid rgba(40, 199, 111, 0.2); }
@@ -659,15 +670,13 @@
 
       if (toastTimer) clearTimeout(toastTimer);
       requestAnimationFrame(() => {
-        fill.style.transition = 'width 2500ms linear';
+        fill.style.transition = 'width 1500ms linear';
         fill.style.width = '100%';
       });
 
       toastTimer = setTimeout(() => {
         toast.classList.remove('show');
-        isProcessing = false;
-        if (stream && !animFrame) animFrame = requestAnimationFrame(tick);
-      }, 2500);
+      }, 1500);
     }
 
     async function handlePiketScan(qrCode) {
@@ -700,10 +709,16 @@
           playBeepSound('error');
           showFloatingToast('error', 'Gagal', 'Sistem Absensi', data.message || 'QR Code tidak dikenal.');
         }
+
+        // Unlock scanning immediately after response
+        isProcessing = false;
+        if (stream && !animFrame) animFrame = requestAnimationFrame(tick);
       } catch(e) {
         flashScreen('error');
         playBeepSound('error');
         showFloatingToast('error', 'Koneksi Error', 'Sistem Absensi', 'Gagal memproses pemindaian.');
+        isProcessing = false;
+        if (stream && !animFrame) animFrame = requestAnimationFrame(tick);
       }
     }
 

@@ -345,17 +345,31 @@
       100% { transform: scale(1.4); opacity: 0; }
     }
 
-    /* ─── RESULT TOAST ───────────────────────────────────── */
+    /* ─── RESULT TOAST — Translucent per-type + Fade ──────────── */
     .result-toast {
       position: absolute; bottom: 0; left: 0; right: 0;
-      padding: 0.8rem 1rem; transform: translateY(100%);
-      transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+      padding: 0.8rem 1rem;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
       z-index: 10;
     }
-    .result-toast.show { transform: translateY(0); }
-    .result-toast.success { background: rgba(40,199,111,.15); border-top: 2px solid var(--success); }
-    .result-toast.warning { background: rgba(255,159,67,.15); border-top: 2px solid var(--warning); }
-    .result-toast.error   { background: rgba(234,84,85,.15);  border-top: 2px solid var(--danger); }
+    .result-toast.show { opacity: 1; visibility: visible; }
+    .result-toast.success {
+      background: rgba(40,199,111,.85);
+      border-top: 2px solid var(--success);
+      backdrop-filter: blur(10px);
+    }
+    .result-toast.warning {
+      background: rgba(255,159,67,.85);
+      border-top: 2px solid var(--warning);
+      backdrop-filter: blur(10px);
+    }
+    .result-toast.error {
+      background: rgba(234,84,85,.85);
+      border-top: 2px solid var(--danger);
+      backdrop-filter: blur(10px);
+    }
     .result-toast-inner { display: flex; align-items: flex-start; gap: 0.75rem; }
     .result-icon { font-size: 1.6rem; flex-shrink: 0; }
     .result-name { font-weight: 800; font-size: 0.95rem; }

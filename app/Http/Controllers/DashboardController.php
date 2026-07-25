@@ -23,6 +23,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -226,45 +227,60 @@ class DashboardController extends Controller
         }
 
         $tanggal = now()->toDateString();
-        $sudahAda = AbsensiSiswa::where('siswa_id', $siswa->id)
-            ->whereDate('tanggal', $tanggal)
-            ->first();
 
-        if ($sudahAda) {
+        return DB::transaction(function () use ($siswa, $ip, $tanggal) {
+            $sudahAda = AbsensiSiswa::where('siswa_id', $siswa->id)
+                ->whereDate('tanggal', $tanggal)
+                ->first();
+
+            if ($sudahAda) {
+                return response()->json([
+                    'success' => false,
+                    'already' => true,
+                    'message' => 'Sudah tercatat absen.',
+                    'siswa'   => [
+                        'nama'  => $siswa->nama_lengkap,
+                        'kelas' => $siswa->kelas?->nama ?? '-',
+                        'jam'   => $sudahAda->jam_masuk,
+                    ],
+                ]);
+            }
+
+            $jamMasuk = now()->format('H:i:s');
+
+            try {
+                $absensi = AbsensiSiswa::create([
+                    'siswa_id'    => $siswa->id,
+                    'kelas_id'    => $siswa->kelas_id,
+                    'tanggal'     => $tanggal,
+                    'jam_masuk'   => $jamMasuk,
+                    'status'      => 'hadir',
+                    'keterangan'  => 'Scan QR Dashboard Utama',
+                    'metode'      => 'qr',
+                ]);
+            } catch (\Illuminate\Database\QueryException $e) {
+                if ($e->errorInfo[1] == 1062) {
+                    return response()->json([
+                        'success' => false,
+                        'already' => true,
+                        'message' => 'Sudah tercatat absen.',
+                    ]);
+                }
+                throw $e;
+            }
+
+            ActivityLog::record('scan', 'absensi', "Scan QR: {$siswa->nama_lengkap} ({$siswa->kelas?->nama}) — {$jamMasuk}");
+
             return response()->json([
-                'success' => false,
-                'already' => true,
-                'message' => 'Sudah tercatat absen.',
+                'success' => true,
+                'message' => 'Berhasil tercatat!',
                 'siswa'   => [
                     'nama'  => $siswa->nama_lengkap,
                     'kelas' => $siswa->kelas?->nama ?? '-',
-                    'jam'   => $sudahAda->jam_masuk,
+                    'jam'   => $jamMasuk,
                 ],
             ]);
-        }
-
-        $jamMasuk = now()->format('H:i:s');
-        $absensi = AbsensiSiswa::create([
-            'siswa_id'    => $siswa->id,
-            'kelas_id'    => $siswa->kelas_id,
-            'tanggal'     => $tanggal,
-            'jam_masuk'   => $jamMasuk,
-            'status'      => 'hadir',
-            'keterangan'  => 'Scan QR Dashboard Utama',
-            'metode'      => 'qr',
-        ]);
-
-        ActivityLog::record('scan', 'absensi', "Scan QR: {$siswa->nama_lengkap} ({$siswa->kelas?->nama}) — {$jamMasuk}");
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Berhasil tercatat!',
-            'siswa'   => [
-                'nama'  => $siswa->nama_lengkap,
-                'kelas' => $siswa->kelas?->nama ?? '-',
-                'jam'   => $jamMasuk,
-            ],
-        ]);
+        });
     }
 
     /**

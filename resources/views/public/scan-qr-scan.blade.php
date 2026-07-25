@@ -233,15 +233,14 @@
     .btn-switch:hover { background: var(--das-primary); border-color: var(--das-primary); }
     .btn-switch.active { display: flex; }
 
-    /* Result Toast */
+    /* Result Toast — Translucent per-type */
     .result-toast {
       position: absolute;
       bottom: 2rem;
       left: 50%;
-      transform: translateX(-50%) translateY(40px);
+      transform: translateX(-50%);
       width: 90%;
       max-width: 450px;
-      background: rgba(15, 23, 42, 0.9);
       backdrop-filter: blur(10px);
       border: 1px solid var(--das-border-color);
       border-radius: var(--das-radius);
@@ -252,9 +251,21 @@
       z-index: 30;
       opacity: 0;
       visibility: hidden;
-      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: opacity 0.2s ease, visibility 0.2s ease;
     }
-    .result-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    .result-toast.success {
+      background: rgba(40, 199, 111, 0.85);
+      border-color: rgba(40, 199, 111, 0.3);
+    }
+    .result-toast.warning {
+      background: rgba(255, 159, 67, 0.85);
+      border-color: rgba(255, 159, 67, 0.3);
+    }
+    .result-toast.error {
+      background: rgba(234, 84, 85, 0.85);
+      border-color: rgba(234, 84, 85, 0.3);
+    }
+    .result-toast.show { opacity: 1; visibility: visible; }
     
     .toast-inner { display: flex; align-items: start; gap: 1rem; }
     .toast-icon { width: 50px; height: 50px; border-radius: var(--das-radius); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
@@ -693,7 +704,7 @@
   const SCAN_URL  = "{{ route('public.scan-qr.process') }}";
   const LOGIN_URL = "{{ route('public.scan-qr.index') }}";
   const STATS_URL = "{{ route('public.scan-qr.stats') }}";
-  const DISMISS   = 3000;
+  const DISMISS   = 1500;
   const DEBOUNCE  = 3500;
 
   // ── Date ──
@@ -1002,8 +1013,6 @@
     });
     toastTimer = setTimeout(() => {
       toast.classList.remove('show');
-      isProcessing = false;
-      if (stream && !animFrame) animFrame = requestAnimationFrame(tick);
     }, getDismiss());
   }
 
@@ -1148,6 +1157,10 @@
         addLog('error', null, data.message ?? 'QR tidak dikenal.');
         showToast('error', null, data.message ?? 'QR tidak dikenal.');
       }
+
+      // Unlock scanning immediately after response
+      isProcessing = false;
+      if (stream && !animFrame) animFrame = requestAnimationFrame(tick);
     } catch(e) {
       // Simpan ke IndexedDB untuk offline sync
       try {
@@ -1173,10 +1186,14 @@
         incrStat('warning');
         addLog('warning', { nama: 'Tersimpan Offline', jam: '-' }, 'Data akan dikirim otomatis saat online');
         showToast('warning', { nama: 'Disimpan Offline' }, 'Data scan tersimpan. Akan dikirim otomatis saat koneksi pulih.');
+        isProcessing = false;
+        if (stream && !animFrame) animFrame = requestAnimationFrame(tick);
       } catch(dbError) {
         beep('error');
         incrStat('error');
         showToast('error', null, 'Gagal terhubung ke server dan gagal menyimpan offline.');
+        isProcessing = false;
+        if (stream && !animFrame) animFrame = requestAnimationFrame(tick);
       }
     }
   }

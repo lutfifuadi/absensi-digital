@@ -8,6 +8,7 @@ use App\Models\Siswa;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AbsensiMandiriController extends Controller
 {
@@ -188,15 +189,28 @@ class AbsensiMandiriController extends Controller
         $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i');
         $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
 
-        AbsensiSiswa::create([
-            'siswa_id'    => $siswa->id,
-            'kelas_id'    => $siswa->kelas_id,
-            'tanggal'     => $tanggal,
-            'jam_masuk'   => $currentTime,
-            'status'      => $status,
-            'keterangan'  => 'Absen Mandiri (Radius: ' . round($distance) . 'm)',
-            'metode'      => 'mandiri',
-        ]);
+        try {
+            DB::transaction(function () use ($siswa, $tanggal, $currentTime, $status, $distance) {
+                AbsensiSiswa::create([
+                    'siswa_id'    => $siswa->id,
+                    'kelas_id'    => $siswa->kelas_id,
+                    'tanggal'     => $tanggal,
+                    'jam_masuk'   => $currentTime,
+                    'status'      => $status,
+                    'keterangan'  => 'Absen Mandiri (Radius: ' . round($distance) . 'm)',
+                    'metode'      => 'mandiri',
+                ]);
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->errorInfo[1] == 1062) {
+                return response()->json([
+                    'success' => false,
+                    'already' => true,
+                    'message' => 'Anda sudah melakukan absen masuk hari ini.',
+                ]);
+            }
+            throw $e;
+        }
 
         ActivityLog::record('create', 'absensi_mandiri', "Siswa {$siswa->nama_lengkap} absen masuk mandiri (" . ucfirst($status) . ").");
 

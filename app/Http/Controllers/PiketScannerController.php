@@ -67,6 +67,8 @@ class PiketScannerController extends Controller
         $currentTime    = now()->format('H:i:s');
         $tanggal        = now()->toDateString();
 
+        return DB::transaction(function () use ($request, $ip, $qrCode, $user, $username, $settings, $jamMasuk, $jamBatasMasuk, $jamPulang, $jamMulaiPulang, $jamAkhirPulang, $toleransi, $currentTime, $tanggal) {
+
         // 1. Cek apakah ini Siswa
         $siswa = Siswa::with('kelas')->where('qr_code', $qrCode)->first();
 
@@ -284,6 +286,7 @@ class PiketScannerController extends Controller
             'success' => false,
             'message' => 'QR code tidak dikenal. Pastikan QR code siswa atau guru valid.',
         ]);
+        });
     }
 
     /**

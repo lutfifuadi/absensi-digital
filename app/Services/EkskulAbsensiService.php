@@ -335,14 +335,27 @@ class EkskulAbsensiService
         }
 
         // Catat absensi
-        $absensi = EkskulAbsensi::create([
-            'ekskul_id'  => $ekskulId,
-            'siswa_id'   => $siswaId,
-            'tanggal'    => $tanggal,
-            'status'     => 'hadir',
-            'jam_absen'  => now()->format('H:i'),
-            'pembina_id' => $pembinaId,
-        ]);
+        try {
+            $absensi = DB::transaction(function () use ($ekskulId, $siswaId, $tanggal, $pembinaId) {
+                return EkskulAbsensi::create([
+                    'ekskul_id'  => $ekskulId,
+                    'siswa_id'   => $siswaId,
+                    'tanggal'    => $tanggal,
+                    'status'     => 'hadir',
+                    'jam_absen'  => now()->format('H:i'),
+                    'pembina_id' => $pembinaId,
+                ]);
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->errorInfo[1] === 1062) {
+                return [
+                    'success' => false,
+                    'already' => true,
+                    'message' => 'Kamu sudah tercatat hadir hari ini.',
+                ];
+            }
+            throw $e;
+        }
 
         return [
             'success' => true,

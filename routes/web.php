@@ -122,7 +122,7 @@ Route::prefix('scan-qr')->name('public.scan-qr.')->group(function () {
     Route::get('/', [PublicQrScanController::class, 'index'])->name('index')->middleware('device.trusted');
     Route::post('/auth', [PublicQrScanController::class, 'auth'])->name('auth')->middleware('throttle:5,15');
     Route::get('/scan', [PublicQrScanController::class, 'scan'])->name('scan')->middleware(['qr.scan.auth', 'device.trusted']);
-    Route::post('/process', [PublicQrScanController::class, 'process'])->name('process')->middleware(['qr.scan.auth', 'device.trusted']);
+    Route::post('/process', [PublicQrScanController::class, 'process'])->name('process')->middleware(['qr.scan.auth', 'device.trusted', 'throttle:120,1']);
     Route::post('/logout', [PublicQrScanController::class, 'logout'])->name('logout');
     Route::get('/stats', [PublicQrScanController::class, 'scanStats'])->name('stats');
     Route::get('/search', [PublicQrScanController::class, 'searchSiswaGuru'])
@@ -173,7 +173,7 @@ Route::get('/scan-ekskul', function () {
 
 // ── Halaman Live Board Publik (tanpa login) ───────────────────────────────────
 Route::get('/live-board', [PublicQrScanController::class, 'liveBoard'])->name('public.live-board')->middleware('device.trusted');
-Route::post('/live-board/scan', [PublicQrScanController::class, 'liveBoardScan'])->name('public.live-board.scan')->middleware(['throttle:300,1', 'device.trusted']);
+Route::post('/live-board/scan', [PublicQrScanController::class, 'liveBoardScan'])->name('public.live-board.scan')->middleware(['throttle:120,1', 'device.trusted']);
 Route::get('/live-board/leaderboard', [PublicQrScanController::class, 'liveBoardLeaderboard'])->name('public.live-board.leaderboard');
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -322,7 +322,7 @@ Route::middleware([
     Route::prefix('piket')->middleware('role:piket')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('piket.dashboard');
         Route::get('/scanner', [PiketScannerController::class, 'index'])->name('piket.scanner');
-        Route::post('/scanner/process', [PiketScannerController::class, 'process'])->name('piket.scanner.process');
+        Route::post('/scanner/process', [PiketScannerController::class, 'process'])->name('piket.scanner.process')->middleware('throttle:120,1');
         Route::get('/scanner/stats', [PiketScannerController::class, 'stats'])->name('piket.scanner.stats');
         Route::get('/rekap', [PiketScannerController::class, 'rekap'])->name('piket.rekap');
         Route::post('/rekap/update', [PiketScannerController::class, 'updateRekap'])->name('piket.rekap.update');
