@@ -329,7 +329,11 @@ class JadwalAbsensiTest extends TestCase
         $jadwal = KelasJadwalAbsensi::where('kelas_id', $this->kelas->id)
             ->where('hari', 'senin')
             ->first();
-        $this->assertEquals('07:30', $jadwal->jam_masuk);
+        // Model casts time fields as datetime:H$i, return Carbon — format untuk perbandingan
+        $this->assertEquals('07:30', $jadwal->jam_masuk instanceof \Illuminate\Support\Carbon
+            ? $jadwal->jam_masuk->format('H:i')
+            : $jadwal->jam_masuk
+        );
     }
 
     public function test_store_returns_json_response(): void
@@ -502,7 +506,10 @@ class JadwalAbsensiTest extends TestCase
         $jadwalSenin = KelasJadwalAbsensi::where('kelas_id', $this->kelas->id)
             ->where('hari', 'senin')
             ->first();
-        $this->assertEquals('08:00', $jadwalSenin->jam_masuk);
+        $jamMasuk = $jadwalSenin->jam_masuk instanceof \Illuminate\Support\Carbon
+            ? $jadwalSenin->jam_masuk->format('H:i')
+            : $jadwalSenin->jam_masuk;
+        $this->assertEquals('08:00', $jamMasuk);
     }
 
     public function test_store_all_returns_json_response(): void
@@ -599,12 +606,19 @@ class JadwalAbsensiTest extends TestCase
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
 
-        // Cek jadwal tersalin ke kelas tujuan
-        $this->assertDatabaseHas('kelas_jadwal_absensi', [
-            'kelas_id'  => $targetKelas->id,
-            'hari'      => 'senin',
-            'jam_masuk' => '07:30',
-        ]);
+        // Cek jadwal tersalin ke kelas tujuan (gunakan LIKE untuk perbandingan waktu)
+        $jadwalExists = KelasJadwalAbsensi::where('kelas_id', $targetKelas->id)
+            ->where('hari', 'senin')
+            ->exists();
+        $this->assertTrue($jadwalExists, 'Jadwal harus tersalin ke kelas tujuan');
+
+        $jadwalTarget = KelasJadwalAbsensi::where('kelas_id', $targetKelas->id)
+            ->where('hari', 'senin')
+            ->first();
+        $jamMasuk = $jadwalTarget->jam_masuk instanceof \Illuminate\Support\Carbon
+            ? $jadwalTarget->jam_masuk->format('H:i')
+            : $jadwalTarget->jam_masuk;
+        $this->assertEquals('07:30', $jamMasuk);
     }
 
     public function test_bulk_apply_does_not_copy_to_source(): void

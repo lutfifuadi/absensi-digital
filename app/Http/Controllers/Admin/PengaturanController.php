@@ -28,6 +28,7 @@ class PengaturanController extends Controller
         'minimal_hadir_persen' => '90',
         'password_unlock_scan_qr' => '',
         'tampilkan_beranda' => 'Ya',
+        'aktifkan_ai_chat' => 'Ya',
         // Tambahan field kelembagaan
         'alamat_lembaga' => 'Jl. Jenderal Sudirman No.1, Bandung',
         'kontak_lembaga' => '0226027957',
@@ -423,20 +424,23 @@ class PengaturanController extends Controller
 
     public function updateTheme(Request $request)
     {
-        $keys = [
-            'theme_primary', 'theme_success', 'theme_info', 'theme_warning', 
-            'theme_danger', 'theme_secondary', 'theme_text_main', 
-            'theme_surface', 'theme_border', 'theme_hero_preset'
+        $baseKeys = [
+            'primary', 'success', 'info', 'warning', 
+            'danger', 'secondary', 'text_main', 
+            'surface', 'border', 'hero_preset'
         ];
 
-        // Validasi: menolak format warna yang tidak valid (bukan hex valid / di luar enum preset)
+        // Build list of valid keys: theme_light_*, theme_dark_*, and legacy theme_*
         $rules = [];
-        foreach ($keys as $key) {
-            if ($key === 'theme_hero_preset') {
-                $rules[$key] = 'required|string|in:default,ocean,forest,sunset,twilight,dark,custom';
-            } elseif (in_array($key, ['theme_surface', 'theme_border'])) {
-                // Surface dan Border mendukung format hex (#ffffff) atau rgba (rgba(255,255,255,0.07))
-                $rules[$key] = ['required', 'string', function ($attribute, $value, $fail) {
+        $inputKeys = $request->keys();
+        foreach ($inputKeys as $key) {
+            if (!str_starts_with($key, 'theme_')) {
+                continue;
+            }
+            if (str_contains($key, 'hero_preset')) {
+                $rules[$key] = 'sometimes|string|in:default,ocean,forest,sunset,twilight,dark,custom';
+            } elseif (str_contains($key, 'surface') || str_contains($key, 'border')) {
+                $rules[$key] = ['sometimes', 'string', function ($attribute, $value, $fail) {
                     $isHex = preg_match('/^#[a-fA-F0-9]{3}([a-fA-F0-9]{3})?$/', $value);
                     $isRgba = preg_match('/^rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*(0(\.\d+)?|1(\.0+)?)\s*\)$/', $value) ||
                               preg_match('/^rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)$/', $value);
@@ -445,15 +449,13 @@ class PengaturanController extends Controller
                     }
                 }];
             } else {
-                $rules[$key] = ['required', 'string', 'regex:/^#[a-fA-F0-9]{3}([a-fA-F0-9]{3})?$/'];
+                $rules[$key] = ['sometimes', 'string', 'regex:/^#[a-fA-F0-9]{3}([a-fA-F0-9]{3})?$/'];
             }
         }
 
         $validated = $request->validate($rules);
 
         // helper logic to auto-generate soft-colors
-        // soft-colors are primary, success, info, warning, danger, secondary
-        // format is rgba(r, g, b, 0.12)
         $hexToRgb = function ($hex) {
             $hex = str_replace('#', '', $hex);
             if (strlen($hex) == 3) {
@@ -472,11 +474,13 @@ class PengaturanController extends Controller
             );
 
             // Generate soft colors if it's one of the main colors
-            $colorName = str_replace('theme_', '', $key);
-            if (in_array($colorName, ['primary', 'success', 'info', 'warning', 'danger', 'secondary'])) {
-                $softValue = $hexToRgb($value);
+            if (preg_match('/^theme_(light_|dark_)?(primary|success|info|warning|danger|secondary)$/', $key, $matches)) {
+                $prefix = $matches[1] ?? '';
+                $colorName = $matches[2];
+                $softKey = "theme_{$prefix}{$colorName}_soft";
+                $softValue = (str_starts_with($value, '#')) ? $hexToRgb($value) : $value;
                 Pengaturan::updateOrCreate(
-                    ['key' => "theme_{$colorName}_soft"],
+                    ['key' => $softKey],
                     ['value' => $softValue, 'group' => 'theme']
                 );
             }

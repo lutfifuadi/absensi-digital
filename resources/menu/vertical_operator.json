@@ -103,6 +103,12 @@
       "url": "/admin/absensi-staff"
     },
     {
+      "name": "Kelola Jam Absensi",
+      "icon": "menu-icon ti tabler-clock-edit",
+      "slug": "admin.jadwal-absensi.index",
+      "url": "/admin/jadwal-absensi"
+    },
+    {
       "menuHeader": "Kegiatan",
       "icon": "menu-icon ti tabler-calendar-event"
     },

@@ -23,7 +23,7 @@
     {
       "name": "Kelola Presensi",
       "icon": "menu-icon ti tabler-clipboard-check",
-      "slug": ["admin.scan-qr.index", "public.live-board", "admin.absensi-hari-ini", "admin.kalender-absensi", "admin.holidays"],
+      "slug": ["admin.scan-qr.index", "public.live-board", "admin.absensi-hari-ini", "admin.kalender-absensi", "admin.holidays", "admin.jadwal-absensi.index"],
       "submenu": [
         {
           "name": "Scan Absensi",
@@ -43,6 +43,12 @@
           "icon": "menu-icon ti tabler-calendar-time",
           "slug": "admin.absensi-hari-ini",
           "url": "/admin/absensi-hari-ini"
+        },
+        {
+          "name": "Kelola Jam Absensi",
+          "icon": "menu-icon ti tabler-clock-edit",
+          "slug": "admin.jadwal-absensi.index",
+          "url": "/admin/jadwal-absensi"
         },
         {
           "name": "Kalender Absensi",

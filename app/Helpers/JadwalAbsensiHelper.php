@@ -61,10 +61,10 @@ class JadwalAbsensiHelper
         });
 
         return [
-            'jam_mulai_absensi' => $jadwal?->jam_mulai_absensi ?? $settings['jam_mulai_absensi'] ?? '06:00',
-            'jam_masuk'         => $jadwal?->jam_masuk ?? $settings['jam_masuk'] ?? '07:00',
-            'jam_pulang'        => $jadwal?->jam_pulang ?? $settings['jam_pulang'] ?? '15:00',
-            'jam_akhir_pulang'  => $jadwal?->jam_akhir_pulang ?? $settings['jam_akhir_pulang'] ?? '17:00',
+            'jam_mulai_absensi' => self::formatTime($jadwal?->jam_mulai_absensi) ?? $settings['jam_mulai_absensi'] ?? '06:00',
+            'jam_masuk'         => self::formatTime($jadwal?->jam_masuk) ?? $settings['jam_masuk'] ?? '07:00',
+            'jam_pulang'        => self::formatTime($jadwal?->jam_pulang) ?? $settings['jam_pulang'] ?? '15:00',
+            'jam_akhir_pulang'  => self::formatTime($jadwal?->jam_akhir_pulang) ?? $settings['jam_akhir_pulang'] ?? '17:00',
             'is_libur'          => $jadwal?->is_libur ?? false,
         ];
     }
@@ -111,22 +111,28 @@ class JadwalAbsensiHelper
 
     /**
      * Format waktu untuk response JSON.
-     * Menghilangkan detik jika ada (H:i:s → H:i).
+     * Menghandle Carbon object dari model cast datetime:H:i,
+     * string H:i:s, atau string H:i.
      *
-     * @param  string|null $time
-     * @return string|null
+     * @param  mixed $time  Carbon object, string H:i, atau string H:i:s
+     * @return string|null  String format H:i
      */
-    public static function formatTime(?string $time): ?string
+    public static function formatTime(mixed $time): ?string
     {
         if ($time === null) {
             return null;
         }
 
-        // Jika format H:i:s, ambil H:i saja
-        if (strlen($time) === 8) {
+        // Handle Carbon object dari model cast datetime:H:i
+        if ($time instanceof \Carbon\Carbon) {
+            return $time->format('H:i');
+        }
+
+        // Handle string H:i:s (8 karakter), ambil H:i saja
+        if (is_string($time) && strlen($time) === 8) {
             return substr($time, 0, 5);
         }
 
-        return $time;
+        return (string) $time;
     }
 }

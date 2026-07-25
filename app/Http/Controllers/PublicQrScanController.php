@@ -129,11 +129,23 @@ class PublicQrScanController extends Controller
         $currentTime    = now()->format('H:i:s');
         $tanggal        = now()->toDateString();
 
+        // PRD-016: Load jadwal per kelas SEBELUM time check "belum dibuka"
+        $siswaLookup = Siswa::where('qr_code', $qrCode)->first();
+        if ($siswaLookup && $siswaLookup->kelas_id) {
+            $jadwalKelas = \App\Helpers\JadwalAbsensiHelper::getJadwalForKelas($siswaLookup->kelas_id);
+            $jamMulaiAbsensi = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_mulai_absensi']) ?? $jamMulaiAbsensi;
+            $jamMasuk        = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_masuk']) ?? $jamMasuk;
+            $jamPulang       = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_pulang']) ?? $jamPulang;
+            $jamAkhirPulang  = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_akhir_pulang']) ?? $jamAkhirPulang;
+            $jamMulaiPulang  = $jamPulang;
+            $jamBatasMasuk   = \Carbon\Carbon::parse($jamMasuk)->addMinutes($toleransi)->format('H:i');
+        }
+
         // Bandingkan currentTime dengan jamMulaiAbsensi (substring 5 karakter pertama currentTime dengan jamMulaiAbsensi)
         if (substr($currentTime, 0, 5) < $jamMulaiAbsensi) {
             return response()->json([
                 'success' => false,
-                'message' => 'Absensi belum dibuka. Sesi scan dimulai pukul ' . substr($jamMulaiAbsensi, 0, 5) . ' WIB.',
+                'message' => 'Absensi belum dibuka. Sesi scan dimulai pukul ' . $jamMulaiAbsensi . ' WIB.',
             ]);
         }
 
@@ -143,7 +155,7 @@ class PublicQrScanController extends Controller
         $siswa = Siswa::with('kelas')->where('qr_code', $qrCode)->first();
 
         if ($siswa) {
-            // PRD-016: Load jadwal absensi per kelas per hari
+            // PRD-016: Load jadwal absensi per kelas per hari (override untuk logika di dalam transaction)
             if ($siswa->kelas_id) {
                 $jadwalKelas = \App\Helpers\JadwalAbsensiHelper::getJadwalForKelas($siswa->kelas_id);
                 $jamMulaiAbsensi = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_mulai_absensi']) ?? '06:00';

@@ -215,7 +215,9 @@
 
   {{-- ── Floating AI Chat Widget ─────────────────────────────────────────── --}}
   @auth
-    @livewire('admin.floating-chat')
+    @if((\App\Models\Pengaturan::where('key', 'aktifkan_ai_chat')->value('value') ?? 'Ya') === 'Ya')
+      @livewire('admin.floating-chat')
+    @endif
     @if(in_array(auth()->user()->role ?? '', ['super_admin', 'admin_sekolah', 'operator', 'guru', 'wali_kelas', 'piket', 'staff_tu']))
       @include('layouts.sections.urgent_pengaduan_alert')
     @endif

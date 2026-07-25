@@ -155,27 +155,51 @@
         return \App\Models\Pengaturan::where('group', 'theme')->pluck('value', 'key')->toArray();
     });
   @endphp
-  @if(!empty($themeVars))
-    <style id="das-theme-vars">
-      :root {
-        @isset($themeVars['theme_primary']) --das-primary: {{ $themeVars['theme_primary'] }}; @endisset
-        @isset($themeVars['theme_primary_soft']) --das-primary-soft: {{ $themeVars['theme_primary_soft'] }}; @endisset
-        @isset($themeVars['theme_secondary']) --das-secondary: {{ $themeVars['theme_secondary'] }}; @endisset
-        @isset($themeVars['theme_secondary_soft']) --das-secondary-soft: {{ $themeVars['theme_secondary_soft'] }}; @endisset
-        @isset($themeVars['theme_success']) --das-success: {{ $themeVars['theme_success'] }}; @endisset
-        @isset($themeVars['theme_success_soft']) --das-success-soft: {{ $themeVars['theme_success_soft'] }}; @endisset
-        @isset($themeVars['theme_info']) --das-info: {{ $themeVars['theme_info'] }}; @endisset
-        @isset($themeVars['theme_info_soft']) --das-info-soft: {{ $themeVars['theme_info_soft'] }}; @endisset
-        @isset($themeVars['theme_warning']) --das-warning: {{ $themeVars['theme_warning'] }}; @endisset
-        @isset($themeVars['theme_warning_soft']) --das-warning-soft: {{ $themeVars['theme_warning_soft'] }}; @endisset
-        @isset($themeVars['theme_danger']) --das-danger: {{ $themeVars['theme_danger'] }}; @endisset
-        @isset($themeVars['theme_danger_soft']) --das-danger-soft: {{ $themeVars['theme_danger_soft'] }}; @endisset
-        @isset($themeVars['theme_text_main']) --das-text-main: {{ $themeVars['theme_text_main'] }}; @endisset
-        @isset($themeVars['theme_surface']) --das-surface: {{ $themeVars['theme_surface'] }}; @endisset
-        @isset($themeVars['theme_border']) --das-border: {{ $themeVars['theme_border'] }}; @endisset
-      }
-    </style>
-  @endif
+  <style id="das-theme-vars">
+    /* Light Mode Variables */
+    :root, [data-bs-theme="light"] {
+      --das-primary: {{ $themeVars['theme_light_primary'] ?? $themeVars['theme_primary'] ?? '#7367f0' }};
+      --das-primary-soft: {{ $themeVars['theme_light_primary_soft'] ?? $themeVars['theme_primary_soft'] ?? 'rgba(115, 103, 240, 0.12)' }};
+      --das-secondary: {{ $themeVars['theme_light_secondary'] ?? $themeVars['theme_secondary'] ?? '#8592a3' }};
+      --das-secondary-soft: {{ $themeVars['theme_light_secondary_soft'] ?? $themeVars['theme_secondary_soft'] ?? 'rgba(133, 146, 163, 0.12)' }};
+      --das-success: {{ $themeVars['theme_light_success'] ?? $themeVars['theme_success'] ?? '#28c76f' }};
+      --das-success-soft: {{ $themeVars['theme_light_success_soft'] ?? $themeVars['theme_success_soft'] ?? 'rgba(40, 199, 111, 0.12)' }};
+      --das-info: {{ $themeVars['theme_light_info'] ?? $themeVars['theme_info'] ?? '#00cfe8' }};
+      --das-info-soft: {{ $themeVars['theme_light_info_soft'] ?? $themeVars['theme_info_soft'] ?? 'rgba(0, 207, 232, 0.12)' }};
+      --das-warning: {{ $themeVars['theme_light_warning'] ?? $themeVars['theme_warning'] ?? '#ff9f43' }};
+      --das-warning-soft: {{ $themeVars['theme_light_warning_soft'] ?? $themeVars['theme_warning_soft'] ?? 'rgba(255, 159, 67, 0.12)' }};
+      --das-danger: {{ $themeVars['theme_light_danger'] ?? $themeVars['theme_danger'] ?? '#ea5455' }};
+      --das-danger-soft: {{ $themeVars['theme_light_danger_soft'] ?? $themeVars['theme_danger_soft'] ?? 'rgba(234, 84, 85, 0.12)' }};
+      --das-text-main: {{ $themeVars['theme_light_text_main'] ?? '#0f172a' }};
+      --das-surface: {{ $themeVars['theme_light_surface'] ?? '#ffffff' }};
+      --das-border: {{ $themeVars['theme_light_border'] ?? 'rgba(226, 232, 240, 0.8)' }};
+      --das-sidebar-bg: {{ !empty($themeVars['theme_light_sidebar_gradient']) && $themeVars['theme_light_sidebar_gradient'] !== 'none' ? $themeVars['theme_light_sidebar_gradient'] : ($themeVars['theme_light_sidebar_bg'] ?? '#ffffff') }};
+    }
+
+    /* Dark Mode Variables */
+    [data-bs-theme="dark"] {
+      --das-primary: {{ $themeVars['theme_dark_primary'] ?? $themeVars['theme_primary'] ?? '#7367f0' }};
+      --das-primary-soft: {{ $themeVars['theme_dark_primary_soft'] ?? $themeVars['theme_primary_soft'] ?? 'rgba(115, 103, 240, 0.12)' }};
+      --das-secondary: {{ $themeVars['theme_dark_secondary'] ?? $themeVars['theme_secondary'] ?? '#a8aaae' }};
+      --das-secondary-soft: {{ $themeVars['theme_dark_secondary_soft'] ?? $themeVars['theme_secondary_soft'] ?? 'rgba(168, 170, 174, 0.12)' }};
+      --das-success: {{ $themeVars['theme_dark_success'] ?? $themeVars['theme_success'] ?? '#28c76f' }};
+      --das-success-soft: {{ $themeVars['theme_dark_success_soft'] ?? $themeVars['theme_success_soft'] ?? 'rgba(40, 199, 111, 0.12)' }};
+      --das-info: {{ $themeVars['theme_dark_info'] ?? $themeVars['theme_info'] ?? '#00cfe8' }};
+      --das-info-soft: {{ $themeVars['theme_dark_info_soft'] ?? $themeVars['theme_info_soft'] ?? 'rgba(0, 207, 232, 0.12)' }};
+      --das-warning: {{ $themeVars['theme_dark_warning'] ?? $themeVars['theme_warning'] ?? '#ff9f43' }};
+      --das-warning-soft: {{ $themeVars['theme_dark_warning_soft'] ?? $themeVars['theme_warning_soft'] ?? 'rgba(255, 159, 67, 0.12)' }};
+      --das-danger: {{ $themeVars['theme_dark_danger'] ?? $themeVars['theme_danger'] ?? '#ea5455' }};
+      --das-danger-soft: {{ $themeVars['theme_dark_danger_soft'] ?? $themeVars['theme_danger_soft'] ?? 'rgba(234, 84, 85, 0.12)' }};
+      --das-text-main: {{ $themeVars['theme_dark_text_main'] ?? $themeVars['theme_text_main'] ?? '#cbd5e1' }};
+      --das-surface: {{ $themeVars['theme_dark_surface'] ?? $themeVars['theme_surface'] ?? 'rgba(15, 23, 42, 0.45)' }};
+      --das-border: {{ $themeVars['theme_dark_border'] ?? $themeVars['theme_border'] ?? 'rgba(255, 255, 255, 0.07)' }};
+      --das-sidebar-bg: {{ !empty($themeVars['theme_dark_sidebar_gradient']) && $themeVars['theme_dark_sidebar_gradient'] !== 'none' ? $themeVars['theme_dark_sidebar_gradient'] : ($themeVars['theme_dark_sidebar_bg'] ?? 'rgba(15, 23, 42, 0.75)') }};
+    }
+
+    #layout-menu.menu-vertical, .menu-vertical {
+      background: var(--das-sidebar-bg) !important;
+    }
+  </style>
 
   <!-- Include Scripts for customizer, helper, analytics, config -->
   <!-- $isFront is used to append the front layout scriptsIncludes only on the front layout otherwise the variable will be blank -->
