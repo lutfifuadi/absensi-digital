@@ -39,6 +39,11 @@ class IdCardPdfService
 
         $rows = Pengaturan::whereIn('key', $keys)->pluck('value', 'key')->toArray();
 
+        $logoVal      = !empty($rows['logo_url']) ? $rows['logo_url'] : ($rows['logo_sekolah'] ?? '');
+        $logoDinasVal = !empty($rows['logo_dinas_url']) ? $rows['logo_dinas_url'] : ($rows['logo_dinas'] ?? '');
+        $ttdVal       = !empty($rows['ttd_url']) ? $rows['ttd_url'] : ($rows['tanda_tangan_kepala_sekolah'] ?? '');
+        $capVal       = !empty($rows['cap_url']) ? $rows['cap_url'] : ($rows['cap_sekolah'] ?? '');
+
         return [
             'nama_sekolah'                 => $rows['nama_sekolah'] ?? 'Madrasah Aliyah',
             'alamat_lembaga'               => $rows['alamat_lembaga'] ?? '',
@@ -58,17 +63,17 @@ class IdCardPdfService
             'jumlah_tahun_sekolah'         => (int) ($rows['jumlah_tahun_sekolah'] ?? 3),
 
             // Base64 images
-            'logo_base64'       => $this->toBase64($rows['logo_sekolah'] ?? '', 'logo'),
-            'logo_dinas_base64' => $this->toBase64($rows['logo_dinas'] ?? '', 'logo'),
-            'ttd_base64'        => $this->toBase64($rows['tanda_tangan_kepala_sekolah'] ?? '', 'ttd'),
-            'cap_base64'        => $this->toBase64($rows['cap_sekolah'] ?? '', 'cap'),
+            'logo_base64'       => $this->toBase64($logoVal, 'logo'),
+            'logo_dinas_base64' => $this->toBase64($logoDinasVal, 'logo'),
+            'ttd_base64'        => $this->toBase64($ttdVal, 'ttd'),
+            'cap_base64'        => $this->toBase64($capVal, 'cap'),
         ];
     }
 
     /**
-     * Konversi file gambar ke data URI base64.
+     * Konversi file gambar atau URL eksternal (S3, Drive) ke data URI base64.
      *
-     * @param  string  $filename  Nama file saja (bukan path lengkap)
+     * @param  string  $filename  Nama file / URL eksternal / Google Drive ID
      * @param  string  $folder    Nama folder di public/uploads/
      * @return string
      */
@@ -78,7 +83,34 @@ class IdCardPdfService
             return '';
         }
 
-        if (strlen($filename) > 30 && !str_contains($filename, '/') && !str_contains($filename, '\\')) {
+        // 1. Jika URL eksternal (S3, CDN, HTTP/HTTPS)
+        if (str_starts_with($filename, 'http://') || str_starts_with($filename, 'https://')) {
+            try {
+                $data = @file_get_contents($filename);
+                if ($data !== false) {
+                    $extPath = parse_url($filename, PHP_URL_PATH);
+                    $ext     = strtolower(pathinfo($extPath, PATHINFO_EXTENSION)) ?: 'png';
+                    $mime    = match ($ext) {
+                        'png'         => 'image/png',
+                        'jpg', 'jpeg' => 'image/jpeg',
+                        'gif'         => 'image/gif',
+                        'svg'         => 'image/svg+xml',
+                        default       => 'image/png',
+                    };
+                    return "data:{$mime};base64," . base64_encode($data);
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning('IdCardPdfService toBase64: Gagal fetch gambar dari URL: ' . $e->getMessage());
+            }
+            return $filename; // Fallback ke raw URL jika fetch bermasalah
+        }
+
+        // 2. Jika Google Drive file ID: string panjang > 25, tanpa pemisah path atau titik ekstensi
+        if (strlen($filename) > 25
+            && !str_contains($filename, '/')
+            && !str_contains($filename, '\\')
+            && !str_contains($filename, '.')
+        ) {
             try {
                 return app(\App\Services\GoogleDriveService::class)->getPhotoBase64($filename);
             } catch (\Exception $e) {
@@ -87,7 +119,15 @@ class IdCardPdfService
             }
         }
 
+        // 3. File lokal di public/uploads/{folder}/{filename} atau storage/app/public/
         $path = public_path("uploads/{$folder}/{$filename}");
+        if (!file_exists($path)) {
+            $storagePath = storage_path("app/public/{$folder}/{$filename}");
+            if (file_exists($storagePath)) {
+                $path = $storagePath;
+            }
+        }
+
         $data = @file_get_contents($path);
 
         if ($data === false) {
@@ -96,11 +136,11 @@ class IdCardPdfService
 
         $ext  = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         $mime = match ($ext) {
-            'png'       => 'image/png',
+            'png'         => 'image/png',
             'jpg', 'jpeg' => 'image/jpeg',
-            'gif'       => 'image/gif',
-            'svg'       => 'image/svg+xml',
-            default     => 'image/png',
+            'gif'         => 'image/gif',
+            'svg'         => 'image/svg+xml',
+            default       => 'image/png',
         };
 
         return "data:{$mime};base64," . base64_encode($data);
@@ -195,9 +235,15 @@ class IdCardPdfService
         });
 
         $config = $template->config;
+        $configFront = $this->extractFrontConfig($config);
+        $configBack  = $this->extractBackConfig($config);
+        $hasSideBack = $this->hasActiveBackSide($config);
 
-        return Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'entities', 'lembaga'))
-            ->setPaper([0, 0, $config['canvas']['width'], $config['canvas']['height']])
+        $paperWidth  = $hasSideBack ? ($config['canvas']['width'] * 2) : $config['canvas']['width'];
+        $paperHeight = $config['canvas']['height'];
+
+        return Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'configFront', 'configBack', 'hasSideBack', 'entities', 'lembaga'))
+            ->setPaper([0, 0, $paperWidth, $paperHeight])
             ->download("{$label}.pdf");
     }
 
@@ -264,9 +310,15 @@ class IdCardPdfService
         });
 
         $config = $template->config;
+        $configFront = $this->extractFrontConfig($config);
+        $configBack  = $this->extractBackConfig($config);
+        $hasSideBack = $this->hasActiveBackSide($config);
 
-        return Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'entities', 'lembaga'))
-            ->setPaper([0, 0, $config['canvas']['width'], $config['canvas']['height']])
+        $paperWidth  = $hasSideBack ? ($config['canvas']['width'] * 2) : $config['canvas']['width'];
+        $paperHeight = $config['canvas']['height'];
+
+        return Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'configFront', 'configBack', 'hasSideBack', 'entities', 'lembaga'))
+            ->setPaper([0, 0, $paperWidth, $paperHeight])
             ->download("{$label}.pdf");
     }
 
@@ -313,10 +365,59 @@ class IdCardPdfService
         });
 
         $config = $template->config;
+        $configFront = $this->extractFrontConfig($config);
+        $configBack  = $this->extractBackConfig($config);
+        $hasSideBack = $this->hasActiveBackSide($config);
 
-        return Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'entities', 'lembaga'))
-            ->setPaper([0, 0, $config['canvas']['width'], $config['canvas']['height']])
+        $paperWidth  = $hasSideBack ? ($config['canvas']['width'] * 2) : $config['canvas']['width'];
+        $paperHeight = $config['canvas']['height'];
+
+        return Pdf::loadView('admin.id-card-templates.pdf', compact('template', 'config', 'configFront', 'configBack', 'hasSideBack', 'entities', 'lembaga'))
+            ->setPaper([0, 0, $paperWidth, $paperHeight])
             ->download("{$label}.pdf");
+    }
+
+    /**
+     * Helper untuk mengekstrak config elemen sisi Front.
+     */
+    public function extractFrontConfig(array $config): array
+    {
+        if (isset($config['front']['elements'])) {
+            return [
+                'canvas'   => $config['canvas'],
+                'elements' => $config['front']['elements'],
+            ];
+        }
+        return $config; // format lama
+    }
+
+    /**
+     * Helper untuk mengekstrak config elemen sisi Back.
+     */
+    public function extractBackConfig(array $config): ?array
+    {
+        if (!isset($config['back']['elements'])) {
+            return null;
+        }
+        return [
+            'canvas'   => $config['canvas'],
+            'elements' => $config['back']['elements'],
+        ];
+    }
+
+    /**
+     * Cek apakah template memiliki sisi Back yang aktif.
+     */
+    public function hasActiveBackSide(array $config): bool
+    {
+        if (isset($config['back']['elements'])) {
+            foreach ($config['back']['elements'] as $element) {
+                if (!empty($element['show'])) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**

@@ -1049,7 +1049,7 @@
               <option value="{{ $t->id }}"
                 data-type="{{ strtolower($t->type ?? 'all') }}"
                 {{ old('template_id') == $t->id ? 'selected' : '' }}>
-                {{ $t->name }}{{ $t->is_active ? '' : ' (nonaktif)' }}
+                {{ $t->name }}{{ $t->has_back_side ? ' [2 Sisi]' : ' [1 Sisi]' }}{{ $t->is_active ? '' : ' (nonaktif)' }}
               </option>
             @endforeach
           </select>

@@ -645,11 +645,15 @@
               <div class="set-logo-preview" id="logoPreviewWrap">
                 @php
                   $logoSrc = null;
-                  // Prioritaskan file upload lokal, baru URL/S3
-                  if (!empty($settings['logo_sekolah'])) {
-                    $logoSrc = asset('uploads/logo/' . $settings['logo_sekolah']);
-                  } elseif (!empty($settings['logo_url'])) {
-                    $logoSrc = $settings['logo_url'];
+                  $logoVal = !empty($settings['logo_url']) ? $settings['logo_url'] : ($settings['logo_sekolah'] ?? '');
+                  if (!empty($logoVal)) {
+                    if (str_starts_with($logoVal, 'http://') || str_starts_with($logoVal, 'https://')) {
+                      $logoSrc = $logoVal;
+                    } elseif (strlen($logoVal) > 25 && !str_contains($logoVal, '/') && !str_contains($logoVal, '\\') && !str_contains($logoVal, '.')) {
+                      $logoSrc = 'https://drive.google.com/thumbnail?id=' . $logoVal . '&sz=w200';
+                    } else {
+                      $logoSrc = asset('uploads/logo/' . $logoVal);
+                    }
                   }
                 @endphp
                 @if ($logoSrc)
@@ -715,15 +719,20 @@
           <div class="set-branding-wrap">
             <div class="set-logo-preview" id="logoDinasPreviewWrap">
               @php
-                $logoSrc = null;
-                if (!empty($settings['logo_dinas'])) {
-                  $logoSrc = asset('uploads/logo/' . $settings['logo_dinas']);
-                } elseif (!empty($settings['logo_dinas_url'])) {
-                  $logoSrc = $settings['logo_dinas_url'];
+                $logoDinasSrc = null;
+                $logoDinasVal = !empty($settings['logo_dinas_url']) ? $settings['logo_dinas_url'] : ($settings['logo_dinas'] ?? '');
+                if (!empty($logoDinasVal)) {
+                  if (str_starts_with($logoDinasVal, 'http://') || str_starts_with($logoDinasVal, 'https://')) {
+                    $logoDinasSrc = $logoDinasVal;
+                  } elseif (strlen($logoDinasVal) > 25 && !str_contains($logoDinasVal, '/') && !str_contains($logoDinasVal, '\\') && !str_contains($logoDinasVal, '.')) {
+                    $logoDinasSrc = 'https://drive.google.com/thumbnail?id=' . $logoDinasVal . '&sz=w200';
+                  } else {
+                    $logoDinasSrc = asset('uploads/logo/' . $logoDinasVal);
+                  }
                 }
               @endphp
-              @if ($logoSrc)
-                <img src="{{ $logoSrc }}" id="logoDinasPreviewImg" alt="Logo Dinas" class="set-logo-preview__img">
+              @if ($logoDinasSrc)
+                <img src="{{ $logoDinasSrc }}" id="logoDinasPreviewImg" alt="Logo Dinas" class="set-logo-preview__img">
               @else
                 <div class="set-logo-preview__empty" id="logoDinasPreviewEmpty">
                   <i class="ti tabler-photo-off"></i>
@@ -787,15 +796,15 @@
             <div class="set-logo-preview" id="ttdPreviewWrap">
               @php
                 $ttdSrc = null;
-                if (!empty($settings['tanda_tangan_kepala_sekolah'])) {
-                  $value = $settings['tanda_tangan_kepala_sekolah'];
-                  if (strlen($value) > 30) {
-                    $ttdSrc = 'https://drive.google.com/thumbnail?id=' . $value . '&sz=w200';
+                $ttdVal = !empty($settings['ttd_url']) ? $settings['ttd_url'] : ($settings['tanda_tangan_kepala_sekolah'] ?? '');
+                if (!empty($ttdVal)) {
+                  if (str_starts_with($ttdVal, 'http://') || str_starts_with($ttdVal, 'https://')) {
+                    $ttdSrc = $ttdVal;
+                  } elseif (strlen($ttdVal) > 25 && !str_contains($ttdVal, '/') && !str_contains($ttdVal, '\\') && !str_contains($ttdVal, '.')) {
+                    $ttdSrc = 'https://drive.google.com/thumbnail?id=' . $ttdVal . '&sz=w200';
                   } else {
-                    $ttdSrc = asset('uploads/ttd/' . $value);
+                    $ttdSrc = asset('uploads/ttd/' . $ttdVal);
                   }
-                } elseif (!empty($settings['ttd_url'])) {
-                  $ttdSrc = $settings['ttd_url'];
                 }
               @endphp
               @if ($ttdSrc)
@@ -863,15 +872,15 @@
             <div class="set-logo-preview" id="capPreviewWrap">
               @php
                 $capSrc = null;
-                if (!empty($settings['cap_sekolah'])) {
-                  $value = $settings['cap_sekolah'];
-                  if (strlen($value) > 30) {
-                    $capSrc = 'https://drive.google.com/thumbnail?id=' . $value . '&sz=w200';
+                $capVal = !empty($settings['cap_url']) ? $settings['cap_url'] : ($settings['cap_sekolah'] ?? '');
+                if (!empty($capVal)) {
+                  if (str_starts_with($capVal, 'http://') || str_starts_with($capVal, 'https://')) {
+                    $capSrc = $capVal;
+                  } elseif (strlen($capVal) > 25 && !str_contains($capVal, '/') && !str_contains($capVal, '\\') && !str_contains($capVal, '.')) {
+                    $capSrc = 'https://drive.google.com/thumbnail?id=' . $capVal . '&sz=w200';
                   } else {
-                    $capSrc = asset('uploads/cap/' . $value);
+                    $capSrc = asset('uploads/cap/' . $capVal);
                   }
-                } elseif (!empty($settings['cap_url'])) {
-                  $capSrc = $settings['cap_url'];
                 }
               @endphp
               @if ($capSrc)

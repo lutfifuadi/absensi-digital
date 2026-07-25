@@ -2,6 +2,46 @@
 
 @section('title', $isEdit ? 'Edit Template ID Card' : 'Buat Template ID Card')
 
+@php
+    $bgUrlFront = '';
+    if (!empty($template->background_path)) {
+        if (str_starts_with($template->background_path, 'http://') || str_starts_with($template->background_path, 'https://')) {
+            $bgUrlFront = $template->background_path;
+        } elseif (strlen($template->background_path) > 30 && !str_contains($template->background_path, '/')) {
+            $bgUrlFront = 'https://drive.google.com/thumbnail?id=' . $template->background_path . '&sz=w800&_t=' . time();
+        } elseif (file_exists(storage_path('app/public/' . $template->background_path))) {
+            $bgData = @file_get_contents(storage_path('app/public/' . $template->background_path));
+            if ($bgData !== false) {
+                $ext = pathinfo($template->background_path, PATHINFO_EXTENSION) ?: 'png';
+                $bgUrlFront = 'data:image/' . $ext . ';base64,' . base64_encode($bgData);
+            } else {
+                $bgUrlFront = asset('storage/' . $template->background_path);
+            }
+        } else {
+            $bgUrlFront = asset('storage/' . $template->background_path);
+        }
+    }
+
+    $bgUrlBack = '';
+    if (!empty($template->background_path_back)) {
+        if (str_starts_with($template->background_path_back, 'http://') || str_starts_with($template->background_path_back, 'https://')) {
+            $bgUrlBack = $template->background_path_back;
+        } elseif (strlen($template->background_path_back) > 30 && !str_contains($template->background_path_back, '/')) {
+            $bgUrlBack = 'https://drive.google.com/thumbnail?id=' . $template->background_path_back . '&sz=w800&_t=' . time();
+        } elseif (file_exists(storage_path('app/public/' . $template->background_path_back))) {
+            $bgDataBack = @file_get_contents(storage_path('app/public/' . $template->background_path_back));
+            if ($bgDataBack !== false) {
+                $extBack = pathinfo($template->background_path_back, PATHINFO_EXTENSION) ?: 'png';
+                $bgUrlBack = 'data:image/' . $extBack . ';base64,' . base64_encode($bgDataBack);
+            } else {
+                $bgUrlBack = asset('storage/' . $template->background_path_back);
+            }
+        } else {
+            $bgUrlBack = asset('storage/' . $template->background_path_back);
+        }
+    }
+@endphp
+
 @section('vendor-style')
 <style>
     #id-card-preview-container {
@@ -78,6 +118,26 @@
         border-color: #7367f0 !important;
     }
 
+    /* Tab Custom Styling */
+    .side-tab-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.6);
+        padding: 0.65rem 1rem;
+        border-radius: 8px;
+        transition: all 0.25s ease;
+    }
+    .side-tab-btn:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    .side-tab-btn.active {
+        background: #7367f0 !important;
+        border-color: #7367f0 !important;
+        color: #fff !important;
+        box-shadow: 0 4px 12px rgba(115, 103, 240, 0.4);
+    }
+
     /* Accordion Custom Styling */
     #elementAccordion .accordion-item {
         background: transparent !important;
@@ -134,7 +194,8 @@
     }
     .btn-remove-custom-text:hover {
         background: rgba(239, 68, 68, 0.15);
-    }</style>
+    }
+</style>
 @endsection
 
 @section('content')
@@ -194,7 +255,8 @@
                     <h5 class="card-title mb-0 text-white">Konfigurasi Template</h5>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3 mt-3">
+                    {{-- Global Options --}}
+                    <div class="mb-3 mt-2">
                         <label class="form-label text-white-50 small">Nama Template</label>
                         <input type="text" name="name" class="form-control" value="{{ old('name', $template->name) }}" placeholder="Contoh: Kartu Siswa Biru" required>
                     </div>
@@ -207,29 +269,13 @@
                             <option value="pelepasan" {{ old('type', $template->type) == 'pelepasan' ? 'selected' : '' }}>Pelepasan</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label text-white-50 small">Background Kartu (PNG/JPG)</label>
-                        <input type="file" name="background" class="form-control" id="bgInput" accept="image/*">
-                        
-                        <div class="text-center my-2 text-white-50 small">— ATAU —</div>
-                        
-                        <label class="form-label text-white-50 small">Link Gambar Eksternal (URL)</label>
-                        <input type="url" name="background_url" class="form-control" id="bgUrlInput" 
-                               value="{{ old('background_url', (isset($template) && str_starts_with($template->background_path ?? '', 'http')) ? $template->background_path : '') }}" 
-                               placeholder="https://example.com/background.png">
-                        
-                        @if($template->background_path && !str_starts_with($template->background_path, 'http'))
-                            <small class="text-white-50 d-block mt-1">Current: {{ basename($template->background_path) }}</small>
-                        @endif
-                    </div>
+
                     <div class="form-check form-switch mb-3">
                         <input class="form-check-input" type="checkbox" name="is_active" id="isActive" {{ old('is_active', $template->is_active) ? 'checked' : '' }}>
                         <label class="form-check-label text-white small" for="isActive">Jadikan Template Aktif</label>
                     </div>
 
-                    <input type="hidden" name="config" id="configInput">
-
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <label class="form-label text-white-50 small d-flex justify-content-between align-items-center">
                             <span>Border Radius (Rounded Corner)</span>
                             <span class="badge bg-label-primary rounded-pill" id="borderRadiusValue" style="font-size:0.7rem;">5px</span>
@@ -238,22 +284,76 @@
                             <input type="range" id="borderRadiusSlider" class="form-range flex-grow-1" min="0" max="5" step="1" value="5" style="height:6px;">
                             <span class="text-white-50 small" style="min-width:24px;text-align:right;" id="borderRadiusLabel">5</span>
                         </div>
-                        <small class="text-white-50 d-block mt-1" style="font-size:0.65rem;">Atur tingkat kelengkungan sudut kartu (0 = kotak, 5 = maksimal rounded)</small>
+                        <small class="text-white-50 d-block mt-1" style="font-size:0.65rem;">Atur kelengkungan sudut kartu untuk KEDUA sisi (0 = kotak, 5 = rounded)</small>
                     </div>
 
-                    <hr style="border-color: rgba(255,255,255,0.08) !important;">
-                    
+                    <hr style="border-color: rgba(255,255,255,0.08) !important;" class="my-4">
+
+                    {{-- DUAL SIDE TABS --}}
+                    <div class="d-flex gap-2 mb-3">
+                        <button type="button" class="btn side-tab-btn flex-fill active" id="btnTabFront">
+                            <i class="ti tabler-credit-card me-1"></i> Depan (Front)
+                        </button>
+                        <button type="button" class="btn side-tab-btn flex-fill d-flex align-items-center justify-content-center gap-1" id="btnTabBack">
+                            <i class="ti tabler-credit-card-refund me-1"></i> Belakang (Back)
+                            <span class="badge bg-success rounded-pill d-none" id="backActiveBadge" style="font-size:0.6rem;">• Aktif</span>
+                        </button>
+                    </div>
+
+                    {{-- FRONT SIDE BACKGROUND CONTROLS --}}
+                    <div id="sideControlsFront">
+                        <div class="mb-3 p-3 rounded" style="background: rgba(15, 23, 42, 0.3); border: 1px solid rgba(255,255,255,0.06);">
+                            <label class="form-label text-white fw-semibold small mb-2"><i class="ti tabler-photo me-1 text-primary"></i>Background Sisi Depan (Front)</label>
+                            <input type="file" name="background" class="form-control" id="bgInput" accept="image/*">
+                            
+                            <div class="text-center my-2 text-white-50 small">— ATAU —</div>
+                            
+                            <label class="form-label text-white-50 small">Link Gambar Eksternal (URL)</label>
+                            <input type="url" name="background_url" class="form-control" id="bgUrlInput" 
+                                   value="{{ old('background_url', (isset($template) && str_starts_with($template->background_path ?? '', 'http')) ? $template->background_path : '') }}" 
+                                   placeholder="https://example.com/background-front.png">
+                            
+                            @if($template->background_path && !str_starts_with($template->background_path, 'http'))
+                                <small class="text-white-50 d-block mt-1">Current: {{ basename($template->background_path) }}</small>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- BACK SIDE BACKGROUND CONTROLS --}}
+                    <div id="sideControlsBack" class="d-none">
+                        <div class="mb-3 p-3 rounded" style="background: rgba(15, 23, 42, 0.3); border: 1px solid rgba(255,255,255,0.06);">
+                            <label class="form-label text-white fw-semibold small mb-2"><i class="ti tabler-photo me-1 text-info"></i>Background Sisi Belakang (Back)</label>
+                            <input type="file" name="background_back" class="form-control" id="bgBackInput" accept="image/*">
+                            
+                            <div class="text-center my-2 text-white-50 small">— ATAU —</div>
+                            
+                            <label class="form-label text-white-50 small">Link Gambar Eksternal (URL)</label>
+                            <input type="url" name="background_back_url" class="form-control" id="bgBackUrlInput" 
+                                   value="{{ old('background_back_url', (isset($template) && str_starts_with($template->background_path_back ?? '', 'http')) ? $template->background_path_back : '') }}" 
+                                   placeholder="https://example.com/background-back.png">
+                            
+                            @if($template->background_path_back && !str_starts_with($template->background_path_back, 'http'))
+                                <small class="text-white-50 d-block mt-1">Current: {{ basename($template->background_path_back) }}</small>
+                            @endif
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="config" id="configInput">
+
                     <div class="mb-4">
                         <label class="form-label text-white-50 small mb-2 d-flex justify-content-between align-items-center">
-                            <span>Palet Elemen (Tarik ke Kartu)</span>
+                            <span>Palet Elemen Nonaktif (<span id="paletteSideText">Depan</span>)</span>
                             <span class="badge bg-label-primary rounded-pill" style="font-size:0.65rem;">Drag & Drop</span>
                         </label>
                         <div id="element-palette" class="d-flex flex-wrap gap-2 p-3 rounded" style="background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.1); min-height: 50px;">
                             <!-- Badge elemen draggable akan di-render dinamis via JS -->
                         </div>
-                        <div class="mt-2">
-                            <button type="button" id="addCustomTextBtn" class="btn btn-sm btn-outline-info w-100" style="border-style: dashed;">
-                                <i class="ti tabler-plus me-1"></i> Tambah Teks Kustom
+                        <div class="mt-2 d-flex gap-2">
+                            <button type="button" id="addCustomTextBtn" class="btn btn-sm btn-outline-info flex-fill" style="border-style: dashed;">
+                                <i class="ti tabler-plus me-1"></i> Tambah Teks
+                            </button>
+                            <button type="button" id="addDividerBtn" class="btn btn-sm btn-outline-warning flex-fill" style="border-style: dashed;">
+                                <i class="ti tabler-plus me-1"></i> Tambah Garis
                             </button>
                         </div>
                     </div>
@@ -261,21 +361,20 @@
                     <div class="accordion" id="elementAccordion">
                         @php
                             $orderedStandard = ['photo', 'qr', 'barcode', 'name', 'id_number', 'nis', 'nisn', 'nip', 'class', 'gender', 'ttl', 'masa_berlaku', 'logo_lembaga', 'logo_dinas', 'nama_lembaga', 'alamat_lembaga', 'tempat_tanggal_terbit', 'ttd_kepala_sekolah', 'cap_lembaga', 'nama_kepala_sekolah', 'nip_kepala_sekolah'];
+                            
+                            $elementsSource = $template->config['front']['elements'] ?? ($template->config['elements'] ?? []);
                             $customTextKeys = [];
-                            if (isset($template->config['elements'])) {
-                                foreach (array_keys($template->config['elements']) as $ek) {
-                                    if (str_starts_with($ek, 'custom_text_')) {
-                                        $customTextKeys[] = $ek;
-                                    }
+                            foreach (array_keys($elementsSource) as $ek) {
+                                if (str_starts_with($ek, 'custom_text_')) {
+                                    $customTextKeys[] = $ek;
                                 }
                             }
                             sort($customTextKeys);
+                            
                             $dividerKeys = [];
-                            if (isset($template->config['elements'])) {
-                                foreach (array_keys($template->config['elements']) as $ek) {
-                                    if (str_starts_with($ek, 'divider_')) {
-                                        $dividerKeys[] = $ek;
-                                    }
+                            foreach (array_keys($elementsSource) as $ek) {
+                                if (str_starts_with($ek, 'divider_')) {
+                                    $dividerKeys[] = $ek;
                                 }
                             }
                             if (empty($dividerKeys)) {
@@ -455,7 +554,7 @@
                 <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center" style="border-color:rgba(255,255,255,0.08) !important; background:transparent;">
                     <div class="d-flex align-items-center gap-2">
                         <i class="ti tabler-eye text-primary"></i>
-                        <h5 class="card-title mb-0 text-white">Live Preview (Skala 1:1)</h5>
+                        <h5 class="card-title mb-0 text-white" id="previewTitle">Live Preview Sisi Depan (Front)</h5>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <div class="d-flex align-items-center gap-2">
@@ -477,19 +576,7 @@
                 <div class="card-body py-5 overflow-auto" style="background: #f1f5f9;">
                     <div class="d-flex align-items-center justify-content-center p-3" style="min-height: 520px; overflow: auto; width: 100%;">
                         <div id="id-card-preview-container">
-                            @php
-                              $bgUrl = '';
-                              if ($template->background_path) {
-                                  if (str_starts_with($template->background_path, 'http://') || str_starts_with($template->background_path, 'https://')) {
-                                      $bgUrl = $template->background_path;
-                                  } elseif (strlen($template->background_path) > 30 && !str_contains($template->background_path, '/')) {
-                                      $bgUrl = 'https://drive.google.com/thumbnail?id=' . $template->background_path . '&sz=w800&_t=' . time();
-                                  } else {
-                                      $bgUrl = asset('storage/' . $template->background_path);
-                                  }
-                              }
-                            @endphp
-                            <div id="id-card-canvas" style="background-image: url('{{ $bgUrl }}')">
+                            <div id="id-card-canvas" style="background-image: url('{{ $bgUrlFront }}')">
                                 <!-- Elements will be rendered here via JS -->
                             </div>
                         </div>
@@ -530,14 +617,132 @@ const samples = @json($samples ?? []);
 const lembaga = @json($lembaga ?? []);
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initial Config from PHP
-    let config = @json($template->config);
-    let selectedElementKey = null; // Menyimpan elemen terpilih untuk navigasi keyboard
+    let rawConfig = @json($template->config);
+    
+    // Normalize dual side config structure
+    let config = {
+        canvas: rawConfig.canvas ?? { width: 153, height: 243, border_radius: 5 },
+        front: {
+            elements: (rawConfig.front && rawConfig.front.elements) ? rawConfig.front.elements : (rawConfig.elements ?? {})
+        },
+        back: {
+            elements: (rawConfig.back && rawConfig.back.elements) ? rawConfig.back.elements : {}
+        }
+    };
+
+    let activeSide = 'front'; // 'front' or 'back'
+    let selectedElementKey = null;
+
+    let bgUrlFront = @json($bgUrlFront);
+    let bgUrlBack  = @json($bgUrlBack);
+
     const canvas = document.getElementById('id-card-canvas');
     const container = document.getElementById('id-card-preview-container');
     const configInput = document.getElementById('configInput');
-    const bgInput = document.getElementById('bgInput');
     const palette = document.getElementById('element-palette');
+
+    const btnTabFront = document.getElementById('btnTabFront');
+    const btnTabBack  = document.getElementById('btnTabBack');
+    const sideControlsFront = document.getElementById('sideControlsFront');
+    const sideControlsBack  = document.getElementById('sideControlsBack');
+    const previewTitle = document.getElementById('previewTitle');
+    const paletteSideText = document.getElementById('paletteSideText');
+    const backActiveBadge = document.getElementById('backActiveBadge');
+
+    const bgInput = document.getElementById('bgInput');
+    const bgUrlInput = document.getElementById('bgUrlInput');
+    const bgBackInput = document.getElementById('bgBackInput');
+    const bgBackUrlInput = document.getElementById('bgBackUrlInput');
+
+    // Live background updates for Front
+    if (bgInput) {
+        bgInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    bgUrlFront = evt.target.result;
+                    if (activeSide === 'front') {
+                        canvas.style.backgroundImage = `url('${bgUrlFront}')`;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    if (bgUrlInput) {
+        bgUrlInput.addEventListener('input', function() {
+            if (this.value) {
+                bgUrlFront = this.value;
+                if (activeSide === 'front') {
+                    canvas.style.backgroundImage = `url('${bgUrlFront}')`;
+                }
+            }
+        });
+    }
+
+    // Live background updates for Back
+    if (bgBackInput) {
+        bgBackInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    bgUrlBack = evt.target.result;
+                    if (activeSide === 'back') {
+                        canvas.style.backgroundImage = `url('${bgUrlBack}')`;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    if (bgBackUrlInput) {
+        bgBackUrlInput.addEventListener('input', function() {
+            if (this.value) {
+                bgUrlBack = this.value;
+                if (activeSide === 'back') {
+                    canvas.style.backgroundImage = `url('${bgUrlBack}')`;
+                }
+            }
+        });
+    }
+
+    // Tab Switching Handlers
+    btnTabFront.addEventListener('click', function() {
+        activeSide = 'front';
+        btnTabFront.classList.add('active');
+        btnTabBack.classList.remove('active');
+        sideControlsFront.classList.remove('d-none');
+        sideControlsBack.classList.add('d-none');
+        previewTitle.innerText = 'Live Preview Sisi Depan (Front)';
+        paletteSideText.innerText = 'Depan';
+        canvas.style.backgroundImage = bgUrlFront ? `url('${bgUrlFront}')` : 'none';
+        selectedElementKey = null;
+        renderElements();
+    });
+
+    btnTabBack.addEventListener('click', function() {
+        activeSide = 'back';
+        btnTabBack.classList.add('active');
+        btnTabFront.classList.remove('active');
+        sideControlsBack.classList.remove('d-none');
+        sideControlsFront.classList.add('d-none');
+        previewTitle.innerText = 'Live Preview Sisi Belakang (Back)';
+        paletteSideText.innerText = 'Belakang';
+        canvas.style.backgroundImage = bgUrlBack ? `url('${bgUrlBack}')` : 'none';
+        selectedElementKey = null;
+        renderElements();
+    });
+
+    function updateBackActiveBadge() {
+        const hasActive = Object.values(config.back.elements).some(e => e && e.show);
+        if (hasActive) {
+            backActiveBadge.classList.remove('d-none');
+        } else {
+            backActiveBadge.classList.add('d-none');
+        }
+    }
 
     function getFriendlyName(key) {
         const names = {
@@ -563,20 +768,13 @@ document.addEventListener('DOMContentLoaded', function() {
             'nip_kepala_sekolah': 'NIP Kepala Sekolah'
         };
         if (names[key]) return names[key];
-        // Handle dynamic custom_text_N
         const matchText = key.match(/^custom_text_(\d+)$/);
-        if (matchText) {
-            return 'Teks Kustom ' + matchText[1];
-        }
-        // Handle dynamic divider_N
+        if (matchText) return 'Teks Kustom ' + matchText[1];
         const matchDivider = key.match(/^divider_(\d+)$/);
-        if (matchDivider) {
-            return 'Garis Pembatas ' + matchDivider[1];
-        }
+        if (matchDivider) return 'Garis Pembatas ' + matchDivider[1];
         return key.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
     }
 
-    // Update Dimensions & Border Radius
     function updateCanvasSize() {
         container.style.width = config.canvas.width + 'px';
         container.style.height = config.canvas.height + 'px';
@@ -598,8 +796,10 @@ document.addEventListener('DOMContentLoaded', function() {
             sample = samples.staff;
         }
 
-        Object.keys(config.elements).forEach(key => {
-            const el = config.elements[key];
+        const currentElements = config[activeSide].elements;
+
+        Object.keys(currentElements).forEach(key => {
+            const el = currentElements[key];
             if (!el.show) {
                 const badge = document.createElement('div');
                 badge.className = 'badge bg-label-secondary cursor-move p-2 border border-dashed border-secondary';
@@ -649,11 +849,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         div.innerHTML = '<i class="ti tabler-school"></i> LOGO FOTO';
                     }
                 } else if (key === 'qr') {
-                    // Determine the QR data from sample (nisn for students, nip for guru/staff, fallback to 'ABSENSI')
-                    let qrData = 'ABSENSI_PREVIEW';
-                    if (sample) {
-                        qrData = sample.nisn || sample.nip || 'ABSENSI';
-                    }
+                    let qrData = sample ? (sample.nisn || sample.nip || 'ABSENSI') : 'ABSENSI_PREVIEW';
                     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}`;
                     div.innerHTML = `<img src="${qrUrl}" style="width:100%; height:100%; object-fit:contain; background:#fff; padding:2px;">`;
                 } else if (key === 'barcode') {
@@ -693,15 +889,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 div.style.color = el.color;
                 div.style.textAlign = el.align;
                 div.innerText = getLabelFor(key);
-                
-                // Formatting Bold & Italic
                 div.style.fontWeight = el.bold ? 'bold' : 'normal';
                 div.style.fontStyle = el.italic ? 'italic' : 'normal';
-                
-                // Formatting transform
                 div.style.textTransform = el.transform || 'none';
                 
-                // Adjust width for center/right align
                 if(el.align === 'center') {
                     div.style.width = config.canvas.width + 'px';
                     div.style.left = '0';
@@ -714,6 +905,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         configInput.value = JSON.stringify(config);
         updateControlInputs();
+        updateBackActiveBadge();
     }
 
     function getLabelFor(key) {
@@ -726,6 +918,8 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (cardType === 'staff') {
             sample = samples.staff;
         }
+
+        const currentElements = config[activeSide].elements;
 
         if(key === 'name') return sample ? sample.name : 'NAMA LENGKAP';
         if(key === 'nis') return sample ? sample.nis : '-';
@@ -742,73 +936,306 @@ document.addEventListener('DOMContentLoaded', function() {
         if(key === 'nama_kepala_sekolah') return lembaga.nama_kepala_lembaga || 'Nama Kepala Sekolah';
         if(key === 'nip_kepala_sekolah') return lembaga.nip_kepala_lembaga ? 'NIP. ' + lembaga.nip_kepala_lembaga : 'NIP. -';
         if(key.startsWith('custom_text_')) {
-            return config.elements[key].content || 'Teks Kustom';
+            return currentElements[key] ? (currentElements[key].content || 'Teks Kustom') : 'Teks Kustom';
         }
         return key.toUpperCase();
     }
 
-    // Fungsi untuk menambah custom text baru
-    function addCustomText() {
-        // Cari nomor custom text terbesar
-        let maxNum = 0;
-        Object.keys(config.elements).forEach(k => {
-            const m = k.match(/^custom_text_(\d+)$/);
-            if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
+    function updateControlInputs() {
+        const currentElements = config[activeSide].elements;
+        document.querySelectorAll('.config-sync').forEach(input => {
+            const el = input.dataset.el;
+            const prop = input.dataset.prop;
+            if(currentElements[el]) {
+                const val = currentElements[el][prop];
+                if(input.type === 'checkbox') {
+                    input.checked = !!val;
+                } else {
+                    input.value = (val === undefined || val === null) ? '' : val;
+                }
+            }
         });
-        const newNum = maxNum + 1;
-        const newKey = 'custom_text_' + newNum;
+    }
 
-        // Default config untuk custom text baru
-        const defaultY = 140 + (newNum - 1) * 10;
-        config.elements[newKey] = {
-            x: 10,
-            y: defaultY,
-            size: 8,
-            color: '#000000',
-            show: true,
-            align: 'center',
-            content: 'Teks Kustom Baru',
-            bold: false,
-            italic: false,
-            transform: 'none'
-        };
+    // ── Shared drag state (single listener, no accumulation) ──────────────────
+    let activeDragKey = null;
+    let dragLastX = 0, dragLastY = 0;
 
-        // Buat accordion item baru dan sisipkan sebelum divider_1
-        const accordion = document.getElementById('elementAccordion');
-        const dividerItem = document.querySelector('[data-bs-target="#collapsedivider_1"]');
-        const newItem = createCustomTextAccordionItem(newKey, newNum);
-        if (dividerItem) {
-            accordion.insertBefore(newItem, dividerItem.closest('.accordion-item'));
-        } else {
-            accordion.appendChild(newItem);
+    document.addEventListener('mousemove', e => {
+        if (!activeDragKey) return;
+        const currentElements = config[activeSide].elements;
+        if (!currentElements[activeDragKey]) return;
+
+        const zoomSelect = document.getElementById('zoomSelect');
+        const zoom = zoomSelect ? parseFloat(zoomSelect.value) : 1.0;
+
+        const dx = (e.clientX - dragLastX) / zoom;
+        const dy = (e.clientY - dragLastY) / zoom;
+
+        let nx = currentElements[activeDragKey].x + dx;
+        let ny = currentElements[activeDragKey].y + dy;
+
+        const dragEl = document.getElementById('el-' + activeDragKey);
+        const elW = dragEl ? dragEl.offsetWidth : 0;
+        const elH = dragEl ? dragEl.offsetHeight : 0;
+
+        nx = Math.max(0, Math.min(nx, config.canvas.width - elW));
+        ny = Math.max(0, Math.min(ny, config.canvas.height - elH));
+
+        const isImageEl = ['photo', 'qr', 'logo_lembaga', 'logo_dinas', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(activeDragKey);
+        const isDividerEl = activeDragKey.startsWith('divider_');
+        if (!isImageEl && !isDividerEl && currentElements[activeDragKey].align === 'center') {
+            nx = 0;
         }
 
-        // Re-render preview & palette
-        renderElements();
+        currentElements[activeDragKey].x = Math.round(nx);
+        currentElements[activeDragKey].y = Math.round(ny);
 
-        // Buka accordion item baru
-        setTimeout(() => {
-            const collapseEl = document.getElementById('collapse' + newKey);
+        if (dragEl) {
+            dragEl.style.left = currentElements[activeDragKey].x + 'px';
+            dragEl.style.top  = currentElements[activeDragKey].y + 'px';
+        }
+
+        dragLastX = e.clientX;
+        dragLastY = e.clientY;
+
+        updateControlInputs();
+        configInput.value = JSON.stringify(config);
+    });
+
+    document.addEventListener('mouseup', () => {
+        activeDragKey = null;
+    });
+
+    // Drag Logic – only registers mousedown per element
+    function makeDraggable(el, key) {
+        el.addEventListener('mousedown', e => {
+            if (e.button !== 0) return; // left click only
+            // Select element
+            document.querySelectorAll('.draggable-element').forEach(item => {
+                item.classList.remove('selected-element');
+            });
+            selectedElementKey = key;
+            el.classList.add('selected-element');
+
+            // Start drag
+            activeDragKey = key;
+            dragLastX = e.clientX;
+            dragLastY = e.clientY;
+
+            e.preventDefault();
+            e.stopPropagation();
+        });
+    }
+
+    // Palette Drag and Drop to Canvas
+    const handlePaletteDrop = e => {
+        e.preventDefault();
+        const key = e.dataTransfer.getData('text/plain');
+        const currentElements = config[activeSide].elements;
+        if(key && currentElements[key]) {
+            const rect = canvas.getBoundingClientRect();
+            const zoomSelect = document.getElementById('zoomSelect');
+            const zoom = zoomSelect ? parseFloat(zoomSelect.value) : 1.0;
+
+            let dropX = (e.clientX - rect.left) / zoom;
+            let dropY = (e.clientY - rect.top) / zoom;
+
+            const isImageEl = ['photo', 'qr', 'barcode', 'logo_lembaga', 'logo_dinas', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(key);
+            const isDividerEl = key.startsWith('divider_');
+            const elW = isImageEl ? (currentElements[key].w || 40) : (isDividerEl ? (currentElements[key].w || 100) : 60);
+            const elH = isImageEl ? (currentElements[key].h || 40) : (isDividerEl ? (currentElements[key].h || 2) : 12);
+
+            dropX = Math.max(0, Math.min(dropX, config.canvas.width - elW));
+            dropY = Math.max(0, Math.min(dropY, config.canvas.height - elH));
+
+            if (!isImageEl && !isDividerEl && currentElements[key].align === 'center') {
+                dropX = 0;
+            }
+
+            currentElements[key].x = Math.round(dropX);
+            currentElements[key].y = Math.round(dropY);
+            currentElements[key].show = true;
+
+            selectedElementKey = key;
+            renderElements();
+            showNudgeToast(key, currentElements[key].x, currentElements[key].y);
+        }
+    };
+
+    container.addEventListener('dragover', e => e.preventDefault());
+    container.addEventListener('drop', handlePaletteDrop);
+
+    // Orientation Switch Helper
+    function clampElementsToCanvas() {
+        ['front', 'back'].forEach(side => {
+            if (!config[side] || !config[side].elements) return;
+            Object.keys(config[side].elements).forEach(key => {
+                const el = config[side].elements[key];
+                if (!el) return;
+                const isImageEl = ['photo', 'qr', 'barcode', 'logo_lembaga', 'logo_dinas', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(key);
+                const isDividerEl = key.startsWith('divider_');
+                const elW = isImageEl ? (el.w || 40) : (isDividerEl ? (el.w || 100) : 60);
+                const elH = isImageEl ? (el.h || 40) : (isDividerEl ? (el.h || 2) : 12);
+
+                if (el.y + elH > config.canvas.height) {
+                    el.y = Math.max(0, config.canvas.height - elH);
+                }
+                if (el.x + elW > config.canvas.width) {
+                    el.x = Math.max(0, config.canvas.width - elW);
+                }
+                if (!isImageEl && !isDividerEl && el.align === 'center') {
+                    el.x = 0;
+                }
+            });
+        });
+    }
+
+    // Orientation Buttons
+    const btnPortrait = document.getElementById('btnPortrait');
+    const btnLandscape = document.getElementById('btnLandscape');
+    if (btnPortrait && btnLandscape) {
+        btnPortrait.addEventListener('click', function() {
+            btnPortrait.classList.add('active', 'btn-outline-primary');
+            btnPortrait.classList.remove('btn-outline-secondary');
+            btnLandscape.classList.remove('active', 'btn-outline-primary');
+            btnLandscape.classList.add('btn-outline-secondary');
+
+            config.canvas.width = 153;
+            config.canvas.height = 243;
+            clampElementsToCanvas();
+            updateCanvasSize();
+            renderElements();
+        });
+
+        btnLandscape.addEventListener('click', function() {
+            btnLandscape.classList.add('active', 'btn-outline-primary');
+            btnLandscape.classList.remove('btn-outline-secondary');
+            btnPortrait.classList.remove('active', 'btn-outline-primary');
+            btnPortrait.classList.add('btn-outline-secondary');
+
+            config.canvas.width = 243;
+            config.canvas.height = 153;
+            clampElementsToCanvas();
+            updateCanvasSize();
+            renderElements();
+        });
+    }
+
+    // Context Menu – use position:fixed so viewport coords are correct
+    const contextMenu = document.getElementById('element-context-menu');
+    let contextElementKey = null;
+
+    // Right-click on canvas or any element inside it
+    canvas.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        const target = e.target.closest('.draggable-element');
+        if (!target) {
+            contextMenu.style.display = 'none';
+            return;
+        }
+        contextElementKey = target.id.replace('el-', '');
+
+        // Select the element visually
+        document.querySelectorAll('.draggable-element').forEach(item => item.classList.remove('selected-element'));
+        target.classList.add('selected-element');
+        selectedElementKey = contextElementKey;
+
+        // Position menu at cursor using fixed coordinates
+        const menuW = 200;
+        const menuH = 180;
+        let left = e.clientX;
+        let top  = e.clientY;
+        if (left + menuW > window.innerWidth)  left = e.clientX - menuW;
+        if (top  + menuH > window.innerHeight) top  = e.clientY - menuH;
+
+        contextMenu.style.position = 'fixed';
+        contextMenu.style.left = left + 'px';
+        contextMenu.style.top  = top  + 'px';
+        contextMenu.style.display = 'block';
+    });
+
+    // Close context menu on any click or right-click outside
+    document.addEventListener('click', e => {
+        if (!contextMenu.contains(e.target)) {
+            contextMenu.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('contextmenu', e => {
+        // If context menu is open and right-click is not on canvas, close it
+        if (contextMenu.style.display === 'block' && !canvas.contains(e.target)) {
+            contextMenu.style.display = 'none';
+        }
+    });
+
+    document.getElementById('btn-edit-element').addEventListener('click', () => {
+        if (contextElementKey) {
+            const collapseEl = document.getElementById('collapse' + contextElementKey);
             if (collapseEl) {
+                const accordionItem = collapseEl.closest('.accordion-item');
+                if (accordionItem) {
+                    accordionItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
                 const bsCollapse = new bootstrap.Collapse(collapseEl, { toggle: true });
             }
-        }, 100);
-    }
-
-    // Fungsi untuk menghapus custom text
-    function removeCustomText(key) {
-        if (!confirm('Hapus teks kustom ini?')) return;
-        delete config.elements[key];
-        // Hapus accordion item dari DOM
-        const collapseEl = document.getElementById('collapse' + key);
-        if (collapseEl) {
-            const accordionItem = collapseEl.closest('.accordion-item');
-            if (accordionItem) accordionItem.remove();
         }
-        renderElements();
+        contextMenu.style.display = 'none';
+    });
+
+    document.getElementById('btn-duplicate-element').addEventListener('click', () => {
+        if (contextElementKey) {
+            duplicateElement(contextElementKey);
+        }
+        contextMenu.style.display = 'none';
+    });
+
+    document.getElementById('btn-delete-element').addEventListener('click', () => {
+        if (contextElementKey) {
+            config[activeSide].elements[contextElementKey].show = false;
+            renderElements();
+        }
+        contextMenu.style.display = 'none';
+    });
+
+    document.getElementById('btn-front-element').addEventListener('click', () => {
+        if (contextElementKey) {
+            config[activeSide].elements[contextElementKey].z_index = (config[activeSide].elements[contextElementKey].z_index || 1) + 10;
+            renderElements();
+        }
+        contextMenu.style.display = 'none';
+    });
+
+    document.getElementById('btn-back-element').addEventListener('click', () => {
+        if (contextElementKey) {
+            config[activeSide].elements[contextElementKey].z_index = Math.max(1, (config[activeSide].elements[contextElementKey].z_index || 1) - 10);
+            renderElements();
+        }
+        contextMenu.style.display = 'none';
+    });
+
+    // ── Helper Pembuatan Item Accordion Dinamis & Binding Event ────────────────
+    function bindAccordionInputEvents(parentEl) {
+        parentEl.querySelectorAll('.config-sync').forEach(input => {
+            input.addEventListener('input', e => {
+                const el = e.target.dataset.el;
+                const prop = e.target.dataset.prop;
+                const currentElements = config[activeSide].elements;
+                if(currentElements[el]) {
+                    if(e.target.type === 'checkbox') {
+                        currentElements[el][prop] = e.target.checked;
+                    } else if(e.target.type === 'number') {
+                        currentElements[el][prop] = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                    } else {
+                        currentElements[el][prop] = e.target.value;
+                    }
+                    renderElements();
+                }
+            });
+        });
     }
 
-    // Helper untuk membuat HTML accordion item custom text
     function createCustomTextAccordionItem(key, num) {
         const div = document.createElement('div');
         div.className = 'accordion-item';
@@ -942,528 +1369,294 @@ document.addEventListener('DOMContentLoaded', function() {
         return div;
     }
 
-    function updateControlInputs() {
-        document.querySelectorAll('.config-sync').forEach(input => {
-            const el = input.dataset.el;
-            const prop = input.dataset.prop;
-            if(config.elements[el]) {
-                const val = config.elements[el][prop];
-                if(input.type === 'checkbox') {
-                    input.checked = !!val;
-                } else {
-                    input.value = (val === undefined || val === null) ? '' : val;
+    // ── Fungsi Duplikasi Elemen ─────────────────────────────────────────────────
+    function duplicateElement(key) {
+        const currentElements = config[activeSide].elements;
+        const sourceEl = currentElements[key];
+        if (!sourceEl) return;
+
+        const isDivider = key.startsWith('divider_');
+        let maxNum = 0;
+
+        if (isDivider) {
+            Object.keys(currentElements).forEach(k => {
+                const m = k.match(/^divider_(\d+)$/);
+                if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
+            });
+            const newNum = maxNum + 1;
+            const newKey = 'divider_' + newNum;
+
+            currentElements[newKey] = {
+                x: Math.min(config.canvas.width - 20, (sourceEl.x || 10) + 5),
+                y: Math.min(config.canvas.height - 10, (sourceEl.y || 10) + 10),
+                w: sourceEl.w || 100,
+                h: sourceEl.h || 2,
+                color: sourceEl.color || '#cccccc',
+                z_index: (sourceEl.z_index || 1) + 1,
+                show: true
+            };
+
+            const accordion = document.getElementById('elementAccordion');
+            const newItem = createDividerAccordionItem(newKey, newNum);
+            accordion.appendChild(newItem);
+            bindAccordionInputEvents(newItem);
+
+            selectedElementKey = newKey;
+            renderElements();
+            showNudgeToast(newKey, currentElements[newKey].x, currentElements[newKey].y);
+        } else {
+            Object.keys(currentElements).forEach(k => {
+                const m = k.match(/^custom_text_(\d+)$/);
+                if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
+            });
+            const newNum = maxNum + 1;
+            const newKey = 'custom_text_' + newNum;
+
+            const contentText = sourceEl.content || getLabelFor(key);
+
+            currentElements[newKey] = {
+                x: sourceEl.align === 'center' ? 0 : Math.min(config.canvas.width - 20, (sourceEl.x || 10) + 5),
+                y: Math.min(config.canvas.height - 15, (sourceEl.y || 10) + 10),
+                size: sourceEl.size || 8,
+                color: sourceEl.color || '#000000',
+                show: true,
+                align: sourceEl.align || 'center',
+                content: contentText,
+                bold: sourceEl.bold || false,
+                italic: sourceEl.italic || false,
+                transform: sourceEl.transform || 'none',
+                z_index: (sourceEl.z_index || 1) + 1
+            };
+
+            const accordion = document.getElementById('elementAccordion');
+            const newItem = createCustomTextAccordionItem(newKey, newNum);
+            accordion.appendChild(newItem);
+            bindAccordionInputEvents(newItem);
+
+            selectedElementKey = newKey;
+            renderElements();
+            showNudgeToast(newKey, currentElements[newKey].x, currentElements[newKey].y);
+        }
+    }
+
+    // Tombol Tambah Teks & Tambah Garis di area Palet
+    const addCustomTextBtn = document.getElementById('addCustomTextBtn');
+    if (addCustomTextBtn) {
+        addCustomTextBtn.addEventListener('click', () => {
+            let maxNum = 0;
+            const currentElements = config[activeSide].elements;
+            Object.keys(currentElements).forEach(k => {
+                const m = k.match(/^custom_text_(\d+)$/);
+                if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
+            });
+            const newNum = maxNum + 1;
+            const newKey = 'custom_text_' + newNum;
+
+            currentElements[newKey] = {
+                x: 0,
+                y: Math.min(config.canvas.height - 20, 140 + (newNum - 1) * 12),
+                size: 8,
+                color: '#000000',
+                show: true,
+                align: 'center',
+                content: 'Teks Kustom Baru',
+                bold: false,
+                italic: false,
+                transform: 'none',
+                z_index: 10
+            };
+
+            const accordion = document.getElementById('elementAccordion');
+            const newItem = createCustomTextAccordionItem(newKey, newNum);
+            accordion.appendChild(newItem);
+            bindAccordionInputEvents(newItem);
+
+            selectedElementKey = newKey;
+            renderElements();
+            showNudgeToast(newKey, currentElements[newKey].x, currentElements[newKey].y);
+        });
+    }
+
+    const addDividerBtn = document.getElementById('addDividerBtn');
+    if (addDividerBtn) {
+        addDividerBtn.addEventListener('click', () => {
+            let maxNum = 0;
+            const currentElements = config[activeSide].elements;
+            Object.keys(currentElements).forEach(k => {
+                const m = k.match(/^divider_(\d+)$/);
+                if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
+            });
+            const newNum = maxNum + 1;
+            const newKey = 'divider_' + newNum;
+
+            currentElements[newKey] = {
+                x: 10,
+                y: Math.min(config.canvas.height - 10, 100 + (newNum - 1) * 15),
+                w: Math.min(133, config.canvas.width - 20),
+                h: 2,
+                color: '#cccccc',
+                show: true,
+                z_index: 9
+            };
+
+            const accordion = document.getElementById('elementAccordion');
+            const newItem = createDividerAccordionItem(newKey, newNum);
+            accordion.appendChild(newItem);
+            bindAccordionInputEvents(newItem);
+
+            selectedElementKey = newKey;
+            renderElements();
+            showNudgeToast(newKey, currentElements[newKey].x, currentElements[newKey].y);
+        });
+    }
+
+    // Delegasi Event Hapus Elemen pada Accordion
+    const accordionEl = document.getElementById('elementAccordion');
+    if (accordionEl) {
+        accordionEl.addEventListener('click', function(e) {
+            const btn = e.target.closest('.btn-remove-custom-text');
+            if (btn) {
+                e.preventDefault();
+                e.stopPropagation();
+                const elKey = btn.dataset.el;
+                if (confirm('Hapus elemen ini?')) {
+                    delete config[activeSide].elements[elKey];
+                    const item = btn.closest('.accordion-item');
+                    if (item) item.remove();
+                    selectedElementKey = null;
+                    renderElements();
                 }
             }
         });
     }
 
-    // Drag Logic
-    function makeDraggable(el, key) {
-        let isDragging = false;
-        let lastX, lastY;
-
-        el.addEventListener('mousedown', e => {
-            if (e.button === 0) { // Klik kiri saja
-                // Hapus style select lama
-                document.querySelectorAll('.draggable-element').forEach(item => {
-                    item.classList.remove('selected-element');
-                });
-                selectedElementKey = key;
-                el.classList.add('selected-element');
-            }
-            isDragging = true;
-            lastX = e.clientX;
-            lastY = e.clientY;
-            e.preventDefault();
-        });
-
-        document.addEventListener('mousemove', e => {
-            if (!isDragging) return;
-            const zoomSelect = document.getElementById('zoomSelect');
-            const zoom = zoomSelect ? parseFloat(zoomSelect.value) : 1.0;
-
-            const dx = (e.clientX - lastX) / zoom;
-            const dy = (e.clientY - lastY) / zoom;
-
-            let nx = config.elements[key].x + dx;
-            let ny = config.elements[key].y + dy;
-
-            // Bounds check
-            nx = Math.max(0, Math.min(nx, config.canvas.width - el.offsetWidth));
-            ny = Math.max(0, Math.min(ny, config.canvas.height - el.offsetHeight));
-
-            // Snap to grid if name/id/class is center aligned
-            const isImageEl = ['photo', 'qr', 'logo_lembaga', 'logo_dinas', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(key);
-            const isDividerEl = key.startsWith('divider_');
-            if(!isImageEl && !isDividerEl && config.elements[key].align === 'center') {
-                nx = 0;
-            }
-
-            el.style.left = nx + 'px';
-            el.style.top = ny + 'px';
-
-            config.elements[key].x = nx;
-            config.elements[key].y = ny;
-
-            lastX = e.clientX;
-            lastY = e.clientY;
-
-            updateControlInputs();
-            configInput.value = JSON.stringify(config);
-        });
-
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-        });
-    }
-
-    // Dragover & Drop Events pada Canvas
-    canvas.addEventListener('dragover', e => {
-        e.preventDefault();
-        canvas.style.border = '2px dashed #7367f0';
-    });
-
-    canvas.addEventListener('dragleave', e => {
-        e.preventDefault();
-        canvas.style.border = '';
-    });
-
-    canvas.addEventListener('drop', e => {
-        e.preventDefault();
-        canvas.style.border = '';
-        const key = e.dataTransfer.getData('text/plain');
-        if (!key || !config.elements[key]) return;
-
-        const rect = canvas.getBoundingClientRect();
-        const zoom = zoomSelect ? parseFloat(zoomSelect.value) : 1.0;
-
-        let rx = (e.clientX - rect.left) / zoom;
-        let ry = (e.clientY - rect.top) / zoom;
-
-        // Default dimensions offset center
-        let w = config.elements[key].w || 70;
-        let h = config.elements[key].h || 15;
-
-        let nx = rx - (w / 2);
-        let ny = ry - (h / 2);
-
-        // Bounds check
-        nx = Math.max(0, Math.min(nx, config.canvas.width - w));
-        ny = Math.max(0, Math.min(ny, config.canvas.height - h));
-
-        config.elements[key].x = Math.round(nx);
-        config.elements[key].y = Math.round(ny);
-        config.elements[key].show = true;
-
-        renderElements();
-    });
-
-    // Event Listeners for Controls using Event Delegation (bind to #elementAccordion for custom element input sync)
-    document.getElementById('elementAccordion').addEventListener('input', e => {
-        const input = e.target.closest('.config-sync');
-        if (!input) return;
-        
-        const el = input.dataset.el;
-        const prop = input.dataset.prop;
-        let val = input.type === 'checkbox' ? input.checked : input.value;
-        if(input.type === 'number') val = parseInt(val);
-        
-        config.elements[el][prop] = val;
-        renderElements();
-        
-        // Also update hidden config input
-        configInput.value = JSON.stringify(config);
-    });
-
-    document.getElementById('btnPortrait').addEventListener('click', () => {
-        const currentBr = config.canvas.border_radius ?? 5;
-        config.canvas = { width: 153, height: 243, border_radius: currentBr };
-        document.getElementById('btnPortrait').classList.add('active', 'btn-outline-primary');
-        document.getElementById('btnLandscape').classList.remove('active', 'btn-outline-primary');
-        updateCanvasSize();
-        renderElements();
-    });
-
-    document.getElementById('btnLandscape').addEventListener('click', () => {
-        const currentBr = config.canvas.border_radius ?? 5;
-        config.canvas = { width: 243, height: 153, border_radius: currentBr };
-        document.getElementById('btnLandscape').classList.add('active', 'btn-outline-primary');
-        document.getElementById('btnPortrait').classList.remove('active', 'btn-outline-primary');
-        updateCanvasSize();
-        renderElements();
-    });
-
-    bgInput.addEventListener('change', function(e) {
-        if (this.files && this.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                canvas.style.backgroundImage = 'url(' + e.target.result + ')';
-            }
-            reader.readAsDataURL(this.files[0]);
-        }
-    });
-
-    const bgUrlInput = document.getElementById('bgUrlInput');
-    if (bgUrlInput) {
-        bgUrlInput.addEventListener('input', function() {
-            const val = this.value.trim();
-            if (val) {
-                canvas.style.backgroundImage = 'url(' + val + ')';
-            } else {
-                // Jika kosong, kembalikan ke file input
-                const fileInput = document.getElementById('bgInput');
-                if (fileInput && fileInput.files && fileInput.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        canvas.style.backgroundImage = 'url(' + e.target.result + ')';
-                    }
-                    reader.readAsDataURL(fileInput.files[0]);
-                } else {
-                    canvas.style.backgroundImage = '';
-                }
-            }
-        });
-    }
-
-    document.getElementById('cardType').addEventListener('change', () => {
-        renderElements();
-    });
-
-    // Tombol + Tambah Teks Kustom
-    document.getElementById('addCustomTextBtn').addEventListener('click', addCustomText);
-
-    // Event delegation untuk tombol × hapus custom text
-    document.getElementById('elementAccordion').addEventListener('click', function(e) {
-        const btn = e.target.closest('.btn-remove-custom-text');
-        if (btn) {
-            e.stopPropagation();
-            const key = btn.dataset.el;
-            if (key) removeCustomText(key);
-        }
-    });
-
-    // Event listener keydown pada document untuk menggerakkan elemen terpilih
+    // ── Keyboard Arrow Key Movement ────────────────────────────────────────────
+    // Arrow keys move selected element 1px; Shift+Arrow moves 10px (fast nudge)
     document.addEventListener('keydown', e => {
-        if (!selectedElementKey || !config.elements[selectedElementKey]) return;
-        
-        // Lewati jika user sedang mengetik di input field atau select
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
-            return;
-        }
+        if (!selectedElementKey) return;
+
+        // Don't intercept when focus is on an input/textarea/select
+        const tag = document.activeElement ? document.activeElement.tagName : '';
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
 
         const arrowKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
         if (!arrowKeys.includes(e.key)) return;
 
-        e.preventDefault();
+        e.preventDefault(); // prevent page scroll
 
-        const step = e.shiftKey ? 10 : 1; // 10px jika Shift ditekan, 1px jika biasa
-        const elConfig = config.elements[selectedElementKey];
+        const step = e.shiftKey ? 10 : 1;
+        const currentElements = config[activeSide].elements;
+        const elConfig = currentElements[selectedElementKey];
+        if (!elConfig) return;
+
         const domEl = document.getElementById('el-' + selectedElementKey);
+        const elW = domEl ? domEl.offsetWidth  : 0;
+        const elH = domEl ? domEl.offsetHeight : 0;
 
-        if (!domEl) return;
+        if (e.key === 'ArrowLeft')  elConfig.x = Math.max(0, elConfig.x - step);
+        if (e.key === 'ArrowRight') elConfig.x = Math.min(config.canvas.width  - elW, elConfig.x + step);
+        if (e.key === 'ArrowUp')    elConfig.y = Math.max(0, elConfig.y - step);
+        if (e.key === 'ArrowDown')  elConfig.y = Math.min(config.canvas.height - elH, elConfig.y + step);
 
-        let nx = elConfig.x;
-        let ny = elConfig.y;
-
-        if (e.key === 'ArrowUp') {
-            ny = Math.max(0, ny - step);
-        } else if (e.key === 'ArrowDown') {
-            ny = Math.min(config.canvas.height - domEl.offsetHeight, ny + step);
-        } else if (e.key === 'ArrowLeft') {
-            nx = Math.max(0, nx - step);
-        } else if (e.key === 'ArrowRight') {
-            nx = Math.min(config.canvas.width - domEl.offsetWidth, nx + step);
-        }
-
-        // Align center check (horizontal block jika align center untuk text)
+        // Center-aligned text elements are locked to X = 0
         const isImageEl = ['photo', 'qr', 'logo_lembaga', 'logo_dinas', 'ttd_kepala_sekolah', 'cap_lembaga'].includes(selectedElementKey);
         const isDividerEl = selectedElementKey.startsWith('divider_');
         if (!isImageEl && !isDividerEl && elConfig.align === 'center') {
-            nx = 0;
+            elConfig.x = 0;
         }
 
-        nx = Math.round(nx);
-        ny = Math.round(ny);
-
-        elConfig.x = nx;
-        elConfig.y = ny;
-        domEl.style.left = nx + 'px';
-        domEl.style.top = ny + 'px';
+        // Update DOM directly for smooth feel (no full re-render)
+        if (domEl) {
+            domEl.style.left = elConfig.x + 'px';
+            domEl.style.top  = elConfig.y + 'px';
+        }
 
         updateControlInputs();
         configInput.value = JSON.stringify(config);
+
+        // Show live coordinate toast
+        showNudgeToast(selectedElementKey, elConfig.x, elConfig.y);
     });
 
-    // Zoom Event Listener
-    const zoomSelect = document.getElementById('zoomSelect');
-    function updateZoom() {
-        if(zoomSelect && container) {
-            container.style.setProperty('--zoom-factor', zoomSelect.value);
+    // Small floating toast showing coordinates during keyboard nudge
+    let nudgeToastTimer = null;
+    function showNudgeToast(key, x, y) {
+        let toast = document.getElementById('nudge-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'nudge-toast';
+            toast.style.cssText = `
+                position: fixed; bottom: 24px; right: 24px; z-index: 99999;
+                background: rgba(15,23,42,0.92); color: #fff;
+                padding: 8px 14px; border-radius: 8px; font-size: 0.75rem;
+                border: 1px solid rgba(115,103,240,0.4);
+                backdrop-filter: blur(8px);
+                pointer-events: none;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+                transition: opacity 0.2s ease;
+            `;
+            document.body.appendChild(toast);
         }
+        toast.innerHTML = `<span style="color:#7367f0;font-weight:600;">${getFriendlyName(key)}</span>&nbsp;&nbsp;X: <b>${x}</b> &nbsp; Y: <b>${y}</b>&nbsp;&nbsp;<span style="color:rgba(255,255,255,0.4);font-size:0.65rem;">[Shift + ↑↓←→ = ×10]</span>`;
+        toast.style.opacity = '1';
+
+        clearTimeout(nudgeToastTimer);
+        nudgeToastTimer = setTimeout(() => {
+            toast.style.opacity = '0';
+        }, 1500);
     }
+
+    // Show keyboard hint when an element is selected via mouse
+    canvas.addEventListener('mousedown', e => {
+        const target = e.target.closest('.draggable-element');
+        if (target && e.button === 0) {
+            const key = target.id.replace('el-', '');
+            const el = config[activeSide].elements[key];
+            if (el) setTimeout(() => showNudgeToast(key, el.x, el.y), 100);
+        }
+    });
+
+    // Zoom Selector
+    const zoomSelect = document.getElementById('zoomSelect');
     if (zoomSelect) {
-        zoomSelect.addEventListener('change', updateZoom);
-        updateZoom(); // Set default 200% pada initial load
+        // Set initial zoom value on load
+        container.style.setProperty('--zoom-factor', zoomSelect.value);
+        zoomSelect.addEventListener('change', function() {
+            container.style.setProperty('--zoom-factor', this.value);
+        });
     }
 
     // Border Radius Slider
-    const borderSlider = document.getElementById('borderRadiusSlider');
-    const borderLabel = document.getElementById('borderRadiusLabel');
-    const borderValueBadge = document.getElementById('borderRadiusValue');
-    
-    function updateBorderRadius(val) {
-        const br = isNaN(parseInt(val)) ? 5 : parseInt(val);
-        config.canvas.border_radius = br;
-        container.style.setProperty('--border-radius', br + 'px');
-        container.style.borderRadius = br + 'px';
-        borderLabel.textContent = br;
-        borderValueBadge.textContent = br + 'px';
-        configInput.value = JSON.stringify(config);
-    }
-    
-    if (borderSlider) {
-        // Set initial value from config
-        const initBr = config.canvas.border_radius ?? 5;
-        borderSlider.value = initBr;
-        borderLabel.textContent = initBr;
-        borderValueBadge.textContent = initBr + 'px';
-        
-        borderSlider.addEventListener('input', function() {
-            updateBorderRadius(this.value);
-        });
-    }
+    const brSlider = document.getElementById('borderRadiusSlider');
+    const brLabel = document.getElementById('borderRadiusLabel');
+    const brValue = document.getElementById('borderRadiusValue');
+    if (brSlider) {
+        brSlider.value = config.canvas.border_radius ?? 5;
+        if (brLabel) brLabel.innerText = brSlider.value;
+        if (brValue) brValue.innerText = brSlider.value + 'px';
 
-    // Klik di area canvas (bukan pada draggable-element) untuk deselect elemen
-    document.addEventListener('click', e => {
-        if (!e.target.closest('.draggable-element') && !e.target.closest('#elementAccordion') && !e.target.closest('#element-palette') && !e.target.closest('#addCustomTextBtn') && !e.target.closest('#element-context-menu')) {
-            selectedElementKey = null;
-            document.querySelectorAll('.draggable-element').forEach(item => {
-                item.classList.remove('selected-element');
-            });
-        }
-    });
-
-    // Context Menu Logic
-    const contextMenu = document.getElementById('element-context-menu');
-    const deleteBtn = document.getElementById('btn-delete-element');
-    const editBtn = document.getElementById('btn-edit-element');
-    const duplicateBtn = document.getElementById('btn-duplicate-element');
-    const frontBtn = document.getElementById('btn-front-element');
-    const backBtn = document.getElementById('btn-back-element');
-    let activeElementKey = null;
-
-    canvas.addEventListener('contextmenu', e => {
-        const targetEl = e.target.closest('.draggable-element');
-        if (targetEl) {
-            e.preventDefault();
-            activeElementKey = targetEl.id.replace('el-', '');
-            
-            // Pilih juga elemen tersebut (agar sinkron dengan klik kiri)
-            selectedElementKey = activeElementKey;
-            document.querySelectorAll('.draggable-element').forEach(item => {
-                item.classList.remove('selected-element');
-            });
-            targetEl.classList.add('selected-element');
-
-            // Tampilkan tombol duplikat hanya jika diawali custom_text_ atau divider_
-            if (activeElementKey.startsWith('custom_text_') || activeElementKey.startsWith('divider_')) {
-                duplicateBtn.style.display = 'flex';
-            } else {
-                duplicateBtn.style.display = 'none';
-            }
-
-            contextMenu.style.left = e.pageX + 'px';
-            contextMenu.style.top = e.pageY + 'px';
-            contextMenu.style.display = 'block';
-        }
-    });
-
-    document.addEventListener('click', e => {
-        if (contextMenu.style.display === 'block') {
-            contextMenu.style.display = 'none';
-        }
-    });
-
-    editBtn.addEventListener('click', e => {
-        if (activeElementKey) {
-            const collapseEl = document.getElementById('collapse' + activeElementKey);
-            if (collapseEl) {
-                const accordionButton = document.querySelector(`[data-bs-target="#collapse${activeElementKey}"]`);
-                if (accordionButton && accordionButton.classList.contains('collapsed')) {
-                    accordionButton.click();
-                }
-
-                setTimeout(() => {
-                    const accordionItem = collapseEl.closest('.accordion-item');
-                    if (accordionItem) {
-                        // Scroll to the accordion item
-                        accordionItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                        // Highlight effect
-                        accordionItem.style.transition = 'background-color 0.3s ease';
-                        accordionItem.style.backgroundColor = 'rgba(115, 103, 240, 0.2)';
-                        setTimeout(() => {
-                            accordionItem.style.backgroundColor = 'transparent';
-                        }, 1000);
-
-                        // Focus on the first configuration input
-                        const firstInput = accordionItem.querySelector('input, select');
-                        if (firstInput) {
-                            firstInput.focus();
-                        }
-                    }
-                }, 250);
-            }
-        }
-        contextMenu.style.display = 'none';
-    });
-
-    frontBtn.addEventListener('click', e => {
-        if (activeElementKey && config.elements[activeElementKey]) {
-            // Cari z-index tertinggi dari semua elemen
-            let maxZ = 1;
-            Object.keys(config.elements).forEach(k => {
-                const z = parseInt(config.elements[k].z_index || 1);
-                if (z > maxZ) maxZ = z;
-            });
-            config.elements[activeElementKey].z_index = maxZ + 1;
-            renderElements();
-        }
-        contextMenu.style.display = 'none';
-    });
-
-    backBtn.addEventListener('click', e => {
-        if (activeElementKey && config.elements[activeElementKey]) {
-            // Cari z-index terendah dari semua elemen
-            let minZ = 1;
-            Object.keys(config.elements).forEach(k => {
-                const z = parseInt(config.elements[k].z_index || 1);
-                if (z < minZ) minZ = z;
-            });
-            
-            // Set ke minZ - 1 jika minZ > 1, jika tidak geser elemen lain naik dan set ini ke 1
-            if (minZ > 1) {
-                config.elements[activeElementKey].z_index = minZ - 1;
-            } else {
-                // Semua elemen lain dinaikkan z-indexnya
-                Object.keys(config.elements).forEach(k => {
-                    if (k !== activeElementKey) {
-                        config.elements[k].z_index = parseInt(config.elements[k].z_index || 1) + 1;
-                    }
-                });
-                config.elements[activeElementKey].z_index = 1;
-            }
-            renderElements();
-        }
-        contextMenu.style.display = 'none';
-    });
-
-    deleteBtn.addEventListener('click', e => {
-        if (activeElementKey && config.elements[activeElementKey]) {
-            config.elements[activeElementKey].show = false;
-            renderElements();
-        }
-        contextMenu.style.display = 'none';
-    });
-
-    duplicateBtn.addEventListener('click', e => {
-        if (activeElementKey && config.elements[activeElementKey]) {
-            let newKey = '';
-            if (activeElementKey.startsWith('custom_text_')) {
-                // Cari nomor custom text terbesar yang ada
-                let maxNum = 0;
-                Object.keys(config.elements).forEach(k => {
-                    const m = k.match(/^custom_text_(\d+)$/);
-                    if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
-                });
-                newKey = 'custom_text_' + (maxNum + 1);
-            } else if (activeElementKey.startsWith('divider_')) {
-                // Cari nomor divider terbesar yang ada
-                let maxNum = 0;
-                Object.keys(config.elements).forEach(k => {
-                    const m = k.match(/^divider_(\d+)$/);
-                    if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
-                });
-                newKey = 'divider_' + (maxNum + 1);
-            }
-
-            if (newKey) {
-                // Clone config dari elemen aktif
-                const sourceEl = config.elements[activeElementKey];
-                config.elements[newKey] = JSON.parse(JSON.stringify(sourceEl));
-
-                // Geser posisinya sedikit (misal x + 10, y + 10) agar tidak tumpang tindih persis
-                config.elements[newKey].x = Math.min(config.canvas.width - 20, config.elements[newKey].x + 10);
-                config.elements[newKey].y = Math.min(config.canvas.height - 20, config.elements[newKey].y + 10);
-                config.elements[newKey].show = true;
-
-                // Jika tipe custom_text, tambahkan string ' (Salin)' di kontennya
-                if (newKey.startsWith('custom_text_')) {
-                    config.elements[newKey].content = (sourceEl.content || 'Teks Kustom') + ' (Salin)';
-                }
-
-                // --- SISIPKAN ACCORDION ITEM BARU KE DOM ---
-                const accordion = document.getElementById('elementAccordion');
-                if (newKey.startsWith('custom_text_')) {
-                    const newNum = parseInt(newKey.replace('custom_text_', ''), 10);
-                    const newItem = createCustomTextAccordionItem(newKey, newNum);
-                    
-                    // Sisipkan sebelum divider_1 agar rapi
-                    const dividerItem = document.querySelector('[data-bs-target="#collapsedivider_1"]');
-                    if (dividerItem) {
-                        accordion.insertBefore(newItem, dividerItem.closest('.accordion-item'));
-                    } else {
-                        accordion.appendChild(newItem);
-                    }
-                } else if (newKey.startsWith('divider_')) {
-                    const newNum = parseInt(newKey.replace('divider_', ''), 10);
-                    const newItem = createDividerAccordionItem(newKey, newNum);
-                    accordion.appendChild(newItem);
-                }
-
-                // Render ulang elements agar sidebar accordion & canvas terupdate
-                renderElements();
-
-                // PENTING: Update input values agar form accordion baru terisi data config duplikatnya
-                updateControlInputs();
-
-                // Bonus UX: Expand accordion baru & scroll ke posisinya
-                setTimeout(() => {
-                    const accordionButton = document.querySelector(`[data-bs-target="#collapse${newKey}"]`);
-                    if (accordionButton) {
-                        if (accordionButton.classList.contains('collapsed')) {
-                            accordionButton.click();
-                        }
-                        setTimeout(() => {
-                            const collapseEl = document.getElementById('collapse' + newKey);
-                            const accordionItem = collapseEl ? collapseEl.closest('.accordion-item') : null;
-                            if (accordionItem) {
-                                accordionItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                accordionItem.style.transition = 'background-color 0.3s ease';
-                                accordionItem.style.backgroundColor = 'rgba(115, 103, 240, 0.2)';
-                                setTimeout(() => {
-                                    accordionItem.style.backgroundColor = 'transparent';
-                                }, 1000);
-                            }
-                        }, 250);
-                    }
-                }, 100);
-            }
-        }
-        contextMenu.style.display = 'none';
-    });
-
-    // Initial Load
-    updateCanvasSize();
-    renderElements();
-
-    const templateForm = document.getElementById('templateForm');
-    if (templateForm) {
-        templateForm.addEventListener('submit', function(e) {
-            // Pastikan config diserialkan ke input hidden sebelum submit
+        brSlider.addEventListener('input', function() {
+            const val = parseInt(this.value, 10);
+            config.canvas.border_radius = val;
+            if (brLabel) brLabel.innerText = val;
+            if (brValue) brValue.innerText = val + 'px';
+            updateCanvasSize();
             configInput.value = JSON.stringify(config);
         });
     }
+
+    // Form Submit Handler
+    const templateForm = document.getElementById('templateForm');
+    if (templateForm) {
+        templateForm.addEventListener('submit', function() {
+            configInput.value = JSON.stringify(config);
+        });
+    }
+
+    // Initial render
+    bindAccordionInputEvents(document);
+    updateCanvasSize();
+    renderElements();
 });
 </script>
 @endpush

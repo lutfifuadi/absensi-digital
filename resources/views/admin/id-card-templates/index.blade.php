@@ -87,6 +87,7 @@
           <tr>
             <th class="px-4 py-3">Nama Template</th>
             <th class="py-3">Tipe</th>
+            <th class="py-3">Sisi</th>
             <th class="py-3">Status</th>
             <th class="py-3">Terakhir Diupdate</th>
             <th class="px-4 py-3 text-end" style="width: 180px;">Aksi</th>
@@ -98,6 +99,13 @@
               <td class="px-4 py-3"><strong>{{ $template->name }}</strong></td>
               <td class="py-3">
                 <span class="badge bg-label-info">{{ ucfirst($template->type) }}</span>
+              </td>
+              <td class="py-3">
+                @if($template->has_back_side)
+                  <span class="badge bg-label-success" style="border: 1px solid rgba(40,199,111,0.3);"><i class="ti tabler-copy me-1" style="font-size:0.75rem;"></i>2 Sisi</span>
+                @else
+                  <span class="badge bg-label-secondary" style="border: 1px solid rgba(255,255,255,0.1);"><i class="ti tabler-square-number-1 me-1" style="font-size:0.75rem;"></i>1 Sisi</span>
+                @endif
               </td>
               <td class="py-3">
                 @if($template->is_active)
@@ -112,6 +120,12 @@
                   <a href="{{ route('admin.id-card-templates.export', $template->id) }}" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Ekspor Template" style="border-radius: 5px;">
                     <i class="ti tabler-download"></i>
                   </a>
+                  <form action="{{ route('admin.id-card-templates.duplicate', $template->id) }}" method="POST" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-outline-warning" style="border-radius: 5px;" data-bs-toggle="tooltip" data-bs-placement="top" title="Duplikat Template">
+                      <i class="ti tabler-copy"></i>
+                    </button>
+                  </form>
                   <a href="{{ route('admin.id-card-templates.edit', $template->id) }}" class="btn btn-sm btn-outline-primary" style="border-radius: 5px;" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Template">
                     <i class="ti tabler-edit"></i>
                   </a>

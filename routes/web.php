@@ -1208,6 +1208,9 @@ Route::middleware([
         Route::post('id-card-templates/import', [IdCardTemplateController::class, 'import'])
             ->name('admin.id-card-templates.import')
             ->middleware('role:super_admin,admin_sekolah');
+        Route::post('id-card-templates/{idCardTemplate}/duplicate', [IdCardTemplateController::class, 'duplicate'])
+            ->name('admin.id-card-templates.duplicate')
+            ->middleware('role:super_admin,admin_sekolah');
 
         Route::resource('id-card-templates', IdCardTemplateController::class)
             ->names('admin.id-card-templates')

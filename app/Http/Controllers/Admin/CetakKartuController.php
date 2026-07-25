@@ -216,7 +216,11 @@ class CetakKartuController extends Controller
         });
         
         $config = $template->config;
-        $html = view('admin.id-card-templates.pdf', compact('template', 'config', 'entities', 'lembaga'))->render();
+        $configFront = $service->extractFrontConfig($config);
+        $configBack  = $service->extractBackConfig($config);
+        $hasSideBack = $service->hasActiveBackSide($config);
+
+        $html = view('admin.id-card-templates.pdf', compact('template', 'config', 'configFront', 'configBack', 'hasSideBack', 'entities', 'lembaga'))->render();
         return response()->json(['success' => true, 'html' => $html]);
     }
 
