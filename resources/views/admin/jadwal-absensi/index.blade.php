@@ -41,12 +41,12 @@
     #modalJadwalKelas .modal-content {
       border: 1px solid rgba(255, 255, 255, 0.1);
       background: #1e1e2d;
-      border-radius: 12px;
+      border-radius: 5px;
       overflow: hidden;
     }
 
     #modalJadwalKelas .modal-header {
-      background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+      background: linear-gradient(135deg, #ff9f43 0%, #e65c00 100%);
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       padding: 1.25rem 1.5rem;
     }
@@ -66,7 +66,7 @@
     .modal-icon-header {
       width: 44px;
       height: 44px;
-      border-radius: 10px;
+      border-radius: 5px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -79,12 +79,12 @@
     #modalBulkApply .modal-content {
       border: 1px solid rgba(255, 255, 255, 0.1);
       background: #1e1e2d;
-      border-radius: 12px;
+      border-radius: 5px;
       overflow: hidden;
     }
 
     #modalBulkApply .modal-header {
-      background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+      background: linear-gradient(135deg, #ff9f43 0%, #e65c00 100%);
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       padding: 1.25rem 1.5rem;
     }
@@ -104,7 +104,7 @@
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.12);
       color: inherit;
-      border-radius: 8px;
+      border-radius: 5px;
       transition: border-color 0.2s ease, background 0.2s ease;
     }
 
@@ -126,7 +126,7 @@
     .jadwal-hari-card {
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
+      border-radius: 5px;
       overflow: hidden;
       transition: opacity 0.2s ease, border-color 0.2s ease;
     }
@@ -140,7 +140,7 @@
     }
 
     .jadwal-hari-header {
-      background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+      background: linear-gradient(135deg, #ff9f43 0%, #e65c00 100%);
       padding: 0.75rem 1rem;
       display: flex;
       align-items: center;
@@ -181,7 +181,7 @@
       width: 100%;
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 8px;
+      border-radius: 5px;
       color: inherit;
       padding: 0.5rem;
       font-size: 0.85rem;
@@ -191,8 +191,8 @@
     .jadwal-field input[type="time"]:focus {
       outline: none;
       background: rgba(255, 255, 255, 0.09);
-      border-color: rgba(0, 207, 232, 0.6);
-      box-shadow: 0 0 0 3px rgba(0, 207, 232, 0.12);
+      border-color: rgba(255, 159, 67, 0.6);
+      box-shadow: 0 0 0 3px rgba(255, 159, 67, 0.12);
     }
 
     .jadwal-field input[type="time"]:disabled {
@@ -214,7 +214,7 @@
     }
 
     .jadwal-field-hint.--info {
-      color: var(--das-info);
+      color: #ff9f43;
     }
 
     .jadwal-copy-btn {
@@ -274,7 +274,7 @@
     }
 
     .jadwal-toggle input:checked + .jadwal-toggle-slider {
-      background: var(--das-info);
+      background: #ff9f43;
     }
 
     .jadwal-toggle input:checked + .jadwal-toggle-slider::after {
@@ -436,6 +436,20 @@
         justify-content: center;
       }
     }
+
+    /* Orange Theme & 5px Border-Radius overrides */
+    #modalJadwalKelas .btn, #modalBulkApply .btn {
+      border-radius: 5px !important;
+    }
+    #modalJadwalKelas .btn-info, #modalBulkApply .btn-info {
+      background: linear-gradient(135deg, #ff9f43 0%, #e65c00 100%) !important;
+      border: none !important;
+      color: #fff !important;
+      box-shadow: 0 4px 12px rgba(255, 159, 67, 0.2) !important;
+    }
+    #modalJadwalKelas .btn-info:hover, #modalBulkApply .btn-info:hover {
+      opacity: 0.9 !important;
+    }
   </style>
 @endsection
 
@@ -558,8 +572,8 @@
         <div class="modal-header">
           <div class="d-flex align-items-center gap-3">
             <div class="modal-icon-header"
-              style="background:rgba(0,207,232,0.2);border:1px solid rgba(0,207,232,0.35);">
-              <i class="ti tabler-clock-edit text-info fs-5"></i>
+              style="background:rgba(255,159,67,0.2);border:1px solid rgba(255,159,67,0.35);">
+              <i class="ti tabler-clock-edit text-warning fs-5"></i>
             </div>
             <div>
               <h5 class="modal-title mb-0 text-white fw-bold">Kelola Jadwal Absensi</h5>
@@ -604,8 +618,8 @@
         <div class="modal-header">
           <div class="d-flex align-items-center gap-3">
             <div class="modal-icon-header"
-              style="background:rgba(0,207,232,0.2);border:1px solid rgba(0,207,232,0.35);">
-              <i class="ti tabler-copy text-info fs-5"></i>
+              style="background:rgba(255,159,67,0.2);border:1px solid rgba(255,159,67,0.35);">
+              <i class="ti tabler-copy text-warning fs-5"></i>
             </div>
             <div>
               <h5 class="modal-title mb-0 text-white fw-bold">Copy Jadwal dari Kelas Lain</h5>
@@ -619,7 +633,7 @@
           {{-- Kelas Sumber --}}
           <div class="mb-3">
             <label class="form-label fw-semibold small" for="bulkSourceKelas">
-              <i class="ti tabler-source-code me-1 text-info"></i> Kelas Sumber
+              <i class="ti tabler-source-code me-1 text-warning"></i> Kelas Sumber
             </label>
             <select id="bulkSourceKelas" class="form-select">
               <option value="">Pilih kelas sumber</option>
@@ -632,7 +646,7 @@
           {{-- Kelas Tujuan --}}
           <div class="mb-3">
             <label class="form-label fw-semibold small" for="bulkTargetKelas">
-              <i class="ti tabler-target me-1 text-info"></i> Kelas Tujuan
+              <i class="ti tabler-target me-1 text-warning"></i> Kelas Tujuan
             </label>
             <select id="bulkTargetKelas" class="form-select" multiple style="height:150px;">
               @foreach($allKelas as $item)
