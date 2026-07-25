@@ -580,7 +580,6 @@
               <small id="modalJadwalKelasName" class="text-white-50">—</small>
             </div>
           </div>
-          <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
         </div>
 
         <div class="modal-body">
@@ -626,7 +625,6 @@
               <small class="text-white-50">Salin jadwal dari kelas sumber ke kelas tujuan.</small>
             </div>
           </div>
-          <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
         </div>
 
         <div class="modal-body">
