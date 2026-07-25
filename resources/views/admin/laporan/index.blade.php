@@ -303,7 +303,7 @@
                 <th class="sticky-col" style="min-width:160px; left:30px; z-index:4; border-right: 1px solid rgba(255,255,255,0.08);">Nama Siswa</th>
                 @foreach ($dates as $date)
                   <th class="text-center px-1" style="width:22px; opacity: 0.6;"
-                    title="{{ \Carbon\Carbon::parse($date)->translatedFormat('D, d M') }}">
+                    title="{{ \Carbon\Carbon::parse($date)->locale('id')->translatedFormat('D, d M') }}">
                     {{ (int) \Carbon\Carbon::parse($date)->format('d') }}
                   </th>
                 @endforeach

@@ -98,7 +98,7 @@
         <div class="das-hero__meta">
           <div class="das-hero__badge">
             <span class="pulse-dot"></span>
-            {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}
+            {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('d F Y') }}
           </div>
           <h4 class="das-hero__title text-gradient-gold">Absensi Hari Ini</h4>
           <p class="das-hero__subtitle">Audit status kehadiran siswa secara real-time hari ini.</p>

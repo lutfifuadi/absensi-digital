@@ -59,8 +59,8 @@ class AbsensiSiswaObserver
         $templateType = $tipe === 'pulang' ? 'pulang' : strtolower($absensi->status) . '_masuk';
         $template = \App\Models\NotificationTemplate::where('type', $templateType)->first();
 
-        $tanggal = \Carbon\Carbon::parse($absensi->tanggal)->translatedFormat('d F Y');
-        $hari = \Carbon\Carbon::parse($absensi->tanggal)->translatedFormat('l');
+        $tanggal = \Carbon\Carbon::parse($absensi->tanggal)->locale('id')->translatedFormat('d F Y');
+        $hari = \Carbon\Carbon::parse($absensi->tanggal)->locale('id')->isoFormat('dddd');
         $waktu = $tipe === 'masuk' ? $absensi->jam_masuk : $absensi->jam_pulang;
         if (!$waktu) $waktu = '-';
         $jam = $waktu ? \Carbon\Carbon::parse($waktu)->format('H:i') : '-';

@@ -164,7 +164,7 @@
               <div>
                 @if($isWeekend)
                   <h5 class="mb-0 fw-bold" style="color: #ea5455;"><i class="ti tabler-calendar-off me-1"></i> Hari Libur</h5>
-                  <small class="text-body-secondary">Hari ini {{ \Carbon\Carbon::today()->translatedFormat('l') }} — tidak ada absensi siswa</small>
+                  <small class="text-body-secondary">Hari ini {{ \Carbon\Carbon::today()->locale('id')->isoFormat('dddd') }} — tidak ada absensi siswa</small>
                 @else
                   <h5 class="mb-0 fw-bold" style="color: #ea5455;">{{ $belumAbsen }} Siswa Belum Absen</h5>
                   <small class="text-body-secondary">Hari ini — dari {{ $totalSiswaWajibAbsen }} siswa wajib absen</small>

@@ -25,6 +25,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Set Carbon locale to Indonesian globally
+        \Carbon\Carbon::setLocale('id');
+        setlocale(LC_TIME, 'id_ID');
+
         // Global default pagination view — menggunakan gaya das-page-btn
         Paginator::defaultView('vendor.pagination.users');
         Paginator::defaultSimpleView('vendor.pagination.users');

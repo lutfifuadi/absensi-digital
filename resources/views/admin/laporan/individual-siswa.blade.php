@@ -74,7 +74,7 @@
     <div class="card">
       <div class="card-header">
         <h5 class="mb-0">Detail Absensi —
-          {{ \Carbon\Carbon::createFromDate($tahun, $bulan, 1)->translatedFormat('F Y') }}</h5>
+          {{ \Carbon\Carbon::createFromDate($tahun, $bulan, 1)->locale('id')->translatedFormat('F Y') }}</h5>
       </div>
       <div class="card-body p-0">
         <div class="table-responsive">

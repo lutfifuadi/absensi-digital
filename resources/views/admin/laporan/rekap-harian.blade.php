@@ -49,9 +49,9 @@
         <div class="badge bg-black bg-opacity-25 p-2 px-3 border border-white border-opacity-10 text-white">
           <i class="ti tabler-calendar me-1"></i>
           @if($tanggalMulai === $tanggalSelesai)
-            {{ \Carbon\Carbon::parse($tanggalMulai)->translatedFormat('d F Y') }}
+            {{ \Carbon\Carbon::parse($tanggalMulai)->locale('id')->translatedFormat('d F Y') }}
           @else
-            {{ \Carbon\Carbon::parse($tanggalMulai)->translatedFormat('d M Y') }} — {{ \Carbon\Carbon::parse($tanggalSelesai)->translatedFormat('d M Y') }}
+            {{ \Carbon\Carbon::parse($tanggalMulai)->locale('id')->translatedFormat('d M Y') }} — {{ \Carbon\Carbon::parse($tanggalSelesai)->locale('id')->translatedFormat('d M Y') }}
           @endif
         </div>
       </div>
