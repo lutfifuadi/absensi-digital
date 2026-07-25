@@ -88,10 +88,10 @@ class JadwalAbsensiController extends Controller
             $jadwalFormatted[$hari] = [
                 'id'                 => $jadwal?->id,
                 'hari'               => $hari,
-                'jam_mulai_absensi'  => $jadwal?->jam_mulai_absensi,
-                'jam_masuk'          => $jadwal?->jam_masuk,
-                'jam_pulang'         => $jadwal?->jam_pulang,
-                'jam_akhir_pulang'   => $jadwal?->jam_akhir_pulang,
+                'jam_mulai_absensi'  => $jadwal?->jam_mulai_absensi ? $jadwal->jam_mulai_absensi->format('H:i') : null,
+                'jam_masuk'          => $jadwal?->jam_masuk ? $jadwal->jam_masuk->format('H:i') : null,
+                'jam_pulang'         => $jadwal?->jam_pulang ? $jadwal->jam_pulang->format('H:i') : null,
+                'jam_akhir_pulang'   => $jadwal?->jam_akhir_pulang ? $jadwal->jam_akhir_pulang->format('H:i') : null,
                 'is_libur'           => $jadwal?->is_libur ?? ($hari === 'sabtu' || $hari === 'minggu'),
             ];
         }
