@@ -133,11 +133,12 @@ class JenjangHelper
 
         $tahunAkhir = null;
         if ($ta) {
-            if ($ta->tanggal_selesai) {
+            if (!empty($ta->nama) && preg_match('/(\d{4})[^\d]*$/', trim($ta->nama), $matches)) {
+                $tahunAkhir = (int) $matches[1];
+            } elseif ($ta->tanggal_selesai) {
                 $tahunAkhir = (int) \Carbon\Carbon::parse($ta->tanggal_selesai)->format('Y');
-            } elseif (!empty($ta->nama)) {
-                if (preg_match('/(\d{4})$/', trim($ta->nama), $matches)) {
-                    $tahunAkhir = (int) $matches[1];
+                if (($ta->semester ?? 'ganjil') === 'ganjil') {
+                    $tahunAkhir += 1;
                 }
             }
         }
