@@ -323,6 +323,60 @@
     </div>
 
     {{-- ═══════════════════════════════════════════════════════
+         SECTION 3b: GRAFIK TREN HISTORIS (MINGGUAN / BULANAN / SEMESTER / TAHUNAN)
+    ═══════════════════════════════════════════════════════ --}}
+    <div class="das-panel mb-4" id="historisChartSection">
+        <div class="das-panel__head d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <h6 class="das-panel__title mb-0">
+                <span class="das-panel__icon-dot --info"></span>
+                Tren Historis Belum Absen
+                <span class="das-chip --info ms-2" id="historisPeriodChip">Mingguan</span>
+            </h6>
+
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                {{-- Filter Tingkat --}}
+                <select id="historisTingkatFilter" class="form-select form-select-sm"
+                    style="min-width:130px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#ccc;">
+                    <option value="">Semua Tingkat</option>
+                    @foreach($tingkatOptions as $tkt)
+                        <option value="{{ $tkt }}">Kelas {{ $tkt }}</option>
+                    @endforeach
+                </select>
+
+                {{-- Filter Kelas (dinamis) --}}
+                <select id="historisKelasFilter" class="form-select form-select-sm"
+                    style="min-width:150px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#ccc;">
+                    <option value="">Semua Kelas</option>
+                    @foreach($kelasList as $k)
+                        <option value="{{ $k->id }}" data-tingkat="{{ $k->tingkat }}">{{ $k->nama }}</option>
+                    @endforeach
+                </select>
+
+                {{-- Tab Period --}}
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-info active histori-period-btn" data-period="weekly">Mingguan</button>
+                    <button type="button" class="btn btn-outline-info histori-period-btn" data-period="monthly">Bulanan</button>
+                    <button type="button" class="btn btn-outline-info histori-period-btn" data-period="semester">Semester</button>
+                    <button type="button" class="btn btn-outline-info histori-period-btn" data-period="yearly">Tahunan</button>
+                </div>
+            </div>
+        </div>
+        <div class="das-panel__body">
+            <div class="alfa-chart-wrap position-relative" style="min-height:300px;">
+                {{-- Loading spinner --}}
+                <div id="historisChartLoading" class="d-flex align-items-center justify-content-center"
+                    style="position:absolute;inset:0;z-index:10;background:rgba(15,23,42,0.6);border-radius:8px;">
+                    <div class="text-center text-white-50">
+                        <div class="spinner-border spinner-border-sm mb-2 text-info" role="status"></div>
+                        <div class="small">Memuat data...</div>
+                    </div>
+                </div>
+                <div id="historisChart"></div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ═══════════════════════════════════════════════════════
          SECTION 4: DATA TABLE
     ═══════════════════════════════════════════════════════ --}}
     <div class="das-panel" id="detailTableSection">
@@ -679,6 +733,155 @@
             });
             lineChart.render();
         }
+
+        // ══════════════════════════════════════════════════════════
+        // HISTORIS CHART — Multi-Period (Mingguan / Bulanan / Semester / Tahunan)
+        // ══════════════════════════════════════════════════════════
+        let historisChart = null;
+        let historisPeriod = 'weekly';
+        const historisChartUrl = '{{ route("admin.dashboard.belum-absen.chart-data") }}';
+        const historisToken    = '{{ csrf_token() }}';
+
+        const periodLabels = {
+            weekly:   'Mingguan',
+            monthly:  'Bulanan',
+            semester: 'Semester',
+            yearly:   'Tahunan',
+        };
+
+        function buildHistorisChart(labels, data) {
+            if (historisChart) { historisChart.destroy(); historisChart = null; }
+
+            if (labels.length === 0) {
+                document.getElementById('historisChart').innerHTML =
+                    '<div class="alfa-empty-chart"><i class="ti tabler-chart-line-off" style="font-size:2.5rem;"></i><span class="small">Tidak ada data untuk periode ini.</span></div>';
+                return;
+            }
+
+            historisChart = new ApexCharts(document.getElementById('historisChart'), {
+                chart: {
+                    type: 'area',
+                    height: 300,
+                    toolbar: { show: false },
+                    fontFamily: 'inherit',
+                    background: 'transparent',
+                    animations: { enabled: true, easing: 'easeinout', speed: 600 }
+                },
+                series: [{ name: 'Belum Absen', data: data }],
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.35,
+                        opacityTo: 0.02,
+                        stops: [0, 95],
+                        colorStops: [{
+                            offset: 0, color: '#00cfe8', opacity: 0.35
+                        }, {
+                            offset: 95, color: '#00cfe8', opacity: 0
+                        }]
+                    }
+                },
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 2.5, colors: ['#00cfe8'] },
+                grid: {
+                    borderColor: 'rgba(255,255,255,0.06)',
+                    strokeDashArray: 4,
+                    padding: { left: 8, right: 8 }
+                },
+                xaxis: {
+                    categories: labels,
+                    axisBorder: { show: false },
+                    axisTicks: { show: false },
+                    labels: {
+                        style: { colors: 'rgba(255,255,255,0.45)', fontSize: '11px' },
+                        rotate: -30,
+                        maxHeight: 60
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        style: { colors: 'rgba(255,255,255,0.45)' },
+                        formatter: val => Math.round(val)
+                    },
+                    min: 0
+                },
+                markers: {
+                    size: 4,
+                    colors: ['#1a1a2e'],
+                    strokeColors: '#00cfe8',
+                    strokeWidth: 2,
+                    hover: { size: 6 }
+                },
+                tooltip: {
+                    theme: 'dark',
+                    y: { formatter: val => Math.round(val) + ' Siswa' }
+                }
+            });
+            historisChart.render();
+        }
+
+        function loadHistorisChart() {
+            const loading = document.getElementById('historisChartLoading');
+            const kelasId   = document.getElementById('historisKelasFilter').value;
+            const tingkat   = document.getElementById('historisTingkatFilter').value;
+
+            loading.style.display = 'flex';
+
+            const params = new URLSearchParams({ period: historisPeriod });
+            if (kelasId)  params.set('kelas_id', kelasId);
+            else if (tingkat) params.set('tingkat', tingkat);
+
+            fetch(`${historisChartUrl}?${params.toString()}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(json => {
+                loading.style.display = 'none';
+                buildHistorisChart(json.labels, json.data);
+                document.getElementById('historisPeriodChip').textContent = periodLabels[historisPeriod] || historisPeriod;
+            })
+            .catch(() => {
+                loading.style.display = 'none';
+                document.getElementById('historisChart').innerHTML =
+                    '<div class="alfa-empty-chart"><i class="ti tabler-alert-circle" style="font-size:2rem;color:#ff9f43;"></i><span class="small text-warning mt-1">Gagal memuat data grafik.</span></div>';
+            });
+        }
+
+        // Tab period switch
+        document.querySelectorAll('.histori-period-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.histori-period-btn').forEach(b => {
+                    b.classList.remove('btn-info', 'active');
+                    b.classList.add('btn-outline-info');
+                });
+                this.classList.remove('btn-outline-info');
+                this.classList.add('btn-info', 'active');
+                historisPeriod = this.dataset.period;
+                loadHistorisChart();
+            });
+        });
+
+        // Filter tingkat → update dropdown kelas
+        document.getElementById('historisTingkatFilter').addEventListener('change', function () {
+            const tingkat = this.value;
+            const kelasSelect = document.getElementById('historisKelasFilter');
+            kelasSelect.value = '';
+            Array.from(kelasSelect.options).forEach(opt => {
+                if (!opt.value) return; // "Semua Kelas" always visible
+                opt.hidden = tingkat ? (opt.dataset.tingkat !== tingkat) : false;
+            });
+            loadHistorisChart();
+        });
+
+        // Filter kelas → reload chart
+        document.getElementById('historisKelasFilter').addEventListener('change', function () {
+            loadHistorisChart();
+        });
+
+        // Load on page ready
+        loadHistorisChart();
+
     });
 </script>
 @endsection

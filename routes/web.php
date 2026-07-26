@@ -1248,6 +1248,10 @@ Route::middleware([
             ->name('admin.dashboard.belum-absen')
             ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas');
 
+        Route::get('dashboard/belum-absen/chart-data', [\App\Http\Controllers\DashboardAlfaController::class, 'chartData'])
+            ->name('admin.dashboard.belum-absen.chart-data')
+            ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas');
+
         // Gamifikasi
         Route::get('gamifikasi', [DashboardController::class, 'gamifikasi'])
             ->name('admin.gamifikasi.index')

@@ -401,4 +401,121 @@ class DashboardAlfaController extends Controller
 
         return view('admin.dashboard.alfa', $data);
     }
+
+    // ══════════════════════════════════════════════════════════════
+    // AJAX: Grafik Tren Historis Belum Absen
+    // GET /admin/dashboard/belum-absen/chart-data
+    // Params: period (weekly|monthly|semester|yearly), kelas_id?, tingkat?
+    // ══════════════════════════════════════════════════════════════
+    public function chartData(Request $request)
+    {
+        $period    = $request->input('period', 'weekly');
+        $kelasId   = $request->input('kelas_id');
+        $tingkat   = $request->input('tingkat');
+
+        $today = Carbon::today();
+
+        // Ambil semua tanggal libur nasional
+        $holidaysDates = Holiday::pluck('tanggal')->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))->toArray();
+
+        $isLiburFn = function (Carbon $date) use (&$holidaysDates) {
+            if ($date->isSaturday() || $date->isSunday()) return true;
+            return in_array($date->format('Y-m-d'), $holidaysDates);
+        };
+
+        // Ambil daftar siswa aktif sesuai filter
+        $siswaQuery = Siswa::where('status', 'aktif');
+        if ($kelasId) {
+            $siswaQuery->where('kelas_id', $kelasId);
+        } elseif ($tingkat) {
+            $siswaQuery->whereHas('kelas', fn($q) => $q->where('tingkat', $tingkat));
+        }
+        $siswaIds = $siswaQuery->pluck('id');
+        $totalSiswa = $siswaIds->count();
+
+        if ($totalSiswa === 0) {
+            return response()->json(['labels' => [], 'data' => []]);
+        }
+
+        // ── Helper: hitung belum absen untuk satu tanggal ──
+        $countBelumOnDate = function (string $dateStr) use ($siswaIds) {
+            $sudah = AbsensiSiswa::where('tanggal', $dateStr)
+                ->whereIn('siswa_id', $siswaIds)
+                ->distinct('siswa_id')
+                ->count('siswa_id');
+            return max(0, $siswaIds->count() - $sudah);
+        };
+
+        // ── Helper: hitung rata-rata belum absen untuk range tanggal ──
+        $countBelumInRange = function (Carbon $from, Carbon $to) use ($siswaIds, $isLiburFn, $countBelumOnDate) {
+            $total = 0;
+            $days  = 0;
+            $cur   = $from->copy();
+            while ($cur->lte($to)) {
+                if (!$isLiburFn($cur)) {
+                    $total += $countBelumOnDate($cur->format('Y-m-d'));
+                    $days++;
+                }
+                $cur->addDay();
+            }
+            return $days > 0 ? round($total / $days) : 0;
+        };
+
+        $labels = [];
+        $data   = [];
+
+        switch ($period) {
+            // ── MINGGUAN: 7 hari kerja terakhir ──
+            case 'weekly':
+                $hariKerja = collect();
+                $tmp = $today->copy();
+                while ($hariKerja->count() < 7) {
+                    if (!$isLiburFn($tmp)) {
+                        $hariKerja->prepend($tmp->copy());
+                    }
+                    $tmp->subDay();
+                }
+                foreach ($hariKerja as $date) {
+                    $labels[] = $date->translatedFormat('D, d M');
+                    $data[]   = $countBelumOnDate($date->format('Y-m-d'));
+                }
+                break;
+
+            // ── BULANAN: 4 minggu terakhir (rata-rata per minggu) ──
+            case 'monthly':
+                for ($w = 3; $w >= 0; $w--) {
+                    $weekStart = $today->copy()->startOfWeek()->subWeeks($w);
+                    $weekEnd   = $weekStart->copy()->endOfWeek();
+                    if ($weekEnd->gt($today)) $weekEnd = $today->copy();
+                    $labels[] = $weekStart->translatedFormat('d M') . ' – ' . $weekEnd->translatedFormat('d M');
+                    $data[]   = $countBelumInRange($weekStart, $weekEnd);
+                }
+                break;
+
+            // ── SEMESTER: 6 bulan terakhir (rata-rata per bulan) ──
+            case 'semester':
+                for ($m = 5; $m >= 0; $m--) {
+                    $monthStart = $today->copy()->subMonths($m)->startOfMonth();
+                    $monthEnd   = $monthStart->copy()->endOfMonth();
+                    if ($monthEnd->gt($today)) $monthEnd = $today->copy();
+                    $labels[] = $monthStart->translatedFormat('M Y');
+                    $data[]   = $countBelumInRange($monthStart, $monthEnd);
+                }
+                break;
+
+            // ── TAHUNAN: 12 bulan terakhir (rata-rata per bulan) ──
+            case 'yearly':
+            default:
+                for ($m = 11; $m >= 0; $m--) {
+                    $monthStart = $today->copy()->subMonths($m)->startOfMonth();
+                    $monthEnd   = $monthStart->copy()->endOfMonth();
+                    if ($monthEnd->gt($today)) $monthEnd = $today->copy();
+                    $labels[] = $monthStart->translatedFormat('M Y');
+                    $data[]   = $countBelumInRange($monthStart, $monthEnd);
+                }
+                break;
+        }
+
+        return response()->json(compact('labels', 'data'));
+    }
 }
