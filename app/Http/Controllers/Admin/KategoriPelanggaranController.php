@@ -43,8 +43,17 @@ class KategoriPelanggaranController extends Controller
     {
         $data = $request->validated();
         $data['is_aktif'] = $request->has('is_aktif');
+        $data['urutan'] = $data['urutan'] ?? 0;
         
-        KategoriPelanggaran::create($data);
+        $category = KategoriPelanggaran::create($data);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Kategori pelanggaran berhasil ditambahkan.',
+                'data' => $category,
+            ]);
+        }
 
         return redirect()->route('admin.pelanggaran-kategori.index')
             ->with('success', 'Kategori pelanggaran berhasil ditambahkan.');
@@ -55,8 +64,17 @@ class KategoriPelanggaranController extends Controller
         $category = KategoriPelanggaran::findOrFail($id);
         $data = $request->validated();
         $data['is_aktif'] = $request->has('is_aktif');
+        $data['urutan'] = $data['urutan'] ?? 0;
         
         $category->update($data);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Kategori pelanggaran berhasil diperbarui.',
+                'data' => $category,
+            ]);
+        }
 
         return redirect()->route('admin.pelanggaran-kategori.index')
             ->with('success', 'Kategori pelanggaran berhasil diperbarui.');

@@ -236,6 +236,21 @@
     </div>
   @endif
 
+  @if ($errors->any())
+    <div class="alert alert-danger alert-dismissible mb-4 border-0 shadow-sm" role="alert" style="border-radius:8px;">
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <i class="ti tabler-alert-circle fs-5"></i>
+        <strong>Gagal Menyimpan Data:</strong>
+      </div>
+      <ul class="mb-0 ps-3 small">
+        @foreach ($errors->all() as $error)
+          <li>{{ $error }}</li>
+        @endforeach
+      </ul>
+      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+  @endif
+
   {{-- FILTER & SEARCH PANEL --}}
   <div class="das-panel mb-4">
     <div class="das-panel__body py-3 px-4">
@@ -378,6 +393,87 @@
       const filterSearch = document.getElementById('filterSearch');
       const filterStatus = document.getElementById('filterStatus');
       const perPageSelect = document.getElementById('perPageSelect');
+
+      // AJAX Form Kategori Submission
+      const formKategori = document.getElementById('formKategori');
+      if (formKategori) {
+        formKategori.addEventListener('submit', function (e) {
+          e.preventDefault();
+          const refs = _getModalRefs();
+          const btnSubmit = refs.btn;
+          const originalBtnHtml = btnSubmit.innerHTML;
+
+          btnSubmit.disabled = true;
+          btnSubmit.innerHTML = '<i class="ti tabler-loader spinner me-1"></i> Menyimpan...';
+
+          const formData = new FormData(formKategori);
+
+          fetch(formKategori.action, {
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json'
+            },
+            body: formData
+          })
+          .then(async function (res) {
+            const data = await res.json().catch(() => ({}));
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = originalBtnHtml;
+
+            if (res.ok && data.success) {
+              refs.modal.hide();
+              Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: data.message || 'Kategori pelanggaran berhasil disimpan.',
+                timer: 1500,
+                showConfirmButton: false,
+                customClass: {
+                  popup: 'das-swal-popup',
+                  title: 'das-swal-title',
+                  htmlContainer: 'das-swal-html'
+                }
+              });
+              loadTable(window.location.href);
+            } else {
+              let errorMsg = data.message || 'Gagal menyimpan kategori pelanggaran.';
+              if (data.errors) {
+                errorMsg = Object.values(data.errors).flat().join('<br>');
+              }
+              Swal.fire({
+                icon: 'error',
+                title: 'Gagal Menyimpan!',
+                html: errorMsg,
+                customClass: {
+                  popup: 'das-swal-popup',
+                  title: 'das-swal-title',
+                  htmlContainer: 'das-swal-html',
+                  confirmButton: 'btn btn-primary das-swal-confirm'
+                },
+                buttonsStyling: false
+              });
+            }
+          })
+          .catch(function (err) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = originalBtnHtml;
+            console.error('Form submit error:', err);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: 'Terjadi kesalahan sistem saat menyimpan data.',
+              customClass: {
+                popup: 'das-swal-popup',
+                title: 'das-swal-title',
+                htmlContainer: 'das-swal-html',
+                confirmButton: 'btn btn-primary das-swal-confirm'
+              },
+              buttonsStyling: false
+            });
+          });
+        });
+      }
 
       function loadTable(url) {
         if (!container) return;

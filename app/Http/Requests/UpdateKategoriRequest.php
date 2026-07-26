@@ -16,8 +16,8 @@ class UpdateKategoriRequest extends FormRequest
         return [
             'nama' => 'required|string|max:100',
             'deskripsi' => 'nullable|string',
-            'warna' => 'nullable|string|max:7|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
-            'urutan' => 'nullable|integer|min:0',
+            'warna' => 'nullable|string|max:7',
+            'urutan' => 'nullable|integer|min:0|max:255',
             'is_aktif' => 'nullable|boolean',
         ];
     }
