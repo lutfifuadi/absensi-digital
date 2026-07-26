@@ -1195,6 +1195,19 @@ Route::middleware([
             ->name('admin.users.show-password')
             ->middleware(['role:super_admin,admin_sekolah', 'throttle:30,1']);
 
+        // Reset password user (hanya super_admin & admin_sekolah)
+        Route::post('users/bulk-reset-password', [UserController::class, 'bulkResetPassword'])
+            ->name('admin.users.bulk-reset-password')
+            ->middleware(['role:super_admin,admin_sekolah', 'throttle:60,1']);
+
+        Route::post('users/bulk-destroy', [UserController::class, 'bulkDestroy'])
+            ->name('admin.users.bulk-destroy')
+            ->middleware(['role:super_admin,admin_sekolah']);
+
+        Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])
+            ->name('admin.users.reset-password')
+            ->middleware(['role:super_admin,admin_sekolah', 'throttle:30,1']);
+
         // Role Management
         Route::resource('role', RoleController::class)
             ->names('admin.role')

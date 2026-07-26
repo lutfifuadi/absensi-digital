@@ -324,30 +324,43 @@
 
 @section('page-script')
   <script>
-    var modalKategori = new bootstrap.Modal(document.getElementById('modalKategori'));
-    var formKategori = document.getElementById('formKategori');
-    var modalTitle = document.getElementById('modalTitle');
-    var formMethod = document.getElementById('formMethod');
-    var btnSubmit = document.getElementById('btnSubmit');
+    // Lazy-init: Bootstrap & DOM elements are resolved only when modal is actually opened.
+    // This avoids "bootstrap is not defined" because @vite loads Bootstrap as a deferred module.
+    var _modalInstance = null;
+
+    function _getModalRefs() {
+      if (!_modalInstance) {
+        _modalInstance = new bootstrap.Modal(document.getElementById('modalKategori'));
+      }
+      return {
+        modal:    _modalInstance,
+        form:     document.getElementById('formKategori'),
+        title:    document.getElementById('modalTitle'),
+        method:   document.getElementById('formMethod'),
+        btn:      document.getElementById('btnSubmit')
+      };
+    }
 
     function openCreateModal() {
-      modalTitle.innerText = "Tambah Kategori Pelanggaran";
-      formKategori.action = "{{ route('admin.pelanggaran-kategori.store') }}";
-      formMethod.value = "POST";
-      
+      var refs = _getModalRefs();
+      refs.title.innerText = "Tambah Kategori Pelanggaran";
+      refs.form.action = "{{ route('admin.pelanggaran-kategori.store') }}";
+      refs.method.value = "POST";
+
       document.getElementById('inputNama').value = "";
       document.getElementById('inputDeskripsi').value = "";
       document.getElementById('inputWarna').value = "#ef4444";
       document.getElementById('inputUrutan').value = "0";
       document.getElementById('inputIsAktif').checked = true;
-      
-      modalKategori.show();
+
+      refs.modal.show();
     }
 
     function openEditModal(data) {
-      modalTitle.innerText = "Ubah Kategori Pelanggaran";
-      formKategori.action = "{{ route('admin.pelanggaran-kategori.update', ':id') }}".replace(':id', data.id);
-      formMethod.value = "PUT";
+      var refs = _getModalRefs();
+      refs.title.innerText = "Ubah Kategori Pelanggaran";
+      refs.form.action = "{{ route('admin.pelanggaran-kategori.update', ':id') }}".replace(':id', data.id);
+      refs.method.value = "PUT";
 
       document.getElementById('inputNama').value = data.nama;
       document.getElementById('inputDeskripsi').value = data.deskripsi || "";
@@ -355,7 +368,7 @@
       document.getElementById('inputUrutan').value = data.urutan || 0;
       document.getElementById('inputIsAktif').checked = data.is_aktif;
 
-      modalKategori.show();
+      refs.modal.show();
     }
 
     // Ajax Filtering & Pagination

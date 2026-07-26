@@ -2,7 +2,10 @@
   <table class="table table-hover align-middle mb-0" style="color:inherit;">
     <thead style="background:rgba(255,255,255,0.04);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;opacity:0.7;">
       <tr>
-        <th class="ps-2 py-3" style="width:46px;">#</th>
+        <th class="ps-3 py-3" style="width:38px;">
+          <input class="form-check-input select-all-user-cb" type="checkbox" id="selectAllUsers" title="Pilih Semua">
+        </th>
+        <th class="py-3" style="width:40px;">#</th>
         <th class="py-3 sortable cursor-pointer text-nowrap" data-sort-by="name" style="user-select: none;">
           Informasi User
           @if(($sortBy ?? '') === 'name')
@@ -53,12 +56,16 @@
 
           $isSuperAdmin = auth()->user()->role === 'super_admin';
           $canViewPassword = auth()->user()->hasAnyRole(['super_admin', 'admin_sekolah']);
+          $canResetPassword = auth()->user()->hasAnyRole(['super_admin', 'admin_sekolah']);
           $isSelf = $item->id === auth()->id();
           $canImpersonate = $isSuperAdmin && !$isSelf && $item->role !== 'super_admin';
           $canDelete = !$isSelf;
         @endphp
         <tr class="user-row-hover">
-          <td class="ps-4 text-white-50 small">{{ $users->firstItem() + $loop->index }}</td>
+          <td class="ps-3">
+            <input class="form-check-input select-user-cb" type="checkbox" value="{{ $item->id }}" {{ $isSelf ? 'disabled' : '' }}>
+          </td>
+          <td class="text-white-50 small">{{ $users->firstItem() + $loop->index }}</td>
           <td class="text-nowrap">
             <div class="d-flex align-items-center gap-3">
               <div class="avatar avatar-md">
@@ -128,6 +135,17 @@
                 <i class="ti tabler-login fs-5"></i>
               </button>
               @endif
+              @if ($canResetPassword)
+              <button type="button"
+                class="action-btn text-info btn-reset-password"
+                title="Reset Password"
+                data-bs-toggle="tooltip"
+                data-url="{{ route('admin.users.reset-password', $item->id) }}"
+                data-nama="{{ $item->name }}"
+                data-role="{{ str_replace('_', ' ', $primaryRole) }}">
+                <i class="ti tabler-key fs-5"></i>
+              </button>
+              @endif
               <a href="{{ route('admin.users.edit', $item->id) }}" class="action-btn text-warning" title="Ubah" data-bs-toggle="tooltip">
                 <i class="ti tabler-pencil fs-5"></i>
               </a>
@@ -146,7 +164,7 @@
         </tr>
       @empty
         <tr>
-          <td colspan="{{ auth()->user()->hasAnyRole(['super_admin', 'admin_sekolah']) ? 6 : 5 }}" class="text-center py-5">
+          <td colspan="{{ auth()->user()->hasAnyRole(['super_admin', 'admin_sekolah']) ? 7 : 6 }}" class="text-center py-5">
             <div class="d-flex flex-column align-items-center gap-2 opacity-50">
               <i class="ti tabler-users-minus" style="font-size:2.5rem;"></i>
               <span class="small">Belum ada data user.</span>

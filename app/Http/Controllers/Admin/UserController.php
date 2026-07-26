@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
@@ -194,6 +195,170 @@ class UserController extends Controller
             'user_id' => $user->id,
             'user_name' => $user->name,
             'password' => $user->password_plain,
+        ]);
+    }
+
+    /**
+     * Reset password user berdasarkan kriteria role:
+     * - Siswa: NISN
+     * - Orang Tua: NISN Anak
+     * - Guru & Lainnya: 6 digit unik huruf & angka
+     */
+    public function resetPassword(Request $request, User $user)
+    {
+        $admin = $request->user();
+        if (! $admin->hasAnyRole([User::ROLE_SUPER_ADMIN, User::ROLE_ADMIN_SEKOLAH])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki akses untuk mereset password.',
+            ], 403);
+        }
+
+        $primaryRole = $user->role;
+        $userRoles = array_unique(array_filter(array_merge([$user->role], $user->roles ?? [])));
+
+        if (in_array(User::ROLE_SISWA, $userRoles, true) || $primaryRole === User::ROLE_SISWA) {
+            $siswa = $user->siswa;
+            if (! $siswa) {
+                $siswa = \App\Models\Siswa::where('user_id', $user->id)->first();
+            }
+            $passwordRaw = ! empty($siswa?->nisn) ? $siswa->nisn : (! empty($siswa?->nis) ? $siswa->nis : 'siswa123');
+        } elseif (in_array(User::ROLE_ORANG_TUA, $userRoles, true) || $primaryRole === User::ROLE_ORANG_TUA) {
+            $firstSiswa = $user->children()->first();
+            if (! $firstSiswa) {
+                $firstSiswa = \App\Models\Siswa::where('ortu_user_id', $user->id)->first();
+            }
+            $passwordRaw = ! empty($firstSiswa?->nisn) ? $firstSiswa->nisn : (! empty($firstSiswa?->nis) ? $firstSiswa->nis : 'password123');
+        } else {
+            // Guru & Role lainnya: 6 digit unik kombinasi huruf dan angka
+            $passwordRaw = Str::random(6);
+        }
+
+        User::setPendingPlainPassword($passwordRaw);
+        $user->update([
+            'password' => Hash::make($passwordRaw),
+        ]);
+
+        ActivityLog::record(
+            'RESET_PASSWORD',
+            'User',
+            "Reset password user: {$user->name} (ID: {$user->id})",
+            null,
+            ['target_user_id' => $user->id, 'target_user_name' => $user->name, 'new_password' => $passwordRaw]
+        );
+
+        return response()->json([
+            'success' => true,
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'new_password' => $passwordRaw,
+            'message' => "Password untuk user {$user->name} berhasil di-reset menjadi: {$passwordRaw}",
+        ]);
+    }
+
+    public function bulkResetPassword(Request $request)
+    {
+        $admin = $request->user();
+        if (! $admin->hasAnyRole([User::ROLE_SUPER_ADMIN, User::ROLE_ADMIN_SEKOLAH])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki akses untuk mereset password.',
+            ], 403);
+        }
+
+        $userIds = $request->input('user_ids', []);
+        if (empty($userIds) || ! is_array($userIds)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada user yang dipilih.',
+            ], 422);
+        }
+
+        $users = User::whereIn('id', $userIds)->get();
+        $results = [];
+
+        foreach ($users as $user) {
+            $primaryRole = $user->role;
+            $userRoles = array_unique(array_filter(array_merge([$user->role], $user->roles ?? [])));
+
+            if (in_array(User::ROLE_SISWA, $userRoles, true) || $primaryRole === User::ROLE_SISWA) {
+                $siswa = $user->siswa ?? \App\Models\Siswa::where('user_id', $user->id)->first();
+                $passwordRaw = ! empty($siswa?->nisn) ? $siswa->nisn : (! empty($siswa?->nis) ? $siswa->nis : 'siswa123');
+            } elseif (in_array(User::ROLE_ORANG_TUA, $userRoles, true) || $primaryRole === User::ROLE_ORANG_TUA) {
+                $firstSiswa = $user->children()->first() ?? \App\Models\Siswa::where('ortu_user_id', $user->id)->first();
+                $passwordRaw = ! empty($firstSiswa?->nisn) ? $firstSiswa->nisn : (! empty($firstSiswa?->nis) ? $firstSiswa->nis : 'password123');
+            } else {
+                $passwordRaw = Str::random(6);
+            }
+
+            User::setPendingPlainPassword($passwordRaw);
+            $user->update([
+                'password' => Hash::make($passwordRaw),
+            ]);
+
+            $results[] = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'role' => $primaryRole,
+                'new_password' => $passwordRaw,
+            ];
+        }
+
+        ActivityLog::record(
+            'BULK_RESET_PASSWORD',
+            'User',
+            "Reset password massal untuk " . count($results) . " user.",
+            null,
+            ['count' => count($results), 'user_ids' => $userIds]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password ' . count($results) . ' user berhasil di-reset.',
+            'results' => $results,
+        ]);
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $admin = $request->user();
+        if (! $admin->hasAnyRole([User::ROLE_SUPER_ADMIN, User::ROLE_ADMIN_SEKOLAH])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki akses untuk menghapus user.',
+            ], 403);
+        }
+
+        $userIds = $request->input('user_ids', []);
+        if (empty($userIds) || ! is_array($userIds)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada user yang dipilih.',
+            ], 422);
+        }
+
+        $filteredIds = array_filter($userIds, fn($id) => (int)$id !== (int)$admin->id);
+
+        if (empty($filteredIds)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak dapat menghapus akun yang sedang Anda gunakan.',
+            ], 422);
+        }
+
+        $count = User::whereIn('id', $filteredIds)->delete();
+
+        ActivityLog::record(
+            'BULK_DELETE_USER',
+            'User',
+            "Menghapus {$count} user secara massal.",
+            null,
+            ['deleted_count' => $count, 'user_ids' => $filteredIds]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$count} user berhasil dihapus.",
         ]);
     }
 

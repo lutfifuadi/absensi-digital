@@ -333,7 +333,18 @@
             <h6 class="das-panel__title mb-0 d-flex align-items-center gap-2">
                 <i class="ti tabler-list text-info"></i> Daftar User
             </h6>
-            <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div id="bulkActionsWrapper" class="d-none align-items-center gap-2">
+                    <span id="selectedCountBadge" class="badge bg-label-info">0 Terpilih</span>
+                    @if(auth()->user()->hasAnyRole(['super_admin', 'admin_sekolah']))
+                    <button type="button" id="btnBulkResetPassword" class="btn btn-sm das-btn --info">
+                        <i class="ti tabler-key me-1"></i> Reset Password Terpilih
+                    </button>
+                    @endif
+                    <button type="button" id="btnBulkDelete" class="btn btn-sm das-btn --danger">
+                        <i class="ti tabler-trash me-1"></i> Hapus Terpilih
+                    </button>
+                </div>
                 <select id="perPageSelect" class="form-select border-0 text-white w-auto"
                     style="background: rgba(255,255,255,0.05);height:38px;font-size:0.85rem;cursor:pointer;">
                     <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
@@ -422,6 +433,7 @@
                         container.innerHTML = html;
                         container.style.opacity = '1';
                         container.style.pointerEvents = 'auto';
+                        updateBulkState();
 
                         // re-init tooltips
                         const tooltipTriggerList = [].slice.call(document.querySelectorAll(
@@ -673,6 +685,130 @@
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
 
+            // ── Reset Password Handler ──────────────────────────────────────
+            container.addEventListener('click', function(e) {
+                const btnReset = e.target.closest('.btn-reset-password');
+                if (!btnReset) return;
+
+                const url = btnReset.dataset.url;
+                const nama = btnReset.dataset.nama || 'User';
+                const role = btnReset.dataset.role || 'User';
+
+                Swal.fire({
+                    title: 'Reset Password User?',
+                    html: `<div class="mt-2">Password user <b>"${nama}"</b> (${role}) akan di-reset otomatis sesuai ketentuan role.</div>`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: '<i class="ti tabler-key me-1"></i> Ya, Reset Password',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true,
+                    customClass: {
+                        popup: 'das-swal-popup',
+                        title: 'das-swal-title',
+                        htmlContainer: 'das-swal-html',
+                        confirmButton: 'btn btn-info das-swal-confirm ms-2',
+                        cancelButton: 'btn das-swal-cancel',
+                        icon: 'das-swal-icon'
+                    },
+                    buttonsStyling: false,
+                    showClass: {
+                        popup: 'animate__animated animate__fadeInUp animate__faster'
+                    },
+                    hideClass: {
+                        popup: 'animate__animated animate__fadeOutDown animate__faster'
+                    },
+                    background: 'transparent',
+                    backdrop: `rgba(0,0,10,0.4)`,
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    btnReset.disabled = true;
+
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        btnReset.disabled = false;
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Password Berhasil Di-reset!',
+                                html: `
+                                    <div class="my-3">
+                                        <p class="mb-2 text-white-50">Password baru untuk <b>${nama}</b> adalah:</p>
+                                        <div class="d-flex align-items-center justify-content-center gap-2 p-3 rounded" style="background: rgba(255,255,255,0.08); border: 1px dashed rgba(255,255,255,0.2);">
+                                            <span id="newPassValue" class="font-monospace fs-4 text-warning fw-bold" style="letter-spacing:1px;">${data.new_password}</span>
+                                            <button type="button" id="copyPassBtn" class="btn btn-sm btn-label-info ms-2" title="Salin Password">
+                                                <i class="ti tabler-copy"></i> Salin
+                                            </button>
+                                        </div>
+                                    </div>
+                                `,
+                                confirmButtonText: 'Tutup',
+                                customClass: {
+                                    popup: 'das-swal-popup',
+                                    title: 'das-swal-title',
+                                    htmlContainer: 'das-swal-html',
+                                    confirmButton: 'btn btn-success das-swal-confirm'
+                                },
+                                background: 'transparent',
+                                buttonsStyling: false,
+                                didOpen: () => {
+                                    const copyBtn = document.getElementById('copyPassBtn');
+                                    if (copyBtn) {
+                                        copyBtn.addEventListener('click', function() {
+                                            navigator.clipboard.writeText(data.new_password);
+                                            copyBtn.innerHTML = '<i class="ti tabler-check"></i> Tersalin!';
+                                            setTimeout(() => {
+                                                copyBtn.innerHTML = '<i class="ti tabler-copy"></i> Salin';
+                                            }, 2000);
+                                        });
+                                    }
+                                }
+                            });
+                            fetchData(1);
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Reset Password!',
+                                text: data.message || 'Terjadi kesalahan.',
+                                customClass: {
+                                    popup: 'das-swal-popup',
+                                    title: 'das-swal-title',
+                                    htmlContainer: 'das-swal-html',
+                                    confirmButton: 'btn btn-primary das-swal-confirm'
+                                },
+                                background: 'transparent',
+                                buttonsStyling: false
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        btnReset.disabled = false;
+                        console.error('Reset password error:', err);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'Terjadi kesalahan koneksi.',
+                            customClass: {
+                                popup: 'das-swal-popup',
+                                title: 'das-swal-title',
+                                htmlContainer: 'das-swal-html',
+                                confirmButton: 'btn btn-primary das-swal-confirm'
+                            },
+                            background: 'transparent',
+                            buttonsStyling: false
+                        });
+                    });
+                });
+            });
+
             // ── Password Toggle Handler ─────────────────────────────────────
             container.addEventListener('click', function(e) {
                 const btn = e.target.closest('.btn-toggle-password');
@@ -741,6 +877,269 @@
                     });
                 });
             });
+
+            // ── Bulk Actions Handler & State Management ─────────────────────
+            const bulkActionsWrapper = document.getElementById('bulkActionsWrapper');
+            const selectedCountBadge = document.getElementById('selectedCountBadge');
+            const btnBulkResetPassword = document.getElementById('btnBulkResetPassword');
+            const btnBulkDelete = document.getElementById('btnBulkDelete');
+
+            function updateBulkState() {
+                const checkboxes = container.querySelectorAll('.select-user-cb:not(:disabled)');
+                const checked = container.querySelectorAll('.select-user-cb:checked:not(:disabled)');
+                const selectAll = container.querySelector('#selectAllUsers');
+
+                if (selectAll) {
+                    selectAll.checked = checkboxes.length > 0 && checkboxes.length === checked.length;
+                }
+
+                if (checked.length > 0) {
+                    if (bulkActionsWrapper) {
+                        bulkActionsWrapper.classList.remove('d-none');
+                        bulkActionsWrapper.classList.add('d-flex');
+                    }
+                    if (selectedCountBadge) {
+                        selectedCountBadge.textContent = `${checked.length} Terpilih`;
+                    }
+                } else {
+                    if (bulkActionsWrapper) {
+                        bulkActionsWrapper.classList.remove('d-flex');
+                        bulkActionsWrapper.classList.add('d-none');
+                    }
+                }
+            }
+
+            // Select All & Checkbox Delegation
+            container.addEventListener('change', function(e) {
+                if (e.target && e.target.id === 'selectAllUsers') {
+                    const isChecked = e.target.checked;
+                    container.querySelectorAll('.select-user-cb:not(:disabled)').forEach(cb => {
+                        cb.checked = isChecked;
+                    });
+                    updateBulkState();
+                } else if (e.target && e.target.classList.contains('select-user-cb')) {
+                    updateBulkState();
+                }
+            });
+
+            // Bulk Reset Password Handler
+            if (btnBulkResetPassword) {
+                btnBulkResetPassword.addEventListener('click', function() {
+                    const checkedCbs = container.querySelectorAll('.select-user-cb:checked:not(:disabled)');
+                    const userIds = Array.from(checkedCbs).map(cb => cb.value);
+
+                    if (userIds.length === 0) return;
+
+                    Swal.fire({
+                        title: 'Reset Password Massal?',
+                        html: `<div class="mt-2">Anda akan mereset password untuk <b class="text-info">${userIds.length} user terpilih</b> secara otomatis sesuai ketentuan role masing-masing.</div>`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="ti tabler-key me-1"></i> Ya, Reset Semua',
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true,
+                        customClass: {
+                            popup: 'das-swal-popup',
+                            title: 'das-swal-title',
+                            htmlContainer: 'das-swal-html',
+                            confirmButton: 'btn btn-info das-swal-confirm ms-2',
+                            cancelButton: 'btn das-swal-cancel',
+                            icon: 'das-swal-icon'
+                        },
+                        buttonsStyling: false,
+                        background: 'transparent',
+                        backdrop: `rgba(0,0,10,0.4)`,
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
+
+                        btnBulkResetPassword.disabled = true;
+
+                        fetch("{{ route('admin.users.bulk-reset-password') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({ user_ids: userIds })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            btnBulkResetPassword.disabled = false;
+                            if (data.success && data.results) {
+                                let rowsHtml = data.results.map(u => `
+                                    <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                                        <td class="py-2 text-start fw-bold" style="font-size:0.85rem;">${u.name}</td>
+                                        <td class="py-2 text-capitalize text-white-50" style="font-size:0.78rem;">${u.role.replace('_', ' ')}</td>
+                                        <td class="py-2 text-end font-monospace text-warning fw-bold" style="font-size:0.88rem;letter-spacing:1px;">${u.new_password}</td>
+                                    </tr>
+                                `).join('');
+
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Reset Password Massal Berhasil!',
+                                    html: `
+                                        <div class="my-3 text-start">
+                                            <p class="mb-2 text-white-50 small">Daftar password baru yang berhasil di-reset (${data.results.length} user):</p>
+                                            <div class="table-responsive rounded p-2" style="max-height:240px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);">
+                                                <table class="table table-sm align-middle mb-0 text-white" style="font-size:0.8rem;">
+                                                    <thead>
+                                                        <tr class="text-white-50" style="border-bottom:1px solid rgba(255,255,255,0.15);">
+                                                            <th>Nama User</th>
+                                                            <th>Role</th>
+                                                            <th class="text-end">Password Baru</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>${rowsHtml}</tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    `,
+                                    confirmButtonText: 'Tutup',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-success das-swal-confirm'
+                                    },
+                                    background: 'transparent',
+                                    buttonsStyling: false
+                                });
+                                fetchData(1);
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal!',
+                                    text: data.message || 'Terjadi kesalahan.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-primary das-swal-confirm'
+                                    },
+                                    background: 'transparent',
+                                    buttonsStyling: false
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            btnBulkResetPassword.disabled = false;
+                            console.error('Bulk reset password error:', err);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: 'Terjadi kesalahan koneksi.',
+                                customClass: {
+                                    popup: 'das-swal-popup',
+                                    title: 'das-swal-title',
+                                    htmlContainer: 'das-swal-html',
+                                    confirmButton: 'btn btn-primary das-swal-confirm'
+                                },
+                                background: 'transparent',
+                                buttonsStyling: false
+                            });
+                        });
+                    });
+                });
+            }
+
+            // Bulk Delete Handler
+            if (btnBulkDelete) {
+                btnBulkDelete.addEventListener('click', function() {
+                    const checkedCbs = container.querySelectorAll('.select-user-cb:checked:not(:disabled)');
+                    const userIds = Array.from(checkedCbs).map(cb => cb.value);
+
+                    if (userIds.length === 0) return;
+
+                    Swal.fire({
+                        title: 'Hapus User Terpilih?',
+                        html: `<div class="mt-2">Apakah Anda yakin ingin menghapus <b class="text-danger">${userIds.length} user terpilih</b> secara permanen?</div>`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, Hapus Semua',
+                        cancelButtonText: 'Batal',
+                        customClass: {
+                            popup: 'das-swal-popup',
+                            title: 'das-swal-title',
+                            htmlContainer: 'das-swal-html',
+                            confirmButton: 'btn btn-danger das-swal-confirm me-2',
+                            cancelButton: 'btn das-swal-cancel',
+                            icon: 'das-swal-icon'
+                        },
+                        buttonsStyling: false,
+                        background: 'transparent',
+                        backdrop: `rgba(0,0,10,0.4)`,
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
+
+                        btnBulkDelete.disabled = true;
+
+                        fetch("{{ route('admin.users.bulk-destroy') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({ user_ids: userIds })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            btnBulkDelete.disabled = false;
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil!',
+                                    text: data.message || 'User terpilih berhasil dihapus.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-success das-swal-confirm'
+                                    },
+                                    timer: 2000,
+                                    showConfirmButton: false,
+                                    background: 'transparent',
+                                });
+                                fetchData(1);
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal!',
+                                    text: data.message || 'Terjadi kesalahan.',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-primary das-swal-confirm'
+                                    },
+                                    background: 'transparent',
+                                    buttonsStyling: false
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            btnBulkDelete.disabled = false;
+                            console.error('Bulk delete error:', err);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: 'Terjadi kesalahan koneksi.',
+                                customClass: {
+                                    popup: 'das-swal-popup',
+                                    title: 'das-swal-title',
+                                    htmlContainer: 'das-swal-html',
+                                    confirmButton: 'btn btn-primary das-swal-confirm'
+                                },
+                                background: 'transparent',
+                                buttonsStyling: false
+                            });
+                        });
+                    });
+                });
+            }
 
         });
     </script>
