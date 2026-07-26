@@ -241,6 +241,15 @@
 .das-table tbody tr { transition: background 0.15s; }
 .das-table tbody tr:hover td { background: var(--das-surface-hover); }
 
+/* Standardized Table Cell Utilities */
+.das-table td.col-name,
+.das-table th.col-name,
+.cell-name,
+.td-name,
+.das-nowrap {
+  white-space: nowrap !important;
+}
+
 /* Buttons */
 .das-btn {
   display: inline-flex; align-items: center; gap: 5px;
@@ -332,3 +341,222 @@
 /* Utils */
 .letter-spacing-1 { letter-spacing: 1px; }
 .fw-800 { font-weight: 800; }
+
+/* ── UNIFIED CONFIRMATION DELETE MODAL STYLES ── */
+.das-modal--danger {
+  border-color: rgba(234, 84, 85, 0.25) !important;
+}
+.das-modal__head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: var(--das-primary-soft, rgba(115,103,240,0.12));
+  border-bottom: 1px solid var(--das-border, rgba(255,255,255,0.08));
+}
+.das-modal__head--danger {
+  background: rgba(234, 84, 85, 0.12) !important;
+}
+.das-modal__title { font-size: 0.9rem; font-weight: 700; color: #ddd; margin: 0; }
+.das-modal__body { padding: 0; }
+.das-modal__foot, .das-modal-foot {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 0.5rem !important;
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid var(--das-border, rgba(255,255,255,0.08));
+}
+
+
+.das-btn--ghost {
+  background: transparent; border-color: var(--das-border, rgba(255,255,255,0.1)); color: #999;
+}
+.das-btn--ghost:hover { background: rgba(255,255,255,0.06); color: white; }
+.das-btn--danger-solid {
+  background: var(--das-danger, #ea5455); color: white; border-color: var(--das-danger, #ea5455);
+}
+.das-btn--danger-solid:hover { background: #d63031; border-color: #d63031; color: white; }
+
+/* Danger Icon with Pulsing Ring */
+.dev-confirm-danger-icon {
+  position: relative;
+  width: 72px; height: 72px;
+  margin: 2rem auto 1.25rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.dev-confirm-danger-icon__ring {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(234,84,85,0.35);
+  background: rgba(234,84,85,0.1);
+  animation: dangerPulse 2s ease-in-out infinite;
+}
+@keyframes dangerPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.75; }
+}
+.dev-confirm-danger-icon__symbol {
+  position: relative; z-index: 1;
+  font-size: 1.75rem; color: var(--das-danger, #ea5455);
+}
+
+/* Modal Content & Item Card */
+.dev-confirm-message {
+  padding: 0 1.25rem 1.25rem;
+  text-align: center;
+}
+.dev-confirm-message__main {
+  font-size: 0.9rem; font-weight: 700; color: #e2e8f0;
+  margin: 0 0 1rem;
+}
+.dev-confirm-item-card, .dev-confirm-device-card {
+  display: flex; align-items: center; gap: 0.75rem;
+  background: rgba(234,84,85,0.06);
+  border: 1px solid rgba(234,84,85,0.2);
+  border-radius: var(--das-radius, 6px);
+  padding: 0.65rem 0.9rem;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+.dev-confirm-item-card__icon, .dev-confirm-device-card__icon {
+  font-size: 1.2rem; color: var(--das-danger, #ea5455); flex-shrink: 0;
+}
+.dev-confirm-item-card__name, .dev-confirm-device-card__name {
+  font-size: 0.82rem; font-weight: 700; color: #e2e8f0; word-break: break-word;
+}
+.dev-confirm-item-card__sub, .dev-confirm-device-card__uuid {
+  font-size: 0.68rem; color: #64748b; font-family: monospace; word-break: break-all;
+}
+.dev-confirm-message__warning {
+  display: flex; align-items: flex-start; gap: 6px; justify-content: center;
+  font-size: 0.7rem; color: #64748b; line-height: 1.4;
+  margin: 0;
+}
+.dev-confirm-message__warning .ti { color: var(--das-warning, #ff9f43); flex-shrink: 0; margin-top: 1px; }
+
+/* ── SWEETALERT2 STYLES MATCHING UNIFIED CONFIRMATION MODAL ── */
+.das-swal-popup {
+  background: #1a1a2e !important;
+  border: 1px solid rgba(234, 84, 85, 0.25) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5) !important;
+  color: #e2e8f0 !important;
+  padding: 1.5rem !important;
+}
+.das-swal-title {
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+}
+.das-swal-html {
+  font-size: 0.88rem !important;
+  color: #94a3b8 !important;
+}
+.das-swal-confirm {
+  background: #ea5455 !important;
+  border-color: #ea5455 !important;
+  color: white !important;
+  font-weight: 600 !important;
+  padding: 0.45rem 1rem !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+.das-swal-confirm:hover {
+  background: #d63031 !important;
+  border-color: #d63031 !important;
+}
+.das-swal-cancel {
+  background: transparent !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: #94a3b8 !important;
+  font-weight: 600 !important;
+  padding: 0.45rem 1rem !important;
+  border-radius: 6px !important;
+}
+.das-swal-cancel:hover {
+  background: rgba(255,255,255,0.06) !important;
+  color: #fff !important;
+}
+
+/* ── MODAL VARIANT STYLES (SUCCESS, INFO, WARNING) ── */
+.das-modal__head--success { background: rgba(40, 199, 111, 0.12) !important; }
+.das-modal__head--info    { background: rgba(0, 207, 232, 0.12) !important; }
+.das-modal__head--warning { background: rgba(255, 159, 67, 0.12) !important; }
+
+.das-btn--success-solid {
+  background: var(--das-success, #28c76f); color: white; border-color: var(--das-success, #28c76f);
+}
+.das-btn--success-solid:hover { background: #24b263; border-color: #24b263; color: white; }
+
+.das-btn--warning-solid {
+  background: var(--das-warning, #ff9f43); color: white; border-color: var(--das-warning, #ff9f43);
+}
+.das-btn--warning-solid:hover { background: #e08935; border-color: #e08935; color: white; }
+
+.das-btn--info-solid {
+  background: var(--das-info, #00cfe8); color: white; border-color: var(--das-info, #00cfe8);
+}
+.das-btn--info-solid:hover { background: #00b8ce; border-color: #00b8ce; color: white; }
+
+/* Success Icon Pulsing Ring */
+.dev-confirm-success-icon {
+  position: relative; width: 72px; height: 72px; margin: 2rem auto 1.25rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.dev-confirm-success-icon__ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 2px solid rgba(40,199,111,0.35); background: rgba(40,199,111,0.1);
+  animation: successPulse 2s ease-in-out infinite;
+}
+@keyframes successPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.75; }
+}
+.dev-confirm-success-icon__symbol { position: relative; z-index: 1; font-size: 1.75rem; color: var(--das-success, #28c76f); }
+
+/* Info Icon Pulsing Ring */
+.dev-confirm-info-icon {
+  position: relative; width: 72px; height: 72px; margin: 2rem auto 1.25rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.dev-confirm-info-icon__ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 2px solid rgba(0,207,232,0.35); background: rgba(0,207,232,0.1);
+  animation: infoPulse 2s ease-in-out infinite;
+}
+@keyframes infoPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.75; }
+}
+.dev-confirm-info-icon__symbol { position: relative; z-index: 1; font-size: 1.75rem; color: var(--das-info, #00cfe8); }
+
+/* Warning Icon Pulsing Ring */
+.dev-confirm-warning-icon {
+  position: relative; width: 72px; height: 72px; margin: 2rem auto 1.25rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.dev-confirm-warning-icon__ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 2px solid rgba(255,159,67,0.35); background: rgba(255,159,67,0.1);
+  animation: warningPulse 2s ease-in-out infinite;
+}
+@keyframes warningPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.75; }
+}
+.dev-confirm-warning-icon__symbol { position: relative; z-index: 1; font-size: 1.75rem; color: var(--das-warning, #ff9f43); }
+
+/* Hide Close Button (X) on ALL Modals globally for UI Consistency */
+.modal .btn-close,
+.das-modal .btn-close,
+.modal-header .btn-close,
+.modal-content .btn-close,
+.das-modal__head .btn-close,
+.das-modal-head .btn-close,
+.swal2-popup .swal2-close {
+  display: none !important;
+}
+
+
+
+
+

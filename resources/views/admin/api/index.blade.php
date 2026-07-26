@@ -169,14 +169,17 @@
                       @endif
                     </td>
                     <td class="pe-4 text-end">
-                      <form action="{{ route('admin.api-integration.destroy', $token->id) }}" method="POST"
-                        onsubmit="return confirm('Apakah Anda yakin ingin mencabut token ini? Aplikasi yang menggunakannya akan terputus.');">
-                        @csrf
-                        @method('DELETE')
-                        <button class="action-btn text-danger" type="submit" title="Revoke Token">
-                          <i class="ti tabler-trash fs-5"></i>
-                        </button>
-                      </form>
+                      <button class="action-btn text-danger" type="button"
+                        data-bs-toggle="modal"
+                        data-bs-target="#deleteConfirmModal"
+                        data-name="Token: {{ $token->name }}"
+                        data-detail="Dibuat: {{ \Carbon\Carbon::parse($token->created_at)->format('d M Y') }}"
+                        data-message="Apakah Anda yakin ingin mencabut API Token ini?"
+                        data-warning="Aplikasi atau integrasi yang menggunakan token ini akan langsung terputus."
+                        data-action="{{ route('admin.api-integration.destroy', $token->id) }}"
+                        title="Revoke Token">
+                        <i class="ti tabler-trash fs-5"></i>
+                      </button>
                     </td>
                   </tr>
                 @empty

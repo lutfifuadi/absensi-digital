@@ -269,13 +269,17 @@
                   </div>
 
                   {{-- Hapus --}}
-                  <form action="{{ route('admin.ekskul.anggota.destroy', [$ekskul->id, $a->id]) }}" method="POST" class="d-inline"
-                    onsubmit="return confirm('Yakin ingin mengeluarkan siswa ini dari ekskul?')">
-                    @csrf @method('DELETE')
-                    <button type="submit" class="icon-btn icon-btn--danger" title="Hapus Anggota">
-                      <i class="ti tabler-trash"></i>
-                    </button>
-                  </form>
+                  <button type="button" class="icon-btn icon-btn--danger"
+                    data-bs-toggle="modal"
+                    data-bs-target="#deleteConfirmModal"
+                    data-name="{{ $a->siswa->nama_lengkap ?? 'Siswa' }}"
+                    data-detail="NIS: {{ $a->siswa->nis ?? '-' }} • Jabatan: {{ $a->jabatan ?: 'Anggota' }}"
+                    data-message="Apakah Anda yakin ingin mengeluarkan siswa ini dari ekskul?"
+                    data-warning="Siswa tidak akan lagi tercatat sebagai anggota {{ $ekskul->nama_ekskul }}."
+                    data-action="{{ route('admin.ekskul.anggota.destroy', [$ekskul->id, $a->id]) }}"
+                    title="Keluarkan dari Ekskul">
+                    <i class="ti tabler-trash"></i>
+                  </button>
                 </div>
               </td>
             </tr>

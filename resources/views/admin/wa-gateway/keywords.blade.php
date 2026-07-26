@@ -127,13 +127,17 @@
                         style="border-radius: 5px;">
                   <i class="ti tabler-edit"></i>
                 </button>
-                <form action="{{ route('admin.wa-gateway.keywords.destroy', $kw->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus keyword ini?')">
-                  @csrf
-                  @method('DELETE')
-                  <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 5px;">
-                    <i class="ti tabler-trash"></i>
-                  </button>
-                </form>
+                <button type="button" class="btn btn-sm btn-outline-danger" style="border-radius: 5px;"
+                  data-bs-toggle="modal"
+                  data-bs-target="#deleteConfirmModal"
+                  data-name="Keyword: {{ $kw->keyword }}"
+                  data-detail="Tipe: {{ strtoupper($kw->match_type) }} • Template: {{ $kw->notification_template_type ?: 'Bawaan' }}"
+                  data-message="Apakah Anda yakin ingin menghapus keyword ini?"
+                  data-warning="Pesan otomatis untuk keyword ini tidak akan lagi direspon oleh sistem WA Gateway."
+                  data-action="{{ route('admin.wa-gateway.keywords.destroy', $kw->id) }}"
+                  title="Hapus Keyword">
+                  <i class="ti tabler-trash"></i>
+                </button>
               </td>
             </tr>
           @empty

@@ -479,29 +479,35 @@
     <!-- Modal Hapus Semua Guru -->
     <div class="modal fade" id="deleteAllGuruModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content das-modal shadow-lg">
-                <div class="das-modal-head d-flex align-items-center justify-content-between">
-                    <h5 class="das-modal-title"><i class="ti tabler-trash me-2 text-danger"></i> Hapus Semua Guru</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+            <div class="modal-content das-modal das-modal--danger shadow-lg">
+                <div class="das-modal__head das-modal__head--danger">
+                    <h5 class="das-modal__title"><i class="ti tabler-alert-triangle me-2"></i> Hapus Semua Guru</h5>
                 </div>
                 <form id="deleteAllForm" action="{{ route('admin.guru.destroy-all') }}" method="POST">
                     @csrf
                     @method('DELETE')
-                    <div class="das-modal-body">
-                        <p class="mb-3">Semua data guru akan dihapus, termasuk akun user terkait. Tindakan ini tidak dapat dibatalkan.</p>
-                        <div id="deleteAllProgress" class="d-none">
+                    <div class="das-modal__body text-center p-4">
+                        <div class="dev-confirm-danger-icon">
+                            <div class="dev-confirm-danger-icon__ring"></div>
+                            <i class="ti tabler-trash dev-confirm-danger-icon__symbol"></i>
+                        </div>
+                        <p class="dev-confirm-message__main">Apakah Anda yakin ingin menghapus SELURUH data guru?</p>
+                        <p class="dev-confirm-message__warning text-start">
+                            <i class="ti tabler-info-circle"></i>
+                            <span>Semua data guru akan dihapus permanen, termasuk akun user terkait. Tindakan ini tidak dapat dibatalkan.</span>
+                        </p>
+                        <div id="deleteAllProgress" class="d-none mt-3">
                             <div class="progress" style="height:8px;">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width:100%">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-danger" style="width:100%">
                                 </div>
                             </div>
                             <small class="text-white-50 mt-2 d-block">Menghapus data...</small>
                         </div>
                     </div>
-                    <div class="d-flex justify-content-end gap-2 p-4 pt-0">
-                        <button type="button" class="btn das-btn --secondary" data-bs-dismiss="modal"
-                            id="deleteAllCancelBtn">Batal</button>
-                        <button type="button" class="btn das-btn --danger" id="deleteAllSubmitBtn">Hapus Semua</button>
+                    <div class="das-modal__foot d-flex justify-content-end gap-2">
+                        <button type="button" class="das-btn das-btn--ghost" data-bs-dismiss="modal"
+                            id="deleteAllCancelBtn"><i class="ti tabler-x"></i> Tidak, Batal</button>
+                        <button type="button" class="das-btn das-btn--danger-solid" id="deleteAllSubmitBtn"><i class="ti tabler-trash"></i> Ya, Hapus Semua</button>
                     </div>
                 </form>
             </div>

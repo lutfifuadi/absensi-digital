@@ -3,32 +3,32 @@
     <thead style="background:rgba(255,255,255,0.04);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;opacity:0.7;">
       <tr>
         <th class="ps-4 py-3" style="width:46px;">#</th>
-        <th class="py-3 sortable cursor-pointer" data-sort-by="nama_lengkap" style="user-select: none;">
+        <th class="py-3 sortable cursor-pointer text-nowrap" data-sort-by="nama_lengkap" style="user-select: none;">
           Informasi Wali Kelas
           @if(($sortBy ?? '') === 'nama_lengkap')
             <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
           @endif
         </th>
-        <th class="py-3 d-none d-md-table-cell sortable cursor-pointer" data-sort-by="nip" style="user-select: none;">
+        <th class="py-3 d-none d-md-table-cell sortable cursor-pointer text-nowrap" data-sort-by="nip" style="user-select: none;">
           NIP
           @if(($sortBy ?? '') === 'nip')
             <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
           @endif
         </th>
-        <th class="py-3 sortable cursor-pointer" data-sort-by="mata_pelajaran" style="user-select: none;">
+        <th class="py-3 sortable cursor-pointer text-nowrap" data-sort-by="mata_pelajaran" style="user-select: none;">
           Mata Pelajaran
           @if(($sortBy ?? '') === 'mata_pelajaran')
             <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
           @endif
         </th>
-        <th class="py-3 text-center sortable cursor-pointer" data-sort-by="status" style="user-select: none;">
+        <th class="py-3 text-center sortable cursor-pointer text-nowrap" data-sort-by="status" style="user-select: none;">
           Status
           @if(($sortBy ?? '') === 'status')
             <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
           @endif
         </th>
-        <th class="py-3 d-none d-lg-table-cell">Role</th>
-        <th class="py-3 pe-4 text-end">Aksi</th>
+        <th class="py-3 d-none d-lg-table-cell text-nowrap">Role</th>
+        <th class="py-3 pe-4 text-end text-nowrap">Aksi</th>
       </tr>
     </thead>
     <tbody>

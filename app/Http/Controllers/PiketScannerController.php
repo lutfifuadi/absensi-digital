@@ -73,6 +73,24 @@ class PiketScannerController extends Controller
         $siswa = Siswa::with('kelas')->where('qr_code', $qrCode)->first();
 
         if ($siswa) {
+            // PRD-016: Load jadwal absensi per kelas per hari (override untuk logika di dalam transaction)
+            if ($siswa->kelas_id) {
+                $jadwalKelas = \App\Helpers\JadwalAbsensiHelper::getJadwalForKelas($siswa->kelas_id);
+                $jamMasuk        = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_masuk']) ?? $jamMasuk;
+                $jamPulang       = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_pulang']) ?? $jamPulang;
+                $jamAkhirPulang  = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_akhir_pulang']) ?? $jamAkhirPulang;
+                $jamMulaiPulang  = $jamPulang;
+                $jamBatasMasuk   = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['batas_jam_masuk']) ?? \Carbon\Carbon::parse($jamMasuk)->addMinutes($toleransi)->format('H:i');
+
+                // Cek apakah hari ini libur untuk kelas ini
+                if ($jadwalKelas['is_libur']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Hari ini adalah hari libur untuk kelas ' . $siswa->kelas?->nama . '.',
+                    ]);
+                }
+            }
+
             $absensi = AbsensiSiswa::where('siswa_id', $siswa->id)
                 ->whereDate('tanggal', $tanggal)
                 ->first();

@@ -155,26 +155,11 @@ class IdCardPdfService
      */
     public function hitungMasaBerlakuSiswa($siswa, int $jumlahTahun): string
     {
-        // 1. Cek apakah relasi tahunAkademik ada dan punya tanggal_mulai
-        if ($siswa->tahunAkademik && $siswa->tahunAkademik->tanggal_mulai) {
-            try {
-                $tahun = (int) \Carbon\Carbon::parse($siswa->tahunAkademik->tanggal_mulai)->format('Y');
-                return '30 Juni ' . ($tahun + $jumlahTahun);
-            } catch (\Exception $e) {
-                // lanjut ke fallback
-            }
+        $tahunLulus = \App\Helpers\JenjangHelper::getTahunLulusSiswa($siswa);
+        if ($tahunLulus) {
+            return '30 Juni ' . $tahunLulus;
         }
 
-        // 2. Fallback: parse dari nama tahun akademik (format "2023/2024")
-        if ($siswa->tahunAkademik && $siswa->tahunAkademik->nama) {
-            $nama = $siswa->tahunAkademik->nama;
-            if (preg_match('/(\d{4})/', $nama, $matches)) {
-                $tahun = (int) $matches[1];
-                return '30 Juni ' . ($tahun + $jumlahTahun);
-            }
-        }
-
-        // 3. Ultimate fallback
         return 'Selama menjadi siswa aktif';
     }
 

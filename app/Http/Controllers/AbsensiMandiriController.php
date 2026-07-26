@@ -79,7 +79,7 @@ class AbsensiMandiriController extends Controller
             $jadwalKelas = \App\Helpers\JadwalAbsensiHelper::getJadwalForKelas($siswa->kelas_id);
             $jamMulaiAbsensi = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_mulai_absensi']) ?? '06:00';
             $jamMasuk        = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_masuk']) ?? '07:00';
-            $jamBatasMasuk   = \Carbon\Carbon::parse($jamMasuk)->addMinutes($toleransi)->format('H:i');
+            $jamBatasMasuk   = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['batas_jam_masuk']) ?? \Carbon\Carbon::parse($jamMasuk)->addMinutes($toleransi)->format('H:i');
             $jamPulang       = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_pulang']) ?? '15:00';
             $jamMulaiPulang  = $jamPulang;
             $jamAkhirPulang  = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_akhir_pulang']) ?? '17:00';

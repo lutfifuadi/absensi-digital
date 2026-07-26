@@ -90,6 +90,7 @@ class JadwalAbsensiController extends Controller
                 'hari'               => $hari,
                 'jam_mulai_absensi'  => $jadwal?->jam_mulai_absensi ? $jadwal->jam_mulai_absensi->format('H:i') : null,
                 'jam_masuk'          => $jadwal?->jam_masuk ? $jadwal->jam_masuk->format('H:i') : null,
+                'batas_jam_masuk'    => $jadwal?->batas_jam_masuk ? $jadwal->batas_jam_masuk->format('H:i') : null,
                 'jam_pulang'         => $jadwal?->jam_pulang ? $jadwal->jam_pulang->format('H:i') : null,
                 'jam_akhir_pulang'   => $jadwal?->jam_akhir_pulang ? $jadwal->jam_akhir_pulang->format('H:i') : null,
                 'is_libur'           => $jadwal?->is_libur ?? ($hari === 'sabtu' || $hari === 'minggu'),
@@ -126,6 +127,7 @@ class JadwalAbsensiController extends Controller
             'hari'                => ['required', Rule::in(self::HARI_VALID)],
             'jam_mulai_absensi'   => 'nullable|date_format:H:i',
             'jam_masuk'           => 'nullable|date_format:H:i',
+            'batas_jam_masuk'     => 'nullable|date_format:H:i',
             'jam_pulang'          => 'nullable|date_format:H:i',
             'jam_akhir_pulang'    => 'nullable|date_format:H:i',
             'is_libur'            => 'nullable|boolean',
@@ -148,6 +150,7 @@ class JadwalAbsensiController extends Controller
             [
                 'jam_mulai_absensi' => $data['jam_mulai_absensi'] ?? null,
                 'jam_masuk'         => $data['jam_masuk'] ?? null,
+                'batas_jam_masuk'   => $data['batas_jam_masuk'] ?? null,
                 'jam_pulang'        => $data['jam_pulang'] ?? null,
                 'jam_akhir_pulang'  => $data['jam_akhir_pulang'] ?? null,
                 'is_libur'          => $data['is_libur'] ?? false,
@@ -175,6 +178,7 @@ class JadwalAbsensiController extends Controller
             'jadwal.*.hari'         => ['required', Rule::in(self::HARI_VALID)],
             'jadwal.*.jam_mulai_absensi' => 'nullable|date_format:H:i',
             'jadwal.*.jam_masuk'         => 'nullable|date_format:H:i',
+            'jadwal.*.batas_jam_masuk'   => 'nullable|date_format:H:i',
             'jadwal.*.jam_pulang'        => 'nullable|date_format:H:i',
             'jadwal.*.jam_akhir_pulang'  => 'nullable|date_format:H:i',
             'jadwal.*.is_libur'          => 'nullable|boolean',
@@ -202,6 +206,7 @@ class JadwalAbsensiController extends Controller
                     [
                         'jam_mulai_absensi' => $jadwal['jam_mulai_absensi'] ?? null,
                         'jam_masuk'         => $jadwal['jam_masuk'] ?? null,
+                        'batas_jam_masuk'   => $jadwal['batas_jam_masuk'] ?? null,
                         'jam_pulang'        => $jadwal['jam_pulang'] ?? null,
                         'jam_akhir_pulang'  => $jadwal['jam_akhir_pulang'] ?? null,
                         'is_libur'          => $jadwal['is_libur'] ?? false,
@@ -269,6 +274,7 @@ class JadwalAbsensiController extends Controller
                         [
                             'jam_mulai_absensi' => $jadwal->jam_mulai_absensi,
                             'jam_masuk'         => $jadwal->jam_masuk,
+                            'batas_jam_masuk'   => $jadwal->batas_jam_masuk,
                             'jam_pulang'        => $jadwal->jam_pulang,
                             'jam_akhir_pulang'  => $jadwal->jam_akhir_pulang,
                             'is_libur'          => $jadwal->is_libur,
@@ -339,6 +345,7 @@ class JadwalAbsensiController extends Controller
     {
         $jamMulaiAbsensi = $data['jam_mulai_absensi'] ?? null;
         $jamMasuk        = $data['jam_masuk'] ?? null;
+        $batasJamMasuk   = $data['batas_jam_masuk'] ?? null;
         $jamPulang       = $data['jam_pulang'] ?? null;
         $jamAkhirPulang  = $data['jam_akhir_pulang'] ?? null;
         $hari            = $data['hari'] ?? '';
@@ -353,6 +360,16 @@ class JadwalAbsensiController extends Controller
         // BR-04: jam_pulang <= jam_akhir_pulang
         if ($jamPulang && $jamAkhirPulang && $jamPulang > $jamAkhirPulang) {
             return "Jam Pulang{$hariLabel} harus lebih awal atau sama dengan Jam Akhir Pulang.";
+        }
+
+        // Business rules baru: batas_jam_masuk >= jam_masuk (jika keduanya diisi)
+        if ($batasJamMasuk && $jamMasuk && $batasJamMasuk < $jamMasuk) {
+            return "Batas Jam Absensi Masuk{$hariLabel} harus lebih lambat atau sama dengan Jam Masuk.";
+        }
+
+        // Business rules baru: batas_jam_masuk >= jam_mulai_absensi (jika diisi)
+        if ($batasJamMasuk && $jamMulaiAbsensi && $batasJamMasuk < $jamMulaiAbsensi) {
+            return "Batas Jam Absensi Masuk{$hariLabel} harus lebih lambat atau sama dengan Jam Mulai Absensi.";
         }
 
         return null;

@@ -144,14 +144,14 @@
       <table class="das-table">
         <thead>
           <tr>
-            <th class="ps-4 py-3" width="60">No</th>
-            <th class="py-3">Nama Siswa</th>
-            <th class="py-3">Kelas</th>
-            <th class="py-3 text-center">Jam Masuk</th>
-            <th class="py-3 text-center">Jam Pulang</th>
-            <th class="py-3 text-center">Status</th>
-            <th class="py-3">Keterangan</th>
-            <th class="py-3 text-center pe-4" width="80">Aksi</th>
+            <th class="ps-4 py-3 text-nowrap" width="60">No</th>
+            <th class="py-3 text-nowrap">Nama Siswa</th>
+            <th class="py-3 text-nowrap">Kelas</th>
+            <th class="py-3 text-center text-nowrap">Jam Masuk</th>
+            <th class="py-3 text-center text-nowrap">Jam Pulang</th>
+            <th class="py-3 text-center text-nowrap">Status</th>
+            <th class="py-3 text-nowrap">Keterangan</th>
+            <th class="py-3 text-center pe-4 text-nowrap" width="80">Aksi</th>
           </tr>
         </thead>
         <tbody class="table-border-bottom-0">
@@ -187,9 +187,9 @@
               }
             @endphp
             <tr class="rekap-row-hover">
-              <td class="ps-4">{{ $siswaList->firstItem() + $index }}</td>
+              <td class="ps-4 text-nowrap">{{ $siswaList->firstItem() + $index }}</td>
               <td class="fw-bold text-nowrap">{{ $siswa->nama_lengkap }}</td>
-              <td>{{ $siswa->kelas->nama ?? '-' }}</td>
+              <td class="text-nowrap">{{ $siswa->kelas->nama ?? '-' }}</td>
               <td class="text-center">{{ $absensi && $absensi->jam_masuk ? $absensi->jam_masuk : '-' }}</td>
               <td class="text-center">{{ $absensi && $absensi->jam_pulang ? $absensi->jam_pulang : '-' }}</td>
               <td class="text-center"><span class="das-chip {{ $statusChip }}">{{ $statusText }}</span></td>

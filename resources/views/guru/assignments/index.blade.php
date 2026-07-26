@@ -116,13 +116,17 @@
                   <a href="{{ route('assignments.edit', $a->id) }}" class="btn btn-xs btn-outline-warning">
                     <i class="ti tabler-edit fs-6"></i>
                   </a>
-                  <form action="{{ route('assignments.destroy', $a->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus penugasan ini?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-xs btn-outline-danger">
-                      <i class="ti tabler-trash fs-6"></i>
-                    </button>
-                  </form>
+                  <button type="button" class="btn btn-xs btn-outline-danger"
+                    data-bs-toggle="modal"
+                    data-bs-target="#deleteConfirmModal"
+                    data-name="{{ $a->title }}"
+                    data-detail="Kelas: {{ $a->kelas->nama_kelas ?? '-' }} • Mapel: {{ $a->mapel->nama_mapel ?? '-' }}"
+                    data-message="Apakah Anda yakin ingin menghapus penugasan ini?"
+                    data-warning="Seluruh jawaban & berkas siswa terkait penugasan ini akan terhapus."
+                    data-action="{{ route('assignments.destroy', $a->id) }}"
+                    title="Hapus Penugasan">
+                    <i class="ti tabler-trash fs-6"></i>
+                  </button>
                 </div>
               </td>
             </tr>

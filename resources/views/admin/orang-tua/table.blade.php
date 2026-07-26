@@ -3,33 +3,33 @@
         <thead style="background:rgba(255,255,255,0.04);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;opacity:0.7;">
             <tr>
                 <th class="ps-4 py-3" style="width:46px;">#</th>
-                <th class="py-3 sortable cursor-pointer" data-sort-by="name" style="user-select: none;">
+                <th class="py-3 sortable cursor-pointer text-nowrap" data-sort-by="name" style="user-select: none;">
                     Nama Orang Tua
                     @if(($sortBy ?? 'name') === 'name')
                         <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
                     @endif
                 </th>
-                <th class="py-3 sortable cursor-pointer" data-sort-by="email" style="user-select: none;">
+                <th class="py-3 sortable cursor-pointer text-nowrap" data-sort-by="email" style="user-select: none;">
                     Akun
                     @if(($sortBy ?? '') === 'email')
                         <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
                     @endif
                 </th>
-                <th class="py-3 text-center">Menghubungkan Siswa</th>
-                <th class="py-3 text-center sortable cursor-pointer" data-sort-by="status" style="user-select: none;">
+                <th class="py-3 text-center text-nowrap">Menghubungkan Siswa</th>
+                <th class="py-3 text-center sortable cursor-pointer text-nowrap" data-sort-by="status" style="user-select: none;">
                     Status
                     @if(($sortBy ?? '') === 'status')
                         <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
                     @endif
                 </th>
-                <th class="py-3 pe-4 text-end">Aksi</th>
+                <th class="py-3 pe-4 text-end text-nowrap">Aksi</th>
             </tr>
         </thead>
         <tbody>
             @forelse($orangTua as $item)
                 <tr class="ortu-row-hover">
                     <td class="ps-4 text-white-50 small">{{ $orangTua->firstItem() + $loop->index }}</td>
-                    <td>
+                    <td class="text-nowrap">
                         <div class="d-flex align-items-center gap-3">
                             <div class="avatar avatar-md">
                                 <span class="avatar-initial rounded-circle bg-label-info" style="font-size:0.85rem;">

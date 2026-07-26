@@ -208,17 +208,25 @@
 
   <!-- Modal Konfirmasi Impersonate -->
   <div class="modal fade" id="impersonateConfirmModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
-      <div class="modal-content das-modal shadow-lg" style="border-radius: 5px !important; background: #1a1a2e; border: 1px solid rgba(255, 255, 255, 0.08);">
-        <div class="das-modal-head py-3 px-4" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: rgba(115, 103, 240, 0.05);">
-          <h5 class="das-modal-title" style="font-size: 1rem; font-weight: 700; color: #fff; margin: 0;"><i class="ti tabler-login me-2 text-success"></i> Konfirmasi Login As</h5>
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content das-modal">
+        <div class="das-modal__head das-modal__head--success">
+          <h5 class="das-modal__title"><i class="ti tabler-user-share me-2"></i> Konfirmasi Impersonate</h5>
         </div>
-        <div class="das-modal-body p-4 text-white">
-          <p class="mb-0">Anda akan masuk ke dalam akun <b id="impersonateWkName" class="text-warning"></b>. Seluruh aktivitas akan dicatat dalam log sistem.</p>
+        <div class="das-modal__body text-center p-4">
+          <div class="dev-confirm-success-icon">
+            <div class="dev-confirm-success-icon__ring"></div>
+            <i class="ti tabler-user-share dev-confirm-success-icon__symbol"></i>
+          </div>
+          <p class="dev-confirm-message__main">Anda akan masuk ke akun <b id="impersonateWkName" class="text-success"></b>.</p>
+          <p class="dev-confirm-message__warning text-start">
+            <i class="ti tabler-info-circle"></i>
+            <span>Seluruh tindakan & aktivitas yang dilakukan selama sesi impersonate akan dicatat dalam log sistem.</span>
+          </p>
         </div>
-        <div class="d-flex justify-content-end gap-2 px-4 pb-4 pt-2">
-          <button type="button" class="btn btn-label-secondary w-50" data-bs-dismiss="modal">Batal</button>
-          <button type="button" id="confirmImpersonateBtn" class="btn btn-success w-50">Ya, Lanjutkan</button>
+        <div class="das-modal__foot d-flex justify-content-end gap-2">
+          <button type="button" class="das-btn das-btn--ghost" data-bs-dismiss="modal"><i class="ti tabler-x"></i> Batal</button>
+          <button type="button" id="confirmImpersonateBtn" class="das-btn das-btn--success-solid"><i class="ti tabler-check"></i> Ya, Lanjutkan</button>
         </div>
       </div>
     </div>

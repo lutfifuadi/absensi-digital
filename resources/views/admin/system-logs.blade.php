@@ -170,18 +170,26 @@
   <!-- Modal Konfirmasi Hapus Log -->
   <div class="modal fade" id="clearLogConfirmModal" tabindex="-1" aria-labelledby="clearLogConfirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header bg-danger bg-opacity-10 py-3 border-bottom border-secondary d-flex align-items-center">
-          <h5 class="modal-title text-white d-flex align-items-center mb-0" id="clearLogConfirmModalLabel">
-            <i class="ti tabler-alert-triangle text-warning me-2 fs-4"></i> Apakah Anda Yakin?
+      <div class="modal-content das-modal das-modal--danger">
+        <div class="das-modal__head das-modal__head--danger">
+          <h5 class="das-modal__title" id="clearLogConfirmModalLabel">
+            <i class="ti tabler-alert-triangle me-2"></i> Konfirmasi Bersihkan Log
           </h5>
         </div>
-        <div class="modal-body text-white py-4">
-          Aksi ini akan menghapus semua isi file log '<strong id="modalLogFileName" class="text-warning"></strong>' secara permanen dari server!
+        <div class="das-modal__body text-center p-4">
+          <div class="dev-confirm-danger-icon">
+            <div class="dev-confirm-danger-icon__ring"></div>
+            <i class="ti tabler-trash dev-confirm-danger-icon__symbol"></i>
+          </div>
+          <p class="dev-confirm-message__main">Kosongkan isi file log <b id="modalLogFileName" class="text-danger"></b>?</p>
+          <p class="dev-confirm-message__warning text-start">
+            <i class="ti tabler-info-circle"></i>
+            <span>Seluruh isi file log akan dihapus secara permanen dari server dan tidak dapat dipulihkan.</span>
+          </p>
         </div>
-        <div class="modal-footer border-top border-secondary py-3">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
-          <button type="button" class="btn btn-danger" id="btnConfirmClear">Ya, Hapus Log!</button>
+        <div class="das-modal__foot d-flex justify-content-end gap-2">
+          <button type="button" class="das-btn das-btn--ghost" data-bs-dismiss="modal"><i class="ti tabler-x"></i> Tidak, Batal</button>
+          <button type="button" class="das-btn das-btn--danger-solid" id="btnConfirmClear"><i class="ti tabler-trash"></i> Ya, Hapus Log!</button>
         </div>
       </div>
     </div>

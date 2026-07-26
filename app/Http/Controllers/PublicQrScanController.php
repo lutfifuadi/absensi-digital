@@ -138,7 +138,7 @@ class PublicQrScanController extends Controller
             $jamPulang       = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_pulang']) ?? $jamPulang;
             $jamAkhirPulang  = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_akhir_pulang']) ?? $jamAkhirPulang;
             $jamMulaiPulang  = $jamPulang;
-            $jamBatasMasuk   = \Carbon\Carbon::parse($jamMasuk)->addMinutes($toleransi)->format('H:i');
+            $jamBatasMasuk   = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['batas_jam_masuk']) ?? \Carbon\Carbon::parse($jamMasuk)->addMinutes($toleransi)->format('H:i');
         }
 
         // Bandingkan currentTime dengan jamMulaiAbsensi (substring 5 karakter pertama currentTime dengan jamMulaiAbsensi)
@@ -164,7 +164,7 @@ class PublicQrScanController extends Controller
                 $jamAkhirPulang  = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_akhir_pulang']) ?? '17:00';
                 $jamMulaiPulang  = $jamPulang;
                 $toleransi       = (int)($settings['toleransi_terlambat'] ?? 15);
-                $jamBatasMasuk   = \Carbon\Carbon::parse($jamMasuk)->addMinutes($toleransi)->format('H:i');
+                $jamBatasMasuk   = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['batas_jam_masuk']) ?? \Carbon\Carbon::parse($jamMasuk)->addMinutes($toleransi)->format('H:i');
 
                 // Cek apakah hari ini libur untuk kelas ini
                 if ($jadwalKelas['is_libur']) {
@@ -691,6 +691,18 @@ class PublicQrScanController extends Controller
         $currentTime    = now()->format('H:i:s');
         $tanggal        = now()->toDateString();
 
+        // PRD-016: Load jadwal per kelas SEBELUM time check "belum dibuka" (untuk liveBoardScan)
+        $siswaLookup = Siswa::where('qr_code', $qrCode)->first();
+        if ($siswaLookup && $siswaLookup->kelas_id) {
+            $jadwalKelas = \App\Helpers\JadwalAbsensiHelper::getJadwalForKelas($siswaLookup->kelas_id);
+            $jamMulaiAbsensi = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_mulai_absensi']) ?? $jamMulaiAbsensi;
+            $jamMasuk        = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_masuk']) ?? $jamMasuk;
+            $jamPulang       = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_pulang']) ?? $jamPulang;
+            $jamAkhirPulang  = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_akhir_pulang']) ?? $jamAkhirPulang;
+            $jamMulaiPulang  = $jamPulang;
+            $jamBatasMasuk   = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['batas_jam_masuk']) ?? \Carbon\Carbon::parse($jamMasuk)->addMinutes($toleransi)->format('H:i');
+        }
+
         // Bandingkan currentTime dengan jamMulaiAbsensi (substring 5 karakter pertama currentTime dengan jamMulaiAbsensi)
         if (substr($currentTime, 0, 5) < $jamMulaiAbsensi) {
             return response()->json([
@@ -711,6 +723,18 @@ class PublicQrScanController extends Controller
         // 1. Cek Siswa
         $siswa = Siswa::with('kelas')->where('qr_code', $qrCode)->first();
         if ($siswa) {
+            // PRD-016: Load jadwal absensi per kelas per hari (override untuk logika di dalam transaction)
+            if ($siswa->kelas_id) {
+                $jadwalKelas = \App\Helpers\JadwalAbsensiHelper::getJadwalForKelas($siswa->kelas_id);
+                $jamMulaiAbsensi = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_mulai_absensi']) ?? '06:00';
+                $jamMasuk        = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_masuk']) ?? '07:00';
+                $jamPulang       = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_pulang']) ?? '15:00';
+                $jamAkhirPulang  = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_akhir_pulang']) ?? '17:00';
+                $jamMulaiPulang  = $jamPulang;
+                $toleransi       = (int)($settings['toleransi_terlambat'] ?? 15);
+                $jamBatasMasuk   = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['batas_jam_masuk']) ?? \Carbon\Carbon::parse($jamMasuk)->addMinutes($toleransi)->format('H:i');
+            }
+
             if (\App\Models\Holiday::isSiswaHoliday($siswa, $tanggal)) {
                 $holidayName = \App\Models\Holiday::whereDate('tanggal', $tanggal)
                     ->where(function ($query) use ($siswa) {

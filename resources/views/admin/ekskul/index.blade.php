@@ -280,14 +280,17 @@
                       <i class="ti tabler-edit fs-5"></i>
                     </a>
                     {{-- Hapus --}}
-                    <form action="{{ route('admin.ekskul.destroy', $ekskul->id) }}" method="POST" class="d-inline"
-                      onsubmit="return confirm('Yakin ingin menghapus ekskul ini? Data terkait (anggota, absensi) tidak akan terhapus secara langsung.')">
-                      @csrf @method('DELETE')
-                      <button type="submit" class="icon-btn icon-btn--danger"
-                        title="Hapus" data-bs-toggle="tooltip">
-                        <i class="ti tabler-trash fs-5"></i>
-                      </button>
-                    </form>
+                    <button type="button" class="icon-btn icon-btn--danger"
+                      data-bs-toggle="modal"
+                      data-bs-target="#deleteConfirmModal"
+                      data-name="{{ $ekskul->nama_ekskul }}"
+                      data-detail="Pembina: {{ $ekskul->pembina ? $ekskul->pembina->nama : '-' }}"
+                      data-message="Apakah Anda yakin ingin menghapus ekskul ini?"
+                      data-warning="Data ekstra kurikuler akan dihapus dari sistem."
+                      data-action="{{ route('admin.ekskul.destroy', $ekskul->id) }}"
+                      title="Hapus Ekskul">
+                      <i class="ti tabler-trash fs-5"></i>
+                    </button>
                   </div>
                 </div>
               </div>

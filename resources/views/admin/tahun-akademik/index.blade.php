@@ -401,37 +401,30 @@
   {{-- MODAL HAPUS --}}
   {{-- ═══════════════════════════════════════════ --}}
   <div class="modal fade" id="modalHapus" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
-      <div class="modal-content shadow-lg">
-        <div class="modal-header">
-          <div class="d-flex align-items-center gap-3">
-            <div
-              style="width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(234,84,85,0.2);border:1px solid rgba(234,84,85,0.35);">
-              <i class="ti tabler-alert-triangle text-danger fs-5"></i>
-            </div>
-            <div>
-              <h5 class="modal-title mb-0 text-white fw-bold">Konfirmasi Hapus</h5>
-              <small class="text-white-50">Tindakan ini tidak dapat dibatalkan.</small>
-            </div>
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content das-modal das-modal--danger shadow-lg">
+        <div class="das-modal__head das-modal__head--danger">
+          <h5 class="das-modal__title"><i class="ti tabler-alert-triangle me-2"></i> Konfirmasi Hapus</h5>
+        </div>
+        <div class="das-modal__body text-center p-4">
+          <div class="dev-confirm-danger-icon">
+            <div class="dev-confirm-danger-icon__ring"></div>
+            <i class="ti tabler-trash dev-confirm-danger-icon__symbol"></i>
           </div>
-          <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
+          <p class="dev-confirm-message__main">Yakin ingin menghapus tahun ajaran <b id="hapusNama" class="text-warning">—</b>?</p>
+          <p class="dev-confirm-message__warning text-start">
+            <i class="ti tabler-info-circle"></i>
+            <span>Tindakan ini tidak dapat dibatalkan.</span>
+          </p>
         </div>
-        <div class="modal-body text-center py-4">
-          <p class="mb-1">Yakin ingin menghapus tahun ajaran:</p>
-          <p class="fw-bold text-warning fs-6 mb-0" id="hapusNama">—</p>
-        </div>
-        <div class="modal-footer gap-2 justify-content-center">
-          <button type="button" class="btn btn-label-secondary px-4" data-bs-dismiss="modal">
-            <i class="ti tabler-x me-1"></i> Batal
-          </button>
-          <form id="formHapus" method="POST">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn-danger fw-semibold px-4 shadow-sm">
-              <i class="ti tabler-trash me-1"></i> Hapus
-            </button>
-          </form>
-        </div>
+        <form id="formHapus" method="POST">
+          @csrf
+          @method('DELETE')
+          <div class="das-modal__foot d-flex justify-content-end gap-2">
+            <button type="button" class="das-btn das-btn--ghost" data-bs-dismiss="modal"><i class="ti tabler-x"></i> Tidak, Batal</button>
+            <button type="submit" class="das-btn das-btn--danger-solid"><i class="ti tabler-trash"></i> Ya, Hapus</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

@@ -898,6 +898,15 @@
                 </div>
               </div>
               <div class="jadwal-field">
+                <label>Batas Jam Absensi Masuk</label>
+                <input type="time" class="jam-input" data-hari="${hari}" data-field="batas_jam_masuk" 
+                  value="${data.batas_jam_masuk || ''}" ${isLibur ? 'disabled' : ''}>
+                <div class="jadwal-field-hint --info">
+                  <i class="ti tabler-info-circle"></i>
+                  Kosongkan untuk menggunakan global (09:00)
+                </div>
+              </div>
+              <div class="jadwal-field">
                 <label>Jam Pulang</label>
                 <input type="time" class="jam-input" data-hari="${hari}" data-field="jam_pulang" 
                   value="${data.jam_pulang || ''}" ${isLibur ? 'disabled' : ''}>
@@ -975,6 +984,7 @@
         is_libur: liburToggle.checked,
         jam_mulai_absensi: null,
         jam_masuk: null,
+        batas_jam_masuk: null,
         jam_pulang: null,
         jam_akhir_pulang: null
       };
@@ -1005,6 +1015,14 @@
         if (!item.is_libur) {
           if (item.jam_mulai_absensi && item.jam_masuk && item.jam_mulai_absensi > item.jam_masuk) {
             showToast(`Error: Jam Mulai Absensi ${HARI_LABELS[item.hari]} harus lebih awal dari Jam Masuk.`, 'error');
+            return;
+          }
+          if (item.batas_jam_masuk && item.jam_masuk && item.batas_jam_masuk < item.jam_masuk) {
+            showToast(`Error: Batas Jam Absensi Masuk ${HARI_LABELS[item.hari]} harus lebih lambat atau sama dengan Jam Masuk.`, 'error');
+            return;
+          }
+          if (item.batas_jam_masuk && item.jam_mulai_absensi && item.batas_jam_masuk < item.jam_mulai_absensi) {
+            showToast(`Error: Batas Jam Absensi Masuk ${HARI_LABELS[item.hari]} harus lebih lambat atau sama dengan Jam Mulai Absensi.`, 'error');
             return;
           }
           if (item.jam_pulang && item.jam_akhir_pulang && item.jam_pulang > item.jam_akhir_pulang) {

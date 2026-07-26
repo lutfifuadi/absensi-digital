@@ -6,32 +6,33 @@
           <input class="form-check-input select-all-siswa-checkbox" type="checkbox" id="selectAllSiswa">
         </th>
         <th class="ps-2 py-3" style="width:46px;">#</th>
-        <th class="py-3 sortable cursor-pointer" data-sort-by="nama_lengkap" style="user-select: none;">
+        <th class="py-3 sortable cursor-pointer text-nowrap" data-sort-by="nama_lengkap" style="user-select: none;">
           Informasi Siswa
           @if(($sortBy ?? '') === 'nama_lengkap')
             <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
           @endif
         </th>
-        <th class="py-3 d-none d-md-table-cell text-center sortable cursor-pointer" data-sort-by="nis" style="user-select: none;">
-          NIS / NISN
-          @if(($sortBy ?? '') === 'nis')
+        <th class="py-3 d-none d-md-table-cell text-center sortable cursor-pointer text-nowrap" data-sort-by="nisn" style="user-select: none;">
+          NISN
+          @if(($sortBy ?? '') === 'nisn')
             <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
           @endif
         </th>
-        <th class="py-3 text-center sortable cursor-pointer" data-sort-by="kelas_id" style="user-select: none;">
+        <th class="py-3 text-center sortable cursor-pointer text-nowrap" data-sort-by="kelas_id" style="user-select: none;">
           Kelas
           @if(($sortBy ?? '') === 'kelas_id')
             <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
           @endif
         </th>
-        <th class="py-3 d-none d-xl-table-cell text-center">Tahun Akademik</th>
-        <th class="py-3 text-center sortable cursor-pointer" data-sort-by="status" style="user-select: none;">
+        <th class="py-3 text-center text-nowrap">Tahun Lulus</th>
+        <th class="py-3 d-none d-xl-table-cell text-center text-nowrap">Tahun Akademik</th>
+        <th class="py-3 text-center sortable cursor-pointer text-nowrap" data-sort-by="status" style="user-select: none;">
           Status
           @if(($sortBy ?? '') === 'status')
             <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
           @endif
         </th>
-        <th class="py-3 pe-4 text-end">Aksi</th>
+        <th class="py-3 pe-4 text-end text-nowrap">Aksi</th>
       </tr>
     </thead>
     <tbody>
@@ -41,7 +42,7 @@
             <input class="form-check-input siswa-checkbox" type="checkbox" value="{{ $item->id }}">
           </td>
           <td class="ps-4 text-white-50 small">{{ $siswa->firstItem() + $loop->index }}</td>
-          <td>
+          <td class="text-nowrap">
             <div class="d-flex align-items-center gap-3">
               <div class="avatar avatar-md">
                 <span class="avatar-initial rounded-circle bg-label-{{ $item->jenis_kelamin === 'L' ? 'info' : 'danger' }}" style="font-size:0.85rem;">
@@ -54,14 +55,19 @@
               </div>
             </div>
           </td>
-          <td class="d-none d-md-table-cell text-center">
-            <div class="small fw-medium">{{ $item->nis }}</div>
-            <div class="text-white-50" style="font-size:0.65rem;">{{ $item->nisn }}</div>
+          <td class="d-none d-md-table-cell text-center text-nowrap">
+            <div class="small fw-medium text-white-50">{{ $item->nisn ?: '-' }}</div>
           </td>
-          <td class="text-center">
+          <td class="text-center text-nowrap">
             <span class="badge bg-label-info px-2 py-1">{{ optional($item->kelas)->nama ?? '-' }}</span>
           </td>
-          <td class="d-none d-xl-table-cell text-center">
+          <td class="text-center text-nowrap">
+            @php
+              $tahunLulus = \App\Helpers\JenjangHelper::getTahunLulusSiswa($item);
+            @endphp
+            <span class="badge px-2 py-1 fw-bold" style="background-color: #000000 !important; color: #ff9f43 !important; border: 1px solid #ff9f43 !important; opacity: 1 !important;">{{ $tahunLulus ?? '-' }}</span>
+          </td>
+          <td class="d-none d-xl-table-cell text-center text-nowrap">
             <div class="small text-white-50">{{ optional($item->tahunAkademik)->nama ?? '-' }}</div>
           </td>
           <td class="text-center">
@@ -91,9 +97,6 @@
                 <i class="ti tabler-eye fs-5"></i>
               </a>
               @if(!$isWaliKelas)
-              <a href="{{ route('admin.siswa.generate-qr', $item) }}" class="action-btn text-secondary" title="Unduh QR" data-bs-toggle="tooltip">
-                <i class="ti tabler-qrcode fs-5"></i>
-              </a>
               <a href="{{ route('admin.siswa.edit', $item) }}" class="action-btn text-warning" title="Ubah" data-bs-toggle="tooltip">
                 <i class="ti tabler-pencil fs-5"></i>
               </a>

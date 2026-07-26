@@ -55,6 +55,7 @@ class JadwalAbsensiHelper
             return Pengaturan::whereIn('key', [
                 'jam_mulai_absensi',
                 'jam_masuk',
+                'jam_batas_masuk',
                 'jam_pulang',
                 'jam_akhir_pulang',
             ])->pluck('value', 'key')->toArray();
@@ -63,6 +64,7 @@ class JadwalAbsensiHelper
         return [
             'jam_mulai_absensi' => self::formatTime($jadwal?->jam_mulai_absensi) ?? $settings['jam_mulai_absensi'] ?? '06:00',
             'jam_masuk'         => self::formatTime($jadwal?->jam_masuk) ?? $settings['jam_masuk'] ?? '07:00',
+            'batas_jam_masuk'   => self::formatTime($jadwal?->batas_jam_masuk) ?? $settings['jam_batas_masuk'] ?? '09:00',
             'jam_pulang'        => self::formatTime($jadwal?->jam_pulang) ?? $settings['jam_pulang'] ?? '15:00',
             'jam_akhir_pulang'  => self::formatTime($jadwal?->jam_akhir_pulang) ?? $settings['jam_akhir_pulang'] ?? '17:00',
             'is_libur'          => $jadwal?->is_libur ?? false,

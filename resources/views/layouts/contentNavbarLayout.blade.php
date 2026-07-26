@@ -224,4 +224,8 @@
   @endauth
   {{-- ────────────────────────────────────────────────────────────────────── --}}
 
+  {{-- ── Global Delete Confirmation Modal ───────────────────────────────── --}}
+  <x-confirm-delete-modal />
+
 @endsection
+

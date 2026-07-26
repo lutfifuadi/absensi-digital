@@ -17,6 +17,7 @@ class KelasJadwalAbsensi extends Model
         'hari',
         'jam_mulai_absensi',
         'jam_masuk',
+        'batas_jam_masuk',
         'jam_pulang',
         'jam_akhir_pulang',
         'is_libur',
@@ -31,6 +32,7 @@ class KelasJadwalAbsensi extends Model
     protected $casts = [
         'jam_mulai_absensi' => 'datetime:H:i',
         'jam_masuk' => 'datetime:H:i',
+        'batas_jam_masuk' => 'datetime:H:i',
         'jam_pulang' => 'datetime:H:i',
         'jam_akhir_pulang' => 'datetime:H:i',
         'is_libur' => 'boolean',

@@ -106,13 +106,16 @@
                         <td><small class="text-muted">{{ $row->created_at->format('d/m/Y H:i') }}</small></td>
                         <td class="pe-4 text-end">
                             @if($row->status === 'pending')
-                                <form action="{{ route('ortu.izin-sakit.destroy', $row->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pengajuan ini?')" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-label-danger fw-semibold">
-                                        <i class="ti tabler-trash ti-xs me-1"></i> Batalkan
-                                    </button>
-                                </form>
+                                <button type="button" class="btn btn-sm btn-label-danger fw-semibold"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteConfirmModal"
+                                    data-name="Pengajuan {{ ucfirst($row->jenis_izin) }}"
+                                    data-detail="Siswa: {{ $row->siswa->nama_lengkap ?? '-' }} • Tanggal: {{ \Carbon\Carbon::parse($row->tanggal_mulai)->format('d M Y') }}"
+                                    data-message="Apakah Anda yakin ingin membatalkan pengajuan ini?"
+                                    data-warning="Pengajuan izin/sakit yang dibatalkan akan dihapus dari antrean verifikasi."
+                                    data-action="{{ route('ortu.izin-sakit.destroy', $row->id) }}">
+                                    <i class="ti tabler-trash ti-xs me-1"></i> Batalkan
+                                </button>
                             @else
                                 <span class="text-muted small">-</span>
                             @endif
@@ -137,4 +140,7 @@
         </div>
     @endif
 </div>
+
+<x-confirm-delete-modal />
 @endsection
+

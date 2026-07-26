@@ -74,7 +74,7 @@ class SiswaController extends Controller
             $kelasId = $kelasWaliId;
         }
 
-        $allowedSorts = ['nama_lengkap', 'nis', 'kelas_id', 'status'];
+        $allowedSorts = ['nama_lengkap', 'nis', 'nisn', 'kelas_id', 'status'];
         if (!in_array($sortBy, $allowedSorts)) {
             $sortBy = 'nama_lengkap';
         }

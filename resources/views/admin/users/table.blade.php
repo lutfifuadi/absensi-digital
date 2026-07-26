@@ -3,20 +3,20 @@
     <thead style="background:rgba(255,255,255,0.04);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;opacity:0.7;">
       <tr>
         <th class="ps-2 py-3" style="width:46px;">#</th>
-        <th class="py-3 sortable cursor-pointer" data-sort-by="name" style="user-select: none;">
+        <th class="py-3 sortable cursor-pointer text-nowrap" data-sort-by="name" style="user-select: none;">
           Informasi User
           @if(($sortBy ?? '') === 'name')
             <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
           @endif
         </th>
-        <th class="py-3 text-center">Hak Akses (Role)</th>
-        <th class="py-3 text-center d-none d-md-table-cell sortable cursor-pointer" data-sort-by="created_at" style="user-select: none;">
+        <th class="py-3 text-center text-nowrap">Hak Akses (Role)</th>
+        <th class="py-3 text-center d-none d-md-table-cell sortable cursor-pointer text-nowrap" data-sort-by="created_at" style="user-select: none;">
           Tanggal Join
           @if(($sortBy ?? '') === 'created_at')
             <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
           @endif
         </th>
-        <th class="py-3 pe-4 text-end">Aksi</th>
+        <th class="py-3 pe-4 text-end text-nowrap">Aksi</th>
       </tr>
     </thead>
     <tbody>
@@ -55,7 +55,7 @@
         @endphp
         <tr class="user-row-hover">
           <td class="ps-4 text-white-50 small">{{ $users->firstItem() + $loop->index }}</td>
-          <td>
+          <td class="text-nowrap">
             <div class="d-flex align-items-center gap-3">
               <div class="avatar avatar-md">
                 <span class="avatar-initial rounded-circle {{ $avatarRoleClass }}" style="font-size:0.85rem;">

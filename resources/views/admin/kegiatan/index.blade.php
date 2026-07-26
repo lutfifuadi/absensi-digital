@@ -212,12 +212,16 @@
                 <a href="{{ route('admin.kegiatan.edit', $k->id) }}" class="das-table-btn das-table-btn--warning" title="Edit Kegiatan" data-bs-toggle="tooltip">
                   <i class="ti tabler-edit fs-5"></i>
                 </a>
-                <form action="{{ route('admin.kegiatan.destroy', $k->id) }}" method="POST" class="d-inline">
-                  @csrf @method('DELETE')
-                  <button type="submit" class="das-table-btn das-table-btn--danger" title="Hapus Kegiatan" data-bs-toggle="tooltip" onclick="return confirm('Yakin ingin menghapus kegiatan ini?')">
-                    <i class="ti tabler-trash fs-5"></i>
-                  </button>
-                </form>
+                <button type="button" class="das-table-btn das-table-btn--danger" title="Hapus Kegiatan"
+                  data-bs-toggle="modal"
+                  data-bs-target="#deleteConfirmModal"
+                  data-name="{{ $k->nama_kegiatan }}"
+                  data-detail="Tanggal: {{ \Carbon\Carbon::parse($k->tanggal_kegiatan)->format('d M Y') }}"
+                  data-message="Apakah Anda yakin ingin menghapus kegiatan ini?"
+                  data-warning="Data kegiatan beserta riwayat absensi kegiatan terkait akan terhapus."
+                  data-action="{{ route('admin.kegiatan.destroy', $k->id) }}">
+                  <i class="ti tabler-trash fs-5"></i>
+                </button>
               </div>
             </td>
           </tr>

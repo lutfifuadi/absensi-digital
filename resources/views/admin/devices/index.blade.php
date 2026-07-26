@@ -67,12 +67,12 @@
     <table class="dev-table" id="deviceTable">
       <thead>
         <tr>
-          <th width="130">STATUS</th>
-          <th>NAMA PERANGKAT</th>
-          <th width="240">ID PERANGKAT (UUID)</th>
-          <th width="130">IP TERAKHIR</th>
-          <th width="150">TERAKHIR AKTIF</th>
-          <th width="130" class="text-center">AKSI</th>
+          <th width="130" class="text-nowrap">STATUS</th>
+          <th class="text-nowrap">NAMA PERANGKAT</th>
+          <th width="240" class="text-nowrap">ID PERANGKAT (UUID)</th>
+          <th width="130" class="text-nowrap">IP TERAKHIR</th>
+          <th width="150" class="text-nowrap">TERAKHIR AKTIF</th>
+          <th width="130" class="text-center text-nowrap">AKSI</th>
         </tr>
       </thead>
       <tbody>
@@ -80,7 +80,7 @@
         <tr class="dev-table__row" data-name="{{ strtolower($device->device_name) }}" data-uuid="{{ strtolower($device->device_uuid) }}">
 
           {{-- STATUS --}}
-          <td>
+          <td class="text-nowrap">
             @if($device->is_authorized)
               <span class="dev-status-badge dev-status-badge--authorized">
                 <i class="ti tabler-shield-check"></i> Diizinkan
@@ -93,7 +93,7 @@
           </td>
 
           {{-- NAMA PERANGKAT --}}
-          <td>
+          <td class="text-nowrap">
             <div class="dev-device-info">
               <div class="dev-device-info__icon dev-device-info__icon--{{ $device->is_authorized ? 'authorized' : 'pending' }}">
                 <i class="ti tabler-device-tablet"></i>

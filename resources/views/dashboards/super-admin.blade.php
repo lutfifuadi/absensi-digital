@@ -214,15 +214,15 @@
                   <table class="table table-hover align-middle mb-0" style="font-size: 0.82rem;">
                     <thead>
                       <tr style="background: rgba(255,255,255,0.03);">
-                        <th class="text-white fw-semibold py-2 ps-3">Nama</th>
-                        <th class="text-white fw-semibold py-2">Kelas</th>
-                        <th class="text-white fw-semibold py-2 pe-3">Wali Kelas</th>
+                        <th class="text-white fw-semibold py-2 ps-3 text-nowrap">Nama</th>
+                        <th class="text-white fw-semibold py-2 text-nowrap">Kelas</th>
+                        <th class="text-white fw-semibold py-2 pe-3 text-nowrap">Wali Kelas</th>
                       </tr>
                     </thead>
                     <tbody>
                       @foreach($listBelumAbsen as $siswa)
                       <tr style="border-color: rgba(255,255,255,0.04);">
-                        <td class="ps-3">
+                        <td class="ps-3 text-nowrap">
                           <div class="d-flex align-items-center gap-2">
                             <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(115,103,240,0.15); color: #a5a2f7; font-weight: 700; font-size: 0.7rem; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">
                               {{ substr($siswa['nama'], 0, 1) }}
@@ -230,8 +230,8 @@
                             <span class="text-white fw-medium">{{ $siswa['nama'] }}</span>
                           </div>
                         </td>
-                        <td><span class="badge bg-label-info fw-semibold" style="font-size: 0.68rem;">{{ $siswa['kelas'] }}</span></td>
-                        <td class="pe-3">
+                        <td class="text-nowrap"><span class="badge bg-label-info fw-semibold" style="font-size: 0.68rem;">{{ $siswa['kelas'] }}</span></td>
+                        <td class="pe-3 text-nowrap">
                           <span class="text-body-secondary small">{{ $siswa['wali_kelas'] }}</span>
                         </td>
                       </tr>
@@ -791,11 +791,11 @@
             <table class="table table-hover das-table mb-0">
               <thead>
                 <tr style="background: rgba(255, 255, 255, 0.03);">
-                  <th class="py-3 text-white text-center" style="width: 50px;">#</th>
-                  <th class="py-3 text-white">Nama Siswa</th>
-                  <th class="py-3 text-white">Kelas</th>
-                  <th class="py-3 text-white">No HP Orang Tua</th>
-                  <th class="py-3 text-white text-center" style="width: 130px;">Aksi</th>
+                  <th class="py-3 text-white text-center text-nowrap" style="width: 50px;">#</th>
+                  <th class="py-3 text-white text-nowrap">Nama Siswa</th>
+                  <th class="py-3 text-white text-nowrap">Kelas</th>
+                  <th class="py-3 text-white text-nowrap">No HP Orang Tua</th>
+                  <th class="py-3 text-white text-center text-nowrap" style="width: 130px;">Aksi</th>
                 </tr>
               </thead>
               <tbody id="tbody-siswa-belum-absen">

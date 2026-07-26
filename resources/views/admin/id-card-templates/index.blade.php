@@ -129,13 +129,17 @@
                   <a href="{{ route('admin.id-card-templates.edit', $template->id) }}" class="btn btn-sm btn-outline-primary" style="border-radius: 5px;" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Template">
                     <i class="ti tabler-edit"></i>
                   </a>
-                  <form action="{{ route('admin.id-card-templates.destroy', $template->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus template ini?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 5px;" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus Template">
-                      <i class="ti tabler-trash"></i>
-                    </button>
-                  </form>
+                  <button type="button" class="btn btn-sm btn-outline-danger" style="border-radius: 5px;"
+                    data-bs-toggle="modal"
+                    data-bs-target="#deleteConfirmModal"
+                    data-name="{{ $template->name }}"
+                    data-detail="Jenis: {{ strtoupper($template->type) }} • Ukuran: {{ $template->width }}x{{ $template->height }}mm"
+                    data-message="Apakah Anda yakin ingin menghapus template ID Card ini?"
+                    data-warning="Template yang dihapus tidak dapat digunakan kembali untuk cetak kartu."
+                    data-action="{{ route('admin.id-card-templates.destroy', $template->id) }}"
+                    title="Hapus Template">
+                    <i class="ti tabler-trash"></i>
+                  </button>
                 </div>
               </td>
             </tr>
