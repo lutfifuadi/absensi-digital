@@ -19,6 +19,59 @@
       "menuHeader": "Akademik"
     },
     {
+      "name": "Kurikulum",
+      "icon": "menu-icon ti tabler-vocabulary",
+      "slug": [
+        "admin.mapel.index",
+        "admin.jadwal.index",
+        "admin.kelas.index",
+        "admin.jurusan.index",
+        "admin.tahun-akademik.index"
+      ],
+      "submenu": [
+        {
+          "name": "Jadwal Pelajaran",
+          "icon": "menu-icon ti tabler-calendar-clock",
+          "slug": [
+            "admin.mapel.index",
+            "admin.jadwal.index"
+          ],
+          "submenu": [
+            {
+              "name": "Mata Pelajaran",
+              "icon": "menu-icon ti tabler-book",
+              "slug": "admin.mapel.index",
+              "url": "/admin/mapel"
+            },
+            {
+              "name": "Jam Pelajaran",
+              "icon": "menu-icon ti tabler-clock",
+              "slug": "admin.jadwal.index",
+              "url": "/admin/jadwal"
+            }
+          ]
+        },
+        {
+          "name": "Kelas",
+          "icon": "menu-icon ti tabler-door",
+          "slug": "admin.kelas.index",
+          "url": "/admin/kelas"
+        },
+        {
+          "name": "Master Jurusan",
+          "icon": "menu-icon ti tabler-books",
+          "slug": "admin.jurusan.index",
+          "url": "/admin/jurusan"
+        },
+        {
+          "name": "Tahun Ajaran",
+          "icon": "menu-icon ti tabler-calendar",
+          "slug": "admin.tahun-akademik.index",
+          "url": "/admin/tahun-akademik"
+        }
+      ]
+    },
+    {
       "name": "Data Civitas",
       "icon": "menu-icon ti tabler-users-group",
       "slug": [
@@ -90,59 +143,6 @@
           "roles": [
             "super_admin"
           ]
-        }
-      ]
-    },
-    {
-      "name": "Kurikulum",
-      "icon": "menu-icon ti tabler-vocabulary",
-      "slug": [
-        "admin.mapel.index",
-        "admin.jadwal.index",
-        "admin.kelas.index",
-        "admin.jurusan.index",
-        "admin.tahun-akademik.index"
-      ],
-      "submenu": [
-        {
-          "name": "Jadwal Pelajaran",
-          "icon": "menu-icon ti tabler-calendar-clock",
-          "slug": [
-            "admin.mapel.index",
-            "admin.jadwal.index"
-          ],
-          "submenu": [
-            {
-              "name": "Mata Pelajaran",
-              "icon": "menu-icon ti tabler-book",
-              "slug": "admin.mapel.index",
-              "url": "/admin/mapel"
-            },
-            {
-              "name": "Jam Pelajaran",
-              "icon": "menu-icon ti tabler-clock",
-              "slug": "admin.jadwal.index",
-              "url": "/admin/jadwal"
-            }
-          ]
-        },
-        {
-          "name": "Kelas",
-          "icon": "menu-icon ti tabler-door",
-          "slug": "admin.kelas.index",
-          "url": "/admin/kelas"
-        },
-        {
-          "name": "Master Jurusan",
-          "icon": "menu-icon ti tabler-books",
-          "slug": "admin.jurusan.index",
-          "url": "/admin/jurusan"
-        },
-        {
-          "name": "Tahun Ajaran",
-          "icon": "menu-icon ti tabler-calendar",
-          "slug": "admin.tahun-akademik.index",
-          "url": "/admin/tahun-akademik"
         }
       ]
     },
