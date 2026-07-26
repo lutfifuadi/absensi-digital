@@ -120,4 +120,95 @@ class DashboardAlfaControllerTest extends TestCase
 
         $this->travelBack();
     }
+
+    public function test_dashboard_alfa_respects_new_holiday_rules(): void
+    {
+        // Set is_aktif_absensi to true for both classes
+        $this->kelasA->update(['is_aktif_absensi' => true]);
+        $this->kelasB->update(['is_aktif_absensi' => true]);
+
+        // Setup: Senin 2026-07-27
+        // Kelas A libur (is_libur = true)
+        // Kelas B masuk (is_libur = false)
+        KelasJadwalAbsensi::create([
+            'kelas_id' => $this->kelasA->id,
+            'hari' => 'senin',
+            'is_libur' => true,
+        ]);
+
+        KelasJadwalAbsensi::create([
+            'kelas_id' => $this->kelasB->id,
+            'hari' => 'senin',
+            'is_libur' => false,
+        ]);
+
+        $this->travelTo(Carbon::create(2026, 7, 27, 12, 0, 0));
+
+        // 1. Without class filter: One class (Kelas B) is not holiday.
+        // So global $isHoliday must be false.
+        $response = $this->actingAs($this->admin)
+            ->withSession([
+                'active_role' => User::ROLE_ADMIN_SEKOLAH,
+                'tahun_akademik_id' => $this->tahunAkademik->id
+            ])
+            ->get(route('admin.dashboard.belum-absen', [
+                'start_date' => '2026-07-27',
+                'end_date' => '2026-07-27',
+            ]));
+
+        $response->assertStatus(200);
+        $response->assertViewHas('isHoliday', false);
+
+        // 2. With filter Kelas A (which is holiday):
+        // $isHoliday should be true.
+        $responseFilteredA = $this->actingAs($this->admin)
+            ->withSession([
+                'active_role' => User::ROLE_ADMIN_SEKOLAH,
+                'tahun_akademik_id' => $this->tahunAkademik->id
+            ])
+            ->get(route('admin.dashboard.belum-absen', [
+                'kelas_id' => $this->kelasA->id,
+                'start_date' => '2026-07-27',
+                'end_date' => '2026-07-27',
+            ]));
+
+        $responseFilteredA->assertStatus(200);
+        $responseFilteredA->assertViewHas('isHoliday', true);
+        $responseFilteredA->assertViewHas('holidayName', 'Hari Libur (Jadwal Kelas)');
+
+        // 3. With filter Kelas B (which is not holiday):
+        // $isHoliday should be false.
+        $responseFilteredB = $this->actingAs($this->admin)
+            ->withSession([
+                'active_role' => User::ROLE_ADMIN_SEKOLAH,
+                'tahun_akademik_id' => $this->tahunAkademik->id
+            ])
+            ->get(route('admin.dashboard.belum-absen', [
+                'kelas_id' => $this->kelasB->id,
+                'start_date' => '2026-07-27',
+                'end_date' => '2026-07-27',
+            ]));
+
+        $responseFilteredB->assertStatus(200);
+        $responseFilteredB->assertViewHas('isHoliday', false);
+
+        // 4. Without class filter, but now BOTH are holiday.
+        // Let's set Kelas B libur too.
+        KelasJadwalAbsensi::where('kelas_id', $this->kelasB->id)->update(['is_libur' => true]);
+
+        $responseBothLibur = $this->actingAs($this->admin)
+            ->withSession([
+                'active_role' => User::ROLE_ADMIN_SEKOLAH,
+                'tahun_akademik_id' => $this->tahunAkademik->id
+            ])
+            ->get(route('admin.dashboard.belum-absen', [
+                'start_date' => '2026-07-27',
+                'end_date' => '2026-07-27',
+            ]));
+
+        $responseBothLibur->assertStatus(200);
+        $responseBothLibur->assertViewHas('isHoliday', true);
+
+        $this->travelBack();
+    }
 }

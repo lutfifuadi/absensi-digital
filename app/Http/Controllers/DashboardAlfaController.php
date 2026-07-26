@@ -38,27 +38,6 @@ class DashboardAlfaController extends Controller
             return in_array($date->format('Y-m-d'), $holidaysDates);
         };
 
-        $isHoliday = $isLiburFn($filterDate);
-        $holidayObj = Holiday::whereDate('tanggal', $filterDate->format('Y-m-d'))->first();
-        $holidayName = $isHoliday
-            ? ($holidayObj ? $holidayObj->nama : ($filterDate->isWeekend() ? 'Akhir Pekan (' . $filterDate->translatedFormat('l') . ')' : 'Hari Libur'))
-            : null;
-
-        // Cari Hari Kerja Pembanding (Previous Working Day - skip weekend & libur)
-        $prevWorkingDate = $filterDate->copy()->subDay();
-        while ($isLiburFn($prevWorkingDate)) {
-            $prevWorkingDate->subDay();
-        }
-
-        $currentDateStr = $filterDate->format('Y-m-d');
-        $prevDateStr = $prevWorkingDate->format('Y-m-d');
-
-        $kelasQuery = Kelas::query();
-        if ($filterKelas) {
-            $kelasQuery->where('id', $filterKelas);
-        }
-        $kelasList = $kelasQuery->orderBy('nama')->get();
-
         // Helper fungsi penentu status libur per kelas berdasarkan jadwal absensi kelas & fallback
         $checkIsLiburKelas = function ($kelasId, Carbon $date) use (&$holidaysDates) {
             $mappingHari = [
@@ -86,6 +65,74 @@ class DashboardAlfaController extends Controller
             }
             return in_array($date->format('Y-m-d'), $holidaysDates);
         };
+
+        if ($filterKelas) {
+            $isHoliday = $checkIsLiburKelas($filterKelas, $filterDate);
+            if ($isHoliday) {
+                $kelasObjForFilter = Kelas::find($filterKelas);
+                $tingkat = $kelasObjForFilter?->tingkat;
+                $holidayObj = Holiday::whereDate('tanggal', $filterDate->format('Y-m-d'))
+                    ->where(function ($query) use ($filterKelas, $tingkat) {
+                        $query->where(function ($q) {
+                            $q->whereNull('tingkat')->whereNull('kelas_id');
+                        });
+                        if ($tingkat) {
+                            $query->orWhere(function ($q) use ($tingkat) {
+                                $q->where('tingkat', $tingkat)->whereNull('kelas_id');
+                            });
+                        }
+                        $query->orWhere('kelas_id', $filterKelas);
+                    })
+                    ->first();
+
+                if ($holidayObj) {
+                    $holidayName = $holidayObj->nama;
+                } elseif ($filterDate->isWeekend()) {
+                    $holidayName = "Akhir Pekan (Jadwal Kelas)";
+                } else {
+                    $holidayName = "Hari Libur (Jadwal Kelas)";
+                }
+            } else {
+                $holidayName = null;
+            }
+        } else {
+            $activeClasses = Kelas::where('is_aktif_absensi', true)->get();
+            $allActiveClassesLibur = true;
+            if ($activeClasses->isEmpty()) {
+                $allActiveClassesLibur = false;
+            } else {
+                foreach ($activeClasses as $c) {
+                    if (!$checkIsLiburKelas($c->id, $filterDate)) {
+                        $allActiveClassesLibur = false;
+                        break;
+                    }
+                }
+            }
+
+            if ($allActiveClassesLibur) {
+                $isHoliday = true;
+                $holidayObj = Holiday::whereDate('tanggal', $filterDate->format('Y-m-d'))->first();
+                $holidayName = $holidayObj ? $holidayObj->nama : ($filterDate->isWeekend() ? 'Akhir Pekan (' . $filterDate->translatedFormat('l') . ')' : 'Hari Libur');
+            } else {
+                $isHoliday = false;
+                $holidayName = null;
+            }
+        }
+
+        // Cari Hari Kerja Pembanding (Previous Working Day - skip weekend & libur)
+        $prevWorkingDate = $filterDate->copy()->subDay();
+        while ($isLiburFn($prevWorkingDate)) {
+            $prevWorkingDate->subDay();
+        }
+
+        $currentDateStr = $filterDate->format('Y-m-d');
+        $prevDateStr = $prevWorkingDate->format('Y-m-d');
+
+        $kelasQuery = Kelas::query();
+        if ($filterKelas) {
+            $kelasQuery->where('id', $filterKelas);
+        }
+        $kelasList = $kelasQuery->orderBy('nama')->get();
 
         // ══════════════════════════════════════════════════════════
         // 1. Total Siswa Aktif
