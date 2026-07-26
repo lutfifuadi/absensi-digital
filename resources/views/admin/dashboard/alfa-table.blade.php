@@ -27,7 +27,7 @@
                     </span>
                 </td>
                 <td class="text-white-50">
-                    {{ $siswa->kelas->waliKelas->nama ?? '-' }}
+                    {{ $siswa->kelas->waliKelas->nama_lengkap ?? '-' }}
                 </td>
                 <td class="text-center">
                     @php
