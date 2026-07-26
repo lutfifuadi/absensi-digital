@@ -430,6 +430,31 @@
     box-shadow: 0 6px 18px rgba(115, 103, 240, 0.55) !important;
 }
 
+.swal-urgent-cancel-btn,
+.swal2-styled.swal2-cancel {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #9CA3AF !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 5px !important;
+    padding: 0.65rem 1.6rem !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.4rem !important;
+}
+
+.swal-urgent-cancel-btn:hover,
+.swal2-styled.swal2-cancel:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #F9FAFB !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-1px) !important;
+}
+
 .swal2-popup.swal2-toast {
     background: rgba(15, 23, 42, 0.95) !important;
     border: 1px solid rgba(16, 185, 129, 0.4) !important;
@@ -751,6 +776,9 @@ document.addEventListener('DOMContentLoaded', function () {
             body: formData
         })
         .then(res => {
+            // Simpan data sebelum splice (karena currentData akan invalid setelah splice)
+            const processedData = { ...currentData };
+
             // Remove processed ticket from local queue array
             queueItems.splice(currentIndex, 1);
 
@@ -761,13 +789,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 playUrgentChime();
                 renderCurrentItem();
-                
+
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
                         toast: true,
                         position: 'top-end',
                         icon: 'success',
-                        title: `Tiket ${currentData.kode_unik} Diproses!`,
+                        title: `Tiket ${processedData.kode_unik} Diproses!`,
                         showConfirmButton: false,
                         timer: 2500
                     });
@@ -775,33 +803,93 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 // All tickets processed! Close modal
                 closeUrgentModal();
+
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
                         icon: 'success',
-                        title: 'Semua Tiket Diproses!',
-                        text: 'Seluruh tiket pengaduan urgent dalam antrean berhasil diambil & diubah statusnya menjadi DIPROSES.',
+                        title: '🎉 Semua Tiket Selesai!',
+                        html: `
+                            <div style="text-align:center;">
+                                <p style="margin:0 0 0.75rem 0; color:#9CA3AF; font-size:0.875rem; line-height:1.6;">
+                                    Seluruh tiket pengaduan <strong style="color:#10B981;">urgent</strong> dalam antrean telah berhasil diambil dan diubah statusnya menjadi
+                                    <strong style="color:#7367F0;">DIPROSES</strong>.
+                                </p>
+                                <div style="display:inline-flex;align-items:center;gap:0.5rem;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:0.5rem 1rem;font-size:0.8rem;color:#10B981;font-weight:600;">
+                                    <i class="ti tabler-checks" style="font-size:1rem;"></i>
+                                    Tiket ${processedData.kode_unik} terakhir berhasil diproses
+                                </div>
+                            </div>
+                        `,
                         customClass: {
                             popup: 'swal-urgent-popup',
                             title: 'swal-urgent-title',
                             htmlContainer: 'swal-urgent-html',
-                            confirmButton: 'swal-urgent-confirm-btn'
+                            confirmButton: 'swal-urgent-confirm-btn',
+                            cancelButton: 'swal-urgent-cancel-btn'
                         },
                         buttonsStyling: false,
-                        confirmButtonText: '<i class="ti tabler-check me-1"></i> Selesai & Lihat Detail'
-                    }).then(() => {
-                        window.location.href = currentData.detail_url;
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="ti tabler-external-link me-1"></i> Lihat Detail Tiket',
+                        cancelButtonText: '<i class="ti tabler-home me-1"></i> Kembali ke Dashboard',
+                        reverseButtons: false,
+                        allowOutsideClick: false,
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = processedData.detail_url;
+                        }
+                        // Jika tombol Cancel (Kembali ke Dashboard) diklik, cukup tutup popup
                     });
                 } else {
-                    alert('Seluruh tiket pengaduan urgent berhasil diproses!');
-                    window.location.href = currentData.detail_url;
+                    // Fallback: buat custom popup HTML tanpa SweetAlert2
+                    const overlay = document.createElement('div');
+                    overlay.id = 'urgFallbackPopup';
+                    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s ease;';
+                    overlay.innerHTML = `
+                        <div style="background:linear-gradient(145deg,rgba(30,41,59,0.98),rgba(15,23,42,0.99));border:1px solid rgba(115,103,240,0.35);border-radius:12px;padding:2rem 1.75rem;width:440px;max-width:92%;text-align:center;box-shadow:0 20px 45px -10px rgba(0,0,0,0.8);">
+                            <div style="font-size:3rem;margin-bottom:0.75rem;">🎉</div>
+                            <h3 style="color:#F9FAFB;font-size:1.2rem;font-weight:800;margin:0 0 0.75rem 0;">Semua Tiket Selesai!</h3>
+                            <p style="color:#9CA3AF;font-size:0.86rem;line-height:1.6;margin:0 0 1.5rem 0;">
+                                Seluruh tiket pengaduan <strong style="color:#10B981;">urgent</strong> dalam antrean telah berhasil diproses.
+                            </p>
+                            <div style="display:flex;gap:0.6rem;justify-content:center;">
+                                <button onclick="window.location.href='${processedData.detail_url}'" style="background:linear-gradient(135deg,#7367F0,#5E50EE);color:#fff;border:none;border-radius:6px;padding:0.65rem 1.25rem;font-weight:700;font-size:0.85rem;cursor:pointer;">
+                                    <i class="ti tabler-external-link"></i> Lihat Detail Tiket
+                                </button>
+                                <button onclick="document.getElementById('urgFallbackPopup').remove()" style="background:rgba(255,255,255,0.07);color:#9CA3AF;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:0.65rem 1.25rem;font-weight:700;font-size:0.85rem;cursor:pointer;">
+                                    <i class="ti tabler-x"></i> Tutup
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(overlay);
+                    overlay.addEventListener('click', function(e) {
+                        if (e.target === overlay) overlay.remove();
+                    });
                 }
             }
         })
         .catch(err => {
-            alert(`Status ${currentData.kode_unik} berhasil diubah!`);
+            const processedData = queueItems[currentIndex] ? { ...queueItems[currentIndex] } : {};
+            console.error('Error processing ticket:', err);
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'warning',
+                    title: processedData.kode_unik ? `Tiket ${processedData.kode_unik} mungkin berhasil diubah` : 'Status mungkin berhasil diubah',
+                    text: 'Silakan cek halaman pengaduan untuk memastikan.',
+                    showConfirmButton: false,
+                    timer: 4000
+                });
+            }
             queueItems.splice(currentIndex, 1);
-            if (queueItems.length > 0) renderCurrentItem();
-            else closeUrgentModal();
+            if (queueItems.length > 0) {
+                if (currentIndex >= queueItems.length) currentIndex = queueItems.length - 1;
+                renderCurrentItem();
+            } else {
+                closeUrgentModal();
+            }
         });
     });
 
