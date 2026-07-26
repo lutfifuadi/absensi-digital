@@ -325,7 +325,7 @@
 @section('page-script')
   <script>
     // Lazy-init: Bootstrap & DOM elements are resolved only when modal is actually opened.
-    // This avoids "bootstrap is not defined" because @vite loads Bootstrap as a deferred module.
+    // This avoids "bootstrap is not defined" because the Vite asset pipeline loads Bootstrap as a deferred module.
     var _modalInstance = null;
 
     function _getModalRefs() {
