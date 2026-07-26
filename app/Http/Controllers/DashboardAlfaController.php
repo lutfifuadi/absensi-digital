@@ -255,6 +255,7 @@ class DashboardAlfaController extends Controller
         }
 
         $detailBelumAbsen = $queryDetail->orderBy('nama_lengkap')->paginate(10);
+        $kelasIdMap = $kelasList->pluck('id', 'nama')->toArray();
 
         $data = [
             'isWeekend' => $isHoliday, // Kompatibilitas flag
@@ -275,11 +276,16 @@ class DashboardAlfaController extends Controller
             'lineChartData' => $trendData,
             'detailBelumAbsen' => $detailBelumAbsen,
             'kelasList' => $kelasList,
+            'kelasIdMap' => $kelasIdMap,
             // Filter states
             'filterKelas' => $filterKelas,
             'filterTanggalMulai' => $filterTanggalMulai,
             'filterTanggalAkhir' => $filterTanggalAkhir,
         ];
+
+        if ($request->ajax()) {
+            return view('admin.dashboard.alfa-table', $data);
+        }
 
         return view('admin.dashboard.alfa', $data);
     }

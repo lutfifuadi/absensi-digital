@@ -312,15 +312,15 @@
         </div>
         <div class="das-panel__body">
             <p class="text-white-50 small mb-3">
-                <i class="ti tabler-info-circle me-1"></i>
-                Grafik membandingkan siswa yang belum absen per kelas (diurutkan dari yang tertinggi pada <strong>{{ $currentDateLabel }}</strong> dibandingkan dengan <strong>{{ $prevDateLabel }}</strong>).
+                <i class="ti tabler-pointer me-1 text-info"></i>
+                Grafik membandingkan siswa yang belum absen per kelas. <strong>Klik pada batang kelas mana saja</strong> untuk langsung menyaring daftar siswa belum absen di tabel bawah.
             </p>
             <div class="alfa-chart-wrap">
                 <div id="emptyBarChartNotice" class="alfa-empty-chart d-none">
                     <i class="ti tabler-chart-bar-off" style="font-size: 2.5rem;"></i>
                     <span class="small">Semua siswa pada tingkatan ini sudah absen. Tidak ada data.</span>
                 </div>
-                <div id="barChart"></div>
+                <div id="barChart" style="cursor: pointer;"></div>
             </div>
         </div>
     </div>
@@ -335,6 +335,12 @@
                 <i class="ti tabler-list text-danger"></i> Detail Siswa Belum Absen
             </h6>
             <div class="d-flex align-items-center gap-2 flex-wrap">
+                @if($filterKelas)
+                <a href="{{ route('admin.dashboard.belum-absen', array_filter(['start_date' => request('start_date'), 'end_date' => request('end_date')])) }}"
+                   class="btn das-btn --warning btn-sm d-inline-flex align-items-center gap-1">
+                    <i class="ti tabler-x"></i> Reset Filter Kelas
+                </a>
+                @endif
                 <div class="filter-info-bar d-flex align-items-center gap-2">
                     <i class="ti tabler-filter fs-6 text-danger"></i>
                     <span>
@@ -351,74 +357,9 @@
             </div>
         </div>
         <div class="das-panel__body p-0">
-            <div class="table-responsive">
-                <table class="das-table">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>NIS</th>
-                            <th>Nama Lengkap</th>
-                            <th>Kelas</th>
-                            <th>No. HP Orang Tua</th>
-                            <th class="text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($detailBelumAbsen as $index => $siswa)
-                        <tr class="alfa-row-hover">
-                            <td>{{ $detailBelumAbsen->firstItem() + $index }}</td>
-                            <td class="fw-semibold text-white">{{ $siswa->nis ?? '-' }}</td>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="alfa-avatar">
-                                        {{ substr($siswa->nama_lengkap ?? 'U', 0, 1) }}
-                                    </div>
-                                    <span>{{ $siswa->nama_lengkap ?? '-' }}</span>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="das-chip --info">
-                                    {{ $siswa->kelas->nama ?? '-' }}
-                                </span>
-                            </td>
-                            <td class="text-white-50">
-                                {{ $siswa->no_hp_ortu ?? '-' }}
-                            </td>
-                            <td class="text-center">
-                                @php
-                                    $noOrtu = preg_replace('/[^0-9]/', '', $siswa->no_hp_ortu ?? '');
-                                @endphp
-                                @if($noOrtu)
-                                <a href="https://wa.me/{{ $noOrtu }}" target="_blank" rel="noopener noreferrer"
-                                   class="btn das-btn --success btn-sm d-inline-flex align-items-center gap-1">
-                                    <i class="ti tabler-brand-whatsapp"></i>
-                                    <span>Hubungi Wali</span>
-                                </a>
-                                @else
-                                <span class="das-chip --secondary">Tidak Ada No. HP</span>
-                                @endif
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="6" class="text-center py-5">
-                                <div class="d-flex flex-column align-items-center justify-content-center gap-2">
-                                    <i class="ti tabler-user-check" style="font-size: 2.5rem; color: rgba(40,199,111,0.3);"></i>
-                                    <p class="text-muted small mb-0">Semua siswa sudah absen. Tidak ada yang perlu ditindaklanjuti.</p>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+            <div id="detailTableContainer">
+                @include('admin.dashboard.alfa-table')
             </div>
-
-            {{-- Pagination --}}
-            @if(method_exists($detailBelumAbsen, 'links') && $detailBelumAbsen->hasPages())
-            <div class="px-4 py-3 border-top" style="border-color: rgba(255,255,255,0.08) !important;">
-                {{ $detailBelumAbsen->links() }}
-            </div>
-            @endif
         </div>
     </div>
 
@@ -446,12 +387,139 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const barChartTingkatData = @json($barChartTingkatData);
+        const kelasIdMap            = @json($kelasIdMap);
         const prevDateLabel         = @json($prevDateLabel);
         const currentDateLabel      = @json($currentDateLabel);
         const lineChartLabels       = @json($lineChartLabels);
         const lineChartData         = @json($lineChartData);
 
         let barChartInstance = null;
+
+        // Auto-scroll ke detail table jika ada hash atau filter kelas aktif
+        if (window.location.hash === '#detailTableSection' || '{{ $filterKelas }}' !== '') {
+            const detailSec = document.getElementById('detailTableSection');
+            if (detailSec && window.location.hash === '#detailTableSection') {
+                setTimeout(() => {
+                    detailSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 200);
+            }
+        }
+
+        // Helper filter kelas saat batang grafik diklik
+        function loadDetailTable(url) {
+            const container = document.getElementById('detailTableContainer');
+            if (!container) return;
+
+            // Apply loading opacity
+            container.style.opacity = '0.5';
+            container.style.pointerEvents = 'none';
+
+            fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                container.innerHTML = html;
+                container.style.opacity = '1';
+                container.style.pointerEvents = 'auto';
+
+                // Dynamic header updates from helper elements inside partial view
+                const ajaxTotalSiswa = document.getElementById('ajaxTotalSiswaVal');
+                const ajaxFilterKelas = document.getElementById('ajaxFilterKelasVal');
+                const ajaxKelasNama = document.getElementById('ajaxKelasNamaVal');
+                
+                // Update badge total
+                const totalBadge = document.querySelector('#detailTableSection .das-chip.--danger');
+                if (totalBadge && ajaxTotalSiswa) {
+                    totalBadge.textContent = ajaxTotalSiswa.textContent + ' Siswa';
+                }
+
+                // Update filter info text & reset button
+                const infoText = document.querySelector('#detailTableSection .filter-info-bar span');
+                if (infoText && ajaxKelasNama) {
+                    const originalParts = infoText.innerHTML.split('&nbsp;|&nbsp;');
+                    const datePart = originalParts.length > 1 ? originalParts[1] : '';
+                    infoText.innerHTML = ajaxKelasNama.textContent + (datePart ? '&nbsp;|&nbsp;' + datePart : '');
+                }
+
+                // Update reset button visibility/link
+                const headerActions = document.querySelector('#detailTableSection .d-flex.align-items-center.gap-2.flex-wrap');
+                let resetBtn = document.querySelector('#detailTableSection a.btn.das-btn.--warning');
+                
+                if (ajaxFilterKelas && ajaxFilterKelas.textContent.trim() !== '') {
+                    if (!resetBtn && headerActions) {
+                        resetBtn = document.createElement('a');
+                        resetBtn.className = 'btn das-btn --warning btn-sm d-inline-flex align-items-center gap-1';
+                        resetBtn.id = 'resetFilterKelasBtn';
+                        resetBtn.innerHTML = '<i class="ti tabler-x"></i> Reset Filter Kelas';
+                        headerActions.insertBefore(resetBtn, headerActions.firstChild);
+                        
+                        resetBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const cleanUrl = new URL(window.location.href);
+                            cleanUrl.searchParams.delete('kelas_id');
+                            window.history.pushState(null, '', cleanUrl.toString());
+                            loadDetailTable(cleanUrl.toString());
+                        });
+                    }
+                } else {
+                    if (resetBtn) {
+                        resetBtn.remove();
+                    }
+                    const dynamicResetBtn = document.getElementById('resetFilterKelasBtn');
+                    if (dynamicResetBtn) {
+                        dynamicResetBtn.remove();
+                    }
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                container.style.opacity = '1';
+                container.style.pointerEvents = 'auto';
+            });
+        }
+
+        // Handle pagination links click inside container
+        const detailContainer = document.getElementById('detailTableContainer');
+        if (detailContainer) {
+            detailContainer.addEventListener('click', function (e) {
+                const link = e.target.closest('a');
+                if (link && (link.classList.contains('page-link') || link.closest('.pagination'))) {
+                    e.preventDefault();
+                    const href = link.getAttribute('href');
+                    if (href && href !== '#') {
+                        loadDetailTable(href);
+                        document.getElementById('detailTableSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            });
+        }
+
+        // Handle existing static reset button if present on page load
+        const staticResetBtn = document.querySelector('#detailTableSection a.btn.das-btn.--warning');
+        if (staticResetBtn) {
+            staticResetBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const cleanUrl = new URL(window.location.href);
+                cleanUrl.searchParams.delete('kelas_id');
+                window.history.pushState(null, '', cleanUrl.toString());
+                loadDetailTable(cleanUrl.toString());
+            });
+        }
+
+        function filterByClassName(className) {
+            if (!className) return;
+            const classId = kelasIdMap[className];
+            if (classId) {
+                const url = new URL(window.location.href);
+                url.searchParams.set('kelas_id', classId);
+                window.history.pushState(null, '', url.toString());
+                loadDetailTable(url.toString());
+                document.getElementById('detailTableSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
 
         // ── Dual Bar Chart (Before vs After + Tab per Tingkatan) ─
         if (document.querySelector('#barChart')) {
@@ -473,6 +541,24 @@
                     toolbar: { show: false },
                     fontFamily: 'inherit',
                     background: 'transparent',
+                    events: {
+                        dataPointSelection: function(event, chartContext, config) {
+                            const selectedIndex = config.dataPointIndex;
+                            const categories = config.w.globals.labels;
+                            if (categories && selectedIndex !== undefined && selectedIndex >= 0) {
+                                filterByClassName(categories[selectedIndex]);
+                            }
+                        },
+                        click: function(event, chartContext, config) {
+                            // Backup click event for category label / bar click
+                            if (config && config.dataPointIndex !== undefined && config.dataPointIndex >= 0) {
+                                const categories = config.w.globals.labels;
+                                if (categories && categories[config.dataPointIndex]) {
+                                    filterByClassName(categories[config.dataPointIndex]);
+                                }
+                            }
+                        }
+                    }
                 },
                 colors: ['rgba(255, 255, 255, 0.35)', '#ea5455'],
                 plotOptions: {
