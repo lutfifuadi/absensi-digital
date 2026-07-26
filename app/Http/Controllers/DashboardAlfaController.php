@@ -160,11 +160,24 @@ class DashboardAlfaController extends Controller
 
         $tingkatOptions = \App\Helpers\JenjangHelper::getTingkatOptions();
 
+        // Helper fungsi sorting bertingkat (Primary: belum_current DESC, Secondary: belum_prev DESC, Tertiary: nama ASC)
+        $sortStatsFn = function ($collection) {
+            return $collection->sort(function ($a, $b) {
+                if ($a['belum_current'] !== $b['belum_current']) {
+                    return $b['belum_current'] <=> $a['belum_current'];
+                }
+                if ($a['belum_prev'] !== $b['belum_prev']) {
+                    return $b['belum_prev'] <=> $a['belum_prev'];
+                }
+                return strcmp($a['nama'], $b['nama']);
+            })->take(10)->values();
+        };
+
         // Data Per Tingkatan
         $barChartTingkatData = [];
 
         // 1. Tab 'semua'
-        $topKelasSemua = $kelasStats->sortByDesc('belum_current')->take(10)->values();
+        $topKelasSemua = $sortStatsFn($kelasStats);
         $barChartTingkatData['semua'] = [
             'labels' => $topKelasSemua->pluck('nama')->toArray(),
             'current' => $topKelasSemua->pluck('belum_current')->toArray(),
@@ -173,9 +186,10 @@ class DashboardAlfaController extends Controller
 
         // 2. Tab per Tingkat (X, XI, XII / VII, VIII, IX / I-VI)
         foreach ($tingkatOptions as $tkt) {
-            $topKelasTkt = $kelasStats->filter(function ($item) use ($tkt) {
+            $filteredTkt = $kelasStats->filter(function ($item) use ($tkt) {
                 return strcasecmp(trim($item['tingkat']), trim($tkt)) === 0;
-            })->sortByDesc('belum_current')->take(10)->values();
+            });
+            $topKelasTkt = $sortStatsFn($filteredTkt);
 
             $barChartTingkatData[$tkt] = [
                 'labels' => $topKelasTkt->pluck('nama')->toArray(),
