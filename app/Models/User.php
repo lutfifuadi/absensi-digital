@@ -43,6 +43,7 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
+        'password_plain',
         'role',
         'roles',
         'no_hp',
@@ -58,6 +59,7 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
+        'password_plain',
         'remember_token',
         'two_factor_recovery_codes',
         'two_factor_secret',
@@ -182,5 +184,29 @@ class User extends Authenticatable
     public function pelanggaranSp()
     {
         return $this->hasMany(PelanggaranSp::class, 'diterbitkan_oleh');
+    }
+
+    // ── password_plain sync support ──────────────────────────────────────
+
+    /** @var string|null Temporary plain password held before save. */
+    protected static ?string $pendingPlainPassword = null;
+
+    /**
+     * Store plain password temporarily so Observer can sync password_plain.
+     * Call this BEFORE saving the hashed password.
+     */
+    public static function setPendingPlainPassword(?string $plain): void
+    {
+        static::$pendingPlainPassword = $plain;
+    }
+
+    public static function getPendingPlainPassword(): ?string
+    {
+        return static::$pendingPlainPassword;
+    }
+
+    public static function clearPendingPlainPassword(): void
+    {
+        static::$pendingPlainPassword = null;
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AbsensiSiswa;
 use App\Models\IzinSakit;
 use App\Models\Siswa;
+use App\Models\User;
 use App\Models\Pengaduan;
 use App\Support\QrCodeGenerator;
 use Illuminate\Http\Request;
@@ -322,6 +323,7 @@ class PortalOrangTuaController extends Controller
             'password.regex' => 'Password baru harus berupa kombinasi huruf dan angka.',
         ]);
 
+        User::setPendingPlainPassword($request->password);
         $user->update([
             'password' => Hash::make($request->password),
         ]);

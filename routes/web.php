@@ -1172,16 +1172,16 @@ Route::middleware([
             ->name('admin.api-integration.destroy')
             ->middleware('role:super_admin');
 
-        // ── MODUL PANDUAN ─────────────────────────────────────────────────────
-        Route::resource('guides', App\Http\Controllers\Admin\GuideController::class)
-            ->names('admin.guides')
-            ->except(['show'])
-            ->middleware('role:super_admin,admin_sekolah,operator');
+        // ── MODUL PANDUAN (DINONAKTIFKAN - klien tidak pakai) ────────────────
+        // Route::resource('guides', App\Http\Controllers\Admin\GuideController::class)
+        //     ->names('admin.guides')
+        //     ->except(['show'])
+        //     ->middleware('role:super_admin,admin_sekolah,operator');
 
-        Route::resource('guide-categories', GuideCategoryController::class)
-            ->names('admin.guide-categories')
-            ->except(['show'])
-            ->middleware('role:super_admin,admin_sekolah,operator');
+        // Route::resource('guide-categories', GuideCategoryController::class)
+        //     ->names('admin.guide-categories')
+        //     ->except(['show'])
+        //     ->middleware('role:super_admin,admin_sekolah,operator');
         // ─────────────────────────────────────────────────────────────────────
 
         // User Management
@@ -1189,6 +1189,11 @@ Route::middleware([
             ->names('admin.users')
             ->except(['show'])
             ->middleware('role:super_admin');
+
+        // Lihat password user (hanya super_admin & admin_sekolah)
+        Route::get('users/{user}/password', [UserController::class, 'showPassword'])
+            ->name('admin.users.show-password')
+            ->middleware(['role:super_admin,admin_sekolah', 'throttle:30,1']);
 
         // Role Management
         Route::resource('role', RoleController::class)
@@ -1276,19 +1281,19 @@ Route::middleware([
             ->name('admin.kegiatans.absensi')
             ->middleware('role:super_admin,admin_sekolah,guru');
 
-        // ── Pembelian & Distribusi Lisensi ────────────────────────────────────
-        Route::prefix('pembelian-lisensi')->name('admin.pembelian-lisensi.')->middleware('role:super_admin')->group(function () {
-            Route::get('/', [PembelianLisensiController::class, 'index'])->name('index');
-            Route::get('/create', [PembelianLisensiController::class, 'create'])->name('create');
-            Route::post('/', [PembelianLisensiController::class, 'store'])->name('store');
-            Route::get('/{pembelianLisensi}', [PembelianLisensiController::class, 'show'])->name('show');
-            Route::get('/{pembelianLisensi}/edit', [PembelianLisensiController::class, 'edit'])->name('edit');
-            Route::put('/{pembelianLisensi}', [PembelianLisensiController::class, 'update'])->name('update');
-            Route::delete('/{pembelianLisensi}', [PembelianLisensiController::class, 'destroy'])->name('destroy');
-            Route::post('/{pembelianLisensi}/konfirmasi-pembayaran', [PembelianLisensiController::class, 'konfirmasiPembayaran'])->name('konfirmasi-pembayaran');
-            Route::post('/{pembelianLisensi}/kirim-ulang-email', [PembelianLisensiController::class, 'kirimUlangEmail'])->name('kirim-ulang-email');
-            Route::post('/{pembelianLisensi}/revoke', [PembelianLisensiController::class, 'revokeLisensi'])->name('revoke');
-        });
+        // ── Pembelian & Distribusi Lisensi (DINONAKTIFKAN - khusus vendor) ─────
+        // Route::prefix('pembelian-lisensi')->name('admin.pembelian-lisensi.')->middleware('role:super_admin')->group(function () {
+        //     Route::get('/', [PembelianLisensiController::class, 'index'])->name('index');
+        //     Route::get('/create', [PembelianLisensiController::class, 'create'])->name('create');
+        //     Route::post('/', [PembelianLisensiController::class, 'store'])->name('store');
+        //     Route::get('/{pembelianLisensi}', [PembelianLisensiController::class, 'show'])->name('show');
+        //     Route::get('/{pembelianLisensi}/edit', [PembelianLisensiController::class, 'edit'])->name('edit');
+        //     Route::put('/{pembelianLisensi}', [PembelianLisensiController::class, 'update'])->name('update');
+        //     Route::delete('/{pembelianLisensi}', [PembelianLisensiController::class, 'destroy'])->name('destroy');
+        //     Route::post('/{pembelianLisensi}/konfirmasi-pembayaran', [PembelianLisensiController::class, 'konfirmasiPembayaran'])->name('konfirmasi-pembayaran');
+        //     Route::post('/{pembelianLisensi}/kirim-ulang-email', [PembelianLisensiController::class, 'kirimUlangEmail'])->name('kirim-ulang-email');
+        //     Route::post('/{pembelianLisensi}/revoke', [PembelianLisensiController::class, 'revokeLisensi'])->name('revoke');
+        // });
         // ─────────────────────────────────────────────────────────────────────
 
         // ── MODUL ALUMNI SISWA (PRD-001) ──────────────────────────────────────

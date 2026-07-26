@@ -141,6 +141,7 @@ class GuruController extends Controller
                 }
             } else {
                 $email = $data['email'] ?? strtolower($data['nip']) . '@' . $domainEmail;
+                User::setPendingPlainPassword($data['password']);
                 $user = User::create([
                     'name' => $data['nama_lengkap'],
                     'username' => $data['nip'],
@@ -287,6 +288,7 @@ class GuruController extends Controller
             ]);
 
             if (! empty($data['password'])) {
+                User::setPendingPlainPassword($data['password']);
                 $guru->user->update(['password' => Hash::make($data['password'])]);
             }
 

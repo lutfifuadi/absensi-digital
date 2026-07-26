@@ -1,8 +1,7 @@
 {
   "menu": [
     {
-      "menuHeader": "Dashboard",
-      "icon": "menu-icon ti tabler-smart-home"
+      "menuHeader": "Dashboard"
     },
     {
       "name": "Dashboard Utama",
@@ -17,142 +16,7 @@
       "url": "/admin/ai-chat"
     },
     {
-      "menuHeader": "Absensi",
-      "icon": "menu-icon ti tabler-clipboard-check"
-    },
-    {
-      "name": "Kelola Presensi",
-      "icon": "menu-icon ti tabler-clipboard-check",
-      "slug": [
-        "admin.scan-qr.index",
-        "public.live-board",
-        "admin.absensi-hari-ini",
-        "admin.kalender-absensi",
-        "admin.holidays",
-        "admin.jadwal-absensi.index"
-      ],
-      "submenu": [
-        {
-          "name": "Scan Absensi",
-          "icon": "menu-icon ti tabler-qrcode",
-          "slug": "admin.scan-qr.index",
-          "url": "/admin/scan-qr"
-        },
-        {
-          "name": "Live Board Monitor",
-          "icon": "menu-icon ti tabler-screen-share",
-          "slug": "public.live-board",
-          "url": "/live-board",
-          "target": "_blank"
-        },
-        {
-          "name": "Absensi Hari Ini",
-          "icon": "menu-icon ti tabler-calendar-time",
-          "slug": "admin.absensi-hari-ini",
-          "url": "/admin/absensi-hari-ini"
-        },
-        {
-          "name": "Kelola Jam Absensi",
-          "icon": "menu-icon ti tabler-clock-edit",
-          "slug": "admin.jadwal-absensi.index",
-          "url": "/admin/jadwal-absensi"
-        },
-        {
-          "name": "Kalender Absensi",
-          "icon": "menu-icon ti tabler-calendar",
-          "slug": "admin.kalender-absensi",
-          "url": "/admin/kalender-absensi"
-        },
-        {
-          "name": "Kelola Libur",
-          "icon": "menu-icon ti tabler-calendar-plus",
-          "slug": "admin.holidays",
-          "url": "/admin/holidays"
-        }
-      ]
-    },
-    {
-      "name": "Absensi Siswa",
-      "icon": "menu-icon ti tabler-user-check",
-      "slug": [
-        "admin.absensi-siswa.index",
-        "admin.absensi-siswa.bulk"
-      ],
-      "submenu": [
-        {
-          "name": "Data Absensi Siswa",
-          "slug": "admin.absensi-siswa.index",
-          "url": "/admin/absensi-siswa"
-        },
-        {
-          "name": "Absensi Cepat",
-          "slug": "admin.absensi-siswa.bulk",
-          "url": "/admin/absensi-cepat"
-        }
-      ]
-    },
-    {
-      "name": "Absensi Guru",
-      "icon": "menu-icon ti tabler-presentation",
-      "slug": "admin.absensi-guru.index",
-      "url": "/admin/absensi-guru"
-    },
-    {
-      "name": "Absensi Staff TU",
-      "icon": "menu-icon ti tabler-briefcase",
-      "slug": "admin.absensi-staff.index",
-      "url": "/admin/absensi-staff"
-    },
-    {
-      "name": "Absensi Kegiatan",
-      "icon": "menu-icon ti tabler-calendar-check",
-      "slug": [
-        "admin.kegiatans.absensi",
-        "admin.absensi-kegiatan.scan",
-        "admin.absensi-kegiatan.rekap"
-      ],
-      "submenu": [
-        {
-          "name": "Daftar Kegiatan",
-          "slug": "admin.kegiatans.absensi",
-          "url": "/admin/kegiatans/absensi"
-        },
-        {
-          "name": "Scan Kegiatan",
-          "slug": "admin.absensi-kegiatan.scan",
-          "url": "/admin/absensi-kegiatan/scan"
-        },
-        {
-          "name": "Rekap Scan",
-          "slug": "admin.absensi-kegiatan.rekap",
-          "url": "/admin/absensi-kegiatan/rekap"
-        }
-      ]
-    },
-    {
-      "name": "Izin & Sakit",
-      "icon": "menu-icon ti tabler-stethoscope",
-      "slug": [
-        "admin.izin-sakit.index",
-        "admin.leave-limits.index"
-      ],
-      "submenu": [
-        {
-          "name": "Data Izin & Sakit",
-          "slug": "admin.izin-sakit.index",
-          "url": "/admin/izin-sakit"
-        },
-        {
-          "name": "Batasan Izin",
-          "icon": "menu-icon ti tabler-clipboard-list",
-          "slug": "admin.leave-limits.index",
-          "url": "/admin/leave-limits"
-        }
-      ]
-    },
-    {
-      "menuHeader": "Akademik",
-      "icon": "menu-icon ti tabler-books"
+      "menuHeader": "Akademik"
     },
     {
       "name": "Data Civitas",
@@ -295,12 +159,6 @@
       "url": "/admin/ekskul"
     },
     {
-      "name": "Pelepasan",
-      "icon": "menu-icon ti tabler-award",
-      "slug": "admin.pelepasan.index",
-      "url": "/admin/pelepasan"
-    },
-    {
       "name": "Cetak Kartu",
       "icon": "menu-icon ti tabler-id",
       "slug": [
@@ -323,8 +181,147 @@
       ]
     },
     {
-      "menuHeader": "Evaluasi Siswa",
-      "icon": "menu-icon ti tabler-chart-area-line"
+      "menuHeader": "Absensi"
+    },
+    {
+      "name": "Kelola Presensi",
+      "icon": "menu-icon ti tabler-clipboard-check",
+      "slug": [
+        "admin.scan-qr.index",
+        "public.live-board",
+        "admin.absensi-hari-ini",
+        "admin.kalender-absensi",
+        "admin.holidays",
+        "admin.jadwal-absensi.index"
+      ],
+      "submenu": [
+        {
+          "name": "Scan Absensi",
+          "icon": "menu-icon ti tabler-qrcode",
+          "slug": "admin.scan-qr.index",
+          "url": "/admin/scan-qr"
+        },
+        {
+          "name": "Live Board Monitor",
+          "icon": "menu-icon ti tabler-screen-share",
+          "slug": "public.live-board",
+          "url": "/live-board",
+          "target": "_blank"
+        },
+        {
+          "name": "Absensi Hari Ini",
+          "icon": "menu-icon ti tabler-calendar-time",
+          "slug": "admin.absensi-hari-ini",
+          "url": "/admin/absensi-hari-ini"
+        },
+        {
+          "name": "Kelola Jam Absensi",
+          "icon": "menu-icon ti tabler-clock-edit",
+          "slug": "admin.jadwal-absensi.index",
+          "url": "/admin/jadwal-absensi"
+        },
+        {
+          "name": "Kalender Absensi",
+          "icon": "menu-icon ti tabler-calendar",
+          "slug": "admin.kalender-absensi",
+          "url": "/admin/kalender-absensi"
+        },
+        {
+          "name": "Kelola Libur",
+          "icon": "menu-icon ti tabler-calendar-plus",
+          "slug": "admin.holidays",
+          "url": "/admin/holidays"
+        }
+      ]
+    },
+    {
+      "name": "Absensi Siswa",
+      "icon": "menu-icon ti tabler-user-check",
+      "slug": [
+        "admin.absensi-siswa.index",
+        "admin.absensi-siswa.bulk",
+        "admin.pelepasan.index"
+      ],
+      "submenu": [
+        {
+          "name": "Data Absensi Siswa",
+          "slug": "admin.absensi-siswa.index",
+          "url": "/admin/absensi-siswa"
+        },
+        {
+          "name": "Absensi Cepat",
+          "slug": "admin.absensi-siswa.bulk",
+          "url": "/admin/absensi-cepat"
+        },
+        {
+          "name": "Pelepasan Siswa",
+          "icon": "menu-icon ti tabler-award",
+          "slug": "admin.pelepasan.index",
+          "url": "/admin/pelepasan"
+        }
+      ]
+    },
+    {
+      "name": "Absensi Guru",
+      "icon": "menu-icon ti tabler-presentation",
+      "slug": "admin.absensi-guru.index",
+      "url": "/admin/absensi-guru"
+    },
+    {
+      "name": "Absensi Staff TU",
+      "icon": "menu-icon ti tabler-briefcase",
+      "slug": "admin.absensi-staff.index",
+      "url": "/admin/absensi-staff"
+    },
+    {
+      "name": "Absensi Kegiatan",
+      "icon": "menu-icon ti tabler-calendar-check",
+      "slug": [
+        "admin.kegiatans.absensi",
+        "admin.absensi-kegiatan.scan",
+        "admin.absensi-kegiatan.rekap"
+      ],
+      "submenu": [
+        {
+          "name": "Daftar Kegiatan",
+          "slug": "admin.kegiatans.absensi",
+          "url": "/admin/kegiatans/absensi"
+        },
+        {
+          "name": "Scan Kegiatan",
+          "slug": "admin.absensi-kegiatan.scan",
+          "url": "/admin/absensi-kegiatan/scan"
+        },
+        {
+          "name": "Rekap Scan",
+          "slug": "admin.absensi-kegiatan.rekap",
+          "url": "/admin/absensi-kegiatan/rekap"
+        }
+      ]
+    },
+    {
+      "name": "Izin & Sakit",
+      "icon": "menu-icon ti tabler-stethoscope",
+      "slug": [
+        "admin.izin-sakit.index",
+        "admin.leave-limits.index"
+      ],
+      "submenu": [
+        {
+          "name": "Data Izin & Sakit",
+          "slug": "admin.izin-sakit.index",
+          "url": "/admin/izin-sakit"
+        },
+        {
+          "name": "Batasan Izin",
+          "icon": "menu-icon ti tabler-clipboard-list",
+          "slug": "admin.leave-limits.index",
+          "url": "/admin/leave-limits"
+        }
+      ]
+    },
+    {
+      "menuHeader": "Evaluasi Siswa"
     },
     {
       "name": "Monitoring Kehadiran",
@@ -408,8 +405,7 @@
       ]
     },
     {
-      "menuHeader": "Layanan",
-      "icon": "menu-icon ti tabler-headset"
+      "menuHeader": "Layanan"
     },
     {
       "name": "Pengaduan Data",
@@ -418,76 +414,82 @@
       "url": "/admin/pengaduan"
     },
     {
-      "name": "Panduan",
-      "icon": "menu-icon ti tabler-book",
-      "slug": [
-        "admin.guides.index",
-        "admin.guide-categories.index"
-      ],
-      "submenu": [
-        {
-          "name": "Semua Panduan",
-          "icon": "menu-icon ti tabler-books",
-          "slug": "admin.guides.index",
-          "url": "/admin/guides"
-        },
-        {
-          "name": "Kategori",
-          "icon": "menu-icon ti tabler-folder",
-          "slug": "admin.guide-categories.index",
-          "url": "/admin/guide-categories"
-        }
-      ]
-    },
-    {
-      "menuHeader": "Pengaturan",
-      "icon": "menu-icon ti tabler-settings"
+      "menuHeader": "Pengaturan"
     },
     {
       "name": "Profil Sekolah",
-      "icon": "menu-icon ti tabler-file-info",
+      "icon": "menu-icon ti tabler-building",
       "slug": "admin.pengaturan.index",
       "url": "/admin/pengaturan"
     },
     {
-      "name": "PWA",
+      "name": "Pengguna",
+      "icon": "menu-icon ti tabler-users",
+      "slug": [
+        "admin.users.index",
+        "profile.show"
+      ],
+      "submenu": [
+        {
+          "name": "Manajemen Pengguna",
+          "icon": "menu-icon ti tabler-user-shield",
+          "slug": "admin.users.index",
+          "url": "/admin/users"
+        },
+        {
+          "name": "Profil & Password",
+          "icon": "menu-icon ti tabler-key",
+          "slug": "profile.show",
+          "url": "/user/profile"
+        }
+      ]
+    },
+    {
+      "name": "Aplikasi",
       "icon": "menu-icon ti tabler-device-mobile",
-      "slug": "admin.pwa.index",
-      "url": "/admin/pwa"
+      "slug": [
+        "admin.pwa.index",
+        "admin.devices.index"
+      ],
+      "submenu": [
+        {
+          "name": "PWA",
+          "icon": "menu-icon ti tabler-device-mobile",
+          "slug": "admin.pwa.index",
+          "url": "/admin/pwa"
+        },
+        {
+          "name": "Perangkat Terdaftar",
+          "icon": "menu-icon ti tabler-device-laptop",
+          "slug": "admin.devices.index",
+          "url": "/admin/devices"
+        }
+      ]
     },
     {
-      "name": "WA Gateway",
-      "icon": "menu-icon ti tabler-brand-whatsapp",
-      "slug": "admin.wa-gateway.index",
-      "url": "/admin/wa-gateway"
-    },
-    {
-      "name": "Templat Notifikasi",
+      "name": "Notifikasi",
       "icon": "menu-icon ti tabler-bell",
-      "slug": "admin.notification-templates.index",
-      "url": "/admin/notification-templates"
+      "slug": [
+        "admin.wa-gateway.index",
+        "admin.notification-templates.index"
+      ],
+      "submenu": [
+        {
+          "name": "WA Gateway",
+          "icon": "menu-icon ti tabler-brand-whatsapp",
+          "slug": "admin.wa-gateway.index",
+          "url": "/admin/wa-gateway"
+        },
+        {
+          "name": "Templat Notifikasi",
+          "icon": "menu-icon ti tabler-bell",
+          "slug": "admin.notification-templates.index",
+          "url": "/admin/notification-templates"
+        }
+      ]
     },
     {
-      "name": "Perangkat Terdaftar",
-      "icon": "menu-icon ti tabler-device-laptop",
-      "slug": "admin.devices.index",
-      "url": "/admin/devices"
-    },
-    {
-      "name": "Manajemen Pengguna",
-      "icon": "menu-icon ti tabler-user-shield",
-      "slug": "admin.users.index",
-      "url": "/admin/users"
-    },
-    {
-      "name": "Profil & Password",
-      "icon": "menu-icon ti tabler-key",
-      "slug": "profile.show",
-      "url": "/user/profile"
-    },
-    {
-      "menuHeader": "Sistem",
-      "icon": "menu-icon ti tabler-tool"
+      "menuHeader": "Sistem"
     },
     {
       "name": "Manajemen Sekolah",
@@ -512,15 +514,6 @@
       "icon": "menu-icon ti tabler-key",
       "slug": "admin.license.index",
       "url": "/admin/license",
-      "roles": [
-        "super_admin"
-      ]
-    },
-    {
-      "name": "Pembelian & Distribusi",
-      "icon": "menu-icon ti tabler-shopping-cart",
-      "slug": "admin.pembelian-lisensi.index",
-      "url": "/admin/pembelian-lisensi",
       "roles": [
         "super_admin"
       ]

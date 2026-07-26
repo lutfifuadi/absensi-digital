@@ -75,4 +75,22 @@ class Ekskul extends Model
     {
         return $this->hasMany(EkskulKegiatan::class, 'ekskul_id');
     }
+
+    /**
+     * Accessor untuk mendapatkan nama pembina (guru pertama).
+     *
+     * @return string
+     */
+    public function getPembinaNamaAttribute(): string
+    {
+        $first = $this->relationLoaded('pembina')
+            ? $this->pembina->first()
+            : null;
+
+        if ($first && $first->relationLoaded('guru') && $first->guru) {
+            return $first->guru->nama_lengkap ?? '-';
+        }
+
+        return '-';
+    }
 }

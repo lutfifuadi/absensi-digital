@@ -76,6 +76,7 @@ class StaffTataUsahaController extends Controller
         $email = $data['email'] ?? strtolower($data['nip']) . '@' . $domainEmail;
 
         DB::transaction(function () use ($data, $email) {
+            User::setPendingPlainPassword($data['password']);
             $user = User::create([
                 'name' => $data['nama_lengkap'],
                 'username' => $data['nip'],
@@ -139,6 +140,7 @@ class StaffTataUsahaController extends Controller
             ]);
 
             if (! empty($data['password'])) {
+                User::setPendingPlainPassword($data['password']);
                 $staffTataUsaha->user->update(['password' => Hash::make($data['password'])]);
             }
         });

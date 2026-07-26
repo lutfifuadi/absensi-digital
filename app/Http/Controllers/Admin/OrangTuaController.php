@@ -72,6 +72,7 @@ class OrangTuaController extends Controller
         DB::beginTransaction();
         try {
             $validated = $request->validated();
+            User::setPendingPlainPassword($validated['password']);
             $validated['password'] = Hash::make($validated['password']);
             $validated['role'] = User::ROLE_ORANG_TUA;
             $validated['roles'] = [User::ROLE_ORANG_TUA];
@@ -127,6 +128,7 @@ class OrangTuaController extends Controller
             $validated = $request->validated();
             
             if (!empty($validated['password'])) {
+                User::setPendingPlainPassword($validated['password']);
                 $validated['password'] = Hash::make($validated['password']);
             } else {
                 unset($validated['password']);
@@ -215,12 +217,14 @@ class OrangTuaController extends Controller
                 $username = 'ortu.' . $identifier;
                 $email = 'ortu.' . $identifier . '@' . $domain;
                 $namaWali = 'Wali Murid ' . $siswa->nama_lengkap;
-                $password = $siswa->nisn ? Hash::make($siswa->nisn) : Hash::make('password123');
+                $passwordRaw = $siswa->nisn ?? 'password123';
+                $password = Hash::make($passwordRaw);
 
                 // Cek apakah user ortu dengan username ini sudah ada (mungkin beda siswa tapi identifier sama, jarang terjadi tapi mungkin)
                 $ortu = User::where('username', $username)->first();
 
                 if (!$ortu) {
+                    User::setPendingPlainPassword($passwordRaw);
                     $ortu = User::create([
                         'name' => $namaWali,
                         'email' => $email,
@@ -334,6 +338,7 @@ class OrangTuaController extends Controller
                 $passwordRaw = $firstSiswa->nisn ?? $firstSiswa->nis ?? 'password123';
             }
 
+            User::setPendingPlainPassword($passwordRaw);
             $user->update([
                 'password' => Hash::make($passwordRaw)
             ]);
@@ -364,6 +369,7 @@ class OrangTuaController extends Controller
                     $passwordRaw = $firstSiswa->nisn ?? $firstSiswa->nis ?? 'password123';
                 }
 
+                User::setPendingPlainPassword($passwordRaw);
                 $user->update([
                     'password' => Hash::make($passwordRaw)
                 ]);

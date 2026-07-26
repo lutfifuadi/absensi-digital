@@ -21,7 +21,9 @@ class EkskulService
      */
     public function getAll(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $query = Ekskul::query()->withCount('anggota');
+        $query = Ekskul::query()
+            ->with(['pembina.guru'])
+            ->withCount('anggota');
 
         if (!empty($filters['kategori'])) {
             $query->where('kategori', $filters['kategori']);

@@ -183,12 +183,14 @@ class SiswaController extends Controller
         $email = ($identifier ?: 'siswa').'@'.$domainEmail;
         $username = $data['nisn'];
 
+        $passwordPlain = $data['nisn'] ?? $data['nis'] ?? 'password123';
+        User::setPendingPlainPassword($passwordPlain);
         $user = User::firstOrCreate(
             ['username' => $username],
             [
                 'name' => $data['nama_lengkap'],
                 'email' => $email,
-                'password' => Hash::make($data['nisn'] ?? $data['nis'] ?? 'password123'),
+                'password' => Hash::make($passwordPlain),
                 'role' => User::ROLE_SISWA,
             ]
         );
@@ -196,12 +198,14 @@ class SiswaController extends Controller
         // Auto-create parent user
         $emailOrtu = 'ortu.'.$identifier.'@'.$domainEmail;
         $usernameOrtu = 'ortu.'.$identifier;
+        $passwordOrtuPlain = $data['nisn'] ?? $data['nis'] ?? 'password123';
+        User::setPendingPlainPassword($passwordOrtuPlain);
         $userOrtu = User::firstOrCreate(
             ['username' => $usernameOrtu],
             [
                 'name' => 'Wali Murid '.$data['nama_lengkap'],
                 'email' => $emailOrtu,
-                'password' => Hash::make($data['nisn'] ?? $data['nis'] ?? 'password123'),
+                'password' => Hash::make($passwordOrtuPlain),
                 'role' => User::ROLE_ORANG_TUA,
             ]
         );
@@ -530,12 +534,14 @@ class SiswaController extends Controller
         } else {
             $emailOrtu = 'ortu.'.$identifier.'@'.$domainEmail;
             $usernameOrtu = 'ortu.'.$identifier;
+            $passwordOrtuPlain = $data['nisn'] ?? $data['nis'] ?? 'password123';
+            User::setPendingPlainPassword($passwordOrtuPlain);
             $userOrtu = User::firstOrCreate(
                 ['username' => $usernameOrtu],
                 [
                     'name' => 'Wali Murid '.$data['nama_lengkap'],
                     'email' => $emailOrtu,
-                    'password' => Hash::make($data['nisn'] ?? $data['nis'] ?? 'password123'),
+                    'password' => Hash::make($passwordOrtuPlain),
                     'role' => User::ROLE_ORANG_TUA,
                     'roles' => [User::ROLE_ORANG_TUA],
                 ]
@@ -909,11 +915,13 @@ class SiswaController extends Controller
                 $username = 'ortu.' . $identifier;
                 $email = 'ortu.' . $identifier . '@' . $domain;
                 $namaWali = 'Wali Murid ' . $siswa->nama_lengkap;
-                $password = $siswa->nisn ? Hash::make($siswa->nisn) : Hash::make('password123');
+                $passwordPlain = $siswa->nisn ?? 'password123';
+                $password = Hash::make($passwordPlain);
 
                 $ortu = User::where('username', $username)->first();
 
                 if (!$ortu) {
+                    User::setPendingPlainPassword($passwordPlain);
                     $ortu = User::create([
                         'name' => $namaWali,
                         'email' => $email,
@@ -1246,6 +1254,7 @@ class SiswaController extends Controller
                         $hashedCache[$passwordRaw] = Hash::make($passwordRaw);
                     }
 
+                    User::setPendingPlainPassword($passwordRaw);
                     $siswa->user->update([
                         'password' => $hashedCache[$passwordRaw]
                     ]);

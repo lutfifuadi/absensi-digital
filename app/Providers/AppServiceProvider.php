@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Models\Guide;
 use App\Models\GuideCategory;
+use App\Models\User;
+use App\Observers\UserPasswordObserver;
 use App\Policies\GuidePolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Pagination\Paginator;
@@ -37,6 +39,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Guide::class, GuidePolicy::class);
         Gate::policy(GuideCategory::class, GuidePolicy::class);
         Gate::policy(\App\Models\PelanggaranSiswa::class, \App\Policies\PelanggaranSiswaPolicy::class);
+
+        // Observer untuk sync password_plain saat password berubah
+        User::observe(UserPasswordObserver::class);
 
         if (!file_exists(storage_path('installed'))) {
             return;

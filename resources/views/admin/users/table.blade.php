@@ -9,6 +9,9 @@
             <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
           @endif
         </th>
+        @if(auth()->user()->hasAnyRole(['super_admin', 'admin_sekolah']))
+          <th class="py-3 text-center text-nowrap" style="min-width:160px;">Password</th>
+        @endif
         <th class="py-3 text-center text-nowrap">Hak Akses (Role)</th>
         <th class="py-3 text-center d-none d-md-table-cell sortable cursor-pointer text-nowrap" data-sort-by="created_at" style="user-select: none;">
           Tanggal Join
@@ -49,6 +52,7 @@
           };
 
           $isSuperAdmin = auth()->user()->role === 'super_admin';
+          $canViewPassword = auth()->user()->hasAnyRole(['super_admin', 'admin_sekolah']);
           $isSelf = $item->id === auth()->id();
           $canImpersonate = $isSuperAdmin && !$isSelf && $item->role !== 'super_admin';
           $canDelete = !$isSelf;
@@ -68,6 +72,22 @@
               </div>
             </div>
           </td>
+          @if(auth()->user()->hasAnyRole(['super_admin', 'admin_sekolah']))
+          <td class="text-center">
+            <div class="d-inline-flex align-items-center gap-2">
+              <span class="font-monospace small text-white-50 password-text" style="font-size:0.8rem;letter-spacing:1px;"
+                    data-user-id="{{ $item->id }}" data-revealed="false">••••••••</span>
+              <button type="button"
+                class="action-btn btn-toggle-password"
+                title="Lihat Password"
+                data-bs-toggle="tooltip"
+                data-user-id="{{ $item->id }}"
+                data-user-name="{{ $item->name }}">
+                <i class="ti tabler-eye" style="font-size:0.95rem;"></i>
+              </button>
+            </div>
+          </td>
+          @endif
           <td class="text-center">
             @if (count($userRoles) > 0)
               <div class="d-flex flex-wrap justify-content-center gap-1">
@@ -126,7 +146,7 @@
         </tr>
       @empty
         <tr>
-          <td colspan="5" class="text-center py-5">
+          <td colspan="{{ auth()->user()->hasAnyRole(['super_admin', 'admin_sekolah']) ? 6 : 5 }}" class="text-center py-5">
             <div class="d-flex flex-column align-items-center gap-2 opacity-50">
               <i class="ti tabler-users-minus" style="font-size:2.5rem;"></i>
               <span class="small">Belum ada data user.</span>

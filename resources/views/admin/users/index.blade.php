@@ -212,6 +212,18 @@
         .text-purple {
             color: #a5a2f7 !important;
         }
+
+        /* PASSWORD CELL */
+        .btn-toggle-password {
+            cursor: pointer;
+            font-size: 0.85rem !important;
+            width: 28px !important;
+            height: 28px !important;
+        }
+
+        .btn-toggle-password:hover {
+            color: #7367f0 !important;
+        }
     </style>
     @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
 @endsection
@@ -659,6 +671,75 @@
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function(tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // ── Password Toggle Handler ─────────────────────────────────────
+            container.addEventListener('click', function(e) {
+                const btn = e.target.closest('.btn-toggle-password');
+                if (!btn) return;
+
+                const userId = btn.dataset.userId;
+                const userName = btn.dataset.userName || 'User';
+                const passwordSpan = container.querySelector('.password-text[data-user-id="' + userId + '"]');
+                if (!passwordSpan) return;
+
+                const isRevealed = passwordSpan.dataset.revealed === 'true';
+
+                if (isRevealed) {
+                    // Hide password
+                    passwordSpan.textContent = '••••••••';
+                    passwordSpan.dataset.revealed = 'false';
+                    passwordSpan.classList.remove('text-info');
+                    passwordSpan.classList.add('text-white-50');
+                    btn.innerHTML = '<i class="ti tabler-eye" style="font-size:0.95rem;"></i>';
+                    btn.title = 'Lihat Password';
+                    return;
+                }
+
+                // Show loading state
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="ti tabler-loader spinner" style="font-size:0.95rem;"></i>';
+                btn.disabled = true;
+
+                fetch("{{ route('admin.users.show-password', '__ID__') }}".replace('__ID__', userId), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(function(res) {
+                    if (!res.ok) throw new Error('Gagal mengambil data');
+                    return res.json();
+                })
+                .then(function(data) {
+                    const password = data.password || '••••••••';
+                    passwordSpan.textContent = password;
+                    passwordSpan.dataset.revealed = 'true';
+                    passwordSpan.classList.remove('text-white-50');
+                    passwordSpan.classList.add('text-info');
+                    btn.innerHTML = '<i class="ti tabler-eye-off" style="font-size:0.95rem;"></i>';
+                    btn.title = 'Sembunyikan Password';
+                    btn.disabled = false;
+                })
+                .catch(function(err) {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                    console.error('Password fetch error:', err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Tidak dapat mengambil data password untuk ' + userName + '.',
+                        customClass: {
+                            popup: 'das-swal-popup',
+                            title: 'das-swal-title',
+                            htmlContainer: 'das-swal-html',
+                            confirmButton: 'btn btn-primary das-swal-confirm'
+                        },
+                        background: 'transparent',
+                        buttonsStyling: false
+                    });
+                });
             });
 
         });

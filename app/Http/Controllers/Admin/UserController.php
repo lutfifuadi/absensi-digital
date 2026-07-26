@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -91,8 +92,11 @@ class UserController extends Controller
         $roles = array_values(array_unique($roles));
         $data['role'] = $roles[0];
         $data['roles'] = $roles;
-        $data['password'] = Hash::make($data['password']);
 
+        $plainPassword = $data['password'];
+        $data['password'] = Hash::make($plainPassword);
+
+        User::setPendingPlainPassword($plainPassword);
         User::create($data);
 
         return redirect()->route('admin.users.index')->with('success', 'User berhasil dibuat.');
@@ -133,7 +137,9 @@ class UserController extends Controller
         if (empty($data['password'])) {
             unset($data['password']);
         } else {
-            $data['password'] = Hash::make($data['password']);
+            $plainPassword = $data['password'];
+            $data['password'] = Hash::make($plainPassword);
+            User::setPendingPlainPassword($plainPassword);
         }
 
         $user->update($data);
@@ -157,6 +163,38 @@ class UserController extends Controller
         }
 
         return redirect()->route('admin.users.index')->with('success', 'User berhasil dihapus.');
+    }
+
+    /**
+     * Show the plain-text password of a user.
+     * Only accessible by super_admin or admin_sekolah.
+     */
+    public function showPassword(Request $request, User $user)
+    {
+        // Double-check authorization (belt-and-suspenders with middleware)
+        $admin = $request->user();
+        if (! $admin->hasAnyRole([User::ROLE_SUPER_ADMIN, User::ROLE_ADMIN_SEKOLAH])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki akses untuk melihat password.',
+            ], 403);
+        }
+
+        // Log the activity
+        ActivityLog::record(
+            'VIEW_PASSWORD',
+            'User',
+            "Melihat password user: {$user->name} (ID: {$user->id})",
+            null,
+            ['viewed_user_id' => $user->id, 'viewed_user_name' => $user->name]
+        );
+
+        return response()->json([
+            'success' => true,
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'password' => $user->password_plain,
+        ]);
     }
 
     private function roleOptions(): array
