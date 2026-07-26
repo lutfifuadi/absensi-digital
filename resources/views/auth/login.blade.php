@@ -640,9 +640,9 @@
           <form id="formAuthentication" class="mb-4" action="{{ route('login') }}" method="POST">
             @csrf
             <div class="mb-4 form-control-validation">
-              <label for="username" class="form-label">Username</label>
+              <label for="username" class="form-label">NISN / NIP</label>
               <input type="text" class="form-control @error('username') is-invalid @enderror" id="username"
-                name="username" placeholder="Masukkan username Anda" autofocus value="{{ old('username') }}" />
+                name="username" placeholder="Masukkan NISN atau NIP Anda" autofocus value="{{ old('username') }}" />
               @error('username')
                 <span class="invalid-feedback" role="alert">
                   <span class="fw-medium">{{ $message }}</span>
