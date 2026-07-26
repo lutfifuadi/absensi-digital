@@ -295,11 +295,8 @@
             <div class="d-flex align-items-center gap-3 flex-wrap">
                 {{-- Navigasi Tab Per Tingkatan --}}
                 <div class="btn-group btn-group-sm" role="group" aria-label="Filter Tingkatan Kelas">
-                    <button type="button" class="btn btn-danger ting-tab-btn active" data-tingkat="semua" onclick="switchTingkatTab('semua')">
-                        Semua
-                    </button>
                     @foreach($tingkatOptions as $tkt)
-                    <button type="button" class="btn btn-outline-danger ting-tab-btn" data-tingkat="{{ $tkt }}" onclick="switchTingkatTab('{{ $tkt }}')">
+                    <button type="button" class="btn {{ $loop->first ? 'btn-danger active' : 'btn-outline-danger' }} ting-tab-btn" data-tingkat="{{ $tkt }}" onclick="switchTingkatTab('{{ $tkt }}')">
                         Kelas {{ $tkt }}
                     </button>
                     @endforeach
@@ -523,7 +520,8 @@
 
         // ── Dual Bar Chart (Before vs After + Tab per Tingkatan) ─
         if (document.querySelector('#barChart')) {
-            const initialData = barChartTingkatData['semua'] || { labels: [], current: [], prev: [] };
+            const defaultTingkat = @json($tingkatOptions[0] ?? 'semua');
+            const initialData = barChartTingkatData[defaultTingkat] || { labels: [], current: [], prev: [] };
 
             const emptyNotice = document.getElementById('emptyBarChartNotice');
             if (initialData.labels.length === 0 && emptyNotice) {
