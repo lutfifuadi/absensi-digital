@@ -252,90 +252,138 @@
 
 @section('page-script')
   <script>
-    $(function () {
-      function loadTable(url) {
-        var $container = $('#tableContainer');
-        $container.addClass('opacity-50');
+    document.addEventListener('DOMContentLoaded', function () {
+      const container = document.getElementById('tableContainer');
+      const filterForm = document.getElementById('filterForm');
+      const filterKategori = document.getElementById('filterKategori');
+      const filterStatus = document.getElementById('filterStatus');
+      const perPageSelect = document.getElementById('perPageSelect');
 
-        $.ajax({
-          url: url,
-          type: 'GET',
-          data: $('#filterForm').serialize(),
-          success: function (html) {
-            $container.html(html);
-            $container.removeClass('opacity-50');
-            $('[data-bs-toggle="tooltip"]').tooltip();
-          },
-          error: function () {
-            $container.removeClass('opacity-50');
-            Swal.fire({
-              icon: 'error',
-              title: 'Oops...',
-              text: 'Gagal memuat data jenis pelanggaran.',
-              customClass: {
-                popup: 'das-swal-popup',
-                title: 'das-swal-title',
-                htmlContainer: 'das-swal-html'
-              }
-            });
+      function loadTable(url) {
+        if (!container) return;
+        container.classList.add('opacity-50');
+
+        let targetUrl = url;
+        if (filterForm) {
+          const formData = new FormData(filterForm);
+          const params = new URLSearchParams(formData);
+          if (!targetUrl.includes('?')) {
+            targetUrl += '?' + params.toString();
           }
+        }
+
+        fetch(targetUrl, {
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html, application/xhtml+xml, */*'
+          }
+        })
+        .then(function (res) {
+          if (!res.ok) throw new Error('Network error');
+          return res.text();
+        })
+        .then(function (html) {
+          container.innerHTML = html;
+          container.classList.remove('opacity-50');
+          const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+          tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+          });
+        })
+        .catch(function (err) {
+          console.error('Load table error:', err);
+          container.classList.remove('opacity-50');
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Gagal memuat data jenis pelanggaran.',
+            customClass: {
+              popup: 'das-swal-popup',
+              title: 'das-swal-title',
+              htmlContainer: 'das-swal-html'
+            }
+          });
         });
       }
 
-      $('#filterForm').on('submit', function (e) {
-        e.preventDefault();
-        loadTable("{{ route('admin.pelanggaran-jenis.index') }}");
-      });
+      if (filterForm) {
+        filterForm.addEventListener('submit', function (e) {
+          e.preventDefault();
+          loadTable("{{ route('admin.pelanggaran-jenis.index') }}");
+        });
+      }
 
-      $('#filterKategori, #filterStatus, #perPageSelect').on('change', function () {
-        loadTable("{{ route('admin.pelanggaran-jenis.index') }}");
-      });
+      if (filterKategori) {
+        filterKategori.addEventListener('change', function () {
+          loadTable("{{ route('admin.pelanggaran-jenis.index') }}");
+        });
+      }
 
-      $(document).on('click', '.pagination a', function (e) {
-        e.preventDefault();
-        var url = $(this).attr('href');
-        loadTable(url);
-      });
+      if (filterStatus) {
+        filterStatus.addEventListener('change', function () {
+          loadTable("{{ route('admin.pelanggaran-jenis.index') }}");
+        });
+      }
 
-      // Ajax Delete / Soft Delete Confirmation
-      $(document).on('click', '.btn-delete-jenis', function (e) {
-        e.preventDefault();
-        var deleteUrl = $(this).data('url');
-        var nama = $(this).data('nama');
-        var count = $(this).data('count');
+      if (perPageSelect) {
+        perPageSelect.addEventListener('change', function () {
+          loadTable("{{ route('admin.pelanggaran-jenis.index') }}");
+        });
+      }
 
-        var confirmHtml = 'Jenis pelanggaran <b>' + nama + '</b> akan dihapus.';
-        if (count > 0) {
-          confirmHtml += '<br><span class="text-warning small"><i class="ti tabler-alert-triangle me-1"></i> Data ini sudah tercatat ' + count + ' kali oleh siswa. Sistem hanya akan menonaktifkan/mengarsipkan (soft delete) data ini agar riwayat data siswa tetap aman.</span>';
+      document.addEventListener('click', function (e) {
+        const paginationLink = e.target.closest('.pagination a');
+        if (paginationLink) {
+          e.preventDefault();
+          loadTable(paginationLink.getAttribute('href'));
+          return;
         }
 
-        Swal.fire({
-          title: 'Hapus Jenis Pelanggaran?',
-          html: confirmHtml,
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#ea5455',
-          cancelButtonColor: '#82868b',
-          confirmButtonText: 'Ya, Hapus!',
-          cancelButtonText: 'Batal',
-          reverseButtons: true,
-          customClass: {
-            popup: 'das-swal-popup',
-            title: 'das-swal-title',
-            htmlContainer: 'das-swal-html',
-            confirmButton: 'btn btn-danger das-swal-confirm',
-            cancelButton: 'btn btn-secondary das-swal-cancel'
+        const btnDelete = e.target.closest('.btn-delete-jenis');
+        if (btnDelete) {
+          e.preventDefault();
+          const deleteUrl = btnDelete.dataset.url;
+          const nama = btnDelete.dataset.nama || 'data ini';
+          const count = parseInt(btnDelete.dataset.count || '0', 10);
+
+          let confirmHtml = 'Jenis pelanggaran <b>' + nama + '</b> akan dihapus.';
+          if (count > 0) {
+            confirmHtml += '<br><span class="text-warning small"><i class="ti tabler-alert-triangle me-1"></i> Data ini sudah tercatat ' + count + ' kali oleh siswa. Sistem hanya akan menonaktifkan/mengarsipkan (soft delete) data ini agar riwayat data siswa tetap aman.</span>';
           }
-        }).then((result) => {
-          if (result.isConfirmed) {
-            $.ajax({
-              url: deleteUrl,
-              type: 'POST',
-              data: {
-                _token: '{{ csrf_token() }}',
-                _method: 'DELETE'
-              },
-              success: function (response) {
+
+          Swal.fire({
+            title: 'Hapus Jenis Pelanggaran?',
+            html: confirmHtml,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ea5455',
+            cancelButtonColor: '#82868b',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal',
+            reverseButtons: true,
+            customClass: {
+              popup: 'das-swal-popup',
+              title: 'das-swal-title',
+              htmlContainer: 'das-swal-html',
+              confirmButton: 'btn btn-danger das-swal-confirm me-2',
+              cancelButton: 'btn btn-secondary das-swal-cancel'
+            }
+          }).then((result) => {
+            if (result.isConfirmed) {
+              btnDelete.disabled = true;
+              fetch(deleteUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                  'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                  'X-Requested-With': 'XMLHttpRequest',
+                  'Accept': 'application/json'
+                },
+                body: '_token=' + encodeURIComponent('{{ csrf_token() }}') + '&_method=DELETE'
+              })
+              .then(res => res.json())
+              .then(response => {
+                btnDelete.disabled = false;
                 if (response.success) {
                   Swal.fire({
                     icon: 'success',
@@ -351,8 +399,10 @@
                   });
                   loadTable(window.location.href);
                 }
-              },
-              error: function () {
+              })
+              .catch(err => {
+                btnDelete.disabled = false;
+                console.error('Delete error:', err);
                 Swal.fire({
                   icon: 'error',
                   title: 'Gagal',
@@ -363,10 +413,10 @@
                     htmlContainer: 'das-swal-html'
                   }
                 });
-              }
-            });
-          }
-        });
+              });
+            }
+          });
+        }
       });
     });
   </script>
