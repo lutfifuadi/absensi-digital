@@ -283,15 +283,28 @@
     </div>
 
     {{-- ═══════════════════════════════════════════════════════
-         SECTION 3: DUAL BAR CHART (BEFORE VS AFTER)
+         SECTION 3: DUAL BAR CHART (BEFORE VS AFTER + TAB PER TINGKATAN)
     ═══════════════════════════════════════════════════════ --}}
     <div class="das-panel mb-4">
-        <div class="das-panel__head d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div class="das-panel__head d-flex align-items-center justify-content-between flex-wrap gap-3">
             <h6 class="das-panel__title mb-0">
                 <span class="das-panel__icon-dot --danger"></span>
                 Kelas dengan Jumlah Belum Absen Tertinggi
             </h6>
-            <div class="d-flex align-items-center gap-2">
+            
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                {{-- Navigasi Tab Per Tingkatan --}}
+                <div class="btn-group btn-group-sm" role="group" aria-label="Filter Tingkatan Kelas">
+                    <button type="button" class="btn btn-danger ting-tab-btn active" data-tingkat="semua" onclick="switchTingkatTab('semua')">
+                        Semua
+                    </button>
+                    @foreach($tingkatOptions as $tkt)
+                    <button type="button" class="btn btn-outline-danger ting-tab-btn" data-tingkat="{{ $tkt }}" onclick="switchTingkatTab('{{ $tkt }}')">
+                        Kelas {{ $tkt }}
+                    </button>
+                    @endforeach
+                </div>
+
                 <span class="das-chip --secondary small">
                     <i class="ti tabler-arrows-diff me-1"></i> Perbandingan: {{ $prevDateLabel }} vs {{ $currentDateLabel }}
                 </span>
@@ -303,12 +316,10 @@
                 Grafik membandingkan siswa yang belum absen per kelas (diurutkan dari yang tertinggi pada <strong>{{ $currentDateLabel }}</strong> dibandingkan dengan <strong>{{ $prevDateLabel }}</strong>).
             </p>
             <div class="alfa-chart-wrap">
-                @if(count($barChartDataCurrent) == 0 && count($barChartDataPrev) == 0)
-                    <div class="alfa-empty-chart">
-                        <i class="ti tabler-chart-bar-off" style="font-size: 2.5rem;"></i>
-                        <span class="small">Semua siswa sudah absen. Tidak ada data.</span>
-                    </div>
-                @endif
+                <div id="emptyBarChartNotice" class="alfa-empty-chart d-none">
+                    <i class="ti tabler-chart-bar-off" style="font-size: 2.5rem;"></i>
+                    <span class="small">Semua siswa pada tingkatan ini sudah absen. Tidak ada data.</span>
+                </div>
                 <div id="barChart"></div>
             </div>
         </div>
@@ -434,20 +445,27 @@
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const barChartLabels      = @json($barChartLabels);
-        const barChartDataCurrent = @json($barChartDataCurrent);
-        const barChartDataPrev    = @json($barChartDataPrev);
-        const prevDateLabel       = @json($prevDateLabel);
-        const currentDateLabel    = @json($currentDateLabel);
-        const lineChartLabels     = @json($lineChartLabels);
-        const lineChartData       = @json($lineChartData);
+        const barChartTingkatData = @json($barChartTingkatData);
+        const prevDateLabel         = @json($prevDateLabel);
+        const currentDateLabel      = @json($currentDateLabel);
+        const lineChartLabels       = @json($lineChartLabels);
+        const lineChartData         = @json($lineChartData);
 
-        // ── Dual Bar Chart (Before vs After) ────────────────────
-        if (document.querySelector('#barChart') && barChartLabels.length > 0) {
-            const barChart = new ApexCharts(document.querySelector('#barChart'), {
+        let barChartInstance = null;
+
+        // ── Dual Bar Chart (Before vs After + Tab per Tingkatan) ─
+        if (document.querySelector('#barChart')) {
+            const initialData = barChartTingkatData['semua'] || { labels: [], current: [], prev: [] };
+
+            const emptyNotice = document.getElementById('emptyBarChartNotice');
+            if (initialData.labels.length === 0 && emptyNotice) {
+                emptyNotice.classList.remove('d-none');
+            }
+
+            barChartInstance = new ApexCharts(document.querySelector('#barChart'), {
                 series: [
-                    { name: 'Sebelumnya (' + prevDateLabel + ')', data: barChartDataPrev },
-                    { name: 'Sekarang (' + currentDateLabel + ')', data: barChartDataCurrent }
+                    { name: 'Sebelumnya (' + prevDateLabel + ')', data: initialData.prev },
+                    { name: 'Sekarang (' + currentDateLabel + ')', data: initialData.current }
                 ],
                 chart: {
                     type: 'bar',
@@ -476,7 +494,7 @@
                 },
                 stroke: { show: true, width: 2, colors: ['transparent'] },
                 xaxis: {
-                    categories: barChartLabels,
+                    categories: initialData.labels,
                     axisBorder: { show: false },
                     axisTicks: { show: false },
                     labels: { style: { colors: 'rgba(255,255,255,0.6)', fontSize: '12px' } }
@@ -495,8 +513,40 @@
                     y: { formatter: val => val + ' Siswa' }
                 }
             });
-            barChart.render();
+            barChartInstance.render();
         }
+
+        // ── Tab Switcher Function ──────────────────────────────
+        window.switchTingkatTab = function(tingkatKey) {
+            document.querySelectorAll('.ting-tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-tingkat') === tingkatKey) {
+                    btn.classList.remove('btn-outline-danger');
+                    btn.classList.add('btn-danger', 'active');
+                } else {
+                    btn.classList.remove('btn-danger', 'active');
+                    btn.classList.add('btn-outline-danger');
+                }
+            });
+
+            const currentData = barChartTingkatData[tingkatKey] || { labels: [], current: [], prev: [] };
+            const emptyNotice = document.getElementById('emptyBarChartNotice');
+
+            if (currentData.labels.length === 0) {
+                if (emptyNotice) emptyNotice.classList.remove('d-none');
+            } else {
+                if (emptyNotice) emptyNotice.classList.add('d-none');
+            }
+
+            if (barChartInstance) {
+                barChartInstance.updateOptions({
+                    xaxis: { categories: currentData.labels }
+                });
+                barChartInstance.updateSeries([
+                    { name: 'Sebelumnya (' + prevDateLabel + ')', data: currentData.prev },
+                    { name: 'Sekarang (' + currentDateLabel + ')', data: currentData.current }
+                ]);
+            }
+        };
 
         // ── Line Chart ─────────────────────────────────────────
         if (document.querySelector('#lineChart') && lineChartData.length > 0) {

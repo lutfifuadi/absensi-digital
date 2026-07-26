@@ -151,18 +151,42 @@ class DashboardAlfaController extends Controller
                 $kelasStats->push([
                     'id' => $kelasItem->id,
                     'nama' => $kelasItem->nama,
+                    'tingkat' => $kelasItem->tingkat ?? '',
                     'belum_current' => $belumC,
                     'belum_prev' => $belumP,
                 ]);
             }
         }
 
-        // Urutkan berdasarkan belum_current TERTIANGGI (descending), ambil Top 10
-        $topKelas = $kelasStats->sortByDesc('belum_current')->take(10)->values();
+        $tingkatOptions = \App\Helpers\JenjangHelper::getTingkatOptions();
 
-        $barChartLabels = $topKelas->pluck('nama')->toArray();
-        $barChartDataCurrent = $topKelas->pluck('belum_current')->toArray();
-        $barChartDataPrev = $topKelas->pluck('belum_prev')->toArray();
+        // Data Per Tingkatan
+        $barChartTingkatData = [];
+
+        // 1. Tab 'semua'
+        $topKelasSemua = $kelasStats->sortByDesc('belum_current')->take(10)->values();
+        $barChartTingkatData['semua'] = [
+            'labels' => $topKelasSemua->pluck('nama')->toArray(),
+            'current' => $topKelasSemua->pluck('belum_current')->toArray(),
+            'prev' => $topKelasSemua->pluck('belum_prev')->toArray(),
+        ];
+
+        // 2. Tab per Tingkat (X, XI, XII / VII, VIII, IX / I-VI)
+        foreach ($tingkatOptions as $tkt) {
+            $topKelasTkt = $kelasStats->filter(function ($item) use ($tkt) {
+                return strcasecmp(trim($item['tingkat']), trim($tkt)) === 0;
+            })->sortByDesc('belum_current')->take(10)->values();
+
+            $barChartTingkatData[$tkt] = [
+                'labels' => $topKelasTkt->pluck('nama')->toArray(),
+                'current' => $topKelasTkt->pluck('belum_current')->toArray(),
+                'prev' => $topKelasTkt->pluck('belum_prev')->toArray(),
+            ];
+        }
+
+        $barChartLabels = $barChartTingkatData['semua']['labels'];
+        $barChartDataCurrent = $barChartTingkatData['semua']['current'];
+        $barChartDataPrev = $barChartTingkatData['semua']['prev'];
 
         // ══════════════════════════════════════════════════════════
         // 4. Line Chart: Tren Belum Absen per Hari (7 HARI KERJA TERAKHIR, skip weekend & libur)
@@ -231,6 +255,8 @@ class DashboardAlfaController extends Controller
             'barChartLabels' => $barChartLabels,
             'barChartDataCurrent' => $barChartDataCurrent,
             'barChartDataPrev' => $barChartDataPrev,
+            'barChartTingkatData' => $barChartTingkatData,
+            'tingkatOptions' => $tingkatOptions,
             'lineChartLabels' => $trendDates,
             'lineChartData' => $trendData,
             'detailBelumAbsen' => $detailBelumAbsen,
