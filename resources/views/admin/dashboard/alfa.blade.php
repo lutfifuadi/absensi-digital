@@ -543,15 +543,17 @@
                     background: 'transparent',
                     events: {
                         dataPointSelection: function(event, chartContext, config) {
-                            const selectedIndex = config.dataPointIndex;
-                            const categories = config.w.globals.labels;
-                            if (categories && selectedIndex !== undefined && selectedIndex >= 0) {
-                                filterByClassName(categories[selectedIndex]);
+                            if (config && config.w && config.w.globals && config.dataPointIndex !== undefined && config.dataPointIndex >= 0) {
+                                const selectedIndex = config.dataPointIndex;
+                                const categories = config.w.globals.labels;
+                                if (categories && categories[selectedIndex]) {
+                                    filterByClassName(categories[selectedIndex]);
+                                }
                             }
                         },
                         click: function(event, chartContext, config) {
                             // Backup click event for category label / bar click
-                            if (config && config.dataPointIndex !== undefined && config.dataPointIndex >= 0) {
+                            if (config && config.w && config.w.globals && config.dataPointIndex !== undefined && config.dataPointIndex >= 0) {
                                 const categories = config.w.globals.labels;
                                 if (categories && categories[config.dataPointIndex]) {
                                     filterByClassName(categories[config.dataPointIndex]);
