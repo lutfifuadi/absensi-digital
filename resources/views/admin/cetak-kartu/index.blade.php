@@ -1655,8 +1655,11 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         body: formData
       })
-      .then(response => {
-        if (!response.ok) throw new Error('Gagal memproses template');
+      .then(async response => {
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.message || 'Gagal memproses template');
+        }
         return response.json();
       })
       .then(data => {
@@ -1744,7 +1747,7 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .catch(err => {
         console.error(err);
-        alert('Gagal menghubungi server. Silakan coba lagi.');
+        alert(err.message || 'Gagal menghubungi server. Silakan coba lagi.');
         modalPreviewA4.hide();
       });
     });
@@ -2064,9 +2067,10 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         body: formData
       })
-      .then(response => {
+      .then(async response => {
         if (!response.ok) {
-          throw new Error('Gagal memproses template');
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.message || 'Gagal memproses template');
         }
         return response.json();
       })
@@ -2087,7 +2091,7 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .catch(err => {
         console.error(err);
-        alert('Gagal menghubungi server. Silakan coba lagi.');
+        alert(err.message || 'Gagal menghubungi server. Silakan coba lagi.');
         modalPreviewGambar.hide();
       });
     });

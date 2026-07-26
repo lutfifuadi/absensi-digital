@@ -45,6 +45,8 @@ class CetakKartuController extends Controller
      */
     public function download(Request $request)
     {
+        @ini_set('memory_limit', '1024M');
+
         $validated = $request->validate([
             'tipe'       => 'required|in:siswa,guru,staff',
             'template_id' => 'required|exists:id_card_templates,id',
@@ -133,6 +135,8 @@ class CetakKartuController extends Controller
      */
     public function preview(Request $request)
     {
+        @ini_set('memory_limit', '1024M');
+
         $validated = $request->validate([
             'tipe'       => 'required|in:siswa,guru,staff',
             'template_id' => 'required|exists:id_card_templates,id',
@@ -225,7 +229,7 @@ class CetakKartuController extends Controller
     }
 
     /**
-     * Helper local untuk konversi foto ke base64 (menyalin logic IdCardPdfService).
+     * Helper local untuk konversi foto ke base64 dengan optimasi kompresi ukuran.
      */
     private function fotoToBase64Helper(string $fotoPath): string
     {
@@ -244,8 +248,11 @@ class CetakKartuController extends Controller
         }
 
         $fullPath = storage_path('app/public/' . $fotoPath);
-        $data     = @file_get_contents($fullPath);
+        if (!file_exists($fullPath)) {
+            return '';
+        }
 
+        $data = @file_get_contents($fullPath);
         if ($data === false) {
             return '';
         }
@@ -257,6 +264,45 @@ class CetakKartuController extends Controller
             'gif'         => 'image/gif',
             default       => 'image/jpeg',
         };
+
+        // Resizing optimasi jika ukuran file foto > 150KB agar tidak menyebabkan Out of Memory saat batch render
+        if (strlen($data) > 150 * 1024 && extension_loaded('gd')) {
+            try {
+                $srcImg = @imagecreatefromstring($data);
+                if ($srcImg) {
+                    $w = imagesx($srcImg);
+                    $h = imagesy($srcImg);
+                    $maxDim = 400; // max dimension for ID card photo
+                    if ($w > $maxDim || $h > $maxDim) {
+                        $ratio = min($maxDim / $w, $maxDim / $h);
+                        $newW = (int) round($w * $ratio);
+                        $newH = (int) round($h * $ratio);
+                        $dstImg = imagecreatetruecolor($newW, $newH);
+                        if ($mime === 'image/png' || $mime === 'image/gif') {
+                            imagealphablending($dstImg, false);
+                            imagesavealpha($dstImg, true);
+                        }
+                        imagecopyresampled($dstImg, $srcImg, 0, 0, 0, 0, $newW, $newH, $w, $h);
+                        ob_start();
+                        if ($mime === 'image/png') {
+                            imagepng($dstImg, null, 6);
+                        } else {
+                            imagejpeg($dstImg, null, 85);
+                        }
+                        $resizedData = ob_get_clean();
+                        imagedestroy($srcImg);
+                        imagedestroy($dstImg);
+                        if ($resizedData) {
+                            $data = $resizedData;
+                        }
+                    } else {
+                        imagedestroy($srcImg);
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Gunakan data original jika resize gagal
+            }
+        }
 
         return "data:{$mime};base64," . base64_encode($data);
     }

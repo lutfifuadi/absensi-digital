@@ -168,13 +168,26 @@
 </div>
 
 <div class="das-panel">
-  <div class="das-panel__head">
-    <div class="das-panel__title">
+  <div class="das-panel__head d-flex align-items-center justify-content-between flex-wrap gap-3">
+    <div class="das-panel__title mb-0">
       <span class="das-panel__icon-dot --warning"></span>
       Papan Peringkat Siswa
     </div>
-    <div class="d-flex align-items-center gap-2">
-      <span style="font-size:0.7rem;color:rgba(255,255,255,0.3);" id="lastUpdateLabel">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      {{-- Filter Periode Tabs --}}
+      <div class="btn-group btn-group-sm" role="group" aria-label="Filter Periode Leaderboard">
+        <button type="button" class="btn btn-outline-warning lb-filter-btn" data-period="minggu" onclick="switchLeaderboardPeriod('minggu')">
+          <i class="ti tabler-calendar-week me-1"></i> Minggu Ini
+        </button>
+        <button type="button" class="btn btn-outline-warning lb-filter-btn" data-period="bulan" onclick="switchLeaderboardPeriod('bulan')">
+          <i class="ti tabler-calendar-month me-1"></i> Bulan Ini
+        </button>
+        <button type="button" class="btn btn-warning lb-filter-btn active" data-period="semester" onclick="switchLeaderboardPeriod('semester')">
+          <i class="ti tabler-calendar me-1"></i> Semester Ini
+        </button>
+      </div>
+
+      <span style="font-size:0.7rem;color:rgba(255,255,255,0.4);" id="lastUpdateLabel">
         Terakhir diperbarui: —
       </span>
     </div>
@@ -209,6 +222,7 @@
 @section('page-script')
 <script>
 const CURRENT_STUDENT_NIS = '{{ $siswa->nis }}';
+let currentPeriode = 'semester';
 
 document.addEventListener('DOMContentLoaded', function() {
   loadStudentLeaderboard();
@@ -216,6 +230,33 @@ document.addEventListener('DOMContentLoaded', function() {
   // Auto-refresh setiap 30 detik
   setInterval(loadStudentLeaderboard, 30000);
 });
+
+function switchLeaderboardPeriod(period) {
+  currentPeriode = period;
+  document.querySelectorAll('.lb-filter-btn').forEach(btn => {
+    if (btn.getAttribute('data-period') === period) {
+      btn.classList.remove('btn-outline-warning');
+      btn.classList.add('btn-warning', 'active');
+    } else {
+      btn.classList.remove('btn-warning', 'active');
+      btn.classList.add('btn-outline-warning');
+    }
+  });
+
+  const tbody = document.getElementById('studentLeaderboardBody');
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="6" class="text-center py-5">
+        <div class="lb-spinner">
+          <div class="lb-spinner__ring"></div>
+          <div class="lb-spinner__text">Memuat peringkat ${period}...</div>
+        </div>
+      </td>
+    </tr>
+  `;
+
+  loadStudentLeaderboard();
+}
 
 function getInitials(name) {
   if (!name) return '?';
@@ -233,7 +274,7 @@ async function loadStudentLeaderboard() {
   const tbody = document.getElementById('studentLeaderboardBody');
 
   try {
-    const response = await fetch('/api/v1/innovation/leaderboard/students?limit=20');
+    const response = await fetch(`/api/v1/innovation/leaderboard/students?periode=${currentPeriode}&limit=20`);
     const result = await response.json();
 
     const data = result.data || [];

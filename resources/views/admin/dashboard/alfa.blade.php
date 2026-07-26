@@ -188,15 +188,16 @@
     {{-- ═══════════════════════════════════════════════════════
          SECTION 2: SUMMARY + LINE CHART
     ═══════════════════════════════════════════════════════ --}}
-    @if($isWeekend)
-    <div class="das-panel" style="text-align: center; padding: 3rem 1rem;">
-        <div style="font-size: 3rem; margin-bottom: 0.5rem; opacity: 0.3;">
+    @if($isHoliday)
+    <div class="das-panel mb-4" style="text-align: center; padding: 2.5rem 1rem; border-color: rgba(255, 171, 0, 0.25);">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem; opacity: 0.8;" class="text-warning">
             <i class="ti tabler-calendar-off"></i>
         </div>
-        <h5 class="text-white fw-bold mb-2">Hari Libur</h5>
-        <p class="text-body-secondary mb-0">Hari ini {{ \Carbon\Carbon::today()->translatedFormat('l') }} — tidak ada aktivitas absensi siswa</p>
+        <h5 class="text-white fw-bold mb-2">Hari Libur — {{ $holidayName ?? 'Tidak Ada Presensi' }}</h5>
+        <p class="text-white-50 mb-0">Tanggal {{ \Carbon\Carbon::parse($filterTanggalAkhir)->translatedFormat('d F Y') }} merupakan hari libur. Siswa tidak dihitung sebagai belum absen.</p>
     </div>
-    @else
+    @endif
+
     <div class="row g-4 mb-4">
 
         {{-- Summary Card --}}
@@ -204,12 +205,33 @@
             <div class="alfa-stat-card h-100">
                 <div>
                     <h6 class="text-white-50 fw-semibold small mb-3">BELUM ABSEN HARI INI</h6>
-                    <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="d-flex align-items-center gap-3 mb-2">
                         <div class="alfa-stat-icon">
                             <i class="ti tabler-user-off"></i>
                         </div>
                         <span class="alfa-stat-number">{{ $totalBelumAbsenHariIni }}</span>
                     </div>
+
+                    {{-- Indikator Tren Perbandingan Before vs After --}}
+                    <div class="mb-3">
+                        @if($deltaBelumAbsen < 0)
+                            <span class="badge bg-label-success d-inline-flex align-items-center gap-1 px-2 py-1.5" style="font-size: 0.78rem;">
+                                <i class="ti tabler-trending-down fs-6"></i>
+                                <span>Turun {{ abs($deltaBelumAbsen) }} siswa dibanding {{ $prevDateLabel }}</span>
+                            </span>
+                        @elseif($deltaBelumAbsen > 0)
+                            <span class="badge bg-label-danger d-inline-flex align-items-center gap-1 px-2 py-1.5" style="font-size: 0.78rem;">
+                                <i class="ti tabler-trending-up fs-6"></i>
+                                <span>Naik {{ $deltaBelumAbsen }} siswa dibanding {{ $prevDateLabel }}</span>
+                            </span>
+                        @else
+                            <span class="badge bg-label-secondary d-inline-flex align-items-center gap-1 px-2 py-1.5" style="font-size: 0.78rem;">
+                                <i class="ti tabler-minus fs-6"></i>
+                                <span>Sama dibanding {{ $prevDateLabel }} ({{ $totalBelumAbsenKemarin }} siswa)</span>
+                            </span>
+                        @endif
+                    </div>
+
                     <span class="alfa-stat-label">dari {{ $totalSiswaAktif }} siswa aktif</span>
                 </div>
 
@@ -259,25 +281,29 @@
             </div>
         </div>
     </div>
-    @endif
 
     {{-- ═══════════════════════════════════════════════════════
-         SECTION 3: BAR CHART
+         SECTION 3: DUAL BAR CHART (BEFORE VS AFTER)
     ═══════════════════════════════════════════════════════ --}}
     <div class="das-panel mb-4">
-        <div class="das-panel__head">
-            <h6 class="das-panel__title">
+        <div class="das-panel__head d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <h6 class="das-panel__title mb-0">
                 <span class="das-panel__icon-dot --danger"></span>
                 Kelas dengan Jumlah Belum Absen Tertinggi
             </h6>
+            <div class="d-flex align-items-center gap-2">
+                <span class="das-chip --secondary small">
+                    <i class="ti tabler-arrows-diff me-1"></i> Perbandingan: {{ $prevDateLabel }} vs {{ $currentDateLabel }}
+                </span>
+            </div>
         </div>
         <div class="das-panel__body">
             <p class="text-white-50 small mb-3">
                 <i class="ti tabler-info-circle me-1"></i>
-                Grafik batang menampilkan distribusi siswa yang belum absen per kelas.
+                Grafik membandingkan siswa yang belum absen per kelas (diurutkan dari yang tertinggi pada <strong>{{ $currentDateLabel }}</strong> dibandingkan dengan <strong>{{ $prevDateLabel }}</strong>).
             </p>
             <div class="alfa-chart-wrap">
-                @if(count($barChartData) == 0)
+                @if(count($barChartDataCurrent) == 0 && count($barChartDataPrev) == 0)
                     <div class="alfa-empty-chart">
                         <i class="ti tabler-chart-bar-off" style="font-size: 2.5rem;"></i>
                         <span class="small">Semua siswa sudah absen. Tidak ada data.</span>
@@ -408,43 +434,55 @@
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const barChartLabels = @json($barChartLabels);
-        const barChartData   = @json($barChartData);
-        const lineChartLabels = @json($lineChartLabels);
-        const lineChartData   = @json($lineChartData);
+        const barChartLabels      = @json($barChartLabels);
+        const barChartDataCurrent = @json($barChartDataCurrent);
+        const barChartDataPrev    = @json($barChartDataPrev);
+        const prevDateLabel       = @json($prevDateLabel);
+        const currentDateLabel    = @json($currentDateLabel);
+        const lineChartLabels     = @json($lineChartLabels);
+        const lineChartData       = @json($lineChartData);
 
-        // ── Bar Chart ──────────────────────────────────────────
-        if (document.querySelector('#barChart') && barChartData.length > 0) {
+        // ── Dual Bar Chart (Before vs After) ────────────────────
+        if (document.querySelector('#barChart') && barChartLabels.length > 0) {
             const barChart = new ApexCharts(document.querySelector('#barChart'), {
-                series: [{ name: 'Belum Absen', data: barChartData }],
+                series: [
+                    { name: 'Sebelumnya (' + prevDateLabel + ')', data: barChartDataPrev },
+                    { name: 'Sekarang (' + currentDateLabel + ')', data: barChartDataCurrent }
+                ],
                 chart: {
                     type: 'bar',
-                    height: 320,
+                    height: 340,
                     toolbar: { show: false },
                     fontFamily: 'inherit',
                     background: 'transparent',
                 },
-                colors: ['#ea5455'],
+                colors: ['rgba(255, 255, 255, 0.35)', '#ea5455'],
                 plotOptions: {
                     bar: {
                         borderRadius: 4,
                         horizontal: false,
-                        columnWidth: '50%'
+                        columnWidth: '55%',
                     }
                 },
                 dataLabels: {
                     enabled: true,
-                    style: { colors: ['#fff'], fontSize: '11px' }
+                    style: { colors: ['#fff'], fontSize: '10px' }
+                },
+                legend: {
+                    show: true,
+                    position: 'top',
+                    horizontalAlign: 'right',
+                    labels: { colors: 'rgba(255, 255, 255, 0.7)' }
                 },
                 stroke: { show: true, width: 2, colors: ['transparent'] },
                 xaxis: {
                     categories: barChartLabels,
                     axisBorder: { show: false },
                     axisTicks: { show: false },
-                    labels: { style: { colors: 'rgba(255,255,255,0.45)', fontSize: '12px' } }
+                    labels: { style: { colors: 'rgba(255,255,255,0.6)', fontSize: '12px' } }
                 },
                 yaxis: {
-                    title: { text: 'Jumlah Siswa', style: { color: 'rgba(255,255,255,0.4)' } },
+                    title: { text: 'Jumlah Siswa Belum Absen', style: { color: 'rgba(255,255,255,0.4)' } },
                     labels: { style: { colors: 'rgba(255,255,255,0.45)' } }
                 },
                 grid: {

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\AbsensiSiswa;
 use App\Models\Kelas;
 use App\Models\Siswa;
+use App\Models\Holiday;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -14,7 +15,6 @@ class DashboardAlfaController extends Controller
     public function index(Request $request)
     {
         $today = Carbon::today();
-        $isWeekend = $today->isSaturday() || $today->isSunday();
         $start7Days = Carbon::now()->subDays(6)->startOfDay();
 
         // Filter
@@ -22,6 +22,34 @@ class DashboardAlfaController extends Controller
         $filterTanggalMulai = $request->input('start_date', $start7Days->format('Y-m-d'));
         $filterTanggalAkhir = $request->input('end_date', $today->format('Y-m-d'));
         $filterDate = Carbon::parse($filterTanggalAkhir);
+
+        // Ambil daftar tanggal libur nasional dari DB
+        $holidaysDates = Holiday::pluck('tanggal')->map(function ($d) {
+            return Carbon::parse($d)->format('Y-m-d');
+        })->toArray();
+
+        // Helper fungsi penentu hari libur (Weekend / Tanggal Merah)
+        $isLiburFn = function (Carbon $date) use (&$holidaysDates) {
+            if ($date->isSaturday() || $date->isSunday()) {
+                return true;
+            }
+            return in_array($date->format('Y-m-d'), $holidaysDates);
+        };
+
+        $isHoliday = $isLiburFn($filterDate);
+        $holidayObj = Holiday::whereDate('tanggal', $filterDate->format('Y-m-d'))->first();
+        $holidayName = $isHoliday
+            ? ($holidayObj ? $holidayObj->nama : ($filterDate->isWeekend() ? 'Akhir Pekan (' . $filterDate->translatedFormat('l') . ')' : 'Hari Libur'))
+            : null;
+
+        // Cari Hari Kerja Pembanding (Previous Working Day - skip weekend & libur)
+        $prevWorkingDate = $filterDate->copy()->subDay();
+        while ($isLiburFn($prevWorkingDate)) {
+            $prevWorkingDate->subDay();
+        }
+
+        $currentDateStr = $filterDate->format('Y-m-d');
+        $prevDateStr = $prevWorkingDate->format('Y-m-d');
 
         // ══════════════════════════════════════════════════════════
         // 1. Total Siswa Aktif
@@ -33,7 +61,7 @@ class DashboardAlfaController extends Controller
         $totalSiswaAktif = $querySiswaAktif->count();
 
         // ══════════════════════════════════════════════════════════
-        // 2. Siswa yang BELUM Absen Hari Ini
+        // 2. Siswa yang BELUM Absen (Tanggal Terpilih vs Tanggal Pembanding)
         // ══════════════════════════════════════════════════════════
         $siswaAktifHariIni = Siswa::where('status', 'aktif');
         if ($filterKelas) {
@@ -41,73 +69,130 @@ class DashboardAlfaController extends Controller
         }
         $idsAktifHariIni = $siswaAktifHariIni->pluck('id');
 
-        $idsSudahAbsenHariIni = AbsensiSiswa::where('tanggal', $today)
+        if ($isHoliday) {
+            // Pada hari libur, siswa tidak dihitung belum absen (0)
+            $totalBelumAbsenHariIni = 0;
+        } else {
+            $idsSudahAbsenHariIni = AbsensiSiswa::where('tanggal', $currentDateStr)
+                ->whereIn('siswa_id', $idsAktifHariIni)
+                ->pluck('siswa_id')
+                ->unique();
+
+            $totalBelumAbsenHariIni = $idsAktifHariIni->diff($idsSudahAbsenHariIni)->count();
+        }
+
+        // Absen Hari Pembanding (Sebelumnya / Kemarin Kerja)
+        $idsSudahAbsenKemarin = AbsensiSiswa::where('tanggal', $prevDateStr)
             ->whereIn('siswa_id', $idsAktifHariIni)
             ->pluck('siswa_id')
             ->unique();
 
-        $totalBelumAbsenHariIni = $idsAktifHariIni->diff($idsSudahAbsenHariIni)->count();
+        $totalBelumAbsenKemarin = $idsAktifHariIni->diff($idsSudahAbsenKemarin)->count();
+        $deltaBelumAbsen = $totalBelumAbsenHariIni - $totalBelumAbsenKemarin;
 
         // ══════════════════════════════════════════════════════════
-        // 3. Bar Chart: Belum Absen per Kelas (berdasarkan tanggal akhir filter)
+        // 3. Bar Chart: Belum Absen per Kelas (Optimized Batch Query & Dual Comparison)
         // ══════════════════════════════════════════════════════════
+        // Batch Query 1: Total Siswa Aktif per Kelas
+        $querySiswaPerKelas = Siswa::where('status', 'aktif');
+        if ($filterKelas) {
+            $querySiswaPerKelas->where('kelas_id', $filterKelas);
+        }
+        $siswaPerKelas = $querySiswaPerKelas
+            ->select('kelas_id', DB::raw('COUNT(*) as total_siswa'))
+            ->groupBy('kelas_id')
+            ->pluck('total_siswa', 'kelas_id');
+
+        // Batch Query 2: Total Sudah Absen per Kelas (Tanggal Terpilih)
+        $sudahAbsenCurrent = collect();
+        if (!$isHoliday) {
+            $querySudahCurrent = AbsensiSiswa::where('tanggal', $currentDateStr)
+                ->join('siswa', 'siswa.id', '=', 'absensi_siswa.siswa_id')
+                ->where('siswa.status', 'aktif');
+            if ($filterKelas) {
+                $querySudahCurrent->where('siswa.kelas_id', $filterKelas);
+            }
+            $sudahAbsenCurrent = $querySudahCurrent
+                ->select('siswa.kelas_id', DB::raw('COUNT(DISTINCT absensi_siswa.siswa_id) as total_sudah'))
+                ->groupBy('siswa.kelas_id')
+                ->pluck('total_sudah', 'siswa.kelas_id');
+        }
+
+        // Batch Query 3: Total Sudah Absen per Kelas (Tanggal Pembanding)
+        $querySudahPrev = AbsensiSiswa::where('tanggal', $prevDateStr)
+            ->join('siswa', 'siswa.id', '=', 'absensi_siswa.siswa_id')
+            ->where('siswa.status', 'aktif');
+        if ($filterKelas) {
+            $querySudahPrev->where('siswa.kelas_id', $filterKelas);
+        }
+        $sudahAbsenPrev = $querySudahPrev
+            ->select('siswa.kelas_id', DB::raw('COUNT(DISTINCT absensi_siswa.siswa_id) as total_sudah'))
+            ->groupBy('siswa.kelas_id')
+            ->pluck('total_sudah', 'siswa.kelas_id');
+
         $kelasQuery = Kelas::query();
         if ($filterKelas) {
-            $kelasQuery->where('kelas.id', $filterKelas);
+            $kelasQuery->where('id', $filterKelas);
         }
-        $allKelas = $kelasQuery->orderBy('nama')->get();
+        $kelasList = $kelasQuery->orderBy('nama')->get();
 
-        $barChartLabels = [];
-        $barChartData = [];
+        $kelasStats = collect();
+        foreach ($kelasList as $kelasItem) {
+            $totalSiswa = $siswaPerKelas[$kelasItem->id] ?? 0;
+            if ($totalSiswa == 0) continue;
 
-        foreach ($allKelas as $kelasItem) {
-            // Siswa aktif di kelas ini
-            $siswaIds = Siswa::where('status', 'aktif')
-                ->where('kelas_id', $kelasItem->id)
-                ->pluck('id');
+            $sudahC = $isHoliday ? $totalSiswa : ($sudahAbsenCurrent[$kelasItem->id] ?? 0);
+            $sudahP = $sudahAbsenPrev[$kelasItem->id] ?? 0;
 
-            if ($siswaIds->isEmpty()) {
-                continue;
-            }
+            $belumC = max(0, $totalSiswa - $sudahC);
+            $belumP = max(0, $totalSiswa - $sudahP);
 
-            // Yang sudah absen di tanggal akhir filter
-            $sudahAbsen = AbsensiSiswa::where('tanggal', $filterDate)
-                ->whereIn('siswa_id', $siswaIds)
-                ->count();
-
-            $belumAbsen = $siswaIds->count() - $sudahAbsen;
-
-            if ($belumAbsen > 0) {
-                $barChartLabels[] = $kelasItem->nama;
-                $barChartData[] = $belumAbsen;
+            if ($belumC > 0 || $belumP > 0) {
+                $kelasStats->push([
+                    'id' => $kelasItem->id,
+                    'nama' => $kelasItem->nama,
+                    'belum_current' => $belumC,
+                    'belum_prev' => $belumP,
+                ]);
             }
         }
+
+        // Urutkan berdasarkan belum_current TERTIANGGI (descending), ambil Top 10
+        $topKelas = $kelasStats->sortByDesc('belum_current')->take(10)->values();
+
+        $barChartLabels = $topKelas->pluck('nama')->toArray();
+        $barChartDataCurrent = $topKelas->pluck('belum_current')->toArray();
+        $barChartDataPrev = $topKelas->pluck('belum_prev')->toArray();
 
         // ══════════════════════════════════════════════════════════
-        // 4. Line Chart: Tren Belum Absen per Hari (7 hari kerja terakhir, skip weekend)
+        // 4. Line Chart: Tren Belum Absen per Hari (7 HARI KERJA TERAKHIR, skip weekend & libur)
         // ══════════════════════════════════════════════════════════
         $trendDates = [];
         $trendData = [];
 
-        // Kumpulkan 7 hari kerja terakhir
         $hariKerja = collect();
         $tmp = $today->copy();
         while ($hariKerja->count() < 7) {
-            if (!$tmp->isSaturday() && !$tmp->isSunday()) {
+            if (!$isLiburFn($tmp)) {
                 $hariKerja->prepend($tmp->copy());
             }
             $tmp->subDay();
         }
 
-        $idsAktifAll = Siswa::where('status', 'aktif')->pluck('id');
+        $idsAktifAll = Siswa::where('status', 'aktif');
+        if ($filterKelas) {
+            $idsAktifAll->where('kelas_id', $filterKelas);
+        }
+        $idsAktifAllList = $idsAktifAll->pluck('id');
+
         foreach ($hariKerja as $date) {
             $dateStr = $date->format('Y-m-d');
             $sudahAbsen = AbsensiSiswa::where('tanggal', $dateStr)
-                ->whereIn('siswa_id', $idsAktifAll)
+                ->whereIn('siswa_id', $idsAktifAllList)
                 ->count();
 
             $trendDates[] = $date->format('d M');
-            $trendData[] = $idsAktifAll->count() - $sudahAbsen;
+            $trendData[] = max(0, $idsAktifAllList->count() - $sudahAbsen);
         }
 
         // ══════════════════════════════════════════════════════════
@@ -120,23 +205,32 @@ class DashboardAlfaController extends Controller
             $queryDetail->where('kelas_id', $filterKelas);
         }
 
-        // Subquery: ambil siswa yang sudah absen di rentang tanggal filter
-        $siswaSudahAbsen = AbsensiSiswa::whereBetween('tanggal', [$filterTanggalMulai, $filterTanggalAkhir])
-            ->pluck('siswa_id')
-            ->unique();
+        if ($isHoliday) {
+            // Jika tanggal filter akhir adalah hari libur, tabel kosongkan (karena tidak ada kewajiban absen)
+            $queryDetail->whereRaw('1 = 0');
+        } else {
+            $siswaSudahAbsen = AbsensiSiswa::whereBetween('tanggal', [$filterTanggalMulai, $filterTanggalAkhir])
+                ->pluck('siswa_id')
+                ->unique();
 
-        // Filter: hanya tampilkan yang belum absen di rentang tanggal tsb
-        $queryDetail->whereNotIn('id', $siswaSudahAbsen);
+            $queryDetail->whereNotIn('id', $siswaSudahAbsen);
+        }
 
         $detailBelumAbsen = $queryDetail->orderBy('nama_lengkap')->paginate(10);
-        $kelasList = Kelas::orderBy('nama')->get();
 
         $data = [
-            'isWeekend' => $isWeekend,
+            'isWeekend' => $isHoliday, // Kompatibilitas flag
+            'isHoliday' => $isHoliday,
+            'holidayName' => $holidayName,
             'totalSiswaAktif' => $totalSiswaAktif,
             'totalBelumAbsenHariIni' => $totalBelumAbsenHariIni,
+            'totalBelumAbsenKemarin' => $totalBelumAbsenKemarin,
+            'deltaBelumAbsen' => $deltaBelumAbsen,
+            'prevDateLabel' => $prevWorkingDate->translatedFormat('d M'),
+            'currentDateLabel' => $filterDate->translatedFormat('d M'),
             'barChartLabels' => $barChartLabels,
-            'barChartData' => $barChartData,
+            'barChartDataCurrent' => $barChartDataCurrent,
+            'barChartDataPrev' => $barChartDataPrev,
             'lineChartLabels' => $trendDates,
             'lineChartData' => $trendData,
             'detailBelumAbsen' => $detailBelumAbsen,

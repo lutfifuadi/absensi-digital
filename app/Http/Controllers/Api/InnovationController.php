@@ -24,6 +24,7 @@ use App\Models\ReminderSettings;
 use App\Models\Pengaturan;
 use App\Services\WhatsAppService;
 use App\Services\EkskulAbsensiService;
+use App\Services\GamifikasiRekapService;
 use App\Models\EkskulAbsensi;
 use App\Models\EkskulAnggota;
 use Illuminate\Http\Request;
@@ -32,6 +33,20 @@ use Illuminate\Support\Facades\DB;
 
 class InnovationController extends Controller
 {
+    protected $waService;
+    protected $ekskulService;
+    protected $rekapService;
+
+    public function __construct(
+        WhatsAppService $waService,
+        EkskulAbsensiService $ekskulService,
+        GamifikasiRekapService $rekapService
+    ) {
+        $this->waService = $waService;
+        $this->ekskulService = $ekskulService;
+        $this->rekapService = $rekapService;
+    }
+
     public function getNotificationTemplates()
     {
         $templates = NotificationTemplate::all();
@@ -501,6 +516,36 @@ class InnovationController extends Controller
             TahunAkademik::where('is_aktif', true)->first()?->id);
 
         $limit = (int) $request->get('limit', 20);
+        $periode = $request->get('periode', 'semester');
+
+        if (in_array($periode, ['minggu', 'bulan', 'semester'])) {
+            $rekap = $this->rekapService->getRekapSiswa([
+                'tahun_akademik_id' => $taId,
+                'periode'           => $periode,
+            ]);
+
+            // Filter dan urutkan ranking berdasarkan periode
+            $data = $rekap->take($limit)->values()->map(function ($item, $index) {
+                $siswaModel = Siswa::with(['kelas', 'studentBadges.badge'])->find($item['siswa_id']);
+                return [
+                    'id'               => $item['siswa_id'],
+                    'siswa_id'         => $item['siswa_id'],
+                    'rank'             => $index + 1,
+                    'score'            => $item['skor'],
+                    'total_attendance' => $item['total_absensi'],
+                    'total_present'    => $item['total_hadir'] + $item['total_terlambat'],
+                    'siswa'            => [
+                        'id'             => $item['siswa_id'],
+                        'nama_lengkap'   => $item['nama_lengkap'],
+                        'nis'            => $item['nis'],
+                        'kelas'          => $item['kelas'],
+                        'student_badges' => $siswaModel ? $siswaModel->studentBadges : [],
+                    ],
+                ];
+            });
+
+            return response()->json(['success' => true, 'periode' => $periode, 'data' => $data]);
+        }
 
         $leaderboard = StudentLeaderboard::with(['siswa.kelas', 'siswa.studentBadges.badge'])
             ->where('tahun_akademik_id', $taId)
@@ -508,7 +553,7 @@ class InnovationController extends Controller
             ->limit($limit)
             ->get();
 
-        return response()->json(['success' => true, 'data' => $leaderboard]);
+        return response()->json(['success' => true, 'periode' => 'semua', 'data' => $leaderboard]);
     }
 
     public function queueOfflineEvent(Request $request)
