@@ -147,18 +147,6 @@
       ]
     },
     {
-      "name": "Penugasan Guru",
-      "icon": "menu-icon ti tabler-book-upload",
-      "slug": "admin.assignments.index",
-      "url": "/admin/assignments"
-    },
-    {
-      "name": "Ekstrakurikuler",
-      "icon": "menu-icon ti tabler-star",
-      "slug": "admin.ekskul",
-      "url": "/admin/ekskul"
-    },
-    {
       "name": "Cetak Kartu",
       "icon": "menu-icon ti tabler-id",
       "slug": [
@@ -279,7 +267,8 @@
       "slug": [
         "admin.kegiatans.absensi",
         "admin.absensi-kegiatan.scan",
-        "admin.absensi-kegiatan.rekap"
+        "admin.absensi-kegiatan.rekap",
+        "admin.ekskul"
       ],
       "submenu": [
         {
@@ -296,6 +285,12 @@
           "name": "Rekap Scan",
           "slug": "admin.absensi-kegiatan.rekap",
           "url": "/admin/absensi-kegiatan/rekap"
+        },
+        {
+          "name": "Ekstrakurikuler",
+          "icon": "menu-icon ti tabler-star",
+          "slug": "admin.ekskul",
+          "url": "/admin/ekskul"
         }
       ]
     },
@@ -319,6 +314,12 @@
           "url": "/admin/leave-limits"
         }
       ]
+    },
+    {
+      "name": "Penugasan Guru",
+      "icon": "menu-icon ti tabler-book-upload",
+      "slug": "admin.assignments.index",
+      "url": "/admin/assignments"
     },
     {
       "menuHeader": "Evaluasi Siswa"
