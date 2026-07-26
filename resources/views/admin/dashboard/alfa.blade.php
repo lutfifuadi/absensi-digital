@@ -364,8 +364,8 @@
         <div class="das-panel__body">
             <div class="alfa-chart-wrap position-relative" style="min-height:300px;">
                 {{-- Loading spinner --}}
-                <div id="historisChartLoading" class="d-flex align-items-center justify-content-center"
-                    style="position:absolute;inset:0;z-index:10;background:rgba(15,23,42,0.6);border-radius:8px;">
+                <div id="historisChartLoading" class="align-items-center justify-content-center"
+                    style="position:absolute;inset:0;z-index:10;background:rgba(15,23,42,0.6);border-radius:8px;display:flex;">
                     <div class="text-center text-white-50">
                         <div class="spinner-border spinner-border-sm mb-2 text-info" role="status"></div>
                         <div class="small">Memuat data...</div>
@@ -826,7 +826,8 @@
             const kelasId   = document.getElementById('historisKelasFilter').value;
             const tingkat   = document.getElementById('historisTingkatFilter').value;
 
-            loading.style.display = 'flex';
+            loading.style.display = 'flex'; // show spinner
+            loading.classList.remove('d-none');
 
             const params = new URLSearchParams({ period: historisPeriod });
             if (kelasId)  params.set('kelas_id', kelasId);
@@ -835,14 +836,18 @@
             fetch(`${historisChartUrl}?${params.toString()}`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
             .then(json => {
-                loading.style.display = 'none';
+                loading.style.display = 'none'; // hide spinner
                 buildHistorisChart(json.labels, json.data);
                 document.getElementById('historisPeriodChip').textContent = periodLabels[historisPeriod] || historisPeriod;
             })
-            .catch(() => {
-                loading.style.display = 'none';
+            .catch((err) => {
+                console.error('[HistorisChart] fetch error:', err);
+                loading.style.display = 'none'; // hide spinner
                 document.getElementById('historisChart').innerHTML =
                     '<div class="alfa-empty-chart"><i class="ti tabler-alert-circle" style="font-size:2rem;color:#ff9f43;"></i><span class="small text-warning mt-1">Gagal memuat data grafik.</span></div>';
             });
