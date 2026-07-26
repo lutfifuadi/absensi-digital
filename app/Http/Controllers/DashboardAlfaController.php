@@ -273,7 +273,7 @@ class DashboardAlfaController extends Controller
                     return $b['belum_prev'] <=> $a['belum_prev'];
                 }
                 return strcmp($a['nama'], $b['nama']);
-            })->take(10)->values();
+            })->values();
         };
 
         // Data Per Tingkatan
