@@ -46,6 +46,8 @@ yarn-error.log
 /source-absensi.zip
 /scratch/
 /public/hot
+/public/build
+
 .agents/
 .planning/
 .prd/
