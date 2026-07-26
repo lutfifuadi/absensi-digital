@@ -339,7 +339,7 @@ class DashboardAlfaController extends Controller
         // ══════════════════════════════════════════════════════════
         // 5. Detail Tabel: Daftar Siswa yang Belum Absen
         // ══════════════════════════════════════════════════════════
-        $queryDetail = Siswa::with(['kelas'])
+        $queryDetail = Siswa::with(['kelas.waliKelas'])
             ->where('status', 'aktif');
 
         if ($filterKelas) {

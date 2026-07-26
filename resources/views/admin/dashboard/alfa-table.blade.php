@@ -3,10 +3,9 @@
         <thead>
             <tr>
                 <th>No</th>
-                <th>NIS</th>
                 <th>Nama Lengkap</th>
                 <th>Kelas</th>
-                <th>No. HP Orang Tua</th>
+                <th>Wali Kelas</th>
                 <th class="text-center">Aksi</th>
             </tr>
         </thead>
@@ -14,7 +13,6 @@
             @forelse($detailBelumAbsen as $index => $siswa)
             <tr class="alfa-row-hover">
                 <td>{{ $detailBelumAbsen->firstItem() + $index }}</td>
-                <td class="fw-semibold text-white">{{ $siswa->nis ?? '-' }}</td>
                 <td>
                     <div class="d-flex align-items-center gap-2">
                         <div class="alfa-avatar">
@@ -29,7 +27,7 @@
                     </span>
                 </td>
                 <td class="text-white-50">
-                    {{ $siswa->no_hp_ortu ?? '-' }}
+                    {{ $siswa->kelas->waliKelas->nama ?? '-' }}
                 </td>
                 <td class="text-center">
                     @php
@@ -48,7 +46,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="6" class="text-center py-5">
+                <td colspan="5" class="text-center py-5">
                     <div class="d-flex flex-column align-items-center justify-content-center gap-2">
                         <i class="ti tabler-user-check" style="font-size: 2.5rem; color: rgba(40,199,111,0.3);"></i>
                         <p class="text-muted small mb-0">Semua siswa sudah absen. Tidak ada yang perlu ditindaklanjuti.</p>
