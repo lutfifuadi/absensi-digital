@@ -247,7 +247,7 @@ class DashboardAlfaController extends Controller
             // Jika tanggal filter akhir adalah hari libur, tabel kosongkan (karena tidak ada kewajiban absen)
             $queryDetail->whereRaw('1 = 0');
         } else {
-            $siswaSudahAbsen = AbsensiSiswa::whereBetween('tanggal', [$filterTanggalMulai, $filterTanggalAkhir])
+            $siswaSudahAbsen = AbsensiSiswa::where('tanggal', $filterTanggalAkhir)
                 ->pluck('siswa_id')
                 ->unique();
 
