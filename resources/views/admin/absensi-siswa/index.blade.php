@@ -114,7 +114,50 @@
       opacity: 0.35;
       pointer-events: none;
     }
+
+    /* ── SWEETALERT2 CUSTOM PREMIUM (das-swal) ── */
+    .das-swal-popup {
+      background: rgba(26, 26, 46, 0.95) !important;
+      backdrop-filter: blur(16px) saturate(180%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-radius: 5px !important;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    }
+    .das-swal-title {
+      color: #fff !important;
+      font-weight: 700 !important;
+      font-size: 1.5rem !important;
+      text-align: center !important;
+      width: 100% !important;
+      max-width: none !important;
+      max-inline-size: none !important;
+    }
+    .das-swal-html {
+      color: rgba(255, 255, 255, 0.7) !important;
+      font-size: 0.95rem !important;
+    }
+    .das-swal-confirm {
+      padding: 10px 24px !important;
+      font-weight: 600 !important;
+      border-radius: 5px !important;
+      font-size: 0.875rem !important;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .das-swal-cancel {
+      padding: 10px 24px !important;
+      font-weight: 600 !important;
+      border-radius: 5px !important;
+      font-size: 0.875rem !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+      color: #fff !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    .das-swal-icon {
+      border-color: rgba(255, 255, 255, 0.1) !important;
+    }
   </style>
+  @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
 @endsection
 
 @section('content')
@@ -302,6 +345,8 @@
   </div>
 @endsection
 
+@vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.js'])
+
 @section('page-script')
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -442,73 +487,123 @@
             currentSortBy = sortBy;
             currentSortDir = 'asc';
           }
-      // Trigger Auto Alpha
+          fetchData(1);
+        }
+      });
+
+      // ── Trigger Auto Alpha ──────────────────────────────────────────────
       const btnAutoAlpha = document.getElementById('btnTriggerAutoAlpha');
       if (btnAutoAlpha) {
         btnAutoAlpha.addEventListener('click', function() {
-          if (typeof Swal !== 'undefined') {
-            Swal.fire({
-              title: 'Jalankan Auto Alpha?',
-              text: 'Sistem akan secara otomatis menandai status ALPHA bagi siswa aktif yang belum melakukan absensi masuk sampai batas waktu.',
-              icon: 'warning',
-              showCancelButton: true,
-              confirmButtonColor: '#ea5455',
-              cancelButtonColor: '#82868b',
-              confirmButtonText: 'Ya, Jalankan!',
-              cancelButtonText: 'Batal'
-            }).then((result) => {
-              if (result.isConfirmed) {
-                Swal.fire({
-                  title: 'Memproses Auto Alpha...',
-                  text: 'Mohon tunggu sebentar',
-                  allowOutsideClick: false,
-                  didOpen: () => { Swal.showLoading(); }
-                });
+          Swal.fire({
+            title: 'Jalankan Auto Alpha?',
+            html: `<div class="mt-2">Sistem akan menandai status <b class="text-danger">ALPHA</b> secara otomatis bagi semua siswa aktif yang <b>belum melakukan absensi masuk</b> sampai batas waktu yang ditentukan.</div>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: '<i class="ti tabler-robot me-1"></i> Ya, Jalankan!',
+            cancelButtonText: 'Batalkan',
+            customClass: {
+              popup: 'das-swal-popup',
+              title: 'das-swal-title',
+              htmlContainer: 'das-swal-html',
+              confirmButton: 'btn btn-danger das-swal-confirm me-2',
+              cancelButton: 'btn das-swal-cancel',
+              icon: 'das-swal-icon'
+            },
+            buttonsStyling: false,
+            reverseButtons: true,
+            showClass: {
+              popup: 'animate__animated animate__fadeInUp animate__faster'
+            },
+            hideClass: {
+              popup: 'animate__animated animate__fadeOutDown animate__faster'
+            },
+            background: 'transparent',
+            backdrop: 'rgba(0,0,10,0.4)',
+          }).then((result) => {
+            if (!result.isConfirmed) return;
 
-                fetch('{{ route("admin.absensi-siswa.auto-alpha") }}', {
-                  method: 'POST',
-                  headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                  }
-                })
-                .then(res => res.json())
-                .then(data => {
-                  if (data.success) {
-                    Swal.fire({
-                      title: 'Berhasil!',
-                      text: data.message,
-                      icon: 'success'
-                    }).then(() => {
-                      location.reload();
-                    });
-                  } else {
-                    Swal.fire('Info', data.message || 'Proses selesai.', 'info');
-                  }
-                })
-                .catch(err => {
-                  Swal.fire('Error', 'Gagal memproses Auto Alpha.', 'error');
+            btnAutoAlpha.disabled = true;
+
+            Swal.fire({
+              title: 'Memproses Auto Alpha...',
+              html: '<div class="mt-1">Mohon tunggu sebentar</div>',
+              allowOutsideClick: false,
+              customClass: {
+                popup: 'das-swal-popup',
+                title: 'das-swal-title',
+                htmlContainer: 'das-swal-html',
+              },
+              background: 'transparent',
+              didOpen: () => { Swal.showLoading(); }
+            });
+
+            fetch('{{ route("admin.absensi-siswa.auto-alpha") }}', {
+              method: 'POST',
+              headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              }
+            })
+            .then(res => res.json())
+            .then(data => {
+              btnAutoAlpha.disabled = false;
+              if (data.success) {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Berhasil!',
+                  text: data.message,
+                  customClass: {
+                    popup: 'das-swal-popup',
+                    title: 'das-swal-title',
+                    htmlContainer: 'das-swal-html',
+                    confirmButton: 'btn btn-success das-swal-confirm'
+                  },
+                  buttonsStyling: false,
+                  timer: 2500,
+                  showConfirmButton: false,
+                  background: 'transparent',
+                }).then(() => { location.reload(); });
+              } else {
+                Swal.fire({
+                  icon: 'info',
+                  title: 'Info',
+                  text: data.message || 'Proses selesai.',
+                  customClass: {
+                    popup: 'das-swal-popup',
+                    title: 'das-swal-title',
+                    htmlContainer: 'das-swal-html',
+                    confirmButton: 'btn btn-primary das-swal-confirm'
+                  },
+                  buttonsStyling: false,
+                  background: 'transparent',
                 });
               }
-            });
-          } else {
-            if (confirm('Jalankan Auto Alpha bagi siswa yang belum absen masuk sampai batas waktu?')) {
-              fetch('{{ route("admin.absensi-siswa.auto-alpha") }}', {
-                method: 'POST',
-                headers: {
-                  'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json'
-                }
-              })
-              .then(res => res.json())
-              .then(data => {
-                alert(data.message);
-                location.reload();
+            })
+            .catch(() => {
+              btnAutoAlpha.disabled = false;
+              Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: 'Terjadi kesalahan saat memproses Auto Alpha.',
+                customClass: {
+                  popup: 'das-swal-popup',
+                  title: 'das-swal-title',
+                  htmlContainer: 'das-swal-html',
+                  confirmButton: 'btn btn-primary das-swal-confirm'
+                },
+                showClass: {
+                  popup: 'animate__animated animate__shakeX animate__faster'
+                },
+                hideClass: {
+                  popup: 'animate__animated animate__fadeOut animate__faster'
+                },
+                buttonsStyling: false,
+                background: 'transparent',
               });
-            }
-          }
+            });
+          });
         });
       }
     });
@@ -523,3 +618,4 @@
     }
   </script>
 @endsection
+
