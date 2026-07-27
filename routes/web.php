@@ -842,6 +842,9 @@ Route::middleware([
         Route::post('absensi-cepat', [AbsensiSiswaController::class, 'bulkStore'])
             ->name('admin.absensi-cepat.store')
             ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator');
+        Route::post('absensi-siswa/auto-alpha', [AbsensiSiswaController::class, 'triggerAutoAlpha'])
+            ->name('admin.absensi-siswa.auto-alpha')
+            ->middleware('role:super_admin,admin_sekolah,operator,wali_kelas');
 
         Route::resource('absensi-siswa', AbsensiSiswaController::class)
             ->names('admin.absensi-siswa')
@@ -1378,6 +1381,7 @@ Route::middleware([
         });
     });
 });
+
 
 
 

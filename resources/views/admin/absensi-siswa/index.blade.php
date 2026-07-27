@@ -147,10 +147,13 @@
 
       @if(!$isWaliKelas)
       <div class="das-hero__actions">
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-wrap">
           <a href="{{ route('admin.absensi-siswa.scan') }}" class="das-btn das-btn--success">
             <i class="ti tabler-qrcode me-1"></i> Mode Scanner
           </a>
+          <button type="button" id="btnTriggerAutoAlpha" class="das-btn das-btn--danger">
+            <i class="ti tabler-robot me-1"></i> Auto Alpha
+          </button>
           <a href="{{ route('admin.absensi-siswa.create') }}" class="das-btn das-btn--primary">
             <i class="ti tabler-plus me-1"></i> Input Manual
           </a>
@@ -439,9 +442,75 @@
             currentSortBy = sortBy;
             currentSortDir = 'asc';
           }
-          fetchData(1);
-        }
-      });
+      // Trigger Auto Alpha
+      const btnAutoAlpha = document.getElementById('btnTriggerAutoAlpha');
+      if (btnAutoAlpha) {
+        btnAutoAlpha.addEventListener('click', function() {
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              title: 'Jalankan Auto Alpha?',
+              text: 'Sistem akan secara otomatis menandai status ALPHA bagi siswa aktif yang belum melakukan absensi masuk sampai batas waktu.',
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#ea5455',
+              cancelButtonColor: '#82868b',
+              confirmButtonText: 'Ya, Jalankan!',
+              cancelButtonText: 'Batal'
+            }).then((result) => {
+              if (result.isConfirmed) {
+                Swal.fire({
+                  title: 'Memproses Auto Alpha...',
+                  text: 'Mohon tunggu sebentar',
+                  allowOutsideClick: false,
+                  didOpen: () => { Swal.showLoading(); }
+                });
+
+                fetch('{{ route("admin.absensi-siswa.auto-alpha") }}', {
+                  method: 'POST',
+                  headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                  }
+                })
+                .then(res => res.json())
+                .then(data => {
+                  if (data.success) {
+                    Swal.fire({
+                      title: 'Berhasil!',
+                      text: data.message,
+                      icon: 'success'
+                    }).then(() => {
+                      location.reload();
+                    });
+                  } else {
+                    Swal.fire('Info', data.message || 'Proses selesai.', 'info');
+                  }
+                })
+                .catch(err => {
+                  Swal.fire('Error', 'Gagal memproses Auto Alpha.', 'error');
+                });
+              }
+            });
+          } else {
+            if (confirm('Jalankan Auto Alpha bagi siswa yang belum absen masuk sampai batas waktu?')) {
+              fetch('{{ route("admin.absensi-siswa.auto-alpha") }}', {
+                method: 'POST',
+                headers: {
+                  'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+                }
+              })
+              .then(res => res.json())
+              .then(data => {
+                alert(data.message);
+                location.reload();
+              });
+            }
+          }
+        });
+      }
     });
 
     function confirmDelete(actionUrl, siswaName, tanggal) {

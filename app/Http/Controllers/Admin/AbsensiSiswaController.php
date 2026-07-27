@@ -605,4 +605,27 @@ class AbsensiSiswaController extends Controller
         return redirect()->route('wali-kelas.belum-absen', ['tanggal' => $data['tanggal']])
             ->with('success', 'Absensi berhasil disimpan secara manual.');
     }
+
+    /**
+     * Pemicu manual Auto Alpha untuk siswa yang belum absen hingga batas waktu.
+     */
+    public function triggerAutoAlpha(Request $request)
+    {
+        try {
+            \Illuminate\Support\Facades\Artisan::call('absensi:auto-alpha');
+            $output = \Illuminate\Support\Facades\Artisan::output();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Proses Auto Alpha berhasil dijalankan! Siswa yang belum absen masuk sampai batas waktu telah ditandai Alpha.',
+                'output' => $output
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('AbsensiSiswaController: Gagal trigger Auto Alpha - ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menjalankan Auto Alpha: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
