@@ -479,17 +479,17 @@
 {{-- Custom Alert/Confirm Modal --}}
 <div class="modal fade" id="modalCustomAlert" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
-    <div class="modal-content" style="background: linear-gradient(145deg, #0f1729 0%, #1a2545 60%, #1e2d50 100%); border: 1px solid rgba(115,103,240,0.25); border-radius: 20px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.5);">
+    <div class="modal-content" style="background: linear-gradient(145deg, #0f1729 0%, #1a2545 60%, #1e2d50 100%); border: 1px solid rgba(115,103,240,0.25); border-radius: 8px !important; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.5);">
 
       {{-- Decorative top accent bar --}}
       <div id="custom-alert-accent-bar" style="height: 4px; width: 100%; background: linear-gradient(90deg, #7367f0, #9e95f5);"></div>
 
       <div class="modal-body p-0">
-        <div class="text-center p-5 pb-4">
+        <div class="text-center p-4 p-md-5 pb-4">
 
           {{-- Icon circle --}}
           <div id="custom-alert-icon-container" style="
-            width: 80px; height: 80px; border-radius: 50%;
+            width: 76px; height: 76px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             margin: 0 auto 20px;
             background: rgba(115,103,240,0.15);
@@ -500,10 +500,10 @@
           </div>
 
           {{-- Title --}}
-          <h4 id="custom-alert-title" class="fw-bold mb-2" style="color: #fff; font-size: 1.3rem;">Informasi</h4>
+          <h4 id="custom-alert-title" class="fw-bold mb-2" style="color: #fff; font-size: 1.25rem;">Informasi</h4>
 
           {{-- Message --}}
-          <div id="custom-alert-message" class="mb-0" style="color: rgba(255,255,255,0.65); font-size: 0.925rem; line-height: 1.6;"></div>
+          <div id="custom-alert-message" class="mb-0" style="color: rgba(255,255,255,0.7); font-size: 0.9rem; line-height: 1.6;"></div>
 
         </div>
 
@@ -511,14 +511,14 @@
         <div style="height: 1px; background: rgba(255,255,255,0.07); margin: 0 1.5rem;"></div>
 
         {{-- Actions --}}
-        <div class="d-flex gap-2 p-4 pt-3">
+        <div class="d-flex align-items-center gap-2.5 p-4 pt-3">
           <button type="button" id="custom-alert-cancel"
-            style="display:none; flex:1; padding: 10px 0; border-radius: 10px; font-weight: 600; font-size: 0.9rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.7); transition: all 0.2s;"
-            onmouseover="this.style.background='rgba(255,255,255,0.1)'"
-            onmouseout="this.style.background='rgba(255,255,255,0.06)'"
+            style="display:none; flex:1; height: 42px; padding: 0 1.25rem; align-items: center; justify-content: center; border-radius: 4px !important; font-weight: 600; font-size: 0.875rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; transition: all 0.2s ease;"
+            onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.color='#ffffff';"
+            onmouseout="this.style.background='rgba(255,255,255,0.06)';this.style.color='#cbd5e1';"
             data-bs-dismiss="modal">Batal</button>
           <button type="button" id="custom-alert-confirm"
-            style="flex:1; padding: 10px 0; border-radius: 10px; font-weight: 600; font-size: 0.9rem; background: linear-gradient(135deg,#7367f0,#9e95f5); border: none; color: #fff; box-shadow: 0 4px 15px rgba(115,103,240,0.35); transition: all 0.2s;"
+            style="flex:1; height: 42px; padding: 0 1.25rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px !important; font-weight: 600; font-size: 0.875rem; background: linear-gradient(135deg,#7367f0,#9e95f5); border: none; color: #fff; box-shadow: 0 4px 15px rgba(115,103,240,0.35); transition: all 0.2s ease;"
             onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 20px rgba(115,103,240,0.5)'"
             onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(115,103,240,0.35)'">OK</button>
         </div>
@@ -582,7 +582,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Cancel button
     if (options.type === 'confirm') {
-      btnCancel.style.display = 'flex';
+      btnCancel.style.display = 'inline-flex';
+      btnCancel.style.alignItems = 'center';
+      btnCancel.style.justifyContent = 'center';
       btnCancel.innerHTML = options.cancelText || 'Batal';
     } else {
       btnCancel.style.display = 'none';
