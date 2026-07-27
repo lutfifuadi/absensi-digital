@@ -12,6 +12,36 @@
 
 @section('page-style')
 <style>
+  body, .layout-page, .content-wrapper {
+    background: #0a0e1a !important;
+  }
+
+  /* ── Panel list group styling ── */
+  .list-group-item {
+    background: rgba(255, 255, 255, 0.02) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    transition: all 0.2s ease;
+  }
+  .list-group-item:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+  }
+  .list-group-item.active {
+    background: rgba(234, 84, 85, 0.15) !important;
+    border-color: rgba(234, 84, 85, 0.3) !important;
+    color: #ffffff !important;
+  }
+  .list-group-item.active .text-muted {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+
+  /* ── Dot style for danger ── */
+  .das-panel__icon-dot.--danger {
+    background: #ea5455;
+    box-shadow: 0 0 6px #ea5455;
+  }
+
   /* Premium Border Radius Constraint (Max 5px, custom request: border-radius 4px) */
   .rounded-2, .form-control, .form-select, .btn, .card, .modal-content, .alert, .badge {
     border-radius: 4px !important;
@@ -204,44 +234,46 @@
 @endsection
 
 @section('content')
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card border-0 text-white overflow-hidden shadow-sm"
-            style="background: linear-gradient(135deg, #7367f0 0%, #4338ca 100%); border-radius: 4px !important;">
-            <div class="card-body p-4">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="rounded d-flex align-items-center justify-content-center shadow-sm"
-                            style="width:52px;height:52px;border-radius:4px !important;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);">
-                            <i class="ti tabler-message-dots text-white fs-3"></i>
-                        </div>
-                        <div>
-                            <nav aria-label="breadcrumb">
-                                <ol class="breadcrumb mb-1" style="font-size:0.72rem;opacity:0.8;">
-                                    <li class="breadcrumb-item"><a href="{{ route('siswa.dashboard') }}"
-                                             class="text-white text-decoration-none">Dashboard</a></li>
-                                    <li class="breadcrumb-item active text-white" aria-current="page">Layanan Pengaduan</li>
-                                </ol>
-                            </nav>
-                            <h4 class="mb-0 text-white fw-bold" style="letter-spacing:-0.5px;">Portal Layanan Pengaduan Transparan</h4>
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-warning fw-bold text-white shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCreatePengaduan">
-                        <i class="ti tabler-plus me-1"></i> Buat Pengaduan Baru
-                    </button>
-                </div>
-            </div>
+<div class="das-hero mb-4">
+  <div class="das-hero__bg"></div>
+  <div class="das-hero__glass"></div>
+  <div class="das-hero__grid-lines"></div>
+
+  <div class="das-hero__inner">
+    <div class="das-hero__identity">
+      <div class="das-hero__logo-wrapper">
+        <div class="das-hero__logo-placeholder" style="width:64px;height:64px;border-radius:5px;display:flex;align-items:center;justify-content:center;background:rgba(234,84,85,0.1);border:2px solid rgba(234,84,85,0.25);">
+          <i class="ti tabler-flag" style="font-size:1.6rem;color:#ea5455;"></i>
         </div>
+        <div class="das-hero__logo-glow"></div>
+      </div>
+      <div class="das-hero__meta">
+        <div class="das-hero__badge">
+          <span class="pulse-dot" style="background:#ea5455;"></span>
+          Layanan Pengaduan
+        </div>
+        <h4 class="das-hero__title text-gradient-gold">Pengaduan Transparan</h4>
+        <p class="das-hero__subtitle">Laporkan ketidakvalidan data presensi Anda secara langsung, mudah, dan transparan.</p>
+      </div>
     </div>
+    <div class="das-hero__actions">
+      <button type="button" class="btn btn-warning fw-bold text-white shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCreatePengaduan">
+        <i class="ti tabler-plus me-1"></i> Buat Pengaduan Baru
+      </button>
+    </div>
+  </div>
 </div>
 
 <div class="row">
   <div class="col-md-5">
-    <div class="card mb-4">
-      <div class="card-header pb-2">
-        <h5 class="card-title mb-0">Daftar Pengaduan Saya</h5>
+    <div class="das-panel mb-4">
+      <div class="das-panel__head">
+        <div class="das-panel__title mb-0">
+          <span class="das-panel__icon-dot --danger"></span>
+          Daftar Pengaduan Saya
+        </div>
       </div>
-      <div class="card-body">
+      <div class="das-panel__body">
         <div class="list-group list-group-flush">
           @forelse($pengaduanList as $p)
             @php
@@ -272,17 +304,17 @@
 
   <div class="col-md-7">
     @if($activePengaduan)
-      <div class="card">
-        <div class="card-header border-bottom">
-          <div class="d-flex justify-content-between align-items-start">
+      <div class="das-panel mb-4">
+        <div class="das-panel__head">
+          <div class="d-flex justify-content-between align-items-start w-100">
             <div>
               <span class="text-muted font-monospace small">#{{ $activePengaduan->kode_unik }}</span>
-              <h5 class="mb-0 fw-bold">{{ $activePengaduan->kategori }}</h5>
+              <h5 class="mb-0 fw-bold text-white">{{ $activePengaduan->kategori }}</h5>
             </div>
             <span class="badge bg-label-{{ $activePengaduan->status_color }}">{{ strtoupper($activePengaduan->status_label) }}</span>
           </div>
         </div>
-        <div class="card-body pt-4">
+        <div class="das-panel__body pt-4">
           <!-- Detail deskripsi pengaduan -->
           <div class="mb-4 p-3 bg-light rounded text-dark" style="background-color: rgba(255,255,255,0.03) !important; border: 1px solid rgba(255,255,255,0.08);">
             <h6 class="fw-bold text-white mb-2">Deskripsi Pengaduan:</h6>
@@ -333,8 +365,8 @@
         </div>
       </div>
     @else
-      <div class="card">
-        <div class="card-body text-center py-5">
+      <div class="das-panel mb-4">
+        <div class="das-panel__body text-center py-5">
           <div class="avatar avatar-lg mx-auto mb-3 bg-label-secondary" style="width: 80px; height: 80px;">
             <i class="ti tabler-message-dots fs-1"></i>
           </div>
