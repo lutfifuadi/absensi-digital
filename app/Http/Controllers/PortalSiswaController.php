@@ -276,4 +276,154 @@ class PortalSiswaController extends Controller
             'siswa', 'namaSekolah', 'logoSekolah', 'qrImage', 'tahunAkademik'
         ));
     }
+
+    public function absensi(Request $request)
+    {
+        $user = Auth::user();
+        if ($user->role !== 'siswa') {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $siswa = Siswa::where('user_id', $user->id)->firstOrFail();
+
+        $filter = $request->query('filter', 'monthly');
+        $month = $request->query('month', now()->month);
+        $year = $request->query('year', now()->year);
+        $semester = $request->query('semester', '');
+
+        $query = \App\Models\AbsensiSiswa::where('siswa_id', $siswa->id);
+
+        switch ($filter) {
+            case 'weekly':
+                $startOfWeek = now()->startOfWeek(\Carbon\Carbon::MONDAY)->format('Y-m-d');
+                $endOfWeek = now()->endOfWeek(\Carbon\Carbon::SUNDAY)->format('Y-m-d');
+                $query->whereBetween('tanggal', [$startOfWeek, $endOfWeek]);
+                break;
+
+            case 'semester':
+                if ($semester === 'ganjil') {
+                    $query->whereMonth('tanggal', '>=', 7)
+                          ->whereMonth('tanggal', '<=', 12);
+                } else {
+                    $query->whereMonth('tanggal', '>=', 1)
+                          ->whereMonth('tanggal', '<=', 6);
+                }
+                $query->whereYear('tanggal', $year);
+                break;
+
+            case 'yearly':
+                $query->whereYear('tanggal', $year);
+                break;
+
+            case 'monthly':
+            default:
+                $query->whereMonth('tanggal', $month)
+                      ->whereYear('tanggal', $year);
+                break;
+        }
+
+        $absensi = $query->orderBy('tanggal', 'asc')->get();
+
+        return view('siswa.absensi', compact('siswa', 'absensi', 'month', 'year', 'filter', 'semester'));
+    }
+
+    public function absensiJson(Request $request)
+    {
+        $user = Auth::user();
+        if ($user->role !== 'siswa') {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $siswa = Siswa::where('user_id', $user->id)->firstOrFail();
+
+        $filter = $request->query('filter', 'monthly');
+        $month = $request->query('month', now()->month);
+        $year = $request->query('year', now()->year);
+        $semester = $request->query('semester', '');
+
+        $query = \App\Models\AbsensiSiswa::where('siswa_id', $siswa->id);
+
+        switch ($filter) {
+            case 'weekly':
+                $startOfWeek = now()->startOfWeek(\Carbon\Carbon::MONDAY)->format('Y-m-d');
+                $endOfWeek = now()->endOfWeek(\Carbon\Carbon::SUNDAY)->format('Y-m-d');
+                $query->whereBetween('tanggal', [$startOfWeek, $endOfWeek]);
+                break;
+
+            case 'semester':
+                if ($semester === 'ganjil') {
+                    $query->whereMonth('tanggal', '>=', 7)
+                          ->whereMonth('tanggal', '<=', 12);
+                } else {
+                    $query->whereMonth('tanggal', '>=', 1)
+                          ->whereMonth('tanggal', '<=', 6);
+                }
+                $query->whereYear('tanggal', $year);
+                break;
+
+            case 'yearly':
+                $query->whereYear('tanggal', $year);
+                break;
+
+            case 'monthly':
+            default:
+                $query->whereMonth('tanggal', $month)
+                      ->whereYear('tanggal', $year);
+                break;
+        }
+
+        $absensi = $query->orderBy('tanggal', 'asc')->get();
+
+        $dataAbsensi = $absensi->map(function ($item) {
+            $statusBadge = match ($item->status) {
+                'hadir' => 'bg-label-success',
+                'terlambat' => 'bg-label-warning',
+                'sakit' => 'bg-label-info',
+                'izin' => 'bg-label-primary',
+                'alpha' => 'bg-label-danger',
+                default => 'bg-label-secondary',
+            };
+
+            $statusText = match ($item->status) {
+                'hadir' => 'Hadir',
+                'terlambat' => 'Terlambat',
+                'sakit' => 'Sakit',
+                'izin' => 'Izin',
+                'alpha' => 'Alpha',
+                default => ucfirst($item->status ?? '-'),
+            };
+
+            $metodeIcon = match ($item->metode) {
+                'mandiri' => '<i class="ti tabler-gps me-1"></i> GPS Mandiri',
+                'qr' => '<i class="ti tabler-qrcode me-1"></i> Scan QR',
+                'manual' => '<i class="ti tabler-edit me-1"></i> Manual',
+                default => '<i class="ti tabler-help-circle me-1"></i> ' . ucfirst($item->metode ?? '—'),
+            };
+
+            return [
+                'tanggal' => \Carbon\Carbon::parse($item->tanggal)->locale('id')->translatedFormat('d M Y'),
+                'tanggal_raw' => $item->tanggal,
+                'jam_masuk' => $item->jam_masuk ? \Carbon\Carbon::parse($item->jam_masuk)->format('H:i') : '-',
+                'jam_pulang' => $item->jam_pulang ? \Carbon\Carbon::parse($item->jam_pulang)->format('H:i') : '-',
+                'status' => $item->status,
+                'status_badge' => $statusBadge,
+                'status_text' => $statusText,
+                'metode' => $item->metode ?? '-',
+                'metode_icon' => $metodeIcon,
+            ];
+        });
+
+        return response()->json([
+            'siswa' => [
+                'id' => $siswa->id,
+                'nama_lengkap' => $siswa->nama_lengkap,
+                'kelas' => $siswa->kelas ? $siswa->kelas->nama : null,
+            ],
+            'absensi' => $dataAbsensi,
+            'filter' => $filter,
+            'month' => $month,
+            'year' => $year,
+            'semester' => $semester,
+        ]);
+    }
 }

@@ -85,16 +85,152 @@ class PortalOrangTuaController extends Controller
             })
             ->firstOrFail();
 
+        $filter = $request->query('filter', 'monthly');
         $month = $request->query('month', now()->month);
         $year = $request->query('year', now()->year);
+        $semester = $request->query('semester', '');
 
-        $absensi = AbsensiSiswa::where('siswa_id', $anak->id)
-            ->whereMonth('tanggal', $month)
-            ->whereYear('tanggal', $year)
-            ->orderBy('tanggal', 'desc')
-            ->get();
+        $query = AbsensiSiswa::where('siswa_id', $anak->id);
 
-        return view('portal-ortu.absensi-anak', compact('anak', 'absensi', 'month', 'year'));
+        switch ($filter) {
+            case 'weekly':
+                $startOfWeek = now()->startOfWeek(\Carbon\Carbon::MONDAY)->format('Y-m-d');
+                $endOfWeek = now()->endOfWeek(\Carbon\Carbon::SUNDAY)->format('Y-m-d');
+                $query->whereBetween('tanggal', [$startOfWeek, $endOfWeek]);
+                break;
+
+            case 'semester':
+                if ($semester === 'ganjil') {
+                    $query->whereMonth('tanggal', '>=', 7)
+                          ->whereMonth('tanggal', '<=', 12);
+                } else {
+                    $query->whereMonth('tanggal', '>=', 1)
+                          ->whereMonth('tanggal', '<=', 6);
+                }
+                $query->whereYear('tanggal', $year);
+                break;
+
+            case 'yearly':
+                $query->whereYear('tanggal', $year);
+                break;
+
+            case 'monthly':
+            default:
+                $query->whereMonth('tanggal', $month)
+                      ->whereYear('tanggal', $year);
+                break;
+        }
+
+        $absensi = $query->orderBy('tanggal', 'asc')->get();
+
+        return view('portal-ortu.absensi-anak', compact('anak', 'absensi', 'month', 'year', 'filter', 'semester'));
+    }
+
+    /**
+     * Riwayat Absensi Anak — JSON (AJAX).
+     */
+    public function absensiAnakJson(Request $request, $id)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $anak = Siswa::where('id', $id)
+            ->where(function($query) use ($user) {
+                $query->where('ortu_user_id', $user->id)
+                      ->orWhereHas('ortu', function($q) use ($user) {
+                          $q->where('users.id', $user->id);
+                      });
+            })
+            ->firstOrFail();
+
+        $filter = $request->query('filter', 'monthly');
+        $month = $request->query('month', now()->month);
+        $year = $request->query('year', now()->year);
+        $semester = $request->query('semester', '');
+
+        $query = AbsensiSiswa::where('siswa_id', $anak->id);
+
+        switch ($filter) {
+            case 'weekly':
+                $startOfWeek = now()->startOfWeek(\Carbon\Carbon::MONDAY)->format('Y-m-d');
+                $endOfWeek = now()->endOfWeek(\Carbon\Carbon::SUNDAY)->format('Y-m-d');
+                $query->whereBetween('tanggal', [$startOfWeek, $endOfWeek]);
+                break;
+
+            case 'semester':
+                if ($semester === 'ganjil') {
+                    $query->whereMonth('tanggal', '>=', 7)
+                          ->whereMonth('tanggal', '<=', 12);
+                } else {
+                    $query->whereMonth('tanggal', '>=', 1)
+                          ->whereMonth('tanggal', '<=', 6);
+                }
+                $query->whereYear('tanggal', $year);
+                break;
+
+            case 'yearly':
+                $query->whereYear('tanggal', $year);
+                break;
+
+            case 'monthly':
+            default:
+                $query->whereMonth('tanggal', $month)
+                      ->whereYear('tanggal', $year);
+                break;
+        }
+
+        $absensi = $query->orderBy('tanggal', 'asc')->get();
+
+        $dataAbsensi = $absensi->map(function ($item) {
+            $statusBadge = match ($item->status) {
+                'hadir' => 'bg-label-success',
+                'terlambat' => 'bg-label-warning',
+                'sakit' => 'bg-label-info',
+                'izin' => 'bg-label-primary',
+                'alpha' => 'bg-label-danger',
+                default => 'bg-label-secondary',
+            };
+
+            $statusText = match ($item->status) {
+                'hadir' => 'Hadir',
+                'terlambat' => 'Terlambat',
+                'sakit' => 'Sakit',
+                'izin' => 'Izin',
+                'alpha' => 'Alpha',
+                default => ucfirst($item->status ?? '-'),
+            };
+
+            $metodeIcon = match ($item->metode) {
+                'mandiri' => '<i class="ti tabler-gps me-1"></i> GPS Mandiri',
+                'qr' => '<i class="ti tabler-qrcode me-1"></i> Scan QR',
+                'manual' => '<i class="ti tabler-edit me-1"></i> Manual',
+                default => '<i class="ti tabler-help-circle me-1"></i> ' . ucfirst($item->metode ?? '—'),
+            };
+
+            return [
+                'tanggal' => \Carbon\Carbon::parse($item->tanggal)->locale('id')->translatedFormat('d M Y'),
+                'tanggal_raw' => $item->tanggal,
+                'jam_masuk' => $item->jam_masuk ? \Carbon\Carbon::parse($item->jam_masuk)->format('H:i') : '-',
+                'jam_pulang' => $item->jam_pulang ? \Carbon\Carbon::parse($item->jam_pulang)->format('H:i') : '-',
+                'status' => $item->status,
+                'status_badge' => $statusBadge,
+                'status_text' => $statusText,
+                'metode' => $item->metode ?? '-',
+                'metode_icon' => $metodeIcon,
+            ];
+        });
+
+        return response()->json([
+            'anak' => [
+                'id' => $anak->id,
+                'nama_lengkap' => $anak->nama_lengkap,
+                'kelas' => $anak->kelas ? $anak->kelas->nama : null,
+            ],
+            'absensi' => $dataAbsensi,
+            'filter' => $filter,
+            'month' => $month,
+            'year' => $year,
+            'semester' => $semester,
+        ]);
     }
 
     /**

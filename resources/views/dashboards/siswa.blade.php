@@ -617,7 +617,7 @@
           <small class="text-body-secondary">5 Catatan presensi terakhir</small>
         </div>
       </div>
-      <a href="{{ route('siswa.izin-sakit.index') }}" class="btn btn-sm btn-label-secondary">
+      <a href="{{ route('siswa.absensi') }}" class="btn btn-sm btn-label-secondary">
         <i class="ti tabler-external-link me-1"></i> Lihat Semua
       </a>
     </div>
@@ -730,7 +730,7 @@
           <span class="siswa-quick-item__label">Papan Peringkat</span>
         </a>
         {{-- 3. Riwayat Absensi --}}
-        <a href="{{ route('siswa.izin-sakit.index') }}" class="siswa-quick-item siswa-quick-item--info text-decoration-none">
+        <a href="{{ route('siswa.absensi') }}" class="siswa-quick-item siswa-quick-item--info text-decoration-none">
           <span class="siswa-quick-item__icon"><i class="ti tabler-history fs-4"></i></span>
           <span class="siswa-quick-item__label">Riwayat Absensi</span>
         </a>

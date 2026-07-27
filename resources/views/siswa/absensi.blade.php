@@ -1,6 +1,6 @@
 @extends('layouts/layoutMaster')
 
-@section('title', 'Riwayat Absensi - ' . $anak->nama_lengkap)
+@section('title', 'Riwayat Absensi')
 
 @section('page-style')
 <style>
@@ -81,10 +81,10 @@
       <div class="das-hero__meta">
         <div class="das-hero__badge">
           <span class="pulse-dot"></span>
-          Portal Orang Tua
+          Portal Siswa
         </div>
-        <h4 class="das-hero__title text-gradient-gold">Riwayat Absensi Anak</h4>
-        <p class="das-hero__subtitle">Pantau seluruh catatan kehadiran dan tingkat presensi <strong>{{ $anak->nama_lengkap }}</strong> secara real-time.</p>
+        <h4 class="das-hero__title text-gradient-gold">Riwayat Absensi</h4>
+        <p class="das-hero__subtitle">Pantau seluruh catatan kehadiran dan tingkat presensi Anda secara real-time.</p>
       </div>
     </div>
   </div>
@@ -228,6 +228,15 @@ function getBadgeClass(status) {
     return map[status] || 'bg-label-secondary';
 }
 
+function getMetodeIcon(metode) {
+    const map = {
+        mandiri: '<i class="ti tabler-gps me-1"></i> GPS Mandiri',
+        qr: '<i class="ti tabler-qrcode me-1"></i> Scan QR',
+        manual: '<i class="ti tabler-edit me-1"></i> Manual'
+    };
+    return map[metode] || '<i class="ti tabler-help-circle me-1"></i> ' + (metode ? metode.charAt(0).toUpperCase() + metode.slice(1) : '\u2014');
+}
+
 function getEmptyMessage(filter) {
     const map = {
         weekly: 'Tidak ada data absensi minggu ini.',
@@ -255,7 +264,7 @@ async function loadAbsensi() {
     }
 
     try {
-        const response = await fetch('{{ route('ortu.anak.absensi.data', $anak->id) }}?' + params.toString());
+        const response = await fetch('{{ route('siswa.absensi.data') }}?' + params.toString());
         const result = await response.json();
 
         // Handle both { absensi: [...] } and plain [...] response formats
@@ -281,7 +290,7 @@ async function loadAbsensi() {
             const jamPulang = row.jam_pulang || '-';
             const statusText = row.status_text || row.status || '-';
             const statusBadge = row.status_badge || getBadgeClass(row.status);
-            const metode = row.metode ? row.metode.toUpperCase() : '-';
+            const metodeIcon = row.metode_icon || getMetodeIcon(row.metode);
 
             return `
                 <tr>
@@ -291,7 +300,9 @@ async function loadAbsensi() {
                     <td class="text-center">
                         <span class="badge ${statusBadge} px-2.5 py-1 text-uppercase" style="font-size: 0.75rem;">${statusText}</span>
                     </td>
-                    <td><small class="text-muted">${metode}</small></td>
+                    <td>
+                        <span class="small">${metodeIcon}</span>
+                    </td>
                 </tr>
             `;
         }).join('');

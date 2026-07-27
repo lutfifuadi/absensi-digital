@@ -345,7 +345,12 @@ class AbsensiSiswaController extends Controller
                 ? Kelas::where('id', $kelasWaliId)->get() 
                 : collect();
         } else {
-            $kelasOptions = Kelas::orderBy('nama')->get();
+            $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
+            $kelasOptions = Kelas::orderBy('nama');
+            if ($tahunAjaranId) {
+                $kelasOptions->where('tahun_akademik_id', $tahunAjaranId);
+            }
+            $kelasOptions = $kelasOptions->get();
             $selectedKelasId = $request->query('kelas_id');
         }
 

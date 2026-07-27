@@ -207,6 +207,8 @@ Route::middleware([
         Route::get('/download-kartu', [PortalSiswaController::class, 'downloadKartu'])->name('siswa.download-kartu');
         Route::get('/download-kartu-pelepasan', [PortalSiswaController::class, 'downloadKartuPelepasan'])->name('siswa.download-kartu-pelepasan');
         Route::get('/leaderboard', [PortalSiswaController::class, 'leaderboard'])->name('siswa.leaderboard');
+        Route::get('/absensi', [PortalSiswaController::class, 'absensi'])->name('siswa.absensi');
+        Route::get('/absensi/data', [PortalSiswaController::class, 'absensiJson'])->name('siswa.absensi.data');
 
         // Izin & Sakit (Scoped to self in Controller)
         Route::get('/izin-sakit', [IzinSakitController::class, 'index'])->name('siswa.izin-sakit.index');
@@ -303,6 +305,7 @@ Route::middleware([
         Route::post('/switch-anak', [DashboardController::class, 'switchAnak'])->name('ortu.switch-anak');
         Route::get('/anak/{id}/profil', [PortalOrangTuaController::class, 'profilAnak'])->name('ortu.anak.profil');
         Route::get('/anak/{id}/absensi', [PortalOrangTuaController::class, 'absensiAnak'])->name('ortu.anak.absensi');
+        Route::get('/anak/{id}/absensi/data', [PortalOrangTuaController::class, 'absensiAnakJson'])->name('ortu.anak.absensi.data');
 
         Route::get('/izin-sakit', [PortalOrangTuaController::class, 'izinSakit'])->name('ortu.izin-sakit.index');
         Route::get('/izin-sakit/create', [PortalOrangTuaController::class, 'izinSakitCreate'])->name('ortu.izin-sakit.create');
@@ -1380,6 +1383,7 @@ Route::get('/download/app/{token}', [DownloadController::class, 'downloadApp'])
 Route::get('/download/manual', [DownloadController::class, 'manualDownload'])
     ->name('download.manual');
 // ─────────────────────────────────────────────────────────────────────────────
+
 
 
 

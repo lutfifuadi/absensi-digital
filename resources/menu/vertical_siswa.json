@@ -3,18 +3,18 @@
     {
       "name": "Dashboard",
       "icon": "menu-icon ti tabler-smart-home",
-      "slug": "dashboard",
-      "url": "/dashboard"
+      "slug": "siswa.dashboard",
+      "url": "/siswa/dashboard"
     },
     {
       "menuHeader": "Portal Siswa",
       "icon": "menu-icon ti tabler-user"
     },
     {
-      "name": "Profil Saya",
-      "icon": "menu-icon ti tabler-user-circle",
-      "slug": "siswa.profile",
-      "url": "/siswa/profile"
+      "name": "Riwayat Absensi",
+      "icon": "menu-icon ti tabler-calendar-stats",
+      "slug": "siswa.absensi",
+      "url": "/siswa/absensi"
     },
     {
       "name": "Izin & Sakit",
@@ -44,6 +44,12 @@
       "icon": "menu-icon ti tabler-trophy",
       "slug": "siswa.leaderboard",
       "url": "/siswa/leaderboard"
+    },
+    {
+      "name": "Profil Saya",
+      "icon": "menu-icon ti tabler-user-circle",
+      "slug": "siswa.profile",
+      "url": "/siswa/profile"
     },
     {
       "name": "Kartu Pelajar",
