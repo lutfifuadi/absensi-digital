@@ -1292,6 +1292,48 @@
             </div>
 
             {{-- Frekuensi Bunyi Variasi Absensi --}}
+            {{-- ══ AUTO-ALPHA SISWA ══ --}}
+            <div class="set-section-label mt-4"><i class="ti tabler-alert-triangle me-1"></i> Auto-Alpha Siswa</div>
+            <div class="set-toggles mb-4">
+              @php
+                $autoAlphaToggles = [
+                  [
+                    'name' => 'auto_alpha_siswa_enabled',
+                    'label' => 'Aktifkan Auto-Alpha Siswa',
+                    'sub' => 'Secara otomatis menandai siswa yang tidak hadir tanpa keterangan (alpha) setelah jam batas masuk.',
+                    'color' => 'danger',
+                    'icon' => 'tabler-user-off',
+                    'default' => 'Ya',
+                  ],
+                  [
+                    'name' => 'auto_alpha_wa_notif',
+                    'label' => 'Notifikasi WA ke Orang Tua',
+                    'sub' => 'Kirim notifikasi WhatsApp otomatis ke orang tua saat siswa terdeteksi alpha.',
+                    'color' => 'success',
+                    'icon' => 'tabler-brand-whatsapp',
+                    'default' => 'Ya',
+                  ],
+                ];
+              @endphp
+              @foreach ($autoAlphaToggles as $tg)
+                <div class="set-toggle-item set-toggle-item--{{ $tg['color'] }}">
+                  <div class="set-toggle-item__icon">
+                    <i class="ti {{ $tg['icon'] }}"></i>
+                  </div>
+                  <div class="set-toggle-item__info">
+                    <div class="set-toggle-item__label">{{ $tg['label'] }}</div>
+                    <div class="set-toggle-item__sub">{{ $tg['sub'] }}</div>
+                  </div>
+                  <label class="set-switch set-switch--{{ $tg['color'] }}">
+                    <input type="hidden" name="{{ $tg['name'] }}" value="Tidak">
+                    <input type="checkbox" class="set-switch__input" name="{{ $tg['name'] }}" value="Ya"
+                      {{ ($settings[$tg['name']] ?? $tg['default']) == 'Ya' ? 'checked' : '' }}>
+                    <span class="set-switch__slider"></span>
+                  </label>
+                </div>
+              @endforeach
+            </div>
+
             <div class="set-section-label mt-4">Frekuensi Bunyi per Konteks Absensi (Hz)</div>
             <div class="set-form-grid mb-4">
               <div class="set-field">
@@ -2255,6 +2297,7 @@ select.set-input option {
 .set-toggle-item--danger   .set-toggle-item__icon { background: var(--das-danger-soft);  color: var(--das-danger);  }
 .set-toggle-item--success  .set-toggle-item__icon { background: var(--das-success-soft); color: var(--das-success); }
 .set-toggle-item--info     .set-toggle-item__icon { background: var(--das-info-soft);    color: var(--das-info);    }
+.set-toggle-item--warning  .set-toggle-item__icon { background: var(--das-warning-soft); color: var(--das-warning); }
 .set-toggle-item__info { flex: 1; min-width: 0; }
 .set-toggle-item__label {
   font-size: 0.78rem; font-weight: 700; color: #e2e8f0; line-height: 1.2; margin-bottom: 2px;
@@ -2725,6 +2768,16 @@ select.set-input option {
   border-radius: var(--das-radius-sm);
   border: 1px solid var(--das-border);
 }
+
+/* Auto-Alpha Toast Animations */
+@keyframes alphaToastIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes alphaToastOut {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
 </style>
 @endsection
 
@@ -2932,6 +2985,55 @@ document.addEventListener('DOMContentLoaded', function () {
       this.closest('.set-toast')?.remove();
     });
   });
+
+  /* ── AUTO-ALPHA AJAX TOGGLE ── */
+  document.querySelectorAll('input[name="auto_alpha_siswa_enabled"], input[name="auto_alpha_wa_notif"]').forEach(function(toggle) {
+    toggle.addEventListener('change', function() {
+      var key = this.name;
+      var value = this.checked ? 'Ya' : 'Tidak';
+      var csrfToken = '{{ csrf_token() }}';
+
+      fetch('{{ route("admin.pengaturan.update") }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRF-TOKEN': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: encodeURIComponent(key) + '=' + encodeURIComponent(value) + '&_token=' + encodeURIComponent(csrfToken)
+      })
+      .then(function(response) { return response.json(); })
+      .then(function(data) {
+        showAutoAlphaToast('Pengaturan berhasil disimpan');
+      })
+      .catch(function() {
+        showAutoAlphaToast('Gagal menyimpan pengaturan', 'error');
+      });
+    });
+  });
+
+  function showAutoAlphaToast(message, type) {
+    type = type || 'success';
+    var existing = document.getElementById('autoAlphaToast');
+    if (existing) existing.remove();
+
+    var toast = document.createElement('div');
+    toast.id = 'autoAlphaToast';
+    toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;display:flex;align-items:center;gap:10px;padding:12px 20px;border-radius:8px;font-size:0.85rem;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.15);animation:alphaToastIn 0.3s ease;max-width:360px;' +
+      (type === 'success'
+        ? 'background:#28c76f;color:#fff;'
+        : 'background:#ea5455;color:#fff;');
+
+    var icon = type === 'success' ? 'tabler-circle-check' : 'tabler-alert-circle';
+    toast.innerHTML = '<i class="ti ' + icon + '" style="font-size:1.1rem;"></i><span>' + message + '</span>';
+
+    document.body.appendChild(toast);
+
+    setTimeout(function() {
+      toast.style.animation = 'alphaToastOut 0.3s ease forwards';
+      setTimeout(function() { toast.remove(); }, 300);
+    }, 3000);
+  }
 
   /* ── AUTO UPDATE TAHUN BELAJAR BERDASARKAN JENJANG ── */
   const jenjangSelect = $('#jenjangSelect');

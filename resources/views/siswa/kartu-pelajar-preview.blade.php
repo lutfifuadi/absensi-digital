@@ -531,8 +531,12 @@
                  width: {{ $config['canvas']['width'] ?? 153 }}pt; 
                  height: {{ $config['canvas']['height'] ?? 243 }}pt; 
                  border-radius: {{ $config['canvas']['border_radius'] ?? 5 }}pt !important;
-                 @if(!empty($bgBase64)) background-image: url('{{ $bgBase64 }}'); background-size: cover; background-position: center; @endif
+                 position: relative;
+                 overflow: hidden;
                ">
+            @if(!empty($bgBase64))
+              <img src="{{ $bgBase64 }}" class="template-background" alt="Background Front">
+            @endif
             @include('admin.id-card-templates._elements_render', [
               'elements' => $elementsFront,
               'entity' => $siswa,
@@ -553,8 +557,12 @@
                  width: {{ $config['canvas']['width'] ?? 153 }}pt; 
                  height: {{ $config['canvas']['height'] ?? 243 }}pt; 
                  border-radius: {{ $config['canvas']['border_radius'] ?? 5 }}pt !important;
-                 @if(!empty($bgBackBase64)) background-image: url('{{ $bgBackBase64 }}'); background-size: cover; background-position: center; @endif
+                 position: relative;
+                 overflow: hidden;
                ">
+            @if(!empty($bgBackBase64))
+              <img src="{{ $bgBackBase64 }}" class="template-background" alt="Background Back">
+            @endif
             @include('admin.id-card-templates._elements_render', [
               'elements' => $elementsBack,
               'entity' => $siswa,

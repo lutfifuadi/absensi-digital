@@ -133,6 +133,10 @@ class PengaturanController extends Controller
         'live_board_font_family' => 'Product Sans',
         'live_board_counter_font_family' => 'Courier New',
         'live_board_counter_color' => '#7367f0',
+
+        // Auto-Alpha Siswa
+        'auto_alpha_siswa_enabled' => 'Ya',
+        'auto_alpha_wa_notif' => 'Ya',
     ];
 
     protected \App\Services\UpdateService $updateService;
@@ -410,6 +414,14 @@ class PengaturanController extends Controller
 
         // Hapus cache absensi_settings agar live-board pakai nilai terbaru
         Cache::forget('absensi_settings');
+
+        // Return JSON for AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Pengaturan berhasil disimpan.'
+            ]);
+        }
 
         return back()->with('success', 'Pengaturan berhasil disimpan.');
     }

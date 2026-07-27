@@ -260,6 +260,76 @@
       </div>
     </div>
   @else
+    {{-- CONTEXTUAL ALERT: BELUM ABSEN MASUK UNTUK ANAK AKTIF --}}
+    @php
+      $anakSudahMasuk = $absensiHariIni && !empty($absensiHariIni->jam_masuk);
+      $anakIzinSakit = $absensiHariIni && in_array($absensiHariIni->status, ['sakit', 'izin']);
+      $anakAlpha = $absensiHariIni && $absensiHariIni->status === 'alpha';
+    @endphp
+    @if($anakAlpha && isset($activeAnak) && $activeAnak)
+      @php
+        $isAnakAutoAlpha = $absensiHariIni && $absensiHariIni->metode === 'auto-alpha';
+      @endphp
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card border border-danger border-2 shadow-sm" style="background: linear-gradient(135deg, rgba(234, 84, 85, 0.15) 0%, rgba(234, 84, 85, 0.03) 100%); border-left: 5px solid #ea5455 !important;">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+              <div class="d-flex align-items-center gap-3">
+                <div class="avatar avatar-md bg-label-danger p-2 rounded d-flex align-items-center justify-content-center">
+                  <i class="ti tabler-user-x text-danger fs-2"></i>
+                </div>
+                <div>
+                  <h6 class="mb-1 text-danger fw-bold d-flex align-items-center gap-2">
+                    <span>PERINGATAN PRESENSI: {{ $isAnakAutoAlpha ? 'ALPHA OTOMATIS' : 'ALPHA' }}</span>
+                    <span class="badge bg-danger text-white" style="font-size: 0.65rem;">TIDAK HADIR</span>
+                  </h6>
+                  <p class="text-body-secondary mb-0 small">
+                    @if($isAnakAutoAlpha)
+                      Putra/Putri Anda, <strong>{{ $activeAnak->nama_lengkap }}</strong>, ditandai <strong>Alpha Otomatis</strong> oleh sistem karena tidak mencatat absensi masuk hingga batas waktu maksimal sekolah. Silakan ajukan izin/klarifikasi jika anak Anda sakit atau berhalangan.
+                    @else
+                      Putra/Putri Anda, <strong>{{ $activeAnak->nama_lengkap }}</strong>, hari ini ({{ now()->locale('id')->translatedFormat('l, d F Y') }}) tercatat <strong>ALPHA (Tidak Hadir Tanpa Keterangan)</strong>. Silakan ajukan klarifikasi/izin jika anak Anda sakit atau ada keperluan penting.
+                    @endif
+                  </p>
+                </div>
+              </div>
+              <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ route('ortu.pengaduan') }}" class="btn btn-danger btn-sm fw-bold shadow-sm">
+                  <i class="ti tabler-send me-1"></i> Kirim Klarifikasi / Permohonan Izin
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    @elseif(!$anakSudahMasuk && !$anakIzinSakit && isset($activeAnak) && $activeAnak)
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card border border-warning border-opacity-30 shadow-sm" style="background: linear-gradient(135deg, rgba(255, 159, 67, 0.12) 0%, rgba(255, 159, 67, 0.03) 100%); border-left: 5px solid #ff9f43 !important;">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+              <div class="d-flex align-items-center gap-3">
+                <div class="avatar avatar-md bg-label-warning p-2 rounded d-flex align-items-center justify-content-center">
+                  <i class="ti tabler-bell-ringing text-warning fs-2"></i>
+                </div>
+                <div>
+                  <h6 class="mb-1 text-warning fw-bold d-flex align-items-center gap-2">
+                    <span>Pemberitahuan Presensi Anak</span>
+                    <span class="badge bg-warning bg-opacity-20 text-warning" style="font-size: 0.65rem;">Belum Absen Masuk</span>
+                  </h6>
+                  <p class="text-body-secondary mb-0 small">
+                    Putra/Putri Anda, <strong>{{ $activeAnak->nama_lengkap }}</strong>, belum mencatat presensi masuk sekolah untuk hari ini ({{ now()->locale('id')->translatedFormat('l, d F Y') }}).
+                  </p>
+                </div>
+              </div>
+              <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ route('ortu.pengaduan') }}" class="btn btn-warning btn-sm fw-bold shadow-sm">
+                  <i class="ti tabler-send me-1"></i> Ajukan Izin / Informasi
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    @endif
     
     <!-- Profile Switcher & Selector (Jika Multi-Anak) -->
     @if($anakList->count() > 1)
@@ -582,4 +652,7 @@
       </div>
     </div>
   </div>
+
 @endsection
+
+

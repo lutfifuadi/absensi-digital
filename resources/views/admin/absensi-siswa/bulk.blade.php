@@ -25,6 +25,51 @@
     .student-row:hover {
       background: rgba(255, 255, 255, 0.02) !important;
     }
+
+    /* Search Input */
+    #search_nama::placeholder {
+      color: rgba(255, 255, 255, 0.35);
+    }
+    #search_nama:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(0, 207, 232, 0.2);
+      border-color: rgba(0, 207, 232, 0.5) !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+    }
+    .student-row.hidden-search {
+      display: none;
+    }
+
+    /* Search Dropdown */
+    .search-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: background 0.15s;
+    }
+    .search-item:last-child { border-bottom: none; }
+    .search-item:hover, .search-item.active {
+      background: rgba(0, 207, 232, 0.12);
+    }
+    .search-item .si-name {
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.88rem;
+    }
+    .search-item .si-meta {
+      color: rgba(255,255,255,0.4);
+      font-size: 0.76rem;
+      margin-top: 2px;
+    }
+    .search-item .si-class {
+      color: #00cfe8;
+      font-size: 0.76rem;
+      font-weight: 600;
+    }
+
+    /* Spinner */
+    .spin { animation: spinAnim 0.8s linear infinite; }
+    @keyframes spinAnim { 100% { transform: rotate(360deg); } }
   </style>
 @endsection
 
@@ -69,7 +114,29 @@
     <div class="das-panel__body">
       <form action="{{ route('admin.absensi-cepat') }}" method="GET" id="form-filter">
         <div class="row align-items-end g-3">
-          <div class="col-md-4">
+          <div class="col-md-3">
+            <label class="form-label text-white-50 small fw-bold" for="search_nama">Cari Siswa</label>
+            <div class="position-relative">
+              <span class="position-absolute top-50 start-0 translate-middle-y ps-3" style="color: rgba(255,255,255,0.4); pointer-events: none;">
+                <i class="ti tabler-search"></i>
+              </span>
+              <input type="text" id="search_nama" class="form-control ps-9" placeholder="Ketik nama / NIS / NISN…"
+                style="height: 38px;" autocomplete="off">
+              <span id="searchSpinner" class="position-absolute top-50 end-0 translate-middle-y pe-3 d-none" style="color: rgba(255,255,255,0.4);">
+                <i class="ti tabler-loader-2 spin"></i>
+              </span>
+              {{-- Dropdown Hasil Pencarian --}}
+              <div id="searchDropdown" class="position-absolute w-100 d-none" style="top: 100%; z-index: 1050; margin-top: 4px;">
+                <div class="rounded-3 shadow-lg border" style="background: rgba(20,25,35,0.97); border-color: rgba(255,255,255,0.1) !important; max-height: 320px; overflow-y: auto; backdrop-filter: blur(12px);">
+                  <div id="searchResults"></div>
+                  <div id="searchEmpty" class="d-none p-3 text-center text-white-50 small">
+                    <i class="ti tabler-search-off me-1"></i> Tidak ada siswa ditemukan
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
             <label class="form-label text-white-50 small fw-bold" for="kelas_id">Pilih Kelas</label>
             @if(isset($isWaliKelas) && $isWaliKelas)
               <select id="kelas_id_disabled" class="form-select" disabled>
@@ -97,6 +164,9 @@
             <button type="submit" class="btn das-btn --info w-100">
               <i class="ti tabler-refresh me-1"></i> Muat Siswa
             </button>
+          </div>
+          <div class="col-md-1 d-flex align-items-end">
+            <span id="searchResultCount" class="text-white-50 small" style="font-size: 0.8rem;"></span>
           </div>
         </div>
       </form>
@@ -267,6 +337,181 @@
        tFilter.addEventListener('change', () => {
           tSubmit.value = tFilter.value;
        });
+    }
+
+    // ══ AJAX Search Siswa ══
+    const searchInput = document.getElementById('search_nama');
+    const dropdown    = document.getElementById('searchDropdown');
+    const resultsDiv  = document.getElementById('searchResults');
+    const emptyMsg    = document.getElementById('searchEmpty');
+    const spinner     = document.getElementById('searchSpinner');
+    const resultCount = document.getElementById('searchResultCount');
+    const tbody       = document.querySelector('.das-table tbody');
+
+    if (!searchInput || !dropdown) return;
+
+    let debounceTimer;
+    let activeIndex = -1;
+
+    searchInput.addEventListener('input', function() {
+      clearTimeout(debounceTimer);
+      const q = this.value.trim();
+      if (q.length < 2) {
+        hideDropdown();
+        // Kalau ada tabel (sudah pilih kelas), lakukan filter client-side
+        if (tbody) filterClientSide(q);
+        return;
+      }
+      debounceTimer = setTimeout(() => fetchSearch(q), 250);
+    });
+
+    // Tutup dropdown kalau klik di luar
+    document.addEventListener('click', function(e) {
+      if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+        hideDropdown();
+      }
+    });
+
+    // Keyboard navigation
+    searchInput.addEventListener('keydown', function(e) {
+      const items = resultsDiv.querySelectorAll('.search-item');
+      if (!items.length) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        activeIndex = Math.min(activeIndex + 1, items.length - 1);
+        updateActive(items);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        activeIndex = Math.max(activeIndex - 1, 0);
+        updateActive(items);
+      } else if (e.key === 'Enter' && activeIndex >= 0) {
+        e.preventDefault();
+        items[activeIndex].click();
+      } else if (e.key === 'Escape') {
+        hideDropdown();
+      }
+    });
+
+    function updateActive(items) {
+      items.forEach((item, i) => {
+        item.classList.toggle('active', i === activeIndex);
+      });
+      if (items[activeIndex]) {
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      }
+    }
+
+    async function fetchSearch(query) {
+      spinner.classList.remove('d-none');
+      try {
+        const resp = await fetch(`{{ route('admin.absensi-cepat.search') }}?query=${encodeURIComponent(query)}`);
+        const json = await resp.json();
+        renderResults(json.data || []);
+      } catch (err) {
+        renderResults([]);
+      } finally {
+        spinner.classList.add('d-none');
+      }
+    }
+
+    function renderResults(data) {
+      resultsDiv.innerHTML = '';
+      activeIndex = -1;
+
+      if (data.length === 0) {
+        emptyMsg.classList.remove('d-none');
+        dropdown.classList.remove('d-none');
+        return;
+      }
+
+      emptyMsg.classList.add('d-none');
+      data.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'search-item';
+        div.dataset.kelasId = item.kelas_id;
+        div.dataset.siswaId = item.id;
+        div.innerHTML = `
+          <div class="si-name">${escapeHtml(item.nama)}</div>
+          <div class="d-flex gap-2 align-items-center mt-1">
+            <span class="si-meta">NIS: ${escapeHtml(item.nis || '-')} | NISN: ${escapeHtml(item.nisn || '-')}</span>
+            <span class="si-class"><i class="ti tabler-school me-1"></i>${escapeHtml(item.kelas_nama)}</span>
+          </div>
+        `;
+        div.addEventListener('click', () => {
+          // Navigate ke kelas siswa tersebut (load bulk form)
+          const url = new URL('{{ route("admin.absensi-cepat") }}', window.location.origin);
+          url.searchParams.set('kelas_id', item.kelas_id);
+          url.searchParams.set('tanggal', document.getElementById('tanggal_filter')?.value || '');
+          url.searchParams.set('highlight', item.siswa_id);
+          window.location.href = url.toString();
+        });
+        resultsDiv.appendChild(div);
+      });
+
+      dropdown.classList.remove('d-none');
+    }
+
+    function hideDropdown() {
+      dropdown.classList.add('d-none');
+      resultsDiv.innerHTML = '';
+      emptyMsg.classList.add('d-none');
+      activeIndex = -1;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ══ Client-side filter (saat tabel sudah ada) ══
+    function filterClientSide(query) {
+      if (!tbody) return;
+      const rows = Array.from(tbody.querySelectorAll('tr.student-row'));
+      let visibleCount = 0;
+      const q = query.toLowerCase();
+
+      rows.forEach(row => {
+        const nameEl = row.querySelector('.fw-bold.text-white');
+        const detailEl = row.querySelector('.small.text-white-50');
+        const name = nameEl ? nameEl.textContent.toLowerCase() : '';
+        const detail = detailEl ? detailEl.textContent.toLowerCase() : '';
+        const fullText = name + ' ' + detail;
+
+        if (!q || fullText.includes(q)) {
+          row.classList.remove('hidden-search');
+          visibleCount++;
+        } else {
+          row.classList.add('hidden-search');
+        }
+      });
+
+      if (resultCount) {
+        resultCount.textContent = q ? visibleCount + ' dari ' + rows.length + ' siswa' : '';
+      }
+    }
+
+    // ══ Highlight siswa dari URL param (setelah klik search result) ══
+    const urlParams = new URLSearchParams(window.location.search);
+    const highlightId = urlParams.get('highlight');
+    if (highlightId && tbody) {
+      setTimeout(() => {
+        // Cari radio button siswa ini
+        const radio = document.getElementById('h-' + highlightId);
+        if (radio) {
+          const row = radio.closest('tr');
+          if (row) {
+            row.style.background = 'rgba(0, 207, 232, 0.1)';
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => { row.style.background = ''; }, 2500);
+          }
+        }
+        // Bersihkan URL param
+        urlParams.delete('highlight');
+        const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+        window.history.replaceState({}, '', newUrl);
+      }, 400);
     }
   });
 

@@ -5,15 +5,38 @@ namespace App\Observers;
 use App\Models\AbsensiSiswa;
 use App\Models\Pengaturan;
 use App\Jobs\SendWhatsAppMessage;
+use App\Notifications\NotifikasiAutoAlpha;
+use App\Services\PengaturanService;
 
 class AbsensiSiswaObserver
 {
+    private PengaturanService $pengaturanService;
+
+    public function __construct(PengaturanService $pengaturanService)
+    {
+        $this->pengaturanService = $pengaturanService;
+    }
     /**
      * Handle the AbsensiSiswa "created" event.
      */
     public function created(AbsensiSiswa $absensiSiswa): void
     {
+        // ── Kirim notifikasi in-app ke orang tua (selalu) ────────────────
+        $this->kirimNotifInAppKeOrtu($absensiSiswa);
+
+        // ── Kirim WA ke orang tua ────────────────────────────────────────
+        // Jika auto-alpha, cek toggle auto_alpha_wa_notif dulu
+        $isAutoAlpha = strtolower($absensiSiswa->metode ?? '') === 'auto-alpha';
+
+        if ($isAutoAlpha) {
+            if (!$this->pengaturanService->isAutoAlphaWaNotifEnabled()) {
+                // Toggle WA auto-alpha dinonaktifkan, skip kirim WA
+                return;
+            }
+        }
+
         $this->kirimNotifikasiKeOrtu($absensiSiswa);
+
         $this->hitungPoinGamifikasi($absensiSiswa);
     }
 
@@ -26,6 +49,43 @@ class AbsensiSiswaObserver
         // Untuk sekarang, pastikan jika jam pulang terisi dan ada isDirty('jam_pulang')
         if ($absensiSiswa->isDirty('jam_pulang') && !empty($absensiSiswa->jam_pulang)) {
             $this->kirimNotifikasiKeOrtu($absensiSiswa, 'pulang');
+        }
+    }
+
+    /**
+     * Kirim notifikasi in-app ke orang tua via Laravel Database Notification.
+     */
+    private function kirimNotifInAppKeOrtu(AbsensiSiswa $absensi): void
+    {
+        try {
+            $absensi->loadMissing('siswa', 'siswa.kelas');
+            $siswa = $absensi->siswa;
+
+            $ortuUser = $siswa?->ortuUser;
+            if (!$ortuUser) {
+                return;
+            }
+
+            $namaSiswa = $siswa->nama_lengkap ?? '-';
+            $namaKelas = $siswa->kelas?->nama ?? '-';
+            $tanggal   = $absensi->tanggal instanceof \Carbon\Carbon
+                ? $absensi->tanggal->toDateString()
+                : $absensi->tanggal;
+
+            $ortuUser->notify(
+                new NotifikasiAutoAlpha(
+                    'ortu',
+                    $namaSiswa,
+                    $namaKelas,
+                    $tanggal,
+                    '-',
+                    $absensi->keterangan ?? '-'
+                )
+            );
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error(
+                "Gagal mengirim notifikasi in-app auto-alpha ke ortu: " . $e->getMessage()
+            );
         }
     }
 
@@ -63,7 +123,13 @@ class AbsensiSiswaObserver
         $hari = \Carbon\Carbon::parse($absensi->tanggal)->locale('id')->isoFormat('dddd');
         $waktu = $tipe === 'masuk' ? $absensi->jam_masuk : $absensi->jam_pulang;
         if (!$waktu) $waktu = '-';
-        $jam = $waktu ? \Carbon\Carbon::parse($waktu)->format('H:i') : '-';
+        
+        // BUG-002: Handle null waktu sebelum Carbon::parse
+        if ($waktu === null || $waktu === '-') {
+            $jam = '-';
+        } else {
+            $jam = \Carbon\Carbon::parse($waktu)->format('H:i');
+        }
 
         $namaKelas = $siswa->kelas ? $siswa->kelas->nama : '-';
 
@@ -168,10 +234,12 @@ class AbsensiSiswaObserver
 
         $stat->save();
 
-        // 4. Simpan poin ke absensi
-        \App\Models\AbsensiSiswa::where('id', $absensi->id)->update([
+        // 4. Simpan poin ke absensi (H5: gunakan model langsung)
+        $absensi->update([
             'points_earned' => $poin,
             'is_early_bird' => $isEarlyBird,
         ]);
     }
+
+
 }

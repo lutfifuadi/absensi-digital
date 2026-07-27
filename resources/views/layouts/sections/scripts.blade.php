@@ -32,74 +32,72 @@
 
 <!-- Notification Bell JS -->
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    function notifPost(url, data, callback) {
-      var params = new URLSearchParams(data);
-      fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: params.toString()
-      }).then(function(res) {
-        return res.json();
-      }).then(callback);
-    }
+  function notifPost(url, data, callback) {
+    var params = new URLSearchParams(data);
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: params.toString()
+    }).then(function(res) {
+      return res.json();
+    }).then(callback);
+  }
 
-    function updateBadge(delta, clear) {
-      var badge = document.querySelector('.badge-notifications');
-      if (!badge) return;
-      if (clear) {
-        badge.remove();
-        return;
-      }
-      var cur = parseInt(badge.textContent) || 0;
-      var newVal = cur + delta;
-      if (newVal <= 0) {
-        badge.remove();
-      } else {
-        badge.textContent = newVal > 9 ? '9+' : newVal;
-      }
+  function updateBadge(delta, clear) {
+    var badge = document.querySelector('.badge-notifications');
+    if (!badge) return;
+    if (clear) {
+      badge.remove();
+      return;
     }
+    var cur = parseInt(badge.textContent) || 0;
+    var newVal = cur + delta;
+    if (newVal <= 0) {
+      badge.remove();
+    } else {
+      badge.textContent = newVal > 9 ? '9+' : newVal;
+    }
+  }
 
-    // Mark single notification as read
-    document.addEventListener('click', function(e) {
-      var btn = e.target.closest('.btn-mark-read');
-      if (!btn) return;
-      var id = btn.dataset.notifId;
-      var item = btn.closest('.list-group-item');
-      notifPost('{{ route('admin.notifications.mark-read') }}', {
-        _token: '{{ csrf_token() }}',
-        id: id
-      }, function(r) {
-        if (r.success) {
-          item.style.transition = 'opacity 0.3s';
-          item.style.opacity = '0';
-          setTimeout(function() {
-            item.remove();
-            updateBadge(-1);
-          }, 300);
-        }
-      });
+  // Mark single notification as read
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.btn-mark-read');
+    if (!btn) return;
+    var id = btn.dataset.notifId;
+    var item = btn.closest('.list-group-item');
+    notifPost('{{ route('admin.notifications.mark-read') }}', {
+      _token: '{{ csrf_token() }}',
+      id: id
+    }, function(r) {
+      if (r.success) {
+        item.style.transition = 'opacity 0.3s';
+        item.style.opacity = '0';
+        setTimeout(function() {
+          item.remove();
+          updateBadge(-1);
+        }, 300);
+      }
     });
+  });
 
-    // Mark all as read
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('#btn-mark-all-read')) return;
-      notifPost('{{ route('admin.notifications.mark-read') }}', {
-        _token: '{{ csrf_token() }}',
-        all: 1
-      }, function(r) {
-        if (r.success) {
-          document.querySelectorAll('.dropdown-notifications-list .list-group-item').forEach(function(el) {
-            el.remove();
-          });
-          updateBadge(0, true);
-          var allSection = document.querySelector('.dropdown-notifications-all');
-          if (allSection) allSection.remove();
-        }
-      });
+  // Mark all as read
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('#btn-mark-all-read')) return;
+    notifPost('{{ route('admin.notifications.mark-read') }}', {
+      _token: '{{ csrf_token() }}',
+      all: 1
+    }, function(r) {
+      if (r.success) {
+        document.querySelectorAll('.dropdown-notifications-list .list-group-item').forEach(function(el) {
+          el.remove();
+        });
+        updateBadge(0, true);
+        var allSection = document.querySelector('.dropdown-notifications-all');
+        if (allSection) allSection.remove();
+      }
     });
   });
 </script>

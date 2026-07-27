@@ -36,7 +36,7 @@
         ? \App\Models\AbsensiSiswa::where('siswa_id', $siswaRecord->id)->whereDate('tanggal', today())->first()
         : null;
     
-    $pelepasanKegiatanId = \App\Models\Pengaturan::where('key', 'pelepasan_kegiatan_id')->value('value');
+    $pelepasanKegiatanId = $pengaturanSiswa['pelepasan_kegiatan_id'] ?? null;
     $absenPelepasan = null;
     if ($pelepasanKegiatanId && $siswaRecord) {
         $absenPelepasan = \App\Models\AbsensiKegiatan::where('kegiatan_id', $pelepasanKegiatanId)
@@ -44,18 +44,18 @@
             ->first();
     }
     
-    $logoSekolah = \App\Models\Pengaturan::where('key', 'logo_sekolah')->value('value');
-    $namaSekolah = \App\Models\Pengaturan::where('key', 'nama_sekolah')->value('value') ?: 'Sistem Absensi';
+    $logoSekolah = $pengaturanSiswa['logo_sekolah'] ?? null;
+    $namaSekolah = $pengaturanSiswa['nama_sekolah'] ?? 'Sistem Absensi';
     
-    $absenMandiriEnabled = \App\Models\Pengaturan::where('key', 'izinkan_lokasi_absensi_mandiri')->value('value') === 'Ya';
-    $aktifkanBunyi = \App\Models\Pengaturan::where('key', 'aktifkan_bunyi_notif_absensi')->value('value') === 'Ya';
-    $freqHadir = (int)(\App\Models\Pengaturan::where('key', 'freq_bunyi_hadir')->value('value') ?: 880);
-    $freqTerlambat = (int)(\App\Models\Pengaturan::where('key', 'freq_bunyi_terlambat')->value('value') ?: 440);
-    $freqStreak = (int)(\App\Models\Pengaturan::where('key', 'freq_bunyi_streak')->value('value') ?: 523);
-    $freqEarly = (int)(\App\Models\Pengaturan::where('key', 'freq_bunyi_early')->value('value') ?: 698);
-    $freqNormal = (int)(\App\Models\Pengaturan::where('key', 'freq_bunyi_normal')->value('value') ?: 523);
-    $freqLate = (int)(\App\Models\Pengaturan::where('key', 'freq_bunyi_late')->value('value') ?: 349);
-    $freqCheckout = (int)(\App\Models\Pengaturan::where('key', 'freq_bunyi_checkout')->value('value') ?: 392);
+    $absenMandiriEnabled = ($pengaturanSiswa['izinkan_lokasi_absensi_mandiri'] ?? '') === 'Ya';
+    $aktifkanBunyi = ($pengaturanSiswa['aktifkan_bunyi_notif_absensi'] ?? '') === 'Ya';
+    $freqHadir = (int)($pengaturanSiswa['freq_bunyi_hadir'] ?? 880);
+    $freqTerlambat = (int)($pengaturanSiswa['freq_bunyi_terlambat'] ?? 440);
+    $freqStreak = (int)($pengaturanSiswa['freq_bunyi_streak'] ?? 523);
+    $freqEarly = (int)($pengaturanSiswa['freq_bunyi_early'] ?? 698);
+    $freqNormal = (int)($pengaturanSiswa['freq_bunyi_normal'] ?? 523);
+    $freqLate = (int)($pengaturanSiswa['freq_bunyi_late'] ?? 349);
+    $freqCheckout = (int)($pengaturanSiswa['freq_bunyi_checkout'] ?? 392);
     
     $chartDaysCategories = !empty($chartDays) ? $chartDays : ['Sn','Sl','Rb','Km','Jm','Sb','Mg'];
   @endphp
@@ -104,6 +104,106 @@
     </div>
   </div>{{-- /das-hero --}}
 
+  {{-- ═══════════════════════════════════════════════════════
+       CONTEXTUAL ALERT: BELUM ABSEN MASUK HARI INI
+  ═══════════════════════════════════════════════════════ --}}
+  @php
+    $sudahAbsenMasuk = $absensiSaya && !empty($absensiSaya->jam_masuk);
+    $isIzinSakitHariIni = $absensiSaya && in_array($absensiSaya->status, ['sakit', 'izin']);
+    $isAlphaHariIni = $absensiSaya && $absensiSaya->status === 'alpha';
+    $isJamMasukPagi = now()->format('H:i') < '07:15';
+  @endphp
+  @if($isAlphaHariIni)
+    @php
+      $isAutoAlpha = $absensiSaya && $absensiSaya->metode === 'auto-alpha';
+    @endphp
+    {{-- STATUS ALPHA (TIDAK HADIR TANPA KETERANGAN) --}}
+    <div class="row mb-6">
+      <div class="col-12">
+        <div class="card border border-danger border-opacity-40 shadow-sm" style="background: linear-gradient(135deg, rgba(234, 84, 85, 0.16) 0%, rgba(234, 84, 85, 0.04) 100%);">
+          <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="avatar avatar-md">
+                <span class="avatar-initial rounded bg-label-danger fs-3"><i class="ti tabler-ban"></i></span>
+              </div>
+              <div>
+                <h6 class="mb-1 text-danger fw-bold d-flex align-items-center gap-2">
+                  <span>Status Presensi Hari Ini: {{ $isAutoAlpha ? 'ALPHA OTOMATIS' : 'ALPHA' }}</span>
+                  <span class="badge bg-danger text-white font-monospace" style="font-size: 0.65rem;">TIDAK HADIR</span>
+                </h6>
+                <p class="text-body-secondary mb-0 small">
+                  @if($isAutoAlpha)
+                    Sistem menandai Anda <strong>Alpha Otomatis</strong> karena belum melakukan absensi masuk hingga batas waktu sekolah. Jika Anda sebenarnya sakit atau berhalangan, segera ajukan Surat Izin susulan.
+                  @else
+                    Sistem mencatat Anda <strong>Alpha (Tidak Hadir Tanpa Keterangan)</strong> pada hari ini ({{ now()->locale('id')->translatedFormat('l, d F Y') }}). Jika ada kendala darurat, segera ajukan Surat Izin.
+                  @endif
+                </p>
+              </div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+              <a href="{{ route('siswa.izin-sakit.index') }}" class="btn btn-danger btn-sm fw-bold shadow-sm">
+                <i class="ti tabler-clipboard-check me-1"></i> Ajukan Surat Izin/Sakit
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  @elseif(!$sudahAbsenMasuk && !$isIzinSakitHariIni)
+    <div class="row mb-6">
+      <div class="col-12">
+        @if($isJamMasukPagi)
+          <div class="card border border-warning border-opacity-30 shadow-sm" style="background: linear-gradient(135deg, rgba(255, 159, 67, 0.12) 0%, rgba(255, 159, 67, 0.04) 100%);">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+              <div class="d-flex align-items-center gap-3">
+                <div class="avatar avatar-md">
+                  <span class="avatar-initial rounded bg-label-warning pulse-amber"><i class="ti tabler-clock-exclamation fs-3"></i></span>
+                </div>
+                <div>
+                  <h6 class="mb-1 text-warning fw-bold d-flex align-items-center gap-2">
+                    <span>Pengingat Presensi Pagi</span>
+                    <span class="badge bg-warning bg-opacity-20 text-warning font-monospace" style="font-size: 0.65rem;">Sebelum 07:15 WIB</span>
+                  </h6>
+                  <p class="text-body-secondary mb-0 small">Anda belum melakukan absensi masuk hari ini ({{ now()->locale('id')->translatedFormat('l, d F Y') }}). Silakan lakukan Absen Mandiri atau scan di sekolah.</p>
+                </div>
+              </div>
+              <div class="d-flex gap-2">
+                <a href="#btnAbsenMasuk" class="btn btn-warning btn-sm fw-bold shadow-sm">
+                  <i class="ti tabler-gps me-1"></i> Absen Mandiri
+                </a>
+              </div>
+            </div>
+          </div>
+        @else
+          <div class="card border border-danger border-opacity-30 shadow-sm" style="background: linear-gradient(135deg, rgba(234, 84, 85, 0.12) 0%, rgba(234, 84, 85, 0.04) 100%);">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+              <div class="d-flex align-items-center gap-3">
+                <div class="avatar avatar-md">
+                  <span class="avatar-initial rounded bg-label-danger"><i class="ti tabler-alert-circle fs-3"></i></span>
+                </div>
+                <div>
+                  <h6 class="mb-1 text-danger fw-bold d-flex align-items-center gap-2">
+                    <span>Belum Absen Masuk Hari Ini</span>
+                    <span class="badge bg-danger bg-opacity-20 text-danger" style="font-size: 0.65rem;">Belum Hadir</span>
+                  </h6>
+                  <p class="text-body-secondary mb-0 small">Sistem belum mencatat kehadiran masuk Anda untuk hari ini. Jika Anda berhalangan hadir (sakit/izin), segera ajukan Surat Izin.</p>
+                </div>
+              </div>
+              <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ route('siswa.izin-sakit.index') }}" class="btn btn-danger btn-sm fw-bold shadow-sm">
+                  <i class="ti tabler-clipboard-check me-1"></i> Ajukan Izin/Sakit
+                </a>
+                <a href="#btnAbsenMasuk" class="btn btn-outline-danger btn-sm fw-bold">
+                  <i class="ti tabler-gps me-1"></i> Absen Mandiri
+                </a>
+              </div>
+            </div>
+          </div>
+        @endif
+      </div>
+    </div>
+  @endif
+
 
   {{-- ═══════════════════════════════════════════════════════
        SECTION 2: STATS ROW — 4 Card Statistik Dynamic
@@ -130,21 +230,33 @@
       </div>
     </div>
 
-    {{-- Card 2: Streak Kehadiran --}}
+    {{-- Card 2: Streak Kehadiran (Gamified) --}}
     <div class="col-lg-3 col-sm-6">
-      <div class="card card-grad-success h-100">
+      <div class="card card-grad-success h-100 position-relative overflow-hidden">
         <div class="card-body">
           <div class="d-flex align-items-center mb-2">
-            <div class="avatar me-4">
+            <div class="avatar me-3">
               <span class="avatar-initial rounded bg-label-success">
-                <i class="ti tabler-flame fs-4"></i>
+                <i class="ti tabler-flame fs-4 text-warning"></i>
               </span>
             </div>
-            <h4 class="mb-0 fw-semibold">{{ $attendance_streak ?? 0 }} Hari</h4>
+            <div>
+              <h4 class="mb-0 fw-bold">{{ $attendance_streak ?? 0 }} Hari</h4>
+              @php
+                $streakVal = $attendance_streak ?? 0;
+                $streakBadge = '🌱 Starter';
+                if ($streakVal >= 30) $streakBadge = '🏆 Legend';
+                elseif ($streakVal >= 15) $streakBadge = '⚡ Lightning';
+                elseif ($streakVal >= 5) $streakBadge = '🔥 Flame Level';
+              @endphp
+              <span class="streak-flame-badge mt-1 py-0 px-2" style="font-size:0.65rem;">
+                <i class="ti tabler-flame"></i> {{ $streakBadge }}
+              </span>
+            </div>
           </div>
           <p class="mb-1 text-body-secondary text-nowrap">Kehadiran Beruntun</p>
           <p class="mb-0">
-            <span class="text-success fw-medium me-2">Streak Aktif</span>
+            <span class="text-success fw-medium me-1">Streak Aktif</span>
             <small class="text-body-secondary">tanpa terlambat</small>
           </p>
         </div>
@@ -246,6 +358,69 @@
     </div>
   @endif
 
+
+  {{-- ═══════════════════════════════════════════════════════
+       SECTION 9: MENU CEPAT GRID (COMPACT HORIZONTAL PILLS)
+  ═══════════════════════════════════════════════════════ --}}
+  <div class="card card-grad-gold mb-6">
+    <div class="card-header py-3 d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2">
+        <div class="avatar avatar-sm">
+          <span class="avatar-initial rounded bg-label-warning">
+            <i class="ti tabler-layout-grid fs-5"></i>
+          </span>
+        </div>
+        <div>
+          <h6 class="card-title mb-0 fw-bold">Menu Cepat Portal</h6>
+        </div>
+      </div>
+      <span class="badge bg-label-warning px-2 py-1 font-monospace" style="font-size: 0.65rem;">8 Akses Pintas</span>
+    </div>
+    <div class="card-body pt-2 pb-3">
+      <div class="siswa-quick-grid">
+        {{-- 1. Izin & Sakit --}}
+        <a href="{{ route('siswa.izin-sakit.index') }}" class="siswa-quick-item siswa-quick-item--success text-decoration-none">
+          <span class="siswa-quick-item__icon"><i class="ti tabler-stethoscope"></i></span>
+          <span class="siswa-quick-item__label">Izin &amp; Sakit</span>
+        </a>
+        {{-- 2. Papan Peringkat --}}
+        <a href="{{ route('siswa.leaderboard') }}" class="siswa-quick-item siswa-quick-item--warning text-decoration-none">
+          <span class="siswa-quick-item__icon"><i class="ti tabler-trophy"></i></span>
+          <span class="siswa-quick-item__label">Peringkat</span>
+        </a>
+        {{-- 3. Riwayat Absensi --}}
+        <a href="{{ route('siswa.absensi') }}" class="siswa-quick-item siswa-quick-item--info text-decoration-none">
+          <span class="siswa-quick-item__icon"><i class="ti tabler-history"></i></span>
+          <span class="siswa-quick-item__label">Riwayat</span>
+        </a>
+        {{-- 4. Penugasan --}}
+        <a href="{{ route('siswa.assignments.index') }}" class="siswa-quick-item siswa-quick-item--primary text-decoration-none">
+          <span class="siswa-quick-item__icon"><i class="ti tabler-clipboard-list"></i></span>
+          <span class="siswa-quick-item__label">Penugasan</span>
+        </a>
+        {{-- 5. Profil Saya --}}
+        <a href="{{ route('siswa.profile') }}" class="siswa-quick-item siswa-quick-item--info text-decoration-none">
+          <span class="siswa-quick-item__icon"><i class="ti tabler-user"></i></span>
+          <span class="siswa-quick-item__label">Profil</span>
+        </a>
+        {{-- 6. Download Kartu --}}
+        <a href="{{ route('siswa.download-kartu') }}" target="_blank" class="siswa-quick-item siswa-quick-item--primary text-decoration-none">
+          <span class="siswa-quick-item__icon"><i class="ti tabler-id-badge"></i></span>
+          <span class="siswa-quick-item__label">Kartu Pelajar</span>
+        </a>
+        {{-- 7. Pengaturan --}}
+        <a href="{{ route('siswa.profile') }}" class="siswa-quick-item siswa-quick-item--secondary text-decoration-none">
+          <span class="siswa-quick-item__icon"><i class="ti tabler-settings"></i></span>
+          <span class="siswa-quick-item__label">Pengaturan</span>
+        </a>
+        {{-- 8. Bantuan --}}
+        <a href="{{ route('public.bantuan') }}" class="siswa-quick-item siswa-quick-item--secondary text-decoration-none">
+          <span class="siswa-quick-item__icon"><i class="ti tabler-help-circle"></i></span>
+          <span class="siswa-quick-item__label">Bantuan</span>
+        </a>
+      </div>
+    </div>
+  </div>
 
   {{-- ═══════════════════════════════════════════════════════
        SECTION 4: ACTION CARDS — Tombol Download Kartu Pelajar & Pelepasan
@@ -424,6 +599,13 @@
                       <div class="text-success fw-bold font-monospace fs-4" style="text-shadow: 0 0 10px rgba(40, 199, 111, 0.3);">{{ $absensiSaya->jam_masuk }}</div>
                       <div class="text-success small fw-bold mt-1 text-uppercase" style="font-size:0.6rem; letter-spacing:0.5px;">Tercatat Masuk</div>
                     </div>
+                  @elseif($absensiSaya && $absensiSaya->status === 'alpha')
+                    <div class="p-3 rounded h-100 border d-flex flex-column align-items-center justify-content-center" 
+                         style="background: rgba(234, 84, 85, 0.08); border-color: rgba(234, 84, 85, 0.2) !important; backdrop-filter: blur(10px); min-height: 110px;">
+                      <i class="ti tabler-lock text-danger fs-2 mb-1"></i>
+                      <div class="text-danger fw-bold font-monospace fs-6">SESI MASUK TUTUP (ALPHA)</div>
+                      <div class="text-danger small fw-semibold mt-1 text-uppercase" style="font-size:0.6rem; letter-spacing:0.5px;">Tercatat Tidak Hadir</div>
+                    </div>
                   @else
                     <button type="button" class="btn btn-primary btn-lg w-100 py-3 fw-bold shadow-lg h-100 d-flex align-items-center justify-content-center gap-2" id="btnAbsenMasuk">
                       <i class="ti tabler-login fs-2"></i>
@@ -515,38 +697,68 @@
       </div>
 
       @if($siswaRecord)
-      {{-- BARCODE PERPUSTAKAAN PANEL --}}
-      <div class="card card-grad-gold" x-data="{ enlarged: false }">
-        <div class="card-header pb-2">
+      {{-- 3D VIRTUAL STUDENT PASS (FLIP CARD) --}}
+      <div class="card card-grad-gold mb-6 overflow-hidden">
+        <div class="card-header pb-2 d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2">
             <div class="avatar">
               <span class="avatar-initial rounded bg-label-warning">
-                <i class="ti tabler-barcode fs-4"></i>
+                <i class="ti tabler-id-badge fs-4"></i>
               </span>
             </div>
             <div>
-              <h5 class="card-title mb-0">Barcode Perpustakaan 1D</h5>
-              <small class="text-body-secondary">Tunjukkan ke petugas perpustakaan</small>
+              <h5 class="card-title mb-0">Virtual Student Pass</h5>
+              <small class="text-body-secondary">Kartu Pelajar & Barcode Perpus 3D</small>
             </div>
           </div>
+          <span class="badge bg-warning bg-opacity-20 text-warning border border-warning border-opacity-30">Interactive 3D</span>
         </div>
-        <div class="card-body pt-3 text-center">
-          <p class="text-body-secondary small mb-3">Tunjukkan barcode ini untuk peminjaman buku perpustakaan.</p>
-          
-          <div class="p-3 bg-white rounded mb-2 d-flex align-items-center justify-content-center border shadow-sm mx-auto"
-               :style="enlarged ? 'filter: brightness(1.15); transform: scale(1.1); transition: all 0.3s ease; margin: 15px 0; width: 100%; height: 110px;' : 'transition: all 0.3s ease; width: 100%; height: 75px;'">
-               <div class="barcode-svg-container" style="width: 100%; height: 100%;">
-                   {!! App\Support\BarcodeGenerator::renderSvg($siswaRecord->nis ?: $siswaRecord->nisn ?: 'SISWA' . $siswaRecord->id) !!}
-               </div>
+        <div class="card-body pt-3">
+          <div class="siswa-vcard-scene" x-data="{ flipped: false }">
+            <div class="siswa-vcard" :class="{ 'is-flipped': flipped }" @click="flipped = !flipped" title="Klik untuk membalik kartu">
+              {{-- FRONT FACE --}}
+              <div class="siswa-vcard__face siswa-vcard__front">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="ti tabler-school text-warning fs-5"></i>
+                    <span class="fw-bold text-gradient-gold text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem;">{{ $namaSekolah }}</span>
+                  </div>
+                  <span class="badge bg-warning bg-opacity-20 text-warning border border-warning border-opacity-30 px-2 py-0.5 font-monospace" style="font-size: 0.6rem;">STUDENT PASS</span>
+                </div>
+                
+                <div class="d-flex align-items-center gap-3 my-2">
+                  <div class="siswa-vcard__chip me-1"></div>
+                  <div>
+                    <h6 class="mb-0 text-white fw-bold" style="letter-spacing: 0.5px; font-size: 0.95rem;">{{ $user->name }}</h6>
+                    <small class="text-body-secondary" style="font-size: 0.7rem;">Kelas: {{ $kelasNama }} | NIS: {{ $siswaRecord->nis ?: ($siswaRecord->nisn ?: '-') }}</small>
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-1 pt-2 border-top border-white border-opacity-10">
+                  <span class="text-warning small font-monospace" style="font-size: 0.65rem;"><i class="ti tabler-arrows-shuffle me-1"></i> Tap untuk lihat Barcode</span>
+                  <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-20" style="font-size:0.6rem;">AKTIF</span>
+                </div>
+              </div>
+
+              {{-- BACK FACE (BARCODE 1D PERPUSTAKAAN) --}}
+              <div class="siswa-vcard__face siswa-vcard__back">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="fw-bold small text-white-50" style="font-size: 0.68rem;"><i class="ti tabler-barcode me-1 text-warning"></i> BARCODE PERPUSTAKAAN</span>
+                  <span class="text-white-50 small" style="font-size: 0.62rem;">Tap untuk balik</span>
+                </div>
+
+                <div class="p-2 bg-white rounded d-flex align-items-center justify-content-center border shadow-sm mx-auto my-1" style="width: 100%; height: 75px;">
+                  <div class="barcode-svg-container" style="width: 100%; height: 100%;">
+                    {!! App\Support\BarcodeGenerator::renderSvg($siswaRecord->nis ?: $siswaRecord->nisn ?: 'SISWA' . $siswaRecord->id) !!}
+                  </div>
+                </div>
+
+                <div class="text-center font-monospace text-warning small fw-bold" style="font-size: 0.72rem;">
+                  ID: {{ App\Support\BarcodeGenerator::getFormattedData($siswaRecord->nis ?: $siswaRecord->nisn ?: 'SISWA' . $siswaRecord->id) }}
+                </div>
+              </div>
+            </div>
           </div>
-          
-          <div class="font-monospace text-body small mb-3 fw-bold">ID Perpus: {{ App\Support\BarcodeGenerator::getFormattedData($siswaRecord->nis ?: $siswaRecord->nisn ?: 'SISWA' . $siswaRecord->id) }}</div>
-          
-          <button type="button" class="btn btn-sm btn-outline-warning w-100"
-                  @click="enlarged = !enlarged">
-            <i class="ti me-1" :class="enlarged ? 'tabler-zoom-out' : 'tabler-zoom-in'"></i>
-            <span x-text="enlarged ? 'Kecilkan' : 'Perbesar Barcode'"></span>
-          </button>
         </div>
       </div>
       @endif
@@ -699,73 +911,9 @@
     </div>
   </div>
 
-
-  {{-- ═══════════════════════════════════════════════════════
-       SECTION 9: MENU CEPAT GRID
-  ═══════════════════════════════════════════════════════ --}}
-  <div class="card card-grad-gold mb-6">
-    <div class="card-header pb-2 d-flex align-items-center justify-content-between">
-      <div class="d-flex align-items-center gap-2">
-        <div class="avatar">
-          <span class="avatar-initial rounded bg-label-warning">
-            <i class="ti tabler-layout-grid fs-4"></i>
-          </span>
-        </div>
-        <div>
-          <h5 class="card-title mb-0">Menu Cepat</h5>
-          <small class="text-body-secondary">Akses layanan portal siswa</small>
-        </div>
-      </div>
-    </div>
-    <div class="card-body pt-3">
-      <div class="siswa-quick-grid">
-        {{-- 1. Izin & Sakit --}}
-        <a href="{{ route('siswa.izin-sakit.index') }}" class="siswa-quick-item siswa-quick-item--success text-decoration-none">
-          <span class="siswa-quick-item__icon"><i class="ti tabler-stethoscope fs-4"></i></span>
-          <span class="siswa-quick-item__label">Izin &amp; Sakit</span>
-        </a>
-        {{-- 2. Papan Peringkat --}}
-        <a href="{{ route('siswa.leaderboard') }}" class="siswa-quick-item siswa-quick-item--warning text-decoration-none">
-          <span class="siswa-quick-item__icon"><i class="ti tabler-trophy fs-4"></i></span>
-          <span class="siswa-quick-item__label">Papan Peringkat</span>
-        </a>
-        {{-- 3. Riwayat Absensi --}}
-        <a href="{{ route('siswa.absensi') }}" class="siswa-quick-item siswa-quick-item--info text-decoration-none">
-          <span class="siswa-quick-item__icon"><i class="ti tabler-history fs-4"></i></span>
-          <span class="siswa-quick-item__label">Riwayat Absensi</span>
-        </a>
-        {{-- 4. Penugasan --}}
-        <a href="{{ route('siswa.assignments.index') }}" class="siswa-quick-item siswa-quick-item--primary text-decoration-none">
-          <span class="siswa-quick-item__icon"><i class="ti tabler-clipboard-list fs-4"></i></span>
-          <span class="siswa-quick-item__label">Penugasan</span>
-        </a>
-        {{-- 5. Profil Saya --}}
-        <a href="{{ route('siswa.profile') }}" class="siswa-quick-item siswa-quick-item--info text-decoration-none">
-          <span class="siswa-quick-item__icon"><i class="ti tabler-user fs-4"></i></span>
-          <span class="siswa-quick-item__label">Profil Saya</span>
-        </a>
-        {{-- 6. Download Kartu --}}
-        <a href="{{ route('siswa.download-kartu') }}" target="_blank" class="siswa-quick-item siswa-quick-item--primary text-decoration-none">
-          <span class="siswa-quick-item__icon"><i class="ti tabler-id-badge fs-4"></i></span>
-          <span class="siswa-quick-item__label">Download Kartu</span>
-        </a>
-        {{-- 7. Pengaturan --}}
-        <a href="{{ route('siswa.profile') }}" class="siswa-quick-item siswa-quick-item--secondary text-decoration-none">
-          <span class="siswa-quick-item__icon"><i class="ti tabler-settings fs-4"></i></span>
-          <span class="siswa-quick-item__label">Pengaturan</span>
-        </a>
-        {{-- 8. Bantuan --}}
-        <a href="{{ route('public.bantuan') }}" class="siswa-quick-item siswa-quick-item--secondary text-decoration-none">
-          <span class="siswa-quick-item__icon"><i class="ti tabler-help-circle fs-4"></i></span>
-          <span class="siswa-quick-item__label">Bantuan</span>
-        </a>
-      </div>
-    </div>
-  </div>
 @endsection
 
-@push('scripts')
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+@section('page-script')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const btnMasuk = document.getElementById('btnAbsenMasuk');
@@ -775,13 +923,18 @@ document.addEventListener('DOMContentLoaded', function () {
     // Live Clock
     const clockElement = document.getElementById('live-clock');
     if (clockElement) {
-        setInterval(() => {
+        if (window._clockInterval) clearInterval(window._clockInterval);
+        window._clockInterval = setInterval(() => {
             const now = new Date();
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
             clockElement.textContent = `${hours}:${minutes}:${seconds}`;
         }, 1000);
+
+        document.addEventListener('livewire:navigating', () => {
+            if (window._clockInterval) clearInterval(window._clockInterval);
+        });
     }
 
     const bunyiAktif = {{ $aktifkanBunyi ? 'true' : 'false' }};
@@ -795,17 +948,24 @@ document.addEventListener('DOMContentLoaded', function () {
         checkout: {{ $freqCheckout }}
     };
 
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let audioCtx = null;
+    function getAudioContext() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        return audioCtx;
+    }
     
     const playSound = (type) => {
         if (!bunyiAktif) return;
         
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
+        const ctx = getAudioContext();
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
         oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
+        gainNode.connect(ctx.destination);
         
-        const now = audioCtx.currentTime;
+        const now = ctx.currentTime;
         
         let freq = freqs[type] || freqs.normal;
         if (type === 'streak_5' || type === 'streak_10' || type === 'streak_30') {
@@ -954,10 +1114,10 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 {{-- ApexCharts CDN --}}
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts" defer id="apexcharts-cdn"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+function _initChartsAndCounters() {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function animateCounter(el, target, duration = 1000) {
@@ -1104,6 +1264,18 @@ document.addEventListener('DOMContentLoaded', function () {
             donutChart.render();
         }
     }
-});
+}
+
+if ('requestIdleCallback' in window) {
+    requestIdleCallback(function() {
+        requestAnimationFrame(function() {
+            _initChartsAndCounters();
+        });
+    }, { timeout: 2000 });
+} else {
+    setTimeout(function() {
+        _initChartsAndCounters();
+    }, 100);
+}
 </script>
-@endpush
+@endsection

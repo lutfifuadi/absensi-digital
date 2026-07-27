@@ -370,6 +370,70 @@ class AbsensiSiswaController extends Controller
     }
 
     /**
+     * AJAX: Cari siswa berdasarkan nama / NIS / NISN (tanpa perlu pilih kelas).
+     */
+    public function searchStudent(Request $request)
+    {
+        $query = $request->input('query', '');
+
+        if (strlen($query) < 2) {
+            return response()->json(['data' => [], 'message' => 'Ketik minimal 2 karakter.']);
+        }
+
+        $user = auth()->user();
+        $activeRole = session('active_role', $user ? $user->role : 'guest');
+        $isWaliKelas = $activeRole === \App\Models\User::ROLE_WALI_KELAS;
+        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
+
+        $siswaQuery = Siswa::with(['kelas:id,nama'])
+            ->where('status', 'aktif')
+            ->where(function ($q) use ($query) {
+                $q->where('nama_lengkap', 'like', "%{$query}%")
+                  ->orWhere('nis', 'like', "%{$query}%")
+                  ->orWhere('nisn', 'like', "%{$query}%");
+            });
+
+        // Filter by tahun akademik via kelas relation
+        if ($tahunAjaranId) {
+            $siswaQuery->whereHas('kelas', function ($q) use ($tahunAjaranId) {
+                $q->where('tahun_akademik_id', $tahunAjaranId);
+            });
+        }
+
+        // Wali kelas: hanya siswa di kelas bimbingan
+        if ($isWaliKelas) {
+            $guru = $user->guru;
+            if ($guru) {
+                $kelasWali = Kelas::where('wali_kelas_id', $guru->id)
+                    ->where('tahun_akademik_id', $tahunAjaranId)
+                    ->first();
+                if ($kelasWali) {
+                    $siswaQuery->where('kelas_id', $kelasWali->id);
+                } else {
+                    return response()->json(['data' => [], 'message' => 'Anda belum memiliki kelas bimbingan.']);
+                }
+            }
+        }
+
+        $results = $siswaQuery->orderBy('nama_lengkap')
+            ->limit(20)
+            ->get()
+            ->map(function ($s) {
+                return [
+                    'id'        => $s->id,
+                    'nama'      => $s->nama_lengkap,
+                    'nis'       => $s->nis,
+                    'nisn'      => $s->nisn,
+                    'kelas_id'  => $s->kelas_id,
+                    'kelas_nama'=> $s->kelas->nama ?? '-',
+                    'label'     => $s->nama_lengkap . ' — ' . ($s->kelas->nama ?? '-'),
+                ];
+            });
+
+        return response()->json(['data' => $results]);
+    }
+
+    /**
      * Simpan absensi cepat per kelas.
      */
     public function bulkStore(Request $request)

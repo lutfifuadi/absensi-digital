@@ -151,9 +151,16 @@ class PortalSiswaController extends Controller
                 $fullBgPath = storage_path('app/public/' . $template->background_path);
                 if (file_exists($fullBgPath)) {
                     $ext = strtolower(pathinfo($template->background_path, PATHINFO_EXTENSION));
+                    $mime = match($ext) {
+                        'jpg', 'jpeg' => 'image/jpeg',
+                        'png' => 'image/png',
+                        'svg' => 'image/svg+xml',
+                        'webp' => 'image/webp',
+                        default => 'image/png',
+                    };
                     $bgData = @file_get_contents($fullBgPath);
                     if ($bgData !== false) {
-                        $bgBase64 = 'data:image/' . $ext . ';base64,' . base64_encode($bgData);
+                        $bgBase64 = 'data:' . $mime . ';base64,' . base64_encode($bgData);
                     }
                 }
             }
@@ -173,9 +180,16 @@ class PortalSiswaController extends Controller
                 $fullBgPath = storage_path('app/public/' . $template->background_path_back);
                 if (file_exists($fullBgPath)) {
                     $ext = strtolower(pathinfo($template->background_path_back, PATHINFO_EXTENSION));
+                    $mime = match($ext) {
+                        'jpg', 'jpeg' => 'image/jpeg',
+                        'png' => 'image/png',
+                        'svg' => 'image/svg+xml',
+                        'webp' => 'image/webp',
+                        default => 'image/png',
+                    };
                     $bgData = @file_get_contents($fullBgPath);
                     if ($bgData !== false) {
-                        $bgBackBase64 = 'data:image/' . $ext . ';base64,' . base64_encode($bgData);
+                        $bgBackBase64 = 'data:' . $mime . ';base64,' . base64_encode($bgData);
                     }
                 }
             }
