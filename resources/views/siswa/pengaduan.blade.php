@@ -66,7 +66,7 @@
     color: #ffffff !important;
     line-height: 38px !important;
     padding-left: 12px !important;
-  }
+    }
   .select2-container--default .select2-selection--single .select2-selection__arrow {
     height: 38px !important;
   }
@@ -218,7 +218,7 @@
                         <div>
                             <nav aria-label="breadcrumb">
                                 <ol class="breadcrumb mb-1" style="font-size:0.72rem;opacity:0.8;">
-                                    <li class="breadcrumb-item"><a href="{{ route('ortu.dashboard') }}"
+                                    <li class="breadcrumb-item"><a href="{{ route('siswa.dashboard') }}"
                                              class="text-white text-decoration-none">Dashboard</a></li>
                                     <li class="breadcrumb-item active text-white" aria-current="page">Layanan Pengaduan</li>
                                 </ol>
@@ -247,7 +247,7 @@
             @php
               $isActive = $activePengaduan && $activePengaduan->id === $p->id;
             @endphp
-            <a href="{{ route('ortu.pengaduan', ['id' => $p->id]) }}" class="list-group-item list-group-item-action {{ $isActive ? 'active' : '' }} p-3 rounded mb-2">
+            <a href="{{ route('siswa.pengaduan', ['id' => $p->id]) }}" class="list-group-item list-group-item-action {{ $isActive ? 'active' : '' }} p-3 rounded mb-2">
               <div class="d-flex w-100 justify-content-between align-items-center mb-1">
                 <small class="fw-bold font-monospace {{ $isActive ? 'text-white' : 'text-muted' }}">#{{ $p->kode_unik }}</small>
                 <span class="badge bg-{{ $p->status_color }} {{ $p->status === 'baru' ? 'text-dark' : '' }}">{{ strtoupper($p->status_label) }}</span>
@@ -359,7 +359,7 @@
       <div class="modal-body">
         <form id="pengaduanForm" novalidate>
           @csrf
-          <input type="hidden" name="status_pelapor" value="orang_tua">
+          <input type="hidden" name="status_pelapor" value="siswa">
 
           <div class="row g-3 mb-3">
             {{-- Nama Pelapor --}}

@@ -413,10 +413,10 @@
           <span class="siswa-quick-item__icon"><i class="ti tabler-settings"></i></span>
           <span class="siswa-quick-item__label">Pengaturan</span>
         </a>
-        {{-- 8. Bantuan --}}
-        <a href="{{ route('public.bantuan') }}" class="siswa-quick-item siswa-quick-item--secondary text-decoration-none">
-          <span class="siswa-quick-item__icon"><i class="ti tabler-help-circle"></i></span>
-          <span class="siswa-quick-item__label">Bantuan</span>
+        {{-- 8. Pengaduan --}}
+        <a href="{{ route('siswa.pengaduan') }}" class="siswa-quick-item siswa-quick-item--danger text-decoration-none">
+          <span class="siswa-quick-item__icon"><i class="ti tabler-flag"></i></span>
+          <span class="siswa-quick-item__label">Pengaduan</span>
         </a>
       </div>
     </div>

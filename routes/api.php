@@ -81,3 +81,16 @@ Route::get('/pengaduan/cek-wa', [PengaduanController::class, 'cekWa']);
 
 // ── WhatsApp Autoreply Webhook (PRD-005) — Publik API ───────────────────────
 Route::post('/v1/webhook/whatsapp-autoreply', [\App\Http\Controllers\Api\V1\WhatsAppWebhookController::class, 'handle']);
+
+// ── API V1 - Pengaturan Toggle Auto-Alpha (PRD-003) ───────────────────────────
+Route::prefix('v1/pengaturan')->middleware(['auth:sanctum', 'role:super_admin|admin_sekolah'])->group(function () {
+    Route::post('/toggle', [\App\Http\Controllers\Api\V1\PengaturanApiController::class, 'toggle'])
+        ->middleware('throttle:30,1')
+        ->name('api.pengaturan.toggle');
+    Route::get('/status', [\App\Http\Controllers\Api\V1\PengaturanApiController::class, 'status'])
+        ->middleware('throttle:60,1')
+        ->name('api.pengaturan.status');
+});
+
+
+

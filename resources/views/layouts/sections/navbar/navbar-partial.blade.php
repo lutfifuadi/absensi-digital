@@ -109,37 +109,51 @@
       @php
         $unreadNotifs = Auth::user()->unreadNotifications->take(10);
         $unreadCount = Auth::user()->unreadNotifications->count();
+        $alphaNotifCount = $unreadNotifs->filter(fn($n) => ($n->data['jenis'] ?? '') === 'alpha' || ($n->data['icon'] ?? '') === 'user-off')->count();
       @endphp
       <li class="nav-item dropdown me-3 me-xl-1">
         <a class="nav-link dropdown-toggle hide-arrow p-0 position-relative" href="javascript:void(0);"
-          data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+          data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" id="notifBellBtn"
+          aria-label="Notifikasi{{ $unreadCount > 0 ? ' (' . $unreadCount . ' baru)' : '' }}">
           <i class="icon-base ti tabler-bell icon-md"></i>
           @if ($unreadCount > 0)
             <span
-              class="badge bg-danger badge-notifications position-absolute top-0 start-100 translate-middle rounded-pill">{{ $unreadCount > 9 ? '9+' : $unreadCount }}</span>
+              class="badge bg-danger badge-notifications position-absolute top-0 start-100 translate-middle rounded-pill"
+              @if($alphaNotifCount > 0) style="animation: notifPulse 1.5s infinite;" @endif>{{ $unreadCount > 9 ? '9+' : $unreadCount }}</span>
           @endif
         </a>
-        <ul class="dropdown-menu dropdown-menu-end py-0" style="min-width:320px;max-width:360px;">
-          <li class="dropdown-menu-header border-bottom">
-            <div class="dropdown-header d-flex align-items-center py-3">
-              <h5 class="text-body mb-0 me-auto fw-semibold">Notifikasi</h5>
+        <ul class="dropdown-menu dropdown-menu-end py-0 shadow-lg" style="min-width:340px;max-width:380px;border-radius:12px;overflow:hidden;">
+          <li class="dropdown-menu-header border-bottom" style="background: linear-gradient(135deg, rgba(115, 103, 240, 0.05) 0%, transparent 100%);">
+            <div class="dropdown-header d-flex align-items-center py-3 px-3">
+              <div class="d-flex align-items-center gap-2">
+                <i class="icon-base ti tabler-bell-ringing text-primary"></i>
+                <h5 class="text-body mb-0 fw-semibold">Notifikasi</h5>
+                @if ($unreadCount > 0)
+                  <span class="badge bg-primary rounded-pill" style="font-size:0.65rem;">{{ $unreadCount }}</span>
+                @endif
+              </div>
               @if ($unreadCount > 0)
-                <a href="javascript:void(0);" class="dropdown-notifications-all text-body" data-bs-toggle="tooltip"
+                <a href="javascript:void(0);" class="dropdown-notifications-all text-body ms-auto" data-bs-toggle="tooltip"
                   data-bs-placement="top" title="Tandai semua sudah dibaca" id="btn-mark-all-read">
-                  <i class="icon-base ti tabler-mail-opened fs-4"></i>
+                  <i class="icon-base ti tabler-mail-opened fs-5"></i>
                 </a>
               @endif
             </div>
           </li>
-          <li class="dropdown-notifications-list scrollable-container" style="max-height:300px;overflow-y:auto;">
+          <li class="dropdown-notifications-list scrollable-container" style="max-height:360px;overflow-y:auto;">
             @forelse($unreadNotifs as $notif)
               @php
                 $data = $notif->data;
                 $jenis = $data['jenis'] ?? '';
                 $icon = 'tabler-bell';
                 $bg = 'info';
+                $isAlpha = false;
 
-                if ($jenis === 'sakit') {
+                if ($jenis === 'alpha' || (isset($data['icon']) && $data['icon'] === 'user-off')) {
+                    $bg = 'danger';
+                    $icon = 'tabler-user-off';
+                    $isAlpha = true;
+                } elseif ($jenis === 'sakit') {
                     $bg = 'warning';
                     $icon = 'tabler-first-aid-kit';
                 } elseif ($jenis === 'izin') {
@@ -151,39 +165,55 @@
                 }
               @endphp
               <ul class="list-group list-group-flush">
-                <li class="list-group-item list-group-item-action dropdown-notifications-item">
-                  <div class="d-flex">
+                <li class="list-group-item list-group-item-action dropdown-notifications-item {{ $isAlpha ? 'border-start border-3 border-danger' : '' }}"
+                    @if($isAlpha) style="background: rgba(234, 84, 85, 0.04);" @endif>
+                  <div class="d-flex px-3 py-2">
                     <div class="flex-shrink-0 me-3">
-                      <div class="avatar">
+                      <div class="avatar {{ $isAlpha ? 'avatar-md' : '' }}">
                         <span class="avatar-initial rounded-circle bg-label-{{ $bg }}">
                           <i class="icon-base ti {{ $icon }} icon-sm"></i>
                         </span>
                       </div>
                     </div>
-                    <div class="flex-grow-1">
-                      <h6 class="mb-1 small fw-semibold">{{ $data['title'] ?? 'Notifikasi' }}</h6>
-                      <p class="mb-0 small text-body-secondary">{{ \Illuminate\Support\Str::limit($data['message'] ?? '', 60) }}</p>
-                      <small class="text-muted">{{ $notif->created_at->diffForHumans() }}</small>
+                    <div class="flex-grow-1 min-w-0">
+                      <div class="d-flex align-items-center gap-1 mb-1">
+                        <h6 class="mb-0 small fw-semibold text-truncate">{{ $data['title'] ?? 'Notifikasi' }}</h6>
+                        @if($isAlpha)
+                          <span class="badge bg-danger rounded-pill flex-shrink-0" style="font-size:0.55rem;padding:2px 6px;">ALPHA</span>
+                        @endif
+                      </div>
+                      <p class="mb-1 small text-body-secondary" style="line-height:1.4;">{{ \Illuminate\Support\Str::limit($data['message'] ?? '', 80) }}</p>
+                      <div class="d-flex align-items-center gap-2">
+                        <small class="text-muted"><i class="ti tabler-clock me-1" style="font-size:0.7rem;"></i>{{ $notif->created_at->diffForHumans() }}</small>
+                        @if(isset($data['tanggal']))
+                          <small class="text-muted">· {{ \Carbon\Carbon::parse($data['tanggal'])->locale('id')->translatedFormat('d M Y') }}</small>
+                        @endif
+                      </div>
                     </div>
-                    <div class="flex-shrink-0 ms-2">
-                      <button class="btn-close btn-mark-read" style="font-size:.65rem;"
-                        data-notif-id="{{ $notif->id }}" title="Tandai dibaca"></button>
+                    <div class="flex-shrink-0 ms-2 d-flex flex-column align-items-center gap-1">
+                      <button class="btn-close btn-mark-read" style="font-size:.6rem;"
+                        data-notif-id="{{ $notif->id }}" title="Tandai dibaca"
+                        aria-label="Tandai notifikasi ini sudah dibaca"></button>
                     </div>
                   </div>
                 </li>
               </ul>
             @empty
-              <div class="text-center py-4 text-muted">
-                <i class="ti tabler-bell-off fs-3 d-block mb-1"></i>
-                <small>Tidak ada notifikasi baru</small>
+              <div class="text-center py-4 text-muted px-3">
+                <div class="mb-2" style="width:48px;height:48px;border-radius:50%;background:rgba(115,103,240,0.08);display:inline-flex;align-items:center;justify-content:center;">
+                  <i class="ti tabler-bell-off fs-4 text-primary"></i>
+                </div>
+                <p class="mb-0 small fw-semibold">Tidak ada notifikasi baru</p>
+                <small class="text-muted" style="font-size:0.72rem;">Semua notifikasi sudah dibaca</small>
               </div>
             @endforelse
           </li>
           @if ($unreadCount > 0)
-            <li class="border-top">
+            <li class="border-top" style="background: rgba(0,0,0,0.015);">
               <a href="{{ route('admin.izin-sakit.index') }}"
-                class="dropdown-item d-flex justify-content-center p-3 fw-semibold">
-                Lihat Semua Izin/Sakit
+                class="dropdown-item d-flex justify-content-center align-items-center p-3 fw-semibold text-primary"
+                style="font-size:0.82rem;">
+                <i class="ti tabler-external-link me-1"></i> Lihat Semua Notifikasi
               </a>
             </li>
           @endif
@@ -191,6 +221,12 @@
       </li>
     @endauth
     <!-- / Notification Bell -->
+    <style>
+      @keyframes notifPulse {
+        0%, 100% { transform: translate(-50%, -50%) scale(1); }
+        50% { transform: translate(-50%, -50%) scale(1.15); }
+      }
+    </style>
 
     <!-- User -->
     <li class="nav-item navbar-dropdown dropdown-user dropdown">

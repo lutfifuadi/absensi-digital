@@ -1117,6 +1117,25 @@ return response()->json([
 
     private function siswaData($user): array
     {
+        // Cache semua Pengaturan yang dibutuhkan dashboard siswa (1 query, TTL 1 jam)
+        $pengaturanSiswa = Cache::remember('pengaturan.dashboard_siswa', 3600, function () {
+            return Pengaturan::whereIn('key', [
+                'pelepasan_kegiatan_id',
+                'logo_sekolah',
+                'nama_sekolah',
+                'izinkan_lokasi_absensi_mandiri',
+                'aktifkan_bunyi_notif_absensi',
+                'freq_bunyi_hadir',
+                'freq_bunyi_terlambat',
+                'freq_bunyi_streak',
+                'freq_bunyi_early',
+                'freq_bunyi_normal',
+                'freq_bunyi_late',
+                'freq_bunyi_checkout',
+                'auto_alpha_siswa_enabled',
+            ])->pluck('value', 'key');
+        });
+
         $siswa = Siswa::where('user_id', $user->id)->first();
         if (!$siswa) {
             return [
@@ -1134,6 +1153,7 @@ return response()->json([
                 'chartSakit' => [],
                 'chartIzin' => [],
                 'chartAlpha' => [],
+                'pengaturanSiswa' => $pengaturanSiswa,
             ];
         }
 
@@ -1238,6 +1258,7 @@ return response()->json([
             'chartSakit' => $chartSakit,
             'chartIzin' => $chartIzin,
             'chartAlpha' => $chartAlpha,
+            'pengaturanSiswa' => $pengaturanSiswa,
         ];
     }
 

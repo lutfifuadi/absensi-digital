@@ -219,6 +219,8 @@ Route::middleware([
         Route::get('/assignments', [AssignmentController::class, 'index'])->name('siswa.assignments.index');
         Route::get('/assignments/{assignment}', [AssignmentController::class, 'show'])->name('siswa.assignments.show');
 
+        Route::get('/pengaduan', [PortalSiswaController::class, 'pengaduan'])->name('siswa.pengaduan');
+
         Route::post('/absensi-mandiri', [AbsensiMandiriController::class, 'store'])->name('siswa.absensi-mandiri.store');
     });
 
@@ -1381,6 +1383,8 @@ Route::middleware([
         });
     });
 });
+
+
 
 
 

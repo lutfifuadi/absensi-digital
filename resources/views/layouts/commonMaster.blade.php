@@ -45,25 +45,34 @@
     content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
   @php
-    $siteName = \App\Models\Pengaturan::where('key', 'nama_lembaga')->value('value')
-      ?? \App\Models\Pengaturan::where('key', 'nama_sekolah')->value('value')
+    $siteSettings = \Illuminate\Support\Facades\Cache::remember('site_settings_global', 3600, fn() =>
+        \App\Models\Pengaturan::whereIn('key', [
+            'nama_lembaga', 'nama_sekolah',
+            'deskripsi_lembaga', 'deskripsi_sekolah', 'site_description',
+            'logo_url', 'logo_sekolah', 'logo',
+            'wa_og_preview_enabled', 'google_font_family',
+        ])->pluck('value', 'key')
+    );
+
+    $siteName = $siteSettings['nama_lembaga']
+      ?? $siteSettings['nama_sekolah']
       ?? config('app.name', 'Portal Presensi');
 
-    $siteDesc = \App\Models\Pengaturan::where('key', 'deskripsi_lembaga')->value('value')
-      ?? \App\Models\Pengaturan::where('key', 'deskripsi_sekolah')->value('value')
-      ?? \App\Models\Pengaturan::where('key', 'site_description')->value('value')
+    $siteDesc = $siteSettings['deskripsi_lembaga']
+      ?? $siteSettings['deskripsi_sekolah']
+      ?? $siteSettings['site_description']
       ?? ('Sistem Informasi dan Portal Presensi Digital Resmi ' . $siteName);
 
-    $siteLogo = \App\Models\Pengaturan::where('key', 'logo_url')->value('value')
-      ?? \App\Models\Pengaturan::where('key', 'logo_sekolah')->value('value')
-      ?? \App\Models\Pengaturan::where('key', 'logo')->value('value')
+    $siteLogo = $siteSettings['logo_url']
+      ?? $siteSettings['logo_sekolah']
+      ?? $siteSettings['logo']
       ?? asset('assets/img/favicon/favicon.ico');
 
     if (!empty($siteLogo) && !filter_var($siteLogo, FILTER_VALIDATE_URL)) {
         $siteLogo = asset($siteLogo);
     }
 
-    $ogPreviewEnabled = \App\Models\Pengaturan::where('key', 'wa_og_preview_enabled')->value('value') ?? 'Ya';
+    $ogPreviewEnabled = $siteSettings['wa_og_preview_enabled'] ?? 'Ya';
     $pageTitle = trim($__env->yieldContent('title'));
     if ($pageTitle) {
         $fullTitle = \Illuminate\Support\Str::contains($pageTitle, $siteName) ? $pageTitle : ($pageTitle . ' | ' . $siteName);
@@ -98,7 +107,7 @@
   <link rel="preload" href="{{ asset('assets/fonts/ProductSans-Bold.woff2') }}" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="{{ asset('assets/fonts/TrajanPro-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
   @php
-    $fontFamily = \App\Models\Pengaturan::where('key', 'google_font_family')->value('value') ?? 'Product Sans';
+    $fontFamily = $siteSettings['google_font_family'] ?? 'Product Sans';
   @endphp
   @if($fontFamily !== 'Product Sans')
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -116,11 +125,11 @@
   <link rel="canonical" href="{{ config('variables.productPage') ? config('variables.productPage') : '' }}" />
   <!-- Favicon -->
   @php
-    $faviconSetting = \App\Models\Pengaturan::where('key', 'logo_url')->value('value');
+    $faviconSetting = $siteSettings['logo_url'] ?? null;
     if (!$faviconSetting) {
-      $faviconSetting = \App\Models\Pengaturan::where('key', 'logo_sekolah')->value('value');
-      if ($faviconSetting) {
-        $faviconSetting = asset('uploads/logo/' . $faviconSetting);
+      $faviconLogoSekolah = $siteSettings['logo_sekolah'] ?? null;
+      if ($faviconLogoSekolah) {
+        $faviconSetting = asset('uploads/logo/' . $faviconLogoSekolah);
       }
     }
   @endphp

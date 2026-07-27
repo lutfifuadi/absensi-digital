@@ -57,6 +57,12 @@
       "slug": "siswa.download-kartu",
       "url": "/siswa/download-kartu",
       "target": "_blank"
+    },
+    {
+      "name": "Pengaduan",
+      "icon": "menu-icon ti tabler-flag",
+      "slug": "siswa.pengaduan",
+      "url": "/siswa/pengaduan"
     }
   ]
 }

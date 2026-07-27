@@ -440,4 +440,45 @@ class PortalSiswaController extends Controller
             'semester' => $semester,
         ]);
     }
+
+    /**
+     * Halaman Layanan Pengaduan Portal Siswa.
+     */
+    public function pengaduan(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $siswaRecord = Siswa::where('user_id', $user->id)->first();
+        $noHp = $siswaRecord ? $siswaRecord->no_hp : $user->no_hp;
+
+        // Ambil daftar pengaduan berdasarkan nomor_wa siswa, urutkan terbaru dari atas
+        $pengaduanList = \App\Models\Pengaduan::where('nomor_wa', $noHp)
+            ->where('status_pelapor', 'siswa')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $activePengaduan = null;
+        $activeLogs = collect();
+
+        if ($pengaduanList->isNotEmpty()) {
+            // Tentukan pengaduan aktif berdasarkan parameter id, default pertama di list
+            $activeId = $request->query('id');
+            if ($activeId) {
+                $activePengaduan = $pengaduanList->firstWhere('id', $activeId);
+            }
+
+            // Jika id parameter tidak ditemukan atau tidak dikirim, ambil yang pertama
+            if (!$activePengaduan) {
+                $activePengaduan = $pengaduanList->first();
+            }
+
+            if ($activePengaduan) {
+                // Ambil logs dan urutkan
+                $activeLogs = $activePengaduan->logs()->orderBy('created_at', 'asc')->get();
+            }
+        }
+
+        $viewName = view()->exists('siswa.pengaduan') ? 'siswa.pengaduan' : 'content.siswa.pengaduan';
+        return view($viewName, compact('pengaduanList', 'activePengaduan', 'activeLogs'));
+    }
 }
