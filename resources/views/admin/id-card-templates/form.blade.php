@@ -270,10 +270,7 @@
                         </select>
                     </div>
 
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" name="is_active" id="isActive" {{ old('is_active', $template->is_active) ? 'checked' : '' }}>
-                        <label class="form-check-label text-white small" for="isActive">Jadikan Template Aktif</label>
-                    </div>
+
 
                     <div class="mb-3">
                         <label class="form-label text-white-50 small d-flex justify-content-between align-items-center">

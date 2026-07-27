@@ -499,13 +499,14 @@
 
     // Toggle aktif/nonaktif tahun ajaran via AJAX
     function toggleAktif(id, checkbox) {
-      const originalState = checkbox.checked;
+      const isCurrentlyChecked = checkbox.checked;
+      const previousState = !isCurrentlyChecked;
 
-      // Disable toggle selama proses
       checkbox.disabled = true;
-      checkbox.closest('td').classList.add('toggle-loading');
+      if (checkbox.closest('td')) {
+        checkbox.closest('td').classList.add('toggle-loading');
+      }
 
-      // Ambil CSRF token
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
       fetch('{{ url("admin/tahun-akademik") }}/' + id + '/toggle-aktif', {
@@ -520,34 +521,49 @@
       .then(response => response.json())
       .then(data => {
         if (data.success) {
-          checkbox.checked = data.is_aktif;
+          const isAktif = !!data.is_aktif;
+          checkbox.checked = isAktif;
+          if (isAktif) {
+            checkbox.setAttribute('checked', 'checked');
+          } else {
+            checkbox.removeAttribute('checked');
+          }
 
-          // Update semua toggle sesuai status di database
-          document.querySelectorAll('[id^="toggle-"]').forEach(el => {
-            const toggleId = parseInt(el.id.replace('toggle-', ''));
-            if (toggleId !== id) {
-              el.checked = false;
-            }
-          });
+          if (isAktif) {
+            document.querySelectorAll('[id^="toggle-"]').forEach(el => {
+              if (el !== checkbox) {
+                el.checked = false;
+                el.removeAttribute('checked');
+              }
+            });
+          }
 
-          // Tampilkan notifikasi sukses
           showToast('success', data.message);
         } else {
-          // Kembalikan ke posisi semula
-          checkbox.checked = originalState;
+          checkbox.checked = previousState;
+          if (previousState) {
+            checkbox.setAttribute('checked', 'checked');
+          } else {
+            checkbox.removeAttribute('checked');
+          }
           showToast('error', data.message || 'Gagal mengubah status');
         }
       })
       .catch(error => {
-        // Kembalikan ke posisi semula
-        checkbox.checked = originalState;
+        checkbox.checked = previousState;
+        if (previousState) {
+          checkbox.setAttribute('checked', 'checked');
+        } else {
+          checkbox.removeAttribute('checked');
+        }
         showToast('error', 'Terjadi kesalahan jaringan. Silakan coba lagi.');
         console.error('Toggle error:', error);
       })
       .finally(() => {
-        // Enable toggle kembali
         checkbox.disabled = false;
-        checkbox.closest('td').classList.remove('toggle-loading');
+        if (checkbox.closest('td')) {
+          checkbox.closest('td').classList.remove('toggle-loading');
+        }
       });
     }
 

@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\IdCardTemplate;
 use App\Services\IdCardPdfService;
 use App\Services\GoogleDriveService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class IdCardTemplateController extends Controller
@@ -293,9 +295,11 @@ class IdCardTemplateController extends Controller
             'config' => 'required|json',
         ]);
 
-        $data = $request->only(['name', 'type', 'is_active']);
+        $data = $request->only(['name', 'type']);
         $data['config'] = json_decode($request->config, true);
-        $data['is_active'] = $request->has('is_active');
+        if ($request->has('is_active')) {
+            $data['is_active'] = $request->boolean('is_active');
+        }
 
         // Validate border_radius range 0-5
         $borderRadius = $data['config']['canvas']['border_radius'] ?? 5;
@@ -369,7 +373,7 @@ class IdCardTemplateController extends Controller
             $data['background_path_back'] = $request->background_back_url;
         }
 
-        if ($data['is_active']) {
+        if (isset($data['is_active']) && $data['is_active']) {
             IdCardTemplate::where('type', $data['type'])
                 ->where('id', '!=', $idCardTemplate->id)
                 ->update(['is_active' => false]);
@@ -678,5 +682,54 @@ class IdCardTemplateController extends Controller
 
         return redirect()->route('admin.id-card-templates.index')
             ->with('success', "Template '{$idCardTemplate->name}' berhasil diduplikasi menjadi '{$newTemplate->name}'.");
+    }
+
+    /**
+     * Toggle status aktif template ID Card.
+     */
+    public function toggleAktif(IdCardTemplate $idCardTemplate)
+    {
+        // Jika sedang aktif dan ingin dinonaktifkan, pastikan minimal 1 template aktif per tipe
+        if ($idCardTemplate->is_active) {
+            $aktifCount = IdCardTemplate::where('type', $idCardTemplate->type)
+                ->where('is_active', true)
+                ->count();
+
+            if ($aktifCount <= 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak bisa menonaktifkan. Minimal harus ada 1 template yang aktif untuk tipe ' . ucfirst($idCardTemplate->type) . '.'
+                ], 422);
+            }
+        }
+
+        $taSblm = $idCardTemplate->is_active;
+
+        DB::transaction(function () use ($idCardTemplate) {
+            if (!$idCardTemplate->is_active) {
+                IdCardTemplate::where('type', $idCardTemplate->type)
+                    ->where('is_active', true)
+                    ->update(['is_active' => false]);
+            }
+            $idCardTemplate->update(['is_active' => !$idCardTemplate->is_active]);
+        });
+
+        $idCardTemplate->refresh();
+
+        ActivityLog::record(
+            'update',
+            'id_card_template',
+            "Toggle status template ID Card: {$idCardTemplate->name} ({$idCardTemplate->type}) → " . ($idCardTemplate->is_active ? 'Aktif' : 'Draft'),
+            ['is_aktif_sebelum' => $taSblm],
+            ['is_aktif_sesudah' => $idCardTemplate->is_active]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status template berhasil diperbarui.',
+            'is_aktif' => (bool) $idCardTemplate->is_active,
+            'is_active' => (bool) $idCardTemplate->is_active,
+            'type' => $idCardTemplate->type
+        ]);
     }
 }

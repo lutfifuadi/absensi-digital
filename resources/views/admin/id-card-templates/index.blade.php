@@ -108,11 +108,14 @@
                 @endif
               </td>
               <td class="py-3">
-                @if($template->is_active)
-                  <span class="badge bg-success">Aktif</span>
-                @else
-                  <span class="badge bg-secondary">Draft</span>
-                @endif
+                <div class="form-check form-switch d-inline-block mb-0" style="padding-left:2em;">
+                  <input class="form-check-input" type="checkbox" role="switch"
+                    id="toggle-{{ $template->id }}"
+                    data-type="{{ $template->type }}"
+                    {{ $template->is_active ? 'checked' : '' }}
+                    onchange="toggleAktif({{ $template->id }}, this)"
+                    style="cursor:pointer; width:2.5rem; height:1.3rem;">
+                </div>
               </td>
               <td class="py-3 text-muted small">{{ $template->updated_at->diffForHumans() }}</td>
               <td class="px-4 py-3 text-end">
@@ -206,6 +209,20 @@
 
 @section('page-style')
 <style>
+/* Toggle switch styling */
+.form-check-input:checked {
+  background-color: #28c76f !important;
+  border-color: #28c76f !important;
+}
+.form-check-input:focus {
+  border-color: #28c76f !important;
+  box-shadow: 0 0 0 0.2rem rgba(40, 199, 111, 0.25) !important;
+}
+.toggle-loading {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 :root {
   --das-primary:      #7367f0;
   --das-primary-soft: rgba(115,103,240,0.12);
@@ -349,6 +366,96 @@
 
 @push('scripts')
 <script>
+    function toggleAktif(id, checkbox) {
+        const isCurrentlyChecked = checkbox.checked;
+        const previousState = !isCurrentlyChecked;
+        const templateType = (checkbox.getAttribute('data-type') || '').toLowerCase().trim();
+
+        checkbox.disabled = true;
+        if (checkbox.closest('td')) {
+            checkbox.closest('td').classList.add('toggle-loading');
+        }
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+        fetch('{{ url("admin/id-card-templates") }}/' + id + '/toggle-aktif', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const isAktif = (data.is_aktif !== undefined) ? !!data.is_aktif : !!data.is_active;
+                checkbox.checked = isAktif;
+                if (isAktif) {
+                    checkbox.setAttribute('checked', 'checked');
+                } else {
+                    checkbox.removeAttribute('checked');
+                }
+
+                if (isAktif) {
+                    const targetType = (data.type || templateType || '').toLowerCase().trim();
+                    document.querySelectorAll('[id^="toggle-"]').forEach(el => {
+                        if (el !== checkbox) {
+                            const elType = (el.getAttribute('data-type') || '').toLowerCase().trim();
+                            if (!targetType || elType === targetType) {
+                                el.checked = false;
+                                el.removeAttribute('checked');
+                            }
+                        }
+                    });
+                }
+
+                showToast('success', data.message);
+            } else {
+                checkbox.checked = previousState;
+                if (previousState) {
+                    checkbox.setAttribute('checked', 'checked');
+                } else {
+                    checkbox.removeAttribute('checked');
+                }
+                showToast('error', data.message || 'Gagal mengubah status');
+            }
+        })
+        .catch(error => {
+            checkbox.checked = previousState;
+            if (previousState) {
+                checkbox.setAttribute('checked', 'checked');
+            } else {
+                checkbox.removeAttribute('checked');
+            }
+            showToast('error', 'Terjadi kesalahan jaringan. Silakan coba lagi.');
+            console.error('Toggle error:', error);
+        })
+        .finally(() => {
+            checkbox.disabled = false;
+            if (checkbox.closest('td')) {
+                checkbox.closest('td').classList.remove('toggle-loading');
+            }
+        });
+    }
+
+    function showToast(type, message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm`;
+        alertDiv.style.cssText = 'border-radius:8px;position:fixed;top:20px;right:20px;z-index:9999;max-width:400px;';
+        alertDiv.innerHTML = `
+            <i class="ti ${type === 'success' ? 'tabler-circle-check' : 'tabler-alert-circle'} fs-5"></i>
+            <span>${message}</span>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 3000);
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         // Handle loading state/feedback
         const form = document.getElementById('importTemplateForm');

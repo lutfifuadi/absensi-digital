@@ -1240,6 +1240,9 @@ Route::middleware([
         Route::post('id-card-templates/{idCardTemplate}/duplicate', [IdCardTemplateController::class, 'duplicate'])
             ->name('admin.id-card-templates.duplicate')
             ->middleware('role:super_admin,admin_sekolah');
+        Route::post('id-card-templates/{idCardTemplate}/toggle-aktif', [IdCardTemplateController::class, 'toggleAktif'])
+            ->name('admin.id-card-templates.toggle-aktif')
+            ->middleware('role:super_admin,admin_sekolah');
 
         Route::resource('id-card-templates', IdCardTemplateController::class)
             ->names('admin.id-card-templates')
@@ -1384,7 +1387,34 @@ Route::middleware([
     });
 });
 
+// ── MONITORING KEHADIRAN GURU PER JAM PELAJARAN (PRD-002) ────────────────
+Route::middleware(['auth'])->group(function () {
+    // Guru Piket
+    Route::prefix('piket/monitoring')->middleware('role:piket,super_admin,admin_sekolah')->group(function () {
+        Route::get('/', [\App\Http\Controllers\PiketMonitoringController::class, 'index'])->name('piket.monitoring.index');
+        Route::post('/', [\App\Http\Controllers\PiketMonitoringController::class, 'store'])->name('piket.monitoring.store');
+        Route::put('/{id}', [\App\Http\Controllers\PiketMonitoringController::class, 'update'])->name('piket.monitoring.update');
+        Route::get('/guru-search', [\App\Http\Controllers\PiketMonitoringController::class, 'searchGuru'])->name('piket.monitoring.search-guru');
+    });
 
+    // WAKA Kurikulum - Live Board
+    Route::prefix('waka/live-board')->middleware('role:waka_kurikulum,super_admin,admin_sekolah')->group(function () {
+        Route::get('/', [\App\Http\Controllers\LiveBoardController::class, 'index'])->name('waka.live-board');
+        Route::get('/data', [\App\Http\Controllers\LiveBoardController::class, 'data'])->name('waka.live-board.data');
+    });
+
+    // Admin Rekap
+    Route::prefix('admin/monitoring')->middleware('role:super_admin,admin_sekolah,waka_kurikulum')->group(function () {
+        Route::get('/', [\App\Http\Controllers\AdminMonitoringController::class, 'index'])->name('admin.monitoring.index');
+        Route::delete('/{id}', [\App\Http\Controllers\AdminMonitoringController::class, 'destroy'])->name('admin.monitoring.destroy');
+    });
+
+    // Portal Guru
+    Route::prefix('guru/monitoring')->middleware('role:guru,super_admin,admin_sekolah')->group(function () {
+        Route::get('/', [\App\Http\Controllers\GuruMonitoringController::class, 'index'])->name('guru.monitoring.index');
+    });
+});
+// ─────────────────────────────────────────────────────────────────────────────
 
 
 
