@@ -836,6 +836,9 @@ Route::middleware([
         Route::get('absensi-cepat', [AbsensiSiswaController::class, 'bulkForm'])
             ->name('admin.absensi-cepat')
             ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator');
+        Route::get('absensi-cepat/search', [AbsensiSiswaController::class, 'searchStudent'])
+            ->name('admin.absensi-cepat.search')
+            ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator');
         Route::post('absensi-cepat', [AbsensiSiswaController::class, 'bulkStore'])
             ->name('admin.absensi-cepat.store')
             ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator');
@@ -1376,13 +1379,6 @@ Route::middleware([
     });
 });
 
-// ── Download Aplikasi (Signed URL) ────────────────────────────────────────────
-Route::get('/download/app/{token}', [DownloadController::class, 'downloadApp'])
-    ->name('download.app')
-    ->middleware('signed');
-Route::get('/download/manual', [DownloadController::class, 'manualDownload'])
-    ->name('download.manual');
-// ─────────────────────────────────────────────────────────────────────────────
 
 
 
