@@ -200,6 +200,23 @@
           <a href="{{ route('admin.absensi-siswa.create') }}" class="das-btn das-btn--primary">
             <i class="ti tabler-plus me-1"></i> Input Manual
           </a>
+          <button type="button" class="das-btn das-btn--info" data-bs-toggle="modal" data-bs-target="#importExcelModal">
+            <i class="ti tabler-file-upload me-1"></i> Import Excel
+          </button>
+          <a href="{{ route('admin.absensi-siswa.export', request()->query()) }}" class="das-btn das-btn--info">
+            <i class="ti tabler-file-spreadsheet me-1"></i> Export Excel
+          </a>
+        </div>
+      </div>
+      @else
+      <div class="das-hero__actions">
+        <div class="d-flex gap-2 flex-wrap">
+          <button type="button" class="das-btn das-btn--info" data-bs-toggle="modal" data-bs-target="#importExcelModal">
+            <i class="ti tabler-file-upload me-1"></i> Import Excel
+          </button>
+          <a href="{{ route('wali-kelas.absensi-siswa.export', request()->query()) }}" class="das-btn das-btn--info">
+            <i class="ti tabler-file-spreadsheet me-1"></i> Export Excel
+          </a>
         </div>
       </div>
       @endif
@@ -212,6 +229,27 @@
       <i class="ti tabler-circle-check fs-5"></i>
       <span>{{ session('success') }}</span>
       <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+  @endif
+
+  @if (session('error'))
+    <div class="alert alert-danger alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm"
+      role="alert" style="border-radius:8px; background: rgba(234, 84, 85, 0.12); color: #ea5455;">
+      <i class="ti tabler-alert-circle fs-5"></i>
+      <span>{{ session('error') }}</span>
+      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+  @endif
+
+  @if (session('error_import'))
+    <div class="alert alert-warning alert-dismissible mb-4 border-0 shadow-sm"
+      role="alert" style="border-radius:8px; background: rgba(255, 159, 67, 0.12); color: #ff9f43; font-size: 0.9rem;">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <i class="ti tabler-alert-triangle fs-5"></i>
+        <span class="fw-bold">Peringatan Import</span>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+      </div>
+      {!! session('error_import') !!}
     </div>
   @endif
 
@@ -340,6 +378,50 @@
             </button>
           </form>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Import Excel -->
+  <div class="modal fade" id="importExcelModal" tabindex="-1" aria-labelledby="importExcelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header border-bottom py-3 px-4" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+          <h5 class="modal-title" id="importExcelModalLabel" style="color: #fff; font-weight: 600;">Import Absensi Siswa</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{{ route('admin.absensi-siswa.import') }}" method="POST" enctype="multipart/form-data">
+          @csrf
+          <div class="modal-body p-4">
+            <div class="mb-3">
+              <label for="importFile" class="form-label text-white-50 small fw-bold">File Excel (.xlsx, .xls, .csv)</label>
+              <input class="form-control" type="file" id="importFile" name="file" accept=".xlsx,.xls,.csv" required>
+              <div class="form-text text-white-50 mt-2" style="font-size: 0.78rem;">
+                Ukuran file maksimal 10MB.
+              </div>
+            </div>
+            
+            <div class="alert alert-info border-0 d-flex align-items-start gap-2 mb-0" style="border-radius: 8px; background: rgba(0, 207, 232, 0.12); color: #00cfe8; font-size: 0.85rem;">
+              <i class="ti tabler-info-circle mt-1"></i>
+              <div>
+                Silakan unduh template Excel terlebih dahulu agar format kolom sesuai dengan kebutuhan sistem.
+                <div class="mt-2">
+                  <a href="{{ route('admin.absensi-siswa.download-template') }}" class="btn btn-sm btn-info text-white fw-bold px-3 py-1">
+                    <i class="ti tabler-download me-1"></i> Unduh Template
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-top pt-0 pb-4 px-4 justify-content-end gap-2" style="border-color: transparent !important;">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+              <i class="ti tabler-x me-1"></i> Batal
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="ti tabler-file-upload me-1"></i> Mulai Import
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

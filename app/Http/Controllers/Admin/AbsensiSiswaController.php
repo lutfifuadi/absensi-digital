@@ -129,6 +129,117 @@ class AbsensiSiswaController extends Controller
         ));
     }
 
+    public function export(Request $request)
+    {
+        $user = auth()->user();
+        $activeRole = session('active_role', $user ? $user->role : 'guest');
+        $isWaliKelas = $activeRole === \App\Models\User::ROLE_WALI_KELAS;
+        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
+
+        $filters = [
+            'search'       => $request->query('search'),
+            'kelas_id'     => $request->query('kelas_id'),
+            'status'       => $request->query('status'),
+            'tanggal_from' => $request->query('tanggal_from'),
+            'tanggal_to'   => $request->query('tanggal_to'),
+            'sort_by'      => $request->query('sort_by', 'tanggal'),
+            'sort_dir'     => $request->query('sort_dir', 'desc'),
+        ];
+
+        $export = new \App\Exports\AbsensiSiswaExport($filters, $isWaliKelas, $user, $tahunAjaranId);
+        
+        return \Maatwebsite\Excel\Facades\Excel::download($export, 'absensi-siswa-' . now()->format('Y-m-d') . '.xlsx');
+    }
+
+    public function downloadTemplate()
+    {
+        $headers = [
+            'Tanggal',
+            'NIS',
+            'Status',
+            'Jam Masuk',
+            'Jam Pulang',
+            'Keterangan'
+        ];
+
+        $data = [
+            [
+                now()->format('Y-m-d'),
+                '12345',
+                'hadir',
+                '07:00',
+                '14:00',
+                'Hadir tepat waktu'
+            ],
+            [
+                now()->format('Y-m-d'),
+                '12346',
+                'sakit',
+                '',
+                '',
+                'Demam tinggi'
+            ]
+        ];
+
+        $export = new class($headers, $data) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings {
+            private $headers;
+            private $data;
+            public function __construct($headers, $data) {
+                $this->headers = $headers;
+                $this->data = $data;
+            }
+            public function headings(): array {
+                return $this->headers;
+            }
+            public function array(): array {
+                return $this->data;
+            }
+        };
+
+        return \Maatwebsite\Excel\Facades\Excel::download($export, 'template-import-absensi.xlsx');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        $user = auth()->user();
+        $guruId = null;
+        if ($user && $user->guru) {
+            $guruId = $user->guru->id;
+        }
+
+        $import = new \App\Imports\AbsensiSiswaImport($guruId);
+
+        try {
+            \Maatwebsite\Excel\Facades\Excel::import($import, $request->file('file'));
+            $result = $import->getImportResult();
+
+            $msg = "Berhasil mengimpor {$result['success']} data absensi.";
+            if (count($result['errors']) > 0) {
+                $errDetail = "<br>Beberapa baris gagal diimpor:<br><ul>";
+                foreach (array_slice($result['errors'], 0, 10) as $err) {
+                    $errDetail .= "<li>Baris {$err['row']} (NIS: {$err['nis']}): {$err['error']}</li>";
+                }
+                if (count($result['errors']) > 10) {
+                    $errDetail .= "<li>...dan " . (count($result['errors']) - 10) . " error lainnya.</li>";
+                }
+                $errDetail .= "</ul>";
+                
+                return redirect()->route('admin.absensi-siswa.index')
+                    ->with('success', $msg)
+                    ->with('error_import', $errDetail);
+            }
+
+            return redirect()->route('admin.absensi-siswa.index')->with('success', $msg);
+        } catch (\Throwable $e) {
+            return redirect()->route('admin.absensi-siswa.index')
+                ->with('error', 'Terjadi kesalahan saat mengimpor file: ' . $e->getMessage());
+        }
+    }
+
     public function create()
     {
         $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));

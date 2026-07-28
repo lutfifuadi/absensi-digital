@@ -276,6 +276,7 @@ Route::middleware([
         Route::get('/siswa', [SiswaController::class, 'index'])->name('wali-kelas.siswa.index');
         Route::get('/siswa/{siswa}/profil', [SiswaController::class, 'profil'])->name('wali-kelas.siswa.profil');
         Route::get('/absensi-siswa', [AbsensiSiswaController::class, 'index'])->name('wali-kelas.absensi-siswa.index');
+        Route::get('/absensi-siswa/export', [AbsensiSiswaController::class, 'export'])->name('wali-kelas.absensi-siswa.export');
         Route::get('/rekap-harian', [LaporanController::class, 'rekapHarian'])->name('wali-kelas.rekap-harian');
         Route::get('/belum-absen', [LaporanController::class, 'belumAbsen'])->name('wali-kelas.belum-absen');
         Route::get('/absensi-manual', [AbsensiSiswaController::class, 'manualCreate'])->name('wali-kelas.absensi-manual.create');
@@ -880,6 +881,18 @@ Route::middleware([
         Route::post('absensi-siswa/auto-alpha', [AbsensiSiswaController::class, 'triggerAutoAlpha'])
             ->name('admin.absensi-siswa.auto-alpha')
             ->middleware('role:super_admin,admin_sekolah,operator,wali_kelas');
+
+        Route::get('absensi-siswa/download-template', [AbsensiSiswaController::class, 'downloadTemplate'])
+            ->name('admin.absensi-siswa.download-template')
+            ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator');
+
+        Route::post('absensi-siswa/import', [AbsensiSiswaController::class, 'import'])
+            ->name('admin.absensi-siswa.import')
+            ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator');
+
+        Route::get('absensi-siswa/export', [AbsensiSiswaController::class, 'export'])
+            ->name('admin.absensi-siswa.export')
+            ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator');
 
         Route::resource('absensi-siswa', AbsensiSiswaController::class)
             ->names('admin.absensi-siswa')
