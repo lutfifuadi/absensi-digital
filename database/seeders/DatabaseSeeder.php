@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
         $this->call(WaAutoreplyKeywordSeeder::class);
         $this->call(KategoriPelanggaranSeeder::class);
         $this->call(JenisPelanggaranSeeder::class);
+        $this->call(BadgeSeeder::class);
 
         // ==========================================
         //  DEMO DATA (khusus local/testing)

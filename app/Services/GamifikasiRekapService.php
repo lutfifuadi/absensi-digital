@@ -139,7 +139,8 @@ class GamifikasiRekapService
                 'studentBadges.badge:id,name,icon',
                 'studentGamificationStat',
             ])
-            ->where('status', 'aktif');
+            ->where('status', 'aktif')
+            ->whereHas('kelas', fn ($q) => $q->where('nama', 'NOT LIKE', '%X.UMUM%'));
 
         if ($kelasId) {
             $siswaQuery->where('kelas_id', $kelasId);
@@ -303,7 +304,9 @@ class GamifikasiRekapService
         $kelasId = $filters['kelas_id'] ?? null;
 
         // ── Ambil semua kelas ────────────────────────────────────────────────
-        $kelasQuery = Kelas::query()->with([
+        $kelasQuery = Kelas::query()
+            ->where('nama', 'NOT LIKE', '%X.UMUM%')
+            ->with([
             'jurusan',
             'classLeaderboard' => function ($q) use ($tahunAkademikId) {
                 if ($tahunAkademikId) {
@@ -507,7 +510,8 @@ class GamifikasiRekapService
         [$startDate, $endDate] = $this->getDateRange($filters);
 
         // ── Base Absensi Query ───────────────────────────────────────────────
-        $absensiQuery = AbsensiSiswa::query();
+        $absensiQuery = AbsensiSiswa::query()
+            ->whereHas('kelas', fn ($q) => $q->where('nama', 'NOT LIKE', '%X.UMUM%'));
 
         if ($kelasId) {
             $absensiQuery->where('kelas_id', $kelasId);
@@ -571,7 +575,8 @@ class GamifikasiRekapService
             ? round(($totalKehadiran / $totalAbsensi) * 100, 1)
             : 0;
 
-        $siswaQuery = Siswa::where('status', 'aktif');
+        $siswaQuery = Siswa::where('status', 'aktif')
+            ->whereHas('kelas', fn ($q) => $q->where('nama', 'NOT LIKE', '%X.UMUM%'));
         if ($kelasId) {
             $siswaQuery->where('kelas_id', $kelasId);
         }
@@ -593,7 +598,8 @@ class GamifikasiRekapService
         }
         $totalBadgeDiraih = $badgeQuery->count();
 
-        $kelasQuery = Kelas::query();
+        $kelasQuery = Kelas::query()
+            ->where('nama', 'NOT LIKE', '%X.UMUM%');
         if ($tahunAkademikId) {
             $kelasQuery->where('tahun_akademik_id', $tahunAkademikId);
         }

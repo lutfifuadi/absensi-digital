@@ -251,10 +251,14 @@ class InnovationController extends Controller
     public function getStudentBadgesHistory()
     {
         $history = StudentBadge::with(['siswa.kelas', 'badge'])
+            ->whereHas('siswa.kelas', fn ($q) => $q->where('nama', 'NOT LIKE', '%X.UMUM%'))
             ->latest('earned_at')
+            ->take(10)
             ->get();
 
-        $totalEarnedStudents = StudentBadge::distinct('siswa_id')->count('siswa_id');
+        $totalEarnedStudents = StudentBadge::whereHas('siswa.kelas', fn ($q) => $q->where('nama', 'NOT LIKE', '%X.UMUM%'))
+            ->distinct('siswa_id')
+            ->count('siswa_id');
 
         return response()->json([
             'success' => true,
@@ -282,21 +286,58 @@ class InnovationController extends Controller
     {
         $taId = $request->get('tahun_akademik_id', 
             TahunAkademik::where('is_aktif', true)->first()?->id);
+        $periode = $request->get('periode');
+        $limit = (int) $request->get('limit', 10);
 
-        // Jumlah kelas riil dari Tahun Akademik aktif (untuk stat card)
-        $totalKelasAktif = Kelas::when($taId, fn($q) => $q->where('tahun_akademik_id', $taId))->count();
+        // Jumlah kelas riil dari Tahun Akademik aktif (untuk stat card, mengabaikan kelas percobaan X.UMUM)
+        $totalKelasAktif = Kelas::when($taId, fn($q) => $q->where('tahun_akademik_id', $taId))
+            ->where('nama', 'NOT LIKE', '%X.UMUM%')
+            ->count();
+
+        if ($periode && in_array($periode, ['minggu', 'bulan', 'semester', 'tahun', 'semua'])) {
+            $rekap = $this->rekapService->getRekapKelas([
+                'tahun_akademik_id' => $taId,
+                'periode'           => $periode,
+            ]);
+
+            $data = $rekap->take($limit)->values()->map(function ($item, $index) {
+                return [
+                    'kelas_id'         => $item['kelas_id'],
+                    'rank'             => $index + 1,
+                    'total_attendance' => $item['total_kehadiran'],
+                    'total_present'    => $item['total_present'],
+                    'percentage'       => $item['percentage'],
+                    'kelas'            => [
+                        'id'      => $item['kelas_id'],
+                        'nama'    => $item['nama'],
+                        'jurusan' => $item['jurusan'],
+                    ],
+                ];
+            });
+
+            return response()->json([
+                'success'     => true,
+                'data'        => $data,
+                'total_kelas' => $totalKelasAktif,
+                'periode'     => $periode,
+            ]);
+        }
 
         $leaderboard = ClassLeaderboard::with(['kelas', 'kelas.jurusan'])
+            ->whereHas('kelas', fn($q) => $q->where('nama', 'NOT LIKE', '%X.UMUM%'))
             ->when($taId, fn($q) => $q->where('tahun_akademik_id', $taId))
             ->orderBy('rank')
             ->orderByDesc('calculated_at')
             ->get()
             ->unique('kelas_id')
+            ->take($limit)
             ->values();
 
         return response()->json([
-            'data'         => $leaderboard,
-            'total_kelas'  => $totalKelasAktif,
+            'success'     => true,
+            'data'        => $leaderboard,
+            'total_kelas' => $totalKelasAktif,
+            'periode'     => 'semua',
         ]);
     }
 
@@ -305,7 +346,9 @@ class InnovationController extends Controller
         $taId = $request->get('tahun_akademik_id',
             TahunAkademik::where('is_aktif', true)->first()?->id);
 
-        $kelasList = Kelas::when($taId, fn($q) => $q->where('tahun_akademik_id', $taId))->get();
+        $kelasList = Kelas::when($taId, fn($q) => $q->where('tahun_akademik_id', $taId))
+            ->where('nama', 'NOT LIKE', '%X.UMUM%')
+            ->get();
 
         $results = [];
         foreach ($kelasList as $kelas) {
@@ -343,7 +386,7 @@ class InnovationController extends Controller
 
         // --- PEMBERIAN BADGE OTOMATIS (Siswa Terajin / Kehadiran) ---
         $badges = Badge::where('is_active', true)->where('badge_type', 'individual')->get();
-        $siswas = Siswa::all();
+        $siswas = Siswa::whereHas('kelas', fn($q) => $q->where('nama', 'NOT LIKE', '%X.UMUM%'))->get();
 
         foreach ($badges as $badge) {
             $reqDays = $badge->requirement_days;
@@ -534,10 +577,10 @@ class InnovationController extends Controller
         $taId = $request->get('tahun_akademik_id',
             TahunAkademik::where('is_aktif', true)->first()?->id);
 
-        $limit = (int) $request->get('limit', 20);
+        $limit = (int) $request->get('limit', 10);
         $periode = $request->get('periode', 'semester');
 
-        if (in_array($periode, ['minggu', 'bulan', 'semester'])) {
+        if (in_array($periode, ['minggu', 'bulan', 'semester', 'tahun', 'semua'])) {
             $rekap = $this->rekapService->getRekapSiswa([
                 'tahun_akademik_id' => $taId,
                 'periode'           => $periode,
@@ -567,6 +610,7 @@ class InnovationController extends Controller
         }
 
         $leaderboard = StudentLeaderboard::with(['siswa.kelas', 'siswa.studentBadges.badge'])
+            ->whereHas('siswa.kelas', fn ($q) => $q->where('nama', 'NOT LIKE', '%X.UMUM%'))
             ->when($taId, fn($q) => $q->where('tahun_akademik_id', $taId))
             ->orderBy('rank')
             ->orderByDesc('calculated_at')
