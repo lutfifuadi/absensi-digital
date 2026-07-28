@@ -198,7 +198,13 @@
           <table class="das-table align-middle mb-0">
             <thead>
               <tr>
-                <th width="50" class="text-cent            <tbody>
+                <th width="50" class="text-center ps-4">#</th>
+                <th>Nama Siswa</th>
+                <th class="text-center">Status Presensi</th>
+                <th class="text-end pe-4" style="width: 220px;">Keterangan</th>
+              </tr>
+            </thead>
+            <tbody>
               @foreach ($siswa as $index => $s)
                 @php
                   $existingAbsensi = $s->absensi->first();

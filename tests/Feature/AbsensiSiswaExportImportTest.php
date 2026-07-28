@@ -157,4 +157,56 @@ class AbsensiSiswaExportImportTest extends TestCase
             'metode' => 'import',
         ]);
     }
+
+    public function test_import_with_exported_headers_preserves_metode_and_null_keterangan()
+    {
+        $fakeExcelContent = [
+            ['Tanggal', 'Kelas', 'NIS', 'Nama Siswa', 'Status', 'Jam Masuk', 'Jam Pulang', 'Guru', 'Metode', 'Keterangan'],
+            ['2026-07-28', 'X RPL 1', '11111', 'Budi Santoso', 'hadir', '07:00', '', '', 'qr', ''],
+            ['2026-07-28', 'X RPL 1', '22222', 'Ani Retno', 'sakit', '', '', '', 'manual', 'Demam'],
+        ];
+
+        $tempFile = tempnam(sys_get_temp_dir(), 'import_absensi_export_header');
+        $handle = fopen($tempFile, 'w');
+        foreach ($fakeExcelContent as $row) {
+            fputcsv($handle, $row);
+        }
+        fclose($handle);
+
+        $uploadedFile = new UploadedFile(
+            $tempFile,
+            'import_absensi.csv',
+            'text/csv',
+            null,
+            true
+        );
+
+        $response = $this->actingAs($this->admin)
+            ->post(route('admin.absensi-siswa.import'), [
+                'file' => $uploadedFile,
+            ]);
+
+        @unlink($tempFile);
+
+        $response->assertRedirect(route('admin.absensi-siswa.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('absensi_siswa', [
+            'siswa_id'   => $this->siswa1->id,
+            'tanggal'    => '2026-07-28 00:00:00',
+            'status'     => 'hadir',
+            'jam_masuk'  => '07:00',
+            'jam_pulang' => null,
+            'keterangan' => null,
+            'metode'     => 'qr',
+        ]);
+
+        $this->assertDatabaseHas('absensi_siswa', [
+            'siswa_id'   => $this->siswa2->id,
+            'tanggal'    => '2026-07-28 00:00:00',
+            'status'     => 'sakit',
+            'keterangan' => 'Demam',
+            'metode'     => 'manual',
+        ]);
+    }
 }

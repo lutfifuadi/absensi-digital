@@ -29,14 +29,39 @@ class AbsensiSiswaImport implements ToCollection, WithHeadingRow
         foreach ($rows as $row) {
             $this->rowCount++;
             
+            // Normalize NIS
+            $rawNis = isset($row['nis']) ? trim((string)$row['nis']) : null;
+            if ($rawNis !== null && preg_match('/^\d+\.0$/', $rawNis)) {
+                $rawNis = substr($rawNis, 0, -2);
+            }
+
+            // Normalize Keterangan
+            $rawKeterangan = isset($row['keterangan']) ? trim((string)$row['keterangan']) : null;
+            if ($rawKeterangan === '-' || $rawKeterangan === '') {
+                $rawKeterangan = null;
+            }
+
+            // Normalize Status
+            $rawStatus = isset($row['status']) ? strtolower(trim((string)$row['status'])) : null;
+            if ($rawStatus === '-' || $rawStatus === '') {
+                $rawStatus = null;
+            }
+
+            // Normalize Metode
+            $rawMetode = isset($row['metode']) ? strtolower(trim((string)$row['metode'])) : 'import';
+            if ($rawMetode === '-' || $rawMetode === '') {
+                $rawMetode = 'import';
+            }
+
             // Normalize row data
             $rowData = [
-                'tanggal' => $this->parseDate($row['tanggal'] ?? null),
-                'nis' => isset($row['nis']) ? trim((string)$row['nis']) : null,
-                'status' => isset($row['status']) ? strtolower(trim((string)$row['status'])) : null,
-                'jam_masuk' => $this->parseTime($row['jam_masuk'] ?? null),
+                'tanggal'    => $this->parseDate($row['tanggal'] ?? null),
+                'nis'        => $rawNis,
+                'status'     => $rawStatus,
+                'jam_masuk'  => $this->parseTime($row['jam_masuk'] ?? null),
                 'jam_pulang' => $this->parseTime($row['jam_pulang'] ?? null),
-                'keterangan' => isset($row['keterangan']) ? trim((string)$row['keterangan']) : null,
+                'keterangan' => $rawKeterangan,
+                'metode'     => $rawMetode,
             ];
 
             // Manual Validation
@@ -71,6 +96,14 @@ class AbsensiSiswaImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
+            $kelasId = $siswa->kelas_id;
+            if (!$kelasId && !empty($row['kelas'])) {
+                $kelasObj = \App\Models\Kelas::where('nama', trim((string)$row['kelas']))->first();
+                if ($kelasObj) {
+                    $kelasId = $kelasObj->id;
+                }
+            }
+
             // Overwrite logic (update or create)
             AbsensiSiswa::updateOrCreate(
                 [
@@ -78,13 +111,13 @@ class AbsensiSiswaImport implements ToCollection, WithHeadingRow
                     'tanggal' => $rowData['tanggal'],
                 ],
                 [
-                    'kelas_id' => $siswa->kelas_id,
+                    'kelas_id' => $kelasId,
                     'jam_masuk' => $rowData['jam_masuk'],
                     'jam_pulang' => $rowData['jam_pulang'],
                     'status' => $rowData['status'],
                     'keterangan' => $rowData['keterangan'],
                     'guru_id' => $this->guruId,
-                    'metode' => 'import',
+                    'metode' => $rowData['metode'],
                 ]
             );
 
@@ -102,7 +135,7 @@ class AbsensiSiswaImport implements ToCollection, WithHeadingRow
 
     private function parseDate($value): ?string
     {
-        if (empty($value)) {
+        if (empty($value) || $value === '-') {
             return null;
         }
 
@@ -115,6 +148,9 @@ class AbsensiSiswaImport implements ToCollection, WithHeadingRow
         }
 
         $valueStr = trim((string)$value);
+        if ($valueStr === '-' || $valueStr === '') {
+            return null;
+        }
 
         // Try dd/mm/yyyy
         if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $valueStr)) {
@@ -143,7 +179,7 @@ class AbsensiSiswaImport implements ToCollection, WithHeadingRow
 
     private function parseTime($value): ?string
     {
-        if (empty($value)) {
+        if (empty($value) || $value === '-') {
             return null;
         }
 
@@ -156,6 +192,9 @@ class AbsensiSiswaImport implements ToCollection, WithHeadingRow
         }
 
         $valueStr = trim((string)$value);
+        if ($valueStr === '-' || $valueStr === '') {
+            return null;
+        }
 
         if (preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $valueStr)) {
             return substr($valueStr, 0, 5);
