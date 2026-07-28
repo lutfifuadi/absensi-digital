@@ -660,7 +660,12 @@
                       <span x-text="item.rank === 1 ? '🥇' : item.rank === 2 ? '🥈' : item.rank === 3 ? '🥉' : item.rank"></span>
                     </td>
                     <td>
-                      <div class="fw-bold text-white" style="font-size:.82rem;" x-text="item.nama_lengkap || '-'"></div>
+                      <div class="d-flex align-items-center gap-1 flex-wrap">
+                        <span class="fw-bold text-white" style="font-size:.82rem;" x-text="item.nama_lengkap || '-'"></span>
+                        <template x-if="item.is_teladan || (item.total_alpha === 0 && item.total_hadir > 0)">
+                          <span class="badge bg-label-success" style="font-size:.6rem;padding:2px 5px;" title="Siswa Teladan (0 Alpha)">⭐ Teladan</span>
+                        </template>
+                      </div>
                       <div class="text-muted" style="font-size:.65rem;" x-text="'NIS: ' + (item.nis || '-')"></div>
                     </td>
                     <td>

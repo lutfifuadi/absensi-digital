@@ -245,19 +245,31 @@ class GamifikasiRekapService
             if ($rankA !== $rankB) {
                 return $rankA <=> $rankB;
             }
-            if ($a['skor'] === $b['skor']) {
-                if ($a['total_hadir'] === $b['total_hadir']) {
-                    return strcmp($a['nama_lengkap'], $b['nama_lengkap']);
-                }
+            // 1. Skor Poin Gamifikasi
+            if ($a['skor'] !== $b['skor']) {
+                return $b['skor'] <=> $a['skor'];
+            }
+            // 2. Total Hadir terbanyak
+            if ($a['total_hadir'] !== $b['total_hadir']) {
                 return $b['total_hadir'] <=> $a['total_hadir'];
             }
-            return $b['skor'] <=> $a['skor'];
+            // 3. Kriteria Teladan -> Jumlah Alpha paling sedikit
+            if ($a['total_alpha'] !== $b['total_alpha']) {
+                return $a['total_alpha'] <=> $b['total_alpha'];
+            }
+            // 4. Streak Kehadiran
+            if ($a['current_streak'] !== $b['current_streak']) {
+                return $b['current_streak'] <=> $a['current_streak'];
+            }
+            // 5. Nama A-Z
+            return strcmp($a['nama_lengkap'], $b['nama_lengkap']);
         })->values();
 
         return $sortedSiswa->map(function ($item, $index) {
             if (is_null($item['rank'])) {
                 $item['rank'] = $index + 1;
             }
+            $item['is_teladan'] = ($item['total_alpha'] === 0 && $item['total_hadir'] > 0);
             return $item;
         });
     }

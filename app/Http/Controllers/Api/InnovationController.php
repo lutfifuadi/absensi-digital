@@ -454,6 +454,8 @@ class InnovationController extends Controller
                 }
             }
 
+            $totalAlpha = $absensis->whereIn('status', ['Alpha', 'alpha'])->count();
+
             if ($totalAttendance > 0) {
                 $studentScores[] = [
                     'siswa_id' => $siswa->id,
@@ -461,12 +463,21 @@ class InnovationController extends Controller
                     'score' => $score,
                     'total_attendance' => $totalAttendance,
                     'total_present' => $totalHadir,
+                    'total_alpha' => $totalAlpha,
                 ];
             }
         }
 
-        // Urutkan berdasarkan skor tertinggi
-        usort($studentScores, fn($a, $b) => $b['score'] <=> $a['score']);
+        // Urutkan berdasarkan Kriteria Siswa Teladan: Skor terbanyak, total hadir, kemudian 0 Alpha (terkecil)
+        usort($studentScores, function ($a, $b) {
+            if ($a['score'] !== $b['score']) {
+                return $b['score'] <=> $a['score'];
+            }
+            if ($a['total_present'] !== $b['total_present']) {
+                return $b['total_present'] <=> $a['total_present'];
+            }
+            return $a['total_alpha'] <=> $b['total_alpha'];
+        });
 
         // Simpan ranking
         foreach ($studentScores as $index => $data) {
