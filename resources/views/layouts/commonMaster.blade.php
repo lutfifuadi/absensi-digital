@@ -79,6 +79,11 @@
     } else {
         $fullTitle = 'Portal Presensi ' . $siteName;
     }
+
+    // Decode &amp; menjadi & otomatis untuk kebersihan SEO Title & Meta Tags
+    $fullTitle = html_entity_decode($fullTitle, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $siteName  = html_entity_decode($siteName, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $siteDesc  = html_entity_decode($siteDesc, ENT_QUOTES | ENT_HTML5, 'UTF-8');
   @endphp
   <title>{{ $fullTitle }}</title>
   <meta name="description" content="{{ $siteDesc }}" />
