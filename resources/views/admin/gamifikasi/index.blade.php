@@ -992,10 +992,11 @@ async function loadLeaderboard() {
     const tbody = document.getElementById('leaderboardBody');
     const data = result.data || [];
     
-    document.getElementById('totalKelas').textContent = data.length;
+    // Gunakan total_kelas dari API (jumlah kelas nyata dari Tahun Akademik aktif)
+    document.getElementById('totalKelas').textContent = result.total_kelas ?? data.length;
     
     if (data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-muted opacity-50">Belum ada data peringkat.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-muted opacity-50">Belum ada data peringkat. Klik "Hitung Ulang Skor" untuk memulai.</td></tr>`;
       return;
     }
     

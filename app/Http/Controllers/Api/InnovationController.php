@@ -283,6 +283,9 @@ class InnovationController extends Controller
         $taId = $request->get('tahun_akademik_id', 
             TahunAkademik::where('is_aktif', true)->first()?->id);
 
+        // Jumlah kelas riil dari Tahun Akademik aktif (untuk stat card)
+        $totalKelasAktif = Kelas::when($taId, fn($q) => $q->where('tahun_akademik_id', $taId))->count();
+
         $leaderboard = ClassLeaderboard::with(['kelas', 'kelas.jurusan'])
             ->when($taId, fn($q) => $q->where('tahun_akademik_id', $taId))
             ->orderBy('rank')
@@ -291,7 +294,10 @@ class InnovationController extends Controller
             ->unique('kelas_id')
             ->values();
 
-        return response()->json(['data' => $leaderboard]);
+        return response()->json([
+            'data'         => $leaderboard,
+            'total_kelas'  => $totalKelasAktif,
+        ]);
     }
 
     public function calculateLeaderboard(Request $request)
