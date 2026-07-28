@@ -31,6 +31,11 @@ Schedule::command(\App\Console\Commands\CheckQueueHealth::class)
     ->everyFiveMinutes()
     ->withoutOverlapping();
 
+// Jadwal: setiap 5 menit cek kelas yang belum dimonitor >15 menit (PRD-002)
+Schedule::command(\App\Console\Commands\CheckBelumMonitorCommand::class)
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
+
 Schedule::command('model:prune', ['--model' => \App\Models\DeployLog::class])->daily();
 
 // Jadwal: setiap jam hapus log autoreply yang sudah lebih dari 24 jam

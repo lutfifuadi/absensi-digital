@@ -72,3 +72,6 @@ vendor.zip
 # Temporary files
 9router-*.tgz
 package/
+
+# Automated tests (localhost development only)
+/tests/

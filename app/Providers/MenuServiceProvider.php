@@ -36,6 +36,8 @@ class MenuServiceProvider extends ServiceProvider
         'guru' => 'vertical_guru.json',
         'wali_kelas' => 'vertical_wali_kelas.json',
         'piket' => 'vertical_piket.json',
+        'waka_kurikulum' => 'vertical_waka_kurikulum.json',
+        'guru_bk' => 'vertical_guru_bk.json',
         'orang_tua' => 'vertical_orang_tua.json',
         default => 'vertical_admin.json',
       };

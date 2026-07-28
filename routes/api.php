@@ -92,5 +92,29 @@ Route::prefix('v1/pengaturan')->middleware(['auth:sanctum', 'role:super_admin|ad
         ->name('api.pengaturan.status');
 });
 
+// ── API V2 - Monitoring Kehadiran Guru (PRD-002) ──────────────────────────────
+Route::prefix('v2')->middleware(['auth:sanctum'])->group(function () {
+    // Guru Piket Endpoints
+    Route::prefix('piket')->middleware('role:piket')->group(function () {
+        Route::get('/monitoring/today', [\App\Http\Controllers\Api\V2\PiketMonitoringApiController::class, 'today']);
+        Route::post('/monitoring', [\App\Http\Controllers\Api\V2\PiketMonitoringApiController::class, 'store'])->middleware('throttle:60,1');
+        Route::put('/monitoring/{monitoring}', [\App\Http\Controllers\Api\V2\PiketMonitoringApiController::class, 'update']);
+        Route::get('/guru-search', [\App\Http\Controllers\Api\V2\PiketMonitoringApiController::class, 'guruSearch'])->middleware('throttle:60,1');
+    });
 
+    // Live Board Endpoint
+    Route::get('/monitoring/live', [\App\Http\Controllers\Api\V2\LiveBoardApiController::class, 'index'])
+        ->middleware(['role:waka_kurikulum|super_admin|admin_sekolah', 'throttle:120,1']);
+
+    // Admin Endpoints
+    Route::prefix('admin')->middleware('role:super_admin|admin_sekolah')->group(function () {
+        Route::get('/monitoring', [\App\Http\Controllers\Api\V2\AdminMonitoringApiController::class, 'index']);
+        Route::get('/monitoring/{monitoring}', [\App\Http\Controllers\Api\V2\AdminMonitoringApiController::class, 'show']);
+        Route::delete('/monitoring/{monitoring}', [\App\Http\Controllers\Api\V2\AdminMonitoringApiController::class, 'destroy']);
+    });
+
+    // Guru Self-Service Endpoint
+    Route::get('/guru/monitoring/me', [\App\Http\Controllers\Api\V2\GuruMonitoringApiController::class, 'me'])
+        ->middleware('role:guru');
+});
 

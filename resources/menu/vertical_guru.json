@@ -23,6 +23,12 @@
       "url": "/guru/izin-sakit"
     },
     {
+      "name": "Kehadiran Mengajar",
+      "icon": "menu-icon ti tabler-clipboard-text",
+      "slug": "guru.monitoring.index",
+      "url": "/guru/monitoring"
+    },
+    {
       "name": "Penugasan Siswa",
       "icon": "menu-icon ti tabler-book-upload",
       "slug": "assignments",

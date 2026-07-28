@@ -388,6 +388,7 @@
                             @php
                                 $roleIcons = [
                                     'guru'      => 'tabler-user',
+                                    'guru_bk'   => 'tabler-user-heart',
                                     'wali_kelas'=> 'tabler-users',
                                     'staff_tu'  => 'tabler-building-arch',
                                     'piket'     => 'tabler-clock',

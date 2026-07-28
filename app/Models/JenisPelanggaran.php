@@ -26,6 +26,16 @@ class JenisPelanggaran extends Model
         'is_aktif' => 'boolean',
     ];
 
+    public function getNamaJenisAttribute()
+    {
+        return $this->attributes['nama'] ?? null;
+    }
+
+    public function getPoinAttribute()
+    {
+        return $this->attributes['bobot_poin'] ?? 0;
+    }
+
     public function kategori()
     {
         return $this->belongsTo(KategoriPelanggaran::class, 'kategori_id');

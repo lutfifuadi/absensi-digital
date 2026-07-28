@@ -29,4 +29,15 @@ class JadwalPelajaran extends Model
     {
         return $this->belongsTo(Guru::class);
     }
+
+    public function monitoring()
+    {
+        return $this->hasMany(MonitoringKehadiranGuru::class, 'jadwal_pelajaran_id');
+    }
+
+    public function todayMonitoring()
+    {
+        return $this->hasOne(MonitoringKehadiranGuru::class, 'jadwal_pelajaran_id')
+            ->where('tanggal', date('Y-m-d'));
+    }
 }

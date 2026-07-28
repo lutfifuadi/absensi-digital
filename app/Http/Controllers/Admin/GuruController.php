@@ -87,6 +87,7 @@ class GuruController extends Controller
 
         $roleOptions = [
             User::ROLE_GURU,
+            User::ROLE_GURU_BK,
             User::ROLE_WALI_KELAS,
             User::ROLE_STAFF_TU,
             User::ROLE_PIKET,
@@ -196,6 +197,7 @@ class GuruController extends Controller
 
         $roleOptions = [
             User::ROLE_GURU,
+            User::ROLE_GURU_BK,
             User::ROLE_WALI_KELAS,
             User::ROLE_STAFF_TU,
             User::ROLE_PIKET,
@@ -239,7 +241,7 @@ class GuruController extends Controller
             'email' => 'nullable|email|unique:users,email,' . $guru->user_id,
             'password' => 'nullable|string|min:8|confirmed',
             'roles' => 'nullable|array',
-            'roles.*' => 'string|in:guru,wali_kelas,staff_tu,piket',
+            'roles.*' => 'string|in:guru,guru_bk,wali_kelas,staff_tu,piket',
             'kelas_id' => 'nullable|integer|exists:kelas,id',
         ]);
 
@@ -256,7 +258,7 @@ class GuruController extends Controller
                         ['nama_mapel' => trim($item)],
                         [
                             'kode_mapel' => strtoupper(substr(trim($item), 0, 3)),
-                            'kelompok' => 'Umum',
+                            'kelompok' => 'umum',
                             'status' => 1,
                         ]
                     );
@@ -302,6 +304,12 @@ class GuruController extends Controller
                 $user->role = User::ROLE_GURU;
                 $user->roles = array_values(array_filter($selectedRoles, fn($role) => $role !== User::ROLE_GURU));
                 $user->save();
+            }
+
+            if (in_array(User::ROLE_GURU_BK, $data['roles'] ?? [])) {
+                $guru->update(['is_guru_bk' => true]);
+            } else {
+                $guru->update(['is_guru_bk' => false]);
             }
 
             if (in_array(User::ROLE_WALI_KELAS, $data['roles'] ?? [])) {

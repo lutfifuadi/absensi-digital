@@ -108,6 +108,11 @@ class Siswa extends Model
         return $this->hasMany(PelanggaranSiswa::class, 'siswa_id');
     }
 
+    public function pelanggaran()
+    {
+        return $this->hasMany(PelanggaranSiswa::class, 'siswa_id');
+    }
+
     public function pelanggaranSp()
     {
         return $this->hasMany(PelanggaranSp::class, 'siswa_id');

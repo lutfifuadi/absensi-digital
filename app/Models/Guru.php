@@ -23,7 +23,24 @@ class Guru extends Model
         'status',
         'qr_code',
         'qr_code_nip',
+        'is_guru_bk',
+        'konseling_limit',
     ];
+
+    protected $casts = [
+        'is_guru_bk' => 'boolean',
+        'konseling_limit' => 'integer',
+    ];
+
+    public function scopeGuruBk($query)
+    {
+        return $query->where('is_guru_bk', true);
+    }
+
+    public function getNamaAttribute()
+    {
+        return $this->attributes['nama_lengkap'] ?? null;
+    }
 
     public function user()
     {

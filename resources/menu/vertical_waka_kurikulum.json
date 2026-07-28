@@ -1,0 +1,30 @@
+{
+  "menu": [
+    {
+      "menuHeader": "Dashboard WAKA",
+      "icon": "menu-icon ti tabler-smart-home"
+    },
+    {
+      "name": "Dashboard",
+      "icon": "menu-icon ti tabler-smart-home",
+      "slug": "dashboard",
+      "url": "/dashboard"
+    },
+    {
+      "menuHeader": "Kurikulum & Monitoring",
+      "icon": "menu-icon ti tabler-device-tv"
+    },
+    {
+      "name": "Live Board WAKA",
+      "icon": "menu-icon ti tabler-device-tv",
+      "slug": "waka.live-board",
+      "url": "/waka/live-board"
+    },
+    {
+      "name": "Rekap Monitoring",
+      "icon": "menu-icon ti tabler-report",
+      "slug": "admin.monitoring.index",
+      "url": "/admin/monitoring"
+    }
+  ]
+}

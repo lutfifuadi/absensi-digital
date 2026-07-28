@@ -1,0 +1,38 @@
+{
+  "menu": [
+    {
+      "name": "Dashboard BK",
+      "icon": "menu-icon ti tabler-smart-home",
+      "slug": "bk.dashboard",
+      "url": "/bk/dashboard"
+    },
+    {
+      "menuHeader": "Bimbingan & Konseling",
+      "icon": "menu-icon ti tabler-user-heart"
+    },
+    {
+      "name": "Input Pelanggaran",
+      "icon": "menu-icon ti tabler-alert-circle",
+      "slug": "bk.pelanggaran.create",
+      "url": "/bk/pelanggaran/create"
+    },
+    {
+      "name": "Riwayat Pelanggaran",
+      "icon": "menu-icon ti tabler-history",
+      "slug": "bk.pelanggaran.index",
+      "url": "/bk/pelanggaran"
+    },
+    {
+      "name": "Penerbitan SP",
+      "icon": "menu-icon ti tabler-file-certificate",
+      "slug": "bk.sp.index",
+      "url": "/bk/sp"
+    },
+    {
+      "name": "Rekap Pelanggaran",
+      "icon": "menu-icon ti tabler-report-analytics",
+      "slug": "bk.rekap.index",
+      "url": "/bk/rekap"
+    }
+  ]
+}

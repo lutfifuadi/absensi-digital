@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\GuruBkController;
+use App\Http\Controllers\GuruBk\BKDashboardController;
+use App\Http\Controllers\GuruBk\BKPelanggaranController;
+use App\Http\Controllers\GuruBk\BKSPController;
+use App\Http\Controllers\GuruBk\BKRekapController;
 use App\Http\Controllers\AbsensiMandiriController;
 use App\Http\Controllers\Admin\AbsensiActivityController;
 use App\Http\Controllers\Admin\AbsensiGuruController;
@@ -199,6 +204,23 @@ Route::middleware([
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/refresh-stats', [DashboardController::class, 'refreshStats'])->name('admin.dashboard.refresh-stats')->middleware('role:super_admin,admin_sekolah');
+
+    // ── FITUR GURU BK (Bimbingan Konseling) ───────────────────────────────────
+    Route::prefix('bk')->name('bk.')->group(function () {
+        Route::get('/dashboard', [BKDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/pelanggaran', [BKPelanggaranController::class, 'index'])->name('pelanggaran.index');
+        Route::get('/pelanggaran/create', [BKPelanggaranController::class, 'create'])->name('pelanggaran.create');
+        Route::post('/pelanggaran', [BKPelanggaranController::class, 'store'])->name('pelanggaran.store');
+        Route::get('/pelanggaran/{id}', [BKPelanggaranController::class, 'show'])->name('pelanggaran.show');
+
+        Route::get('/sp', [BKSPController::class, 'index'])->name('sp.index');
+        Route::get('/sp/create', [BKSPController::class, 'create'])->name('sp.create');
+        Route::post('/sp', [BKSPController::class, 'store'])->name('sp.store');
+
+        Route::get('/rekap', [BKRekapController::class, 'index'])->name('rekap.index');
+        Route::get('/rekap/export', [BKRekapController::class, 'export'])->name('rekap.export');
+        Route::get('/rekap/export-pdf', [BKRekapController::class, 'exportPdf'])->name('rekap.pdf');
+    });
 
     // ── PORTAL SISWA ──────────────────────────────────────────────────────────
     Route::prefix('siswa')->middleware('role:siswa')->group(function () {
@@ -634,6 +656,16 @@ Route::middleware([
         Route::resource('guru', GuruController::class)
             ->names('admin.guru')
             ->except(['show'])
+            ->middleware('role:super_admin,admin_sekolah,operator');
+
+        Route::get('guru-bk', [GuruBkController::class, 'index'])
+            ->name('admin.guru-bk.index')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+        Route::post('guru-bk', [GuruBkController::class, 'store'])
+            ->name('admin.guru-bk.store')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+        Route::delete('guru-bk/{guru}', [GuruBkController::class, 'destroy'])
+            ->name('admin.guru-bk.destroy')
             ->middleware('role:super_admin,admin_sekolah,operator');
 
         Route::resource('mapel', MapelController::class)

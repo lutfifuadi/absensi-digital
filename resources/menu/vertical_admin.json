@@ -79,6 +79,7 @@
         "admin.siswa.naik-kelas-massal",
         "admin.upload-massal.index",
         "admin.guru.index",
+        "admin.guru-bk.index",
         "admin.wali-kelas.index",
         "admin.orang-tua.index",
         "admin.staff-tata-usaha.index",
@@ -116,6 +117,12 @@
           "icon": "menu-icon ti tabler-presentation",
           "slug": "admin.guru.index",
           "url": "/admin/guru"
+        },
+        {
+          "name": "Guru BK",
+          "icon": "menu-icon ti tabler-user-heart",
+          "slug": "admin.guru-bk.index",
+          "url": "/admin/guru-bk"
         },
         {
           "name": "Wali Kelas",
@@ -250,10 +257,40 @@
       ]
     },
     {
-      "name": "Absensi Guru",
+      "name": "Absensi & Monitoring Guru",
       "icon": "menu-icon ti tabler-presentation",
-      "slug": "admin.absensi-guru.index",
-      "url": "/admin/absensi-guru"
+      "slug": [
+        "admin.absensi-guru.index",
+        "piket.monitoring.index",
+        "waka.live-board",
+        "admin.monitoring.index"
+      ],
+      "submenu": [
+        {
+          "name": "Absensi Pagi (Harian)",
+          "icon": "menu-icon ti tabler-qrcode",
+          "slug": "admin.absensi-guru.index",
+          "url": "/admin/absensi-guru"
+        },
+        {
+          "name": "Input Monitoring Piket",
+          "icon": "menu-icon ti tabler-clipboard-check",
+          "slug": "piket.monitoring.index",
+          "url": "/piket/monitoring"
+        },
+        {
+          "name": "Live Board WAKA",
+          "icon": "menu-icon ti tabler-device-tv",
+          "slug": "waka.live-board",
+          "url": "/waka/live-board"
+        },
+        {
+          "name": "Rekap Monitoring Per Jam",
+          "icon": "menu-icon ti tabler-report",
+          "slug": "admin.monitoring.index",
+          "url": "/admin/monitoring"
+        }
+      ]
     },
     {
       "name": "Absensi Staff TU",

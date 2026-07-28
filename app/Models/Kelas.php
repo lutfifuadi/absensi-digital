@@ -33,6 +33,11 @@ class Kelas extends Model
         'kustomisasi_jam' => 'boolean',
     ];
 
+    public function getNamaKelasAttribute()
+    {
+        return $this->attributes['nama'] ?? null;
+    }
+
     public function waliKelas()
     {
         return $this->belongsTo(Guru::class, 'wali_kelas_id');

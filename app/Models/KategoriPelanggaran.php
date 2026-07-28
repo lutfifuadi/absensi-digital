@@ -24,6 +24,11 @@ class KategoriPelanggaran extends Model
         'is_aktif' => 'boolean',
     ];
 
+    public function getNamaKategoriAttribute()
+    {
+        return $this->attributes['nama'] ?? null;
+    }
+
     public function jenisPelanggaran()
     {
         return $this->hasMany(JenisPelanggaran::class, 'kategori_id');

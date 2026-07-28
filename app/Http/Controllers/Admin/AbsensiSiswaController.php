@@ -131,8 +131,26 @@ class AbsensiSiswaController extends Controller
 
     public function create()
     {
-        $siswaOptions = Siswa::orderBy('nama_lengkap')->get();
-        $kelasOptions = Kelas::orderBy('nama')->get();
+        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
+        if (! $tahunAjaranId) {
+            $activeTa = \App\Models\TahunAkademik::where('is_aktif', true)->first();
+            $tahunAjaranId = $activeTa ? $activeTa->id : null;
+        }
+
+        $siswaOptions = Siswa::when($tahunAjaranId, function ($q, $taId) {
+            $q->whereHas('kelas', fn($k) => $k->where('tahun_akademik_id', $taId));
+        })->orderBy('nama_lengkap')->get();
+        if ($siswaOptions->isEmpty()) {
+            $siswaOptions = Siswa::orderBy('nama_lengkap')->get();
+        }
+
+        $kelasOptions = Kelas::when($tahunAjaranId, function ($q, $taId) {
+            $q->where('tahun_akademik_id', $taId);
+        })->orderBy('nama')->get();
+        if ($kelasOptions->isEmpty()) {
+            $kelasOptions = Kelas::orderBy('nama')->get();
+        }
+
         $guruOptions = Guru::orderBy('nama_lengkap')->get();
 
         return view('admin.absensi-siswa.form', compact('siswaOptions', 'kelasOptions', 'guruOptions'));
@@ -172,8 +190,21 @@ class AbsensiSiswaController extends Controller
 
     public function edit(AbsensiSiswa $absensiSiswa)
     {
+        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
+        if (! $tahunAjaranId) {
+            $activeTa = \App\Models\TahunAkademik::where('is_aktif', true)->first();
+            $tahunAjaranId = $activeTa ? $activeTa->id : null;
+        }
+
         $siswaOptions = Siswa::orderBy('nama_lengkap')->get();
-        $kelasOptions = Kelas::orderBy('nama')->get();
+        $kelasOptions = Kelas::when($tahunAjaranId, function ($q, $taId) {
+            $q->where('tahun_akademik_id', $taId);
+        })->orderBy('nama')->get();
+
+        if ($kelasOptions->isEmpty() || ($absensiSiswa->kelas_id && ! $kelasOptions->contains('id', $absensiSiswa->kelas_id))) {
+            $kelasOptions = Kelas::orderBy('nama')->get();
+        }
+
         $guruOptions = Guru::orderBy('nama_lengkap')->get();
 
         return view('admin.absensi-siswa.form', compact('absensiSiswa', 'siswaOptions', 'kelasOptions', 'guruOptions'));
