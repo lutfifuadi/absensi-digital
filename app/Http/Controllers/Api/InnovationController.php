@@ -283,10 +283,13 @@ class InnovationController extends Controller
         $taId = $request->get('tahun_akademik_id', 
             TahunAkademik::where('is_aktif', true)->first()?->id);
 
-        $leaderboard = ClassLeaderboard::with('kelas')
-            ->where('tahun_akademik_id', $taId)
+        $leaderboard = ClassLeaderboard::with(['kelas', 'kelas.jurusan'])
+            ->when($taId, fn($q) => $q->where('tahun_akademik_id', $taId))
             ->orderBy('rank')
-            ->get();
+            ->orderByDesc('calculated_at')
+            ->get()
+            ->unique('kelas_id')
+            ->values();
 
         return response()->json(['data' => $leaderboard]);
     }
@@ -319,7 +322,7 @@ class InnovationController extends Controller
 
         usort($results, fn($a, $b) => $b['percentage'] <=> $a['percentage']);
 
-        ClassLeaderboard::where('tahun_akademik_id', $taId)->delete();
+        ClassLeaderboard::where('tahun_akademik_id', $taId)->orWhereNull('tahun_akademik_id')->delete();
         foreach ($results as $index => $result) {
             ClassLeaderboard::create([
                 'kelas_id' => $result['kelas_id'],
@@ -420,7 +423,7 @@ class InnovationController extends Controller
         }
 
         // --- KALKULASI LEADERBOARD SISWA INDIVIDUAL (Skor Keaktifan) ---
-        StudentLeaderboard::where('tahun_akademik_id', $taId)->delete();
+        StudentLeaderboard::where('tahun_akademik_id', $taId)->orWhereNull('tahun_akademik_id')->delete();
 
         $allSiswas = Siswa::with('kelas')->get();
         $studentScores = [];
@@ -558,10 +561,13 @@ class InnovationController extends Controller
         }
 
         $leaderboard = StudentLeaderboard::with(['siswa.kelas', 'siswa.studentBadges.badge'])
-            ->where('tahun_akademik_id', $taId)
+            ->when($taId, fn($q) => $q->where('tahun_akademik_id', $taId))
             ->orderBy('rank')
-            ->limit($limit)
-            ->get();
+            ->orderByDesc('calculated_at')
+            ->get()
+            ->unique('siswa_id')
+            ->take($limit)
+            ->values();
 
         return response()->json(['success' => true, 'periode' => 'semua', 'data' => $leaderboard]);
     }
