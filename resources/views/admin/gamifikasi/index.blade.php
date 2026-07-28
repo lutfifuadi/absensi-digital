@@ -427,6 +427,7 @@
            ? 'tabler-sort-ascending' : 'tabler-sort-descending';
        }
      }"
+     x-init="fetchRekap()"
      class="mt-4"
 >
   {{-- Card 1: Filter Panel (Atas) --}}
