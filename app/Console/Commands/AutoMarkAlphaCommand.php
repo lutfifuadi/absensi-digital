@@ -21,7 +21,8 @@ use Illuminate\Support\Facades\Log;
 class AutoMarkAlphaCommand extends Command
 {
     protected $signature = 'absensi:auto-alpha
-                            {--tanggal= : Tanggal target (Y-m-d), default hari ini}';
+                            {--tanggal= : Tanggal target (Y-m-d), default hari ini}
+                            {--force : Paksa penandaan alpha tanpa mengecek batas jam masuk kelas}';
 
     protected $description = 'Otomatis menandai alpha bagi siswa/guru/staff yang belum memiliki catatan absensi pada tanggal tertentu.';
 
@@ -54,10 +55,19 @@ class AutoMarkAlphaCommand extends Command
         $countGuruAlpha = 0;
         $countStaffAlpha = 0;
 
+        $currentTimeStr = now()->format('H:i');
+        $isToday        = ($tanggal === now()->toDateString());
+        $isForce        = (bool) $this->option('force');
+        $hariNama       = strtolower(Carbon::parse($tanggal)->locale('id')->isoFormat('dddd'));
+
         // ── Wrap seluruh proses dalam DB::transaction (C1) ──────────────
         DB::transaction(function () use (
             $tanggal,
             $jamMasuk,
+            $currentTimeStr,
+            $isToday,
+            $isForce,
+            $hariNama,
             &$pendingNotifications,
             &$countSiswaAlpha,
             &$countGuruAlpha,
@@ -106,9 +116,26 @@ class AutoMarkAlphaCommand extends Command
                 // ── Ambil batas jam masuk dari jadwal per kelas ──────────────
                 $kelasId = $s?->kelas_id;
                 $batasJamMasuk = '09:00'; // default
+                $isLiburJadwal = false;
+
                 if ($kelasId) {
-                    $jadwal = JadwalAbsensiHelper::getJadwalForKelas($kelasId);
+                    $jadwal = JadwalAbsensiHelper::getJadwalForKelas($kelasId, $hariNama);
                     $batasJamMasuk = $jadwal['batas_jam_masuk'] ?? '09:00';
+                    $isLiburJadwal = $jadwal['is_libur'] ?? false;
+                }
+
+                // Skip jika kelas ditandai libur di jadwal_absensi
+                if ($isLiburJadwal) {
+                    continue;
+                }
+
+                // ── OPSI B: Pengecekan Batas Jam Masuk Kelas ────────────────
+                // Jika untuk hari ini dan TIDAK di-force,
+                // skip siswa jika waktu sekarang BELUM mencapai/melewati batas_jam_masuk kelas
+                if ($isToday && !$isForce) {
+                    if ($currentTimeStr < $batasJamMasuk) {
+                        continue;
+                    }
                 }
 
                 $keterangan = "Alpha otomatis: Tidak ada absensi masuk hingga batas jam {$batasJamMasuk}. Jika ada kesalahan, hubungi wali kelas.";
@@ -130,6 +157,7 @@ class AutoMarkAlphaCommand extends Command
 
                 $countSiswaAlpha++;
             }
+
 
             // --- Guru aktif (H4: metode 'auto-alpha' untuk konsistensi) ---
             $guruAktif = Guru::where('status', 'aktif')->pluck('id');

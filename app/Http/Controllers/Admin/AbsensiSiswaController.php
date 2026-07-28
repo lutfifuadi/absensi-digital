@@ -643,7 +643,7 @@ class AbsensiSiswaController extends Controller
     public function triggerAutoAlpha(Request $request)
     {
         try {
-            \Illuminate\Support\Facades\Artisan::call('absensi:auto-alpha');
+            \Illuminate\Support\Facades\Artisan::call('absensi:auto-alpha', ['--force' => true]);
             $output = \Illuminate\Support\Facades\Artisan::output();
 
             return response()->json([

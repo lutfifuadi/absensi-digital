@@ -16,8 +16,8 @@ Artisan::command('inspire', function () {
 // Jadwal: setiap hari jam 00.00 bersihkan file log laravel.log
 Schedule::command(\App\Console\Commands\LogsClear::class)->daily();
 
-// Jadwal: setiap hari jam 08.00 tandai alpha bagi yang belum absen
-Schedule::command(AutoMarkAlphaCommand::class)->dailyAt('08:00');
+// Jadwal: jalankan auto-alpha secara berkala (setiap 15 menit) agar mengeksekusi sesuai batas_jam_masuk masing-masing kelas
+Schedule::command(AutoMarkAlphaCommand::class)->everyFifteenMinutes()->withoutOverlapping();
 
 // Jadwal: setiap menit cek lisensi ke server untuk antisipasi lisensi ilegal
 Schedule::command(\App\Console\Commands\VerifyLicense::class)->everyMinute()->withoutOverlapping();

@@ -249,6 +249,34 @@ class AutoAlphaSiswaTest extends TestCase
         $this->assertEquals(now()->toDateString(), $absensi->tanggal->toDateString());
     }
 
+    public function test_command_skips_when_current_time_before_batas_jam_masuk(): void
+    {
+        $data = $this->createBaseTestData();
+        $this->seedToggle('auto_alpha_siswa_enabled', 'Ya');
+
+        $hari = strtolower(now()->locale('id')->isoFormat('dddd'));
+        \App\Models\KelasJadwalAbsensi::create([
+            'kelas_id' => $data['kelas']->id,
+            'hari' => $hari,
+            'jam_masuk' => '07:00',
+            'batas_jam_masuk' => '17:00',
+            'is_libur' => false,
+        ]);
+
+        \Illuminate\Support\Carbon::setTestNow(now()->setTime(8, 0, 0));
+
+        Notification::fake();
+        Bus::fake();
+
+        $this->artisan('absensi:auto-alpha')->assertExitCode(0);
+        $this->assertEquals(0, AbsensiSiswa::where('siswa_id', $data['siswa']->id)->count());
+
+        $this->artisan('absensi:auto-alpha', ['--force' => true])->assertExitCode(0);
+        $this->assertEquals(1, AbsensiSiswa::where('siswa_id', $data['siswa']->id)->count());
+
+        \Illuminate\Support\Carbon::setTestNow();
+    }
+
     public function test_command_skips_present_students(): void
     {
         $data = $this->createBaseTestData();
