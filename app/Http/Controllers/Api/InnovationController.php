@@ -94,7 +94,7 @@ class InnovationController extends Controller
         $taId = TahunAkademik::where('is_aktif', true)->first()?->id;
 
         $absensi = AbsensiSiswa::where('kelas_id', $kelasId)
-            ->where('tanggal', $date)
+            ->whereDate('tanggal', $date)
             ->get();
 
         // LOGIKA PENILAIAN BARU DAN UPDATE KE DATABASE
@@ -127,7 +127,7 @@ class InnovationController extends Controller
             if (in_array($statusLower, ['hadir', 'terlambat'])) {
                 $index = false;
                 foreach ($absensiHadir as $i => $item) {
-                    if ($item->id === $absen->id) {
+                    if ((int)$item->id === (int)$absen->id) {
                         $index = $i;
                         break;
                     }
@@ -152,34 +152,31 @@ class InnovationController extends Controller
             );
 
             if ($statusLower === 'hadir' || $statusLower === 'terlambat') {
-                // Asumsi hadir = tepat waktu
-                $gamificationStat->current_streak += 1;
-                
-                if ($gamificationStat->current_streak > $gamificationStat->longest_streak) {
-                    $gamificationStat->longest_streak = $gamificationStat->current_streak;
-                }
-                
-                // Jika streak >= 5, beri bonus (misal multiplier, atau bonus poin fixed)
-                if ($gamificationStat->current_streak >= 5) {
-                    $poin += 5; // Extra 5 point for streak
+                if ($gamificationStat->last_attendance_date !== $date) {
+                    $gamificationStat->current_streak += 1;
+                    
+                    if ($gamificationStat->current_streak > $gamificationStat->longest_streak) {
+                        $gamificationStat->longest_streak = $gamificationStat->current_streak;
+                    }
+                    
+                    // Jika streak >= 5, beri bonus (misal multiplier, atau bonus poin fixed)
+                    if ($gamificationStat->current_streak >= 5) {
+                        $poin += 5; // Extra 5 point for streak
+                    }
+
+                    $gamificationStat->last_attendance_date = $date;
                 }
             } else {
                 // Streak putus jika tidak hadir tepat waktu
                 $gamificationStat->current_streak = 0;
             }
 
-            $gamificationStat->last_attendance_date = clone now();
             $gamificationStat->save();
 
             // Update record absensi dengan poin yang dihitung akhir
             $absen->points_earned = $poin;
             $absen->is_early_bird = $isEarlyBird;
-            
-            \App\Models\AbsensiSiswa::where('id', $absen->id)
-                ->update([
-                    'points_earned' => $poin,
-                    'is_early_bird' => $isEarlyBird
-                ]);
+            $absen->saveQuietly();
         }
 
         // Hitung ulang statistik kelas setelah poin ditambahkan
@@ -304,7 +301,7 @@ class InnovationController extends Controller
         $results = [];
         foreach ($kelasList as $kelas) {
             $absensi = AbsensiSiswa::where('kelas_id', $kelas->id)
-                ->where('tahun_akademik_id', $taId)
+                ->when($taId, fn($q) => $q->whereHas('kelas', fn($k) => $k->where('tahun_akademik_id', $taId)))
                 ->get();
 
             $total = $absensi->count();
@@ -430,7 +427,7 @@ class InnovationController extends Controller
 
         foreach ($allSiswas as $siswa) {
             $absensis = AbsensiSiswa::where('siswa_id', $siswa->id)
-                ->where('tahun_akademik_id', $taId)
+                ->when($taId, fn($q) => $q->whereHas('kelas', fn($k) => $k->where('tahun_akademik_id', $taId)))
                 ->get();
 
             $totalAttendance = $absensis->count();

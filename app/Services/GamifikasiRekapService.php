@@ -202,18 +202,10 @@ class GamifikasiRekapService
             $totalIzin = (int) ($stats->total_izin ?? 0);
             $totalAlpha = (int) ($stats->total_alpha ?? 0);
 
-            // Logika penghitungan baru
-            // Hadir tepat waktu (kita asumsikan status Hadir adalah tepat waktu)
             $poinDasar = ($totalHadir * 10) + ($totalTerlambat * 5) + ($totalSakit * 2) + ($totalIzin * 2) - ($totalAlpha * 10);
-            
-            // Note: Perhitungan Early Bird dan Streak biasanya diproses harian saat absensi dibuat.
-            // Jika ingin dihitung rekap, kita butuh baca tabel points_earned pada absensi_siswa
-            // Untuk sekarang, karena `points_earned` dan `is_early_bird` baru ditambahkan, 
-            // query perlu disesuaikan untuk mengambil sum dari points_earned (jika sudah berjalan)
-            // Namun, untuk kompatibilitas ke belakang, jika points_earned masih 0, kita pakai hitungan dinamis ini
             $totalPointsEarned = (int) ($stats->total_points_earned ?? 0);
 
-            $skorDinamis = $totalPointsEarned > 0 ? $totalPointsEarned : $poinDasar;
+            $skorDinamis = $totalPointsEarned != 0 ? $totalPointsEarned : $poinDasar;
 
             $isDinamis = ($startDate && $endDate) || is_null($leaderboard);
 
@@ -247,7 +239,20 @@ class GamifikasiRekapService
             ];
         });
 
-        $sortedSiswa = $mappedSiswa->sortByDesc('skor')->values();
+        $sortedSiswa = $mappedSiswa->sort(function ($a, $b) {
+            $rankA = $a['rank'] ?? 999999;
+            $rankB = $b['rank'] ?? 999999;
+            if ($rankA !== $rankB) {
+                return $rankA <=> $rankB;
+            }
+            if ($a['skor'] === $b['skor']) {
+                if ($a['total_hadir'] === $b['total_hadir']) {
+                    return strcmp($a['nama_lengkap'], $b['nama_lengkap']);
+                }
+                return $b['total_hadir'] <=> $a['total_hadir'];
+            }
+            return $b['skor'] <=> $a['skor'];
+        })->values();
 
         return $sortedSiswa->map(function ($item, $index) {
             if (is_null($item['rank'])) {
@@ -377,7 +382,17 @@ class GamifikasiRekapService
             ];
         });
 
-        $sortedKelas = $mappedKelas->sortByDesc('percentage')->values();
+        $sortedKelas = $mappedKelas->sort(function ($a, $b) {
+            $rankA = $a['rank'] ?? 999999;
+            $rankB = $b['rank'] ?? 999999;
+            if ($rankA !== $rankB) {
+                return $rankA <=> $rankB;
+            }
+            if ($a['percentage'] === $b['percentage']) {
+                return strcmp($a['nama'], $b['nama']);
+            }
+            return $b['percentage'] <=> $a['percentage'];
+        })->values();
 
         return $sortedKelas->map(function ($item, $index) {
             if (is_null($item['rank'])) {
