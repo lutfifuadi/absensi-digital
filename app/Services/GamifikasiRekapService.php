@@ -452,34 +452,126 @@ class GamifikasiRekapService
     }
 
     /**
-     * Statistik ringkasan gamifikasi untuk dashboard.
+     * Statistik ringkasan gamifikasi untuk dashboard & rekapitulasi.
      *
-     * @param  string|int|null $tahunAkademikId
+     * @param  array|string|int|null $filters
      * @return array
      */
-    public function getSummaryStats($tahunAkademikId = null): array
+    public function getSummaryStats($filters = []): array
     {
-        $leaderboardQuery = StudentLeaderboard::query();
-        $classLeaderboardQuery = ClassLeaderboard::query();
-
-        if ($tahunAkademikId) {
-            $leaderboardQuery->where('tahun_akademik_id', $tahunAkademikId);
-            $classLeaderboardQuery->where('tahun_akademik_id', $tahunAkademikId);
+        if (!is_array($filters)) {
+            $filters = ['tahun_akademik_id' => $filters];
         }
 
-        $totalSiswaAktif = $leaderboardQuery->distinct('siswa_id')->count('siswa_id');
-        $totalBadgeDiraih = StudentBadge::count();
-        $totalKelasAktif = $classLeaderboardQuery->distinct('kelas_id')->count('kelas_id');
-        $avgKehadiranPersen = round(
-            (float) ($classLeaderboardQuery->avg('percentage') ?? 0),
-            2
-        );
+        $tahunAkademikId = $filters['tahun_akademik_id'] ?? null;
+        $kelasId         = $filters['kelas_id'] ?? null;
+        [$startDate, $endDate] = $this->getDateRange($filters);
+
+        // ── Base Absensi Query ───────────────────────────────────────────────
+        $absensiQuery = AbsensiSiswa::query();
+
+        if ($kelasId) {
+            $absensiQuery->where('kelas_id', $kelasId);
+        }
+
+        if ($tahunAkademikId) {
+            $absensiQuery->whereHas('kelas', function ($q) use ($tahunAkademikId) {
+                $q->where('tahun_akademik_id', $tahunAkademikId);
+            });
+        }
+
+        if ($startDate && $endDate) {
+            $absensiQuery->whereBetween('tanggal', [$startDate, $endDate]);
+        }
+
+        // 1. Total Kehadiran (Hadir & Terlambat) & Total Absensi
+        $absensiStats = (clone $absensiQuery)
+            ->select(
+                DB::raw("SUM(CASE WHEN status IN ('Hadir','hadir','Terlambat','terlambat') THEN 1 ELSE 0 END) AS total_kehadiran"),
+                DB::raw("SUM(CASE WHEN status IN ('Hadir','hadir') THEN 1 ELSE 0 END) AS total_hadir_tepat"),
+                DB::raw("COUNT(*) AS total_absensi")
+            )
+            ->first();
+
+        $totalKehadiran = (int) ($absensiStats?->total_kehadiran ?? 0);
+        $totalAbsensi   = (int) ($absensiStats?->total_absensi ?? 0);
+
+        // 2. Rata-rata Jam Presensi Terawal
+        $avgSeconds = null;
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            $avgSeconds = (clone $absensiQuery)
+                ->whereNotNull('jam_masuk')
+                ->where('jam_masuk', '!=', '')
+                ->where('jam_masuk', '!=', '-')
+                ->select(DB::raw("AVG(TIME_TO_SEC(jam_masuk)) as avg_seconds"))
+                ->value('avg_seconds');
+        }
+
+        if (is_null($avgSeconds)) {
+            $avgSeconds = (clone $absensiQuery)
+                ->whereNotNull('jam_masuk')
+                ->where('jam_masuk', '!=', '')
+                ->where('jam_masuk', '!=', '-')
+                ->get()
+                ->avg(function ($item) {
+                    if (!$item->jam_masuk) return null;
+                    $parts = explode(':', substr($item->jam_masuk, 0, 8));
+                    return ($parts[0] ?? 0) * 3600 + ($parts[1] ?? 0) * 60 + ($parts[2] ?? 0);
+                });
+        }
+
+        $avgJamTerawal = '-';
+        if (!is_null($avgSeconds) && $avgSeconds > 0) {
+            $hours   = floor($avgSeconds / 3600);
+            $minutes = floor(($avgSeconds % 3600) / 60);
+            $avgJamTerawal = sprintf('%02d:%02d WIB', $hours, $minutes);
+        }
+
+        // 3. Tingkat Konsistensi (%) & Average Streak
+        $tingkatKonsistensi = $totalAbsensi > 0
+            ? round(($totalKehadiran / $totalAbsensi) * 100, 1)
+            : 0;
+
+        $siswaQuery = Siswa::where('status', 'aktif');
+        if ($kelasId) {
+            $siswaQuery->where('kelas_id', $kelasId);
+        }
+        if ($tahunAkademikId) {
+            $siswaQuery->where('tahun_akademik_id', $tahunAkademikId);
+        }
+
+        $siswaIds = $siswaQuery->pluck('id');
+        $avgStreak = \App\Models\StudentGamificationStat::whereIn('siswa_id', $siswaIds)
+            ->avg('current_streak');
+        $avgStreak = round((float) ($avgStreak ?? 0), 1);
+
+        // 4. Total Siswa Aktif, Total Badge Diraih, Total Kelas Aktif
+        $totalSiswaAktif = $siswaIds->count();
+
+        $badgeQuery = StudentBadge::whereIn('siswa_id', $siswaIds);
+        if ($startDate && $endDate) {
+            $badgeQuery->whereBetween('earned_at', [$startDate, $endDate]);
+        }
+        $totalBadgeDiraih = $badgeQuery->count();
+
+        $kelasQuery = Kelas::query();
+        if ($tahunAkademikId) {
+            $kelasQuery->where('tahun_akademik_id', $tahunAkademikId);
+        }
+        if ($kelasId) {
+            $kelasQuery->where('id', $kelasId);
+        }
+        $totalKelasAktif = $kelasQuery->count();
 
         return [
             'total_siswa_aktif'    => $totalSiswaAktif,
+            'total_kehadiran'      => $totalKehadiran,
+            'total_absensi'        => $totalAbsensi,
+            'avg_jam_terawal'      => $avgJamTerawal,
+            'tingkat_konsistensi'  => $tingkatKonsistensi,
+            'avg_streak'           => $avgStreak,
             'total_badge_diraih'   => $totalBadgeDiraih,
             'total_kelas_aktif'    => $totalKelasAktif,
-            'avg_kehadiran_persen' => $avgKehadiranPersen,
         ];
     }
 }

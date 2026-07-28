@@ -235,8 +235,12 @@ class AbsensiSiswaController extends Controller
 
             return redirect()->route('admin.absensi-siswa.index')->with('success', $msg);
         } catch (\Throwable $e) {
+            $errorMsg = $e->getMessage();
+            if (str_contains($errorMsg, 'ZipArchive')) {
+                $errorMsg = 'Ekstensi PHP "zip" (php_zip.dll / ZipArchive) belum diaktifkan pada php.ini server Anda. Silakan aktifkan extension=zip pada php.ini atau gunakan file berformat .csv untuk mengimpor data.';
+            }
             return redirect()->route('admin.absensi-siswa.index')
-                ->with('error', 'Terjadi kesalahan saat mengimpor file: ' . $e->getMessage());
+                ->with('error', 'Terjadi kesalahan saat mengimpor file: ' . $errorMsg);
         }
     }
 

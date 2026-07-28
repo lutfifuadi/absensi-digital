@@ -1314,7 +1314,7 @@ return response()->json([
                 $service = app(GamifikasiRekapService::class);
 
                 return [
-                    'summary' => $service->getSummaryStats($tahunAkademikId),
+                    'summary' => $service->getSummaryStats($filters),
                     'siswa'   => $service->getRekapSiswa($filters)->toArray(),
                     'kelas'   => $service->getRekapKelas($filters)->toArray(),
                     'badge'   => $service->getRekapBadge($filters)->toArray(),

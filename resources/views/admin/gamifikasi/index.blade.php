@@ -560,13 +560,33 @@
     <div x-show="loaded && !loading" x-cloak>
 
       {{-- ── SUMMARY CARDS ─────────────────────────────────────────────── --}}
-      <div class="row mb-4">
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="das-stat-card das-stat-card--success">
+            <div class="das-stat-card__icon"><i class="ti tabler-user-check"></i></div>
+            <div class="das-stat-card__body">
+              <div class="das-stat-card__val" x-text="summary.total_kehadiran ?? 0"></div>
+              <div class="das-stat-card__label">Total Kehadiran (Hadir/Telat)</div>
+            </div>
+            <div class="das-stat-card__arrow"><i class="ti tabler-chevron-right"></i></div>
+          </div>
+        </div>
         <div class="col-6 col-md-3">
           <div class="das-stat-card das-stat-card--primary">
-            <div class="das-stat-card__icon"><i class="ti tabler-users"></i></div>
+            <div class="das-stat-card__icon"><i class="ti tabler-clock"></i></div>
             <div class="das-stat-card__body">
-              <div class="das-stat-card__val" x-text="summary.total_siswa_aktif ?? 0"></div>
-              <div class="das-stat-card__label">Siswa Aktif Gamifikasi</div>
+              <div class="das-stat-card__val" x-text="summary.avg_jam_terawal ?? '-'"></div>
+              <div class="das-stat-card__label">Rata-rata Presensi Terawal</div>
+            </div>
+            <div class="das-stat-card__arrow"><i class="ti tabler-chevron-right"></i></div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="das-stat-card das-stat-card--info" style="--das-info:#06b6d4;">
+            <div class="das-stat-card__icon"><i class="ti tabler-flame"></i></div>
+            <div class="das-stat-card__body">
+              <div class="das-stat-card__val" x-text="(summary.tingkat_konsistensi ?? 0) + '%'"></div>
+              <div class="das-stat-card__label">Tingkat Konsistensi (Avg Streak: <span x-text="summary.avg_streak ?? 0"></span> hr)</div>
             </div>
             <div class="das-stat-card__arrow"><i class="ti tabler-chevron-right"></i></div>
           </div>
@@ -577,26 +597,6 @@
             <div class="das-stat-card__body">
               <div class="das-stat-card__val" x-text="summary.total_badge_diraih ?? 0"></div>
               <div class="das-stat-card__label">Total Badge Diraih</div>
-            </div>
-            <div class="das-stat-card__arrow"><i class="ti tabler-chevron-right"></i></div>
-          </div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="das-stat-card das-stat-card--success">
-            <div class="das-stat-card__icon"><i class="ti tabler-school"></i></div>
-            <div class="das-stat-card__body">
-              <div class="das-stat-card__val" x-text="summary.total_kelas_aktif ?? 0"></div>
-              <div class="das-stat-card__label">Kelas Aktif</div>
-            </div>
-            <div class="das-stat-card__arrow"><i class="ti tabler-chevron-right"></i></div>
-          </div>
-        </div>
-        <div class="col-6 col-md-3">
-          <div class="das-stat-card das-stat-card--info" style="--das-info:#06b6d4;">
-            <div class="das-stat-card__icon"><i class="ti tabler-percentage"></i></div>
-            <div class="das-stat-card__body">
-              <div class="das-stat-card__val" x-text="(summary.avg_kehadiran_persen ?? 0) + '%'"></div>
-              <div class="das-stat-card__label">Rata-rata Kehadiran</div>
             </div>
             <div class="das-stat-card__arrow"><i class="ti tabler-chevron-right"></i></div>
           </div>
