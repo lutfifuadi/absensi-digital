@@ -154,9 +154,10 @@ Route::get('/kebijakan-privasi', [PublicPagesController::class, 'kebijakanPrivas
 Route::get('/bantuan', [PublicPagesController::class, 'bantuan'])->name('public.bantuan');
 Route::get('/prestasi', [PublicPagesController::class, 'prestasi'])->name('public.prestasi');
 
-// ── Layanan Pengaduan Data Tidak Valid (PRD-002) — Publik ────────────────────
+// ── Layanan Pengaduan Data Tidak Valid (PRD-002) ─────────────────────────────
+// Route utama /pengaduan — harus login, redirect ke halaman sesuai role (siswa/ortu)
 Route::prefix('pengaduan')->name('pengaduan.')->group(function () {
-    Route::get('/', [PengaduanController::class, 'form'])->name('form');
+    Route::get('/', [PengaduanController::class, 'form'])->middleware('auth')->name('form');
     Route::get('/cek', [PengaduanController::class, 'cekForm'])->name('cek');
 });
 // ─────────────────────────────────────────────────────────────────────────────

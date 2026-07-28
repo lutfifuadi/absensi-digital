@@ -6,11 +6,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ asset('css/dashboards/guru-bk.css') }}?v=1.0">
+  <link rel="stylesheet" href="{{ asset('css/dashboards/super-admin.css') }}?v=4.3">
+  <link rel="stylesheet" href="{{ asset('css/dashboards/guru-bk.css') }}?v=1.1">
 @endsection
 
 @section('content')
-<div class="container-xxl flex-grow-1 container-p-y">
 
   {{-- ═══════════════════════════════════════════
        HERO HEADER — BK Identity + Live Clock
@@ -23,31 +23,31 @@
     <div class="das-hero__inner">
       {{-- Identity --}}
       <div class="das-hero__identity">
-        <div class="das-hero__logo-placeholder" aria-hidden="true">
+        <div class="das-hero__logo-placeholder" aria-hidden="true" style="background: rgba(239, 90, 90, 0.14); border-color: rgba(239, 90, 90, 0.3); color: #EF5A5A;">
           <i class="ti tabler-user-heart"></i>
         </div>
         <div class="das-hero__meta">
-          <div class="das-hero__badge">
-            <span class="das-hero__pulse-dot" aria-hidden="true"></span>
-            Bimbingan &amp; Konseling
+          <div class="das-hero__badge" style="color: #EF5A5A; background: rgba(239, 90, 90, 0.14); border-color: rgba(239, 90, 90, 0.25);">
+            <span class="das-hero__pulse-dot" style="background:#EF5A5A;" aria-hidden="true"></span>
+            Bimbingan &amp; Konseling (BK)
           </div>
           <h1 class="das-hero__school">Dashboard Guru BK</h1>
           <p class="das-hero__welcome">
             Selamat datang, <strong>{{ auth()->user()->name }}</strong> 👋
             &nbsp;|&nbsp;
-            <span class="text-muted" style="font-size:0.82rem;">
+            <span class="text-body-secondary" style="font-size:0.85rem;">
               {{ $tahunAkademik ? $tahunAkademik->nama . ' — ' . ($tahunAkademik->semester ?? '') : 'Tahun Akademik Aktif' }}
             </span>
           </p>
           {{-- Quick Action Buttons --}}
           <div class="d-flex flex-wrap gap-2 mt-3">
-            <a href="{{ route('bk.pelanggaran.create') }}" class="das-btn das-btn--danger">
+            <a href="{{ route('bk.pelanggaran.create') }}" class="btn btn-danger btn-sm d-inline-flex align-items-center gap-1">
               <i class="ti tabler-plus"></i> Input Pelanggaran
             </a>
-            <a href="{{ route('bk.sp.create') }}" class="das-btn das-btn--warning">
+            <a href="{{ route('bk.sp.create') }}" class="btn btn-warning btn-sm d-inline-flex align-items-center gap-1">
               <i class="ti tabler-file-certificate"></i> Terbitkan SP
             </a>
-            <a href="{{ route('bk.rekap.index') }}" class="das-btn das-btn--ghost">
+            <a href="{{ route('bk.rekap.index') }}" class="btn btn-label-secondary btn-sm d-inline-flex align-items-center gap-1">
               <i class="ti tabler-chart-bar"></i> Lihat Rekap
             </a>
           </div>
@@ -59,7 +59,7 @@
         <div class="das-hero__date">{{ now()->locale('id')->translatedFormat('l, d F Y') }}</div>
         <div class="das-hero__time">
           <span id="bk-live-clock">00:00:00</span>
-          <span class="das-hero__live-badge"><span class="das-hero__pulse-dot" aria-hidden="true"></span>LIVE</span>
+          <span class="das-hero__live-badge" style="color:#EF5A5A; background:rgba(239,90,90,0.14); border-color:rgba(239,90,90,0.3);"><span class="das-hero__pulse-dot" style="background:#EF5A5A;" aria-hidden="true"></span>LIVE</span>
         </div>
         <div class="das-hero__tz">WAKTU INDONESIA BARAT (WIB)</div>
       </div>
@@ -68,52 +68,73 @@
 
 
   {{-- ═══════════════════════════════════════════
-       SECTION A: STAT CARDS — 3 KPI Utama
+       SECTION A: STAT CARDS — 3 KPI Utama (Card Gradient Admin System)
   ═══════════════════════════════════════════ --}}
   <div class="row g-4 mb-4">
-    {{-- Pelanggaran Bulan Ini --}}
+    {{-- Card 1: Pelanggaran Bulan Ini --}}
     <div class="col-lg-4 col-sm-6">
-      <a href="{{ route('bk.pelanggaran.index') }}" class="text-decoration-none">
-        <div class="bk-stat-card bk-stat-card--danger">
-          <div class="bk-stat-card__icon">
-            <i class="ti tabler-alert-triangle"></i>
-          </div>
-          <div class="bk-stat-card__body">
-            <div class="bk-stat-card__val">{{ number_format($summary['totalPelanggaranBulanIni'] ?? 0) }}</div>
-            <div class="bk-stat-card__label">Pelanggaran Bulan Ini</div>
-            <div class="bk-stat-card__sub">klik untuk lihat detail</div>
+      <a href="{{ route('bk.pelanggaran.index') }}" class="text-decoration-none stats-card-link">
+        <div class="card card-grad-danger h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center mb-2">
+              <div class="avatar me-4">
+                <span class="avatar-initial rounded bg-label-danger">
+                  <i class="ti tabler-alert-triangle fs-4"></i>
+                </span>
+              </div>
+              <h3 class="mb-0 fw-bold text-white">{{ number_format($summary['totalPelanggaranBulanIni'] ?? 0) }}</h3>
+            </div>
+            <p class="mb-1 text-body-secondary text-nowrap fw-semibold">Pelanggaran Bulan Ini</p>
+            <p class="mb-0">
+              <span class="text-danger fw-medium me-2">Evaluasi Kejadian</span>
+              <small class="text-body-secondary">klik untuk detail</small>
+            </p>
           </div>
         </div>
       </a>
     </div>
 
-    {{-- Siswa Dalam Pemantauan --}}
+    {{-- Card 2: Siswa Dalam Pemantauan --}}
     <div class="col-lg-4 col-sm-6">
-      <a href="{{ route('bk.pelanggaran.index') }}" class="text-decoration-none">
-        <div class="bk-stat-card bk-stat-card--warning">
-          <div class="bk-stat-card__icon">
-            <i class="ti tabler-users"></i>
-          </div>
-          <div class="bk-stat-card__body">
-            <div class="bk-stat-card__val">{{ number_format($summary['totalSiswaBermasalah'] ?? 0) }}</div>
-            <div class="bk-stat-card__label">Siswa Dalam Pemantauan</div>
-            <div class="bk-stat-card__sub">tahun akademik aktif</div>
+      <a href="{{ route('bk.pelanggaran.index') }}" class="text-decoration-none stats-card-link">
+        <div class="card card-grad-warning h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center mb-2">
+              <div class="avatar me-4">
+                <span class="avatar-initial rounded bg-label-warning">
+                  <i class="ti tabler-users fs-4"></i>
+                </span>
+              </div>
+              <h3 class="mb-0 fw-bold text-white">{{ number_format($summary['totalSiswaBermasalah'] ?? 0) }}</h3>
+            </div>
+            <p class="mb-1 text-body-secondary text-nowrap fw-semibold">Siswa Dalam Pemantauan</p>
+            <p class="mb-0">
+              <span class="text-warning fw-medium me-2">Lintas Kelas</span>
+              <small class="text-body-secondary">tahun aktif</small>
+            </p>
           </div>
         </div>
       </a>
     </div>
 
-    {{-- SP Diterbitkan --}}
+    {{-- Card 3: SP Diterbitkan --}}
     <div class="col-lg-4 col-sm-6">
-      <a href="{{ route('bk.sp.index') }}" class="text-decoration-none">
-        <div class="bk-stat-card bk-stat-card--primary">
-          <div class="bk-stat-card__icon">
-            <i class="ti tabler-file-certificate"></i>
-          </div>
-          <div class="bk-stat-card__body">
-            <div class="bk-stat-card__val">{{ number_format($summary['totalSpDiterbitkan'] ?? 0) }}</div>
-            <div class="bk-stat-card__label">Surat Peringatan Diterbitkan</div>
-            <div class="bk-stat-card__sub">klik untuk kelola SP</div>
+      <a href="{{ route('bk.sp.index') }}" class="text-decoration-none stats-card-link">
+        <div class="card card-grad-primary h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center mb-2">
+              <div class="avatar me-4">
+                <span class="avatar-initial rounded bg-label-primary">
+                  <i class="ti tabler-file-certificate fs-4"></i>
+                </span>
+              </div>
+              <h3 class="mb-0 fw-bold text-white">{{ number_format($summary['totalSpDiterbitkan'] ?? 0) }}</h3>
+            </div>
+            <p class="mb-1 text-body-secondary text-nowrap fw-semibold">Surat Peringatan Diterbitkan</p>
+            <p class="mb-0">
+              <span class="text-primary fw-medium me-2">Intervensi Resmi</span>
+              <small class="text-body-secondary">kelola SP</small>
+            </p>
           </div>
         </div>
       </a>
@@ -126,71 +147,70 @@
        Kiri (7): Top Violators + Tren Chart
        Kanan (5): Quick Access + SP Terbaru + Kategori
   ═══════════════════════════════════════════ --}}
-  <div class="row g-4">
+  <div class="row g-4 mb-4">
 
     {{-- ── COL KIRI ── --}}
     <div class="col-lg-7">
 
-      {{-- Panel: Top Siswa Bermasalah --}}
-      <div class="das-panel mb-4">
-        <div class="das-panel__head">
-          <h2 class="das-panel__title">
-            <span class="das-panel__icon-dot das-panel__icon-dot--danger"></span>
-            <i class="ti tabler-flame" style="color:var(--das-danger)"></i>
+      {{-- Card Panel: Top Siswa Bermasalah --}}
+      <div class="card mb-4">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <h5 class="card-title m-0 fw-bold d-flex align-items-center gap-2">
+            <i class="ti tabler-flame text-danger fs-4"></i>
             Top Siswa Bermasalah (Poin Terbanyak)
-          </h2>
-          <a href="{{ route('bk.rekap.index') }}" class="das-btn das-btn--ghost" style="font-size:0.75rem; padding:0.4rem 0.75rem;">
-            <i class="ti tabler-arrow-right"></i> Lihat Semua
+          </h5>
+          <a href="{{ route('bk.rekap.index') }}" class="btn btn-sm btn-label-secondary">
+            Lihat Semua <i class="ti tabler-arrow-right ms-1"></i>
           </a>
         </div>
-        <div class="das-table-wrap">
-          <table class="das-table">
+        <div class="table-responsive text-nowrap">
+          <table class="table table-hover align-middle mb-0">
             <thead>
-              <tr>
-                <th>#</th>
+              <tr class="table-light">
+                <th style="width: 50px;">#</th>
                 <th>Siswa</th>
                 <th>Kelas</th>
-                <th style="text-align:center">Pelanggaran</th>
-                <th style="text-align:center">Total Poin</th>
-                <th style="text-align:right">Aksi</th>
+                <th class="text-center">Pelanggaran</th>
+                <th class="text-center">Total Poin</th>
+                <th class="text-end">Aksi</th>
               </tr>
             </thead>
             <tbody>
               @forelse($topViolators as $rank => $siswa)
                 <tr>
-                  <td>
-                    <span style="font: 700 0.85rem var(--das-font-mono); color: var(--das-text-dim);">
-                      {{ str_pad($rank + 1, 2, '0', STR_PAD_LEFT) }}
-                    </span>
+                  <td class="fw-bold text-body-secondary">
+                    {{ str_pad($rank + 1, 2, '0', STR_PAD_LEFT) }}
                   </td>
                   <td>
-                    <div class="das-table__person">
-                      <div style="width:32px;height:32px;border-radius:50%;background:var(--das-danger-soft);color:var(--das-danger);display:grid;place-items:center;font:700 0.72rem var(--das-font-body);flex-shrink:0;">
-                        {{ strtoupper(substr($siswa->nama_lengkap, 0, 2)) }}
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="avatar avatar-sm flex-shrink-0">
+                        <span class="avatar-initial rounded-circle bg-label-danger fw-bold">
+                          {{ strtoupper(substr($siswa->nama_lengkap, 0, 2)) }}
+                        </span>
                       </div>
                       <div>
-                        <div class="das-table__name" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $siswa->nama_lengkap }}</div>
-                        <small style="color:var(--das-text-dim);font-size:0.72rem;">NIS: {{ $siswa->nis ?? '-' }}</small>
+                        <h6 class="mb-0 fw-semibold text-body text-truncate" style="max-width: 200px;">{{ $siswa->nama_lengkap }}</h6>
+                        <small class="text-body-secondary">NIS: {{ $siswa->nis ?? '-' }}</small>
                       </div>
                     </div>
                   </td>
                   <td>
-                    <span class="das-chip das-chip--info">{{ $siswa->kelas->nama ?? '-' }}</span>
+                    <span class="badge bg-label-info fw-semibold">{{ $siswa->kelas->nama ?? '-' }}</span>
                   </td>
-                  <td style="text-align:center;">
-                    <span style="font:700 0.85rem var(--das-font-mono);color:var(--das-text);">{{ $siswa->total_pelanggaran }}×</span>
+                  <td class="text-center fw-bold">
+                    {{ $siswa->total_pelanggaran }}×
                   </td>
-                  <td style="text-align:center;">
-                    <span class="das-chip das-chip--danger">{{ $siswa->total_poin }} Poin</span>
+                  <td class="text-center">
+                    <span class="badge bg-danger fs-6 fw-bold">{{ $siswa->total_poin }} Poin</span>
                   </td>
-                  <td style="text-align:right;">
+                  <td class="text-end">
                     <div class="d-flex gap-1 justify-content-end">
                       <a href="{{ route('bk.sp.create', ['siswa_id' => $siswa->id]) }}"
-                         class="das-btn das-btn--warning" style="padding:0.35rem 0.6rem;" title="Terbitkan SP">
+                         class="btn btn-sm btn-label-warning btn-icon" title="Terbitkan SP">
                         <i class="ti tabler-file-certificate"></i>
                       </a>
                       <a href="{{ route('bk.pelanggaran.index', ['siswa_id' => $siswa->id]) }}"
-                         class="das-btn das-btn--ghost" style="padding:0.35rem 0.6rem;" title="Riwayat">
+                         class="btn btn-sm btn-label-info btn-icon" title="Riwayat">
                         <i class="ti tabler-history"></i>
                       </a>
                     </div>
@@ -198,8 +218,8 @@
                 </tr>
               @empty
                 <tr>
-                  <td colspan="6" class="das-table__empty">
-                    <i class="ti tabler-mood-happy d-block mb-1" style="font-size:2rem;color:var(--das-success);"></i>
+                  <td colspan="6" class="text-center py-5 text-body-secondary">
+                    <i class="ti tabler-mood-happy d-block mb-2 text-success fs-1"></i>
                     Belum ada data pelanggaran tercatat.
                   </td>
                 </tr>
@@ -207,21 +227,20 @@
             </tbody>
           </table>
         </div>
-      </div>{{-- /panel top violators --}}
+      </div>{{-- /card top violators --}}
 
-      {{-- Panel: Chart Tren Pelanggaran 6 Bulan --}}
-      <div class="das-panel">
-        <div class="das-panel__head">
-          <h2 class="das-panel__title">
-            <span class="das-panel__icon-dot das-panel__icon-dot--warning"></span>
-            <i class="ti tabler-chart-line" style="color:var(--das-warning)"></i>
+      {{-- Card Panel: Chart Tren Pelanggaran 6 Bulan --}}
+      <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <h5 class="card-title m-0 fw-bold d-flex align-items-center gap-2">
+            <i class="ti tabler-chart-line text-warning fs-4"></i>
             Tren Pelanggaran (6 Bulan Terakhir)
-          </h2>
+          </h5>
         </div>
-        <div class="das-panel__body">
-          <div id="bkTrendChart" class="das-chart-mount"></div>
+        <div class="card-body">
+          <div id="bkTrendChart" style="min-height: 240px;"></div>
         </div>
-      </div>{{-- /panel chart --}}
+      </div>{{-- /card chart --}}
 
     </div>{{-- /col kiri --}}
 
@@ -229,124 +248,123 @@
     {{-- ── COL KANAN ── --}}
     <div class="col-lg-5">
 
-      {{-- Panel: Quick Access --}}
-      <div class="das-panel mb-4">
-        <div class="das-panel__head">
-          <h2 class="das-panel__title">
-            <span class="das-panel__icon-dot das-panel__icon-dot--primary"></span>
-            <i class="ti tabler-layout-grid" style="color:var(--das-primary)"></i>
-            Menu Cepat
-          </h2>
+      {{-- Card Panel: Quick Access --}}
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title m-0 fw-bold d-flex align-items-center gap-2">
+            <i class="ti tabler-layout-grid text-primary fs-4"></i>
+            Menu Cepat BK
+          </h5>
         </div>
-        <div class="das-panel__body">
+        <div class="card-body">
           <div class="bk-quick-grid">
             <a href="{{ route('bk.dashboard') }}" class="bk-quick-item bk-quick-item--primary">
-              <i class="ti tabler-dashboard"></i>
+              <i class="ti tabler-dashboard fs-3 mb-1"></i>
               <span>Dashboard</span>
             </a>
             <a href="{{ route('bk.pelanggaran.index') }}" class="bk-quick-item bk-quick-item--danger">
-              <i class="ti tabler-alert-triangle"></i>
+              <i class="ti tabler-alert-triangle fs-3 mb-1"></i>
               <span>Pelanggaran</span>
             </a>
             <a href="{{ route('bk.pelanggaran.create') }}" class="bk-quick-item bk-quick-item--danger">
-              <i class="ti tabler-plus"></i>
+              <i class="ti tabler-plus fs-3 mb-1"></i>
               <span>Input Baru</span>
             </a>
             <a href="{{ route('bk.sp.index') }}" class="bk-quick-item bk-quick-item--warning">
-              <i class="ti tabler-certificate"></i>
+              <i class="ti tabler-certificate fs-3 mb-1"></i>
               <span>Kelola SP</span>
             </a>
             <a href="{{ route('bk.sp.create') }}" class="bk-quick-item bk-quick-item--warning">
-              <i class="ti tabler-file-certificate"></i>
+              <i class="ti tabler-file-certificate fs-3 mb-1"></i>
               <span>Terbitkan SP</span>
             </a>
             <a href="{{ route('bk.rekap.index') }}" class="bk-quick-item bk-quick-item--info">
-              <i class="ti tabler-chart-pie"></i>
-              <span>Rekap</span>
+              <i class="ti tabler-chart-pie fs-3 mb-1"></i>
+              <span>Rekap Data</span>
             </a>
           </div>
         </div>
-      </div>{{-- /panel quick access --}}
+      </div>{{-- /card quick access --}}
 
-      {{-- Panel: SP Terbaru Diterbitkan --}}
-      <div class="das-panel mb-4">
-        <div class="das-panel__head">
-          <h2 class="das-panel__title">
-            <span class="das-panel__icon-dot das-panel__icon-dot--warning"></span>
-            <i class="ti tabler-certificate" style="color:var(--das-warning)"></i>
+      {{-- Card Panel: SP Terbaru Diterbitkan --}}
+      <div class="card mb-4">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <h5 class="card-title m-0 fw-bold d-flex align-items-center gap-2">
+            <i class="ti tabler-certificate text-warning fs-4"></i>
             SP Terbaru Diterbitkan
-          </h2>
-          <a href="{{ route('bk.sp.index') }}" class="das-btn das-btn--ghost" style="font-size:0.75rem; padding:0.4rem 0.75rem;">
+          </h5>
+          <a href="{{ route('bk.sp.index') }}" class="btn btn-sm btn-label-secondary">
             Kelola SP
           </a>
         </div>
-        @forelse($spAktif as $sp)
-          <div class="bk-list-item">
-            <div class="bk-list-item__main">
-              <div class="bk-list-item__name">
-                <span class="das-chip das-chip--warning me-2">{{ $sp->level_sp }}</span>
-                {{ $sp->siswa->nama_lengkap ?? '-' }}
-              </div>
-              <div class="bk-list-item__meta">
-                Kelas: {{ $sp->siswa->kelas->nama ?? '-' }}
-                &bull;
-                {{ $sp->tanggal_sp ? \Carbon\Carbon::parse($sp->tanggal_sp)->translatedFormat('d M Y') : '-' }}
-              </div>
-            </div>
-            <span class="das-chip das-chip--danger" style="white-space:nowrap;">{{ $sp->total_poin_saat_sp }} Poin</span>
-          </div>
-        @empty
-          <div class="das-empty-state">
-            <i class="ti tabler-file-off"></i>
-            Belum ada SP diterbitkan.
-          </div>
-        @endforelse
-      </div>{{-- /panel SP --}}
-
-      {{-- Panel: Rekap Pelanggaran Per Kategori Bulan Ini --}}
-      <div class="das-panel">
-        <div class="das-panel__head">
-          <h2 class="das-panel__title">
-            <span class="das-panel__icon-dot das-panel__icon-dot--danger"></span>
-            <i class="ti tabler-chart-pie" style="color:var(--das-danger)"></i>
-            Kategori Pelanggaran (Bulan Ini)
-          </h2>
-        </div>
-        @php $maxPoin = $rekapKategori->max('total_poin') ?: 1; @endphp
-        @forelse($rekapKategori as $kat)
-          <div style="padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--das-border);">
-            <div class="d-flex justify-content-between align-items-center">
+        <ul class="list-group list-group-flush">
+          @forelse($spAktif as $sp)
+            <li class="list-group-item d-flex align-items-center justify-content-between py-3">
               <div>
-                <div style="font:600 0.85rem/1.3 var(--das-font-body);color:var(--das-text);">
-                  {{ $kat->nama_kategori }}
+                <div class="fw-bold text-body mb-1">
+                  <span class="badge bg-warning text-dark me-2">{{ $sp->level_sp }}</span>
+                  {{ $sp->siswa->nama_lengkap ?? '-' }}
                 </div>
-                <small style="color:var(--das-text-dim);font-size:0.74rem;">{{ $kat->total_pelanggaran }} kasus dicatat</small>
+                <small class="text-body-secondary d-block">
+                  Kelas: {{ $sp->siswa->kelas->nama ?? '-' }}
+                  &bull;
+                  {{ $sp->tanggal_sp ? \Carbon\Carbon::parse($sp->tanggal_sp)->translatedFormat('d M Y') : '-' }}
+                </small>
               </div>
-              <span class="das-chip das-chip--primary">{{ $kat->total_poin }} Poin</span>
+              <span class="badge bg-label-danger fw-bold fs-6">{{ $sp->total_poin_saat_sp }} Poin</span>
+            </li>
+          @empty
+            <li class="list-group-item text-center py-4 text-body-secondary">
+              <i class="ti tabler-file-off fs-3 d-block mb-1"></i>
+              Belum ada SP diterbitkan.
+            </li>
+          @endforelse
+        </ul>
+      </div>{{-- /card SP --}}
+
+      {{-- Card Panel: Rekap Pelanggaran Per Kategori --}}
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title m-0 fw-bold d-flex align-items-center gap-2">
+            <i class="ti tabler-chart-pie text-danger fs-4"></i>
+            Kategori Pelanggaran (Bulan Ini)
+          </h5>
+        </div>
+        <div class="card-body">
+          @php $maxPoin = $rekapKategori->max('total_poin') ?: 1; @endphp
+          @forelse($rekapKategori as $kat)
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <div>
+                  <span class="fw-bold text-body">{{ $kat->nama_kategori }}</span>
+                  <small class="text-body-secondary d-block">{{ $kat->total_pelanggaran }} kasus dicatat</small>
+                </div>
+                <span class="badge bg-label-primary fw-bold">{{ $kat->total_poin }} Poin</span>
+              </div>
+              <div class="progress" style="height: 6px;">
+                <div class="progress-bar bg-danger" role="progressbar"
+                     style="width: {{ round(($kat->total_poin / $maxPoin) * 100) }}%"
+                     aria-valuenow="{{ $kat->total_poin }}" aria-valuemin="0" aria-valuemax="{{ $maxPoin }}"></div>
+              </div>
             </div>
-            <div class="bk-cat-bar mt-2">
-              <div class="bk-cat-bar__fill" style="width: {{ round(($kat->total_poin / $maxPoin) * 100) }}%"></div>
+          @empty
+            <div class="text-center py-4 text-body-secondary">
+              <i class="ti tabler-chart-pie-off fs-3 d-block mb-1"></i>
+              Belum ada data kategori bulan ini.
             </div>
-          </div>
-        @empty
-          <div class="das-empty-state">
-            <i class="ti tabler-chart-pie-off"></i>
-            Belum ada data kategori bulan ini.
-          </div>
-        @endforelse
-      </div>{{-- /panel kategori --}}
+          @endforelse
+        </div>
+      </div>{{-- /card kategori --}}
 
     </div>{{-- /col kanan --}}
   </div>{{-- /row --}}
-
-</div>
 
 {{-- Scroll to Top --}}
 <button class="das-scroll-top" id="bkScrollTop" aria-label="Kembali ke atas">
   <i class="ti tabler-arrow-up"></i>
 </button>
-@endsection
 
+@endsection
 
 @section('page-script')
 <script>
@@ -380,7 +398,7 @@
   new ApexCharts(el, {
     chart: {
       type: 'area',
-      height: 220,
+      height: 240,
       background: 'transparent',
       toolbar: { show: false },
       sparkline: { enabled: false },
@@ -391,12 +409,12 @@
     xaxis: {
       categories: chartMonths,
       labels: {
-        style: { colors: '#5B6478', fontSize: '0.72rem', fontFamily: 'Inter' },
+        style: { colors: '#8B96AB', fontSize: '0.78rem', fontFamily: 'Inter' },
       },
       axisBorder: { show: false }, axisTicks: { show: false },
     },
     yaxis: {
-      labels: { style: { colors: '#5B6478', fontSize: '0.72rem', fontFamily: 'Inter' } },
+      labels: { style: { colors: '#8B96AB', fontSize: '0.78rem', fontFamily: 'Inter' } },
       min: 0,
     },
     stroke: { curve: 'smooth', width: 2, colors: ['#EF5A5A'] },
@@ -425,3 +443,4 @@
 })();
 </script>
 @endsection
+

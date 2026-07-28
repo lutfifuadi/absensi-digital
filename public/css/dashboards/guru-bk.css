@@ -209,8 +209,12 @@
 }
 .das-btn:hover  { filter: brightness(1.12); }
 .das-btn:active { transform: scale(0.98); }
-.das-btn--danger  { background: var(--das-danger);  color: #fff; }
-.das-btn--warning { background: var(--das-warning);  color: #1A1100; }
+.das-btn--primary { background: var(--das-primary); color: #ffffff !important; }
+.das-btn--secondary { background: var(--das-surface-2); border: 1px solid var(--das-border-strong); color: var(--das-text) !important; }
+.das-btn--success { background: var(--das-success); color: #042414 !important; font-weight: 600; }
+.das-btn--danger  { background: var(--das-danger);  color: #ffffff !important; }
+.das-btn--warning { background: var(--das-warning); color: #1a1100 !important; font-weight: 700; }
+.das-btn--info    { background: var(--das-info);    color: #04202b !important; font-weight: 600; }
 .das-btn--ghost   { background: rgba(255, 255, 255, 0.04); border-color: var(--das-border); color: var(--das-text-muted); }
 .das-btn--ghost:hover { color: var(--das-text); }
 

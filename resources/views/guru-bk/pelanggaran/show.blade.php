@@ -3,7 +3,6 @@
 @section('title', 'Detail Pelanggaran Siswa')
 
 @section('content')
-<div class="container-xxl flex-grow-1 container-p-y">
   <div class="mb-4">
     <a href="{{ route('bk.pelanggaran.index') }}" class="btn btn-label-secondary btn-sm mb-2">
       <i class="ti tabler-arrow-left me-1"></i> Kembali
@@ -80,5 +79,4 @@
       </div>
     </div>
   </div>
-</div>
 @endsection

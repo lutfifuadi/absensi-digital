@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StorePengaduanRequest;
 use App\Models\Pengaduan;
 use App\Models\LogPengaduan;
+use App\Models\User;
 use App\Services\WhatsAppValidatorService;
 use App\Jobs\SendPengaduanKodeUnikJob;
 use App\Jobs\SendPengaduanGroupNotifJob;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -22,11 +24,25 @@ class PengaduanController extends Controller
     }
 
     /**
-     * Tampilkan form pengaduan (web view).
+     * Redirect ke halaman pengaduan sesuai role user yang login.
+     * - Role siswa → /siswa/pengaduan
+     * - Role orang_tua → /ortu/pengaduan
+     * - Role lain → halaman admin pengaduan (jika punya akses)
      */
     public function form()
     {
-        return view('pengaduan.form');
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        return match ($user->role) {
+            User::ROLE_SISWA => redirect()->route('siswa.pengaduan'),
+            User::ROLE_ORANG_TUA => redirect()->route('ortu.pengaduan'),
+            default => redirect()->route('admin.pengaduan.index'),
+        };
     }
 
     /**
