@@ -245,30 +245,42 @@ class GamifikasiRekapService
             if ($rankA !== $rankB) {
                 return $rankA <=> $rankB;
             }
-            // 1. Skor Poin Gamifikasi
+
+            // 1. Siswa dengan kehadiran aktif didahulukan dibanding siswa tanpa record absensi
+            $activeA = $a['total_absensi'] > 0 ? 1 : 0;
+            $activeB = $b['total_absensi'] > 0 ? 1 : 0;
+            if ($activeA !== $activeB) {
+                return $activeB <=> $activeA;
+            }
+
+            // 2. Strict Rule Siswa Teladan: Siswa 0 Alpha SELALU di atas siswa yang memiliki Alpha
+            $alphaPenaltyA = $a['total_alpha'] > 0 ? 1 : 0;
+            $alphaPenaltyB = $b['total_alpha'] > 0 ? 1 : 0;
+            if ($alphaPenaltyA !== $alphaPenaltyB) {
+                return $alphaPenaltyA <=> $alphaPenaltyB;
+            }
+
+            // 3. Skor Poin Gamifikasi terbanyak
             if ($a['skor'] !== $b['skor']) {
                 return $b['skor'] <=> $a['skor'];
             }
-            // 2. Total Hadir terbanyak
+
+            // 4. Total Hadir terbanyak
             if ($a['total_hadir'] !== $b['total_hadir']) {
                 return $b['total_hadir'] <=> $a['total_hadir'];
             }
-            // 3. Kriteria Teladan -> Jumlah Alpha paling sedikit
-            if ($a['total_alpha'] !== $b['total_alpha']) {
-                return $a['total_alpha'] <=> $b['total_alpha'];
-            }
-            // 4. Streak Kehadiran
+
+            // 5. Streak Kehadiran
             if ($a['current_streak'] !== $b['current_streak']) {
                 return $b['current_streak'] <=> $a['current_streak'];
             }
-            // 5. Nama A-Z
+
+            // 6. Nama A-Z
             return strcmp($a['nama_lengkap'], $b['nama_lengkap']);
         })->values();
 
         return $sortedSiswa->map(function ($item, $index) {
-            if (is_null($item['rank'])) {
-                $item['rank'] = $index + 1;
-            }
+            $item['rank'] = $index + 1;
             $item['is_teladan'] = ($item['total_alpha'] === 0 && $item['total_hadir'] > 0);
             return $item;
         });

@@ -127,23 +127,23 @@ class GamifikasiRekapServiceTest extends TestCase
 
         $this->assertCount(3, $rekap);
 
-        // Sorting should be descending by score:
-        // Rank 1: Siswa 3 (Skor 40)
-        // Rank 2: Siswa 1 (Skor 25)
-        // Rank 3: Siswa 2 (Skor 20)
+        // Sorting under strictly Teladan rule (0 Alpha first):
+        // Rank 1: Siswa 3 (Skor 40, 0 Alpha)
+        // Rank 2: Siswa 2 (Skor 20, 0 Alpha)
+        // Rank 3: Siswa 1 (Skor 25, 1 Alpha)
         $first = $rekap->get(0);
         $this->assertEquals($this->siswa3->id, $first['siswa_id']);
         $this->assertEquals(40, $first['skor']);
         $this->assertEquals(1, $first['rank']);
 
         $second = $rekap->get(1);
-        $this->assertEquals($this->siswa1->id, $second['siswa_id']);
-        $this->assertEquals(25, $second['skor']);
+        $this->assertEquals($this->siswa2->id, $second['siswa_id']);
+        $this->assertEquals(20, $second['skor']);
         $this->assertEquals(2, $second['rank']);
 
         $third = $rekap->get(2);
-        $this->assertEquals($this->siswa2->id, $third['siswa_id']);
-        $this->assertEquals(20, $third['skor']);
+        $this->assertEquals($this->siswa1->id, $third['siswa_id']);
+        $this->assertEquals(25, $third['skor']);
         $this->assertEquals(3, $third['rank']);
     }
 
@@ -213,7 +213,7 @@ class GamifikasiRekapServiceTest extends TestCase
         // Setup Leaderboard in DB
         // Leaderboard says Siswa 2 has score 100 (Rank 1), Siswa 1 has score 50 (Rank 2)
         StudentLeaderboard::create([
-            'siswa_id' => $this->siswa2->id,
+            'siswa_id' => $this->siswa1->id,
             'tahun_akademik_id' => $this->tahunAkademik->id,
             'rank' => 1,
             'score' => 100,
@@ -222,7 +222,7 @@ class GamifikasiRekapServiceTest extends TestCase
             'calculated_at' => now(),
         ]);
         StudentLeaderboard::create([
-            'siswa_id' => $this->siswa1->id,
+            'siswa_id' => $this->siswa2->id,
             'tahun_akademik_id' => $this->tahunAkademik->id,
             'rank' => 2,
             'score' => 50,
@@ -231,7 +231,7 @@ class GamifikasiRekapServiceTest extends TestCase
             'calculated_at' => now(),
         ]);
 
-        // Setup Absensi Siswa (skor dinamis would be: Siswa 1 = 30, Siswa 2 = 0)
+        // Setup Absensi Siswa (Siswa 1 = 0 Alpha, Siswa 2 = 1 Alpha)
         AbsensiSiswa::create(['siswa_id' => $this->siswa1->id, 'kelas_id' => $this->kelasA->id, 'status' => 'Hadir', 'tanggal' => '2025-08-01']);
         AbsensiSiswa::create(['siswa_id' => $this->siswa1->id, 'kelas_id' => $this->kelasA->id, 'status' => 'Hadir', 'tanggal' => '2025-08-02']);
         AbsensiSiswa::create(['siswa_id' => $this->siswa1->id, 'kelas_id' => $this->kelasA->id, 'status' => 'Hadir', 'tanggal' => '2025-08-03']);
@@ -242,17 +242,13 @@ class GamifikasiRekapServiceTest extends TestCase
         // Call service with 'periode' => 'semua'
         $rekap = $this->service->getRekapSiswa(['periode' => 'semua']);
 
-        // Since period is NOT active and leaderboard is not empty, it should use the stored leaderboard:
-        // Siswa 2: Skor 100 (Rank 1)
-        // Siswa 1: Skor 50 (Rank 2)
+        // Under strictly Teladan rule (0 Alpha first): Siswa 1 (0 Alpha) is Rank 1
         $first = $rekap->get(0);
-        $this->assertEquals($this->siswa2->id, $first['siswa_id']);
-        $this->assertEquals(100, $first['skor']);
+        $this->assertEquals($this->siswa1->id, $first['siswa_id']);
         $this->assertEquals(1, $first['rank']);
 
         $second = $rekap->get(1);
-        $this->assertEquals($this->siswa1->id, $second['siswa_id']);
-        $this->assertEquals(50, $second['skor']);
+        $this->assertEquals($this->siswa2->id, $second['siswa_id']);
         $this->assertEquals(2, $second['rank']);
     }
 

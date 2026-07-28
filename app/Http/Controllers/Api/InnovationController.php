@@ -468,15 +468,17 @@ class InnovationController extends Controller
             }
         }
 
-        // Urutkan berdasarkan Kriteria Siswa Teladan: Skor terbanyak, total hadir, kemudian 0 Alpha (terkecil)
+        // Urutkan berdasarkan Strict Rule Siswa Teladan: 0 Alpha SELALU di atas siswa yang memiliki Alpha, baru skor & total hadir terbanyak
         usort($studentScores, function ($a, $b) {
+            $alphaPenaltyA = $a['total_alpha'] > 0 ? 1 : 0;
+            $alphaPenaltyB = $b['total_alpha'] > 0 ? 1 : 0;
+            if ($alphaPenaltyA !== $alphaPenaltyB) {
+                return $alphaPenaltyA <=> $alphaPenaltyB;
+            }
             if ($a['score'] !== $b['score']) {
                 return $b['score'] <=> $a['score'];
             }
-            if ($a['total_present'] !== $b['total_present']) {
-                return $b['total_present'] <=> $a['total_present'];
-            }
-            return $a['total_alpha'] <=> $b['total_alpha'];
+            return $b['total_present'] <=> $a['total_present'];
         });
 
         // Simpan ranking
