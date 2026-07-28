@@ -198,14 +198,13 @@
           <table class="das-table align-middle mb-0">
             <thead>
               <tr>
-                <th width="50" class="text-center ps-4">NO</th>
-                <th>NAMA SISWA</th>
-                <th width="350" class="text-center">STATUS KEHADIRAN</th>
-                <th class="pe-4 text-end">KETERANGAN</th>
-              </tr>
-            </thead>
-            <tbody>
+                <th width="50" class="text-cent            <tbody>
               @foreach ($siswa as $index => $s)
+                @php
+                  $existingAbsensi = $s->absensi->first();
+                  $existingStatus  = $existingAbsensi?->status;
+                  $existingKet     = $existingAbsensi?->keterangan;
+                @endphp
                 <tr class="student-row">
                   <td class="text-center text-white-50 ps-4 small">{{ $index + 1 }}</td>
                   <td>
@@ -217,37 +216,37 @@
                     <div class="d-flex justify-content-center gap-2 absensi-radios">
                       {{-- HADIR --}}
                       <input type="radio" class="btn-check" name="absensi[{{ $index }}][status]" 
-                        id="h-{{ $s->id }}" value="hadir" checked autocomplete="off" onchange="updateSummary()">
+                        id="h-{{ $s->id }}" value="hadir" {{ $existingStatus === 'hadir' ? 'checked' : '' }} autocomplete="off" onchange="updateSummary()">
                       <label class="btn btn-sm btn-outline-success rounded-pill px-3" for="h-{{ $s->id }}" title="Hadir">H</label>
- 
+
                       {{-- SAKIT --}}
                       <input type="radio" class="btn-check" name="absensi[{{ $index }}][status]" 
-                        id="s-{{ $s->id }}" value="sakit" autocomplete="off" onchange="updateSummary()">
+                        id="s-{{ $s->id }}" value="sakit" {{ $existingStatus === 'sakit' ? 'checked' : '' }} autocomplete="off" onchange="updateSummary()">
                       <label class="btn btn-sm btn-outline-info rounded-pill px-3" for="s-{{ $s->id }}" title="Sakit">S</label>
- 
+
                       {{-- IZIN --}}
                       <input type="radio" class="btn-check" name="absensi[{{ $index }}][status]" 
-                        id="i-{{ $s->id }}" value="izin" autocomplete="off" onchange="updateSummary()">
+                        id="i-{{ $s->id }}" value="izin" {{ $existingStatus === 'izin' ? 'checked' : '' }} autocomplete="off" onchange="updateSummary()">
                       <label class="btn btn-sm btn-outline-warning rounded-pill px-3" for="i-{{ $s->id }}" title="Izin">I</label>
- 
+
                       {{-- ALPHA --}}
                       <input type="radio" class="btn-check" name="absensi[{{ $index }}][status]" 
-                        id="a-{{ $s->id }}" value="alpha" autocomplete="off" onchange="updateSummary()">
+                        id="a-{{ $s->id }}" value="alpha" {{ $existingStatus === 'alpha' ? 'checked' : '' }} autocomplete="off" onchange="updateSummary()">
                       <label class="btn btn-sm btn-outline-danger rounded-pill px-3" for="a-{{ $s->id }}" title="Alpha">A</label>
- 
+
                       @php
                         $activeJenjang = \App\Helpers\JenjangHelper::getActiveJenjang();
                       @endphp
                       @if(!in_array($activeJenjang, ['SD/MI', 'SMP/MTs']))
                         {{-- TERLAMBAT --}}
                         <input type="radio" class="btn-check" name="absensi[{{ $index }}][status]" 
-                          id="t-{{ $s->id }}" value="terlambat" autocomplete="off" onchange="updateSummary()">
+                          id="t-{{ $s->id }}" value="terlambat" {{ $existingStatus === 'terlambat' ? 'checked' : '' }} autocomplete="off" onchange="updateSummary()">
                         <label class="btn btn-sm btn-outline-primary rounded-pill px-3" for="t-{{ $s->id }}" title="Terlambat">T</label>
                       @endif
                     </div>
                   </td>
                   <td class="pe-4 text-end">
-                    <input type="text" name="absensi[{{ $index }}][keterangan]" class="form-control form-control-sm ms-auto" style="max-width:200px;" placeholder="...">
+                    <input type="text" name="absensi[{{ $index }}][keterangan]" class="form-control form-control-sm ms-auto" style="max-width:200px;" placeholder="..." value="{{ $existingKet }}">
                   </td>
                 </tr>
               @endforeach
@@ -266,6 +265,7 @@
             @else
               <div class="d-none"><span id="sum-t">0</span></div>
             @endif
+            <div class="text-white-50 opacity-75 d-flex align-items-center gap-1"><i class="ti tabler-help-circle fs-5"></i> <span id="sum-u">0</span> Belum Dipilih</div>
           </div>
           <div class="flex-shrink-0">
             <button type="submit" class="btn das-btn --info px-4">
@@ -296,23 +296,27 @@
 @push('page-script')
 <script>
   function updateSummary() {
+    const totalRows = document.querySelectorAll('tr.student-row').length;
     const h = document.querySelectorAll('input[value="hadir"]:checked').length;
     const s = document.querySelectorAll('input[value="sakit"]:checked').length;
     const i = document.querySelectorAll('input[value="izin"]:checked').length;
     const a = document.querySelectorAll('input[value="alpha"]:checked').length;
     const t = document.querySelectorAll('input[value="terlambat"]:checked').length;
+    const u = totalRows - (h + s + i + a + t);
 
     const sumH = document.getElementById('sum-h');
     const sumS = document.getElementById('sum-s');
     const sumI = document.getElementById('sum-i');
     const sumA = document.getElementById('sum-a');
     const sumT = document.getElementById('sum-t');
+    const sumU = document.getElementById('sum-u');
 
     if(sumH) sumH.innerText = h;
     if(sumS) sumS.innerText = s;
     if(sumI) sumI.innerText = i;
     if(sumA) sumA.innerText = a;
     if(sumT) sumT.innerText = t;
+    if(sumU) sumU.innerText = Math.max(0, u);
   }
 
   function markAll(status) {
@@ -322,10 +326,12 @@
   }
 
   function resetForm() {
-    if(confirm('Reset semua input ke default (Hadir)?')) {
-      markAll('hadir');
+    if(confirm('Kosongkan semua pilihan status pada tabel ini?')) {
+      document.querySelectorAll('tr.student-row input[type="radio"]').forEach(radio => radio.checked = false);
+      updateSummary();
     }
   }
+
 
   document.addEventListener('DOMContentLoaded', () => {
     updateSummary();

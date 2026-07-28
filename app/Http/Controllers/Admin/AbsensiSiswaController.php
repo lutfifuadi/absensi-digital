@@ -495,8 +495,8 @@ class AbsensiSiswaController extends Controller
             'kelas_id' => 'required|exists:kelas,id',
             'tanggal'  => 'required|date',
             'absensi'  => 'required|array',
-            'absensi.*.siswa_id'  => 'required|exists:siswa,id',
-            'absensi.*.status'    => 'required|in:hadir,sakit,izin,alpha,terlambat',
+            'absensi.*.siswa_id'   => 'required|exists:siswa,id',
+            'absensi.*.status'     => 'nullable|in:hadir,sakit,izin,alpha,terlambat',
             'absensi.*.keterangan' => 'nullable|string',
         ]);
 
@@ -507,8 +507,10 @@ class AbsensiSiswaController extends Controller
         $activeJenjang = \App\Helpers\JenjangHelper::getActiveJenjang();
 
         foreach ($request->absensi as $item) {
-            // Jika status tidak dipilih (fallback ke hadir)
-            $status = $item['status'] ?? 'hadir';
+            $status = $item['status'] ?? null;
+            if (!$status) {
+                continue; // Skip jika status belum dipilih oleh admin
+            }
             
             if (in_array($activeJenjang, ['SD/MI', 'SMP/MTs']) && $status === 'terlambat') {
                 $status = 'hadir';
@@ -529,6 +531,7 @@ class AbsensiSiswaController extends Controller
             );
             $count++;
         }
+
 
         return redirect()->route('admin.absensi-siswa.index')
             ->with('success', "Berhasil menyimpan $count data absensi kelas.");
