@@ -299,7 +299,7 @@ class InnovationController extends Controller
         $taId = $request->get('tahun_akademik_id',
             TahunAkademik::where('is_aktif', true)->first()?->id);
 
-        $kelasList = Kelas::all();
+        $kelasList = Kelas::when($taId, fn($q) => $q->where('tahun_akademik_id', $taId))->get();
 
         $results = [];
         foreach ($kelasList as $kelas) {
@@ -425,7 +425,7 @@ class InnovationController extends Controller
         // --- KALKULASI LEADERBOARD SISWA INDIVIDUAL (Skor Keaktifan) ---
         StudentLeaderboard::where('tahun_akademik_id', $taId)->orWhereNull('tahun_akademik_id')->delete();
 
-        $allSiswas = Siswa::with('kelas')->get();
+        $allSiswas = Siswa::when($taId, fn($q) => $q->where('tahun_akademik_id', $taId))->with('kelas')->get();
         $studentScores = [];
 
         foreach ($allSiswas as $siswa) {
