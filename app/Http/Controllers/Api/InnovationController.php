@@ -224,6 +224,64 @@ class InnovationController extends Controller
         return response()->json(['data' => $badges]);
     }
 
+    public function exportBadges()
+    {
+        $badges = Badge::all()->makeHidden(['id', 'created_at', 'updated_at']);
+        $filename = 'badges_export_' . date('Y-m-d') . '.json';
+        
+        return response()->streamDownload(function () use ($badges) {
+            echo json_encode($badges, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        }, $filename, ['Content-Type' => 'application/json']);
+    }
+
+    public function importBadges(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|max:2048',
+        ]);
+
+        $content = file_get_contents($request->file('file')->getRealPath());
+        $badges = json_decode($content, true);
+
+        if (!is_array($badges)) {
+            return response()->json(['success' => false, 'message' => 'Format file JSON tidak valid.'], 422);
+        }
+
+        $imported = 0;
+        $updated = 0;
+
+        foreach ($badges as $item) {
+            if (empty($item['name']) || empty($item['icon']) || empty($item['description'])) {
+                continue;
+            }
+
+            $badge = Badge::updateOrCreate(
+                ['name' => $item['name']],
+                [
+                    'icon' => $item['icon'],
+                    'description' => $item['description'],
+                    'badge_type' => $item['badge_type'] ?? 'individual',
+                    'requirement_days' => (int) ($item['requirement_days'] ?? 1),
+                    'requirement_type' => $item['requirement_type'] ?? 'consecutive',
+                    'is_active' => isset($item['is_active']) ? (bool)$item['is_active'] : true,
+                ]
+            );
+
+            if ($badge->wasRecentlyCreated) {
+                $imported++;
+            } else {
+                $updated++;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'imported' => $imported,
+            'updated' => $updated,
+            'message' => "Berhasil mengimpor {$imported} badge baru dan memperbarui {$updated} badge.",
+        ]);
+    }
+
     public function storeBadge(Request $request)
     {
         $request->validate([

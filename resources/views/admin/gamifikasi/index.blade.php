@@ -320,14 +320,18 @@
     {{-- Right: Badge Mastery Container --}}
     <div class="col-xl-4">
       <div class="card card-grad-gold h-100">
-        <div class="card-header d-flex align-items-center justify-content-between pb-3">
+        <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2 pb-3">
           <div class="d-flex align-items-center gap-2">
             <span class="das-panel__icon-dot das-panel__icon-dot--warning"></span>
             <h5 class="mb-0 fw-bold text-white"><i class="ti tabler-award me-1 text-warning"></i>Badge Mastery</h5>
           </div>
-          <button class="btn btn-sm btn-label-warning d-inline-flex align-items-center gap-1 fw-semibold" onclick="openBadgeModal()" title="Tambah Badge Baru">
-            <i class="ti tabler-circle-plus fs-5"></i> Baru
-          </button>
+          <div class="d-flex align-items-center gap-1.5">
+            <a href="/api/v1/innovation/badges/export" class="btn btn-xs btn-outline-secondary text-white fw-semibold" title="Export Badge ke File JSON"><i class="ti tabler-download me-1"></i>Export</a>
+            <button class="btn btn-xs btn-outline-info fw-semibold" onclick="openImportBadgeModal()" title="Import Badge dari File JSON"><i class="ti tabler-upload me-1"></i>Import</button>
+            <button class="btn btn-sm btn-label-warning d-inline-flex align-items-center gap-1 fw-semibold ms-1" onclick="openBadgeModal()" title="Tambah Badge Baru">
+              <i class="ti tabler-circle-plus fs-5"></i> Baru
+            </button>
+          </div>
         </div>
         <div class="card-body">
           <div id="badgesContainer" class="d-flex flex-column gap-3">
@@ -1098,6 +1102,33 @@
       </div>
     </div>
   </div>
+
+  {{-- MODAL IMPORT BADGE --}}
+  <div class="modal fade" id="importBadgeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content das-modal">
+        <div class="das-modal__head">
+          <h5 class="das-modal__title"><i class="ti tabler-file-upload me-2 text-info"></i>Import Badge (JSON)</h5>
+          <button type="button" class="das-modal__close" data-bs-dismiss="modal" aria-label="Tutup"><i class="ti tabler-x"></i></button>
+        </div>
+        <form id="importBadgeForm" onsubmit="submitImportBadge(event)">
+          <div class="das-modal__body p-4">
+            <div class="mb-3">
+              <label class="form-label text-body-secondary small fw-bold mb-1">FILE JSON BADGE</label>
+              <input type="file" id="badgeJsonFile" class="form-control" accept=".json,application/json" required>
+            </div>
+            <div class="small text-muted" style="font-size:.72rem;">
+              <i class="ti tabler-info-circle me-1"></i> Pilih file JSON hasil Export Badge. Badge dengan nama sama akan otomatis diperbarui.
+            </div>
+          </div>
+          <div class="das-modal__foot d-flex gap-2">
+            <button type="button" class="btn das-btn --secondary w-100" data-bs-dismiss="modal">Batal</button>
+            <button type="submit" class="btn das-btn --primary w-100" id="btnSubmitImport"><i class="ti tabler-upload me-1"></i> Import JSON</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 @endsection
 
 
@@ -1419,6 +1450,54 @@
         console.error('Error:', e);
       } finally {
         btn.disabled = false;
+      }
+    }
+
+    function openImportBadgeModal() {
+      document.getElementById('importBadgeForm').reset();
+      const modal = new bootstrap.Modal(document.getElementById('importBadgeModal'));
+      modal.show();
+    }
+
+    async function submitImportBadge(e) {
+      e.preventDefault();
+      const fileInput = document.getElementById('badgeJsonFile');
+      if (!fileInput.files || fileInput.files.length === 0) return;
+
+      const btn = document.getElementById('btnSubmitImport');
+      const originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ti tabler-loader-2 spin me-1"></i> Memproses...';
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+
+      try {
+        const response = await fetch('/api/v1/innovation/badges/import', {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+          },
+          body: formData
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          const modalEl = document.getElementById('importBadgeModal');
+          const modalInstance = bootstrap.Modal.getInstance(modalEl);
+          if (modalInstance) modalInstance.hide();
+
+          alert(result.message || 'Berhasil mengimpor badge!');
+          await loadBadges();
+        } else {
+          alert(result.message || 'Gagal mengimpor badge.');
+        }
+      } catch (err) {
+        console.error('Import error:', err);
+        alert('Terjadi kesalahan saat mengunggah file JSON badge.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
       }
     }
   </script>

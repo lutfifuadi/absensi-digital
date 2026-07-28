@@ -37,6 +37,8 @@ Route::prefix('v1/innovation')->middleware(['tenant'])->group(function () {
     Route::post('/analytics/analyze', [\App\Http\Controllers\Api\InnovationController::class, 'analyzeAttendance']);
     
     Route::get('/badges', [\App\Http\Controllers\Api\InnovationController::class, 'getBadges']);
+    Route::get('/badges/export', [\App\Http\Controllers\Api\InnovationController::class, 'exportBadges']);
+    Route::post('/badges/import', [\App\Http\Controllers\Api\InnovationController::class, 'importBadges']);
     Route::get('/badges/history', [\App\Http\Controllers\Api\InnovationController::class, 'getStudentBadgesHistory']);
     Route::post('/badges', [\App\Http\Controllers\Api\InnovationController::class, 'storeBadge']);
     Route::post('/badges/assign', [\App\Http\Controllers\Api\InnovationController::class, 'assignBadge']);
