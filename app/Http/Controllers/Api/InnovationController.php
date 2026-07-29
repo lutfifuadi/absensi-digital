@@ -415,7 +415,7 @@ class InnovationController extends Controller
                 ->get();
 
             $total = $absensi->count();
-            $present = $absensi->whereIn('status', ['Hadir', 'Terlambat'])->count();
+            $present = $absensi->whereIn('status', ['hadir', 'terlambat'])->count();
             $percentage = $total > 0 ? ($present / $total) * 100 : 0;
 
             $results[] = [
@@ -455,8 +455,9 @@ class InnovationController extends Controller
 
                 if ($reqType === 'total') {
                     // Berdasarkan total akumulasi kehadiran
+                    // status di DB disimpan lowercase: 'hadir', 'terlambat'
                     $totalHadir = AbsensiSiswa::where('siswa_id', $siswa->id)
-                        ->whereIn('status', ['Hadir', 'Terlambat'])
+                        ->whereIn('status', ['hadir', 'terlambat'])
                         ->count();
 
                     if ($totalHadir >= $reqDays) {
@@ -465,8 +466,9 @@ class InnovationController extends Controller
                 } else {
                     // Berdasarkan streak kehadiran beruntun
                     // Ambil riwayat absen urut berdasarkan tanggal
+                    // status di DB disimpan lowercase: 'hadir', 'terlambat'
                     $absensis = AbsensiSiswa::where('siswa_id', $siswa->id)
-                        ->whereIn('status', ['Hadir', 'Terlambat'])
+                        ->whereIn('status', ['hadir', 'terlambat'])
                         ->orderBy('tanggal', 'asc')
                         ->pluck('tanggal')
                         ->map(fn($d) => \Carbon\Carbon::parse($d)->toDateString())
