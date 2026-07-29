@@ -172,6 +172,7 @@ class GamifikasiRekapService
                 DB::raw("SUM(CASE WHEN status = 'Alpha' OR status = 'alpha' THEN 1 ELSE 0 END) AS total_alpha"),
                 DB::raw("SUM(points_earned) AS total_points_earned"),
                 DB::raw("SUM(CASE WHEN is_early_bird = 1 OR is_early_bird = true THEN 1 ELSE 0 END) AS total_early_bird"),
+                DB::raw("AVG(CASE WHEN (status IN ('Hadir','hadir','Terlambat','terlambat')) AND jam_masuk IS NOT NULL AND jam_masuk != '' THEN TIME_TO_SEC(jam_masuk) ELSE NULL END) AS avg_jam_masuk_sec"),
                 DB::raw('COUNT(*) AS total_absensi')
             );
 
@@ -218,65 +219,67 @@ class GamifikasiRekapService
                 $rank = $leaderboard->rank;
             }
 
+            $avgSec = (isset($stats->avg_jam_masuk_sec) && $stats->avg_jam_masuk_sec !== null)
+                ? (int) round($stats->avg_jam_masuk_sec)
+                : null;
+
+            $avgJamMasukFormatted = $avgSec !== null ? gmdate('H:i', $avgSec) : '-';
+
             return [
-                'siswa_id'        => $siswa->id,
-                'nama_lengkap'    => $siswa->nama_lengkap,
-                'nis'             => $siswa->nis,
-                'kelas'           => $siswa->kelas ? ['id' => $siswa->kelas->id, 'nama' => $siswa->kelas->nama] : null,
-                'jurusan'         => $siswa->kelas?->jurusan?->nama ?? '-',
-                'total_hadir'     => $totalHadir,
-                'total_terlambat' => $totalTerlambat,
-                'total_sakit'     => (int) ($stats->total_sakit ?? 0),
-                'total_izin'      => (int) ($stats->total_izin ?? 0),
-                'total_alpha'     => $totalAlpha,
-                'total_absensi'   => (int) ($stats->total_absensi ?? 0),
-                'skor'            => $skor,
-                'rank'            => $rank,
-                'jumlah_badge'    => $siswa->studentBadges->count(),
-                'badge_list'      => $badgeList->values()->toArray(),
-                'total_early_bird' => (int) ($stats->total_early_bird ?? 0),
-                'current_streak'   => $siswa->studentGamificationStat->current_streak ?? 0,
-                'longest_streak'   => $siswa->studentGamificationStat->longest_streak ?? 0,
+                'siswa_id'                => $siswa->id,
+                'nama_lengkap'            => $siswa->nama_lengkap,
+                'nis'                     => $siswa->nis,
+                'kelas'                   => $siswa->kelas ? ['id' => $siswa->kelas->id, 'nama' => $siswa->kelas->nama] : null,
+                'jurusan'                 => $siswa->kelas?->jurusan?->nama ?? '-',
+                'total_hadir'             => $totalHadir,
+                'total_terlambat'         => $totalTerlambat,
+                'total_sakit'             => $totalSakit,
+                'total_izin'              => $totalIzin,
+                'total_alpha'             => $totalAlpha,
+                'total_absensi'           => (int) ($stats->total_absensi ?? 0),
+                'skor'                    => $skor,
+                'rank'                    => $rank,
+                'avg_jam_masuk_sec'       => $avgSec,
+                'avg_jam_masuk_formatted' => $avgJamMasukFormatted,
+                'jumlah_badge'            => $siswa->studentBadges->count(),
+                'badge_list'              => $badgeList->values()->toArray(),
+                'total_early_bird'        => (int) ($stats->total_early_bird ?? 0),
+                'current_streak'          => $siswa->studentGamificationStat->current_streak ?? 0,
+                'longest_streak'          => $siswa->studentGamificationStat->longest_streak ?? 0,
             ];
         });
 
         $sortedSiswa = $mappedSiswa->sort(function ($a, $b) {
-            $rankA = $a['rank'] ?? 999999;
-            $rankB = $b['rank'] ?? 999999;
-            if ($rankA !== $rankB) {
-                return $rankA <=> $rankB;
+            // 1. Total Kehadiran (Hadir + Terlambat) terbanyak (Hadir Full)
+            $presentA = $a['total_hadir'] + $a['total_terlambat'];
+            $presentB = $b['total_hadir'] + $b['total_terlambat'];
+            if ($presentA !== $presentB) {
+                return $presentB <=> $presentA;
             }
 
-            // 1. Siswa dengan kehadiran aktif didahulukan dibanding siswa tanpa record absensi
-            $activeA = $a['total_absensi'] > 0 ? 1 : 0;
-            $activeB = $b['total_absensi'] > 0 ? 1 : 0;
-            if ($activeA !== $activeB) {
-                return $activeB <=> $activeA;
-            }
-
-            // 2. Strict Rule Siswa Teladan: Siswa 0 Alpha SELALU di atas siswa yang memiliki Alpha
-            $alphaPenaltyA = $a['total_alpha'] > 0 ? 1 : 0;
-            $alphaPenaltyB = $b['total_alpha'] > 0 ? 1 : 0;
-            if ($alphaPenaltyA !== $alphaPenaltyB) {
-                return $alphaPenaltyA <=> $alphaPenaltyB;
-            }
-
-            // 3. Skor Poin Gamifikasi terbanyak
-            if ($a['skor'] !== $b['skor']) {
-                return $b['skor'] <=> $a['skor'];
-            }
-
-            // 4. Total Hadir terbanyak
+            // 1.1 Total Hadir Murni terbanyak
             if ($a['total_hadir'] !== $b['total_hadir']) {
                 return $b['total_hadir'] <=> $a['total_hadir'];
             }
 
-            // 5. Streak Kehadiran
-            if ($a['current_streak'] !== $b['current_streak']) {
-                return $b['current_streak'] <=> $a['current_streak'];
+            // 2. Rata-rata jam absen masuk paling awal (detik lebih kecil)
+            $avgSecA = $a['avg_jam_masuk_sec'] ?? 999999;
+            $avgSecB = $b['avg_jam_masuk_sec'] ?? 999999;
+            if ($avgSecA !== $avgSecB) {
+                return $avgSecA <=> $avgSecB;
             }
 
-            // 6. Nama A-Z
+            // 3. Poin / Skor Gamifikasi terbanyak
+            if ($a['skor'] !== $b['skor']) {
+                return $b['skor'] <=> $a['skor'];
+            }
+
+            // 4. Total Alpha terendah
+            if ($a['total_alpha'] !== $b['total_alpha']) {
+                return $a['total_alpha'] <=> $b['total_alpha'];
+            }
+
+            // 5. Nama A-Z
             return strcmp($a['nama_lengkap'], $b['nama_lengkap']);
         })->values();
 

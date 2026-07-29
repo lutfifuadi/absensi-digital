@@ -544,6 +544,12 @@ class InnovationController extends Controller
 
             $totalAttendance = $absensis->count();
             $totalHadir = $absensis->whereIn('status', ['Hadir', 'hadir', 'Terlambat', 'terlambat'])->count();
+            $totalHadirMurni = $absensis->whereIn('status', ['Hadir', 'hadir'])->count();
+
+            $jamSecs = $absensis->whereIn('status', ['Hadir', 'hadir', 'Terlambat', 'terlambat'])
+                ->filter(fn($a) => !empty($a->jam_masuk))
+                ->map(fn($a) => \Carbon\Carbon::parse($a->jam_masuk)->secondsSinceMidnight());
+            $avgSec = $jamSecs->isNotEmpty() ? (int) round($jamSecs->average()) : 999999;
             
             // Ambil skor dari field points_earned (Gamifikasi Baru)
             // Jika kosong, hitung manual seperti base point untuk kompatibilitas data lama
@@ -570,27 +576,33 @@ class InnovationController extends Controller
 
             if ($totalAttendance > 0) {
                 $studentScores[] = [
-                    'siswa_id' => $siswa->id,
+                    'siswa_id'          => $siswa->id,
                     'tahun_akademik_id' => $taId,
-                    'score' => $score,
-                    'total_attendance' => $totalAttendance,
-                    'total_present' => $totalHadir,
-                    'total_alpha' => $totalAlpha,
+                    'score'             => $score,
+                    'total_attendance'   => $totalAttendance,
+                    'total_present'      => $totalHadir,
+                    'total_hadir_murni'  => $totalHadirMurni,
+                    'avg_jam_masuk_sec'  => $avgSec,
+                    'total_alpha'        => $totalAlpha,
                 ];
             }
         }
 
-        // Urutkan berdasarkan Strict Rule Siswa Teladan: 0 Alpha SELALU di atas siswa yang memiliki Alpha, baru skor & total hadir terbanyak
+        // Urutkan berdasarkan: 1) Total Kehadiran terbanyak, 2) Rata-rata jam masuk paling awal (ASC), 3) Skor
         usort($studentScores, function ($a, $b) {
-            $alphaPenaltyA = $a['total_alpha'] > 0 ? 1 : 0;
-            $alphaPenaltyB = $b['total_alpha'] > 0 ? 1 : 0;
-            if ($alphaPenaltyA !== $alphaPenaltyB) {
-                return $alphaPenaltyA <=> $alphaPenaltyB;
+            if ($a['total_present'] !== $b['total_present']) {
+                return $b['total_present'] <=> $a['total_present'];
+            }
+            if ($a['total_hadir_murni'] !== $b['total_hadir_murni']) {
+                return $b['total_hadir_murni'] <=> $a['total_hadir_murni'];
+            }
+            if ($a['avg_jam_masuk_sec'] !== $b['avg_jam_masuk_sec']) {
+                return $a['avg_jam_masuk_sec'] <=> $b['avg_jam_masuk_sec'];
             }
             if ($a['score'] !== $b['score']) {
                 return $b['score'] <=> $a['score'];
             }
-            return $b['total_present'] <=> $a['total_present'];
+            return $a['total_alpha'] <=> $b['total_alpha'];
         });
 
         // Simpan ranking
@@ -656,6 +668,7 @@ class InnovationController extends Controller
                     'score'            => $item['skor'],
                     'total_attendance' => $item['total_absensi'],
                     'total_present'    => $item['total_hadir'] + $item['total_terlambat'],
+                    'avg_jam_masuk'    => $item['avg_jam_masuk_formatted'] ?? '-',
                     'siswa'            => [
                         'id'             => $item['siswa_id'],
                         'nama_lengkap'   => $item['nama_lengkap'],

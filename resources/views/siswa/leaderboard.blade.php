@@ -185,6 +185,9 @@
         <button type="button" class="btn btn-warning lb-filter-btn active" data-period="semester" onclick="switchLeaderboardPeriod('semester')">
           <i class="ti tabler-calendar me-1"></i> Semester Ini
         </button>
+        <button type="button" class="btn btn-outline-warning lb-filter-btn" data-period="tahun" onclick="switchLeaderboardPeriod('tahun')">
+          <i class="ti tabler-calendar-event me-1"></i> Tahun Ini
+        </button>
       </div>
 
       <span style="font-size:0.7rem;color:rgba(255,255,255,0.4);" id="lastUpdateLabel">
@@ -199,14 +202,15 @@
           <th class="text-center" style="width:60px;">RANK</th>
           <th>NAMA SISWA</th>
           <th style="width:120px;">KELAS</th>
-          <th class="text-center" style="width:100px;">HADIR</th>
+          <th class="text-center" style="width:90px;">HADIR</th>
+          <th class="text-center" style="width:110px;">RATA2 MASUK</th>
           <th class="text-center" style="width:80px;">SKOR</th>
           <th class="text-center" style="width:110px;">BADGE</th>
         </tr>
       </thead>
       <tbody id="studentLeaderboardBody">
         <tr>
-          <td colspan="6" class="text-center py-5">
+          <td colspan="7" class="text-center py-5">
             <div class="lb-spinner">
               <div class="lb-spinner__ring"></div>
               <div class="lb-spinner__text">Memuat papan peringkat...</div>
@@ -282,7 +286,7 @@ async function loadStudentLeaderboard() {
     if (data.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6" class="text-center py-5">
+          <td colspan="7" class="text-center py-5">
             <div class="lb-empty">
               <div class="lb-empty__icon"><i class="ti tabler-trophy-off"></i></div>
               <div class="lb-empty__text">Belum ada data peringkat. Ayo ikuti kegiatan presensi!</div>
@@ -304,6 +308,7 @@ async function loadStudentLeaderboard() {
       const totalHadir = item.total_present ?? 0;
       const totalKehadiran = item.total_attendance ?? 0;
       const score = item.score ?? 0;
+      const avgMasuk = item.avg_jam_masuk || '-';
 
       // Badge icons (max 3)
       const badges = item.siswa?.student_badges || [];
@@ -351,6 +356,9 @@ async function loadStudentLeaderboard() {
           <td class="text-center fw-semibold" style="color:var(--das-success);font-size:0.82rem;">
             ${totalHadir}<span style="color:rgba(255,255,255,0.2);font-weight:400;">/${totalKehadiran}</span>
           </td>
+          <td class="text-center font-monospace" style="color:#ffd700;font-size:0.82rem;">
+            <i class="ti tabler-clock-hour-4 me-1" style="font-size:0.75rem;opacity:0.7;"></i>${avgMasuk}
+          </td>
           <td class="text-center">
             <span class="fw-bold" style="color:${scoreColor};font-size:0.95rem;">${score}</span>
           </td>
@@ -369,7 +377,7 @@ async function loadStudentLeaderboard() {
     console.error('Gagal memuat leaderboard:', e);
     tbody.innerHTML = `
       <tr>
-        <td colspan="6" class="text-center py-5">
+        <td colspan="7" class="text-center py-5">
           <div class="lb-empty">
             <div class="lb-empty__icon"><i class="ti tabler-cloud-off"></i></div>
             <div class="lb-empty__text" style="color:rgba(234,84,85,0.6);">Gagal memuat data. Coba refresh halaman.</div>
