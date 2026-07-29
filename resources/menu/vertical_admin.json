@@ -262,6 +262,7 @@
       "slug": [
         "admin.absensi-guru.index",
         "piket.monitoring.index",
+        "public.live-board-guru",
         "waka.live-board",
         "admin.monitoring.index"
       ],
@@ -277,6 +278,13 @@
           "icon": "menu-icon ti tabler-clipboard-check",
           "slug": "piket.monitoring.index",
           "url": "/piket/monitoring"
+        },
+        {
+          "name": "Live Board Guru (TV)",
+          "icon": "menu-icon ti tabler-device-tv",
+          "slug": "public.live-board-guru",
+          "url": "/live-board-guru",
+          "target": "_blank"
         },
         {
           "name": "Live Board WAKA",

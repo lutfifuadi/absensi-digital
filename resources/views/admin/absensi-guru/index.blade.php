@@ -136,7 +136,10 @@
         </div>
       </div>
 
-      <div class="das-hero__actions">
+      <div class="das-hero__actions gap-2 d-flex">
+        <a href="{{ route('public.live-board-guru') }}" target="_blank" class="btn das-btn --info">
+          <i class="ti tabler-device-tv me-1"></i> Live Board TV
+        </a>
         <a href="{{ route('admin.absensi-guru.create') }}" class="btn das-btn --primary">
           <i class="ti tabler-plus me-1"></i> Tambah Absensi
         </a>

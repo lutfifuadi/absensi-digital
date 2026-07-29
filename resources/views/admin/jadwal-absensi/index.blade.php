@@ -712,6 +712,8 @@
       minggu: 'secondary'
     };
 
+    const GLOBAL_JADWAL = @json($globalJadwal ?? \App\Helpers\JadwalAbsensiHelper::getJadwalForKelas(0));
+
     // ═══════════════════════════════════════════════════════════════
     // SEARCH & PAGINATION AJAX
     // ═══════════════════════════════════════════════════════════════
@@ -885,7 +887,7 @@
                   value="${data.jam_mulai_absensi || ''}" ${isLibur ? 'disabled' : ''}>
                 <div class="jadwal-field-hint --info">
                   <i class="ti tabler-info-circle"></i>
-                  Kosongkan untuk menggunakan global (06:00)
+                  Kosongkan untuk menggunakan global (${GLOBAL_JADWAL.jam_mulai_absensi || '06:00'})
                 </div>
               </div>
               <div class="jadwal-field">
@@ -894,7 +896,7 @@
                   value="${data.jam_masuk || ''}" ${isLibur ? 'disabled' : ''}>
                 <div class="jadwal-field-hint --info">
                   <i class="ti tabler-info-circle"></i>
-                  Kosongkan untuk menggunakan global (07:00)
+                  Kosongkan untuk menggunakan global (${GLOBAL_JADWAL.jam_masuk || '07:00'})
                 </div>
               </div>
               <div class="jadwal-field">
@@ -903,7 +905,7 @@
                   value="${data.batas_jam_masuk || ''}" ${isLibur ? 'disabled' : ''}>
                 <div class="jadwal-field-hint --info">
                   <i class="ti tabler-info-circle"></i>
-                  Kosongkan untuk menggunakan global (09:00)
+                  Kosongkan untuk menggunakan global (${GLOBAL_JADWAL.batas_jam_masuk || '09:00'})
                 </div>
               </div>
               <div class="jadwal-field">
@@ -912,7 +914,7 @@
                   value="${data.jam_pulang || ''}" ${isLibur ? 'disabled' : ''}>
                 <div class="jadwal-field-hint --info">
                   <i class="ti tabler-info-circle"></i>
-                  Kosongkan untuk menggunakan global (15:00)
+                  Kosongkan untuk menggunakan global (${GLOBAL_JADWAL.jam_pulang || '15:00'})
                 </div>
               </div>
               <div class="jadwal-field">
@@ -921,7 +923,7 @@
                   value="${data.jam_akhir_pulang || ''}" ${isLibur ? 'disabled' : ''}>
                 <div class="jadwal-field-hint --info">
                   <i class="ti tabler-info-circle"></i>
-                  Kosongkan untuk menggunakan global (17:00)
+                  Kosongkan untuk menggunakan global (${GLOBAL_JADWAL.jam_akhir_pulang || '17:00'})
                 </div>
               </div>
               <div class="mt-3 pt-2" style="border-top: 1px solid rgba(255,255,255,0.08);">

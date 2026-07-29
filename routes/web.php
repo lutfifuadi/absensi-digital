@@ -181,6 +181,9 @@ Route::get('/scan-ekskul', function () {
 Route::get('/live-board', [PublicQrScanController::class, 'liveBoard'])->name('public.live-board')->middleware('device.trusted');
 Route::post('/live-board/scan', [PublicQrScanController::class, 'liveBoardScan'])->name('public.live-board.scan')->middleware(['throttle:120,1', 'device.trusted']);
 Route::get('/live-board/leaderboard', [PublicQrScanController::class, 'liveBoardLeaderboard'])->name('public.live-board.leaderboard');
+Route::get('/live-board-guru', [\App\Http\Controllers\Admin\LiveBoardGuruController::class, 'index'])->name('public.live-board-guru');
+Route::get('/live-board-guru/data', [\App\Http\Controllers\Admin\LiveBoardGuruController::class, 'data'])->name('public.live-board-guru.data');
+Route::post('/live-board-guru/scan', [\App\Http\Controllers\Admin\LiveBoardGuruController::class, 'scan'])->name('public.live-board-guru.scan');
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── Halaman Scan Pelepasan Publik (tanpa login, pakai kata kunci) ─────────────
@@ -914,6 +917,13 @@ Route::middleware([
             ->names('admin.absensi-siswa')
             ->except(['show'])
             ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator');
+
+        Route::get('absensi-guru/live-board', [\App\Http\Controllers\Admin\LiveBoardGuruController::class, 'index'])
+            ->name('admin.absensi-guru.live-board')
+            ->middleware('role:super_admin,admin_sekolah,guru,operator');
+        Route::get('absensi-guru/live-board/data', [\App\Http\Controllers\Admin\LiveBoardGuruController::class, 'data'])
+            ->name('admin.absensi-guru.live-board.data')
+            ->middleware('role:super_admin,admin_sekolah,guru,operator');
 
         Route::get('absensi-guru/scan', [AbsensiGuruController::class, 'scan'])
             ->name('admin.absensi-guru.scan')

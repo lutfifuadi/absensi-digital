@@ -19,7 +19,7 @@ class AbsensiSiswaController extends Controller
 
         // ── Filter / search params ──
         $search        = $request->query('search');
-        $perPage       = (int) $request->query('per_page', 50);
+        $perPage       = (int) $request->query('per_page', 10);
         $sortBy        = $request->query('sort_by', 'tanggal');
         $sortDir       = $request->query('sort_dir', 'desc');
         $selectedKelasId = $request->query('kelas_id');
@@ -30,7 +30,7 @@ class AbsensiSiswaController extends Controller
         // Validate perPage
         $allowedPerPage = [10, 25, 50, 100];
         if (!in_array($perPage, $allowedPerPage)) {
-            $perPage = 50;
+            $perPage = 10;
         }
 
         // Validate sort

@@ -60,15 +60,9 @@ class JadwalAbsensiController extends Controller
             return view('admin.jadwal-absensi.table', compact('kelas'))->render();
         }
 
-        $tingkatOptions = \App\Helpers\JenjangHelper::getTingkatOptions();
+        $globalJadwal = \App\Helpers\JadwalAbsensiHelper::getJadwalForKelas(0);
 
-        // Ambil semua kelas untuk dropdown bulk apply (tanpa pagination)
-        $allKelas = Kelas::with(['jadwalAbsensi', 'jurusan'])
-            ->where('tahun_akademik_id', $tahunAjaranId)
-            ->orderBy('nama')
-            ->get();
-
-        return view('admin.jadwal-absensi.index', compact('kelas', 'tingkat', 'tingkatOptions', 'allKelas'));
+        return view('admin.jadwal-absensi.index', compact('kelas', 'tingkat', 'tingkatOptions', 'allKelas', 'globalJadwal'));
     }
 
     /**

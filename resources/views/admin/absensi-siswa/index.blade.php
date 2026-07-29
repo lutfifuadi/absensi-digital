@@ -320,10 +320,10 @@
       <div class="d-flex align-items-center gap-3">
         <select id="perPageSelect" class="form-select border-0 text-white w-auto"
           style="background: rgba(255,255,255,0.05); height:38px; font-size:0.85rem; cursor:pointer;">
-          <option value="10" {{ ($perPage ?? 50) == 10 ? 'selected' : '' }}>10</option>
-          <option value="25" {{ ($perPage ?? 50) == 25 ? 'selected' : '' }}>25</option>
-          <option value="50" {{ ($perPage ?? 50) == 50 ? 'selected' : '' }}>50</option>
-          <option value="100" {{ ($perPage ?? 50) == 100 ? 'selected' : '' }}>100</option>
+          <option value="10" {{ ($perPage ?? 10) == 10 ? 'selected' : '' }}>10</option>
+          <option value="25" {{ ($perPage ?? 10) == 25 ? 'selected' : '' }}>25</option>
+          <option value="50" {{ ($perPage ?? 10) == 50 ? 'selected' : '' }}>50</option>
+          <option value="100" {{ ($perPage ?? 10) == 100 ? 'selected' : '' }}>100</option>
         </select>
         <span class="das-chip --info d-none d-sm-inline-flex">{{ method_exists($absensi, 'total') ? $absensi->total() : count($absensi) }} Baris Data</span>
       </div>
@@ -457,7 +457,7 @@
 
       function fetchData(page = 1) {
         const search = encodeURIComponent(filterSearch.value || '');
-        const perPage = perPageSelect.value || 50;
+        const perPage = perPageSelect.value || 10;
         const kelasId = filterKelas.value || '';
         const status = filterStatus.value || '';
         const tanggalFrom = filterTanggalFrom.value || '';
