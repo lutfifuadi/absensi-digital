@@ -266,6 +266,9 @@
                 <button type="button" class="btn das-btn --warning" id="btnSyncOrtu">
                     <i class="ti tabler-refresh me-1"></i> Sync Data
                 </button>
+                <button type="button" class="btn das-btn --success" id="btnRegeneratePhone">
+                    <i class="ti tabler-brand-whatsapp me-1"></i> Generate Format WA
+                </button>
                 <button type="button" class="btn das-btn --info" id="btnResetPasswordAll">
                     <i class="ti tabler-key me-1"></i> Reset PW Massal
                 </button>
@@ -902,6 +905,38 @@
 
                     document.body.appendChild(form);
                     form.submit();
+                });
+            }
+
+            const btnRegeneratePhone = document.getElementById('btnRegeneratePhone');
+            if (btnRegeneratePhone) {
+                btnRegeneratePhone.addEventListener('click', function() {
+                    Swal.fire({
+                        title: 'Generate Format WA?',
+                        text: 'Format seluruh nomor WA (08...) akan dikonversi ke standar internasional (628...).',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, Format Sekarang',
+                        cancelButtonText: 'Batal',
+                        customClass: { confirmButton: 'btn btn-success me-3', cancelButton: 'btn btn-label-secondary' },
+                        buttonsStyling: false
+                    }).then(function(res) {
+                        if (res.isConfirmed) {
+                            Swal.fire({ title: 'Memproses...', text: 'Merapikan format nomor WA...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                            fetch("{{ route('admin.orang-tua.regenerate-phone') }}", {
+                                method: 'POST',
+                                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+                            }).then(r => r.json()).then(d => {
+                                if (d.success) {
+                                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: d.message, confirmButtonText: 'OK' }).then(() => window.location.reload());
+                                } else {
+                                    Swal.fire({ icon: 'error', title: 'Gagal', text: d.message });
+                                }
+                            }).catch(e => {
+                                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Terjadi kesalahan sistem.' });
+                            });
+                        }
+                    });
                 });
             }
         });

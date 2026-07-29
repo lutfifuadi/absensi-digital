@@ -390,4 +390,29 @@ class OrangTuaController extends Controller
             ], 500);
         }
     }
+
+    public function regeneratePhoneNumbers(Request $request)
+    {
+        try {
+            $users = User::where('role', User::ROLE_ORANG_TUA)->whereNotNull('no_hp')->get();
+            $count = 0;
+
+            foreach ($users as $user) {
+                $formatted = \App\Helpers\WhatsAppHelper::formatNumber($user->no_hp);
+                if ($formatted !== $user->no_hp) {
+                    $user->no_hp = $formatted;
+                    $user->save();
+                    $count++;
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil memformat dan merapikan nomor WA {$count} akun Orang Tua.",
+                'count'   => $count,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
 }

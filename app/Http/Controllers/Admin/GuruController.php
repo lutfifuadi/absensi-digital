@@ -745,4 +745,29 @@ class GuruController extends Controller
             ], 500);
         }
     }
+
+    public function regeneratePhoneNumbers(Request $request)
+    {
+        try {
+            $gurus = Guru::whereNotNull('no_hp')->get();
+            $count = 0;
+
+            foreach ($gurus as $guru) {
+                $formatted = \App\Helpers\WhatsAppHelper::formatNumber($guru->no_hp);
+                if ($formatted !== $guru->no_hp) {
+                    $guru->no_hp = $formatted;
+                    $guru->save();
+                    $count++;
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil memformat dan merapikan nomor WA {$count} data guru.",
+                'count'   => $count,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
 }

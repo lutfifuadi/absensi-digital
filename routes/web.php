@@ -631,6 +631,10 @@ Route::middleware([
             ->name('admin.guru.regenerate-qr-bulk')
             ->middleware('role:super_admin,admin_sekolah,operator');
 
+        Route::post('guru/regenerate-phone', [GuruController::class, 'regeneratePhoneNumbers'])
+            ->name('admin.guru.regenerate-phone')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+
         Route::post('guru/regenerate-qr-all', [GuruController::class, 'regenerateQrAll'])
             ->name('admin.guru.regenerate-qr-all')
             ->middleware('role:super_admin,admin_sekolah,operator');
@@ -748,6 +752,10 @@ Route::middleware([
             ->name('admin.staff-tata-usaha.regenerate-qr')
             ->middleware('role:super_admin,admin_sekolah,operator');
 
+        Route::post('staff-tata-usaha/regenerate-phone', [StaffTataUsahaController::class, 'regeneratePhoneNumbers'])
+            ->name('admin.staff-tata-usaha.regenerate-phone')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+
         Route::post('staff-tata-usaha/regenerate-qr-bulk', [StaffTataUsahaController::class, 'regenerateQrBulk'])
             ->name('admin.staff-tata-usaha.regenerate-qr-bulk')
             ->middleware('role:super_admin,admin_sekolah,operator');
@@ -759,6 +767,10 @@ Route::middleware([
         Route::resource('staff-tata-usaha', StaffTataUsahaController::class)
             ->names('admin.staff-tata-usaha')
             ->except(['show'])
+            ->middleware('role:super_admin,admin_sekolah,operator');
+
+        Route::post('siswa/regenerate-phone', [SiswaController::class, 'regeneratePhoneNumbers'])
+            ->name('admin.siswa.regenerate-phone')
             ->middleware('role:super_admin,admin_sekolah,operator');
 
         Route::delete('siswa-destroy-all', [SiswaController::class, 'destroyAll'])
@@ -773,6 +785,10 @@ Route::middleware([
             ->names('admin.siswa')
             ->except(['show'])
             ->middleware('role:super_admin,admin_sekolah,operator');
+
+        Route::post('orang-tua/regenerate-phone', [OrangTuaController::class, 'regeneratePhoneNumbers'])
+            ->name('admin.orang-tua.regenerate-phone')
+            ->middleware('role:super_admin,admin_sekolah');
 
         Route::post('orang-tua-sync', [OrangTuaController::class, 'syncData'])
             ->name('admin.orang-tua.sync')

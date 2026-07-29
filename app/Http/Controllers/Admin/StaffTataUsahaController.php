@@ -304,4 +304,29 @@ class StaffTataUsahaController extends Controller
             return back()->with('error', 'Gagal mencetak kartu: ' . $e->getMessage());
         }
     }
+
+    public function regeneratePhoneNumbers(Request $request)
+    {
+        try {
+            $staffs = StaffTataUsaha::whereNotNull('no_hp')->get();
+            $count = 0;
+
+            foreach ($staffs as $staff) {
+                $formatted = \App\Helpers\WhatsAppHelper::formatNumber($staff->no_hp);
+                if ($formatted !== $staff->no_hp) {
+                    $staff->no_hp = $formatted;
+                    $staff->save();
+                    $count++;
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil memformat dan merapikan nomor WA {$count} data staff TU.",
+                'count'   => $count,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
 }

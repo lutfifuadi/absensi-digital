@@ -1300,4 +1300,42 @@ class SiswaController extends Controller
             return redirect()->back()->with('error', 'Gagal me-reset password massal: ' . $e->getMessage());
         }
     }
+
+    public function regeneratePhoneNumbers(Request $request)
+    {
+        try {
+            $siswas = Siswa::whereNotNull('no_hp')->orWhereNotNull('no_hp_ortu')->get();
+            $count = 0;
+
+            foreach ($siswas as $siswa) {
+                $dirty = false;
+                if ($siswa->no_hp) {
+                    $formatted = \App\Helpers\WhatsAppHelper::formatNumber($siswa->no_hp);
+                    if ($formatted !== $siswa->no_hp) {
+                        $siswa->no_hp = $formatted;
+                        $dirty = true;
+                    }
+                }
+                if ($siswa->no_hp_ortu) {
+                    $formattedOrtu = \App\Helpers\WhatsAppHelper::formatNumber($siswa->no_hp_ortu);
+                    if ($formattedOrtu !== $siswa->no_hp_ortu) {
+                        $siswa->no_hp_ortu = $formattedOrtu;
+                        $dirty = true;
+                    }
+                }
+                if ($dirty) {
+                    $siswa->save();
+                    $count++;
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Berhasil memformat dan merapikan nomor WA {$count} data siswa/ortu.",
+                'count'   => $count,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
 }

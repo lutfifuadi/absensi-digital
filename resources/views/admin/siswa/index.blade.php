@@ -311,6 +311,10 @@
                 </button>
                 @endif
 
+                <button type="button" class="btn das-btn --success" id="btnRegeneratePhoneSiswa" title="Generate Format WA" data-bs-toggle="tooltip" data-bs-placement="top">
+                    <i class="ti tabler-brand-whatsapp"></i>
+                </button>
+
                 <button type="button" class="btn das-btn --purple" id="generateAllBarcodeBtn" title="Generate Barcode">
                     <i class="ti tabler-barcode"></i>
                 </button>
@@ -2081,6 +2085,39 @@
                     importSubmitBtn.innerHTML = '<i class="ti tabler-upload me-1"></i> Mulai Import';
                     importCancelBtn.disabled = false;
                     document.querySelectorAll('#importFormBody > div:not(#importProgressArea)').forEach(el => el.style.display = '');
+                });
+            }
+
+            // btnRegeneratePhoneSiswa
+            const btnRegeneratePhoneSiswa = document.getElementById('btnRegeneratePhoneSiswa');
+            if (btnRegeneratePhoneSiswa) {
+                btnRegeneratePhoneSiswa.addEventListener('click', function() {
+                    Swal.fire({
+                        title: 'Generate Format WA?',
+                        text: 'Format seluruh nomor WA Siswa & Ortu (08...) akan dikonversi ke standar internasional (628...).',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, Format Sekarang',
+                        cancelButtonText: 'Batal',
+                        customClass: { confirmButton: 'btn btn-success me-3', cancelButton: 'btn btn-label-secondary' },
+                        buttonsStyling: false
+                    }).then(function(res) {
+                        if (res.isConfirmed) {
+                            Swal.fire({ title: 'Memproses...', text: 'Merapikan format nomor WA...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                            fetch("{{ route('admin.siswa.regenerate-phone') }}", {
+                                method: 'POST',
+                                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+                            }).then(r => r.json()).then(d => {
+                                if (d.success) {
+                                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: d.message, confirmButtonText: 'OK' }).then(() => window.location.reload());
+                                } else {
+                                    Swal.fire({ icon: 'error', title: 'Gagal', text: d.message });
+                                }
+                            }).catch(e => {
+                                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Terjadi kesalahan sistem.' });
+                            });
+                        }
+                    });
                 });
             }
 
