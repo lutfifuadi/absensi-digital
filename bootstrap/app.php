@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             LocaleMiddleware::class,
             \App\Http\Middleware\TahunAkademikSession::class,
             \App\Http\Middleware\CheckImpersonation::class,
+            \App\Http\Middleware\CheckAutoAlphaMiddleware::class,
         ]);
         $middleware->alias([
             'role'           => \App\Http\Middleware\RoleMiddleware::class,
