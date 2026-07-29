@@ -586,8 +586,8 @@
             <button class="btn das-btn --info d-flex align-items-center gap-1"
                     @click="fetchRekap()"
                     :disabled="loading">
-              <span x-show="!loading" x-cloak class="d-inline-flex align-items-center"><i class="ti tabler-search me-1"></i> Tampilkan</span>
-              <span x-show="loading" x-cloak class="d-inline-flex align-items-center">
+              <span x-show="!loading" class="d-inline-flex align-items-center"><i class="ti tabler-search me-1"></i> Tampilkan</span>
+              <span x-show="loading" x-cloak style="display:none;" class="d-inline-flex align-items-center">
                 <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Memuat...
               </span>
             </button>
