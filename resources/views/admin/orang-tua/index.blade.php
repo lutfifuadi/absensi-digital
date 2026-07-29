@@ -30,6 +30,53 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
+        /* SWEETALERT2 CUSTOM PREMIUM */
+        .das-swal-popup {
+            background: rgba(26, 26, 46, 0.95) !important;
+            backdrop-filter: blur(16px) saturate(180%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 5px !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        .das-swal-title {
+            color: #fff !important;
+            font-weight: 700 !important;
+            font-size: 1.5rem !important;
+            text-align: center !important;
+            width: 100% !important;
+            max-width: none !important;
+            max-inline-size: none !important;
+        }
+
+        .das-swal-html {
+            color: rgba(255, 255, 255, 0.7) !important;
+            font-size: 0.95rem !important;
+        }
+
+        .das-swal-confirm {
+            padding: 10px 24px !important;
+            font-weight: 600 !important;
+            border-radius: 5px !important;
+            font-size: 0.875rem !important;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .das-swal-cancel {
+            padding: 10px 24px !important;
+            font-weight: 600 !important;
+            border-radius: 5px !important;
+            font-size: 0.875rem !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: #fff !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .das-swal-icon {
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
         /* MODAL CUSTOM */
         .das-modal {
             background: #1a1a2e !important;
@@ -913,27 +960,100 @@
                 btnRegeneratePhone.addEventListener('click', function() {
                     Swal.fire({
                         title: 'Generate Format WA?',
-                        text: 'Format seluruh nomor WA (08...) akan dikonversi ke standar internasional (628...).',
+                        html: `<div class="mt-2 text-white-50">Format seluruh nomor WA Orang Tua (08...) akan dikonversi ke standar internasional (<b class="text-success">628...</b>).</div>`,
                         icon: 'question',
                         showCancelButton: true,
                         confirmButtonText: 'Ya, Format Sekarang',
                         cancelButtonText: 'Batal',
-                        customClass: { confirmButton: 'btn btn-success me-3', cancelButton: 'btn btn-label-secondary' },
-                        buttonsStyling: false
+                        customClass: {
+                            popup: 'das-swal-popup',
+                            title: 'das-swal-title',
+                            htmlContainer: 'das-swal-html',
+                            confirmButton: 'btn btn-success das-swal-confirm me-2',
+                            cancelButton: 'btn das-swal-cancel',
+                            icon: 'das-swal-icon'
+                        },
+                        buttonsStyling: false,
+                        showClass: {
+                            popup: 'animate__animated animate__fadeInUp animate__faster'
+                        },
+                        hideClass: {
+                            popup: 'animate__animated animate__fadeOutDown animate__faster'
+                        },
+                        background: 'transparent',
+                        backdrop: `rgba(0,0,10,0.6)`
                     }).then(function(res) {
                         if (res.isConfirmed) {
-                            Swal.fire({ title: 'Memproses...', text: 'Merapikan format nomor WA...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                            Swal.fire({
+                                title: 'Memproses...',
+                                html: '<div class="mt-2 text-white-50">Merapikan format nomor WA ke standar internasional...</div>',
+                                allowOutsideClick: false,
+                                showConfirmButton: false,
+                                customClass: {
+                                    popup: 'das-swal-popup',
+                                    title: 'das-swal-title',
+                                    htmlContainer: 'das-swal-html'
+                                },
+                                background: 'transparent',
+                                backdrop: `rgba(0,0,10,0.6)`,
+                                didOpen: () => Swal.showLoading()
+                            });
                             fetch("{{ route('admin.orang-tua.regenerate-phone') }}", {
                                 method: 'POST',
                                 headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
                             }).then(r => r.json()).then(d => {
                                 if (d.success) {
-                                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: d.message, confirmButtonText: 'OK' }).then(() => window.location.reload());
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil!',
+                                        text: d.message,
+                                        confirmButtonText: 'OK',
+                                        customClass: {
+                                            popup: 'das-swal-popup',
+                                            title: 'das-swal-title',
+                                            htmlContainer: 'das-swal-html',
+                                            confirmButton: 'btn btn-primary das-swal-confirm',
+                                            icon: 'das-swal-icon'
+                                        },
+                                        buttonsStyling: false,
+                                        background: 'transparent',
+                                        backdrop: `rgba(0,0,10,0.6)`
+                                    }).then(() => window.location.reload());
                                 } else {
-                                    Swal.fire({ icon: 'error', title: 'Gagal', text: d.message });
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Gagal',
+                                        text: d.message,
+                                        confirmButtonText: 'Tutup',
+                                        customClass: {
+                                            popup: 'das-swal-popup',
+                                            title: 'das-swal-title',
+                                            htmlContainer: 'das-swal-html',
+                                            confirmButton: 'btn btn-primary das-swal-confirm',
+                                            icon: 'das-swal-icon'
+                                        },
+                                        buttonsStyling: false,
+                                        background: 'transparent',
+                                        backdrop: `rgba(0,0,10,0.6)`
+                                    });
                                 }
                             }).catch(e => {
-                                Swal.fire({ icon: 'error', title: 'Gagal', text: 'Terjadi kesalahan sistem.' });
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: 'Terjadi kesalahan sistem.',
+                                    confirmButtonText: 'Tutup',
+                                    customClass: {
+                                        popup: 'das-swal-popup',
+                                        title: 'das-swal-title',
+                                        htmlContainer: 'das-swal-html',
+                                        confirmButton: 'btn btn-primary das-swal-confirm',
+                                        icon: 'das-swal-icon'
+                                    },
+                                    buttonsStyling: false,
+                                    background: 'transparent',
+                                    backdrop: `rgba(0,0,10,0.6)`
+                                });
                             });
                         }
                     });
