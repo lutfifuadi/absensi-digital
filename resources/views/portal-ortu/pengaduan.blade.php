@@ -386,6 +386,13 @@
     box-shadow: 0 4px 12px rgba(115,103,240,0.3);
     transition: all 0.2s;
   }
+  .pgd-modal-submit span {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+  }
+  .pgd-modal-submit span:has(.spinner-border),
+  .pgd-modal-submit #submitLoading {
+    display: none;
+  }
   .pgd-modal-submit:hover:not(:disabled) {
     background: linear-gradient(135deg, #6254e8 0%, #4d3edc 100%);
     box-shadow: 0 6px 16px rgba(115,103,240,0.45); transform: translateY(-1px);
@@ -676,10 +683,10 @@
           <i class="ti tabler-x fs-6"></i> Batal
         </button>
         <button type="submit" form="pengaduanForm" class="pgd-modal-submit" id="submitBtn">
-          <span id="submitText" class="d-inline-flex align-items-center gap-1">
+          <span id="submitText">
             <i class="ti tabler-send fs-6"></i> Kirim Pengaduan
           </span>
-          <span id="submitLoading" style="display:none;" class="d-inline-flex align-items-center gap-1">
+          <span id="submitLoading" style="display:none !important;">
             <span class="spinner-border spinner-border-sm" role="status"></span> Mengirim...
           </span>
         </button>
@@ -837,8 +844,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     submitBtn.disabled = true;
-    submitText.style.display = 'none';
-    submitLoading.style.display = 'inline-flex';
+    submitText.style.setProperty('display', 'none', 'important');
+    submitLoading.style.setProperty('display', 'inline-flex', 'important');
 
     const data = {
       nama_lengkap: form.nama_lengkap.value.trim(),
@@ -896,8 +903,8 @@ document.addEventListener('DOMContentLoaded', function() {
       } else { alert('Gagal: '+(err.message||'Error')); }
     } finally {
       submitBtn.disabled = false;
-      submitText.style.display = 'inline-flex';
-      submitLoading.style.display = 'none';
+      submitText.style.setProperty('display', 'inline-flex', 'important');
+      submitLoading.style.setProperty('display', 'none', 'important');
     }
   });
 
