@@ -24,6 +24,11 @@ class StaffTataUsaha extends Model
         'qr_code_nip',
     ];
 
+    public function setNoHpAttribute($value): void
+    {
+        $this->attributes['no_hp'] = \App\Helpers\WhatsAppHelper::formatNumber($value);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

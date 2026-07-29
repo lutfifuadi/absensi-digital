@@ -44,6 +44,11 @@ class Pengaduan extends Model
         'verified_at' => 'datetime',
     ];
 
+    public function setNomorWaAttribute($value): void
+    {
+        $this->attributes['nomor_wa'] = \App\Helpers\WhatsAppHelper::formatNumber($value);
+    }
+
     /**
      * Get the logs for this pengaduan.
      */

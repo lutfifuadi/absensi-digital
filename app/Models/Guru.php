@@ -42,6 +42,11 @@ class Guru extends Model
         return $this->attributes['nama_lengkap'] ?? null;
     }
 
+    public function setNoHpAttribute($value): void
+    {
+        $this->attributes['no_hp'] = \App\Helpers\WhatsAppHelper::formatNumber($value);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

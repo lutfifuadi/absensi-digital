@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 use App\Models\Pengaturan;
 use App\Models\Siswa;
+use App\Helpers\WhatsAppHelper;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 
@@ -51,6 +52,9 @@ class WhatsAppService
     {
         if (!$this->isEnabled) return false;
 
+        $number = WhatsAppHelper::formatNumber($number);
+        if (empty($number)) return false;
+
         $apiKey = $customApiKey ?: $this->apiKey;
         $sender = $customSender ?: $this->sender;
 
@@ -86,6 +90,9 @@ class WhatsAppService
     {
         if (!$this->isEnabled) return false;
 
+        $number = WhatsAppHelper::formatNumber($number);
+        if (empty($number)) return false;
+
         if (!$this->isNumberValidCached($number, $siswaId, $customSender, $customApiKey)) {
             Log::info("WA: Nomor {$number} tidak terdaftar di WhatsApp, pesan tidak dikirim.");
             return false;
@@ -99,7 +106,10 @@ class WhatsAppService
      */
     public function isNumberValidCached(string $number, int $siswaId = 0, ?string $customSender = null, ?string $customApiKey = null): bool
     {
-        $cacheKey = 'wa_valid_' . preg_replace('/\D/', '', $number);
+        $number = WhatsAppHelper::formatNumber($number);
+        if (empty($number)) return false;
+
+        $cacheKey = 'wa_valid_' . $number;
 
         return Cache::remember($cacheKey, now()->addHours(24), function () use ($number, $customSender, $customApiKey) {
             return $this->checkNumber($number, false, $customSender, $customApiKey);
@@ -111,7 +121,10 @@ class WhatsAppService
      */
     public function revalidateNumber(string $number): bool
     {
-        $cacheKey = 'wa_valid_' . preg_replace('/\D/', '', $number);
+        $number = WhatsAppHelper::formatNumber($number);
+        if (empty($number)) return false;
+
+        $cacheKey = 'wa_valid_' . $number;
         Cache::forget($cacheKey);
         return $this->isNumberValidCached($number);
     }
@@ -122,6 +135,9 @@ class WhatsAppService
     public function sendMedia(string $number, string $mediaType, string $url, string $caption = '', string $footer = ''): bool
     {
         if (!$this->isEnabled) return false;
+
+        $number = WhatsAppHelper::formatNumber($number);
+        if (empty($number)) return false;
 
         try {
             $response = Http::timeout(15)->post("{$this->baseUrl}/send-media", [
@@ -149,6 +165,9 @@ class WhatsAppService
     public function checkNumber(string $number, bool $force = false, ?string $customSender = null, ?string $customApiKey = null): bool
     {
         if (!$force && !$this->isEnabled) return false;
+
+        $number = WhatsAppHelper::formatNumber($number);
+        if (empty($number)) return false;
 
         $apiKey = $customApiKey ?: $this->apiKey;
         $sender = $customSender ?: $this->sender;

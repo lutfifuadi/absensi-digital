@@ -54,6 +54,11 @@ class User extends Authenticatable
         'alamat',
     ];
 
+    public function setNoHpAttribute($value): void
+    {
+        $this->attributes['no_hp'] = \App\Helpers\WhatsAppHelper::formatNumber($value);
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
