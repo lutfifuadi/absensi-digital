@@ -476,8 +476,8 @@
           <i class="ti tabler-x fs-6"></i> Batal
         </button>
         <button type="submit" form="pengaduanForm" class="btn btn-modal-submit" id="submitBtn">
-          <span id="submitText" class="d-inline-flex align-items-center gap-1.5"><i class="ti tabler-send fs-6"></i> Kirim Pengaduan</span>
-          <span id="submitLoading" style="display:none;" class="align-items-center gap-1.5">
+          <span id="submitText"><i class="ti tabler-send fs-6"></i> Kirim Pengaduan</span>
+          <span id="submitLoading" style="display:none !important;">
             <span class="spinner-border spinner-border-sm" role="status"></span> Mengirim...
           </span>
         </button>

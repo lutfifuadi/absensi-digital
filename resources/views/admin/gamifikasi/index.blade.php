@@ -586,10 +586,8 @@
             <button class="btn das-btn --info d-flex align-items-center gap-1"
                     @click="fetchRekap()"
                     :disabled="loading">
-              <span x-show="!loading" class="d-inline-flex align-items-center"><i class="ti tabler-search me-1"></i> Tampilkan</span>
-              <span x-show="loading" x-cloak style="display:none;" class="d-inline-flex align-items-center">
-                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Memuat...
-              </span>
+              <span x-show="!loading"><i class="ti tabler-search me-1"></i> Tampilkan</span>
+              <span x-show="loading" x-cloak style="display:none !important;"><span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Memuat...</span>
             </button>
             <button class="btn das-btn --secondary d-flex align-items-center gap-1" @click="resetFilter()">
               <i class="ti tabler-rotate-clockwise me-1"></i> Reset
