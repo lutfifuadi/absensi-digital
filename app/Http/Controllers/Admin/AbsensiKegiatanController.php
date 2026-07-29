@@ -300,7 +300,7 @@ class AbsensiKegiatanController extends Controller
                 return $q->whereDate('tanggal_absen', $tanggal);
             })
             ->latest('id')
-            ->paginate(20);
+            ->paginate(10);
 
         $kegiatans = Kegiatan::latest()->get();
         $jurusanList = \App\Models\Jurusan::pluck('nama')->sort()->values();
