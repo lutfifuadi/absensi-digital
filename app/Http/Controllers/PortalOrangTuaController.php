@@ -480,8 +480,13 @@ class PortalOrangTuaController extends Controller
         $user = Auth::user();
         $noHp = $user->no_hp;
 
-        // Ambil daftar pengaduan berdasarkan nomor_wa ortu, urutkan terbaru dari atas
-        $pengaduanList = Pengaduan::where('nomor_wa', $noHp)
+        // Normalisasi nomor HP ke semua kemungkinan format yang mungkin tersimpan di DB
+        // Misal: no_hp = "6281322427651" → juga cari "081322427651"
+        //        no_hp = "081322427651"  → juga cari "6281322427651"
+        $normalizedNumbers = $this->buildPhoneVariants($noHp);
+
+        // Ambil daftar pengaduan berdasarkan nomor_wa ortu (semua kemungkinan format)
+        $pengaduanList = Pengaduan::whereIn('nomor_wa', $normalizedNumbers)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -508,5 +513,42 @@ class PortalOrangTuaController extends Controller
 
         $viewName = view()->exists('portal-ortu.pengaduan') ? 'portal-ortu.pengaduan' : 'content.ortu.pengaduan';
         return view($viewName, compact('pengaduanList', 'activePengaduan', 'activeLogs'));
+    }
+
+    /**
+     * Build semua kemungkinan format nomor HP Indonesia dari satu input.
+     * Mengembalikan array berisi format "08xxxx" dan "628xxxx".
+     *
+     * @param  string|null $noHp
+     * @return array
+     */
+    private function buildPhoneVariants(?string $noHp): array
+    {
+        if (empty($noHp)) {
+            return [''];
+        }
+
+        // Strip semua karakter non-digit
+        $digits = preg_replace('/\D/', '', $noHp);
+
+        $variants = [$noHp]; // selalu sertakan nilai asli
+
+        if (str_starts_with($digits, '628')) {
+            // 628xxx → tambahkan 08xxx
+            $local = '0' . substr($digits, 2);
+            $variants[] = $local;
+            $variants[] = $digits; // format 628xxx
+        } elseif (str_starts_with($digits, '08')) {
+            // 08xxx → tambahkan 628xxx
+            $intl = '62' . substr($digits, 1);
+            $variants[] = $intl;
+            $variants[] = $digits; // format 08xxx
+        } elseif (str_starts_with($digits, '8')) {
+            // 8xxx → tambahkan 08xxx dan 628xxx
+            $variants[] = '0' . $digits;
+            $variants[] = '62' . $digits;
+        }
+
+        return array_values(array_unique($variants));
     }
 }
