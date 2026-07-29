@@ -12,349 +12,580 @@
 
 @section('page-style')
 <style>
-  /* Premium Border Radius Constraint (Max 5px, custom request: border-radius 4px) */
-  .rounded-2, .form-control, .form-select, .btn, .card, .modal-content, .alert, .badge {
-    border-radius: 4px !important;
+  body, .layout-page, .content-wrapper { background: #0a0e1a !important; }
+
+  /* ── HERO ─────────────────────────────────────────── */
+  .pgd-hero {
+    background: linear-gradient(135deg, #1a1040 0%, #0f0a2e 60%, #0a0e1a 100%);
+    border: 1px solid rgba(115,103,240,0.2);
+    border-radius: 5px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.25rem;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap;
+    position: relative; overflow: hidden;
   }
-  
-  /* Custom select2 border radius */
-  .select2-container--default .select2-selection--single, .select2-dropdown, .select2-container--default .select2-search--dropdown .select2-search__field, .select2-results__option {
-    border-radius: 4px !important;
+  .pgd-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 80% 50%, rgba(115,103,240,0.12), transparent 65%);
+    pointer-events: none;
+  }
+  .pgd-hero__icon {
+    width: 52px; height: 52px; border-radius: 5px; flex-shrink: 0;
+    background: rgba(115,103,240,0.15);
+    border: 1px solid rgba(115,103,240,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; color: #a29bfe;
+  }
+  .pgd-hero__badge {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: #a29bfe;
+    display: flex; align-items: center; gap: 0.4rem;
+    margin-bottom: 0.3rem;
+  }
+  .pgd-hero__badge .pulse-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #a29bfe; flex-shrink: 0;
+    animation: pgdPulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pgdPulse {
+    0%,100% { opacity:1; transform: scale(1); }
+    50% { opacity:0.4; transform: scale(0.75); }
+  }
+  .pgd-hero__title {
+    font-size: 1.2rem; font-weight: 800; color: #fff;
+    letter-spacing: -0.3px; margin: 0;
+  }
+  .pgd-hero__sub {
+    font-size: 0.8rem; color: rgba(255,255,255,0.45); margin: 0.15rem 0 0;
+  }
+  .pgd-btn-new {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1.25rem; border-radius: 5px; border: none; cursor: pointer;
+    font-size: 0.82rem; font-weight: 700;
+    background: linear-gradient(135deg, #7367f0 0%, #5e50ee 100%);
+    color: #fff; white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(115,103,240,0.35);
+    transition: all 0.2s;
+  }
+  .pgd-btn-new:hover {
+    background: linear-gradient(135deg, #6254e8 0%, #4d3edc 100%);
+    box-shadow: 0 6px 18px rgba(115,103,240,0.45);
+    transform: translateY(-1px);
+    color: #fff;
   }
 
-  #deskripsiCountWrapper {
-    transition: color 0.2s ease;
+  /* ── LAYOUT SPLIT ─────────────────────────────────── */
+  .pgd-layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 1.1rem;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .pgd-layout { grid-template-columns: 1fr; }
   }
 
-  /* Form Labels & Icons */
-  #modalCreatePengaduan label.form-label {
-    color: #cbd5e1 !important;
+  /* ── LIST PANEL (kiri) ───────────────────────────── */
+  .pgd-panel {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 5px;
+    overflow: hidden;
   }
-  #modalCreatePengaduan label.form-label i {
-    color: #64748b !important;
+  .pgd-panel__head {
+    padding: 0.85rem 1.1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .pgd-panel__head-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #7367f0; flex-shrink: 0;
+  }
+  .pgd-panel__head-title {
+    font-size: 0.82rem; font-weight: 700;
+    color: rgba(255,255,255,0.75); letter-spacing: 0.3px;
+  }
+  .pgd-panel__body { padding: 0.65rem; }
+
+  /* ── ITEM PENGADUAN ─────────────────────────────── */
+  .pgd-item {
+    display: block; text-decoration: none;
+    padding: 0.85rem 1rem;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    margin-bottom: 0.4rem;
+    transition: all 0.18s;
+    background: rgba(255,255,255,0.02);
+  }
+  .pgd-item:last-child { margin-bottom: 0; }
+  .pgd-item:hover {
+    background: rgba(115,103,240,0.07);
+    border-color: rgba(115,103,240,0.2);
+    text-decoration: none;
+  }
+  .pgd-item.active {
+    background: rgba(115,103,240,0.13);
+    border-color: rgba(115,103,240,0.35);
+  }
+  .pgd-item__top {
+    display: flex; align-items: center;
+    justify-content: space-between; gap: 0.5rem;
+    margin-bottom: 0.3rem;
+  }
+  .pgd-item__kode {
+    font-size: 0.7rem; font-weight: 700; font-family: monospace;
+    color: rgba(255,255,255,0.35); letter-spacing: 0.5px;
+  }
+  .pgd-item.active .pgd-item__kode { color: rgba(162,155,254,0.7); }
+  .pgd-item__cat {
+    font-size: 0.82rem; font-weight: 600; color: rgba(255,255,255,0.8);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .pgd-item.active .pgd-item__cat { color: #fff; }
+  .pgd-item__date {
+    font-size: 0.7rem; color: rgba(255,255,255,0.3); margin-top: 0.15rem;
+  }
+  .pgd-item.active .pgd-item__date { color: rgba(162,155,254,0.55); }
+
+  /* ── BADGE STATUS ───────────────────────────────── */
+  .pgd-badge {
+    font-size: 0.63rem; font-weight: 800; letter-spacing: 0.5px;
+    text-transform: uppercase; padding: 0.2rem 0.55rem;
+    border-radius: 3px; flex-shrink: 0; white-space: nowrap;
+  }
+  .pgd-badge--baru      { background: rgba(255,215,0,0.15); color: #ffd700; border: 1px solid rgba(255,215,0,0.25); }
+  .pgd-badge--diproses  { background: rgba(0,207,232,0.12); color: #00cfe8; border: 1px solid rgba(0,207,232,0.25); }
+  .pgd-badge--selesai   { background: rgba(40,199,111,0.12); color: #28c76f; border: 1px solid rgba(40,199,111,0.25); }
+  .pgd-badge--ditolak   { background: rgba(234,84,85,0.12); color: #ea5455; border: 1px solid rgba(234,84,85,0.25); }
+  .pgd-badge--default   { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.1); }
+
+  /* ── DETAIL PANEL (kanan) ───────────────────────── */
+  .pgd-detail {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .pgd-detail__head {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 0.75rem;
+  }
+  .pgd-detail__kode {
+    font-size: 0.7rem; font-weight: 700; font-family: monospace;
+    color: rgba(255,255,255,0.3); letter-spacing: 0.5px; margin-bottom: 0.2rem;
+  }
+  .pgd-detail__title {
+    font-size: 1rem; font-weight: 700; color: #fff; margin: 0;
+    line-height: 1.3;
+  }
+  .pgd-detail__body { padding: 1.25rem; }
+
+  /* Deskripsi box */
+  .pgd-desc-box {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 5px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1.25rem;
+  }
+  .pgd-desc-box__label {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.7px;
+    text-transform: uppercase; color: rgba(255,255,255,0.35);
+    margin-bottom: 0.5rem;
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  .pgd-desc-box__text {
+    font-size: 0.875rem; color: rgba(255,255,255,0.7);
+    line-height: 1.65; white-space: pre-line; margin: 0;
+  }
+  .pgd-catatan-box {
+    margin-top: 0.85rem; padding-top: 0.85rem;
+    border-top: 1px solid rgba(255,255,255,0.07);
+  }
+  .pgd-catatan-box__label {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.7px;
+    text-transform: uppercase; color: rgba(255,185,0,0.6);
+    margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem;
+  }
+  .pgd-catatan-box__text {
+    font-size: 0.875rem; color: rgba(255,185,0,0.85);
+    line-height: 1.6; white-space: pre-line; margin: 0;
   }
 
-  /* Dark Input Style matching theme */
-  #modalCreatePengaduan .form-control, #modalCreatePengaduan .form-select {
-    background-color: #0f172a !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    color: #ffffff !important;
+  /* Timeline */
+  .pgd-timeline-label {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.7px;
+    text-transform: uppercase; color: rgba(255,255,255,0.35);
+    display: flex; align-items: center; gap: 0.4rem;
+    margin-bottom: 1rem;
   }
-  #modalCreatePengaduan .form-control::placeholder {
-    color: #475569 !important;
+  .pgd-timeline { list-style: none; padding: 0; margin: 0; position: relative; }
+  .pgd-timeline::before {
+    content: ''; position: absolute;
+    left: 11px; top: 0; bottom: 0; width: 1px;
+    background: rgba(255,255,255,0.07);
   }
-  #modalCreatePengaduan .form-control:hover, #modalCreatePengaduan .form-select:hover {
-    border-color: #475569 !important;
+  .pgd-tl-item {
+    display: flex; gap: 1rem;
+    padding-bottom: 1.25rem; position: relative;
   }
-  #modalCreatePengaduan .form-control:focus, #modalCreatePengaduan .form-select:focus {
-    border-color: #696cff !important;
-    box-shadow: 0 0 0 0.25rem rgba(105, 108, 255, 0.25) !important;
+  .pgd-tl-item:last-child { padding-bottom: 0; }
+  .pgd-tl-dot {
+    width: 23px; height: 23px; border-radius: 50%;
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem; position: relative; z-index: 1;
+    margin-top: 1px;
+  }
+  .pgd-tl-dot--baru      { background: rgba(255,215,0,0.18); border: 2px solid #ffd700; color: #ffd700; }
+  .pgd-tl-dot--diproses  { background: rgba(0,207,232,0.15); border: 2px solid #00cfe8; color: #00cfe8; }
+  .pgd-tl-dot--selesai   { background: rgba(40,199,111,0.15); border: 2px solid #28c76f; color: #28c76f; }
+  .pgd-tl-dot--ditolak   { background: rgba(234,84,85,0.15); border: 2px solid #ea5455; color: #ea5455; }
+  .pgd-tl-dot--default   { background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.4); }
+  .pgd-tl-content { flex: 1; min-width: 0; }
+  .pgd-tl-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.25rem; flex-wrap: wrap; }
+  .pgd-tl-status {
+    font-size: 0.7rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .pgd-tl-status--baru     { color: #ffd700; }
+  .pgd-tl-status--diproses { color: #00cfe8; }
+  .pgd-tl-status--selesai  { color: #28c76f; }
+  .pgd-tl-status--ditolak  { color: #ea5455; }
+  .pgd-tl-status--default  { color: rgba(255,255,255,0.4); }
+  .pgd-tl-time {
+    font-size: 0.68rem; color: rgba(255,255,255,0.3);
+  }
+  .pgd-tl-note {
+    font-size: 0.8rem; color: rgba(255,255,255,0.5);
+    line-height: 1.5; margin: 0;
+  }
+  .pgd-tl-oleh {
+    display: inline-block; font-size: 0.66rem; font-weight: 600;
+    color: rgba(255,255,255,0.3); margin-top: 0.3rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 0.1rem 0.45rem; border-radius: 3px;
   }
 
-  /* Select2 Dark Theme Override inside Modal */
-  .select2-container {
-    width: 100% !important;
-    max-width: 100% !important;
+  /* Empty state */
+  .pgd-empty {
+    padding: 3rem 1rem; text-align: center;
   }
+  .pgd-empty__icon {
+    width: 64px; height: 64px; border-radius: 5px; margin: 0 auto 1rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; opacity: 0.3;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+  .pgd-empty__title { font-size: 0.95rem; font-weight: 700; color: rgba(255,255,255,0.55); margin-bottom: 0.35rem; }
+  .pgd-empty__sub   { font-size: 0.78rem; color: rgba(255,255,255,0.25); max-width: 260px; margin: 0 auto; }
+
+  /* ── MODAL ──────────────────────────────────────── */
+  .modal-content {
+    background: #111827 !important;
+    border: 1px solid rgba(115,103,240,0.2) !important;
+    border-radius: 5px !important;
+  }
+  .modal-header {
+    padding: 1.1rem 1.5rem !important;
+    background: rgba(115,103,240,0.06) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+  }
+  .modal-title { font-size: 1rem !important; font-weight: 700 !important; color: #fff !important; }
+  .modal-body { padding: 1.5rem !important; }
+  .modal-footer {
+    padding: 1rem 1.5rem !important;
+    background: rgba(0,0,0,0.15) !important;
+    border-top: 1px solid rgba(255,255,255,0.07) !important;
+    gap: 0.6rem;
+  }
+  .modal-content label.form-label {
+    font-size: 0.78rem !important; font-weight: 700 !important;
+    color: rgba(255,255,255,0.55) !important; letter-spacing: 0.4px;
+    text-transform: uppercase; margin-bottom: 0.45rem !important;
+    display: inline-flex !important; align-items: center !important; gap: 0.35rem !important;
+  }
+  .modal-content label.form-label i { color: #7367f0 !important; font-size: 0.9rem !important; }
+  .modal-content .form-control,
+  .modal-content .form-select {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    color: #fff !important; border-radius: 4px !important;
+    font-size: 0.875rem !important;
+    transition: border-color 0.18s, box-shadow 0.18s;
+  }
+  .modal-content .form-control::placeholder { color: rgba(255,255,255,0.2) !important; }
+  .modal-content .form-control:focus,
+  .modal-content .form-select:focus {
+    border-color: #7367f0 !important;
+    box-shadow: 0 0 0 3px rgba(115,103,240,0.18) !important;
+    outline: none;
+  }
+  .modal-content .form-control[readonly] {
+    background: rgba(255,255,255,0.02) !important;
+    color: rgba(255,255,255,0.35) !important;
+    border-color: rgba(255,255,255,0.06) !important;
+  }
+
+  /* Select2 in modal */
+  .select2-container { width: 100% !important; }
   .select2-container--default .select2-selection--single {
-    background-color: #0f172a !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    color: #ffffff !important;
-    height: 40px !important;
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    border-radius: 4px !important; height: 40px !important;
+    color: #fff !important;
   }
   .select2-container--default .select2-selection--single .select2-selection__rendered {
-    color: #ffffff !important;
-    line-height: 38px !important;
-    padding-left: 12px !important;
+    color: #fff !important; line-height: 38px !important; padding-left: 12px !important;
   }
-  .select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: 38px !important;
-  }
+  .select2-container--default .select2-selection--single .select2-selection__placeholder { color: rgba(255,255,255,0.25) !important; }
+  .select2-container--default .select2-selection--single .select2-selection__arrow { height: 38px !important; }
   .select2-dropdown {
-    background-color: #1e293b !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    color: #ffffff !important;
-    z-index: 1060 !important;
-  }
-  .select2-container--default .select2-results__option[aria-selected=true] {
-    background-color: rgba(255, 255, 255, 0.06) !important;
-    color: #ffffff !important;
-  }
-  .select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background-color: #696cff !important;
-    color: #ffffff !important;
+    background: #1a2035 !important;
+    border: 1px solid rgba(115,103,240,0.2) !important;
+    border-radius: 4px !important; z-index: 1060 !important;
   }
   .select2-container--default .select2-search--dropdown .select2-search__field {
-    background-color: #0f172a !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    color: #ffffff !important;
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    color: #fff !important; border-radius: 3px !important;
   }
-  .select2-container--default .select2-results__group {
-    color: #cbd5e1 !important;
-    font-weight: 600;
+  .select2-container--default .select2-results__option { color: rgba(255,255,255,0.65) !important; }
+  .select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background: rgba(115,103,240,0.2) !important; color: #fff !important;
   }
-  .select2-container--default .select2-selection--single .select2-selection__placeholder {
-    color: #475569 !important;
+  .select2-container--default .select2-results__option[aria-selected=true] {
+    background: rgba(115,103,240,0.1) !important; color: #a29bfe !important;
   }
+  .select2-container--default .select2-results__group { color: rgba(255,255,255,0.35) !important; font-weight: 700; font-size: 0.7rem; letter-spacing: 0.5px; }
 
-  /* Modals overrides */
-  .modal-content {
-    background-color: #1e293b !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  /* Modal buttons */
+  .pgd-modal-cancel {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.5rem 1.15rem; border-radius: 4px; cursor: pointer;
+    font-size: 0.82rem; font-weight: 600;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.55);
+    transition: all 0.2s;
   }
-  .modal-content h4, .modal-content h5, .modal-content .modal-title, .modal-content .fw-bold {
-    color: #ffffff !important;
+  .pgd-modal-cancel:hover {
+    background: rgba(255,255,255,0.09); color: #fff;
+    border-color: rgba(255,255,255,0.22);
   }
-  .modal-content p, .modal-content .text-muted {
-    color: #cbd5e1 !important;
+  .pgd-modal-submit {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.5rem 1.4rem; border-radius: 4px; cursor: pointer; border: none;
+    font-size: 0.82rem; font-weight: 700; color: #fff;
+    background: linear-gradient(135deg, #7367f0 0%, #5e50ee 100%);
+    box-shadow: 0 4px 12px rgba(115,103,240,0.3);
+    transition: all 0.2s;
   }
-  .modal-content .btn-outline-secondary {
-    border-color: rgba(255, 255, 255, 0.15) !important;
-    color: #cbd5e1 !important;
+  .pgd-modal-submit:hover:not(:disabled) {
+    background: linear-gradient(135deg, #6254e8 0%, #4d3edc 100%);
+    box-shadow: 0 6px 16px rgba(115,103,240,0.45); transform: translateY(-1px);
   }
-  .modal-content .btn-outline-secondary:hover {
-    background-color: rgba(255, 255, 255, 0.05) !important;
-    color: #ffffff !important;
-  }
+  .pgd-modal-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
-  /* Modal Specific Padding, Margins & Typography Refinements */
-  #modalCreatePengaduan .modal-content {
-    border-radius: 8px !important;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+  /* WA info banner */
+  .pgd-wa-note {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.55rem 0.85rem; border-radius: 4px; margin-top: 0.6rem;
+    background: rgba(37,211,102,0.08);
+    border: 1px solid rgba(37,211,102,0.2);
+    border-left: 3px solid #25d366;
   }
-  #modalCreatePengaduan .modal-header {
-    padding: 1.25rem 1.75rem !important;
-    background-color: rgba(15, 23, 42, 0.4) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  }
-  #modalCreatePengaduan .modal-title {
-    font-size: 1.15rem !important;
-    font-weight: 700 !important;
-    color: #f8fafc !important;
-    letter-spacing: -0.01em;
-  }
-  #modalCreatePengaduan .modal-body {
-    padding: 1.75rem 1.75rem 1.25rem 1.75rem !important;
-  }
-  #modalCreatePengaduan .modal-footer {
-    padding: 1.15rem 1.75rem !important;
-    background-color: rgba(15, 23, 42, 0.4) !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
-  }
-  #modalCreatePengaduan label.form-label {
-    color: #cbd5e1 !important;
-    font-size: 0.85rem !important;
-    font-weight: 600 !important;
-    margin-bottom: 0.5rem !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 0.35rem !important;
-  }
-  #modalCreatePengaduan label.form-label i {
-    color: #818cf8 !important;
-    font-size: 1rem !important;
-  }
-  #modalCreatePengaduan .form-control, 
-  #modalCreatePengaduan .form-select {
-    font-size: 0.875rem !important;
-    padding: 0.625rem 0.875rem !important;
-  }
-  #modalCreatePengaduan .btn-modal-cancel {
-    background-color: rgba(255, 255, 255, 0.06) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    color: #cbd5e1 !important;
-    font-weight: 600 !important;
-    font-size: 0.875rem !important;
-    padding: 0.55rem 1.25rem !important;
-    min-width: 105px;
-    border-radius: 4px !important;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-  }
-  #modalCreatePengaduan .btn-modal-cancel:hover {
-    background-color: rgba(255, 255, 255, 0.12) !important;
-    color: #ffffff !important;
-    border-color: rgba(255, 255, 255, 0.25) !important;
-  }
-  #modalCreatePengaduan .btn-modal-submit {
-    background: linear-gradient(135deg, #7367f0 0%, #5e50ee 100%) !important;
-    border: none !important;
-    color: #ffffff !important;
-    font-weight: 600 !important;
-    font-size: 0.875rem !important;
-    padding: 0.55rem 1.5rem !important;
-    min-width: 150px;
-    border-radius: 4px !important;
-    box-shadow: 0 4px 12px rgba(115, 103, 240, 0.35) !important;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-  }
-  #modalCreatePengaduan .btn-modal-submit:hover {
-    background: linear-gradient(135deg, #6254e8 0%, #4d3edc 100%) !important;
-    box-shadow: 0 6px 16px rgba(115, 103, 240, 0.45) !important;
-    transform: translateY(-1px);
-  }
+  .pgd-wa-note i { color: #25d366; flex-shrink: 0; font-size: 1.05rem; }
+  .pgd-wa-note span { font-size: 0.75rem; color: rgba(37,211,102,0.9); }
+  .pgd-wa-note strong { color: #25d366; }
+
+  /* Count badge */
+  #deskripsiCountWrapper { transition: color 0.2s; font-size: 0.75rem; }
 </style>
 @endsection
 
 @section('content')
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card border-0 text-white overflow-hidden shadow-sm"
-            style="background: linear-gradient(135deg, #7367f0 0%, #4338ca 100%); border-radius: 4px !important;">
-            <div class="card-body p-4">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="rounded d-flex align-items-center justify-content-center shadow-sm"
-                            style="width:52px;height:52px;border-radius:4px !important;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);">
-                            <i class="ti tabler-message-dots text-white fs-3"></i>
-                        </div>
-                        <div>
-                            <nav aria-label="breadcrumb">
-                                <ol class="breadcrumb mb-1" style="font-size:0.72rem;opacity:0.8;">
-                                    <li class="breadcrumb-item"><a href="{{ route('ortu.dashboard') }}"
-                                             class="text-white text-decoration-none">Dashboard</a></li>
-                                    <li class="breadcrumb-item active text-white" aria-current="page">Layanan Pengaduan</li>
-                                </ol>
-                            </nav>
-                            <h4 class="mb-0 text-white fw-bold" style="letter-spacing:-0.5px;">Portal Layanan Pengaduan Transparan</h4>
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-warning fw-bold text-white shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCreatePengaduan">
-                        <i class="ti tabler-plus me-1"></i> Buat Pengaduan Baru
-                    </button>
-                </div>
-            </div>
-        </div>
+
+{{-- HERO --}}
+<div class="pgd-hero">
+  <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+    <div class="pgd-hero__icon">
+      <i class="ti tabler-message-dots"></i>
     </div>
+    <div>
+      <div class="pgd-hero__badge">
+        <span class="pulse-dot"></span> Portal Orang Tua
+      </div>
+      <h4 class="pgd-hero__title">Portal Layanan Pengaduan</h4>
+      <p class="pgd-hero__sub">Sampaikan kendala atau keluhan terkait data presensi secara transparan.</p>
+    </div>
+  </div>
+  <button type="button" class="pgd-btn-new" data-bs-toggle="modal" data-bs-target="#modalCreatePengaduan">
+    <i class="ti tabler-plus"></i> Buat Pengaduan
+  </button>
 </div>
 
-<div class="row">
-  <div class="col-md-5">
-    <div class="card mb-4">
-      <div class="card-header pb-2">
-        <h5 class="card-title mb-0">Daftar Pengaduan Saya</h5>
+{{-- SPLIT LAYOUT --}}
+<div class="pgd-layout">
+
+  {{-- ── KIRI: Daftar Pengaduan ─────────────────────── --}}
+  <div class="pgd-panel">
+    <div class="pgd-panel__head">
+      <span class="pgd-panel__head-dot"></span>
+      <span class="pgd-panel__head-title">Riwayat Pengaduan Saya</span>
+    </div>
+    <div class="pgd-panel__body">
+      @forelse($pengaduanList as $p)
+        @php
+          $isActive = $activePengaduan && $activePengaduan->id === $p->id;
+          $badgeClass = match($p->status) {
+            'baru'      => 'pgd-badge--baru',
+            'diproses'  => 'pgd-badge--diproses',
+            'selesai'   => 'pgd-badge--selesai',
+            'ditolak'   => 'pgd-badge--ditolak',
+            default     => 'pgd-badge--default',
+          };
+        @endphp
+        <a href="{{ route('ortu.pengaduan', ['id' => $p->id]) }}"
+           class="pgd-item {{ $isActive ? 'active' : '' }}">
+          <div class="pgd-item__top">
+            <span class="pgd-item__kode">#{{ $p->kode_unik }}</span>
+            <span class="pgd-badge {{ $badgeClass }}">{{ strtoupper($p->status_label) }}</span>
+          </div>
+          <div class="pgd-item__cat">{{ \Illuminate\Support\Str::limit($p->kategori, 42) }}</div>
+          <div class="pgd-item__date">
+            <i class="ti tabler-clock me-1" style="font-size:0.65rem;"></i>
+            {{ $p->created_at->translatedFormat('d F Y, H:i') }} WIB
+          </div>
+        </a>
+      @empty
+        <div class="pgd-empty">
+          <div class="pgd-empty__icon"><i class="ti tabler-message-off text-white"></i></div>
+          <div class="pgd-empty__title">Belum Ada Pengaduan</div>
+          <div class="pgd-empty__sub">Buat pengaduan baru jika ada kendala terkait data presensi.</div>
+        </div>
+      @endforelse
+    </div>
+  </div>
+
+  {{-- ── KANAN: Detail Pengaduan ────────────────────── --}}
+  @if($activePengaduan)
+    @php
+      $detailBadgeClass = match($activePengaduan->status) {
+        'baru'      => 'pgd-badge--baru',
+        'diproses'  => 'pgd-badge--diproses',
+        'selesai'   => 'pgd-badge--selesai',
+        'ditolak'   => 'pgd-badge--ditolak',
+        default     => 'pgd-badge--default',
+      };
+    @endphp
+    <div class="pgd-detail">
+      <div class="pgd-detail__head">
+        <div style="min-width:0;">
+          <div class="pgd-detail__kode">#{{ $activePengaduan->kode_unik }}</div>
+          <h5 class="pgd-detail__title">{{ $activePengaduan->kategori }}</h5>
+        </div>
+        <span class="pgd-badge {{ $detailBadgeClass }}">{{ strtoupper($activePengaduan->status_label) }}</span>
       </div>
-      <div class="card-body">
-        <div class="list-group list-group-flush">
-          @forelse($pengaduanList as $p)
+      <div class="pgd-detail__body">
+
+        {{-- Deskripsi --}}
+        <div class="pgd-desc-box">
+          <div class="pgd-desc-box__label">
+            <i class="ti tabler-file-text"></i> Deskripsi Pengaduan
+          </div>
+          <p class="pgd-desc-box__text">{{ $activePengaduan->deskripsi }}</p>
+
+          @if($activePengaduan->catatan_admin)
+            <div class="pgd-catatan-box">
+              <div class="pgd-catatan-box__label">
+                <i class="ti tabler-alert-circle"></i> Catatan Admin
+              </div>
+              <p class="pgd-catatan-box__text">{{ $activePengaduan->catatan_admin }}</p>
+            </div>
+          @endif
+        </div>
+
+        {{-- Timeline --}}
+        <div class="pgd-timeline-label">
+          <i class="ti tabler-history"></i> Riwayat Status
+        </div>
+        <ul class="pgd-timeline">
+          @forelse($activeLogs as $log)
             @php
-              $isActive = $activePengaduan && $activePengaduan->id === $p->id;
+              $tlColor = match($log->status_ke) {
+                'baru'      => 'baru',
+                'diproses'  => 'diproses',
+                'selesai'   => 'selesai',
+                'ditolak'   => 'ditolak',
+                default     => 'default',
+              };
+              $tlIcon = match($log->status_ke) {
+                'baru'      => 'tabler-star',
+                'diproses'  => 'tabler-loader',
+                'selesai'   => 'tabler-circle-check',
+                'ditolak'   => 'tabler-x',
+                default     => 'tabler-dots',
+              };
+              $statusLabel = match($log->status_ke) {
+                'baru'      => 'Baru Masuk',
+                'diproses'  => 'Sedang Diproses',
+                'selesai'   => 'Selesai',
+                'ditolak'   => 'Ditolak',
+                default     => ucfirst($log->status_ke),
+              };
             @endphp
-            <a href="{{ route('ortu.pengaduan', ['id' => $p->id]) }}" class="list-group-item list-group-item-action {{ $isActive ? 'active' : '' }} p-3 rounded mb-2">
-              <div class="d-flex w-100 justify-content-between align-items-center mb-1">
-                <small class="fw-bold font-monospace {{ $isActive ? 'text-white' : 'text-muted' }}">#{{ $p->kode_unik }}</small>
-                <span class="badge bg-{{ $p->status_color }} {{ $p->status === 'baru' ? 'text-dark' : '' }}">{{ strtoupper($p->status_label) }}</span>
+            <li class="pgd-tl-item">
+              <div class="pgd-tl-dot pgd-tl-dot--{{ $tlColor }}">
+                <i class="ti {{ $tlIcon }}"></i>
               </div>
-              <h6 class="mb-1 fw-bold {{ $isActive ? 'text-white' : '' }}">{{ \Illuminate\Support\Str::limit($p->kategori, 40) }}</h6>
-              <small class="{{ $isActive ? 'text-white opacity-75' : 'text-muted' }}">
-                Tanggal: {{ $p->created_at->translatedFormat('d F Y H:i') }} WIB
-              </small>
-            </a>
+              <div class="pgd-tl-content">
+                <div class="pgd-tl-header">
+                  <span class="pgd-tl-status pgd-tl-status--{{ $tlColor }}">{{ $statusLabel }}</span>
+                  <span class="pgd-tl-time">{{ $log->created_at->translatedFormat('d M Y, H:i') }} WIB</span>
+                </div>
+                <p class="pgd-tl-note">{{ $log->catatan ?? 'Status pengaduan diperbarui.' }}</p>
+                <span class="pgd-tl-oleh">oleh: {{ ucfirst($log->diubah_oleh) }}</span>
+              </div>
+            </li>
           @empty
-            <div class="text-center py-5">
-              <div class="avatar avatar-md mx-auto mb-3 bg-label-secondary">
-                <i class="ti tabler-message-off fs-3"></i>
-              </div>
-              <p class="text-muted mb-0">Belum ada riwayat pengaduan</p>
-            </div>
+            <li style="font-size:0.8rem;color:rgba(255,255,255,0.25);padding-left:2rem;">
+              Belum ada riwayat perubahan status.
+            </li>
           @endforelse
-        </div>
+        </ul>
+
       </div>
     </div>
-  </div>
-
-  <div class="col-md-7">
-    @if($activePengaduan)
-      <div class="card">
-        <div class="card-header border-bottom">
-          <div class="d-flex justify-content-between align-items-start">
-            <div>
-              <span class="text-muted font-monospace small">#{{ $activePengaduan->kode_unik }}</span>
-              <h5 class="mb-0 fw-bold">{{ $activePengaduan->kategori }}</h5>
-            </div>
-            <span class="badge bg-label-{{ $activePengaduan->status_color }}">{{ strtoupper($activePengaduan->status_label) }}</span>
-          </div>
+  @else
+    <div class="pgd-detail">
+      <div class="pgd-empty" style="padding: 4rem 1rem;">
+        <div class="pgd-empty__icon" style="margin-bottom:1.25rem;background:rgba(115,103,240,0.08);border-color:rgba(115,103,240,0.2);">
+          <i class="ti tabler-message-dots" style="color:rgba(115,103,240,0.5);"></i>
         </div>
-        <div class="card-body pt-4">
-          <!-- Detail deskripsi pengaduan -->
-          <div class="mb-4 p-3 bg-light rounded text-dark" style="background-color: rgba(255,255,255,0.03) !important; border: 1px solid rgba(255,255,255,0.08);">
-            <h6 class="fw-bold text-white mb-2">Deskripsi Pengaduan:</h6>
-            <p class="mb-0 text-muted" style="white-space: pre-line;">{{ $activePengaduan->deskripsi }}</p>
-            @if($activePengaduan->catatan_admin)
-              <div class="mt-3 pt-3 border-top border-secondary-subtle">
-                <h6 class="fw-bold text-warning mb-1">Catatan Admin:</h6>
-                <p class="mb-0 text-warning" style="white-space: pre-line;">{{ $activePengaduan->catatan_admin }}</p>
-              </div>
-            @endif
-          </div>
-
-          <!-- Visual Timeline Stepper -->
-          <h6 class="fw-bold text-white mb-3"><i class="ti tabler-history me-1"></i> Riwayat Status Pengaduan</h6>
-          <ul class="timeline timeline-dashed">
-            @forelse($activeLogs as $log)
-              @php
-                $color = 'secondary';
-                if ($log->status_ke === 'baru') $color = 'warning';
-                elseif ($log->status_ke === 'diproses') $color = 'info';
-                elseif ($log->status_ke === 'selesai') $color = 'success';
-                elseif ($log->status_ke === 'ditolak') $color = 'danger';
-
-                // Label bahasa Indonesia untuk status_ke
-                $statusLabel = match($log->status_ke) {
-                  'baru' => 'Baru',
-                  'diproses' => 'Diproses',
-                  'selesai' => 'Selesai',
-                  'ditolak' => 'Ditolak',
-                  default => ucfirst($log->status_ke)
-                };
-              @endphp
-              <li class="timeline-item timeline-item-transparent pb-4">
-                <span class="timeline-point timeline-point-{{ $color }}"></span>
-                <div class="timeline-event">
-                  <div class="timeline-header mb-1">
-                    <h6 class="mb-0 fw-bold text-{{ $color }}">{{ strtoupper($statusLabel) }}</h6>
-                    <small class="text-muted">{{ $log->created_at->translatedFormat('d M Y H:i') }} WIB</small>
-                  </div>
-                  <p class="mb-2 text-muted">{{ $log->catatan ?? 'Status pengaduan diubah.' }}</p>
-                  <div class="badge bg-label-secondary">Diubah oleh: {{ ucfirst($log->diubah_oleh) }}</div>
-                </div>
-              </li>
-            @empty
-              <li class="text-muted small">Belum ada riwayat perubahan status</li>
-            @endforelse
-          </ul>
-        </div>
+        <div class="pgd-empty__title">Detail Pengaduan</div>
+        <div class="pgd-empty__sub">Pilih salah satu pengaduan di sebelah kiri untuk melihat detail dan riwayat tindak lanjut.</div>
       </div>
-    @else
-      <div class="card">
-        <div class="card-body text-center py-5">
-          <div class="avatar avatar-lg mx-auto mb-3 bg-label-secondary" style="width: 80px; height: 80px;">
-            <i class="ti tabler-message-dots fs-1"></i>
-          </div>
-          <h5 class="fw-bold text-white">Detail Pengaduan</h5>
-          <p class="text-muted mx-auto" style="max-width: 320px;">Pilih salah satu pengaduan di sebelah kiri untuk melihat detail status dan riwayat tindak lanjut.</p>
-        </div>
-      </div>
-    @endif
-  </div>
+    </div>
+  @endif
+
 </div>
 
-<!-- Modal Create Pengaduan -->
-<div class="modal fade" id="modalCreatePengaduan" tabindex="-1" aria-labelledby="modalCreatePengaduanLabel" aria-hidden="true" data-bs-backdrop="static">
+{{-- ── MODAL BUAT PENGADUAN ──────────────────────────────────────────── --}}
+<div class="modal fade" id="modalCreatePengaduan" tabindex="-1"
+     aria-labelledby="modalCreatePengaduanLabel" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content border-0 shadow-lg">
-      <div class="modal-header border-bottom border-secondary-subtle justify-content-between align-items-center">
-        <h5 class="modal-title fw-bold text-white mb-0 d-flex align-items-center gap-2" id="modalCreatePengaduanLabel">
-          <i class="ti tabler-flag text-danger fs-4"></i> Buat Pengaduan Baru
+      <div class="modal-header">
+        <h5 class="modal-title d-flex align-items-center gap-2" id="modalCreatePengaduanLabel">
+          <i class="ti tabler-flag text-danger"></i> Buat Pengaduan Baru
         </h5>
-        <button type="button" class="btn-close btn-close-white m-0" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close btn-close-white m-0" data-bs-dismiss="modal" aria-label="Tutup"></button>
       </div>
       <div class="modal-body">
         <form id="pengaduanForm" novalidate>
@@ -367,10 +598,8 @@
               <label for="nama_lengkap" class="form-label">
                 <i class="ti tabler-user"></i> Nama Pelapor <span class="text-danger">*</span>
               </label>
-              <input type="text" class="form-control rounded-2" id="nama_lengkap" name="nama_lengkap"
-                     value="{{ auth()->user()->name }}" required
-                     readonly
-                     style="background-color: #0f172a !important; border-color: rgba(255,255,255,0.08) !important; color: #94a3b8 !important;">
+              <input type="text" class="form-control" id="nama_lengkap" name="nama_lengkap"
+                     value="{{ auth()->user()->name }}" required readonly>
               <div class="invalid-feedback" id="nama_lengkap-error">Nama pelapor wajib terisi</div>
             </div>
 
@@ -381,28 +610,29 @@
               </label>
               <div class="input-group">
                 <input type="tel" class="form-control" id="nomor_wa" name="nomor_wa"
-                       placeholder="08xxxxxxxxxx / 628xxxxxxxxxx" required
+                       placeholder="08xxxxxxxxxx" required
                        value="{{ auth()->user()->no_hp ?? '' }}"
                        autocomplete="tel" minlength="10" maxlength="16"
-                       style="border-top-left-radius: 4px !important; border-bottom-left-radius: 4px !important; border-top-right-radius: 0px !important; border-bottom-right-radius: 0px !important;">
-                <span class="input-group-text bg-0f172a border-start-0" id="waStatusIndicator" style="border: 1px solid rgba(255, 255, 255, 0.12) !important; background-color: #0f172a !important; color: #64748b; border-top-right-radius: 4px !important; border-bottom-right-radius: 4px !important; border-top-left-radius: 0px !important; border-bottom-left-radius: 0px !important;">
-                  <i class="ti tabler-brand-whatsapp text-muted" id="waStatusIcon"></i>
+                       style="border-radius:4px 0 0 4px !important;">
+                <span class="input-group-text" id="waStatusIndicator"
+                      style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-left:none;border-radius:0 4px 4px 0;color:rgba(255,255,255,0.3);">
+                  <i class="ti tabler-brand-whatsapp" id="waStatusIcon"></i>
                 </span>
               </div>
-              <div class="invalid-feedback d-block" id="nomor_wa-error" style="display: none !important;">Nomor WhatsApp harus diawali 08 atau 628 dan berisi 10-16 digit</div>
-              <div class="d-flex align-items-center gap-2 mt-2 py-2 px-3 mb-0" role="alert" style="background-color: rgba(37, 211, 102, 0.1) !important; border: 1px solid rgba(37, 211, 102, 0.2) !important; border-left: 3px solid #25D366 !important; border-radius: 4px !important;">
-                <i class="ti tabler-brand-whatsapp fs-5 flex-shrink-0" style="color: #25D366 !important;"></i>
-                <span class="small" style="color: #25D366 !important;">Nomor WA digunakan untuk menerima <strong style="color: #25D366 !important;">kode tracking</strong></span>
+              <div class="invalid-feedback d-block" id="nomor_wa-error" style="display:none !important;"></div>
+              <div class="pgd-wa-note">
+                <i class="ti tabler-brand-whatsapp"></i>
+                <span>Nomor WA untuk menerima <strong>kode tracking</strong> pengaduan</span>
               </div>
             </div>
           </div>
 
           {{-- Kategori --}}
-          <div class="mb-3.5 mb-md-4">
+          <div class="mb-3">
             <label for="kategori" class="form-label">
               <i class="ti tabler-category"></i> Kategori <span class="text-danger">*</span>
             </label>
-            <select class="form-select select2 rounded-2" id="kategori" name="kategori" required
+            <select class="form-select select2" id="kategori" name="kategori" required
                     data-placeholder="— Pilih Kategori Pengaduan —">
               <option value="">— Pilih Kategori Pengaduan —</option>
               <optgroup label="Ketidakvalidan Status Presensi">
@@ -425,27 +655,31 @@
           </div>
 
           {{-- Deskripsi --}}
-          <div class="mb-2">
+          <div class="mb-1">
             <label for="deskripsi" class="form-label">
               <i class="ti tabler-file-description"></i> Deskripsi Pengaduan <span class="text-danger">*</span>
             </label>
-            <textarea class="form-control rounded-2" id="deskripsi" name="deskripsi"
-                      placeholder="Jelaskan secara mendetail pengaduan atau kesalahan data yang ingin dilaporkan..." required
-                      minlength="10" maxlength="2000" style="min-height:130px; resize:vertical;"></textarea>
-            <div class="d-flex justify-content-between mt-1.5">
+            <textarea class="form-control" id="deskripsi" name="deskripsi"
+                      placeholder="Jelaskan secara mendetail pengaduan yang ingin dilaporkan..." required
+                      minlength="10" maxlength="2000" style="min-height:120px;resize:vertical;"></textarea>
+            <div class="d-flex justify-content-between mt-1">
               <div class="invalid-feedback d-inline" id="deskripsi-error">Deskripsi minimal 10 karakter</div>
-              <small id="deskripsiCountWrapper" class="ms-auto" style="color: #94a3b8; font-size: 0.8rem;"><span id="deskripsiCount">0</span>/2000</small>
+              <small id="deskripsiCountWrapper" class="ms-auto" style="color:rgba(255,255,255,0.3);">
+                <span id="deskripsiCount">0</span>/2000
+              </small>
             </div>
           </div>
         </form>
       </div>
-      <div class="modal-footer border-top border-secondary-subtle d-flex justify-content-end gap-2.5">
-        <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">
+      <div class="modal-footer d-flex justify-content-end">
+        <button type="button" class="pgd-modal-cancel" data-bs-dismiss="modal">
           <i class="ti tabler-x fs-6"></i> Batal
         </button>
-        <button type="submit" form="pengaduanForm" class="btn btn-modal-submit" id="submitBtn">
-          <span id="submitText" class="d-inline-flex align-items-center gap-1.5"><i class="ti tabler-send fs-6"></i> Kirim Pengaduan</span>
-          <span id="submitLoading" style="display:none;" class="align-items-center gap-1.5">
+        <button type="submit" form="pengaduanForm" class="pgd-modal-submit" id="submitBtn">
+          <span id="submitText" class="d-inline-flex align-items-center gap-1">
+            <i class="ti tabler-send fs-6"></i> Kirim Pengaduan
+          </span>
+          <span id="submitLoading" style="display:none;" class="d-inline-flex align-items-center gap-1">
             <span class="spinner-border spinner-border-sm" role="status"></span> Mengirim...
           </span>
         </button>
@@ -458,372 +692,216 @@
 @section('page-script')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  const form = document.getElementById('pengaduanForm');
-  const submitBtn = document.getElementById('submitBtn');
-  const submitText = document.getElementById('submitText');
+  const form          = document.getElementById('pengaduanForm');
+  const submitBtn     = document.getElementById('submitBtn');
+  const submitText    = document.getElementById('submitText');
   const submitLoading = document.getElementById('submitLoading');
-  const deskripsi = document.getElementById('deskripsi');
-  const deskripsiCount = document.getElementById('deskripsiCount');
-  
-  const modalCreatePengaduanEl = document.getElementById('modalCreatePengaduan');
+  const deskripsi     = document.getElementById('deskripsi');
+  const deskripsiCount= document.getElementById('deskripsiCount');
+
+  const modalEl = document.getElementById('modalCreatePengaduan');
   let modalInstance = null;
   if (typeof bootstrap !== 'undefined') {
-    modalInstance = bootstrap.Modal.getInstance(modalCreatePengaduanEl) || new bootstrap.Modal(modalCreatePengaduanEl);
+    modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
   }
 
-  // ── Inisialisasi Select2 untuk Kategori ──
+  // ── Select2 ──────────────────────────────────────────
   function initSelect2() {
     if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
-      const $kategori = jQuery('#kategori');
-      if ($kategori.length) {
-        $kategori.select2({
-          placeholder: $kategori.data('placeholder'),
-          dropdownParent: jQuery('#modalCreatePengaduan')
-        });
-
-        // Sinkronisasi dengan validasi JS
-        $kategori.on('change', function() {
-          validateField(this);
-        });
+      const $k = jQuery('#kategori');
+      if ($k.length) {
+        $k.select2({ placeholder: $k.data('placeholder'), dropdownParent: jQuery('#modalCreatePengaduan') });
+        $k.on('change', function() { validateField(this); });
       }
-    } else {
-      setTimeout(initSelect2, 50);
-    }
+    } else { setTimeout(initSelect2, 50); }
   }
+  document.readyState === 'complete' ? initSelect2() : window.addEventListener('load', initSelect2);
 
-  // Jalankan inisialisasi Select2 secara aman
-  if (document.readyState === 'complete') {
-    initSelect2();
-  } else {
-    window.addEventListener('load', initSelect2);
-  }
-
-  // helper untuk sinkronisasi value kategori jika select2 digunakan
   function getKategoriValue() {
-    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
-      return jQuery('#kategori').val();
-    }
-    return document.getElementById('kategori').value;
+    return (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined')
+      ? jQuery('#kategori').val()
+      : document.getElementById('kategori').value;
   }
-
-  // helper untuk trigger reset kategori select2
-  function resetKategoriSelect2() {
+  function resetKategori() {
     if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
       jQuery('#kategori').val('').trigger('change.select2');
-    } else {
-      document.getElementById('kategori').value = '';
-    }
+    } else { document.getElementById('kategori').value = ''; }
   }
 
-  // ── Character counter for deskripsi ──
+  // ── Char counter ──────────────────────────────────────
   if (deskripsi) {
     deskripsi.addEventListener('input', function() {
-      const len = this.value.length;
+      const len = Math.min(this.value.length, 2000);
+      if (this.value.length > 2000) this.value = this.value.substring(0, 2000);
       deskripsiCount.textContent = len;
-      if (len > 2000) {
-        this.value = this.value.substring(0, 2000);
-        deskripsiCount.textContent = 2000;
-      }
-      
-      const count = this.value.length;
       const wrapper = document.getElementById('deskripsiCountWrapper');
-      if (wrapper) {
-        if (count > 1950) {
-          wrapper.style.color = '#ea5455';
-        } else if (count > 1800) {
-          wrapper.style.color = '#ff9f43';
-        } else {
-          wrapper.style.color = '#94a3b8';
-        }
-      }
+      if (wrapper) wrapper.style.color = len > 1950 ? '#ea5455' : len > 1800 ? '#ff9f43' : 'rgba(255,255,255,0.3)';
     });
   }
 
-  // ── Validasi nomor WA Indonesia (format 08xx atau 628xx) ──
-  function isValidWA(number) {
-    const clean = number.replace(/\D/g, '');
-    return /^(08|628)[0-9]{8,14}$/.test(clean);
+  // ── WA Validation ────────────────────────────────────
+  function isValidWA(n) { return /^(08|628)[0-9]{8,14}$/.test(n.replace(/\D/g,'')); }
+
+  const waInput   = document.getElementById('nomor_wa');
+  const waInd     = document.getElementById('waStatusIndicator');
+  const waIcon    = document.getElementById('waStatusIcon');
+  const waError   = document.getElementById('nomor_wa-error');
+  let   waAbort   = null;
+
+  function setWaStatus(status, msg='') {
+    if (!waIcon || !waInd || !waInput || !waError) return;
+    const states = {
+      default:  { icon:'ti tabler-brand-whatsapp',       border:'rgba(255,255,255,0.1)', cls:'' },
+      loading:  { icon:'spinner-border spinner-border-sm text-primary', border:'rgba(255,255,255,0.1)', cls:'' },
+      valid:    { icon:'ti tabler-circle-check-filled text-success', border:'#28c76f', cls:'is-valid' },
+      invalid:  { icon:'ti tabler-circle-x-filled text-danger', border:'#ea5455', cls:'is-invalid' },
+    };
+    const s = states[status] || states.default;
+    waIcon.className = s.icon;
+    waInd.style.borderColor = s.border;
+    waInput.style.borderColor = s.border;
+    waInput.classList.remove('is-valid','is-invalid');
+    if (s.cls) waInput.classList.add(s.cls);
+    waError.textContent = msg;
+    waError.style.setProperty('display', status==='invalid' ? 'block' : 'none', 'important');
   }
-
-  // ── Elemen Status Indicator WA ──
-  const waInput = document.getElementById('nomor_wa');
-  const waStatusIndicator = document.getElementById('waStatusIndicator');
-  const waStatusIcon = document.getElementById('waStatusIcon');
-  const waError = document.getElementById('nomor_wa-error');
-
-  function setWaStatus(status, message = '') {
-    if (!waStatusIcon || !waStatusIndicator || !waInput || !waError) return;
-    
-    if (status === 'default') {
-      waStatusIcon.className = 'ti tabler-brand-whatsapp text-muted';
-      waStatusIndicator.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-      waInput.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-      waInput.classList.remove('is-valid', 'is-invalid');
-      waError.style.setProperty('display', 'none', 'important');
-    } else if (status === 'loading') {
-      waStatusIcon.className = 'spinner-border spinner-border-sm text-primary';
-      waStatusIndicator.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-      waInput.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-      waInput.classList.remove('is-valid', 'is-invalid');
-      waError.style.setProperty('display', 'none', 'important');
-    } else if (status === 'valid') {
-      waStatusIcon.className = 'ti tabler-circle-check-filled text-success';
-      waStatusIndicator.style.borderColor = '#28c76f';
-      waInput.style.borderColor = '#28c76f';
-      waInput.classList.remove('is-invalid');
-      waInput.classList.add('is-valid');
-      waError.style.setProperty('display', 'none', 'important');
-    } else if (status === 'invalid') {
-      waStatusIcon.className = 'ti tabler-circle-x-filled text-danger';
-      waStatusIndicator.style.borderColor = '#ea5455';
-      waInput.style.borderColor = '#ea5455';
-      waInput.classList.remove('is-valid');
-      waInput.classList.add('is-invalid');
-      if (message) {
-        waError.textContent = message;
-      } else {
-        waError.textContent = 'Nomor WhatsApp harus diawali 08 atau 628 dan berisi 10-16 digit';
-      }
-      waError.style.setProperty('display', 'block', 'important');
-    }
-  }
-
-  let checkingWaAbortController = null;
 
   async function checkWaApi(number) {
-    if (checkingWaAbortController) {
-      checkingWaAbortController.abort();
-    }
-    checkingWaAbortController = new AbortController();
-    const signal = checkingWaAbortController.signal;
-
-    setWaStatus('loading');
-    submitBtn.disabled = true;
-
+    if (waAbort) waAbort.abort();
+    waAbort = new AbortController();
+    setWaStatus('loading'); submitBtn.disabled = true;
     try {
-      const response = await fetch('/api/pengaduan/cek-wa?nomor_wa=' + encodeURIComponent(number), {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-        signal: signal
+      const r = await fetch('/api/pengaduan/cek-wa?nomor_wa='+encodeURIComponent(number), {
+        headers:{'Accept':'application/json'}, signal: waAbort.signal
       });
-
-      const result = await response.json();
-
-      if (response.ok && result.valid === true) {
-        setWaStatus('valid');
-        submitBtn.disabled = false;
-      } else {
-        const errorMsg = result.message || 'Nomor WhatsApp tidak terdaftar atau tidak aktif.';
-        setWaStatus('invalid', errorMsg);
-        submitBtn.disabled = false;
-      }
-    } catch (err) {
-      if (err.name === 'AbortError') return;
-      console.error('Gagal mengecek nomor WA:', err);
-      setWaStatus('invalid', 'Terjadi kesalahan saat memeriksa nomor WhatsApp.');
-      submitBtn.disabled = false;
-    }
-  }
-
-  // Trigger validasi real-time saat change atau blur
-  if (waInput) {
-    waInput.addEventListener('change', handleWaValidation);
-    waInput.addEventListener('blur', handleWaValidation);
+      const d = await r.json();
+      if (r.ok && d.valid === true) { setWaStatus('valid'); }
+      else { setWaStatus('invalid', d.message || 'Nomor tidak terdaftar atau tidak aktif.'); }
+    } catch(e) {
+      if (e.name === 'AbortError') return;
+      setWaStatus('invalid','Gagal memeriksa nomor WhatsApp.');
+    } finally { submitBtn.disabled = false; }
   }
 
   function handleWaValidation() {
     if (!waInput) return;
     const val = waInput.value.trim();
-    if (!val) {
-      setWaStatus('default');
-      return;
-    }
-
-    if (!isValidWA(val)) {
-      setWaStatus('invalid', 'Nomor WhatsApp harus diawali 08 atau 628 dan berisi 10-16 digit');
-      return;
-    }
-
+    if (!val) { setWaStatus('default'); return; }
+    if (!isValidWA(val)) { setWaStatus('invalid','Format nomor harus diawali 08 atau 628 (10–16 digit)'); return; }
     checkWaApi(val);
   }
 
-  // ── Validasi client-side per field ──
+  if (waInput) {
+    waInput.addEventListener('change', handleWaValidation);
+    waInput.addEventListener('blur', handleWaValidation);
+  }
+
+  // ── Per-field validation ──────────────────────────────
   function validateField(input) {
-    const field = input.id;
     let valid = true;
-
-    if (input.hasAttribute('required') && !input.value.trim()) {
-      valid = false;
-    }
-
-    if (field === 'kategori' && getKategoriValue() === '') {
-      valid = false;
-    }
-
+    if (input.hasAttribute('required') && !input.value.trim()) valid = false;
+    if (input.id === 'kategori' && getKategoriValue() === '') valid = false;
     const minLen = input.getAttribute('minlength');
-    if (valid && minLen && input.value.trim().length < parseInt(minLen)) {
-      valid = false;
+    if (valid && minLen && input.value.trim().length < parseInt(minLen)) valid = false;
+    if (input.id === 'nomor_wa') {
+      const v = input.value.trim();
+      if (!v || !isValidWA(v) || input.classList.contains('is-invalid')) valid = false;
     }
-
-    if (field === 'nomor_wa') {
-      const val = input.value.trim();
-      if (!val) {
-        valid = false;
-      } else if (!isValidWA(val)) {
-        valid = false;
-      } else if (input.classList.contains('is-invalid')) {
-        valid = false;
-      }
-    }
-
-    if (field !== 'nomor_wa') {
-      input.classList.toggle('is-invalid', !valid);
-    }
+    if (input.id !== 'nomor_wa') input.classList.toggle('is-invalid', !valid);
     return valid;
   }
 
-  // ── Real-time validation on blur & input ──
-  form.querySelectorAll('[required], #nomor_wa').forEach(input => {
-    if (input.id !== 'nomor_wa') {
-      input.addEventListener('blur', function() { validateField(this); });
-      input.addEventListener('input', function() {
-        if (this.classList.contains('is-invalid')) validateField(this);
-      });
+  form.querySelectorAll('[required], #nomor_wa').forEach(inp => {
+    if (inp.id !== 'nomor_wa') {
+      inp.addEventListener('blur', function() { validateField(this); });
+      inp.addEventListener('input', function() { if (this.classList.contains('is-invalid')) validateField(this); });
     } else {
-      input.addEventListener('input', function() {
-        if (this.classList.contains('is-invalid')) {
-          const val = this.value.trim();
-          if (isValidWA(val)) {
-            this.classList.remove('is-invalid');
-            waError.style.setProperty('display', 'none', 'important');
-          }
+      inp.addEventListener('input', function() {
+        if (this.classList.contains('is-invalid') && isValidWA(this.value.trim())) {
+          this.classList.remove('is-invalid');
+          waError.style.setProperty('display','none','important');
         }
       });
     }
   });
 
-  // ── Submit handler ──
+  // ── Submit ────────────────────────────────────────────
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
-
-    // Validate all fields
     let allValid = true;
-    const fields = form.querySelectorAll('[required], #nomor_wa');
-    fields.forEach(input => {
-      if (!validateField(input)) allValid = false;
-    });
-
+    form.querySelectorAll('[required], #nomor_wa').forEach(inp => { if (!validateField(inp)) allValid = false; });
     if (!allValid) {
-      const firstError = form.querySelector('.is-invalid');
-      if (firstError) {
-        firstError.focus();
-        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      const first = form.querySelector('.is-invalid');
+      if (first) { first.focus(); first.scrollIntoView({behavior:'smooth',block:'center'}); }
       return;
     }
 
-    // Show loading
     submitBtn.disabled = true;
     submitText.style.display = 'none';
-    submitLoading.style.display = 'inline';
+    submitLoading.style.display = 'inline-flex';
 
-    // Prepare data
-    const formData = new FormData(form);
     const data = {
-      nama_lengkap: formData.get('nama_lengkap').trim(),
-      status_pelapor: formData.get('status_pelapor'),
+      nama_lengkap: form.nama_lengkap.value.trim(),
+      status_pelapor: 'orang_tua',
       kategori: getKategoriValue(),
-      deskripsi: formData.get('deskripsi').trim(),
-      nomor_wa: formData.get('nomor_wa').trim(),
+      deskripsi: form.deskripsi.value.trim(),
+      nomor_wa: form.nomor_wa.value.trim(),
     };
 
     try {
-      const response = await fetch('/api/pengaduan', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-        },
+      const res = await fetch('/api/pengaduan', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Accept':'application/json',
+                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content},
         body: JSON.stringify(data),
       });
+      const result = await res.json();
 
-      const result = await response.json();
-
-      if (!response.ok) {
+      if (!res.ok) {
         if (result.errors) {
           const firstKey = Object.keys(result.errors)[0];
-          const fieldEl = document.getElementById(firstKey);
-          if (fieldEl) {
-            fieldEl.classList.add('is-invalid');
-            const errorEl = document.getElementById(firstKey + '-error');
-            if (errorEl) errorEl.textContent = result.errors[firstKey][0];
-            fieldEl.focus();
-            fieldEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          const el = document.getElementById(firstKey);
+          if (el) {
+            el.classList.add('is-invalid');
+            const errEl = document.getElementById(firstKey+'-error');
+            if (errEl) errEl.textContent = result.errors[firstKey][0];
+            el.focus(); el.scrollIntoView({behavior:'smooth',block:'center'});
           }
-          throw new Error(result.message || 'Validasi gagal');
         }
-        throw new Error(result.message || 'Terjadi kesalahan saat mengirim pengaduan');
+        throw new Error(result.message || 'Terjadi kesalahan');
       }
 
-      // Hide modal first
-      if (modalInstance) {
-        modalInstance.hide();
-      }
+      if (modalInstance) modalInstance.hide();
 
-      // Success Notification using SweetAlert2
-      const kodeUnik = result.kode_unik || (result.data && result.data.kode_unik) || '—';
+      const kode = result.kode_unik || (result.data && result.data.kode_unik) || '—';
       if (typeof Swal !== 'undefined') {
         Swal.fire({
-          icon: 'success',
-          title: 'Pengaduan Terkirim!',
-          html: `Pengaduan Anda telah terdaftar dengan kode:<br><strong class="fs-4 text-success">${kodeUnik}</strong><br><br><small class="text-muted">Kode tracking telah dikirim ke nomor WhatsApp Anda.</small>`,
-          confirmButtonColor: '#696cff',
-          confirmButtonText: 'OK',
-          customClass: {
-            popup: 'bg-1e293b text-white border-secondary-subtle',
-            title: 'text-white',
-            htmlContainer: 'text-muted'
-          }
-        }).then(() => {
-          window.location.reload();
-        });
+          icon:'success', title:'Pengaduan Terkirim!',
+          html:`Pengaduan terdaftar dengan kode:<br><strong class="fs-4 text-success">${kode}</strong><br><br><small class="text-muted">Kode tracking dikirim ke WhatsApp Anda.</small>`,
+          confirmButtonColor:'#7367f0', confirmButtonText:'OK',
+          background:'#111827', color:'#fff'
+        }).then(() => window.location.reload());
       } else {
-        alert('Pengaduan berhasil dikirim! Kode Tracking Anda: ' + kodeUnik);
+        alert('Berhasil! Kode Tracking: ' + kode);
         window.location.reload();
       }
 
-      // Reset form
-      form.reset();
-      resetKategoriSelect2();
+      form.reset(); resetKategori();
       form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
       if (deskripsiCount) deskripsiCount.textContent = '0';
 
-    } catch (error) {
+    } catch(err) {
       if (typeof Swal !== 'undefined') {
-        Swal.fire({
-          icon: 'error',
-          title: 'Gagal Mengirim Pengaduan',
-          text: error.message || 'Terjadi kesalahan saat memproses pengaduan Anda. Silakan coba lagi.',
-          confirmButtonColor: '#696cff',
-          confirmButtonText: 'Coba Lagi'
-        });
-      } else {
-        alert('Gagal: ' + (error.message || 'Terjadi kesalahan. Silakan coba lagi.'));
-      }
+        Swal.fire({icon:'error',title:'Gagal Mengirim',text:err.message||'Terjadi kesalahan. Coba lagi.',confirmButtonColor:'#7367f0',background:'#111827',color:'#fff'});
+      } else { alert('Gagal: '+(err.message||'Error')); }
     } finally {
       submitBtn.disabled = false;
-      submitText.style.display = 'inline';
+      submitText.style.display = 'inline-flex';
       submitLoading.style.display = 'none';
     }
   });
 
-  // Pre-validate or check prefilled WA if valid
-  if (waInput && waInput.value.trim()) {
-    handleWaValidation();
-  }
+  if (waInput && waInput.value.trim()) handleWaValidation();
 });
 </script>
 @endsection
