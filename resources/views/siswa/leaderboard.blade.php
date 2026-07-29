@@ -203,7 +203,7 @@
           <th>NAMA SISWA</th>
           <th style="width:120px;">KELAS</th>
           <th class="text-center" style="width:90px;">HADIR</th>
-          <th class="text-center" style="width:110px;">RATA2 MASUK</th>
+          <th class="text-center" style="width:120px;">RATA2 MASUK</th>
           <th class="text-center" style="width:80px;">SKOR</th>
           <th class="text-center" style="width:110px;">BADGE</th>
         </tr>

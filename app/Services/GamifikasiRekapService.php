@@ -223,7 +223,7 @@ class GamifikasiRekapService
                 ? (int) round($stats->avg_jam_masuk_sec)
                 : null;
 
-            $avgJamMasukFormatted = $avgSec !== null ? gmdate('H:i', $avgSec) : '-';
+            $avgJamMasukFormatted = $avgSec !== null ? gmdate('H:i:s', $avgSec) : '-';
 
             return [
                 'siswa_id'                => $siswa->id,
