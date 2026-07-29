@@ -284,9 +284,10 @@ class AbsensiKegiatanController extends Controller
     public function rekap(Request $request)
     {
         $kegiatanId = $request->kegiatan_id;
-        $jurusan = $request->jurusan;
+        $jurusan    = $request->jurusan;
+        $tanggal    = $request->tanggal;
 
-        $logs = AbsensiKegiatan::with(['siswa.kelas', 'kegiatan'])
+        $logs = AbsensiKegiatan::with(['siswa.kelas.jurusan', 'kegiatan'])
             ->when($kegiatanId, function($q) use ($kegiatanId) {
                 return $q->where('kegiatan_id', $kegiatanId);
             })
@@ -295,7 +296,10 @@ class AbsensiKegiatanController extends Controller
                     $qj->where('nama', $jurusan);
                 });
             })
-            ->latest()
+            ->when($tanggal, function($q) use ($tanggal) {
+                return $q->whereDate('tanggal_absen', $tanggal);
+            })
+            ->latest('id')
             ->paginate(20);
 
         $kegiatans = Kegiatan::latest()->get();

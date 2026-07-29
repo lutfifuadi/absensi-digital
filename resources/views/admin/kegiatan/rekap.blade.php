@@ -137,12 +137,12 @@
     <div class="das-panel__head">
       <div class="das-panel__title">
         <span class="das-panel__icon-dot" style="background:var(--das-info);box-shadow:0 0 6px var(--das-info);"></span>
-        Filter Agenda & Jurusan
+        Filter Agenda, Jurusan & Tanggal
       </div>
     </div>
     <div class="das-panel__body">
       <form action="{{ route('admin.absensi-kegiatan.rekap') }}" method="GET" class="row g-3 align-items-end">
-        <div class="col-md-5">
+        <div class="col-md-4">
           <label class="das-form-label">Filter Berdasarkan Agenda</label>
           <select name="kegiatan_id" class="form-select das-form-control">
             <option value="">-- Tampilkan Semua Riwayat --</option>
@@ -153,10 +153,10 @@
             @endforeach
           </select>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label class="das-form-label">Filter Berdasarkan Jurusan</label>
           <select name="jurusan" class="form-select das-form-control">
-            <option value="">-- Tampilkan Semua Jurusan --</option>
+            <option value="">-- Semua Jurusan --</option>
             @foreach($jurusanList as $jur)
               <option value="{{ $jur }}" {{ request('jurusan') == $jur ? 'selected' : '' }}>
                 {{ $jur }}
@@ -165,6 +165,10 @@
           </select>
         </div>
         <div class="col-md-3">
+          <label class="das-form-label">Filter Tanggal Absen</label>
+          <input type="date" name="tanggal" value="{{ request('tanggal') }}" class="form-control das-form-control">
+        </div>
+        <div class="col-md-2">
           <button type="submit" class="das-btn das-btn--primary w-100">
             <i class="ti tabler-search"></i> Cari Data
           </button>
@@ -187,6 +191,9 @@
         @if(request('jurusan'))
           <span class="das-chip das-chip--primary">Jurusan: {{ request('jurusan') }}</span>
         @endif
+        @if(request('tanggal'))
+          <span class="das-chip das-chip--warning">Tgl: {{ \Carbon\Carbon::parse(request('tanggal'))->format('d/m/Y') }}</span>
+        @endif
       </div>
     </div>
 
@@ -197,7 +204,7 @@
             <th>Identitas Siswa</th>
             <th>Rombel/Kelas</th>
             <th>Nama Agenda</th>
-            <th class="text-center">Waktu Scan</th>
+            <th class="text-center">Tanggal & Waktu Scan</th>
             <th class="text-center">Status</th>
           </tr>
         </thead>
@@ -205,26 +212,32 @@
           @forelse($logs as $log)
           <tr>
             <td>
-              <div class="fw-bold text-white" style="font-size:.85rem;">{{ $log->siswa->nama }}</div>
+              <div class="fw-bold text-white" style="font-size:.85rem;">{{ $log->siswa->nama_lengkap ?? $log->siswa->nama }}</div>
               <div style="color:#888;font-size:.7rem;">NIS: {{ $log->siswa->nis }}</div>
             </td>
             <td>
-              <div style="display:flex;align-items:center;gap:6px;color:#999;font-size:.78rem;">
+              <div style="display:flex;align-items:center;gap:6px;color:#ccc;font-size:.78rem;">
                 <i class="ti tabler-door" style="font-size:.85rem;"></i>
-                {{ $log->siswa->kelas->nama }}
+                {{ $log->siswa->kelas?->nama ?? '-' }}
               </div>
             </td>
             <td>
-              <span class="das-chip das-chip--primary">{{ $log->kegiatan->nama_kegiatan }}</span>
+              <span class="das-chip das-chip--primary">{{ $log->kegiatan?->nama_kegiatan ?? '-' }}</span>
             </td>
             <td class="text-center">
-              <div style="display:flex;align-items:center;justify-content:center;gap:6px;color:#ccc;font-size:.82rem;">
-                <i class="ti tabler-clock-play" style="color:var(--das-success);font-size:.9rem;"></i>
-                {{ is_string($log->jam_absen) ? $log->jam_absen : ($log->jam_absen?->format('H:i:s') ?? '-') }}
+              <div style="display:flex;flex-direction:column;align-items:center;gap:2px;color:#ccc;font-size:.82rem;">
+                <div>
+                  <i class="ti tabler-calendar-event me-1" style="color:var(--das-info);font-size:.85rem;"></i>
+                  {{ $log->tanggal_absen ? \Carbon\Carbon::parse($log->tanggal_absen)->translatedFormat('d M Y') : ($log->created_at ? $log->created_at->translatedFormat('d M Y') : '-') }}
+                </div>
+                <div style="font-size:.75rem;color:#999;">
+                  <i class="ti tabler-clock-play me-1" style="color:var(--das-success);font-size:.8rem;"></i>
+                  {{ is_string($log->jam_absen) ? $log->jam_absen : ($log->jam_absen?->format('H:i:s') ?? '-') }}
+                </div>
               </div>
             </td>
             <td class="text-center">
-              <span class="das-chip das-chip--success">Hadir</span>
+              <span class="das-chip das-chip--success">{{ strtoupper($log->status ?? 'HADIR') }}</span>
             </td>
           </tr>
           @empty
