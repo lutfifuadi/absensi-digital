@@ -87,11 +87,11 @@
   /* ── FILTER TABS ──────────────────────────────────────── */
   .abs-filter-bar {
     display: flex; align-items: center;
-    justify-content: space-between; flex-wrap: nowrap;
-    gap: 0.75rem; margin-bottom: 0;
+    justify-content: flex-end; flex-wrap: nowrap;
+    gap: 0.6rem; margin-bottom: 0;
   }
   @media (max-width: 576px) {
-    .abs-filter-bar { flex-wrap: wrap; }
+    .abs-filter-bar { flex-wrap: wrap; justify-content: flex-end; }
     .abs-tabs { flex-wrap: wrap; }
   }
   .abs-tabs {
