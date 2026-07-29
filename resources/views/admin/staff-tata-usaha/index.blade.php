@@ -732,11 +732,12 @@
             showCancelButton: true,
             confirmButtonText: 'Ya, Format Sekarang',
             cancelButtonText: 'Batal',
+            reverseButtons: true,
             customClass: {
               popup: 'das-swal-popup',
               title: 'das-swal-title',
               htmlContainer: 'das-swal-html',
-              confirmButton: 'btn btn-success das-swal-confirm me-2',
+              confirmButton: 'btn btn-success das-swal-confirm ms-2',
               cancelButton: 'btn das-swal-cancel',
               icon: 'das-swal-icon'
             },
