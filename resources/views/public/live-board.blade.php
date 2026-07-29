@@ -743,6 +743,30 @@
         </div>
       </div>
 
+      <!-- Separate Breakdown per Role (Siswa, Guru, Staff TU) -->
+      <div class="role-stat-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; width: 100%; margin-bottom: 0.75rem; padding: 0 0.25rem;">
+        <div class="role-stat-card" style="background: rgba(115, 103, 240, 0.08); border: 1px solid rgba(115, 103, 240, 0.25); border-radius: 8px; padding: 0.5rem 0.4rem; text-align: center; backdrop-filter: blur(4px);">
+          <div style="font-size: 0.68rem; color: #a78bfa; font-weight: 800; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">🎓 Siswa</div>
+          <div style="font-size: 1.1rem; font-weight: 900; color: #fff; font-family: 'Courier New', monospace; letter-spacing: -0.5px;">
+            <span id="s-siswa-hadir" style="color: #7367f0;">{{ $stats['siswa_hadir'] ?? 0 }}</span><span style="font-size: 0.75rem; color: var(--muted); opacity: 0.8;">/</span><span id="s-siswa-total" style="font-size: 0.8rem; color: var(--muted);">{{ $stats['siswa_total'] ?? 0 }}</span>
+          </div>
+        </div>
+
+        <div class="role-stat-card" style="background: rgba(40, 199, 111, 0.08); border: 1px solid rgba(40, 199, 111, 0.25); border-radius: 8px; padding: 0.5rem 0.4rem; text-align: center; backdrop-filter: blur(4px);">
+          <div style="font-size: 0.68rem; color: #28c76f; font-weight: 800; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">👨‍🏫 Guru</div>
+          <div style="font-size: 1.1rem; font-weight: 900; color: #fff; font-family: 'Courier New', monospace; letter-spacing: -0.5px;">
+            <span id="s-guru-hadir" style="color: #28c76f;">{{ $stats['guru_hadir'] ?? 0 }}</span><span style="font-size: 0.75rem; color: var(--muted); opacity: 0.8;">/</span><span id="s-guru-total" style="font-size: 0.8rem; color: var(--muted);">{{ $stats['guru_total'] ?? 0 }}</span>
+          </div>
+        </div>
+
+        <div class="role-stat-card" style="background: rgba(0, 207, 232, 0.08); border: 1px solid rgba(0, 207, 232, 0.25); border-radius: 8px; padding: 0.5rem 0.4rem; text-align: center; backdrop-filter: blur(4px);">
+          <div style="font-size: 0.68rem; color: #00cfe8; font-weight: 800; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">💼 Staff TU</div>
+          <div style="font-size: 1.1rem; font-weight: 900; color: #fff; font-family: 'Courier New', monospace; letter-spacing: -0.5px;">
+            <span id="s-staff-hadir" style="color: #00cfe8;">{{ $stats['staff_hadir'] ?? 0 }}</span><span style="font-size: 0.75rem; color: var(--muted); opacity: 0.8;">/</span><span id="s-staff-total" style="font-size: 0.8rem; color: var(--muted);">{{ $stats['staff_total'] ?? 0 }}</span>
+          </div>
+        </div>
+      </div>
+
       <div class="stat-chips" id="stat-chips">
         @if($mode === 'pulang')
           <div class="stat-chip"><span class="dot" style="background:var(--success)"></span> Pulang: <strong id="s-hadir">{{ $stats['hadir'] }}</strong></div>
@@ -1048,7 +1072,13 @@ async function refreshLeaderboard() {
         's-izin': data.stats.izin ?? 0,
         's-alpha': data.stats.alpha ?? 0,
         's-terlambat': data.stats.terlambat ?? 0,
-        's-remaining': data.stats.remaining ?? 0
+        's-remaining': data.stats.remaining ?? 0,
+        's-siswa-hadir': data.stats.siswa_hadir ?? 0,
+        's-siswa-total': data.stats.siswa_total ?? 0,
+        's-guru-hadir': data.stats.guru_hadir ?? 0,
+        's-guru-total': data.stats.guru_total ?? 0,
+        's-staff-hadir': data.stats.staff_hadir ?? 0,
+        's-staff-total': data.stats.staff_total ?? 0
       };
       for (const [id, val] of Object.entries(statsMap)) {
         const el = document.getElementById(id);

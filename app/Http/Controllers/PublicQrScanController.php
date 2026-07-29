@@ -1340,9 +1340,16 @@ class PublicQrScanController extends Controller
             $awal    = $sortedAwal->slice(0, 10);
             $terbaru = $sortedTerbaru->slice(0, 10);
 
-            $totalCivitas = Cache::remember('total_civitas_count', now()->addMinutes(10), function () {
-                return Siswa::count() + Guru::count() + StaffTataUsaha::count();
+            $totalSiswa = Cache::remember('total_siswa_count', now()->addMinutes(10), function () {
+                return Siswa::count();
             });
+            $totalGuru = Cache::remember('total_guru_count', now()->addMinutes(10), function () {
+                return Guru::count();
+            });
+            $totalStaff = Cache::remember('total_staff_count', now()->addMinutes(10), function () {
+                return StaffTataUsaha::count();
+            });
+            $totalCivitas = $totalSiswa + $totalGuru + $totalStaff;
 
             if ($mode === 'pulang') {
                 $checkedOutSiswa = AbsensiSiswa::whereDate('tanggal', $today)->whereNotNull('jam_pulang')->count();
@@ -1353,14 +1360,20 @@ class PublicQrScanController extends Controller
                 $remaining = max(0, $totalCivitas - $checkedOutTotal);
 
                 $stats = [
-                    'hadir'     => $checkedOutTotal,
-                    'sakit'     => 0,
-                    'izin'      => 0,
-                    'alpha'     => 0,
-                    'terlambat' => 0,
-                    'total'     => $totalCivitas,
-                    'pulang'    => $checkedOutTotal,
-                    'remaining' => $remaining,
+                    'hadir'       => $checkedOutTotal,
+                    'sakit'       => 0,
+                    'izin'        => 0,
+                    'alpha'       => 0,
+                    'terlambat'   => 0,
+                    'total'       => $totalCivitas,
+                    'pulang'      => $checkedOutTotal,
+                    'remaining'   => $remaining,
+                    'siswa_hadir' => $checkedOutSiswa,
+                    'siswa_total' => $totalSiswa,
+                    'guru_hadir'  => $checkedOutGuru,
+                    'guru_total'  => $totalGuru,
+                    'staff_hadir' => $checkedOutStaff,
+                    'staff_total' => $totalStaff,
                 ];
             } else {
                 $siswaStats = AbsensiSiswa::whereDate('tanggal', $today)
@@ -1381,9 +1394,11 @@ class PublicQrScanController extends Controller
                     ->pluck('total', 'status')
                     ->toArray();
 
-                $hadirCount = ($siswaStats['hadir'] ?? 0) + ($siswaStats['terlambat'] ?? 0)
-                            + ($guruStats['hadir'] ?? 0)  + ($guruStats['terlambat'] ?? 0)
-                            + ($staffStats['hadir'] ?? 0) + ($staffStats['terlambat'] ?? 0);
+                $siswaHadir = ($siswaStats['hadir'] ?? 0) + ($siswaStats['terlambat'] ?? 0);
+                $guruHadir  = ($guruStats['hadir'] ?? 0)  + ($guruStats['terlambat'] ?? 0);
+                $staffHadir = ($staffStats['hadir'] ?? 0) + ($staffStats['terlambat'] ?? 0);
+
+                $hadirCount = $siswaHadir + $guruHadir + $staffHadir;
 
                 $sakitCount = ($siswaStats['sakit'] ?? 0) + ($guruStats['sakit'] ?? 0) + ($staffStats['sakit'] ?? 0);
                 $izinCount  = ($siswaStats['izin'] ?? 0)  + ($guruStats['izin'] ?? 0)  + ($staffStats['izin'] ?? 0);
@@ -1391,12 +1406,18 @@ class PublicQrScanController extends Controller
                 $terlambatCount = ($siswaStats['terlambat'] ?? 0) + ($guruStats['terlambat'] ?? 0) + ($staffStats['terlambat'] ?? 0);
 
                 $stats = [
-                    'hadir'    => $hadirCount,
-                    'sakit'    => $sakitCount,
-                    'izin'     => $izinCount,
-                    'alpha'    => $alphaCount,
-                    'terlambat'=> $terlambatCount,
-                    'total'    => $totalCivitas,
+                    'hadir'       => $hadirCount,
+                    'sakit'       => $sakitCount,
+                    'izin'        => $izinCount,
+                    'alpha'       => $alphaCount,
+                    'terlambat'   => $terlambatCount,
+                    'total'       => $totalCivitas,
+                    'siswa_hadir' => $siswaHadir,
+                    'siswa_total' => $totalSiswa,
+                    'guru_hadir'  => $guruHadir,
+                    'guru_total'  => $totalGuru,
+                    'staff_hadir' => $staffHadir,
+                    'staff_total' => $totalStaff,
                 ];
             }
 
