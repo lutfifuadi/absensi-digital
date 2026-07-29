@@ -4,7 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use App\Observers\AbsensiGuruObserver;
 
+#[ObservedBy(AbsensiGuruObserver::class)]
 class AbsensiGuru extends Model
 {
     use HasFactory;

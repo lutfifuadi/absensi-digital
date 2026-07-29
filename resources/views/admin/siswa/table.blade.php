@@ -51,7 +51,7 @@
               </div>
               <div>
                 <div class="fw-bold mb-0" style="font-size:0.9rem;">{{ $item->nama_lengkap }}</div>
-                <div class="text-white-50 small" style="font-size:0.72rem;">{{ $item->no_hp ?? 'No HP -' }}</div>
+                <div class="text-white-50 small" style="font-size:0.72rem;">NIS: {{ $item->nis ?: '-' }}</div>
               </div>
             </div>
           </td>

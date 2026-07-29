@@ -345,6 +345,118 @@ Anda juga bisa mengunjungi link pengaduan publik kami:
 {link_pengaduan}
 EOS,
             ],
+            'guru_hadir_masuk' => [
+                'label' => 'Presensi Guru — Hadir Tepat Waktu',
+                'content' => <<<'EOS'
+Bismillah…
+Assalamualaikum warahmatullahi wabarakatuh
+
+Yth. Bapak/Ibu *{nama}* ({nip}).
+Kami informasikan bahwa presensi *KEHADIRAN* Anda di {lembaga} telah berhasil dicatat:
+
+📅 *Hari/Tanggal*: {hari}, {tanggal}
+⏰ *Jam Datang*: {jam} WIB
+📊 *Status*: ✅ {status}
+
+Terima kasih atas kedisiplinan dan dedikasi luar biasa Bapak/Ibu dalam mendidik di {lembaga}. Selamat beraktivitas dan mengajar!
+
+Wassalamualaikum warahmatullahi wabarakatuh
+*Admin Presensi {lembaga}*
+EOS,
+            ],
+            'guru_terlambat_masuk' => [
+                'label' => 'Presensi Guru — Hadir Terlambat',
+                'content' => <<<'EOS'
+Bismillah…
+Assalamualaikum warahmatullahi wabarakatuh
+
+Yth. Bapak/Ibu *{nama}* ({nip}).
+Kami informasikan data presensi kehadiran Anda di {lembaga}:
+
+📅 *Hari/Tanggal*: {hari}, {tanggal}
+⏰ *Jam Datang*: {jam} WIB
+📊 *Status*: ⚠️ {status}
+
+Terima kasih atas kehadiran Bapak/Ibu. Tetap semangat dalam mengabdi dan menjalankan tugas mulia di {lembaga}.
+
+Wassalamualaikum warahmatullahi wabarakatuh
+*Admin Presensi {lembaga}*
+EOS,
+            ],
+            'guru_sakit_masuk' => [
+                'label' => 'Presensi Guru — Izin Sakit',
+                'content' => <<<'EOS'
+Bismillah…
+Assalamualaikum warahmatullahi wabarakatuh
+
+Yth. Bapak/Ibu *{nama}* ({nip}).
+Catatan presensi Anda di {lembaga}:
+
+📅 *Hari/Tanggal*: {hari}, {tanggal}
+📊 *Status*: 🤒 {status}
+📝 *Keterangan*: {keterangan}
+
+Segenap keluarga besar {lembaga} mendoakan semoga Bapak/Ibu segera diberikan kesembuhan dan pulih kembali.
+
+Wassalamualaikum warahmatullahi wabarakatuh
+*Admin Presensi {lembaga}*
+EOS,
+            ],
+            'guru_izin_masuk' => [
+                'label' => 'Presensi Guru — Izin Keperluan',
+                'content' => <<<'EOS'
+Bismillah…
+Assalamualaikum warahmatullahi wabarakatuh
+
+Yth. Bapak/Ibu *{nama}* ({nip}).
+Catatan presensi izin Anda di {lembaga}:
+
+📅 *Hari/Tanggal*: {hari}, {tanggal}
+📊 *Status*: 📝 {status}
+📝 *Keterangan*: {keterangan}
+
+Terima kasih atas konfirmasi dan informasinya. Semoga segala urusan Bapak/Ibu diberikan kelancaran.
+
+Wassalamualaikum warahmatullahi wabarakatuh
+*Admin Presensi {lembaga}*
+EOS,
+            ],
+            'guru_alpha_masuk' => [
+                'label' => 'Presensi Guru — Tidak Hadir (Alpha)',
+                'content' => <<<'EOS'
+Bismillah…
+Assalamualaikum warahmatullahi wabarakatuh
+
+Yth. Bapak/Ibu *{nama}* ({nip}).
+Informasi catatan presensi Anda di {lembaga}:
+
+📅 *Hari/Tanggal*: {hari}, {tanggal}
+📊 *Status*: ❌ {status}
+
+Apabila terdapat kekeliruan data atau kendala sistem presensi, silakan hubungi bagian piket/admin sekolah.
+
+Wassalamualaikum warahmatullahi wabarakatuh
+*Admin Presensi {lembaga}*
+EOS,
+            ],
+            'guru_pulang' => [
+                'label' => 'Presensi Guru — Informasi Kepulangan',
+                'content' => <<<'EOS'
+Bismillah…
+Assalamualaikum warahmatullahi wabarakatuh
+
+Yth. Bapak/Ibu *{nama}* ({nip}).
+Informasi kepulangan Anda dari {lembaga}:
+
+📅 *Hari/Tanggal*: {hari}, {tanggal}
+⏰ *Jam Kepulangan*: {jam} WIB
+
+Terima kasih yang sebesar-besarnya atas ilmu dan pengabdian Bapak/Ibu hari ini. Semoga selamat sampai di rumah dan selamat beristirahat.
+
+Wassalamualaikum warahmatullahi wabarakatuh
+*Admin Presensi {lembaga}*
+EOS,
+            ],
         ];
 
         foreach ($templates as $type => $data) {
