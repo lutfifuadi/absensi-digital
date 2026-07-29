@@ -163,17 +163,23 @@ class PublicKegiatanController extends Controller
             ], 403);
         }
 
-        // Cek apakah siswa sudah melakukan absensi untuk kegiatan ini
+        $today = Carbon::today();
+
+        // Cek apakah siswa sudah melakukan absensi untuk kegiatan ini HARI INI
         $already = AbsensiKegiatan::where('kegiatan_id', $request->kegiatan_id)
             ->where('siswa_id', $siswa->id)
+            ->whereDate('tanggal_absen', $today)
             ->exists();
 
         if ($already) {
-            $totalHadir = AbsensiKegiatan::where('kegiatan_id', $request->kegiatan_id)->count();
+            $totalHadir = AbsensiKegiatan::where('kegiatan_id', $request->kegiatan_id)
+                ->whereDate('tanggal_absen', $today)
+                ->distinct('siswa_id')
+                ->count();
             return response()->json([
                 'success' => false,
                 'is_new' => false,
-                'message' => 'Siswa sudah melakukan absensi pada kegiatan ini.',
+                'message' => 'Siswa ' . $siswa->nama_lengkap . ' sudah melakukan absensi kegiatan ini hari ini.',
                 'siswa_nama' => $siswa->nama_lengkap,
                 'siswa_kelas' => $siswa->kelas?->nama ?? '-',
                 'total_hadir' => $totalHadir
@@ -182,13 +188,17 @@ class PublicKegiatanController extends Controller
 
         // Catat kehadiran
         AbsensiKegiatan::create([
-            'kegiatan_id' => $request->kegiatan_id,
-            'siswa_id' => $siswa->id,
-            'jam_absen' => now(),
-            'status' => 'hadir',
+            'kegiatan_id'   => $request->kegiatan_id,
+            'siswa_id'      => $siswa->id,
+            'tanggal_absen' => $today,
+            'jam_absen'     => now()->format('H:i:s'),
+            'status'        => 'hadir',
         ]);
 
-        $totalHadir = AbsensiKegiatan::where('kegiatan_id', $request->kegiatan_id)->count();
+        $totalHadir = AbsensiKegiatan::where('kegiatan_id', $request->kegiatan_id)
+            ->whereDate('tanggal_absen', $today)
+            ->distinct('siswa_id')
+            ->count();
 
         return response()->json([
             'success' => true,

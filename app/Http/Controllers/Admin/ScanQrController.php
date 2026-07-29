@@ -234,21 +234,24 @@ class ScanQrController extends Controller
             return ['error' => 'QR code siswa tidak dikenal. Pastikan QR code valid.'];
         }
 
+        $today = Carbon::today();
+
         $already = AbsensiKegiatan::where('kegiatan_id', $kegiatan->id)
             ->where('siswa_id', $siswa->id)
-            ->whereDate('jam_absen', today())
+            ->whereDate('tanggal_absen', $today)
             ->exists();
 
         if ($already) {
-            return ['error' => 'Siswa sudah melakukan absensi kegiatan ini.'];
+            return ['error' => 'Siswa ' . $siswa->nama_lengkap . ' sudah melakukan absensi kegiatan ini hari ini.'];
         }
 
         AbsensiKegiatan::create([
-            'kegiatan_id' => $kegiatan->id,
-            'siswa_id' => $siswa->id,
-            'jam_absen' => now(),
-            'status' => 'HADIR',
-            'keterangan' => 'Absensi kegiatan khusus via Admin QR',
+            'kegiatan_id'   => $kegiatan->id,
+            'siswa_id'      => $siswa->id,
+            'tanggal_absen' => $today,
+            'jam_absen'     => now()->format('H:i:s'),
+            'status'        => 'hadir',
+            'keterangan'    => 'Absensi kegiatan khusus via Admin QR',
         ]);
 
         return ['success' => 'Absensi kegiatan ' . $kegiatan->nama . ' untuk ' . $siswa->nama_lengkap . ' berhasil dicatat.'];
