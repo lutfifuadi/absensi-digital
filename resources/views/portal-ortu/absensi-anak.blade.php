@@ -178,10 +178,26 @@
 
   @media (max-width: 576px) {
     .das-table thead th,
-    .das-table tbody td { padding: 0.6rem 0.65rem; font-size: 0.75rem; }
+    .das-table tbody td { padding: 0.55rem 0.6rem; font-size: 0.73rem; }
     .abs-stat-card__val { font-size: 1.25rem; }
     .abs-stat-card--avg .abs-stat-card__val { font-size: 1.5rem; }
+    /* Sembunyikan kolom Metode di hp kecil */
+    .abs-col-metode { display: none; }
   }
+  @media (max-width: 400px) {
+    /* Sembunyikan jam pulang juga di hp sangat kecil */
+    .abs-col-pulang { display: none; }
+  }
+
+  /* ── KOLOM RESPONSIF ─────────────────────────────────── */
+  /* Tanggal: auto tapi dengan min agar tidak terlalu sempit */
+  .das-table col.col-tanggal  { width: 28%; }
+  .das-table col.col-masuk    { width: 16%; }
+  .das-table col.col-pulang   { width: 16%; }
+  .das-table col.col-status   { width: 18%; }
+  .das-table col.col-metode   { width: 22%; }
+  /* cell overflow control */
+  .das-table th, .das-table td { overflow: hidden; text-overflow: ellipsis; }
 </style>
 @endsection
 
@@ -314,13 +330,20 @@
   {{-- Table --}}
   <div class="abs-table-wrap">
     <table class="das-table">
+      <colgroup>
+        <col class="col-tanggal">
+        <col class="col-masuk">
+        <col class="col-pulang abs-col-pulang">
+        <col class="col-status">
+        <col class="col-metode abs-col-metode">
+      </colgroup>
       <thead>
         <tr>
           <th>Tanggal</th>
           <th><i class="ti tabler-clock-hour-4 me-1" style="opacity:.6;"></i>Jam Masuk</th>
-          <th>Jam Pulang</th>
-          <th class="text-center" style="width:120px;">Status</th>
-          <th>Metode</th>
+          <th class="abs-col-pulang">Jam Pulang</th>
+          <th class="text-center">Status</th>
+          <th class="abs-col-metode">Metode</th>
         </tr>
       </thead>
       <tbody id="absensiBody">
@@ -462,11 +485,11 @@ async function loadAbsensi() {
         <tr>
           <td class="fw-semibold text-white">${tanggal}</td>
           <td><span class="abs-jam ${jamClass}">${jamMasuk}</span></td>
-          <td><span class="abs-jam" style="color:rgba(255,255,255,.5);">${jamPulang}</span></td>
+          <td class="abs-col-pulang"><span class="abs-jam" style="color:rgba(255,255,255,.5);">${jamPulang}</span></td>
           <td class="text-center">
             <span class="badge ${statusBadge} px-2 py-1 text-uppercase" style="font-size:.72rem;letter-spacing:.3px;">${statusText}</span>
           </td>
-          <td><small class="text-muted">${metodeIcon}</small></td>
+          <td class="abs-col-metode"><small class="text-muted">${metodeIcon}</small></td>
         </tr>`;
     }).join('');
 
