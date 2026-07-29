@@ -133,12 +133,13 @@ class PublicQrScanController extends Controller
         $siswaLookup = Siswa::where('qr_code', $qrCode)->first();
         if ($siswaLookup && $siswaLookup->kelas_id) {
             $jadwalKelas = \App\Helpers\JadwalAbsensiHelper::getJadwalForKelas($siswaLookup->kelas_id);
-            $jamMulaiAbsensi = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_mulai_absensi']) ?? $jamMulaiAbsensi;
-            $jamMasuk        = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_masuk']) ?? $jamMasuk;
-            $jamPulang       = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_pulang']) ?? $jamPulang;
-            $jamAkhirPulang  = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_akhir_pulang']) ?? $jamAkhirPulang;
-            $jamMulaiPulang  = $jamPulang;
-            $jamBatasMasuk   = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['batas_jam_masuk']) ?? \Carbon\Carbon::parse($jamMasuk)->addMinutes($toleransi)->format('H:i');
+            $jamMulaiAbsensi   = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_mulai_absensi']) ?? $jamMulaiAbsensi;
+            $jamMasuk          = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_masuk']) ?? $jamMasuk;
+            $jamPulang         = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_pulang']) ?? $jamPulang;
+            $jamAkhirPulang    = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_akhir_pulang']) ?? $jamAkhirPulang;
+            $jamMulaiPulangCfg = $settings['jam_mulai_pulang'] ?? '14:00';
+            $jamMulaiPulang    = ($jamPulang < $jamMulaiPulangCfg) ? $jamPulang : $jamMulaiPulangCfg;
+            $jamBatasMasuk     = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['batas_jam_masuk']) ?? \Carbon\Carbon::parse($jamMasuk)->addMinutes($toleransi)->format('H:i');
         }
 
         // Bandingkan currentTime dengan jamMulaiAbsensi (substring 5 karakter pertama currentTime dengan jamMulaiAbsensi)
@@ -158,13 +159,14 @@ class PublicQrScanController extends Controller
             // PRD-016: Load jadwal absensi per kelas per hari (override untuk logika di dalam transaction)
             if ($siswa->kelas_id) {
                 $jadwalKelas = \App\Helpers\JadwalAbsensiHelper::getJadwalForKelas($siswa->kelas_id);
-                $jamMulaiAbsensi = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_mulai_absensi']) ?? '06:00';
-                $jamMasuk        = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_masuk']) ?? '07:00';
-                $jamPulang       = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_pulang']) ?? '15:00';
-                $jamAkhirPulang  = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_akhir_pulang']) ?? '17:00';
-                $jamMulaiPulang  = $jamPulang;
-                $toleransi       = (int)($settings['toleransi_terlambat'] ?? 15);
-                $jamBatasMasuk   = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['batas_jam_masuk']) ?? \Carbon\Carbon::parse($jamMasuk)->addMinutes($toleransi)->format('H:i');
+                $jamMulaiAbsensi   = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_mulai_absensi']) ?? '06:00';
+                $jamMasuk          = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_masuk']) ?? '07:00';
+                $jamPulang         = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_pulang']) ?? '15:00';
+                $jamAkhirPulang    = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_akhir_pulang']) ?? '17:00';
+                $jamMulaiPulangCfg = $settings['jam_mulai_pulang'] ?? '14:00';
+                $jamMulaiPulang    = ($jamPulang < $jamMulaiPulangCfg) ? $jamPulang : $jamMulaiPulangCfg;
+                $toleransi         = (int)($settings['toleransi_terlambat'] ?? 15);
+                $jamBatasMasuk     = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['batas_jam_masuk']) ?? \Carbon\Carbon::parse($jamMasuk)->addMinutes($toleransi)->format('H:i');
 
                 // Cek apakah hari ini libur untuk kelas ini
                 if ($jadwalKelas['is_libur']) {
@@ -206,30 +208,48 @@ class PublicQrScanController extends Controller
                 ->whereDate('tanggal', $tanggal)
                 ->first();
 
+            $currentTimeHi    = substr($currentTime, 0, 5);
+            $jamMulaiPulangHi = substr($jamMulaiPulang, 0, 5);
+            $jamAkhirPulangHi = substr($jamAkhirPulang, 0, 5);
+
             // --- LOGIKA PULANG ---
-            if ($absensi && $currentTime >= $jamMulaiPulang) {
+            if ($currentTimeHi >= $jamMulaiPulangHi) {
                 // Cek Batas Akhir Pulang
-                if ($currentTime > $jamAkhirPulang) {
+                if ($currentTimeHi > $jamAkhirPulangHi) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Sesi scan pulang sudah ditutup (Batas: ' . $jamAkhirPulang . ').',
                     ]);
                 }
 
-                if ($absensi->jam_pulang) {
+                if ($absensi && $absensi->jam_pulang) {
                     return response()->json([
                         'success' => false,
                         'already' => true,
-                        'message' => $siswa->nama_lengkap . ' sudah melakukan scan pulang pada jam ' . $absensi->jam_pulang . '.',
+                        'message' => $siswa->nama_lengkap . ' sudah melakukan scan pulang pada jam ' . substr($absensi->jam_pulang, 0, 5) . '.',
                         'siswa'   => [
                             'nama'  => $siswa->nama_lengkap,
                             'kelas' => $siswa->kelas?->nama ?? '-',
-                            'jam'   => $absensi->jam_pulang,
+                            'jam'   => substr($absensi->jam_pulang, 0, 5),
                         ],
                     ]);
                 }
 
-                $absensi->update(['jam_pulang' => $currentTime]);
+                if (!$absensi) {
+                    $absensi = AbsensiSiswa::create([
+                        'siswa_id'   => $siswa->id,
+                        'kelas_id'   => $siswa->kelas_id,
+                        'tanggal'    => $tanggal,
+                        'jam_masuk'  => null,
+                        'jam_pulang' => $currentTime,
+                        'status'     => 'hadir',
+                        'keterangan' => 'Scan QR pulang publik',
+                        'guru_id'    => null,
+                        'metode'     => 'qr',
+                    ]);
+                } else {
+                    $absensi->update(['jam_pulang' => $currentTime]);
+                }
                 Cache::forget('live_board_leaderboard_data');
 
                 QrScanLogger::info('QR_SCAN_PULANG_SUCCESS', [
@@ -246,7 +266,7 @@ class PublicQrScanController extends Controller
                     'siswa'   => [
                         'nama'  => $siswa->nama_lengkap,
                         'kelas' => $siswa->kelas?->nama ?? '-',
-                        'jam'   => $currentTime,
+                        'jam'   => substr($currentTime, 0, 5),
                     ],
                 ]);
             }

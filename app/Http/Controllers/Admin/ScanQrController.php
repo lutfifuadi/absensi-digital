@@ -78,20 +78,35 @@ class ScanQrController extends Controller
         $jamAkhirPulang = $settings['jam_akhir_pulang'] ?? '17:00';
         $toleransi = (int) ($settings['toleransi_terlambat'] ?? 15);
 
-        $absensi = AbsensiSiswa::where('siswa_id', $siswa->id)
-            ->whereDate('tanggal', $tanggal)
-            ->first();
+        $currentTimeHi    = substr($currentTime, 0, 5);
+        $jamMulaiPulangHi = substr($jamMulaiPulang, 0, 5);
+        $jamAkhirPulangHi = substr($jamAkhirPulang, 0, 5);
 
-        if ($absensi && $currentTime >= $jamMulaiPulang) {
-            if ($currentTime > $jamAkhirPulang) {
+        if ($currentTimeHi >= $jamMulaiPulangHi) {
+            if ($currentTimeHi > $jamAkhirPulangHi) {
                 return ['error' => 'Sesi pulang sudah berakhir (Batas: ' . $jamAkhirPulang . ').'];
             }
 
-            if ($absensi->jam_pulang) {
-                return ['error' => 'Siswa ' . $siswa->nama_lengkap . ' sudah melakukan scan pulang pada jam ' . $absensi->jam_pulang . '.'];
+            if ($absensi && $absensi->jam_pulang) {
+                return ['error' => 'Siswa ' . $siswa->nama_lengkap . ' sudah melakukan scan pulang pada jam ' . substr($absensi->jam_pulang, 0, 5) . '.'];
             }
 
-            $absensi->update(['jam_pulang' => $currentTime]);
+            if (!$absensi) {
+                AbsensiSiswa::create([
+                    'siswa_id'   => $siswa->id,
+                    'kelas_id'   => $siswa->kelas_id,
+                    'tanggal'    => $tanggal,
+                    'jam_masuk'  => null,
+                    'jam_pulang' => $currentTime,
+                    'status'     => 'hadir',
+                    'keterangan' => 'Absensi otomatis via QR scanner (pulang)',
+                    'guru_id'    => null,
+                    'metode'     => 'qr',
+                ]);
+            } else {
+                $absensi->update(['jam_pulang' => $currentTime]);
+            }
+
             return ['success' => 'Jam pulang ' . $siswa->nama_lengkap . ' berhasil dicatat.'];
         }
 
