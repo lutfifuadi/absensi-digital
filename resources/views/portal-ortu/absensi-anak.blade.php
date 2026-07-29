@@ -89,6 +89,7 @@
     display: flex; align-items: center;
     justify-content: flex-end; flex-wrap: nowrap;
     gap: 0.6rem; margin-bottom: 0;
+    width: 100%;
   }
   @media (max-width: 576px) {
     .abs-filter-bar { flex-wrap: wrap; justify-content: flex-end; }
