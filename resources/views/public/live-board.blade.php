@@ -820,12 +820,7 @@
       style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;"
     >
 
-    <div class="scan-info" style="border-top:1px solid var(--border);">
-      <div class="scan-count-wrap">Scan Sesi Ini:&nbsp;<span id="scan-count">0</span></div>
-      <div style="display:flex;gap:.5rem;align-items:center;">
-        <button id="toggle-sound-btn" title="Toggle suara" style="background:none;border:1px solid var(--border);border-radius:5px;padding:4px 8px;color:var(--muted);cursor:pointer;font-size:1rem;" onclick="toggleSound()">🔊</button>
-      </div>
-    </div>
+
 
   </div>
 
@@ -881,7 +876,8 @@ updateClock(); setInterval(updateClock, 1000);
 let soundEnabled = true;
 function toggleSound() {
   soundEnabled = !soundEnabled;
-  document.getElementById('toggle-sound-btn').textContent = soundEnabled ? '🔊' : '🔇';
+  const btn = document.getElementById('toggle-sound-btn');
+  if (btn) btn.textContent = soundEnabled ? '🔊' : '🔇';
 }
 
 /**
@@ -969,7 +965,8 @@ async function handleScan(qrCode) {
     const data = await resp.json();
     if (data.success) {
       scanCount++;
-      document.getElementById('scan-count').textContent = scanCount;
+      const scanCountEl = document.getElementById('scan-count');
+      if (scanCountEl) scanCountEl.textContent = scanCount;
       showToast('success', '✅', data.siswa, data.message);
       beep('success');
       refreshLeaderboard();
