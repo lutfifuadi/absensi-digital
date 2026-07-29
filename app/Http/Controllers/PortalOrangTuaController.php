@@ -182,56 +182,93 @@ class PortalOrangTuaController extends Controller
 
         $dataAbsensi = $absensi->map(function ($item) {
             $statusBadge = match ($item->status) {
-                'hadir' => 'bg-label-success',
+                'hadir'     => 'bg-label-success',
                 'terlambat' => 'bg-label-warning',
-                'sakit' => 'bg-label-info',
-                'izin' => 'bg-label-primary',
-                'alpha' => 'bg-label-danger',
-                default => 'bg-label-secondary',
+                'sakit'     => 'bg-label-info',
+                'izin'      => 'bg-label-primary',
+                'alpha'     => 'bg-label-danger',
+                default     => 'bg-label-secondary',
             };
 
             $statusText = match ($item->status) {
-                'hadir' => 'Hadir',
+                'hadir'     => 'Hadir',
                 'terlambat' => 'Terlambat',
-                'sakit' => 'Sakit',
-                'izin' => 'Izin',
-                'alpha' => 'Alpha',
-                default => ucfirst($item->status ?? '-'),
+                'sakit'     => 'Sakit',
+                'izin'      => 'Izin',
+                'alpha'     => 'Alpha',
+                default     => ucfirst($item->status ?? '-'),
             };
 
             $metodeIcon = match ($item->metode) {
                 'mandiri' => '<i class="ti tabler-gps me-1"></i> GPS Mandiri',
-                'qr' => '<i class="ti tabler-qrcode me-1"></i> Scan QR',
-                'manual' => '<i class="ti tabler-edit me-1"></i> Manual',
-                default => '<i class="ti tabler-help-circle me-1"></i> ' . ucfirst($item->metode ?? '—'),
+                'qr'      => '<i class="ti tabler-qrcode me-1"></i> Scan QR',
+                'manual'  => '<i class="ti tabler-edit me-1"></i> Manual',
+                default   => '<i class="ti tabler-help-circle me-1"></i> ' . ucfirst($item->metode ?? '—'),
             };
 
             return [
-                'tanggal' => \Carbon\Carbon::parse($item->tanggal)->locale('id')->translatedFormat('d M Y'),
-                'tanggal_raw' => $item->tanggal,
-                'jam_masuk' => $item->jam_masuk ? \Carbon\Carbon::parse($item->jam_masuk)->format('H:i') : '-',
-                'jam_pulang' => $item->jam_pulang ? \Carbon\Carbon::parse($item->jam_pulang)->format('H:i') : '-',
-                'status' => $item->status,
+                'tanggal'      => \Carbon\Carbon::parse($item->tanggal)->locale('id')->translatedFormat('d M Y'),
+                'tanggal_raw'  => $item->tanggal,
+                'jam_masuk'    => $item->jam_masuk  ? \Carbon\Carbon::parse($item->jam_masuk)->format('H:i')  : '-',
+                'jam_pulang'   => $item->jam_pulang ? \Carbon\Carbon::parse($item->jam_pulang)->format('H:i') : '-',
+                'status'       => $item->status,
                 'status_badge' => $statusBadge,
-                'status_text' => $statusText,
-                'metode' => $item->metode ?? '-',
-                'metode_icon' => $metodeIcon,
+                'status_text'  => $statusText,
+                'metode'       => $item->metode ?? '-',
+                'metode_icon'  => $metodeIcon,
             ];
         });
 
+        // ── Hitung statistik ringkasan ────────────────────────────────────────
+        $countHadir     = $absensi->where('status', 'hadir')->count();
+        $countTerlambat = $absensi->where('status', 'terlambat')->count();
+        $countAlpha     = $absensi->where('status', 'alpha')->count();
+        $countSakit     = $absensi->where('status', 'sakit')->count();
+        $countIzin      = $absensi->where('status', 'izin')->count();
+        $totalHadir     = $countHadir + $countTerlambat;
+        $total          = $absensi->count();
+
+        // Rata-rata jam masuk (hadir & terlambat yang punya jam_masuk)
+        $jamMasukList = $absensi
+            ->whereIn('status', ['hadir', 'terlambat'])
+            ->filter(fn($a) => !empty($a->jam_masuk))
+            ->map(fn($a) => \Carbon\Carbon::parse($a->jam_masuk)->secondsSinceMidnight())
+            ->values();
+
+        $avgJamMasuk = null;
+        if ($jamMasukList->isNotEmpty()) {
+            $avgSeconds  = (int) $jamMasukList->average();
+            $avgJamMasuk = gmdate('H:i', $avgSeconds);
+        }
+
+        // Persentase kehadiran
+        $persenHadir = $total > 0 ? round(($totalHadir / $total) * 100, 1) : 0;
+
         return response()->json([
             'anak' => [
-                'id' => $anak->id,
+                'id'           => $anak->id,
                 'nama_lengkap' => $anak->nama_lengkap,
-                'kelas' => $anak->kelas ? $anak->kelas->nama : null,
+                'kelas'        => $anak->kelas ? $anak->kelas->nama : null,
             ],
-            'absensi' => $dataAbsensi,
-            'filter' => $filter,
-            'month' => $month,
-            'year' => $year,
+            'absensi'  => $dataAbsensi,
+            'filter'   => $filter,
+            'month'    => $month,
+            'year'     => $year,
             'semester' => $semester,
+            'stats'    => [
+                'total'         => $total,
+                'hadir'         => $countHadir,
+                'terlambat'     => $countTerlambat,
+                'alpha'         => $countAlpha,
+                'sakit'         => $countSakit,
+                'izin'          => $countIzin,
+                'total_hadir'   => $totalHadir,
+                'persen_hadir'  => $persenHadir,
+                'avg_jam_masuk' => $avgJamMasuk,
+            ],
         ]);
     }
+
 
     /**
      * Daftar Izin/Sakit Anak.
