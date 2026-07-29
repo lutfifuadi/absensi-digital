@@ -23,18 +23,18 @@
   .abs-stat-card {
     background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
     border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 14px;
-    padding: 1rem 1.1rem;
+    border-radius: 5px;
+    padding: 0.9rem 1rem;
     display: flex;
     align-items: center;
-    gap: 0.85rem;
+    gap: 0.75rem;
     transition: transform 0.2s, box-shadow 0.2s;
     position: relative;
     overflow: hidden;
   }
   .abs-stat-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
   }
   .abs-stat-card::before {
     content: '';
@@ -52,12 +52,12 @@
     background: linear-gradient(135deg, rgba(255,215,0,0.10), rgba(255,180,0,0.04));
     border-color: rgba(255,215,0,0.22);
   }
-  .abs-stat-card--avg:hover { box-shadow: 0 8px 28px rgba(255,215,0,0.15); }
+  .abs-stat-card--avg:hover { box-shadow: 0 6px 24px rgba(255,215,0,0.12); }
 
   .abs-stat-card__icon {
-    width: 44px; height: 44px; border-radius: 10px;
+    width: 40px; height: 40px; border-radius: 5px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.3rem; flex-shrink: 0;
+    font-size: 1.2rem; flex-shrink: 0;
   }
   .abs-stat-card__body { flex: 1; min-width: 0; }
   .abs-stat-card__val {
@@ -75,33 +75,38 @@
 
   /* progress bar */
   .abs-progress {
-    height: 4px; border-radius: 99px;
+    height: 3px; border-radius: 2px;
     background: rgba(255,255,255,0.07);
-    margin-top: 0.8rem; overflow: hidden;
+    margin-top: 0.7rem; overflow: hidden;
   }
   .abs-progress__fill {
-    height: 100%; border-radius: 99px;
+    height: 100%; border-radius: 2px;
     transition: width 0.8s cubic-bezier(.4,0,.2,1);
   }
 
   /* ── FILTER TABS ──────────────────────────────────────── */
   .abs-filter-bar {
     display: flex; align-items: center;
-    justify-content: space-between; flex-wrap: wrap;
-    gap: 0.75rem; margin-bottom: 1rem;
+    justify-content: space-between; flex-wrap: nowrap;
+    gap: 0.75rem; margin-bottom: 0;
+  }
+  @media (max-width: 576px) {
+    .abs-filter-bar { flex-wrap: wrap; }
+    .abs-tabs { flex-wrap: wrap; }
   }
   .abs-tabs {
-    display: flex; gap: 0.35rem;
+    display: flex; gap: 0.25rem;
     background: rgba(255,255,255,0.04);
-    border-radius: 10px; padding: 4px;
+    border-radius: 5px; padding: 3px;
+    flex-shrink: 0;
   }
   .abs-tab {
-    padding: 0.38rem 0.85rem;
-    border-radius: 7px; border: none; cursor: pointer;
-    font-size: 0.78rem; font-weight: 600;
+    padding: 0.32rem 0.8rem;
+    border-radius: 4px; border: none; cursor: pointer;
+    font-size: 0.76rem; font-weight: 600;
     color: rgba(255,255,255,0.5);
     background: transparent;
-    transition: all 0.2s;
+    transition: all 0.2s; white-space: nowrap;
   }
   .abs-tab.active {
     background: rgba(255,215,0,0.15);
@@ -111,18 +116,18 @@
   .abs-tab:hover:not(.active) { color: rgba(255,255,255,0.75); }
 
   .abs-filter-controls {
-    display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;
+    display: flex; gap: 0.4rem; align-items: center; flex-shrink: 0;
   }
   .abs-filter-controls .form-select {
-    height: 34px; min-width: 115px; font-size: 0.8rem;
+    height: 32px; min-width: 105px; font-size: 0.78rem;
     background-color: rgba(255,255,255,0.05);
     color: #fff; border-color: rgba(255,255,255,0.12);
-    border-radius: 8px;
+    border-radius: 4px;
   }
 
   /* ── TABLE ──────────────────────────────────────────── */
   .abs-table-wrap {
-    border-radius: 14px; overflow: hidden;
+    border-radius: 5px; overflow: hidden;
     border: 1px solid rgba(255,255,255,0.07);
   }
   .das-table { width: 100%; border-collapse: collapse; }
