@@ -1813,10 +1813,9 @@
                     allowOutsideClick: false,
                     showConfirmButton: false,
                     showCancelButton: true,
-                    cancelButtonText: '<i style="margin-right:6px;">✕</i> Hentikan Proses',
+                    cancelButtonText: 'Hentikan Proses',
                     customClass: {
                         popup: 'border-0 shadow-lg',
-                        cancelButton: 'btn btn-sm',
                     },
                     buttonsStyling: true,
                 }).then((result) => {
