@@ -931,6 +931,26 @@ class GoogleSheetsService
             return strtoupper($val) === 'L' ? 'Laki-laki' : (strtoupper($val) === 'P' ? 'Perempuan' : $val);
         }
 
-        return strval($model->{$dbCol} ?? '');
+        $rawVal = $model->{$dbCol} ?? '';
+
+        if ($rawVal instanceof \DateTimeInterface) {
+            if ($dbCol === 'tanggal_lahir' || $dbCol === 'tanggal' || $rawVal->format('H:i:s') === '00:00:00') {
+                return $rawVal->format('Y-m-d');
+            }
+
+            return $rawVal->format('Y-m-d H:i:s');
+        }
+
+        $strVal = strval($rawVal);
+
+        if ($dbCol === 'tanggal_lahir' || $dbCol === 'tanggal') {
+            return explode(' ', $strVal)[0];
+        }
+
+        if (str_ends_with($strVal, ' 00:00:00')) {
+            return substr($strVal, 0, -9);
+        }
+
+        return $strVal;
     }
 }
