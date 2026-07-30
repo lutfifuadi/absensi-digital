@@ -701,11 +701,11 @@ class PelanggaranSiswaController extends Controller
                 }
             });
 
-            ActivityLog::create([
-                'user_id' => Auth::id(),
-                'activity' => 'Import Data Pelanggaran',
-                'description' => "Import {$importedKategori} Kategori, {$importedJenis} Jenis, dan {$importedPelanggaran} Pelanggaran Siswa.",
-            ]);
+            ActivityLog::record(
+                'import',
+                'pelanggaran',
+                "Import {$importedKategori} Kategori, {$importedJenis} Jenis, dan {$importedPelanggaran} Pelanggaran Siswa."
+            );
 
             return redirect()->route('admin.pelanggaran.index')
                 ->with('success', "Berhasil mengimpor {$importedKategori} Kategori, {$importedJenis} Jenis Pelanggaran, dan {$importedPelanggaran} Catatan Pelanggaran Siswa.");
