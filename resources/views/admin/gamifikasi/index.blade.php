@@ -546,7 +546,7 @@
        class="mb-6"
   >
     {{-- Card 1: Filter Panel (Atas) --}}
-    <div class="card card-grad-primary mb-6">
+    <div class="card card-grad-primary mb-6" id="rekapitulasi-section">
       <div class="card-header pb-2">
         <div class="d-flex align-items-center gap-2">
           <span class="das-panel__icon-dot das-panel__icon-dot--info"></span>
@@ -1499,4 +1499,17 @@
       }
     }
   </script>
+
+  @if(request()->routeIs('admin.gamifikasi.rekap') || request()->is('*gamifikasi/rekap*'))
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const el = document.getElementById('rekapitulasi-section');
+      if (el) {
+        setTimeout(function() {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
+      }
+    });
+  </script>
+  @endif
 @endsection
