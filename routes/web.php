@@ -251,6 +251,7 @@ Route::middleware([
         Route::get('/pengaduan', [PortalSiswaController::class, 'pengaduan'])->name('siswa.pengaduan');
 
         Route::post('/absensi-mandiri', [AbsensiMandiriController::class, 'store'])->name('siswa.absensi-mandiri.store');
+        Route::post('/upload-foto', [PortalSiswaController::class, 'uploadFoto'])->name('siswa.upload-foto');
     });
 
     // ── PORTAL GURU ───────────────────────────────────────────────────────────

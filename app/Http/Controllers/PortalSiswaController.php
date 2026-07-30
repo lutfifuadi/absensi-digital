@@ -481,4 +481,108 @@ class PortalSiswaController extends Controller
         $viewName = view()->exists('siswa.pengaduan') ? 'siswa.pengaduan' : 'content.siswa.pengaduan';
         return view($viewName, compact('pengaduanList', 'activePengaduan', 'activeLogs'));
     }
+
+    /**
+     * Upload & crop pas foto resmi siswa (Square 1:1, Max 250KB).
+     */
+    public function uploadFoto(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if ($user->role !== 'siswa') {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $siswa = Siswa::where('user_id', $user->id)->first();
+        if (!$siswa) {
+            return response()->json(['success' => false, 'message' => 'Data siswa tidak ditemukan.'], 404);
+        }
+
+        $request->validate([
+            'foto' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ], [
+            'foto.required' => 'File foto wajib dipilih.',
+            'foto.image' => 'File harus berupa gambar.',
+            'foto.mimes' => 'Format gambar harus JPEG, PNG, JPG, atau WEBP.',
+            'foto.max' => 'Ukuran file terlalu besar (maksimal 2MB).',
+        ]);
+
+        $file = $request->file('foto');
+        
+        // Pengecekan ukuran file (harus di bawah 250KB / 256000 bytes)
+        if ($file->getSize() > 256000) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ukuran pas foto terlalu besar (maksimal 250 KB). Silakan kompres atau atur ulang foto.'
+            ], 422);
+        }
+
+        try {
+            // Tentukan nama file berdasarkan NISN (atau NIS / id jika NISN kosong)
+            $nisn = !empty($siswa->nisn) ? trim($siswa->nisn) : (!empty($siswa->nis) ? trim($siswa->nis) : 'siswa_' . $siswa->id);
+            $extension = $file->getClientOriginalExtension() ?: 'jpg';
+            $filename = $nisn . '.' . $extension;
+
+            // Bungkus file dengan nama file NISN agar nama di Google Drive sesuai NISN
+            $customUploadedFile = new \Illuminate\Http\UploadedFile(
+                $file->getRealPath(),
+                $filename,
+                $file->getClientMimeType(),
+                null,
+                true
+            );
+
+            $googleDriveService = app(\App\Services\GoogleDriveService::class);
+            $newFotoValue = null;
+
+            if ($googleDriveService->isEnabled()) {
+                $oldFileId = (strlen($siswa->foto ?? '') > 30 && !str_contains($siswa->foto ?? '', '/') && !str_contains($siswa->foto ?? '', '\\')) ? $siswa->foto : null;
+                $newFileId = $googleDriveService->uploadPhoto($customUploadedFile, $oldFileId);
+                if ($newFileId) {
+                    $newFotoValue = $newFileId;
+                }
+            }
+
+            // Jika Google Drive tidak aktif / return null, simpan ke storage local dengan nama NISN
+            if (!$newFotoValue) {
+                if ($siswa->foto && (str_contains($siswa->foto, '/') || str_contains($siswa->foto, 'siswa/'))) {
+                    $oldLocalPath = storage_path('app/public/' . $siswa->foto);
+                    if (file_exists($oldLocalPath)) {
+                        @unlink($oldLocalPath);
+                    }
+                }
+
+                $path = $file->storeAs('siswa', $filename, 'public');
+                $newFotoValue = $path;
+            }
+
+            $siswa->update([
+                'foto' => $newFotoValue
+            ]);
+
+            // Ambil URL/Src foto baru untuk pratinjau di frontend
+            $photoUrl = null;
+            if (strlen($newFotoValue) > 30 && !str_contains($newFotoValue, '/') && !str_contains($newFotoValue, '\\')) {
+                try {
+                    $photoUrl = $googleDriveService->getPhotoBase64($newFotoValue);
+                } catch (\Exception $e) {
+                    $photoUrl = asset('assets/img/avatars/1.png');
+                }
+            } else {
+                $photoUrl = asset('storage/' . $newFotoValue);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pas foto resmi (' . $filename . ') berhasil diperbarui & disimpan!',
+                'photo_url' => $photoUrl
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('PortalSiswaController uploadFoto error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mengunggah foto: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

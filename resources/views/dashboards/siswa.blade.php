@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ asset('css/dashboards/super-admin.css') }}?v=4.3">
   <link rel="stylesheet" href="{{ asset('css/dashboards/siswa.css') }}?v=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
   <style>
     .barcode-svg-container svg {
       width: 100% !important;
@@ -58,6 +59,20 @@
     $freqCheckout = (int)($pengaturanSiswa['freq_bunyi_checkout'] ?? 392);
     
     $chartDaysCategories = !empty($chartDays) ? $chartDays : ['Sn','Sl','Rb','Km','Jm','Sb','Mg'];
+
+    $fotoSiswaUrl = asset('assets/img/avatars/1.png');
+    if ($siswaRecord && $siswaRecord->foto) {
+        if (strlen($siswaRecord->foto) > 30 && !str_contains($siswaRecord->foto, '/') && !str_contains($siswaRecord->foto, '\\')) {
+            try {
+                $gdrive = app(\App\Services\GoogleDriveService::class);
+                $fotoSiswaUrl = $gdrive->getPhotoBase64($siswaRecord->foto) ?: asset('assets/img/avatars/1.png');
+            } catch (\Exception $e) {
+                $fotoSiswaUrl = asset('assets/img/avatars/1.png');
+            }
+        } else {
+            $fotoSiswaUrl = asset('storage/' . $siswaRecord->foto);
+        }
+    }
   @endphp
 
   {{-- ═══════════════════════════════════════════════════════
@@ -70,16 +85,12 @@
 
     <div class="das-hero__inner flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-4">
       {{-- Identitas Siswa --}}
-      <div class="das-hero__identity">
-        <div class="das-hero__logo-wrapper">
-          @if ($logoSekolah)
-            <img src="{{ asset('uploads/logo/' . $logoSekolah) }}" alt="Logo" class="das-hero__logo">
-          @else
-            <div class="das-hero__logo-placeholder">
-              <i class="ti tabler-school fs-2"></i>
-            </div>
-          @endif
-          <div class="das-hero__logo-glow"></div>
+      <div class="das-hero__identity d-flex align-items-center gap-3">
+        <div class="das-hero__avatar-wrapper position-relative flex-shrink-0" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modalUploadFotoSiswa" title="Klik untuk mengunggah / mengubah pas foto resmi">
+          <img src="{{ $fotoSiswaUrl }}" alt="Pas Foto Siswa" id="das-student-avatar-img" class="rounded-circle border border-2 border-warning shadow-sm" style="width: 70px; height: 70px; object-fit: cover;">
+          <span class="badge bg-primary rounded-circle position-absolute bottom-0 end-0 p-1 shadow" style="transform: translate(15%, 15%); border: 2px solid white;" title="Ganti Foto">
+            <i class="ti tabler-camera fs-6"></i>
+          </span>
         </div>
 
         <div class="das-hero__meta">
@@ -1277,5 +1288,294 @@ if ('requestIdleCallback' in window) {
         _initChartsAndCounters();
     }, 100);
 }
+</script>
+
+{{-- MODAL UPLOAD & CROP PAS FOTO SISWA --}}
+<div class="modal fade" id="modalUploadFotoSiswa" tabindex="-1" aria-labelledby="modalUploadFotoSiswaLabel" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-primary text-white py-3">
+        <h5 class="modal-title text-white d-flex align-items-center gap-2" id="modalUploadFotoSiswaLabel">
+          <i class="ti tabler-camera fs-4"></i> Unggah Pas Foto Resmi (Square 1:1)
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        
+        {{-- Alert Petunjuk Foto Resmi --}}
+        <div class="alert alert-info d-flex align-items-start gap-3 mb-4 rounded-3 border-0 shadow-sm" style="background-color: #eef2ff; color: #3730a3;">
+          <i class="ti tabler-info-circle fs-3 flex-shrink-0 text-primary mt-1"></i>
+          <div>
+            <strong>Ketentuan Pas Foto Resmi:</strong>
+            <ul class="mb-0 ps-3 mt-1 small">
+              <li>Wajib menggunakan <strong>Pas Foto Resmi / Seragam Sekolah</strong> dengan latar belakang sesuai ketentuan <strong>{{ $namaSekolah }}</strong>.</li>
+              <li>Format foto berupa <strong>Square 1:1</strong> (geser & sesuaikan posisi pada kanvas).</li>
+              <li>Ukuran akhir file foto <strong>Maksimal 250 KB</strong> (otomatis dikompresi sistem).</li>
+            </ul>
+          </div>
+        </div>
+
+        {{-- Step 1: Input Select File --}}
+        <div class="mb-3 text-center" id="containerSelectFoto">
+          <label for="inputFotoResmi" class="btn btn-outline-primary btn-lg rounded-pill px-4 py-2 shadow-sm d-inline-flex align-items-center gap-2" style="cursor: pointer;">
+            <i class="ti tabler-upload fs-4"></i> Pilih File Foto Dari HP / Perangkat
+          </label>
+          <input type="file" id="inputFotoResmi" class="d-none" accept="image/jpeg,image/png,image/jpg,image/webp">
+          <div class="form-text mt-2">Dukungan format: JPG, PNG, WEBP (Bisa ambil dari galeri atau kamera HP).</div>
+        </div>
+
+        {{-- Step 2: Cropper Canvas Container --}}
+        <div id="cropperWrapper" class="d-none">
+          <div class="row align-items-center mb-3">
+            <div class="col-md-7">
+              <div class="img-container bg-dark rounded-3 overflow-hidden d-flex align-items-center justify-content-center" style="max-height: 380px; min-height: 250px;">
+                <img id="imageToCrop" src="" alt="Foto untuk dipotong" style="max-width: 100%; display: block;">
+              </div>
+            </div>
+            <div class="col-md-5 text-center mt-3 mt-md-0">
+              <div class="fw-semibold text-secondary mb-2 small text-uppercase">Pratinjau Hasil Crop (1:1)</div>
+              <div class="preview-box mx-auto rounded-circle overflow-hidden shadow border border-3 border-primary mb-3" style="width: 140px; height: 140px;"></div>
+              
+              {{-- Realtime Size Indicator --}}
+              <div class="card bg-light border-0 p-3 mb-3 text-start">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="small text-muted fw-semibold">Ukuran Hasil:</span>
+                  <span id="badgeUkuranFile" class="badge bg-success fs-7">0 KB</span>
+                </div>
+                <div class="progress mb-1" style="height: 6px;">
+                  <div id="progressBarUkuran" class="progress-bar bg-success" role="progressbar" style="width: 0%;"></div>
+                </div>
+                <div id="textKeteranganUkuran" class="small text-muted fs-8">Sesuai ketentuan (maks 250 KB)</div>
+              </div>
+
+              {{-- Controls --}}
+              <div class="btn-group btn-group-sm w-100 shadow-sm" role="group">
+                <button type="button" class="btn btn-outline-secondary" id="btnZoomIn" title="Perbesar"><i class="ti tabler-zoom-in"></i></button>
+                <button type="button" class="btn btn-outline-secondary" id="btnZoomOut" title="Perkecil"><i class="ti tabler-zoom-out"></i></button>
+                <button type="button" class="btn btn-outline-secondary" id="btnRotateLeft" title="Putar Kiri"><i class="ti tabler-rotate-counterclockwise"></i></button>
+                <button type="button" class="btn btn-outline-secondary" id="btnRotateRight" title="Putar Kanan"><i class="ti tabler-rotate-clockwise"></i></button>
+                <button type="button" class="btn btn-outline-secondary" id="btnResetCrop" title="Reset"><i class="ti tabler-refresh"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer bg-light px-4 py-3">
+        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Batal</button>
+        <label for="inputFotoResmi" class="btn btn-outline-primary d-none" id="btnGantiFotoLain">Pilih Foto Lain</label>
+        <button type="button" class="btn btn-primary d-inline-flex align-items-center gap-2 d-none" id="btnSimpanFotoSiswa">
+          <span class="spinner-border spinner-border-sm d-none" id="spinnerUploadFoto" role="status" aria-hidden="true"></span>
+          <i class="ti tabler-check fs-5" id="iconCheckFoto"></i> Simpan & Upload Pas Foto
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const inputFoto = document.getElementById('inputFotoResmi');
+  const cropperWrapper = document.getElementById('cropperWrapper');
+  const imageToCrop = document.getElementById('imageToCrop');
+  const btnGantiFotoLain = document.getElementById('btnGantiFotoLain');
+  const btnSimpanFotoSiswa = document.getElementById('btnSimpanFotoSiswa');
+  const badgeUkuranFile = document.getElementById('badgeUkuranFile');
+  const progressBarUkuran = document.getElementById('progressBarUkuran');
+  const textKeteranganUkuran = document.getElementById('textKeteranganUkuran');
+  const spinnerUpload = document.getElementById('spinnerUploadFoto');
+  const iconCheckFoto = document.getElementById('iconCheckFoto');
+
+  let cropper = null;
+  let finalBlob = null;
+
+  if (inputFoto) {
+    inputFoto.addEventListener('change', function(e) {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        const file = files[0];
+        if (!file.type.match(/^image\/(jpeg|png|jpg|webp)$/)) {
+          if (window.Swal) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Format Tidak Sesuai',
+              text: 'Harap pilih file gambar dengan format JPG, PNG, atau WEBP.'
+            });
+          } else {
+            alert('Harap pilih file gambar dengan format JPG, PNG, atau WEBP.');
+          }
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          imageToCrop.src = evt.target.result;
+          cropperWrapper.classList.remove('d-none');
+          btnGantiFotoLain.classList.remove('d-none');
+          btnSimpanFotoSiswa.classList.remove('d-none');
+
+          if (cropper) {
+            cropper.destroy();
+          }
+
+          cropper = new Cropper(imageToCrop, {
+            aspectRatio: 1, // Square 1:1
+            viewMode: 1,
+            dragMode: 'move',
+            autoCropArea: 0.9,
+            restore: false,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+            preview: '.preview-box',
+            crop: function() {
+              updateCanvasBlob();
+            }
+          });
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  // Zoom & Rotate Controls
+  document.getElementById('btnZoomIn')?.addEventListener('click', () => cropper && cropper.zoom(0.1));
+  document.getElementById('btnZoomOut')?.addEventListener('click', () => cropper && cropper.zoom(-0.1));
+  document.getElementById('btnRotateLeft')?.addEventListener('click', () => cropper && cropper.rotate(-90));
+  document.getElementById('btnRotateRight')?.addEventListener('click', () => cropper && cropper.rotate(90));
+  document.getElementById('btnResetCrop')?.addEventListener('click', () => cropper && cropper.reset());
+
+  // Convert cropped canvas to compressed blob (quality auto-tuning <= 250KB)
+  function updateCanvasBlob() {
+    if (!cropper) return;
+    const canvas = cropper.getCroppedCanvas({
+      width: 600,
+      height: 600,
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: 'high'
+    });
+
+    if (!canvas) return;
+
+    let quality = 0.9;
+    function generateBlob(q) {
+      canvas.toBlob(function(blob) {
+        if (!blob) return;
+        const sizeInKB = Math.round(blob.size / 1024);
+        if (sizeInKB > 250 && q > 0.3) {
+          generateBlob(q - 0.15);
+          return;
+        }
+
+        finalBlob = blob;
+        badgeUkuranFile.textContent = sizeInKB + ' KB';
+        const percent = Math.min(100, Math.round((sizeInKB / 250) * 100));
+        progressBarUkuran.style.width = percent + '%';
+
+        if (sizeInKB <= 250) {
+          badgeUkuranFile.className = 'badge bg-success fs-7';
+          progressBarUkuran.className = 'progress-bar bg-success';
+          textKeteranganUkuran.textContent = 'Sesuai ketentuan (' + sizeInKB + ' KB / maks 250 KB)';
+          btnSimpanFotoSiswa.disabled = false;
+        } else {
+          badgeUkuranFile.className = 'badge bg-danger fs-7';
+          progressBarUkuran.className = 'progress-bar bg-danger';
+          textKeteranganUkuran.textContent = 'Ukuran melebihi 250 KB! (' + sizeInKB + ' KB)';
+          btnSimpanFotoSiswa.disabled = true;
+        }
+      }, 'image/jpeg', q);
+    }
+
+    generateBlob(quality);
+  }
+
+  // Handle Save / Upload AJAX
+  if (btnSimpanFotoSiswa) {
+    btnSimpanFotoSiswa.addEventListener('click', function() {
+      if (!finalBlob) {
+        if (window.Swal) Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Silakan pilih foto terlebih dahulu.' });
+        else alert('Silakan pilih foto terlebih dahulu.');
+        return;
+      }
+
+      btnSimpanFotoSiswa.disabled = true;
+      spinnerUpload.classList.remove('d-none');
+      iconCheckFoto.classList.add('d-none');
+
+      const formData = new FormData();
+      formData.append('foto', finalBlob, 'pas_foto_siswa.jpg');
+
+      fetch('{{ route("siswa.upload-foto") }}', {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'Accept': 'application/json'
+        },
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        btnSimpanFotoSiswa.disabled = false;
+        spinnerUpload.classList.add('d-none');
+        iconCheckFoto.classList.remove('d-none');
+
+        if (data.success) {
+          const avatarImg = document.getElementById('das-student-avatar-img');
+          if (avatarImg && data.photo_url) {
+            avatarImg.src = data.photo_url;
+          }
+
+          const modalEl = document.getElementById('modalUploadFotoSiswa');
+          const modalIns = bootstrap.Modal.getInstance(modalEl);
+          if (modalIns) modalIns.hide();
+
+          if (window.Swal) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil!',
+              text: data.message,
+              timer: 2000,
+              showConfirmButton: false
+            }).then(() => {
+              window.location.reload();
+            });
+          } else {
+            alert(data.message);
+            window.location.reload();
+          }
+        } else {
+          if (window.Swal) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: data.message || 'Gagal mengunggah foto.'
+            });
+          } else {
+            alert(data.message || 'Gagal mengunggah foto.');
+          }
+        }
+      })
+      .catch(err => {
+        btnSimpanFotoSiswa.disabled = false;
+        spinnerUpload.classList.add('d-none');
+        iconCheckFoto.classList.remove('d-none');
+        console.error(err);
+        if (window.Swal) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Kesalahan Sistem',
+            text: 'Terjadi masalah saat mengirim data ke server.'
+          });
+        } else {
+          alert('Terjadi masalah saat mengirim data ke server.');
+        }
+      });
+    });
+  }
+});
 </script>
 @endsection
