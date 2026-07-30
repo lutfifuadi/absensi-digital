@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\PelanggaranSiswa;
 use App\Models\PelanggaranFoto;
 use App\Models\PelanggaranSp;
+use App\Models\PelanggaranNotifLog;
 use App\Models\Siswa;
 use App\Models\Kelas;
 use App\Models\TahunAkademik;
