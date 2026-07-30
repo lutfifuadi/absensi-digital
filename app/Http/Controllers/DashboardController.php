@@ -1285,9 +1285,14 @@ return response()->json([
 
     /**
      * AJAX: Rekap Gamifikasi — mengembalikan data JSON untuk semua tab rekap.
+     * Jika diakses langsung via browser (non-AJAX), tampilkan halaman Blade view.
      */
-    public function gamifikasiRekap(Request $request): JsonResponse
+    public function gamifikasiRekap(Request $request)
     {
+        if (! $request->expectsJson() && ! $request->ajax() && ! $request->wantsJson()) {
+            return $this->gamifikasi($request);
+        }
+
         try {
             $kelasId = $request->query('kelas_id');
             $periode = $request->query('periode', 'semua');
