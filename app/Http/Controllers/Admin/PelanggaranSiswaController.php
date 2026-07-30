@@ -715,4 +715,47 @@ class PelanggaranSiswaController extends Controller
             return redirect()->back()->with('error', 'Gagal mengimpor data: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Reset / Hapus seluruh data transaksi pelanggaran siswa, foto bukti, dan SP.
+     */
+    public function resetData(Request $request)
+    {
+        if (!Auth::user()->isSuperAdmin() && !Auth::user()->isRole(User::ROLE_ADMIN_SEKOLAH)) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki akses untuk mereset data pelanggaran.');
+        }
+
+        try {
+            DB::transaction(function () {
+                // Hapus foto fisik dari storage
+                $fotos = PelanggaranFoto::all();
+                foreach ($fotos as $f) {
+                    if ($f->path_foto && Storage::disk('public')->exists($f->path_foto)) {
+                        Storage::disk('public')->delete($f->path_foto);
+                    }
+                }
+
+                // Hapus data relasi transaksi
+                PelanggaranFoto::query()->delete();
+                PelanggaranNotifLog::query()->delete();
+                PelanggaranSp::query()->delete();
+
+                // Force delete seluruh catatan pelanggaran siswa
+                PelanggaranSiswa::withTrashed()->forceDelete();
+            });
+
+            ActivityLog::record(
+                'delete',
+                'pelanggaran',
+                'Mereset seluruh data transaksi pelanggaran siswa, foto bukti, dan Surat Peringatan (SP).'
+            );
+
+            return redirect()->route('admin.pelanggaran.index')
+                ->with('success', 'Seluruh data transaksi pelanggaran siswa, foto bukti, dan Surat Peringatan (SP) berhasil direset.');
+
+        } catch (\Exception $e) {
+            Log::error('Reset Pelanggaran error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal mereset data pelanggaran: ' . $e->getMessage());
+        }
+    }
 }

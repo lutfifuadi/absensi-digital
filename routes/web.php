@@ -727,6 +727,10 @@ Route::middleware([
             ->name('admin.pelanggaran.import-data')
             ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas,piket');
 
+        Route::post('/pelanggaran/reset-data', [\App\Http\Controllers\Admin\PelanggaranSiswaController::class, 'resetData'])
+            ->name('admin.pelanggaran.reset-data')
+            ->middleware('role:super_admin,admin_sekolah');
+
         Route::resource('pelanggaran', \App\Http\Controllers\Admin\PelanggaranSiswaController::class)
             ->names('admin.pelanggaran')
             ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas,piket');

@@ -247,6 +247,12 @@
             <i class="ti tabler-plus me-1"></i> Catat Pelanggaran
           </a>
         @endcan
+
+        @if(auth()->user()->isSuperAdmin() || auth()->user()->isRole(App\Models\User::ROLE_ADMIN_SEKOLAH))
+          <button type="button" class="btn das-btn --danger" data-bs-toggle="modal" data-bs-target="#resetModal" title="Reset Data Pelanggaran">
+            <i class="ti tabler-refresh-alert me-1"></i> Reset Data
+          </button>
+        @endif
       </div>
     </div>
   </div>
@@ -439,6 +445,37 @@
           <div class="d-flex justify-content-end gap-2 p-4 pt-0">
             <button type="button" class="btn das-btn --secondary" data-bs-dismiss="modal">Batal</button>
             <button type="submit" class="btn das-btn --warning text-white"><i class="ti tabler-upload me-1"></i> Mulai Import</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Reset Data Pelanggaran -->
+  <div class="modal fade" id="resetModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content das-modal shadow-lg">
+        <div class="das-modal-head d-flex align-items-center justify-content-between" style="background: rgba(234, 84, 85, 0.1);">
+          <h5 class="das-modal-title"><i class="ti tabler-alert-triangle me-2 text-danger"></i> Reset Seluruh Data Pelanggaran</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{{ route('admin.pelanggaran.reset-data') }}" method="POST">
+          @csrf
+          <div class="das-modal-body text-light">
+            <div class="alert alert-danger border-0 shadow-sm d-flex gap-2 mb-3" style="background: rgba(234, 84, 85, 0.2); border-radius: 8px;">
+              <i class="ti tabler-alert-octagon text-danger fs-4 flex-shrink-0 mt-0.5"></i>
+              <div>
+                <strong class="d-block text-white mb-1">PERINGATAN BAHAYA!</strong>
+                <span class="small">
+                  Tindakan ini akan <b>MENGHAPUS PERMANEN</b> seluruh transaksi catatan pelanggaran siswa, foto bukti kejadian, dan riwayat Surat Peringatan (SP). Master Kategori & Jenis Pelanggaran akan tetap utuh.
+                </span>
+              </div>
+            </div>
+            <p class="mb-0 text-white-50 small">Apakah Anda yakin ingin mengosongkan seluruh riwayat pelanggaran?</p>
+          </div>
+          <div class="d-flex justify-content-end gap-2 p-4 pt-0">
+            <button type="button" class="btn das-btn --secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="submit" class="btn das-btn --danger"><i class="ti tabler-trash me-1"></i> Ya, Reset Sekarang</button>
           </div>
         </form>
       </div>
