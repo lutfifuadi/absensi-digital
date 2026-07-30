@@ -179,15 +179,20 @@
       "menuHeader": "Absensi"
     },
     {
-      "name": "Kelola Presensi",
-      "icon": "menu-icon ti tabler-clipboard-check",
+      "name": "Presensi Siswa",
+      "icon": "menu-icon ti tabler-user-check",
       "slug": [
         "admin.scan-qr.index",
-        "public.live-board",
         "admin.absensi-hari-ini",
+        "admin.absensi-siswa.index",
+        "admin.absensi-siswa.bulk",
+        "admin.jadwal-absensi.index",
         "admin.kalender-absensi",
         "admin.holidays",
-        "admin.jadwal-absensi.index"
+        "admin.pelepasan.index",
+        "admin.izin-sakit.index",
+        "admin.leave-limits.index",
+        "public.live-board"
       ],
       "submenu": [
         {
@@ -197,17 +202,49 @@
           "url": "/admin/scan-qr"
         },
         {
-          "name": "Live Board Monitor",
-          "icon": "menu-icon ti tabler-screen-share",
-          "slug": "public.live-board",
-          "url": "/live-board",
-          "target": "_blank"
-        },
-        {
           "name": "Absensi Hari Ini",
           "icon": "menu-icon ti tabler-calendar-time",
           "slug": "admin.absensi-hari-ini",
           "url": "/admin/absensi-hari-ini"
+        },
+        {
+          "name": "Data Absensi Siswa",
+          "icon": "menu-icon ti tabler-list-check",
+          "slug": "admin.absensi-siswa.index",
+          "url": "/admin/absensi-siswa"
+        },
+        {
+          "name": "Absensi Cepat",
+          "icon": "menu-icon ti tabler-zap",
+          "slug": "admin.absensi-siswa.bulk",
+          "url": "/admin/absensi-cepat"
+        },
+        {
+          "name": "Izin & Sakit",
+          "icon": "menu-icon ti tabler-stethoscope",
+          "slug": [
+            "admin.izin-sakit.index",
+            "admin.leave-limits.index"
+          ],
+          "submenu": [
+            {
+              "name": "Data Izin & Sakit",
+              "slug": "admin.izin-sakit.index",
+              "url": "/admin/izin-sakit"
+            },
+            {
+              "name": "Batasan Izin",
+              "icon": "menu-icon ti tabler-clipboard-list",
+              "slug": "admin.leave-limits.index",
+              "url": "/admin/leave-limits"
+            }
+          ]
+        },
+        {
+          "name": "Pelepasan Siswa",
+          "icon": "menu-icon ti tabler-award",
+          "slug": "admin.pelepasan.index",
+          "url": "/admin/pelepasan"
         },
         {
           "name": "Kelola Jam Absensi",
@@ -226,58 +263,58 @@
           "icon": "menu-icon ti tabler-calendar-plus",
           "slug": "admin.holidays",
           "url": "/admin/holidays"
+        },
+        {
+          "name": "Live Board Siswa (TV)",
+          "icon": "menu-icon ti tabler-screen-share",
+          "slug": "public.live-board",
+          "url": "/live-board",
+          "target": "_blank"
         }
       ]
     },
     {
-      "name": "Absensi Siswa",
-      "icon": "menu-icon ti tabler-user-check",
-      "slug": [
-        "admin.absensi-siswa.index",
-        "admin.absensi-siswa.bulk",
-        "admin.pelepasan.index"
-      ],
-      "submenu": [
-        {
-          "name": "Data Absensi Siswa",
-          "slug": "admin.absensi-siswa.index",
-          "url": "/admin/absensi-siswa"
-        },
-        {
-          "name": "Absensi Cepat",
-          "slug": "admin.absensi-siswa.bulk",
-          "url": "/admin/absensi-cepat"
-        },
-        {
-          "name": "Pelepasan Siswa",
-          "icon": "menu-icon ti tabler-award",
-          "slug": "admin.pelepasan.index",
-          "url": "/admin/pelepasan"
-        }
-      ]
-    },
-    {
-      "name": "Absensi & Monitoring Guru",
+      "name": "Presensi Guru & Staff",
       "icon": "menu-icon ti tabler-presentation",
       "slug": [
         "admin.absensi-guru.index",
+        "admin.absensi-staff.index",
+        "admin.assignments.index",
         "piket.monitoring.index",
+        "admin.monitoring.index",
         "public.live-board-guru",
-        "waka.live-board",
-        "admin.monitoring.index"
+        "waka.live-board"
       ],
       "submenu": [
         {
-          "name": "Absensi Pagi (Harian)",
+          "name": "Absensi Guru (Harian)",
           "icon": "menu-icon ti tabler-qrcode",
           "slug": "admin.absensi-guru.index",
           "url": "/admin/absensi-guru"
+        },
+        {
+          "name": "Absensi Staff TU",
+          "icon": "menu-icon ti tabler-briefcase",
+          "slug": "admin.absensi-staff.index",
+          "url": "/admin/absensi-staff"
+        },
+        {
+          "name": "Penugasan Guru",
+          "icon": "menu-icon ti tabler-book-upload",
+          "slug": "admin.assignments.index",
+          "url": "/admin/assignments"
         },
         {
           "name": "Input Monitoring Piket",
           "icon": "menu-icon ti tabler-clipboard-check",
           "slug": "piket.monitoring.index",
           "url": "/piket/monitoring"
+        },
+        {
+          "name": "Rekap Monitoring Per Jam",
+          "icon": "menu-icon ti tabler-report",
+          "slug": "admin.monitoring.index",
+          "url": "/admin/monitoring"
         },
         {
           "name": "Live Board Guru (TV)",
@@ -291,23 +328,11 @@
           "icon": "menu-icon ti tabler-device-tv",
           "slug": "waka.live-board",
           "url": "/waka/live-board"
-        },
-        {
-          "name": "Rekap Monitoring Per Jam",
-          "icon": "menu-icon ti tabler-report",
-          "slug": "admin.monitoring.index",
-          "url": "/admin/monitoring"
         }
       ]
     },
     {
-      "name": "Absensi Staff TU",
-      "icon": "menu-icon ti tabler-briefcase",
-      "slug": "admin.absensi-staff.index",
-      "url": "/admin/absensi-staff"
-    },
-    {
-      "name": "Absensi Kegiatan",
+      "name": "Kegiatan & Ekskul",
       "icon": "menu-icon ti tabler-calendar-check",
       "slug": [
         "admin.kegiatans.absensi",
@@ -318,16 +343,19 @@
       "submenu": [
         {
           "name": "Daftar Kegiatan",
+          "icon": "menu-icon ti tabler-calendar-event",
           "slug": "admin.kegiatans.absensi",
           "url": "/admin/kegiatans/absensi"
         },
         {
           "name": "Scan Kegiatan",
+          "icon": "menu-icon ti tabler-qrcode",
           "slug": "admin.absensi-kegiatan.scan",
           "url": "/admin/absensi-kegiatan/scan"
         },
         {
           "name": "Rekap Scan",
+          "icon": "menu-icon ti tabler-list-check",
           "slug": "admin.absensi-kegiatan.rekap",
           "url": "/admin/absensi-kegiatan/rekap"
         },
@@ -340,34 +368,7 @@
       ]
     },
     {
-      "name": "Izin & Sakit",
-      "icon": "menu-icon ti tabler-stethoscope",
-      "slug": [
-        "admin.izin-sakit.index",
-        "admin.leave-limits.index"
-      ],
-      "submenu": [
-        {
-          "name": "Data Izin & Sakit",
-          "slug": "admin.izin-sakit.index",
-          "url": "/admin/izin-sakit"
-        },
-        {
-          "name": "Batasan Izin",
-          "icon": "menu-icon ti tabler-clipboard-list",
-          "slug": "admin.leave-limits.index",
-          "url": "/admin/leave-limits"
-        }
-      ]
-    },
-    {
-      "name": "Penugasan Guru",
-      "icon": "menu-icon ti tabler-book-upload",
-      "slug": "admin.assignments.index",
-      "url": "/admin/assignments"
-    },
-    {
-      "menuHeader": "Evaluasi Siswa"
+      "menuHeader": "Monitoring & Evaluasi"
     },
     {
       "name": "Monitoring Kehadiran",
@@ -377,7 +378,7 @@
       ],
       "submenu": [
         {
-          "name": "Belum Absen",
+          "name": "Siswa Belum Absen",
           "icon": "menu-icon ti tabler-user-off",
           "slug": "admin.dashboard.belum-absen",
           "url": "/admin/dashboard/belum-absen"
