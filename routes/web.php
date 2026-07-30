@@ -461,6 +461,14 @@ Route::middleware([
             ->name('admin.absensi-kegiatan.live-board.scan');
 
         // ── MODUL EKSTRAKURIKULER ──────────────────────────────────────────────
+        Route::get('ekskul/export-data', [EkskulController::class, 'exportData'])
+            ->name('admin.ekskul.export-data')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+
+        Route::post('ekskul/import-data', [EkskulController::class, 'importData'])
+            ->name('admin.ekskul.import-data')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+
         Route::resource('ekskul', EkskulController::class)
             ->names('admin.ekskul')
             ->except(['show'])

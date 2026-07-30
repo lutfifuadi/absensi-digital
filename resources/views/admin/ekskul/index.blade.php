@@ -114,7 +114,13 @@
           <p class="das-hero__welcome">Kelola kegiatan ekstrakurikuler, anggota, dan absensi dalam satu tempat.</p>
         </div>
       </div>
-      <div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ route('admin.ekskul.export-data') }}" class="das-btn das-btn--ghost text-white" title="Export Data JSON" data-bs-toggle="tooltip">
+          <i class="ti tabler-download me-1"></i> Export Data
+        </a>
+        <button type="button" class="das-btn das-btn--ghost text-white" data-bs-toggle="modal" data-bs-target="#importEkskulModal" title="Import Data JSON">
+          <i class="ti tabler-upload me-1"></i> Import Data
+        </button>
         <a href="{{ route('admin.ekskul.create') }}" class="das-btn das-btn--primary">
           <i class="ti tabler-plus me-1"></i> Tambah Ekskul
         </a>
@@ -320,6 +326,39 @@
         {{ $ekskuls->withQueryString()->links() }}
       </div>
     @endif
+  </div>
+
+  <!-- Modal Import Data JSON Ekskul -->
+  <div class="modal fade" id="importEkskulModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content das-modal shadow-lg">
+        <div class="das-modal-head d-flex align-items-center justify-content-between">
+          <h5 class="das-modal-title"><i class="ti tabler-file-import me-2 text-warning"></i> Import Data Ekstrakurikuler (JSON)</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{{ route('admin.ekskul.import-data') }}" method="POST" enctype="multipart/form-data">
+          @csrf
+          <div class="das-modal-body text-light">
+            <p class="mb-2 text-white-50 small">Pilih file berformat <b>.json</b> hasil export data ekstrakurikuler (Master Ekskul, Jadwal, Pembina, Kegiatan, & Anggota) dari website/server lain.</p>
+            <div class="alert alert-info border-0 shadow-sm d-flex gap-2 mb-3" style="background: rgba(0, 207, 232, 0.12); border-radius: 8px;">
+              <i class="ti tabler-info-circle text-info fs-5 flex-shrink-0 mt-0.5"></i>
+              <span class="small">
+                Sistem akan membuat/memperbarui data Master Ekskul, Jadwal, Pembina Guru, dan mencocokkan Anggota Siswa berdasarkan NIS/Nama.
+              </span>
+            </div>
+            <div class="mb-0">
+              <label class="form-label text-white-50 small fw-bold">File JSON Ekstrakurikuler <span class="text-danger">*</span></label>
+              <input type="file" class="form-control das-form-control" name="json_file" accept=".json,application/json" required>
+              <span class="text-white-50 extra-small mt-1 d-block">Maksimal ukuran file: 5 MB.</span>
+            </div>
+          </div>
+          <div class="d-flex justify-content-end gap-2 p-4 pt-0">
+            <button type="button" class="das-btn das-btn--ghost" data-bs-dismiss="modal">Batal</button>
+            <button type="submit" class="das-btn das-btn--primary"><i class="ti tabler-upload me-1"></i> Mulai Import</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 
 @endsection
