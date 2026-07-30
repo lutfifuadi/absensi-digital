@@ -210,6 +210,7 @@ Route::middleware([
     Route::get('/dashboard/refresh-stats', [DashboardController::class, 'refreshStats'])->name('admin.dashboard.refresh-stats')->middleware('role:super_admin,admin_sekolah');
     Route::get('/admin/wa-gateway/check-services-status', [\App\Http\Controllers\Admin\WaGatewayController::class, 'checkServicesStatus'])->name('admin.wa-gateway.check-services-status');
     Route::post('/admin/wa-gateway/batch-check-numbers', [\App\Http\Controllers\Admin\WaGatewayController::class, 'batchCheckNumbers'])->name('admin.wa-gateway.batch-check-numbers');
+    Route::post('/admin/wa-gateway/check-all-role-numbers', [\App\Http\Controllers\Admin\WaGatewayController::class, 'checkAllRoleNumbers'])->name('admin.wa-gateway.check-all-role-numbers');
 
     // ── FITUR GURU BK (Bimbingan Konseling) ───────────────────────────────────
     Route::prefix('bk')->name('bk.')->group(function () {

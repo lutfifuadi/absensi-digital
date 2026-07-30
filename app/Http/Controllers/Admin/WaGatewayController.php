@@ -328,4 +328,60 @@ class WaGatewayController extends Controller
             'results' => $results,
         ]);
     }
+
+    /**
+     * Chunked bulk check for ALL numbers of a specific role (1000+ records)
+     */
+    public function checkAllRoleNumbers(Request $request)
+    {
+        $role   = $request->input('role', 'siswa');
+        $offset = $request->integer('offset', 0);
+        $limit  = $request->integer('limit', 20);
+
+        $waService = new WhatsAppService();
+        $numbers = [];
+        $total = 0;
+
+        if ($role === 'siswa') {
+            $query = \App\Models\Siswa::whereNotNull('no_hp')->orWhereNotNull('no_hp_ortu');
+            $total = $query->count();
+            $items = $query->skip($offset)->take($limit)->get();
+            foreach ($items as $item) {
+                $raw = $item->no_hp ?: $item->no_hp_ortu;
+                $formatted = \App\Helpers\WhatsAppHelper::formatNumber($raw);
+                if ($formatted) $numbers[] = $formatted;
+            }
+        } else if ($role === 'guru') {
+            $query = \App\Models\Guru::whereNotNull('no_hp');
+            $total = $query->count();
+            $items = $query->skip($offset)->take($limit)->get();
+            foreach ($items as $item) {
+                $formatted = \App\Helpers\WhatsAppHelper::formatNumber($item->no_hp);
+                if ($formatted) $numbers[] = $formatted;
+            }
+        } else if ($role === 'orang_tua') {
+            $query = \App\Models\User::where('role', \App\Models\User::ROLE_ORANG_TUA)->whereNotNull('no_hp');
+            $total = $query->count();
+            $items = $query->skip($offset)->take($limit)->get();
+            foreach ($items as $item) {
+                $formatted = \App\Helpers\WhatsAppHelper::formatNumber($item->no_hp);
+                if ($formatted) $numbers[] = $formatted;
+            }
+        }
+
+        $results = [];
+        foreach ($numbers as $num) {
+            $results[$num] = $waService->revalidateNumber($num);
+        }
+
+        return response()->json([
+            'status'    => true,
+            'role'      => $role,
+            'offset'    => $offset,
+            'limit'     => $limit,
+            'total'     => $total,
+            'processed' => count($numbers),
+            'results'   => $results,
+        ]);
+    }
 }
