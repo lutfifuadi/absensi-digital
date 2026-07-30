@@ -25,11 +25,13 @@ class GoogleSheetSetting extends Model
         'sync_processed_rows',
         'sync_offset',
         'is_active',
+        'auto_sync_on_change',
     ];
 
     protected $casts = [
         'column_mapping' => 'array',
         'is_active' => 'boolean',
+        'auto_sync_on_change' => 'boolean',
         'sync_total_rows' => 'integer',
         'sync_processed_rows' => 'integer',
         'sync_offset' => 'integer',

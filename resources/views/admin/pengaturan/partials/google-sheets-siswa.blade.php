@@ -71,6 +71,28 @@
                 @enderror
               </div>
 
+              <div class="set-field set-field--full my-3">
+                <div class="p-3 rounded-3" style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25);">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-start gap-3">
+                      <div class="rounded-circle p-2 d-flex align-items-center justify-content-center text-white" style="background: #6366f1; width: 38px; height: 38px; flex-shrink: 0;">
+                        <i class="ti tabler-refresh fs-5"></i>
+                      </div>
+                      <div>
+                        <div class="fw-bold mb-1" style="color: #6366f1;">
+                          Sinkron Otomatis Saat Perubahan Data (DB &rarr; Google Sheet)
+                          <span class="badge bg-primary ms-2" style="font-size: 0.68rem;">Fitur Baru</span>
+                        </div>
+                        <div class="text-muted small">Jika diaktifkan, setiap ada penambahan, pengubahan, atau penghapusan data siswa & absensi di aplikasi, Google Sheet akan diperbarui secara otomatis di latar belakang.</div>
+                      </div>
+                    </div>
+                    <div class="form-check form-switch ms-3" style="font-size: 1.25rem;">
+                      <input class="form-check-input" type="checkbox" role="switch" id="auto_sync_on_change_siswa" name="auto_sync_on_change" value="1" {{ old('auto_sync_on_change', $setting->auto_sync_on_change ?? false) ? 'checked' : '' }} style="cursor: pointer;">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div class="set-field set-field--full">
                 <label class="set-label" for="credentials_json_siswa">Service Account JSON</label>
                 <div class="set-input-group">

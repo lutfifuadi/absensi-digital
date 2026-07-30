@@ -55,6 +55,7 @@ class GoogleSheetsSettingController extends Controller
         $data = [
             'spreadsheet_id' => $validated['spreadsheet_id'],
             'sheet_range' => $validated['sheet_range'],
+            'auto_sync_on_change' => $request->boolean('auto_sync_on_change'),
         ];
 
         if ($request->filled('credentials_json')) {

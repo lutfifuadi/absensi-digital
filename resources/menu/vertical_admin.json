@@ -536,6 +536,34 @@
       ]
     },
     {
+      "name": "Integrasi",
+      "icon": "menu-icon ti tabler-plug-connected",
+      "slug": [
+        "admin.pengaturan.google-sheets.index",
+        "admin.pengaturan.google-sheets-guru.index"
+      ],
+      "submenu": [
+        {
+          "name": "Google Sheets (Siswa)",
+          "icon": "menu-icon ti tabler-file-spreadsheet",
+          "slug": "admin.pengaturan.google-sheets.index",
+          "url": "/admin/pengaturan?tab=google-sheets-siswa"
+        },
+        {
+          "name": "Google Sheets (Guru)",
+          "icon": "menu-icon ti tabler-file-spreadsheet",
+          "slug": "admin.pengaturan.google-sheets-guru.index",
+          "url": "/admin/pengaturan?tab=google-sheets-guru"
+        },
+        {
+          "name": "Google Drive Sync",
+          "icon": "menu-icon ti tabler-brand-google-drive",
+          "slug": "admin.pengaturan.google-drive",
+          "url": "/admin/pengaturan?tab=google-drive"
+        }
+      ]
+    },
+    {
       "menuHeader": "Sistem"
     },
     {

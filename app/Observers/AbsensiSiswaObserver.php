@@ -38,6 +38,8 @@ class AbsensiSiswaObserver
         $this->kirimNotifikasiKeOrtu($absensiSiswa);
 
         $this->hitungPoinGamifikasi($absensiSiswa);
+
+        \App\Jobs\SyncToGoogleSheetJob::dispatch($absensiSiswa, 'created', 'absensi_siswa');
     }
 
     /**
@@ -50,6 +52,8 @@ class AbsensiSiswaObserver
         if ($absensiSiswa->isDirty('jam_pulang') && !empty($absensiSiswa->jam_pulang)) {
             $this->kirimNotifikasiKeOrtu($absensiSiswa, 'pulang');
         }
+
+        \App\Jobs\SyncToGoogleSheetJob::dispatch($absensiSiswa, 'updated', 'absensi_siswa');
     }
 
     /**

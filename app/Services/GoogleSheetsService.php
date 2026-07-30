@@ -734,6 +734,159 @@ class GoogleSheetsService
                 'more' => false,
                 'unrecognized_headers' => $unrecognizedHeaders ?? [],
             ];
+        } catch (\Exception $e) {
+            Log::channel('daily')->error('GoogleSheetsService: Sync guru gagal total', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'imported' => $imported,
+                'failed' => $failed,
+                'errors' => ['Gagal menyinkronkan data guru. Silakan coba lagi.'],
+                'total' => 0,
+                'offset' => $offset,
+                'more' => false,
+                'unrecognized_headers' => $unrecognizedHeaders ?? [],
+            ];
         }
+    }
+
+    /**
+     * Sinkronkan satu model ke Google Sheet (Ekspor / Reverse Sync saat ada perubahan data).
+     */
+    public function syncModelToSheet(GoogleSheetSetting $setting, \Illuminate\Database\Eloquent\Model $model, string $action = 'updated'): bool
+    {
+        try {
+            if (! $setting->is_active || empty($setting->credentials_json)) {
+                return false;
+            }
+
+            $client = $this->getClient([
+                'credentials_json' => $setting->credentials_json,
+            ], false);
+            $service = new Sheets($client);
+
+            $range = $setting->sheet_range ?: 'Sheet1!A:Z';
+            $response = $service->spreadsheets_values->get($setting->spreadsheet_id, $range);
+            $values = $response->getValues() ?? [];
+
+            if (empty($values)) {
+                return false;
+            }
+
+            $headers = array_shift($values);
+            $type = $setting->type ?? 'siswa';
+            $mappingService = new MappingService($type);
+            $autoResult = $mappingService->mergeMapping($headers, $setting->column_mapping ?? []);
+            $headerToColMap = $autoResult['mapping'];
+
+            $keyField = match ($type) {
+                'guru' => 'nip',
+                'absensi_siswa' => 'nis',
+                default => 'nis',
+            };
+
+            $modelKeyValue = strval($model->{$keyField} ?? '');
+            if (empty($modelKeyValue) && isset($model->nis)) {
+                $modelKeyValue = strval($model->nis);
+            }
+
+            $foundRowIndex = null;
+            if (! empty($modelKeyValue)) {
+                foreach ($values as $index => $row) {
+                    $rowCombined = [];
+                    foreach ($headers as $colIdx => $headerName) {
+                        $rowCombined[$headerName] = $row[$colIdx] ?? '';
+                    }
+
+                    foreach ($headerToColMap as $headerName => $dbCol) {
+                        if ($dbCol === $keyField && isset($rowCombined[$headerName])) {
+                            if (trim(strval($rowCombined[$headerName])) === trim($modelKeyValue)) {
+                                $foundRowIndex = $index + 2;
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+
+            $newRow = [];
+            foreach ($headers as $headerName) {
+                $dbCol = $headerToColMap[$headerName] ?? null;
+                if ($dbCol) {
+                    $newRow[] = $this->extractModelValue($model, $dbCol);
+                } else {
+                    $newRow[] = '';
+                }
+            }
+
+            $sheetName = 'Sheet1';
+            if (str_contains($range, '!')) {
+                $sheetName = explode('!', $range)[0];
+            }
+
+            $lastColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($headers));
+
+            if ($action === 'deleted') {
+                if ($foundRowIndex) {
+                    $emptyRow = array_fill(0, count($headers), '');
+                    $updateRange = "{$sheetName}!A{$foundRowIndex}:{$lastColLetter}{$foundRowIndex}";
+                    $valueRange = new Sheets\ValueRange(['values' => [$emptyRow]]);
+                    $service->spreadsheets_values->update($setting->spreadsheet_id, $updateRange, $valueRange, ['valueInputOption' => 'USER_ENTERED']);
+                }
+
+                return true;
+            }
+
+            if ($foundRowIndex) {
+                $updateRange = "{$sheetName}!A{$foundRowIndex}:{$lastColLetter}{$foundRowIndex}";
+                $valueRange = new Sheets\ValueRange(['values' => [$newRow]]);
+                $service->spreadsheets_values->update($setting->spreadsheet_id, $updateRange, $valueRange, ['valueInputOption' => 'USER_ENTERED']);
+            } else {
+                $appendRange = "{$sheetName}!A1:{$lastColLetter}1";
+                $valueRange = new Sheets\ValueRange(['values' => [$newRow]]);
+                $service->spreadsheets_values->append($setting->spreadsheet_id, $appendRange, $valueRange, ['valueInputOption' => 'USER_ENTERED']);
+            }
+
+            Log::channel('daily')->info('GoogleSheetsService: syncModelToSheet berhasil', [
+                'setting_id' => $setting->id,
+                'model' => get_class($model),
+                'model_id' => $model->getKey(),
+                'action' => $action,
+                'row_index' => $foundRowIndex ?? 'appended',
+            ]);
+
+            return true;
+        } catch (\Exception $e) {
+            Log::channel('daily')->error('GoogleSheetsService: syncModelToSheet gagal', [
+                'setting_id' => $setting->id,
+                'model' => get_class($model),
+                'model_id' => $model->getKey(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+    }
+
+    /**
+     * Helper untuk mengambil nilai atribut dari model berdasarkan kolom database.
+     */
+    protected function extractModelValue(\Illuminate\Database\Eloquent\Model $model, string $dbCol): string
+    {
+        if ($dbCol === 'kelas_nama') {
+            return $model->kelas->nama_kelas ?? $model->kelas_nama ?? '';
+        }
+        if ($dbCol === 'tahun_akademik_nama') {
+            return $model->tahunAkademik->nama ?? $model->tahun_akademik_nama ?? '';
+        }
+        if ($dbCol === 'jenis_kelamin') {
+            $val = $model->jenis_kelamin ?? '';
+
+            return strtoupper($val) === 'L' ? 'Laki-laki' : (strtoupper($val) === 'P' ? 'Perempuan' : $val);
+        }
+
+        return strval($model->{$dbCol} ?? '');
     }
 }

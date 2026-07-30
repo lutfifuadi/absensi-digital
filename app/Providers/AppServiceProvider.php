@@ -42,6 +42,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Observer untuk sync password_plain saat password berubah
         User::observe(UserPasswordObserver::class);
+        \App\Models\Siswa::observe(\App\Observers\SiswaObserver::class);
+        \App\Models\Guru::observe(\App\Observers\GuruObserver::class);
+        \App\Models\AbsensiSiswa::observe(\App\Observers\AbsensiSiswaObserver::class);
 
         if (!file_exists(storage_path('installed'))) {
             return;
