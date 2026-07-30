@@ -1763,26 +1763,62 @@
                 if (typeof Swal === 'undefined') return;
 
                 Swal.fire({
-                    title: 'Verifikasi WA Massal (Semua Guru)',
                     html: `
-                        <div class="mb-3 text-start">
-                            <small class="text-white-50 d-block mb-2">Memeriksa keaktifan nomor WhatsApp seluruh data guru di database secara otomatis...</small>
-                            <div class="progress mb-2" style="height: 20px; background: rgba(255,255,255,0.1); border-radius: 6px;">
-                                <div id="bulkWaProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0%; font-size: 0.75rem; font-weight: bold;">0%</div>
+                        <div style="padding: 8px 4px;">
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+                                <div style="width:48px; height:48px; border-radius:12px; background:linear-gradient(135deg,#25d366,#128c7e); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 4px 15px rgba(37,211,102,0.4);">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.558 4.122 1.532 5.85L.058 23.5l5.797-1.498A11.954 11.954 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.89 0-3.663-.52-5.178-1.427l-.37-.22-3.44.889.914-3.35-.24-.386A9.961 9.961 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                                </div>
+                                <div style="text-align:left;">
+                                    <div style="font-size:1rem; font-weight:700; color:#fff; line-height:1.2;">Verifikasi WA Massal</div>
+                                    <div style="font-size:0.75rem; color:rgba(255,255,255,0.5); margin-top:2px;">Memproses seluruh data guru di database...</div>
+                                </div>
                             </div>
-                            <div class="d-flex justify-content-between text-white-50 extra-small">
-                                <span id="bulkWaStatusText">Memulai kueri database...</span>
-                                <span id="bulkWaCounterText">0 / 0</span>
+
+                            <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:16px; margin-bottom:16px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                    <span id="bulkWaStatusText" style="font-size:0.78rem; color:rgba(255,255,255,0.6);">Memulai kueri database...</span>
+                                    <span id="bulkWaCounterText" style="font-size:0.78rem; font-weight:600; color:#25d366; font-family:monospace;">0 / 0</span>
+                                </div>
+                                <div style="background:rgba(255,255,255,0.07); border-radius:999px; height:10px; overflow:hidden; margin-bottom:8px;">
+                                    <div id="bulkWaProgressBar" style="height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,#25d366,#128c7e); transition:width 0.4s ease; position:relative;">
+                                        <div style="position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.2) 50%,transparent 100%);animation:shimmer 1.5s infinite;"></div>
+                                    </div>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span id="bulkWaPercentText" style="font-size:0.72rem; color:rgba(255,255,255,0.4);">0%</span>
+                                    <div style="display:flex; gap:16px;">
+                                        <div style="text-align:center;">
+                                            <div id="bulkWaValidCount" style="font-size:0.9rem; font-weight:700; color:#25d366;">0</div>
+                                            <div style="font-size:0.65rem; color:rgba(255,255,255,0.4);">Valid WA</div>
+                                        </div>
+                                        <div style="text-align:center;">
+                                            <div id="bulkWaInvalidCount" style="font-size:0.9rem; font-weight:700; color:#ff4757;">0</div>
+                                            <div style="font-size:0.65rem; color:rgba(255,255,255,0.4);">Tidak Valid</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display:flex; align-items:center; gap:8px; font-size:0.72rem; color:rgba(255,255,255,0.35);">
+                                <div style="width:6px;height:6px;border-radius:50%;background:#25d366;animation:pulse-dot 1.2s infinite;flex-shrink:0;"></div>
+                                Proses berjalan di background, halaman tetap bisa digunakan
                             </div>
                         </div>
+                        <style>
+                            @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(200%)} }
+                            @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.7)} }
+                        </style>
                     `,
                     allowOutsideClick: false,
                     showConfirmButton: false,
                     showCancelButton: true,
-                    cancelButtonText: 'Batal / Hentikan',
+                    cancelButtonText: '<i style="margin-right:6px;">✕</i> Hentikan Proses',
                     customClass: {
-                        popup: 'das-modal border-0 shadow-lg text-white'
-                    }
+                        popup: 'border-0 shadow-lg',
+                        cancelButton: 'btn btn-sm',
+                    },
+                    buttonsStyling: true,
                 }).then((result) => {
                     if (result.dismiss === Swal.DismissReason.cancel) {
                         isCancelled = true;
@@ -1816,10 +1852,16 @@
                             const pBar = document.getElementById('bulkWaProgressBar');
                             const sText = document.getElementById('bulkWaStatusText');
                             const cText = document.getElementById('bulkWaCounterText');
+                            const pText = document.getElementById('bulkWaPercentText');
+                            const vCount = document.getElementById('bulkWaValidCount');
+                            const iCount = document.getElementById('bulkWaInvalidCount');
 
-                            if (pBar) { pBar.style.width = percent + '%'; pBar.textContent = percent + '%'; }
-                            if (sText) sText.textContent = `Memeriksa... (${validTotal} nomor valid terverifikasi)`;
+                            if (pBar) pBar.style.width = percent + '%';
+                            if (pText) pText.textContent = percent + '%';
+                            if (sText) sText.textContent = `Memeriksa batch ${Math.ceil(offset / limit)} dari ${Math.ceil(total / limit)}...`;
                             if (cText) cText.textContent = `${Math.min(offset, total)} / ${total}`;
+                            if (vCount) vCount.textContent = validTotal;
+                            if (iCount) iCount.textContent = (offset - validTotal);
 
                             if (offset < total && data.processed > 0) {
                                 processChunk();
