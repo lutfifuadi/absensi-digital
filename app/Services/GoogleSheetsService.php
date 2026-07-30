@@ -833,20 +833,64 @@ class GoogleSheetsService
                     $emptyRow = array_fill(0, count($headers), '');
                     $updateRange = "{$sheetName}!A{$foundRowIndex}:{$lastColLetter}{$foundRowIndex}";
                     $valueRange = new Sheets\ValueRange(['values' => [$emptyRow]]);
-                    $service->spreadsheets_values->update($setting->spreadsheet_id, $updateRange, $valueRange, ['valueInputOption' => 'USER_ENTERED']);
+                    $service->spreadsheets_values->update($setting->spreadsheet_id, $updateRange, $valueRange, ['valueInputOption' => 'RAW']);
                 }
 
                 return true;
             }
 
             if ($foundRowIndex) {
-                $updateRange = "{$sheetName}!A{$foundRowIndex}:{$lastColLetter}{$foundRowIndex}";
+                $targetRow = $foundRowIndex;
+                $updateRange = "{$sheetName}!A{$targetRow}:{$lastColLetter}{$targetRow}";
                 $valueRange = new Sheets\ValueRange(['values' => [$newRow]]);
-                $service->spreadsheets_values->update($setting->spreadsheet_id, $updateRange, $valueRange, ['valueInputOption' => 'USER_ENTERED']);
+                $service->spreadsheets_values->update($setting->spreadsheet_id, $updateRange, $valueRange, ['valueInputOption' => 'RAW']);
             } else {
+                $targetRow = count($values) + 2;
                 $appendRange = "{$sheetName}!A1:{$lastColLetter}1";
                 $valueRange = new Sheets\ValueRange(['values' => [$newRow]]);
-                $service->spreadsheets_values->append($setting->spreadsheet_id, $appendRange, $valueRange, ['valueInputOption' => 'USER_ENTERED']);
+                $service->spreadsheets_values->append($setting->spreadsheet_id, $appendRange, $valueRange, ['valueInputOption' => 'RAW']);
+            }
+
+            // Pastikan format sel di Google Sheet diset secara eksplisit ke TEXT (Plain Text)
+            try {
+                $spreadsheetInfo = $service->spreadsheets->get($setting->spreadsheet_id);
+                $cleanSheetName = trim(str_replace("'", "", $sheetName));
+                $targetSheetId = 0;
+                foreach ($spreadsheetInfo->getSheets() as $s) {
+                    if ($s->getProperties()->getTitle() === $cleanSheetName) {
+                        $targetSheetId = $s->getProperties()->getSheetId();
+                        break;
+                    }
+                }
+
+                $zeroBasedRowIndex = $targetRow - 1;
+                $requests = [
+                    new Sheets\Request([
+                        'repeatCell' => [
+                            'range' => [
+                                'sheetId' => $targetSheetId,
+                                'startRowIndex' => $zeroBasedRowIndex,
+                                'endRowIndex' => $zeroBasedRowIndex + 1,
+                                'startColumnIndex' => 0,
+                                'endColumnIndex' => count($headers),
+                            ],
+                            'cell' => [
+                                'userEnteredFormat' => [
+                                    'numberFormat' => [
+                                        'type' => 'TEXT',
+                                    ],
+                                ],
+                            ],
+                            'fields' => 'userEnteredFormat.numberFormat',
+                        ],
+                    ]),
+                ];
+                $batchUpdateRequest = new Sheets\BatchUpdateSpreadsheetRequest(['requests' => $requests]);
+                $service->spreadsheets->batchUpdate($setting->spreadsheet_id, $batchUpdateRequest);
+            } catch (\Exception $fmtEx) {
+                Log::channel('daily')->warning('GoogleSheetsService: Gagal mengeset format sel ke TEXT', [
+                    'error' => $fmtEx->getMessage(),
+                ]);
             }
 
             Log::channel('daily')->info('GoogleSheetsService: syncModelToSheet berhasil', [
