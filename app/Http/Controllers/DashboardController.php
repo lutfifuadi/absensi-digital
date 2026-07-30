@@ -1290,7 +1290,17 @@ return response()->json([
     public function gamifikasiRekap(Request $request)
     {
         if (! $request->expectsJson() && ! $request->ajax() && ! $request->wantsJson()) {
-            return $this->gamifikasi($request);
+            $tahunAkademikList  = TahunAkademik::orderByDesc('is_aktif')->orderByDesc('id')->get();
+            $tahunAkademikAktif = TahunAkademik::where('is_aktif', true)->first()
+                ?? TahunAkademik::orderByDesc('id')->first();
+            $tahunId            = $tahunAkademikAktif?->id;
+            $kelasList          = Kelas::where('tahun_akademik_id', $tahunId)->orderBy('nama')->get(['id', 'nama', 'jurusan_id', 'tahun_akademik_id']);
+
+            return view('admin.gamifikasi.rekap', compact(
+                'tahunAkademikList',
+                'kelasList',
+                'tahunAkademikAktif'
+            ));
         }
 
         try {
