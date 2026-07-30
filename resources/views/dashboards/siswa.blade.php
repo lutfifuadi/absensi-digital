@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="{{ asset('css/dashboards/super-admin.css') }}?v=4.3">
   <link rel="stylesheet" href="{{ asset('css/dashboards/siswa.css') }}?v=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <style>
     .barcode-svg-container svg {
       width: 100% !important;
@@ -1373,6 +1374,7 @@ if ('requestIdleCallback' in window) {
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -1533,30 +1535,41 @@ document.addEventListener('DOMContentLoaded', function() {
           const modalIns = bootstrap.Modal.getInstance(modalEl);
           if (modalIns) modalIns.hide();
 
-          if (window.Swal) {
-            Swal.fire({
-              icon: 'success',
-              title: 'Berhasil!',
-              text: data.message,
-              timer: 2000,
-              showConfirmButton: false
-            }).then(() => {
-              window.location.reload();
-            });
-          } else {
-            alert(data.message);
+          Swal.fire({
+            icon: 'success',
+            title: '<span style="font-weight: 700; color: #0f172a; font-size: 1.25rem;">Pas Foto Resmi Berhasil Disimpan!</span>',
+            html: `
+              <div class="py-2 text-center">
+                <div class="mb-3 position-relative d-inline-block">
+                  <img src="${data.photo_url}" class="rounded-circle border border-4 border-success shadow" style="width: 110px; height: 110px; object-fit: cover;">
+                  <span class="badge bg-success rounded-circle position-absolute bottom-0 end-0 p-2 border border-2 border-white shadow-sm" style="transform: translate(15%, 15%);">
+                    <i class="ti tabler-check fs-6 text-white"></i>
+                  </span>
+                </div>
+                <p class="mb-1 text-dark fw-bold" style="font-size: 0.95rem;">File: ${data.filename || 'pas_foto'}</p>
+                <p class="text-muted small mb-0">Pas foto telah berhasil diperbarui & disinkronkan ke Kartu Pelajar Digital.</p>
+              </div>
+            `,
+            confirmButtonText: 'Selesai & Refresh',
+            customClass: {
+              popup: 'rounded-4 border-0 shadow-lg p-3',
+              confirmButton: 'btn btn-primary px-4 py-2 rounded-pill shadow-sm fw-semibold'
+            },
+            buttonsStyling: false
+          }).then(() => {
             window.location.reload();
-          }
+          });
         } else {
-          if (window.Swal) {
-            Swal.fire({
-              icon: 'error',
-              title: 'Gagal',
-              text: data.message || 'Gagal mengunggah foto.'
-            });
-          } else {
-            alert(data.message || 'Gagal mengunggah foto.');
-          }
+          Swal.fire({
+            icon: 'error',
+            title: '<span style="font-weight: 700; color: #991b1b;">Gagal Mengunggah Foto</span>',
+            text: data.message || 'Terjadi kesalahan saat memproses foto.',
+            customClass: {
+              popup: 'rounded-4 border-0 shadow-lg p-3',
+              confirmButton: 'btn btn-danger px-4 py-2 rounded-pill shadow-sm fw-semibold'
+            },
+            buttonsStyling: false
+          });
         }
       })
       .catch(err => {
@@ -1564,15 +1577,16 @@ document.addEventListener('DOMContentLoaded', function() {
         spinnerUpload.classList.add('d-none');
         iconCheckFoto.classList.remove('d-none');
         console.error(err);
-        if (window.Swal) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Kesalahan Sistem',
-            text: 'Terjadi masalah saat mengirim data ke server.'
-          });
-        } else {
-          alert('Terjadi masalah saat mengirim data ke server.');
-        }
+        Swal.fire({
+          icon: 'error',
+          title: '<span style="font-weight: 700; color: #991b1b;">Kesalahan Sistem</span>',
+          text: 'Terjadi masalah saat mengirim data ke server.',
+          customClass: {
+            popup: 'rounded-4 border-0 shadow-lg p-3',
+            confirmButton: 'btn btn-danger px-4 py-2 rounded-pill shadow-sm fw-semibold'
+          },
+          buttonsStyling: false
+        });
       });
     });
   }

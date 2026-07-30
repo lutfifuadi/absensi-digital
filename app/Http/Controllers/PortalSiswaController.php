@@ -560,6 +560,14 @@ class PortalSiswaController extends Controller
                 'foto' => $newFotoValue
             ]);
 
+            // Bersihkan cache base64 foto (baik file ID baru maupun lama) agar foto baru langsung tampil
+            if ($newFotoValue) {
+                \Illuminate\Support\Facades\Cache::forget("gd_photo_base64_{$newFotoValue}");
+            }
+            if (isset($oldFileId) && $oldFileId) {
+                \Illuminate\Support\Facades\Cache::forget("gd_photo_base64_{$oldFileId}");
+            }
+
             // Ambil URL/Src foto baru untuk pratinjau di frontend
             $photoUrl = null;
             if (strlen($newFotoValue) > 30 && !str_contains($newFotoValue, '/') && !str_contains($newFotoValue, '\\')) {
@@ -569,12 +577,13 @@ class PortalSiswaController extends Controller
                     $photoUrl = asset('assets/img/avatars/1.png');
                 }
             } else {
-                $photoUrl = asset('storage/' . $newFotoValue);
+                $photoUrl = asset('storage/' . $newFotoValue) . '?v=' . time();
             }
 
             return response()->json([
                 'success' => true,
                 'message' => 'Pas foto resmi (' . $filename . ') berhasil diperbarui & disimpan!',
+                'filename' => $filename,
                 'photo_url' => $photoUrl
             ]);
         } catch (\Exception $e) {
