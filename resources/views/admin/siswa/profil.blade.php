@@ -19,10 +19,15 @@
         @php
           $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($siswa->nama_lengkap) . '&size=120&background=7367f0&color=fff';
           if ($siswa->foto) {
-              if (strlen($siswa->foto) > 30) {
-                  $avatarUrl = 'https://drive.google.com/thumbnail?id=' . $siswa->foto . '&sz=w200&_t=' . time();
+              if (strlen($siswa->foto) > 30 && !str_contains($siswa->foto, '/') && !str_contains($siswa->foto, '\\')) {
+                  try {
+                      $gdrive = app(\App\Services\GoogleDriveService::class);
+                      $avatarUrl = $gdrive->getPhotoBase64($siswa->foto) ?: ('https://drive.google.com/thumbnail?id=' . $siswa->foto . '&sz=w200&_t=' . time());
+                  } catch (\Exception $e) {
+                      $avatarUrl = 'https://drive.google.com/thumbnail?id=' . $siswa->foto . '&sz=w200&_t=' . time();
+                  }
               } else {
-                  $avatarUrl = asset('storage/' . $siswa->foto);
+                  $avatarUrl = asset('storage/' . $siswa->foto) . '?v=' . time();
               }
           }
         @endphp

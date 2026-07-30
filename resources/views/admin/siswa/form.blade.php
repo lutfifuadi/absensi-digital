@@ -281,10 +281,15 @@
               <small class="d-block text-body-secondary mb-2 fw-semibold">Foto Saat Ini:</small>
               @php
                 $photoUrl = '';
-                if (strlen($siswa->foto) > 30) {
-                    $photoUrl = 'https://drive.google.com/thumbnail?id=' . $siswa->foto . '&sz=w200&_t=' . time();
+                if (strlen($siswa->foto) > 30 && !str_contains($siswa->foto, '/') && !str_contains($siswa->foto, '\\')) {
+                    try {
+                        $gdrive = app(\App\Services\GoogleDriveService::class);
+                        $photoUrl = $gdrive->getPhotoBase64($siswa->foto) ?: ('https://drive.google.com/thumbnail?id=' . $siswa->foto . '&sz=w200&_t=' . time());
+                    } catch (\Exception $e) {
+                        $photoUrl = 'https://drive.google.com/thumbnail?id=' . $siswa->foto . '&sz=w200&_t=' . time();
+                    }
                 } else {
-                    $photoUrl = asset('storage/' . $siswa->foto);
+                    $photoUrl = asset('storage/' . $siswa->foto) . '?v=' . time();
                 }
               @endphp
               <img src="{{ $photoUrl }}" alt="Foto Siswa" class="rounded shadow-sm img-fluid" style="max-width: 140px; max-height: 180px; object-fit: cover;">
