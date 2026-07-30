@@ -106,7 +106,8 @@ class PelanggaranSiswaController extends Controller
             });
         }
 
-        $pelanggarans = $query->paginate(15)->withQueryString();
+        $perPage = (int) $request->input('per_page', 10);
+        $pelanggarans = $query->paginate($perPage)->withQueryString();
 
         // Jika request AJAX, render partial table saja
         if ($request->ajax()) {
@@ -505,5 +506,213 @@ class PelanggaranSiswaController extends Controller
             'total_poin' => (int) $totalPoin,
             'level_sp' => $spTertinggi ? $spTertinggi->level_sp : '-',
         ]);
+    }
+
+    /**
+     * Export master data & catatan pelanggaran siswa ke file JSON
+     */
+    public function exportData(Request $request)
+    {
+        $this->authorize('viewAny', PelanggaranSiswa::class);
+
+        $kategoris = KategoriPelanggaran::orderBy('urutan', 'asc')->get();
+        $jenisPelanggarans = JenisPelanggaran::with('kategori')->get();
+        $pelanggarans = PelanggaranSiswa::with(['siswa', 'jenisPelanggaran.kategori', 'pencatat'])->get();
+
+        $exportData = [
+            'version' => '1.0',
+            'exported_at' => now()->toIso8601String(),
+            'app_name' => config('app.name', 'Aplikasi Presensi & Pelanggaran'),
+            'kategori' => $kategoris->map(function ($k) {
+                return [
+                    'nama' => $k->nama,
+                    'deskripsi' => $k->deskripsi,
+                    'warna' => $k->warna,
+                    'urutan' => $k->urutan,
+                    'is_aktif' => (bool) $k->is_aktif,
+                ];
+            })->toArray(),
+            'jenis' => $jenisPelanggarans->map(function ($j) {
+                return [
+                    'kategori_nama' => $j->kategori?->nama,
+                    'nama' => $j->nama,
+                    'deskripsi' => $j->deskripsi,
+                    'bobot_poin' => (int) $j->bobot_poin,
+                    'is_aktif' => (bool) $j->is_aktif,
+                ];
+            })->toArray(),
+            'pelanggaran_siswa' => $pelanggarans->map(function ($p) {
+                return [
+                    'siswa_nis' => $p->siswa?->nis,
+                    'siswa_nama' => $p->siswa?->nama_lengkap,
+                    'jenis_nama' => $p->jenisPelanggaran?->nama,
+                    'tanggal_kejadian' => $p->tanggal_kejadian ? $p->tanggal_kejadian->toDateString() : null,
+                    'keterangan' => $p->keterangan,
+                    'poin_saat_itu' => (int) $p->poin_saat_itu,
+                    'pencatat_email' => $p->pencatat?->email,
+                ];
+            })->toArray(),
+        ];
+
+        $filename = 'export_pelanggaran_' . now()->format('Y-m-d_H-i-s') . '.json';
+
+        return response()->streamDownload(function () use ($exportData) {
+            echo json_encode($exportData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        }, $filename, [
+            'Content-Type' => 'application/json',
+        ]);
+    }
+
+    /**
+     * Import master data & catatan pelanggaran siswa dari file JSON
+     */
+    public function importData(Request $request)
+    {
+        $this->authorize('create', PelanggaranSiswa::class);
+
+        $request->validate([
+            'json_file' => 'required|file|mimes:json,txt|max:5120',
+        ], [
+            'json_file.required' => 'File JSON data pelanggaran wajib diunggah.',
+            'json_file.mimes' => 'Format file harus berupa JSON.',
+            'json_file.max' => 'Ukuran file maksimal 5MB.',
+        ]);
+
+        try {
+            $content = file_get_contents($request->file('json_file')->getRealPath());
+            $data = json_decode($content, true);
+
+            if (!is_array($data)) {
+                return redirect()->back()->with('error', 'Format file JSON tidak valid.');
+            }
+
+            $taAktif = TahunAkademik::where('is_aktif', true)->first() ?? TahunAkademik::first();
+            if (!$taAktif) {
+                return redirect()->back()->with('error', 'Tahun akademik tidak ditemukan di sistem ini.');
+            }
+
+            $importedKategori = 0;
+            $importedJenis = 0;
+            $importedPelanggaran = 0;
+
+            DB::transaction(function () use ($data, $taAktif, &$importedKategori, &$importedJenis, &$importedPelanggaran) {
+                $kategoriMap = [];
+
+                // 1. Import / Sync Kategori Pelanggaran
+                if (isset($data['kategori']) && is_array($data['kategori'])) {
+                    foreach ($data['kategori'] as $katData) {
+                        if (empty($katData['nama'])) continue;
+
+                        $kategori = KategoriPelanggaran::updateOrCreate(
+                            ['nama' => $katData['nama']],
+                            [
+                                'deskripsi' => $katData['deskripsi'] ?? null,
+                                'warna' => $katData['warna'] ?? '#7367f0',
+                                'urutan' => $katData['urutan'] ?? 1,
+                                'is_aktif' => $katData['is_aktif'] ?? true,
+                            ]
+                        );
+                        $kategoriMap[$katData['nama']] = $kategori->id;
+                        $importedKategori++;
+                    }
+                }
+
+                // 2. Import / Sync Jenis Pelanggaran
+                if (isset($data['jenis']) && is_array($data['jenis'])) {
+                    foreach ($data['jenis'] as $jData) {
+                        if (empty($jData['nama'])) continue;
+
+                        $katId = null;
+                        if (!empty($jData['kategori_nama']) && isset($kategoriMap[$jData['kategori_nama']])) {
+                            $katId = $kategoriMap[$jData['kategori_nama']];
+                        } else if (!empty($jData['kategori_nama'])) {
+                            $kat = KategoriPelanggaran::where('nama', $jData['kategori_nama'])->first();
+                            $katId = $kat ? $kat->id : null;
+                        }
+
+                        if (!$katId) {
+                            $katId = KategoriPelanggaran::first()?->id;
+                        }
+
+                        if ($katId) {
+                            JenisPelanggaran::updateOrCreate(
+                                ['nama' => $jData['nama'], 'kategori_id' => $katId],
+                                [
+                                    'deskripsi' => $jData['deskripsi'] ?? null,
+                                    'bobot_poin' => $jData['bobot_poin'] ?? 5,
+                                    'is_aktif' => $jData['is_aktif'] ?? true,
+                                ]
+                            );
+                            $importedJenis++;
+                        }
+                    }
+                }
+
+                // 3. Import / Sync Transaksi Pelanggaran Siswa
+                if (isset($data['pelanggaran_siswa']) && is_array($data['pelanggaran_siswa'])) {
+                    $pencatatId = Auth::id();
+
+                    foreach ($data['pelanggaran_siswa'] as $pData) {
+                        if (empty($pData['jenis_nama'])) continue;
+
+                        // Match Siswa by NIS or Nama
+                        $siswa = null;
+                        if (!empty($pData['siswa_nis'])) {
+                            $siswa = Siswa::where('nis', $pData['siswa_nis'])->first();
+                        }
+                        if (!$siswa && !empty($pData['siswa_nama'])) {
+                            $siswa = Siswa::where('nama_lengkap', $pData['siswa_nama'])->first();
+                        }
+
+                        if (!$siswa) continue; // Skip if student not found
+
+                        // Match Jenis Pelanggaran
+                        $jenis = JenisPelanggaran::where('nama', $pData['jenis_nama'])->first();
+                        if (!$jenis) continue;
+
+                        $tanggal = !empty($pData['tanggal_kejadian']) ? $pData['tanggal_kejadian'] : now()->toDateString();
+                        $keterangan = $pData['keterangan'] ?? 'Imported data pelanggaran';
+                        $poin = $pData['poin_saat_itu'] ?? $jenis->bobot_poin;
+
+                        // Check duplicate
+                        $exists = PelanggaranSiswa::where('siswa_id', $siswa->id)
+                            ->where('jenis_id', $jenis->id)
+                            ->where('tanggal_kejadian', $tanggal)
+                            ->where('keterangan', $keterangan)
+                            ->exists();
+
+                        if (!$exists) {
+                            PelanggaranSiswa::create([
+                                'siswa_id' => $siswa->id,
+                                'jenis_id' => $jenis->id,
+                                'tahun_akademik_id' => $taAktif->id,
+                                'tanggal_kejadian' => $tanggal,
+                                'keterangan' => $keterangan,
+                                'poin_saat_itu' => $poin,
+                                'dicatat_oleh' => $pencatatId,
+                                'is_diarsipkan' => false,
+                            ]);
+
+                            // Re-calculate & trigger SP
+                            $this->poinService->checkAndTriggerSp($siswa->id, $taAktif->id);
+                            $importedPelanggaran++;
+                        }
+                    }
+                }
+            });
+
+            ActivityLog::create([
+                'user_id' => Auth::id(),
+                'activity' => 'Import Data Pelanggaran',
+                'description' => "Import {$importedKategori} Kategori, {$importedJenis} Jenis, dan {$importedPelanggaran} Pelanggaran Siswa.",
+            ]);
+
+            return redirect()->route('admin.pelanggaran.index')
+                ->with('success', "Berhasil mengimpor {$importedKategori} Kategori, {$importedJenis} Jenis Pelanggaran, dan {$importedPelanggaran} Catatan Pelanggaran Siswa.");
+
+        } catch (\Exception $e) {
+            Log::error('Import Pelanggaran error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal mengimpor data: ' . $e->getMessage());
+        }
     }
 }

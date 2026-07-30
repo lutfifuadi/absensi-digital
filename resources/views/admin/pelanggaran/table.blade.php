@@ -48,7 +48,7 @@
             {{ $p->tanggal_kejadian->format('d-m-Y') }}
           </td>
           <td class="text-center">
-            <span class="badge bg-label-danger px-2 py-1 fw-bold">+{{ $p->poin_saat_itu }}</span>
+            <span class="badge bg-danger text-white px-2 py-1 fw-bold" style="color: #ffffff !important;">+{{ $p->poin_saat_itu }}</span>
           </td>
           <td>
             <span class="small text-white-50">{{ $p->pencatat?->name ?: 'System' }}</span>

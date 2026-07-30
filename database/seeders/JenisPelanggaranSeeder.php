@@ -13,68 +13,76 @@ class JenisPelanggaranSeeder extends Seeder
      */
     public function run(): void
     {
-        $kategoriTataTertib = KategoriPelanggaran::where('nama', 'Tata Tertib')->first();
-        $kategoriMoral = KategoriPelanggaran::where('nama', 'Moral')->first();
-        $kategoriAkademik = KategoriPelanggaran::where('nama', 'Akademik')->first();
-        $kategoriKehadiran = KategoriPelanggaran::where('nama', 'Kehadiran')->first();
+        $kategoriKedisiplinan = KategoriPelanggaran::where('nama', 'Kedisiplinan & Kerapian')->first();
+        $kategoriKehadiran = KategoriPelanggaran::where('nama', 'Kehadiran & Akses')->first();
+        $kategoriEtika = KategoriPelanggaran::where('nama', 'Etika & Perilaku')->first();
+        $kategoriBerat = KategoriPelanggaran::where('nama', 'Pelanggaran Berat & Keamanan')->first();
 
-        // 1. Tata Tertib
-        if ($kategoriTataTertib) {
-            $tataTertib = [
-                ['nama' => 'Tidak memakai seragam sesuai ketentuan', 'bobot_poin' => 5, 'deskripsi' => 'Atribut seragam tidak lengkap/tidak sesuai hari.'],
-                ['nama' => 'Rambut gondrong / tidak rapi (putra)', 'bobot_poin' => 5, 'deskripsi' => 'Panjang rambut melebihi kerah baju atau menutupi telinga.'],
-                ['nama' => 'Membawa barang terlarang (non-senjata/narkoba)', 'bobot_poin' => 15, 'deskripsi' => 'Membawa kartu domino, komik tidak mendidik, dll.'],
-                ['nama' => 'Merusak fasilitas sekolah skala ringan', 'bobot_poin' => 20, 'deskripsi' => 'Mencoret-coret meja, kursi, atau dinding kelas.'],
+        // 1. Kedisiplinan & Kerapian
+        if ($kategoriKedisiplinan) {
+            $kedisiplinan = [
+                ['nama' => 'Terlambat masuk sekolah (< 15 menit)', 'bobot_poin' => 5, 'deskripsi' => 'Datang setelah bel masuk berbunyi tanpa alasan sah.'],
+                ['nama' => 'Terlambat masuk sekolah (> 15 menit)', 'bobot_poin' => 10, 'deskripsi' => 'Datang sangat terlambat tanpa membawa surat/alasan yang dapat diterima.'],
+                ['nama' => 'Atribut seragam tidak lengkap', 'bobot_poin' => 5, 'deskripsi' => 'Tidak memakai dasi, sabuk, topi, atau lokasi sekolah yang ditentukan.'],
+                ['nama' => 'Baju tidak dimasukkan / seragam tidak rapi', 'bobot_poin' => 3, 'deskripsi' => 'Mengenakan seragam tidak sesuai aturan kerapian sekolah.'],
+                ['nama' => 'Rambut gondrong / diwarnai / tidak rapi (putra)', 'bobot_poin' => 5, 'deskripsi' => 'Panjang rambut melebihi kerah baju/menutupi telinga atau diwarnai.'],
+                ['nama' => 'Makeup berlebihan / perhiasan mencolok / kuku dicat', 'bobot_poin' => 5, 'deskripsi' => 'Menggunakan aksesori/makeup berlebihan atau memelihara/mengecat kuku.'],
+                ['nama' => 'Main HP saat jam KBM tanpa izin', 'bobot_poin' => 10, 'deskripsi' => 'Menggunakan HP untuk keperluan pribadi di jam belajar tanpa instruksi guru.'],
+                ['nama' => 'Membawa barang non-edukatif (Vape/Kartu Remi/Komik)', 'bobot_poin' => 15, 'deskripsi' => 'Membawa barang yang tidak berhubungan dengan kegiatan belajar.'],
             ];
-            foreach ($tataTertib as $item) {
+            foreach ($kedisiplinan as $item) {
                 JenisPelanggaran::updateOrCreate(
-                    ['nama' => $item['nama'], 'kategori_id' => $kategoriTataTertib->id],
+                    ['nama' => $item['nama'], 'kategori_id' => $kategoriKedisiplinan->id],
                     $item
                 );
             }
         }
 
-        // 2. Moral
-        if ($kategoriMoral) {
-            $moral = [
-                ['nama' => 'Berkelahi / tawuran', 'bobot_poin' => 50, 'deskripsi' => 'Melakukan kekerasan fisik terhadap sesama siswa.'],
-                ['nama' => 'Melawan guru atau staff sekolah', 'bobot_poin' => 40, 'deskripsi' => 'Membentak, menghina, atau melakukan tindakan menantang guru.'],
-                ['nama' => 'Merokok di area sekolah / berseragam sekolah', 'bobot_poin' => 25, 'deskripsi' => 'Kedapatan merokok di lingkungan sekolah atau di luar sekolah memakai seragam.'],
-                ['nama' => 'Melakukan tindakan bullying / perundungan', 'bobot_poin' => 30, 'deskripsi' => 'Merundung teman baik secara verbal, fisik, maupun cyber-bullying.'],
-            ];
-            foreach ($moral as $item) {
-                JenisPelanggaran::updateOrCreate(
-                    ['nama' => $item['nama'], 'kategori_id' => $kategoriMoral->id],
-                    $item
-                );
-            }
-        }
-
-        // 3. Akademik
-        if ($kategoriAkademik) {
-            $akademik = [
-                ['nama' => 'Menyontek saat ujian', 'bobot_poin' => 20, 'deskripsi' => 'Membawa catatan, melihat hp, atau meniru jawaban teman saat ujian.'],
-                ['nama' => 'Tidak mengerjakan tugas/PR berulang', 'bobot_poin' => 10, 'deskripsi' => 'Lebih dari 3 kali tidak mengumpulkan tugas mata pelajaran yang sama.'],
-                ['nama' => 'Membuat gaduh saat KBM berlangsung', 'bobot_poin' => 5, 'deskripsi' => 'Mengganggu konsentrasi belajar kelas dengan sengaja.'],
-            ];
-            foreach ($akademik as $item) {
-                JenisPelanggaran::updateOrCreate(
-                    ['nama' => $item['nama'], 'kategori_id' => $kategoriAkademik->id],
-                    $item
-                );
-            }
-        }
-
-        // 4. Kehadiran
+        // 2. Kehadiran & Akses
         if ($kategoriKehadiran) {
             $kehadiran = [
-                ['nama' => 'Terlambat masuk sekolah', 'bobot_poin' => 5, 'deskripsi' => 'Datang setelah bel masuk berbunyi tanpa alasan sah.'],
-                ['nama' => 'Bolos jam pelajaran / keluar sekolah tanpa izin', 'bobot_poin' => 10, 'deskripsi' => 'Meninggalkan kelas atau area sekolah di jam pelajaran tanpa kartu izin.'],
-                ['nama' => 'Alpa / tidak masuk tanpa keterangan', 'bobot_poin' => 5, 'deskripsi' => 'Tidak hadir sekolah tanpa surat sakit/izin dari orang tua.'],
+                ['nama' => 'Keluar kelas saat jam KBM tanpa izin', 'bobot_poin' => 10, 'deskripsi' => 'Meninggalkan ruang kelas saat pelajaran tanpa membawa kartu izin/alasan jelas.'],
+                ['nama' => 'Bolos jam pelajaran tertentu', 'bobot_poin' => 15, 'deskripsi' => 'Sengaja tidak mengikuti jam pelajaran tertentu walau berada di area sekolah.'],
+                ['nama' => 'Bolos sekolah / lompat pagar', 'bobot_poin' => 25, 'deskripsi' => 'Meninggalkan lingkungan sekolah sebelum jam belajar selesai tanpa izin.'],
+                ['nama' => 'Alpa / tidak masuk tanpa keterangan', 'bobot_poin' => 5, 'deskripsi' => 'Tidak hadir sekolah tanpa memberikan surat perizinan dari orang tua/wali.'],
+                ['nama' => 'Memalsukan tanda tangan / surat izin', 'bobot_poin' => 30, 'deskripsi' => 'Memalsukan dokumen perizinan, tanda tangan ortu, atau surat dokter.'],
             ];
             foreach ($kehadiran as $item) {
                 JenisPelanggaran::updateOrCreate(
                     ['nama' => $item['nama'], 'kategori_id' => $kategoriKehadiran->id],
+                    $item
+                );
+            }
+        }
+
+        // 3. Etika & Perilaku
+        if ($kategoriEtika) {
+            $etika = [
+                ['nama' => 'Berkata kotor / tidak sopan kepada sesama', 'bobot_poin' => 5, 'deskripsi' => 'Mengucapkan kata-kata tidak pantas atau kotor di lingkungan sekolah.'],
+                ['nama' => 'Membuat gaduh / keonaran saat KBM', 'bobot_poin' => 5, 'deskripsi' => 'Mengganggu suasana belajar mengajar kelas secara sengaja.'],
+                ['nama' => 'Merusak fasilitas sekolah', 'bobot_poin' => 20, 'deskripsi' => 'Mencoret-coret meja, kursi, dinding atau merusak sarana prasarana sekolah.'],
+                ['nama' => 'Merokok / vaping di area sekolah atau berseragam', 'bobot_poin' => 30, 'deskripsi' => 'Kedapatan merokok/vaping di lingkungan sekolah atau di luar mengenakan seragam.'],
+                ['nama' => 'Melakukan tindakan perundungan / bullying', 'bobot_poin' => 30, 'deskripsi' => 'Merundung teman secara verbal, fisik, maupun media sosial.'],
+                ['nama' => 'Melawan / membentak Guru atau Staf Sekolah', 'bobot_poin' => 40, 'deskripsi' => 'Menunjukkan sikap tidak sopan, membentak, atau menantang guru/staf.'],
+            ];
+            foreach ($etika as $item) {
+                JenisPelanggaran::updateOrCreate(
+                    ['nama' => $item['nama'], 'kategori_id' => $kategoriEtika->id],
+                    $item
+                );
+            }
+        }
+
+        // 4. Pelanggaran Berat & Keamanan
+        if ($kategoriBerat) {
+            $berat = [
+                ['nama' => 'Berkelahi / tawuran', 'bobot_poin' => 50, 'deskripsi' => 'Melakukan tindakan kekerasan fisik terhadap sesama siswa di dalam/luar sekolah.'],
+                ['nama' => 'Membawa senjata tajam / berbahaya', 'bobot_poin' => 75, 'deskripsi' => 'Membawa pisau, gir, besi, atau benda berbahaya lain tanpa instruksi KBM.'],
+                ['nama' => 'Membawa / mengonsumsi miras & narkoba', 'bobot_poin' => 100, 'deskripsi' => 'Kedapatan membawa, mengonsumsi, atau mengedarkan minuman keras/narkoba.'],
+            ];
+            foreach ($berat as $item) {
+                JenisPelanggaran::updateOrCreate(
+                    ['nama' => $item['nama'], 'kategori_id' => $kategoriBerat->id],
                     $item
                 );
             }

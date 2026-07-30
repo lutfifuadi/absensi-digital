@@ -30,7 +30,7 @@
           </td>
           <td class="text-white-50 small text-truncate" style="max-width: 200px;">{{ $item->deskripsi ?? '-' }}</td>
           <td class="text-center">
-            <span class="badge bg-label-danger fw-bold fs-6">{{ $item->bobot_poin }}</span>
+            <span class="badge bg-danger text-white fw-bold fs-6" style="color: #ffffff !important;">{{ $item->bobot_poin }}</span>
           </td>
           <td class="text-center">
             @if ($item->is_aktif)

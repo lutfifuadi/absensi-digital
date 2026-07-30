@@ -719,6 +719,14 @@ Route::middleware([
             ->name('admin.pelanggaran.stream-foto')
             ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas,piket');
 
+        Route::get('/pelanggaran/export-data', [\App\Http\Controllers\Admin\PelanggaranSiswaController::class, 'exportData'])
+            ->name('admin.pelanggaran.export-data')
+            ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas,piket');
+
+        Route::post('/pelanggaran/import-data', [\App\Http\Controllers\Admin\PelanggaranSiswaController::class, 'importData'])
+            ->name('admin.pelanggaran.import-data')
+            ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas,piket');
+
         Route::resource('pelanggaran', \App\Http\Controllers\Admin\PelanggaranSiswaController::class)
             ->names('admin.pelanggaran')
             ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas,piket');

@@ -233,13 +233,21 @@
         </div>
       </div>
 
-      @can('create', App\Models\PelanggaranSiswa::class)
-        <div class="das-hero__actions">
+      <div class="das-hero__actions d-flex flex-wrap gap-2">
+        <a href="{{ route('admin.pelanggaran.export-data') }}" class="btn das-btn --info text-white" title="Export Data JSON" data-bs-toggle="tooltip">
+          <i class="ti tabler-download me-1"></i> Export Data
+        </a>
+
+        @can('create', App\Models\PelanggaranSiswa::class)
+          <button type="button" class="btn das-btn --warning text-white" data-bs-toggle="modal" data-bs-target="#importModal" title="Import Data JSON">
+            <i class="ti tabler-upload me-1"></i> Import Data
+          </button>
+          
           <a href="{{ route('admin.pelanggaran.create') }}" class="btn das-btn --primary">
             <i class="ti tabler-plus me-1"></i> Catat Pelanggaran
           </a>
-        </div>
-      @endcan
+        @endcan
+      </div>
     </div>
   </div>
 
@@ -266,7 +274,7 @@
   <div class="das-panel mb-4">
     <div class="das-panel__body">
       <form id="filterForm" method="GET" action="{{ route('admin.pelanggaran.index') }}">
-        <input type="hidden" name="per_page" id="hiddenPerPage" value="{{ request('per_page', 15) }}">
+        <input type="hidden" name="per_page" id="hiddenPerPage" value="{{ request('per_page', 10) }}">
         <div class="row g-3">
           <!-- Filter Tahun Akademik -->
           <div class="col-md-3">
@@ -352,8 +360,8 @@
       <div class="d-flex align-items-center gap-3">
         <select id="perPageSelect" class="form-select border-0 text-white w-auto"
           style="background: rgba(255,255,255,0.05); height:38px; font-size:0.85rem; cursor:pointer;">
-          <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
-          <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15</option>
+          <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+          <option value="15" {{ request('per_page') == 15 ? 'selected' : '' }}>15</option>
           <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
           <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
           <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
@@ -398,6 +406,39 @@
           <div class="d-flex justify-content-end gap-2 p-4 pt-0">
             <button type="button" class="btn das-btn --secondary" data-bs-dismiss="modal">Batal</button>
             <button type="submit" class="btn das-btn --danger">Hapus Sekarang</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Import Data JSON -->
+  <div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content das-modal shadow-lg">
+        <div class="das-modal-head d-flex align-items-center justify-content-between">
+          <h5 class="das-modal-title"><i class="ti tabler-file-import me-2 text-warning"></i> Import Data Pelanggaran (JSON)</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{{ route('admin.pelanggaran.import-data') }}" method="POST" enctype="multipart/form-data">
+          @csrf
+          <div class="das-modal-body text-light">
+            <p class="mb-2 text-white-50 small">Pilih file berformat <b>.json</b> hasil export data pelanggaran (Kategori, Jenis, & Catatan Transaksi Siswa) dari website/server lain.</p>
+            <div class="alert alert-info border-0 shadow-sm d-flex gap-2 mb-3" style="background: rgba(0, 207, 232, 0.12); border-radius: 8px;">
+              <i class="ti tabler-info-circle text-info fs-5 flex-shrink-0 mt-0.5"></i>
+              <span class="small">
+                Sistem akan menyinkronkan Kategori & Jenis Pelanggaran, serta memasukkan catatan siswa yang cocok berdasarkan NIS/Nama ke dalam tahun akademik aktif saat ini.
+              </span>
+            </div>
+            <div class="mb-0">
+              <label class="form-label text-white-50 small fw-bold">File JSON Pelanggaran <span class="text-danger">*</span></label>
+              <input type="file" class="form-control" name="json_file" accept=".json,application/json" required>
+              <span class="text-white-50 extra-small mt-1 d-block">Maksimal ukuran file: 5 MB.</span>
+            </div>
+          </div>
+          <div class="d-flex justify-content-end gap-2 p-4 pt-0">
+            <button type="button" class="btn das-btn --secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="submit" class="btn das-btn --warning text-white"><i class="ti tabler-upload me-1"></i> Mulai Import</button>
           </div>
         </form>
       </div>
