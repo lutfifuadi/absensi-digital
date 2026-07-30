@@ -300,6 +300,7 @@ class WaGatewayController extends Controller
     public function batchCheckNumbers(Request $request)
     {
         $numbers = $request->input('numbers', []);
+        $force   = $request->boolean('force', false);
         if (!is_array($numbers)) {
             $numbers = [$numbers];
         }
@@ -314,7 +315,11 @@ class WaGatewayController extends Controller
                 continue;
             }
 
-            $isValid = $waService->isNumberValidCached($formatted);
+            if ($force) {
+                $isValid = $waService->revalidateNumber($formatted);
+            } else {
+                $isValid = $waService->isNumberValidCached($formatted);
+            }
             $results[$num] = $isValid;
         }
 

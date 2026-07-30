@@ -317,8 +317,11 @@
                 <a href="{{ route('admin.guru.cetak-qr') }}" class="btn das-btn --warning" title="Cetak QR" data-bs-toggle="tooltip" data-bs-placement="top">
                     <i class="ti tabler-qrcode"></i>
                 </a>
+                <button type="button" class="btn das-btn --info" id="btnManualCheckWa" title="Cek WA (Verifikasi Ulang Semua Nomor)" data-bs-toggle="tooltip" data-bs-placement="top">
+                    <i class="ti tabler-brand-whatsapp me-1"></i> Cek WA
+                </button>
                 <button type="button" class="btn das-btn --success" id="btnRegeneratePhoneGuru" title="Generate Format WA" data-bs-toggle="tooltip" data-bs-placement="top">
-                    <i class="ti tabler-brand-whatsapp"></i>
+                    <i class="ti tabler-phone"></i>
                 </button>
                 <button type="button" class="btn das-btn --purple" id="btnRegenerateQrAll" title="Re-generate QR Semua Guru" data-bs-toggle="tooltip" data-bs-placement="top">
                     <i class="ti tabler-refresh"></i>
@@ -1727,6 +1730,87 @@
                 checkTableWaNumbers();
             });
 
+            // Manual Check WA Button Click Handler
+            const btnManualCheckWa = document.getElementById('btnManualCheckWa');
+            if (btnManualCheckWa) {
+                btnManualCheckWa.addEventListener('click', function() {
+                    const badges = document.querySelectorAll('.wa-status-badge[data-wa-number]');
+                    if (!badges.length) {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'info', title: 'Info', text: 'Tidak ada nomor WA yang dapat dicek di tabel ini.', timer: 2000, showConfirmButton: false });
+                        }
+                        return;
+                    }
+
+                    const numbersToCheck = [];
+                    badges.forEach(badge => {
+                        const num = badge.getAttribute('data-wa-number');
+                        if (num && !numbersToCheck.includes(num)) numbersToCheck.push(num);
+                    });
+
+                    const icon = btnManualCheckWa.querySelector('i');
+                    if (icon) icon.classList.add('ti-spin');
+                    btnManualCheckWa.disabled = true;
+
+                    badges.forEach(badge => {
+                        const textSpan = badge.querySelector('.wa-status-text');
+                        badge.className = 'badge wa-status-badge bg-label-secondary text-white-50 px-2 py-1';
+                        if (textSpan) textSpan.innerHTML = '<span class="spinner-border spinner-border-sm me-1" style="width:10px;height:10px;"></span> Cek WA';
+                    });
+
+                    fetch('{{ route("admin.wa-gateway.batch-check-numbers") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ numbers: numbersToCheck, force: true })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status && data.results) {
+                            let validCount = 0;
+                            badges.forEach(badge => {
+                                const num = badge.getAttribute('data-wa-number');
+                                if (num && data.results.hasOwnProperty(num)) {
+                                    const isValid = data.results[num];
+                                    const textSpan = badge.querySelector('.wa-status-text');
+                                    if (isValid) {
+                                        validCount++;
+                                        badge.className = 'badge wa-status-badge bg-label-success text-success px-2 py-1';
+                                        if (textSpan) textSpan.textContent = 'Valid WA';
+                                        badge.title = 'Terdaftar di WhatsApp';
+                                    } else {
+                                        badge.className = 'badge wa-status-badge bg-label-danger text-danger px-2 py-1';
+                                        if (textSpan) textSpan.textContent = 'Tidak Valid';
+                                        badge.title = 'Tidak terdaftar di WhatsApp';
+                                    }
+                                }
+                            });
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Pengecekan WA Selesai',
+                                    text: `${validCount} dari ${numbersToCheck.length} nomor WA terverifikasi aktif di WhatsApp.`,
+                                    timer: 2500,
+                                    showConfirmButton: false
+                                });
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Manual WA check error:', err);
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal melakukan pengecekan nomor WA.' });
+                        }
+                    })
+                    .finally(() => {
+                        if (icon) icon.classList.remove('ti-spin');
+                        btnManualCheckWa.disabled = false;
+                    });
+                });
+            }
+
             document.addEventListener('click', function(e) {
                 const badge = e.target.closest('.wa-status-badge[data-wa-number]');
                 if (!badge) return;
@@ -1735,7 +1819,7 @@
                 if (!num) return;
 
                 const textSpan = badge.querySelector('.wa-status-text');
-                if (textSpan) textSpan.textContent = '...';
+                if (textSpan) textSpan.innerHTML = '<span class="spinner-border spinner-border-sm me-1" style="width:10px;height:10px;"></span> ...';
 
                 fetch('{{ route("admin.wa-gateway.batch-check-numbers") }}', {
                     method: 'POST',
@@ -1743,7 +1827,7 @@
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
-                    body: JSON.stringify({ numbers: [num] })
+                    body: JSON.stringify({ numbers: [num], force: true })
                 })
                 .then(res => res.json())
                 .then(data => {
@@ -1759,7 +1843,8 @@
                             badge.title = 'Tidak terdaftar di WhatsApp';
                         }
                     }
-                });
+                })
+                .catch(err => console.error('Single WA check error:', err));
             });
         });
     </script>
