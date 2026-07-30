@@ -145,6 +145,111 @@
     </div>
   </div>{{-- /row g-6 mb-6 (Stats Row) --}}
 
+  {{-- ═══════════════════════════════════════════════════════
+       SECTION 1B3: WIDGET KONEKTIVITAS SERVICE WHATSAPP
+  ═══════════════════════════════════════════════════════ --}}
+  <div class="row g-4 mb-6">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08) !important; border-radius: 12px; backdrop-filter: blur(10px);">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-3">
+              <div class="avatar">
+                <span class="avatar-initial rounded bg-label-success">
+                  <i class="ti tabler-brand-whatsapp fs-4"></i>
+                </span>
+              </div>
+              <div>
+                <h5 class="mb-0 fw-bold text-white d-flex align-items-center gap-2">
+                  Konektivitas Service WhatsApp
+                  <span class="badge bg-label-info font-normal" style="font-size:0.7rem;">Monitoring Server</span>
+                </h5>
+                <small class="text-body-secondary">Pengecekan real-time status WA Gateway Notif, Validator WA, Notif Pengaduan, dan Autoreply WA</small>
+              </div>
+            </div>
+            <button type="button" id="btnRefreshWaStatus" class="btn btn-sm btn-label-info d-inline-flex align-items-center gap-1 fw-semibold">
+              <i class="ti tabler-refresh" id="iconRefreshWa"></i> Check Status
+            </button>
+          </div>
+
+          <div class="row g-3" id="waServicesStatusContainer">
+            {{-- Card 1: WA Gateway Notif --}}
+            <div class="col-xl-3 col-lg-6 col-md-6">
+              <div class="p-3 rounded border" id="card-wa_gateway_notif" style="background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.08) !important;">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="ti tabler-bell-ringing text-info fs-5"></i>
+                    <span class="fw-semibold text-white small">WA Gateway Notif</span>
+                  </div>
+                  <span class="badge bg-label-secondary status-badge" id="badge-wa_gateway_notif">
+                    <span class="spinner-border spinner-border-sm me-1" style="width: 10px; height: 10px;"></span> Memeriksa...
+                  </span>
+                </div>
+                <div class="text-body-secondary small text-truncate" id="msg-wa_gateway_notif" style="font-size:0.75rem;">
+                  Mengontak server...
+                </div>
+              </div>
+            </div>
+
+            {{-- Card 2: Validator WA --}}
+            <div class="col-xl-3 col-lg-6 col-md-6">
+              <div class="p-3 rounded border" id="card-validator_wa" style="background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.08) !important;">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="ti tabler-circle-check text-primary fs-5"></i>
+                    <span class="fw-semibold text-white small">Validator WA</span>
+                  </div>
+                  <span class="badge bg-label-secondary status-badge" id="badge-validator_wa">
+                    <span class="spinner-border spinner-border-sm me-1" style="width: 10px; height: 10px;"></span> Memeriksa...
+                  </span>
+                </div>
+                <div class="text-body-secondary small text-truncate" id="msg-validator_wa" style="font-size:0.75rem;">
+                  Mengontak server...
+                </div>
+              </div>
+            </div>
+
+            {{-- Card 3: Notif Pengaduan --}}
+            <div class="col-xl-3 col-lg-6 col-md-6">
+              <div class="p-3 rounded border" id="card-notif_pengaduan" style="background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.08) !important;">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="ti tabler-message-dots text-warning fs-5"></i>
+                    <span class="fw-semibold text-white small">Notif Pengaduan WA</span>
+                  </div>
+                  <span class="badge bg-label-secondary status-badge" id="badge-notif_pengaduan">
+                    <span class="spinner-border spinner-border-sm me-1" style="width: 10px; height: 10px;"></span> Memeriksa...
+                  </span>
+                </div>
+                <div class="text-body-secondary small text-truncate" id="msg-notif_pengaduan" style="font-size:0.75rem;">
+                  Mengontak server...
+                </div>
+              </div>
+            </div>
+
+            {{-- Card 4: Autoreply WA --}}
+            <div class="col-xl-3 col-lg-6 col-md-6">
+              <div class="p-3 rounded border" id="card-autoreply_wa" style="background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.08) !important;">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="ti tabler-robot text-success fs-5"></i>
+                    <span class="fw-semibold text-white small">Autoreply WA</span>
+                  </div>
+                  <span class="badge bg-label-secondary status-badge" id="badge-autoreply_wa">
+                    <span class="spinner-border spinner-border-sm me-1" style="width: 10px; height: 10px;"></span> Memeriksa...
+                  </span>
+                </div>
+                <div class="text-body-secondary small text-truncate" id="msg-autoreply_wa" style="font-size:0.75rem;">
+                  Mengontak server...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
   {{-- ═══════════════════════════════════════════════════════
        SECTION 1B2: WIDGET BELUM ABSEN — Mini Chart + Daftar Siswa
@@ -1187,6 +1292,92 @@
         });
       }
     });
+
+    // ═══════════════════════════════════════════════════════════════
+    // WA SERVICES CONNECTIVITY CHECKER
+    // ═══════════════════════════════════════════════════════════════
+    function checkWaServicesStatus() {
+      const btn = document.getElementById('btnRefreshWaStatus');
+      const icon = document.getElementById('iconRefreshWa');
+      if (icon) icon.classList.add('ti-spin');
+      if (btn) btn.disabled = true;
+
+      const keys = ['wa_gateway_notif', 'validator_wa', 'notif_pengaduan', 'autoreply_wa'];
+      keys.forEach(key => {
+        const badge = document.getElementById(`badge-${key}`);
+        const msg = document.getElementById(`msg-${key}`);
+        if (badge) {
+          badge.className = 'badge bg-label-secondary';
+          badge.innerHTML = '<span class="spinner-border spinner-border-sm me-1" style="width: 10px; height: 10px;"></span> Memeriksa...';
+        }
+        if (msg) msg.textContent = 'Mengontak server...';
+      });
+
+      fetch('{{ route("admin.wa-gateway.check-services-status") }}', {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        }
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status && data.services) {
+            Object.keys(data.services).forEach(key => {
+              const item = data.services[key];
+              const badge = document.getElementById(`badge-${key}`);
+              const msg = document.getElementById(`msg-${key}`);
+              const card = document.getElementById(`card-${key}`);
+
+              if (badge && msg) {
+                if (item.status === 'connected') {
+                  badge.className = 'badge bg-label-success text-success';
+                  badge.innerHTML = '<i class="ti tabler-check me-1"></i> Terhubung';
+                  msg.textContent = item.message || 'Server online & siap';
+                  if (card) card.style.borderColor = 'rgba(40,199,111,0.3)';
+                } else if (item.status === 'disabled') {
+                  badge.className = 'badge bg-label-secondary text-muted';
+                  badge.innerHTML = '<i class="ti tabler-power me-1"></i> Nonaktif';
+                  msg.textContent = item.message || 'Fitur tidak diaktifkan';
+                  if (card) card.style.borderColor = 'rgba(255,255,255,0.08)';
+                } else {
+                  badge.className = 'badge bg-label-danger text-danger';
+                  badge.innerHTML = '<i class="ti tabler-alert-triangle me-1"></i> Terputus';
+                  msg.textContent = item.message || 'Server tidak merespon';
+                  if (card) card.style.borderColor = 'rgba(234,84,85,0.3)';
+                }
+              }
+            });
+          }
+        })
+        .catch(err => {
+          console.error('WA Services status check error:', err);
+          keys.forEach(key => {
+            const badge = document.getElementById(`badge-${key}`);
+            const msg = document.getElementById(`msg-${key}`);
+            if (badge) {
+              badge.className = 'badge bg-label-danger text-danger';
+              badge.innerHTML = '<i class="ti tabler-alert-triangle me-1"></i> Error';
+            }
+            if (msg) msg.textContent = 'Gagal memuat status';
+          });
+        })
+        .finally(() => {
+          if (icon) icon.classList.remove('ti-spin');
+          if (btn) btn.disabled = false;
+        });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function () {
+        checkWaServicesStatus();
+        const btnRefresh = document.getElementById('btnRefreshWaStatus');
+        if (btnRefresh) btnRefresh.addEventListener('click', checkWaServicesStatus);
+      });
+    } else {
+      checkWaServicesStatus();
+      const btnRefresh = document.getElementById('btnRefreshWaStatus');
+      if (btnRefresh) btnRefresh.addEventListener('click', checkWaServicesStatus);
+    }
   </script>
 @endsection
 

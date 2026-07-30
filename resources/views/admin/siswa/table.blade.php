@@ -25,13 +25,7 @@
           @endif
         </th>
         <th class="py-3 text-center text-nowrap">Tahun Lulus</th>
-        <th class="py-3 d-none d-xl-table-cell text-center text-nowrap">Tahun Akademik</th>
-        <th class="py-3 text-center sortable cursor-pointer text-nowrap" data-sort-by="status" style="user-select: none;">
-          Status
-          @if(($sortBy ?? '') === 'status')
-            <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
-          @endif
-        </th>
+        <th class="py-3 text-center text-nowrap">No. WhatsApp</th>
         <th class="py-3 pe-4 text-end text-nowrap">Aksi</th>
       </tr>
     </thead>
@@ -67,19 +61,34 @@
             @endphp
             <span class="badge px-2 py-1 fw-bold" style="background-color: #000000 !important; color: #ff9f43 !important; border: 1px solid #ff9f43 !important; opacity: 1 !important;">{{ $tahunLulus ?? '-' }}</span>
           </td>
-          <td class="d-none d-xl-table-cell text-center text-nowrap">
-            <div class="small text-white-50">{{ optional($item->tahunAkademik)->nama ?? '-' }}</div>
-          </td>
-          <td class="text-center">
+          <td class="text-center text-nowrap">
             @php
-              $statusColor = match ($item->status) {
-                  'aktif' => 'success',
-                  'nonaktif' => 'danger',
-                  'alumni' => 'warning',
-                  default => 'secondary',
-              };
+              $rawPhone = $item->no_hp ?: $item->no_hp_ortu;
+              $formattedWa = \App\Helpers\WhatsAppHelper::formatNumber($rawPhone);
+              $cachedValid = $formattedWa ? \Illuminate\Support\Facades\Cache::get('wa_valid_' . $formattedWa) : null;
             @endphp
-            <span class="badge bg-label-{{ $statusColor }} text-capitalize px-2">{{ $item->status }}</span>
+            @if($formattedWa)
+              <div class="d-inline-flex align-items-center gap-1">
+                <span class="small text-white-50 me-1" style="font-size:0.75rem;">{{ $rawPhone }}</span>
+                <span class="badge wa-status-badge {{ $cachedValid === true ? 'bg-label-success text-success' : ($cachedValid === false ? 'bg-label-danger text-danger' : 'bg-label-secondary text-white-50') }} px-2 py-1"
+                      data-wa-number="{{ $formattedWa }}"
+                      style="cursor: pointer;"
+                      title="{{ $cachedValid === true ? 'Terdaftar di WhatsApp' : ($cachedValid === false ? 'Tidak terdaftar di WhatsApp' : 'Klik untuk cek WA') }}">
+                  <i class="ti tabler-brand-whatsapp me-1"></i>
+                  <span class="wa-status-text">
+                    @if($cachedValid === true)
+                      Valid WA
+                    @elseif($cachedValid === false)
+                      Tidak Valid
+                    @else
+                      Cek WA
+                    @endif
+                  </span>
+                </span>
+              </div>
+            @else
+              <span class="text-white-50 small">-</span>
+            @endif
           </td>
           <td class="pe-4 text-end">
             <div class="d-flex justify-content-end gap-1">

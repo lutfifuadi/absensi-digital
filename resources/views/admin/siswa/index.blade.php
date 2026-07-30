@@ -2200,6 +2200,102 @@
             tooltipTriggerList.map(function(tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
+
+            // ═══════════════════════════════════════════════════════════════
+            // BATCH WA VALIDITY CHECKER FOR SISWA TABLE
+            // ═══════════════════════════════════════════════════════════════
+            function checkTableWaNumbers() {
+                const badges = document.querySelectorAll('.wa-status-badge[data-wa-number]');
+                if (!badges.length) return;
+
+                const numbersToCheck = [];
+                badges.forEach(badge => {
+                    const num = badge.getAttribute('data-wa-number');
+                    const textSpan = badge.querySelector('.wa-status-text');
+                    if (num && textSpan && textSpan.textContent.trim() === 'Cek WA') {
+                        if (!numbersToCheck.includes(num)) numbersToCheck.push(num);
+                    }
+                });
+
+                if (!numbersToCheck.length) return;
+
+                const chunkSize = 5;
+                for (let i = 0; i < numbersToCheck.length; i += chunkSize) {
+                    const chunk = numbersToCheck.slice(i, i + chunkSize);
+                    setTimeout(() => {
+                        fetch('{{ route("admin.wa-gateway.batch-check-numbers") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ numbers: chunk })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status && data.results) {
+                                badges.forEach(badge => {
+                                    const num = badge.getAttribute('data-wa-number');
+                                    if (num && data.results.hasOwnProperty(num)) {
+                                        const isValid = data.results[num];
+                                        const textSpan = badge.querySelector('.wa-status-text');
+                                        if (isValid) {
+                                            badge.className = 'badge wa-status-badge bg-label-success text-success px-2 py-1';
+                                            if (textSpan) textSpan.textContent = 'Valid WA';
+                                            badge.title = 'Terdaftar di WhatsApp';
+                                        } else {
+                                            badge.className = 'badge wa-status-badge bg-label-danger text-danger px-2 py-1';
+                                            if (textSpan) textSpan.textContent = 'Tidak Valid';
+                                            badge.title = 'Tidak terdaftar di WhatsApp';
+                                        }
+                                    }
+                                });
+                            }
+                        })
+                        .catch(err => console.error('Batch WA check error:', err));
+                    }, i * 200);
+                }
+            }
+
+            const runIdle = window.requestIdleCallback || function (cb) { setTimeout(cb, 500); };
+            runIdle(function() {
+                checkTableWaNumbers();
+            });
+
+            document.addEventListener('click', function(e) {
+                const badge = e.target.closest('.wa-status-badge[data-wa-number]');
+                if (!badge) return;
+
+                const num = badge.getAttribute('data-wa-number');
+                if (!num) return;
+
+                const textSpan = badge.querySelector('.wa-status-text');
+                if (textSpan) textSpan.textContent = '...';
+
+                fetch('{{ route("admin.wa-gateway.batch-check-numbers") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ numbers: [num] })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status && data.results && data.results.hasOwnProperty(num)) {
+                        const isValid = data.results[num];
+                        if (isValid) {
+                            badge.className = 'badge wa-status-badge bg-label-success text-success px-2 py-1';
+                            if (textSpan) textSpan.textContent = 'Valid WA';
+                            badge.title = 'Terdaftar di WhatsApp';
+                        } else {
+                            badge.className = 'badge wa-status-badge bg-label-danger text-danger px-2 py-1';
+                            if (textSpan) textSpan.textContent = 'Tidak Valid';
+                            badge.title = 'Tidak terdaftar di WhatsApp';
+                        }
+                    }
+                });
+            });
         });
     </script>
 @endsection

@@ -112,7 +112,7 @@ class WhatsAppService
         $cacheKey = 'wa_valid_' . $number;
 
         return Cache::remember($cacheKey, now()->addHours(24), function () use ($number, $customSender, $customApiKey) {
-            return $this->checkNumber($number, false, $customSender, $customApiKey);
+            return $this->checkNumber($number, true, $customSender, $customApiKey);
         });
     }
 
@@ -162,15 +162,18 @@ class WhatsAppService
     /**
      * Check if a number exists on WhatsApp
      */
-    public function checkNumber(string $number, bool $force = false, ?string $customSender = null, ?string $customApiKey = null): bool
+    public function checkNumber(string $number, bool $force = true, ?string $customSender = null, ?string $customApiKey = null): bool
     {
-        if (!$force && !$this->isEnabled) return false;
-
+        // Pengecekan keberadaan nomor di WhatsApp adalah query read-only, selalu izinkan jika force=true atau endpoint tersedia
         $number = WhatsAppHelper::formatNumber($number);
         if (empty($number)) return false;
 
         $apiKey = $customApiKey ?: $this->apiKey;
         $sender = $customSender ?: $this->sender;
+
+        if (empty($apiKey) || empty($this->baseUrl)) {
+            return false;
+        }
 
         try {
             $response = Http::timeout(10)->post("{$this->baseUrl}/check-number", [
@@ -178,6 +181,14 @@ class WhatsAppService
                 'sender'  => $sender,
                 'number'  => $number
             ]);
+
+            if (!$response->successful()) {
+                $response = Http::timeout(10)->get("{$this->baseUrl}/check-number", [
+                    'api_key' => $apiKey,
+                    'sender'  => $sender,
+                    'number'  => $number
+                ]);
+            }
 
             $result = $response->json();
             return isset($result['status']) && $result['status'] === true

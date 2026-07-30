@@ -36,10 +36,23 @@ class JadwalAbsensiController extends Controller
         $tingkat = $request->query('tingkat');
         $perPage = (int) $request->query('per_page', 10);
 
-        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
+        $tahunAjaranId = session('tahun_ajaran_id') ?? session('tahun_akademik_id') ?? \App\Models\TahunAkademik::where('is_aktif', true)->value('id');
+
+        $tingkatOptions = ['X', 'XI', 'XII'];
+
+        $allKelasQuery = Kelas::orderBy('nama');
+        if ($tahunAjaranId) {
+            $allKelasQuery->where('tahun_akademik_id', $tahunAjaranId);
+        }
+        $allKelas = $allKelasQuery->get();
+        if ($allKelas->isEmpty()) {
+            $allKelas = Kelas::orderBy('nama')->get();
+        }
 
         $kelas = Kelas::with(['jadwalAbsensi', 'jurusan', 'tahunAkademik', 'waliKelas'])
-            ->where('tahun_akademik_id', $tahunAjaranId)
+            ->when($tahunAjaranId, function ($query, $tahunAjaranId) {
+                return $query->where('tahun_akademik_id', $tahunAjaranId);
+            })
             ->when($tingkat, function ($query, $tingkat) {
                 return $query->where('tingkat', $tingkat);
             })

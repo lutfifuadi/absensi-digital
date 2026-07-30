@@ -159,4 +159,168 @@ class WaGatewayController extends Controller
             return response()->json(['status' => false, 'message' => 'Gagal terhubung ke server WA Gateway. Periksa konfigurasi URL dan API Key.']);
         }
     }
+
+    /**
+     * Cek konektivitas 3 service WA (Gateway Notif, Validator WA, Notif Pengaduan)
+     */
+    public function checkServicesStatus()
+    {
+        try {
+            // 1. WA Gateway Notif
+            $waNotifEnabled  = Pengaturan::where('key', 'wa_gateway_enabled')->value('value') ?? 'Ya';
+            $waNotifLink     = Pengaturan::where('key', 'link_server_wa')->value('value') ?: 'https://wa.lutfifuadi.my.id/send-message';
+            $waNotifApiKey   = Pengaturan::where('key', 'wa_api_key')->value('value') ?: env('WA_API_KEY', '');
+            $waNotifSender   = Pengaturan::where('key', 'wa_nomor_notifikasi')->value('value') ?: '';
+
+            // 2. Validator WA
+            $waValEnabled    = Pengaturan::where('key', 'wa_validator_enabled')->value('value') ?? 'Tidak';
+            $waValEndpoint   = Pengaturan::where('key', 'wa_validator_endpoint')->value('value') ?: 'https://wa.lutfifuadi.my.id/check-number';
+            $waValApiKey     = Pengaturan::where('key', 'wa_validator_api_key')->value('value') ?: '';
+            $waValSender     = Pengaturan::where('key', 'wa_validator_sender')->value('value') ?: '';
+
+            // 3. Notif Pengaduan
+            $waPengEnabled   = Pengaturan::where('key', 'wa_pengaduan_enabled')->value('value') ?? 'Tidak';
+            $waPengEndpoint  = Pengaturan::where('key', 'wa_pengaduan_endpoint')->value('value') ?: 'https://wa.lutfifuadi.my.id';
+            $waPengApiKey    = Pengaturan::where('key', 'wa_pengaduan_api_key')->value('value') ?: '';
+            $waPengSender    = Pengaturan::where('key', 'wa_pengaduan_sender')->value('value') ?: '';
+
+            // 4. WA Autoreply
+            $waAutoEnabled   = Pengaturan::where('key', 'wa_autoreply_enabled')->value('value') ?? 'Tidak';
+            $waAutoEndpoint  = Pengaturan::where('key', 'wa_autoreply_endpoint')->value('value') ?: 'https://wa.lutfifuadi.my.id';
+            $waAutoApiKey    = Pengaturan::where('key', 'wa_autoreply_api_key')->value('value') ?: '';
+            $waAutoSender    = Pengaturan::where('key', 'wa_autoreply_sender')->value('value') ?: '';
+
+            $pingNotif = $this->pingWaEndpoint($waNotifLink, $waNotifApiKey, $waNotifSender);
+            $pingVal   = $this->pingWaEndpoint($waValEndpoint, $waValApiKey, $waValSender);
+            $pingPeng  = $this->pingWaEndpoint($waPengEndpoint, $waPengApiKey, $waPengSender);
+            $pingAuto  = $this->pingWaEndpoint($waAutoEndpoint, $waAutoApiKey, $waAutoSender);
+
+            $services = [
+                'wa_gateway_notif' => [
+                    'name'     => 'WA Gateway Notif',
+                    'enabled'  => $waNotifEnabled === 'Ya',
+                    'endpoint' => $waNotifLink,
+                    'status'   => $pingNotif['status'],
+                    'message'  => $pingNotif['status'] === 'connected'
+                        ? ($waNotifEnabled === 'Ya' ? 'Server Terhubung & Fitur Aktif' : 'Server Terhubung (Fitur Nonaktif)')
+                        : $pingNotif['message'],
+                ],
+                'validator_wa' => [
+                    'name'     => 'Validator WA',
+                    'enabled'  => $waValEnabled === 'Ya',
+                    'endpoint' => $waValEndpoint,
+                    'status'   => $pingVal['status'],
+                    'message'  => $pingVal['status'] === 'connected'
+                        ? ($waValEnabled === 'Ya' ? 'Server Terhubung & Fitur Aktif' : 'Server Terhubung (Fitur Nonaktif)')
+                        : $pingVal['message'],
+                ],
+                'notif_pengaduan' => [
+                    'name'     => 'Notif Pengaduan WA',
+                    'enabled'  => $waPengEnabled === 'Ya',
+                    'endpoint' => $waPengEndpoint,
+                    'status'   => $pingPeng['status'],
+                    'message'  => $pingPeng['status'] === 'connected'
+                        ? ($waPengEnabled === 'Ya' ? 'Server Terhubung & Fitur Aktif' : 'Server Terhubung (Fitur Nonaktif)')
+                        : $pingPeng['message'],
+                ],
+                'autoreply_wa' => [
+                    'name'     => 'Autoreply WA',
+                    'enabled'  => $waAutoEnabled === 'Ya',
+                    'endpoint' => $waAutoEndpoint,
+                    'status'   => $pingAuto['status'],
+                    'message'  => $pingAuto['status'] === 'connected'
+                        ? ($waAutoEnabled === 'Ya' ? 'Server Terhubung & Fitur Aktif' : 'Server Terhubung (Fitur Nonaktif)')
+                        : $pingAuto['message'],
+                ],
+            ];
+
+            return response()->json([
+                'status'   => true,
+                'services' => $services,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Check Services Status Error: ' . $e->getMessage());
+            return response()->json([
+                'status'  => false,
+                'message' => 'Gagal mengecek konektivitas: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    private array $pingCache = [];
+
+    /**
+     * Helper ping endpoint WA
+     */
+    private function pingWaEndpoint(string $url, string $apiKey = '', string $sender = ''): array
+    {
+        if (empty($url)) {
+            $url = Pengaturan::where('key', 'link_server_wa')->value('value') ?: 'https://wa.lutfifuadi.my.id/send-message';
+        }
+
+        $targetUrl = $url;
+        if (!str_contains($targetUrl, '/check-number') && !str_contains($targetUrl, '/send-message')) {
+            $targetUrl = rtrim($targetUrl, '/') . '/check-number';
+        }
+
+        $fallbackKey = Pengaturan::where('key', 'wa_api_key')->value('value') ?: env('WA_API_KEY', '');
+        $fallbackSender = Pengaturan::where('key', 'wa_nomor_notifikasi')->value('value') ?: Pengaturan::where('key', 'nomor_server_wa_api_key')->value('value') ?: '';
+
+        $keyToUse = $apiKey ?: $fallbackKey ?: 'test';
+        $senderToUse = $sender ?: $fallbackSender ?: '628123456789';
+
+        $cacheKey = md5($targetUrl . '|' . $keyToUse . '|' . $senderToUse);
+        if (isset($this->pingCache[$cacheKey])) {
+            return $this->pingCache[$cacheKey];
+        }
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(5)->post($targetUrl, [
+                'api_key' => $keyToUse,
+                'sender'  => $senderToUse,
+                'number'  => $senderToUse
+            ]);
+
+            if ($response->successful() || in_array($response->status(), [200, 400, 401, 422])) {
+                $result = ['status' => 'connected', 'message' => 'Terhubung (HTTP ' . $response->status() . ')'];
+            } else {
+                $result = ['status' => 'disconnected', 'message' => 'Response Error (HTTP ' . $response->status() . ')'];
+            }
+        } catch (\Exception $e) {
+            $result = ['status' => 'disconnected', 'message' => 'Tidak dapat terhubung (' . $e->getMessage() . ')'];
+        }
+
+        $this->pingCache[$cacheKey] = $result;
+        return $result;
+    }
+
+    /**
+     * Batch check status validitas nomor WhatsApp (untuk tabel Siswa, Guru, Ortu)
+     */
+    public function batchCheckNumbers(Request $request)
+    {
+        $numbers = $request->input('numbers', []);
+        if (!is_array($numbers)) {
+            $numbers = [$numbers];
+        }
+
+        $waService = new WhatsAppService();
+        $results = [];
+
+        foreach ($numbers as $num) {
+            $formatted = \App\Helpers\WhatsAppHelper::formatNumber($num);
+            if (empty($formatted)) {
+                $results[$num] = false;
+                continue;
+            }
+
+            $isValid = $waService->isNumberValidCached($formatted);
+            $results[$num] = $isValid;
+        }
+
+        return response()->json([
+            'status'  => true,
+            'results' => $results,
+        ]);
+    }
 }

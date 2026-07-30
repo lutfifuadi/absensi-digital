@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\TahunAkademikSession::class,
             \App\Http\Middleware\CheckImpersonation::class,
             \App\Http\Middleware\CheckAutoAlphaMiddleware::class,
+            \App\Http\Middleware\WaAutoCheckMiddleware::class,
         ]);
         $middleware->alias([
             'role'           => \App\Http\Middleware\RoleMiddleware::class,

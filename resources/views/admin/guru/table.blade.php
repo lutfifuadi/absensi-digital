@@ -17,6 +17,7 @@
             <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
           @endif
         </th>
+        <th class="py-3 text-center text-nowrap">No. WhatsApp</th>
         <th class="py-3">Mata Pelajaran</th>
         <th class="py-3 d-none d-lg-table-cell sortable cursor-pointer" data-sort-by="jabatan" style="user-select: none;">
           Jabatan
@@ -55,12 +56,40 @@
               </div>
               <div>
                 <div class="fw-bold mb-0" style="font-size:0.9rem;">{{ $displayName }}</div>
-                <div class="text-white-50 small" style="font-size:0.72rem;">{{ $item->no_hp ?? 'No HP -' }}</div>
+                <div class="text-white-50 small" style="font-size:0.72rem;">NIP: {{ $item->nip ?: '-' }}</div>
               </div>
             </div>
           </td>
           <td class="d-none d-md-table-cell text-white-50 small">
             {{ $item->nip ?: '-' }}
+          </td>
+          <td class="text-center text-nowrap">
+            @php
+              $formattedWa = \App\Helpers\WhatsAppHelper::formatNumber($item->no_hp);
+              $cachedValid = $formattedWa ? \Illuminate\Support\Facades\Cache::get('wa_valid_' . $formattedWa) : null;
+            @endphp
+            @if($formattedWa)
+              <div class="d-inline-flex align-items-center gap-1">
+                <span class="small text-white-50 me-1" style="font-size:0.75rem;">{{ $item->no_hp }}</span>
+                <span class="badge wa-status-badge {{ $cachedValid === true ? 'bg-label-success text-success' : ($cachedValid === false ? 'bg-label-danger text-danger' : 'bg-label-secondary text-white-50') }} px-2 py-1"
+                      data-wa-number="{{ $formattedWa }}"
+                      style="cursor: pointer;"
+                      title="{{ $cachedValid === true ? 'Terdaftar di WhatsApp' : ($cachedValid === false ? 'Tidak terdaftar di WhatsApp' : 'Klik untuk cek WA') }}">
+                  <i class="ti tabler-brand-whatsapp me-1"></i>
+                  <span class="wa-status-text">
+                    @if($cachedValid === true)
+                      Valid WA
+                    @elseif($cachedValid === false)
+                      Tidak Valid
+                    @else
+                      Cek WA
+                    @endif
+                  </span>
+                </span>
+              </div>
+            @else
+              <span class="text-white-50 small">-</span>
+            @endif
           </td>
           <td>
             @if($item->mata_pelajaran)
