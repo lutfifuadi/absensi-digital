@@ -12,14 +12,14 @@
     {
       "name": "Dashboard Guru",
       "icon": "menu-icon ti tabler-chalkboard-teacher",
-      "slug": "guru.dashboard",
-      "url": "/guru/dashboard"
+      "slug": "admin.dashboard.guru",
+      "url": "/dashboard/guru"
     },
     {
       "name": "Dashboard Siswa",
       "icon": "menu-icon ti tabler-school",
-      "slug": "siswa.dashboard",
-      "url": "/siswa/dashboard"
+      "slug": "admin.dashboard.siswa",
+      "url": "/dashboard/siswa"
     },
     {
       "name": "Asisten AI",

@@ -32,7 +32,26 @@ class DashboardController extends Controller
      * 
      * @param Request $request
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+    /**
+     * Halaman Dashboard Pemantauan & Analitik Guru (URL: /dashboard/guru)
      */
+    public function guruAnalytics(Request $request)
+    {
+        $user = $request->user();
+        $data = array_merge(['user' => $user, 'pageTitle' => 'Dashboard Analitik Guru'], $this->guruData($user));
+        return view('dashboards.guru', $data);
+    }
+
+    /**
+     * Halaman Dashboard Analitik Siswa (URL: /dashboard/siswa)
+     */
+    public function siswaAnalytics(Request $request)
+    {
+        $user = $request->user();
+        $data = array_merge(['user' => $user, 'pageTitle' => 'Dashboard Siswa'], $this->siswaData($user));
+        return view('dashboards.siswa', $data);
+    }
+
     public function index(Request $request)
     {
         $user = $request->user();
