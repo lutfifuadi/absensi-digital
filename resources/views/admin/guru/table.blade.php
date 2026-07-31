@@ -11,12 +11,7 @@
             <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
           @endif
         </th>
-        <th class="py-3 d-none d-md-table-cell sortable cursor-pointer" data-sort-by="nip" style="user-select: none;">
-          NIP
-          @if(($sortBy ?? '') === 'nip')
-            <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
-          @endif
-        </th>
+
         <th class="py-3 text-center text-nowrap">No. WhatsApp</th>
         <th class="py-3">Mata Pelajaran</th>
         <th class="py-3 d-none d-lg-table-cell sortable cursor-pointer" data-sort-by="jabatan" style="user-select: none;">
@@ -56,12 +51,8 @@
               </div>
               <div>
                 <div class="fw-bold mb-0" style="font-size:0.9rem;">{{ $displayName }}</div>
-                <div class="text-white-50 small" style="font-size:0.72rem;">NIP: {{ $item->nip ?: '-' }}</div>
               </div>
             </div>
-          </td>
-          <td class="d-none d-md-table-cell text-white-50 small">
-            {{ $item->nip ?: '-' }}
           </td>
           <td class="text-center text-nowrap">
             @php
