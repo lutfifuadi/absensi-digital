@@ -2,6 +2,13 @@
 
 @section('title', 'Absensi Cepat — Bulk Input')
 
+@php
+  $isGuruRoute = request()->is('guru/*');
+  $urlBulkForm = $isGuruRoute ? route('guru.absensi-cepat') : route('admin.absensi-cepat');
+  $urlBulkStore = $isGuruRoute ? route('guru.absensi-cepat.store') : route('admin.absensi-cepat.store');
+  $urlBulkSearch = $isGuruRoute ? route('guru.absensi-cepat.search') : route('admin.absensi-cepat.search');
+@endphp
+
 @section('page-style')
   <style>
     .form-control,
@@ -117,7 +124,7 @@
 
   <div class="das-panel mb-4">
     <div class="das-panel__body">
-      <form action="{{ route('admin.absensi-cepat') }}" method="GET" id="form-filter">
+      <form action="{{ $urlBulkForm }}" method="GET" id="form-filter">
         <div class="row align-items-end g-3">
           <div class="col-md-3">
             <label class="form-label text-white-50 small fw-bold" for="search_nama">Cari Siswa</label>
@@ -179,7 +186,7 @@
   </div>
 
   @if ($selectedKelasId && count($siswa) > 0)
-    <form action="{{ route('admin.absensi-cepat.store') }}" method="POST">
+    <form action="{{ $urlBulkStore }}" method="POST">
       @csrf
       <input type="hidden" name="kelas_id" value="{{ $selectedKelasId }}">
       <input type="hidden" name="tanggal" id="tanggal_submit" value="{{ request('tanggal', now()->toDateString()) }}">
@@ -422,7 +429,7 @@
     async function fetchSearch(query) {
       spinner.classList.remove('d-none');
       try {
-        const resp = await fetch(`{{ route('admin.absensi-cepat.search') }}?query=${encodeURIComponent(query)}`);
+        const resp = await fetch(`{{ $urlBulkSearch }}?query=${encodeURIComponent(query)}`);
         const json = await resp.json();
         renderResults(json.data || []);
       } catch (err) {
@@ -457,7 +464,7 @@
         `;
         div.addEventListener('click', () => {
           // Navigate ke kelas siswa tersebut (load bulk form)
-          const url = new URL('{{ route("admin.absensi-cepat") }}', window.location.origin);
+          const url = new URL('{{ $urlBulkForm }}', window.location.origin);
           url.searchParams.set('kelas_id', item.kelas_id);
           url.searchParams.set('tanggal', document.getElementById('tanggal_filter')?.value || '');
           url.searchParams.set('highlight', item.siswa_id);

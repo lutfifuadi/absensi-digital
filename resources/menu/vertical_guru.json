@@ -19,8 +19,8 @@
     {
       "name": "Absensi Cepat Siswa",
       "icon": "menu-icon ti tabler-bolt",
-      "slug": "admin.absensi-cepat",
-      "url": "/admin/absensi-cepat"
+      "slug": "guru.absensi-cepat",
+      "url": "/guru/absensi-cepat"
     },
     {
       "name": "Pengajuan Izin",
