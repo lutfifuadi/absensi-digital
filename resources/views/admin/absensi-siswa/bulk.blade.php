@@ -26,7 +26,7 @@
 
     .absensi-radios .btn-check:checked + .btn {
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+      box-shadow: 0 4px 14px rgba(40, 199, 111, 0.55) !important;
     }
 
     .student-row:hover {
