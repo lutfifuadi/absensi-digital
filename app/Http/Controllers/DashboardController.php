@@ -29,20 +29,16 @@ use Illuminate\Support\Facades\DB;
 class DashboardController extends Controller
 {
     /**
+     * Jumlah top guru untuk leaderboard streak.
+     */
+    private const TOP_N_GURU = 5;
+
+    /**
      * Display the dashboard based on the user's role.
      * 
      * @param Request $request
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
-    /**
-     * Halaman Dashboard Pemantauan & Analitik Guru (URL: /dashboard/guru)
      */
-    public function guruAnalytics(Request $request)
-    {
-        $user = $request->user();
-        $data = array_merge(['user' => $user, 'pageTitle' => 'Dashboard Analitik Guru'], $this->guruData($user));
-        return view('dashboards.guru', $data);
-    }
-
     public function index(Request $request)
     {
         $user = $request->user();
@@ -113,6 +109,16 @@ class DashboardController extends Controller
 
         $view = $viewMap[$role] ?? 'dashboards.super-admin';
         return view($view, array_merge(['user' => $user, 'pageTitle' => 'Dashboard'], $this->superAdminData()));
+    }
+
+    /**
+     * Halaman Dashboard Pemantauan & Analitik Guru (URL: /dashboard/guru)
+     */
+    public function guruAnalytics(Request $request)
+    {
+        $user = $request->user();
+        $data = array_merge(['user' => $user, 'pageTitle' => 'Dashboard Analitik Guru'], $this->guruData($user));
+        return view('dashboards.guru', $data);
     }
 
     /**
@@ -827,100 +833,181 @@ return response()->json([
         $month = (int) request()->query('month', now()->month);
         $year  = (int) request()->query('year', now()->year);
 
+        // Validasi & normalisasi query param periode (fallback ke bulan/tahun berjalan jika invalid)
+        if ($month < 1 || $month > 12) {
+            $month = (int) now()->month;
+        }
+        if ($year < (now()->year - 5) || $year > (now()->year + 1)) {
+            $year = (int) now()->year;
+        }
+
         // Agregat Total Guru
         $totalGuru = Guru::count();
 
-        // Presensi Guru Hari Ini (Seluruh Guru)
-        $absensiHariIni = AbsensiGuru::whereDate('tanggal', $today)->get();
-        $guruHadirToday = $absensiHariIni->where('status', 'hadir')->count();
-        $guruTerlambatToday = $absensiHariIni->where('status', 'terlambat')->count();
-        $guruIzinToday = $absensiHariIni->whereIn('status', ['sakit', 'izin'])->count();
-        $guruAlphaToday = max(0, $totalGuru - ($guruHadirToday + $guruTerlambatToday + $guruIzinToday));
-        
+        // ── FIX #2: Presensi Hari Ini via Aggregate Query (bukan load semua record) ──
+        $absensiStats = AbsensiGuru::whereDate('tanggal', $today)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $guruHadirToday    = (int) ($absensiStats->get('hadir', 0));
+        $guruTerlambatToday = (int) ($absensiStats->get('terlambat', 0));
+        $guruIzinToday     = (int) (($absensiStats->get('sakit', 0)) + ($absensiStats->get('izin', 0)));
+        $guruAlphaToday    = max(0, $totalGuru - ($guruHadirToday + $guruTerlambatToday + $guruIzinToday));
+
         $persentaseHadirToday = $totalGuru > 0 ? round((($guruHadirToday + $guruTerlambatToday) / $totalGuru) * 100, 1) : 0;
 
-        // Top Streak Guru
-        $streakList = Guru::with('user')->get()->map(function($g) {
-            $abs = AbsensiGuru::where('guru_id', $g->id)
-                ->whereIn('status', ['hadir', 'terlambat'])
-                ->orderBy('tanggal', 'desc')
-                ->pluck('tanggal')->toArray();
-            
-            $streak = 0;
+        // ── FIX #1: Top Streak Guru — Eager Load + Single Query (bukan N+1) ──
+        // Ambil hanya guru yang punya presensi 30 hari terakhir
+        $activeGuruIds = AbsensiGuru::where('tanggal', '>=', now()->subDays(30))
+            ->distinct('guru_id')
+            ->pluck('guru_id');
+
+        $guruList = Guru::with('user')->whereIn('id', $activeGuruIds)->get();
+        $guruIds  = $guruList->pluck('id')->toArray();
+
+        // Satu query untuk streak semua guru (30 hari terakhir)
+        $absensiStreakData = AbsensiGuru::whereIn('guru_id', $guruIds)
+            ->whereIn('status', ['hadir', 'terlambat'])
+            ->where('tanggal', '>=', now()->subDays(30))
+            ->orderBy('guru_id')
+            ->orderBy('tanggal', 'desc')
+            ->get()
+            ->groupBy('guru_id');
+
+        // Hitung streak di PHP
+        $streakList = $guruList->map(function ($g) use ($absensiStreakData) {
+            $abs = $absensiStreakData->get($g->id, collect())
+                ->pluck('tanggal')
+                ->toArray();
+
+            $streak    = 0;
             $checkDate = Carbon::today();
+
             foreach ($abs as $tgl) {
-                if (Carbon::parse($tgl)->isSameDay($checkDate) || Carbon::parse($tgl)->isSameDay($checkDate->copy()->subDay())) {
+                $parsed = Carbon::parse($tgl);
+                if ($parsed->isSameDay($checkDate) || $parsed->isSameDay($checkDate->copy()->subDay())) {
                     $streak++;
-                    $checkDate = Carbon::parse($tgl)->subDay();
+                    $checkDate = $parsed->copy()->subDay();
                 } else {
                     break;
                 }
             }
+
             $g->streak = $streak;
             return $g;
         })->sortByDesc('streak');
 
         $bestStreakGuru = $streakList->first();
 
-        // Data Grafik Tren Kehadiran Bulanan (Seluruh Guru)
+        // Pastikan property streak di-assign jika null
+        if ($bestStreakGuru && !isset($bestStreakGuru->streak)) {
+            $bestStreakGuru->streak = 0;
+        }
+
+        // ── FIX #3: Data Grafik Tren Kehadiran Bulanan via Aggregate Query ──
         $startOfMonth = Carbon::create($year, $month, 1)->startOfDay();
         $endOfMonth   = $startOfMonth->copy()->endOfMonth();
         $daysInMonth  = $startOfMonth->daysInMonth;
 
-        $chartLabels = [];
-        $chartHadir = [];
-        $chartTerlambat = [];
-        $chartIzin = [];
-        $chartAlpha = [];
+        // Untuk bulan yang sedang berjalan, gunakan jendela `daysInMonth` hari terakhir
+        // (rolling window berakhir hari ini). Ini memastikan tren harian tidak terpotong
+        // di awal bulan — sisa data beberapa hari terakhir dari bulan sebelumnya tetap
+        // ikut terhitung sehingga grafik langsung terisi. Untuk bulan lampau, gunakan
+        // kalender bulan penuh agar hasil rekap sesuai periode yang dipilih.
+        $isCurrentPeriod = ((int) now()->month === (int) $month && (int) now()->year === (int) $year);
+        $windowStart = $isCurrentPeriod
+            ? Carbon::today()->subDays($daysInMonth - 1)->startOfDay()
+            : $startOfMonth;
+        $windowEnd = $isCurrentPeriod
+            ? Carbon::today()->endOfDay()
+            : $endOfMonth;
 
-        $allAbsensiMonth = AbsensiGuru::whereBetween('tanggal', [$startOfMonth, $endOfMonth])->get();
+        // Satu query untuk semua data chart + rekap bulanan
+        // Menggunakan select('tanggal', 'status') + groupBy di PHP untuk kompatibilitas MySQL & SQLite
+        $chartDataRaw = AbsensiGuru::whereBetween('tanggal', [$windowStart, $windowEnd])
+            ->select('tanggal', 'status')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('tanggal', 'status')
+            ->get()
+            ->groupBy(fn ($item) => Carbon::parse($item->tanggal)->day);
+
+        // Bangun array chart per hari
+        $chartLabels     = [];
+        $chartHadir      = [];
+        $chartTerlambat  = [];
+        $chartIzin       = [];
+        $chartAlpha      = [];
+        $rekapHadir      = 0;
+        $rekapTerlambat  = 0;
+        $rekapSakit      = 0;
+        $rekapIzin       = 0;
+        $rekapAlpha      = 0;
 
         for ($d = 1; $d <= $daysInMonth; $d++) {
-            $dt = Carbon::create($year, $month, $d)->toDateString();
-            $chartLabels[] = (string)$d;
-            
-            $dayAbs = $allAbsensiMonth->where('tanggal', $dt);
-            $chartHadir[] = $dayAbs->where('status', 'hadir')->count();
-            $chartTerlambat[] = $dayAbs->where('status', 'terlambat')->count();
-            $chartIzin[] = $dayAbs->whereIn('status', ['sakit', 'izin'])->count();
-            $chartAlpha[] = $dayAbs->where('status', 'alpha')->count();
+            $chartLabels[] = (string) $d;
+
+            $dayStats = $chartDataRaw->get($d, collect());
+
+            $hadirDay      = (int) ($dayStats->firstWhere('status', 'hadir')?->total ?? 0);
+            $terlambatDay  = (int) ($dayStats->firstWhere('status', 'terlambat')?->total ?? 0);
+            $sakitDay      = (int) ($dayStats->firstWhere('status', 'sakit')?->total ?? 0);
+            $izinDay       = (int) ($dayStats->firstWhere('status', 'izin')?->total ?? 0);
+            $alphaDay      = (int) ($dayStats->firstWhere('status', 'alpha')?->total ?? 0);
+
+            $chartHadir[]     = $hadirDay;
+            $chartTerlambat[] = $terlambatDay;
+            $chartIzin[]      = $sakitDay + $izinDay;
+            $chartAlpha[]     = $alphaDay;
+
+            // Akumulasi rekap bulanan
+            $rekapHadir     += $hadirDay;
+            $rekapTerlambat += $terlambatDay;
+            $rekapSakit     += $sakitDay;
+            $rekapIzin      += $izinDay;
+            $rekapAlpha     += $alphaDay;
         }
 
         // Rekap Bulanan Agregat Seluruh Guru
         $rekapBulananGuru = [
-            'hadir' => $allAbsensiMonth->where('status', 'hadir')->count(),
-            'terlambat' => $allAbsensiMonth->where('status', 'terlambat')->count(),
-            'sakit' => $allAbsensiMonth->where('status', 'sakit')->count(),
-            'izin' => $allAbsensiMonth->where('status', 'izin')->count(),
-            'alpha' => $allAbsensiMonth->where('status', 'alpha')->count(),
+            'hadir'     => $rekapHadir,
+            'terlambat' => $rekapTerlambat,
+            'sakit'     => $rekapSakit,
+            'izin'      => $rekapIzin,
+            'alpha'     => $rekapAlpha,
         ];
 
-        // Daftar Presensi Guru Hari Ini (Real-time monitoring - Sample 5 Data)
-        $guruTodayList = Guru::with(['user', 'absensiGuru' => function($q) use ($today) {
+        // ── FIX #5: Daftar Presensi Guru Hari Ini (sorted by nama) ──
+        // Gunakan orderByRaw('LOWER(nama_lengkap) ASC') agar urutan ascending konsisten
+        // di semua engine database (SQLite/MySQL) dan tidak bergantung pada case sensitivity.
+        $guruTodayList = Guru::with(['user', 'absensiGuru' => function ($q) use ($today) {
             $q->whereDate('tanggal', $today);
-        }])->take(5)->get();
+        }])->orderByRaw('LOWER(nama_lengkap) ASC')->take(self::TOP_N_GURU)->get();
 
-        $pengaturanArr = Pengaturan::pluck('value', 'key')->toArray();
+        // ── FIX #4: Pengaturan dengan Cache ──
+        $pengaturanArr = Cache::remember('pengaturan_all', 300, function () {
+            return Pengaturan::pluck('value', 'key')->toArray();
+        });
 
         return [
-            'totalGuru' => $totalGuru,
-            'guruHadirToday' => $guruHadirToday,
-            'guruTerlambatToday' => $guruTerlambatToday,
-            'guruIzinToday' => $guruIzinToday,
-            'guruAlphaToday' => $guruAlphaToday,
-            'persentaseHadirToday' => $persentaseHadirToday,
-            'bestStreakGuru' => $bestStreakGuru,
-            'chartLabels' => $chartLabels,
-            'chartHadir' => $chartHadir,
-            'chartTerlambat' => $chartTerlambat,
-            'chartIzin' => $chartIzin,
-            'chartAlpha' => $chartAlpha,
-            'rekapBulananGuru' => $rekapBulananGuru,
-            'guruTodayList' => $guruTodayList,
-            'streakList' => $streakList->take(5),
-            'month' => $month,
-            'year' => $year,
-            'pengaturanArr' => $pengaturanArr,
+            'totalGuru'           => $totalGuru,
+            'guruHadirToday'      => $guruHadirToday,
+            'guruTerlambatToday'  => $guruTerlambatToday,
+            'guruIzinToday'       => $guruIzinToday,
+            'guruAlphaToday'      => $guruAlphaToday,
+            'persentaseHadirToday'=> $persentaseHadirToday,
+            'bestStreakGuru'      => $bestStreakGuru,
+            'chartLabels'         => $chartLabels,
+            'chartHadir'          => $chartHadir,
+            'chartTerlambat'      => $chartTerlambat,
+            'chartIzin'           => $chartIzin,
+            'chartAlpha'          => $chartAlpha,
+            'rekapBulananGuru'    => $rekapBulananGuru,
+            'guruTodayList'       => $guruTodayList,
+            'streakList'          => $streakList->take(self::TOP_N_GURU),
+            'month'               => $month,
+            'year'                => $year,
+            'pengaturanArr'       => $pengaturanArr,
         ];
     }
 

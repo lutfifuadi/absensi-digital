@@ -3,6 +3,7 @@
 @section('title', 'Dashboard Pemantauan & Analitik Guru — ' . ($pengaturanArr['nama_sekolah'] ?? 'Sistem Absensi'))
 
 @section('page-style')
+  <link rel="stylesheet" href="{{ asset('css/dashboards/super-admin.css') }}?v=4.3">
   <style>
     .glass-card {
       background: rgba(255, 255, 255, 0.03) !important;
@@ -16,12 +17,7 @@
       box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25) !important;
       background: rgba(255, 255, 255, 0.05) !important;
     }
-    .das-hero__time {
-      font-family: monospace;
-      font-weight: 700;
-      font-size: 1.6rem;
-      letter-spacing: 1px;
-    }
+
     .leaderboard-rank {
       width: 32px;
       height: 32px;
@@ -57,11 +53,10 @@
 
 @section('content')
   {{-- ═══════════════════════════════════════════════════════
-       SECTION 1: HERO HEADER — Identitas & Live Clock (Matching Dashboard Utama)
+       SECTION 1: HERO HEADER — Identitas Utama (Matching Dashboard Utama)
   ═══════════════════════════════════════════════════════ --}}
   <div class="das-hero mb-4">
     <div class="das-hero__bg" aria-hidden="true"></div>
-    <div class="das-hero__scanline" aria-hidden="true"></div>
     <div class="das-hero__grid-lines" aria-hidden="true"></div>
 
     <div class="das-hero__inner">
@@ -71,7 +66,7 @@
             <img src="{{ asset('uploads/logo/' . $pengaturanArr['logo_sekolah']) }}" alt="Logo {{ $pengaturanArr['nama_sekolah'] ?? 'sekolah' }}" class="das-hero__logo">
           @else
             <div class="das-hero__logo-placeholder">
-              <i class="ti tabler-presentation" aria-hidden="true"></i>
+              <i class="ti tabler-school" aria-hidden="true"></i>
             </div>
           @endif
         </div>
@@ -79,7 +74,7 @@
         <div class="das-hero__meta">
           <div class="das-hero__badge">
             <span class="das-hero__pulse-dot" aria-hidden="true"></span>
-            Panel Guru
+            Sistem Administrasi Sekolah
           </div>
           <h1 class="das-hero__school">{{ $pengaturanArr['nama_sekolah'] ?? $pengaturanArr['nama_lembaga'] ?? 'Sistem Absensi' }}</h1>
           <p class="das-hero__welcome">Analitik & Pemantauan Kehadiran Guru</p>
@@ -176,7 +171,7 @@
             </div>
             <p class="mb-1 text-body-secondary text-nowrap">Top Streak Disiplin</p>
             <p class="mb-0 text-truncate">
-              <span class="text-primary fw-medium me-2">{{ $bestStreakGuru->user->name ?? 'Belum ada data' }}</span>
+              <span class="text-primary fw-medium me-2">{{ $bestStreakGuru?->nama_lengkap ?? $bestStreakGuru?->user->name ?? 'Belum ada data' }}</span>
             </p>
           </div>
         </div>
@@ -217,7 +212,7 @@
                 @endfor
               </select>
               <select name="year" class="form-select form-select-sm bg-dark text-white border-secondary">
-                @for($y = now()->year; $y >= now()->year - 2; $y--)
+                @for($y = now()->year; $y >= now()->year - 5; $y--)
                   <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
                 @endfor
               </select>
@@ -312,8 +307,8 @@
               <thead>
                 <tr>
                   <th class="ps-3">Nama Guru</th>
-                  <th>Jam Masuk</th>
-                  <th>Jam Pulang</th>
+                  <th>Masuk</th>
+                  <th>Keluar</th>
                   <th>Metode</th>
                   <th class="pe-3 text-center">Status</th>
                 </tr>
@@ -328,11 +323,11 @@
                       <div class="d-flex align-items-center">
                         <div class="avatar avatar-sm me-3">
                           <span class="avatar-initial rounded-circle bg-label-info">
-                            {{ strtoupper(substr($g->user->name ?? 'G', 0, 2)) }}
+                            {{ strtoupper(substr($g->nama_lengkap ?? $g->user->name ?? 'G', 0, 2)) }}
                           </span>
                         </div>
                         <div>
-                          <h6 class="mb-0 text-white text-truncate" style="max-width:180px;">{{ $g->user->name ?? '-' }}</h6>
+                          <h6 class="mb-0 text-white text-truncate" style="max-width:180px;">{{ $g->nama_lengkap ?? $g->user->name ?? '-' }}</h6>
                           <small class="text-body-secondary">{{ $g->jabatan ?? 'Guru Pengajar' }}</small>
                         </div>
                       </div>
@@ -408,7 +403,7 @@
                     #{{ $index + 1 }}
                   </div>
                   <div>
-                    <h6 class="mb-0 fw-bold text-white text-truncate" style="max-width: 140px;">{{ $g->user->name ?? '-' }}</h6>
+                    <h6 class="mb-0 fw-bold text-white text-truncate" style="max-width: 140px;">{{ $g->nama_lengkap ?? $g->user->name ?? '-' }}</h6>
                     <small class="text-body-secondary">{{ $g->jabatan ?? 'Guru' }}</small>
                   </div>
                 </div>
@@ -430,19 +425,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // 1. Live Clock
-    function updateClock() {
-      const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const seconds = String(now.getSeconds()).padStart(2, '0');
-      const el = document.getElementById('live-clock');
-      if (el) el.textContent = `${hours}:${minutes}:${seconds}`;
-    }
-    updateClock();
-    setInterval(updateClock, 1000);
-
-    // 2. Chart Tren Kehadiran Guru (Line Chart)
+    // 1. Chart Tren Kehadiran Guru (Line Chart)
     const ctxTren = document.getElementById('chartTrenGuru');
     if (ctxTren) {
       new Chart(ctxTren, {
@@ -506,7 +489,7 @@
       });
     }
 
-    // 3. Chart Status Presensi Guru (Doughnut Chart)
+    // 2. Chart Status Presensi Guru (Doughnut Chart)
     const ctxStatus = document.getElementById('chartStatusGuru');
     if (ctxStatus) {
       new Chart(ctxStatus, {
