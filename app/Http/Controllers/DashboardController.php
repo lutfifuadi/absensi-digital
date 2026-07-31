@@ -908,10 +908,9 @@ return response()->json([
             }
         }
 
-        // ── Data Jadwal Pelajaran & Agregat Kehadiran Siswa Hari Ini ────
+        // ── Data Jadwal Pelajaran Guru Hari Ini ────
         $hariIni = Carbon::now()->locale('id')->isoFormat('dddd');
         $jamSekarang = Carbon::now()->format('H:i:s');
-        $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
 
         $jadwalHariIni = \App\Models\JadwalPelajaran::with(['kelas', 'mapel'])
             ->where('guru_id', $guru->id)
@@ -922,23 +921,6 @@ return response()->json([
         $jadwalSekarang = $jadwalHariIni->first(function($j) use ($jamSekarang) {
             return $j->jam_mulai <= $jamSekarang && $j->jam_selesai >= $jamSekarang;
         });
-
-        // Hitung agregat presensi siswa di kelas mengajar hari ini
-        $kelasTaughtIds = $jadwalHariIni->pluck('kelas_id')->unique()->filter()->toArray();
-        $totalSiswaTaught = Siswa::whereIn('kelas_id', $kelasTaughtIds)->where('status', 'aktif')->count();
-        
-        $absensiSiswaHariIni = AbsensiSiswa::whereIn('kelas_id', $kelasTaughtIds)
-            ->whereDate('tanggal', $today)
-            ->get();
-        
-        $hadirSiswaCount = $absensiSiswaHariIni->where('status', 'hadir')->count();
-        $terlambatSiswaCount = $absensiSiswaHariIni->where('status', 'terlambat')->count();
-        $sakitSiswaCount = $absensiSiswaHariIni->where('status', 'sakit')->count();
-        $izinSiswaCount = $absensiSiswaHariIni->where('status', 'izin')->count();
-        $alphaSiswaCount = $absensiSiswaHariIni->where('status', 'alpha')->count();
-        $sudahAbsenCount = $absensiSiswaHariIni->count();
-        $belumAbsenSiswaCount = max(0, $totalSiswaTaught - $sudahAbsenCount);
-        $persentaseKehadiranSiswa = $totalSiswaTaught > 0 ? round((($hadirSiswaCount + $terlambatSiswaCount) / $totalSiswaTaught) * 100, 1) : 0;
 
         $pengaturanArr = Pengaturan::pluck('value', 'key')->toArray();
 
@@ -956,16 +938,6 @@ return response()->json([
             'year' => $year,
             'jadwalHariIni' => $jadwalHariIni,
             'jadwalSekarang' => $jadwalSekarang,
-            'ringkasanSiswaHariIni' => [
-                'total_siswa' => $totalSiswaTaught,
-                'hadir' => $hadirSiswaCount,
-                'terlambat' => $terlambatSiswaCount,
-                'sakit' => $sakitSiswaCount,
-                'izin' => $izinSiswaCount,
-                'alpha' => $alphaSiswaCount,
-                'belum_absen' => $belumAbsenSiswaCount,
-                'persentase' => $persentaseKehadiranSiswa,
-            ],
             'pengaturanArr' => $pengaturanArr,
         ];
     }

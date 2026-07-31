@@ -192,7 +192,7 @@
   </div>
 
   {{-- ═══════════════════════════════════════════════════════
-       SECTION 2: 4 STAT CARDS INTERAKTIF
+       SECTION 2: 4 STAT CARDS INTERAKTIF (MURNI DATA GURU)
   ═══════════════════════════════════════════════════════ --}}
   <div class="row g-4 mb-4">
     {{-- Card 1: Presensi Saya Hari Ini --}}
@@ -246,24 +246,23 @@
       </div>
     </div>
 
-    {{-- Card 3: Kehadiran Siswa di Kelas Saya --}}
+    {{-- Card 3: Total Izin & Sakit Guru Bulan Ini --}}
     <div class="col-lg-3 col-sm-6">
       <div class="card card-grad-warning h-100">
         <div class="card-body">
           <div class="d-flex align-items-center mb-2">
             <div class="avatar me-3">
               <span class="avatar-initial rounded bg-label-warning">
-                <i class="ti tabler-school fs-4"></i>
+                <i class="ti tabler-stethoscope fs-4"></i>
               </span>
             </div>
             <div>
-              <h4 class="mb-0 fw-bold text-white">{{ $ringkasanSiswaHariIni['persentase'] }}%</h4>
-              <small class="text-white-50">Kehadiran Siswa Hari Ini</small>
+              <h4 class="mb-0 fw-bold text-white">{{ $total_izin_bulan_ini }} Hari</h4>
+              <small class="text-white-50">Izin / Sakit Saya Bulan Ini</small>
             </div>
           </div>
           <div class="pt-2 border-top border-white-10 d-flex justify-content-between text-white-50 extra-small">
-            <span>Hadir: <strong class="text-success">{{ $ringkasanSiswaHariIni['hadir'] + $ringkasanSiswaHariIni['terlambat'] }}</strong></span>
-            <span>Total Siswa: <strong class="text-white">{{ $ringkasanSiswaHariIni['total_siswa'] }}</strong></span>
+            <span>Status Pengajuan: <strong class="text-warning">Terdaftar</strong></span>
           </div>
         </div>
       </div>
@@ -293,15 +292,15 @@
   </div>
 
   {{-- ═══════════════════════════════════════════════════════
-       SECTION 3: CONTENT ROW — JADWAL MENGAJAR & RINGKASAN PRESENSI SISWA
+       SECTION 3: CONTENT ROW — JADWAL MENGAJAR & AKSES CEPAT PENDIDIK
   ═══════════════════════════════════════════════════════ --}}
   <div class="row g-4 mb-4">
-    {{-- Left Side: Jadwal Mengajar & Input Absensi Cepat --}}
+    {{-- Left Side: Jadwal Mengajar Guru Hari Ini --}}
     <div class="col-lg-8">
-      <div class="das-panel h-100 mb-4">
+      <div class="das-panel h-100">
         <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
           <h6 class="das-panel__title mb-0 d-flex align-items-center gap-2 text-white">
-            <i class="ti tabler-clock-play text-info fs-4"></i> Jadwal Mengajar Hari Ini ({{ now()->locale('id')->isoFormat('dddd') }})
+            <i class="ti tabler-clock-play text-info fs-4"></i> Jadwal Pelajaran Mengajar ({{ now()->locale('id')->isoFormat('dddd') }})
           </h6>
           <a href="{{ route('guru.absensi-cepat') }}" class="btn das-btn --info btn-sm">
             <i class="ti tabler-bolt me-1"></i> Buka Absensi Cepat
@@ -364,78 +363,9 @@
             <div class="text-center py-5">
               <i class="ti tabler-calendar-off text-white-50 fs-1 mb-2 opacity-50"></i>
               <h6 class="text-white fw-bold">Tidak Ada Jadwal Mengajar Hari Ini</h6>
-              <p class="text-white-50 small mb-0">Nikmati waktu Anda atau gunakan Absensi Cepat untuk mengisi kelas lain jika diperlukan.</p>
+              <p class="text-white-50 small mb-0">Tidak terdapat jadwal mengajar yang terdaftar untuk hari ini.</p>
             </div>
           @endif
-        </div>
-      </div>
-
-      {{-- Breakdown Presensi Siswa di Kelas Mengajar --}}
-      <div class="das-panel">
-        <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
-          <h6 class="das-panel__title mb-0 d-flex align-items-center gap-2 text-white">
-            <i class="ti tabler-chart-pie text-warning fs-4"></i> Ringkasan Kehadiran Siswa (Kelas Mengajar Hari Ini)
-          </h6>
-          <span class="badge bg-label-warning">{{ $ringkasanSiswaHariIni['total_siswa'] }} Siswa Aktif</span>
-        </div>
-        <div class="das-panel__body p-4">
-          {{-- Progress bar --}}
-          <div class="progress mb-4" style="height: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden;">
-            @php
-              $total = max(1, $ringkasanSiswaHariIni['total_siswa']);
-              $pHadir = ($ringkasanSiswaHariIni['hadir'] / $total) * 100;
-              $pTelat = ($ringkasanSiswaHariIni['terlambat'] / $total) * 100;
-              $pSakit = ($ringkasanSiswaHariIni['sakit'] / $total) * 100;
-              $pIzin  = ($ringkasanSiswaHariIni['izin'] / $total) * 100;
-              $pAlpha = ($ringkasanSiswaHariIni['alpha'] / $total) * 100;
-              $pBelum = ($ringkasanSiswaHariIni['belum_absen'] / $total) * 100;
-            @endphp
-            <div class="progress-bar bg-success" style="width: {{ $pHadir }}%" title="Hadir: {{ $ringkasanSiswaHariIni['hadir'] }}"></div>
-            <div class="progress-bar bg-warning" style="width: {{ $pTelat }}%" title="Terlambat: {{ $ringkasanSiswaHariIni['terlambat'] }}"></div>
-            <div class="progress-bar bg-info" style="width: {{ $pSakit }}%" title="Sakit: {{ $ringkasanSiswaHariIni['sakit'] }}"></div>
-            <div class="progress-bar bg-primary" style="width: {{ $pIzin }}%" title="Izin: {{ $ringkasanSiswaHariIni['izin'] }}"></div>
-            <div class="progress-bar bg-danger" style="width: {{ $pAlpha }}%" title="Alpha: {{ $ringkasanSiswaHariIni['alpha'] }}"></div>
-            <div class="progress-bar bg-secondary opacity-50" style="width: {{ $pBelum }}%" title="Belum Absen: {{ $ringkasanSiswaHariIni['belum_absen'] }}"></div>
-          </div>
-
-          <div class="row text-center g-3">
-            <div class="col-4 col-md">
-              <div class="p-2 rounded" style="background: rgba(40, 199, 111, 0.08); border: 1px solid rgba(40, 199, 111, 0.15);">
-                <div class="h5 mb-0 text-success fw-bold">{{ $ringkasanSiswaHariIni['hadir'] }}</div>
-                <small class="text-white-50" style="font-size:0.72rem;">Hadir</small>
-              </div>
-            </div>
-            <div class="col-4 col-md">
-              <div class="p-2 rounded" style="background: rgba(255, 159, 67, 0.08); border: 1px solid rgba(255, 159, 67, 0.15);">
-                <div class="h5 mb-0 text-warning fw-bold">{{ $ringkasanSiswaHariIni['terlambat'] }}</div>
-                <small class="text-white-50" style="font-size:0.72rem;">Terlambat</small>
-              </div>
-            </div>
-            <div class="col-4 col-md">
-              <div class="p-2 rounded" style="background: rgba(0, 207, 221, 0.08); border: 1px solid rgba(0, 207, 221, 0.15);">
-                <div class="h5 mb-0 text-info fw-bold">{{ $ringkasanSiswaHariIni['sakit'] }}</div>
-                <small class="text-white-50" style="font-size:0.72rem;">Sakit</small>
-              </div>
-            </div>
-            <div class="col-4 col-md">
-              <div class="p-2 rounded" style="background: rgba(115, 103, 240, 0.08); border: 1px solid rgba(115, 103, 240, 0.15);">
-                <div class="h5 mb-0 text-primary fw-bold">{{ $ringkasanSiswaHariIni['izin'] }}</div>
-                <small class="text-white-50" style="font-size:0.72rem;">Izin</small>
-              </div>
-            </div>
-            <div class="col-4 col-md">
-              <div class="p-2 rounded" style="background: rgba(234, 84, 85, 0.08); border: 1px solid rgba(234, 84, 85, 0.15);">
-                <div class="h5 mb-0 text-danger fw-bold">{{ $ringkasanSiswaHariIni['alpha'] }}</div>
-                <small class="text-white-50" style="font-size:0.72rem;">Alpha</small>
-              </div>
-            </div>
-            <div class="col-4 col-md">
-              <div class="p-2 rounded" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1);">
-                <div class="h5 mb-0 text-white-50 fw-bold">{{ $ringkasanSiswaHariIni['belum_absen'] }}</div>
-                <small class="text-white-50" style="font-size:0.72rem;">Belum Absen</small>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
