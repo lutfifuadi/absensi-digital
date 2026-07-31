@@ -42,16 +42,6 @@ class DashboardController extends Controller
         return view('dashboards.guru', $data);
     }
 
-    /**
-     * Halaman Dashboard Analitik Siswa (URL: /dashboard/siswa)
-     */
-    public function siswaAnalytics(Request $request)
-    {
-        $user = $request->user();
-        $data = array_merge(['user' => $user, 'pageTitle' => 'Dashboard Siswa'], $this->siswaData($user));
-        return view('dashboards.siswa', $data);
-    }
-
     public function index(Request $request)
     {
         $user = $request->user();

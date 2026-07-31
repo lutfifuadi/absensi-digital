@@ -16,12 +16,6 @@
       "url": "/dashboard/guru"
     },
     {
-      "name": "Dashboard Siswa",
-      "icon": "menu-icon ti tabler-school",
-      "slug": "admin.dashboard.siswa",
-      "url": "/dashboard/siswa"
-    },
-    {
       "name": "Asisten AI",
       "icon": "menu-icon ti tabler-message-chatbot",
       "slug": "admin.ai-chat.index",
