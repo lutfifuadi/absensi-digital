@@ -159,7 +159,7 @@
               </div>
               <h5 class="fw-bold text-white mb-1" style="font-size: 0.95rem;">Absensi Cepat</h5>
               <p class="small text-white-50 mb-2" style="font-size: 0.75rem;">Absensi manual per kelas.</p>
-              <a href="{{ route('admin.absensi-cepat') }}" class="btn das-btn --info w-100">Input Absen</a>
+              <a href="{{ route('piket.absensi-cepat') }}" class="btn das-btn --info w-100">Input Absen</a>
             </div>
           </div>
         </div>

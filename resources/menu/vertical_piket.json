@@ -21,6 +21,12 @@
       "url": "/piket/scanner"
     },
     {
+      "name": "Absensi Cepat Siswa",
+      "icon": "menu-icon ti tabler-bolt",
+      "slug": "piket.absensi-cepat",
+      "url": "/piket/absensi-cepat"
+    },
+    {
       "name": "Rekap Harian Piket",
       "icon": "menu-icon ti tabler-report",
       "slug": "piket.rekap",

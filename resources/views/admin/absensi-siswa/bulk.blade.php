@@ -3,10 +3,11 @@
 @section('title', 'Absensi Cepat — Bulk Input')
 
 @php
+  $isPiketRoute = request()->is('piket/*');
   $isGuruRoute = request()->is('guru/*');
-  $urlBulkForm = $isGuruRoute ? route('guru.absensi-cepat') : route('admin.absensi-cepat');
-  $urlBulkStore = $isGuruRoute ? route('guru.absensi-cepat.store') : route('admin.absensi-cepat.store');
-  $urlBulkSearch = $isGuruRoute ? route('guru.absensi-cepat.search') : route('admin.absensi-cepat.search');
+  $urlBulkForm = $isPiketRoute ? route('piket.absensi-cepat') : ($isGuruRoute ? route('guru.absensi-cepat') : route('admin.absensi-cepat'));
+  $urlBulkStore = $isPiketRoute ? route('piket.absensi-cepat.store') : ($isGuruRoute ? route('guru.absensi-cepat.store') : route('admin.absensi-cepat.store'));
+  $urlBulkSearch = $isPiketRoute ? route('piket.absensi-cepat.search') : ($isGuruRoute ? route('guru.absensi-cepat.search') : route('admin.absensi-cepat.search'));
 @endphp
 
 @section('page-style')

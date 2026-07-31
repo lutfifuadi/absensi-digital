@@ -380,6 +380,14 @@ Route::middleware([
         Route::get('/scanner/stats', [PiketScannerController::class, 'stats'])->name('piket.scanner.stats');
         Route::get('/rekap', [PiketScannerController::class, 'rekap'])->name('piket.rekap');
         Route::post('/rekap/update', [PiketScannerController::class, 'updateRekap'])->name('piket.rekap.update');
+
+        // Absensi Cepat Siswa (Portal Piket)
+        Route::get('/absensi-cepat', [AbsensiSiswaController::class, 'bulkForm'])
+            ->name('piket.absensi-cepat');
+        Route::get('/absensi-cepat/search', [AbsensiSiswaController::class, 'searchStudent'])
+            ->name('piket.absensi-cepat.search');
+        Route::post('/absensi-cepat', [AbsensiSiswaController::class, 'bulkStore'])
+            ->name('piket.absensi-cepat.store');
     });
 
     // ── Impersonation routes ────────────────────────────────────────────────────
@@ -935,13 +943,13 @@ Route::middleware([
 
         Route::get('absensi-cepat', [AbsensiSiswaController::class, 'bulkForm'])
             ->name('admin.absensi-cepat')
-            ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator,guru');
+            ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator,guru,piket');
         Route::get('absensi-cepat/search', [AbsensiSiswaController::class, 'searchStudent'])
             ->name('admin.absensi-cepat.search')
-            ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator,guru');
+            ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator,guru,piket');
         Route::post('absensi-cepat', [AbsensiSiswaController::class, 'bulkStore'])
             ->name('admin.absensi-cepat.store')
-            ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator,guru');
+            ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator,guru,piket');
         Route::post('absensi-siswa/auto-alpha', [AbsensiSiswaController::class, 'triggerAutoAlpha'])
             ->name('admin.absensi-siswa.auto-alpha')
             ->middleware('role:super_admin,admin_sekolah,operator,wali_kelas');
