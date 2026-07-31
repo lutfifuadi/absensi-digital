@@ -11,7 +11,7 @@
     },
     {
       "name": "Dashboard Guru",
-      "icon": "menu-icon ti tabler-chalkboard-teacher",
+      "icon": "menu-icon ti tabler-presentation-analytics",
       "slug": "admin.dashboard.guru",
       "url": "/dashboard/guru"
     },
