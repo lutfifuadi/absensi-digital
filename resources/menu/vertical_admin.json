@@ -179,8 +179,7 @@
         "admin.pelepasan.index",
         "admin.jadwal-absensi.index",
         "admin.kalender-absensi",
-        "admin.holidays",
-        "public.live-board"
+        "admin.holidays"
       ],
       "submenu": [
         {
@@ -242,13 +241,6 @@
           "icon": "menu-icon ti tabler-calendar-plus",
           "slug": "admin.holidays",
           "url": "/admin/holidays"
-        },
-        {
-          "name": "Live Board Siswa (TV)",
-          "icon": "menu-icon ti tabler-screen-share",
-          "slug": "public.live-board",
-          "url": "/live-board",
-          "target": "_blank"
         }
       ]
     },
@@ -260,9 +252,7 @@
         "admin.absensi-staff.index",
         "admin.assignments.index",
         "piket.monitoring.index",
-        "admin.monitoring.index",
-        "public.live-board-guru",
-        "waka.live-board"
+        "admin.monitoring.index"
       ],
       "submenu": [
         {
@@ -294,19 +284,6 @@
           "icon": "menu-icon ti tabler-report",
           "slug": "admin.monitoring.index",
           "url": "/admin/monitoring"
-        },
-        {
-          "name": "Live Board Guru (TV)",
-          "icon": "menu-icon ti tabler-device-tv",
-          "slug": "public.live-board-guru",
-          "url": "/live-board-guru",
-          "target": "_blank"
-        },
-        {
-          "name": "Live Board WAKA",
-          "icon": "menu-icon ti tabler-device-tv",
-          "slug": "waka.live-board",
-          "url": "/waka/live-board"
         }
       ]
     },
@@ -348,6 +325,37 @@
     },
     {
       "menuHeader": "Monitoring & Evaluasi"
+    },
+    {
+      "name": "Live Board TV",
+      "icon": "menu-icon ti tabler-device-tv",
+      "slug": [
+        "public.live-board",
+        "public.live-board-guru",
+        "waka.live-board"
+      ],
+      "submenu": [
+        {
+          "name": "Live Board Siswa (TV)",
+          "icon": "menu-icon ti tabler-screen-share",
+          "slug": "public.live-board",
+          "url": "/live-board",
+          "target": "_blank"
+        },
+        {
+          "name": "Live Board Guru (TV)",
+          "icon": "menu-icon ti tabler-device-tv",
+          "slug": "public.live-board-guru",
+          "url": "/live-board-guru",
+          "target": "_blank"
+        },
+        {
+          "name": "Live Board WAKA",
+          "icon": "menu-icon ti tabler-device-tv",
+          "slug": "waka.live-board",
+          "url": "/waka/live-board"
+        }
+      ]
     },
     {
       "name": "Siswa Belum Absen",
