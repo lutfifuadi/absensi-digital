@@ -486,7 +486,8 @@
           var $this = $(this);
           $this.wrap('<div class="position-relative"></div>').select2({
             placeholder: $this.data('placeholder') || 'Pilih...',
-            dropdownParent: $this.parent()
+            dropdownParent: $this.parent(),
+            minimumResultsForSearch: 0
           });
         });
       }

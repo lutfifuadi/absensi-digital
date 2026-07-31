@@ -21,7 +21,8 @@
           var $this = $(this);
           $this.wrap('<div class="position-relative"></div>').select2({
             placeholder: $this.data('placeholder') || 'Pilih / Cari...',
-            dropdownParent: $this.parent()
+            dropdownParent: $this.parent(),
+            minimumResultsForSearch: 0
           });
         });
       }
@@ -46,6 +47,32 @@
     }
     .position-relative .select2-container--default .select2-selection--single .select2-selection__arrow {
       height: 40px !important;
+    }
+    .select2-container--default .select2-search--dropdown .select2-search__field,
+    .select2-container--default .select2-search--inline .select2-search__field {
+      color: #ffffff !important;
+      background-color: rgba(255, 255, 255, 0.08) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border-radius: 4px !important;
+      padding: 6px 12px !important;
+      outline: none !important;
+      font-size: 0.85rem !important;
+    }
+    .select2-dropdown {
+      background-color: #1e2130 !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      border-radius: 8px !important;
+      color: #fff !important;
+      z-index: 1060;
+    }
+    .select2-container--default .select2-results__option {
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.8) !important;
+    }
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+      background-color: #7367f0 !important;
+      color: #fff !important;
     }
   </style>
 @endsection
