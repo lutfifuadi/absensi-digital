@@ -472,6 +472,7 @@ class AbsensiSiswaController extends Controller
         $user = auth()->user();
         $activeRole = session('active_role', $user ? $user->role : 'guest');
         $isWaliKelas = $activeRole === \App\Models\User::ROLE_WALI_KELAS;
+        $isGuru = $activeRole === \App\Models\User::ROLE_GURU;
         $kelasWaliId = null;
 
         if ($isWaliKelas) {
@@ -490,6 +491,61 @@ class AbsensiSiswaController extends Controller
             $kelasOptions = $kelasWaliId 
                 ? Kelas::where('id', $kelasWaliId)->get() 
                 : collect();
+        } elseif ($isGuru) {
+            $guru = $user->guru;
+            $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
+            $guruKelasIds = [];
+
+            if ($guru) {
+                // Ambil kelas yang diampu guru dari Jadwal Pelajaran
+                $guruKelasIds = \App\Models\JadwalPelajaran::where('guru_id', $guru->id)
+                    ->pluck('kelas_id')
+                    ->unique()
+                    ->filter()
+                    ->toArray();
+
+                // Sertakan juga kelas bimbingan jika guru juga wali kelas
+                $waliKelasIds = Kelas::where('wali_kelas_id', $guru->id)
+                    ->where('tahun_akademik_id', $tahunAjaranId)
+                    ->pluck('id')->toArray();
+                $guruKelasIds = array_values(array_unique(array_merge($guruKelasIds, $waliKelasIds)));
+            }
+
+            $kelasOptions = Kelas::whereIn('id', $guruKelasIds)->orderBy('nama');
+            if ($tahunAjaranId) {
+                $kelasOptions->where('tahun_akademik_id', $tahunAjaranId);
+            }
+            $kelasOptions = $kelasOptions->get();
+
+            $selectedKelasId = $request->query('kelas_id');
+
+            // Jika belum pilih kelas, utamakan kelas yang sedang diampu di jam mengajar hari ini
+            if (!$selectedKelasId && $guru) {
+                $hariIni = \Carbon\Carbon::now()->locale('id')->isoFormat('dddd');
+                $jamSekarang = \Carbon\Carbon::now()->format('H:i:s');
+
+                // 1. Cari kelas di jam pelajaran sekarang
+                $jadwalSekarang = \App\Models\JadwalPelajaran::where('guru_id', $guru->id)
+                    ->where('hari', $hariIni)
+                    ->where('jam_mulai', '<=', $jamSekarang)
+                    ->where('jam_selesai', '>=', $jamSekarang)
+                    ->first();
+
+                if ($jadwalSekarang && in_array($jadwalSekarang->kelas_id, $guruKelasIds)) {
+                    $selectedKelasId = $jadwalSekarang->kelas_id;
+                } else {
+                    // 2. Fallback: Cari kelas pada jadwal mengajar hari ini
+                    $jadwalHariIni = \App\Models\JadwalPelajaran::where('guru_id', $guru->id)
+                        ->where('hari', $hariIni)
+                        ->orderBy('jam_mulai')
+                        ->first();
+                    if ($jadwalHariIni && in_array($jadwalHariIni->kelas_id, $guruKelasIds)) {
+                        $selectedKelasId = $jadwalHariIni->kelas_id;
+                    } elseif ($kelasOptions->isNotEmpty()) {
+                        $selectedKelasId = $kelasOptions->first()->id;
+                    }
+                }
+            }
         } else {
             $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
             $kelasOptions = Kelas::orderBy('nama');
@@ -512,7 +568,7 @@ class AbsensiSiswaController extends Controller
                 ->get();
         }
 
-        return view('admin.absensi-siswa.bulk', compact('kelasOptions', 'selectedKelasId', 'siswa', 'isWaliKelas'));
+        return view('admin.absensi-siswa.bulk', compact('kelasOptions', 'selectedKelasId', 'siswa', 'isWaliKelas', 'isGuru'));
     }
 
     /**
@@ -529,6 +585,7 @@ class AbsensiSiswaController extends Controller
         $user = auth()->user();
         $activeRole = session('active_role', $user ? $user->role : 'guest');
         $isWaliKelas = $activeRole === \App\Models\User::ROLE_WALI_KELAS;
+        $isGuru = $activeRole === \App\Models\User::ROLE_GURU;
         $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
 
         $siswaQuery = Siswa::with(['kelas:id,nama'])
@@ -559,6 +616,26 @@ class AbsensiSiswaController extends Controller
                     return response()->json(['data' => [], 'message' => 'Anda belum memiliki kelas bimbingan.']);
                 }
             }
+        } elseif ($isGuru) {
+            $guru = $user->guru;
+            if ($guru) {
+                $guruKelasIds = \App\Models\JadwalPelajaran::where('guru_id', $guru->id)
+                    ->pluck('kelas_id')
+                    ->unique()
+                    ->filter()
+                    ->toArray();
+
+                $waliKelasIds = Kelas::where('wali_kelas_id', $guru->id)
+                    ->where('tahun_akademik_id', $tahunAjaranId)
+                    ->pluck('id')->toArray();
+                $guruKelasIds = array_values(array_unique(array_merge($guruKelasIds, $waliKelasIds)));
+
+                if (!empty($guruKelasIds)) {
+                    $siswaQuery->whereIn('kelas_id', $guruKelasIds);
+                } else {
+                    return response()->json(['data' => [], 'message' => 'Anda belum memiliki jadwal pelajaran/kelas mengajar.']);
+                }
+            }
         }
 
         $results = $siswaQuery->orderBy('nama_lengkap')
@@ -587,6 +664,7 @@ class AbsensiSiswaController extends Controller
         $user = auth()->user();
         $activeRole = session('active_role', $user ? $user->role : 'guest');
         $isWaliKelas = $activeRole === \App\Models\User::ROLE_WALI_KELAS;
+        $isGuru = $activeRole === \App\Models\User::ROLE_GURU;
 
         if ($isWaliKelas) {
             $guru = $user->guru;
@@ -603,6 +681,25 @@ class AbsensiSiswaController extends Controller
             // Cegah modifikasi kelas lain oleh wali kelas
             if ($request->kelas_id != $kelasWaliId) {
                 abort(403, 'Anda hanya diizinkan menginput absensi kelas bimbingan Anda.');
+            }
+        } elseif ($isGuru) {
+            $guru = $user->guru;
+            if ($guru) {
+                $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
+                $guruKelasIds = \App\Models\JadwalPelajaran::where('guru_id', $guru->id)
+                    ->pluck('kelas_id')
+                    ->unique()
+                    ->filter()
+                    ->toArray();
+
+                $waliKelasIds = Kelas::where('wali_kelas_id', $guru->id)
+                    ->where('tahun_akademik_id', $tahunAjaranId)
+                    ->pluck('id')->toArray();
+                $guruKelasIds = array_values(array_unique(array_merge($guruKelasIds, $waliKelasIds)));
+
+                if (!in_array($request->kelas_id, $guruKelasIds)) {
+                    abort(403, 'Anda hanya diizinkan menginput absensi pada kelas mengajar Anda.');
+                }
             }
         }
 

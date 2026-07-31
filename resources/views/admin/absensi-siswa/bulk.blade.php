@@ -102,7 +102,12 @@
         </div>
       </div>
 
-      <div class="das-hero__actions">
+      <div class="das-hero__actions d-flex gap-2 align-items-center flex-wrap">
+        @if(isset($isGuru) && $isGuru)
+          <div class="badge bg-info bg-opacity-25 p-2 px-3 border border-info border-opacity-30 text-white rounded-pill">
+            <i class="ti tabler-calendar-time me-1"></i> Khusus Kelas Mengajar Anda
+          </div>
+        @endif
         <div class="badge bg-black bg-opacity-25 p-2 px-3 border border-white border-opacity-10 text-white rounded-pill">
           <i class="ti tabler-keyboard me-1"></i> Shortcut Keyboard: <span class="text-info ms-1 fw-bold">Angka 1-5</span>
         </div>
