@@ -287,7 +287,7 @@
               <div>
                 <h5 class="mb-0 fw-bold text-white d-flex align-items-center gap-2">
                   Monitoring Presensi Guru Hari Ini
-                  <span class="badge bg-label-primary font-normal" style="font-size:0.7rem;">Sampel 10 Data</span>
+                  <span class="badge bg-label-primary font-normal" style="font-size:0.7rem;">Sampel 5 Data</span>
                 </h5>
                 <small class="text-body-secondary">Status jam masuk, jam pulang, dan metode presensi real-time</small>
               </div>
