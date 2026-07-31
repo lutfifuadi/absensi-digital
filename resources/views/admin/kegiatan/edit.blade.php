@@ -98,9 +98,10 @@
 
 @section('page-style')
 <style>
-  /* Cegah overflow horizontal dari Select2 atau elemen lain */
-  .das-panel__body, .das-panel__body form {
-    overflow-x: hidden;
+  /* Cegah overflow horizontal dari Select2 atau elemen layout manapun */
+  html, body, .layout-wrapper, .layout-container, .layout-page, .content-wrapper, .das-panel__body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
   }
   :root {
     --das-primary: #7367f0;
@@ -282,38 +283,40 @@
           </div>
 
           {{-- Tanpa Tanggal Pasti & Tanpa Batas Waktu --}}
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
-              <div class="p-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius); height:100%;">
-                <div class="form-check">
-                  <input type="checkbox" id="tanpa_tanggal_pasti" class="form-check-input"
-                         style="width:18px;height:18px;cursor:pointer;"
-                         onchange="toggleTanggal(this)"
-                         {{ !$kegiatan->tanggal_pelaksanaan ? 'checked' : '' }}>
-                  <label class="form-check-label text-white small fw-semibold" for="tanpa_tanggal_pasti" style="cursor:pointer;font-size:.82rem;">
-                    <i class="ti tabler-calendar-off text-warning me-1"></i>
-                    Tanpa tanggal pasti (kegiatan rutin/fleksibel)
-                  </label>
-                  <small class="text-muted d-block mt-1" style="font-size:.7rem;">
-                    <i class="ti tabler-info-circle"></i> Jika diaktifkan, kegiatan tidak terikat pada tanggal tertentu (contoh: Sholat Dhuha).
-                  </small>
+          <div class="col-12">
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <div class="p-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius); height:100%;">
+                  <div class="form-check">
+                    <input type="checkbox" id="tanpa_tanggal_pasti" class="form-check-input"
+                           style="width:18px;height:18px;cursor:pointer;"
+                           onchange="toggleTanggal(this)"
+                           {{ !$kegiatan->tanggal_pelaksanaan ? 'checked' : '' }}>
+                    <label class="form-check-label text-white small fw-semibold" for="tanpa_tanggal_pasti" style="cursor:pointer;font-size:.82rem;">
+                      <i class="ti tabler-calendar-off text-warning me-1"></i>
+                      Tanpa tanggal pasti (kegiatan rutin/fleksibel)
+                    </label>
+                    <small class="text-muted d-block mt-1" style="font-size:.7rem;">
+                      <i class="ti tabler-info-circle"></i> Jika diaktifkan, kegiatan tidak terikat pada tanggal tertentu (contoh: Sholat Dhuha).
+                    </small>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="col-md-6">
-              <div class="p-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius); height:100%;">
-                <div class="form-check">
-                  <input type="checkbox" id="tanpa_batas_waktu" class="form-check-input"
-                         style="width:18px;height:18px;cursor:pointer;"
-                         onchange="toggleWaktu(this)"
-                         {{ !$kegiatan->waktu_mulai || !$kegiatan->waktu_selesai ? 'checked' : '' }}>
-                  <label class="form-check-label text-white small fw-semibold" for="tanpa_batas_waktu" style="cursor:pointer;font-size:.82rem;">
-                    <i class="ti tabler-clock-off text-info me-1"></i>
-                    Kegiatan seharian penuh (tanpa batas waktu)
-                  </label>
-                  <small class="text-muted d-block mt-1" style="font-size:.7rem;">
-                    <i class="ti tabler-info-circle"></i> Jika diaktifkan, kegiatan berlangsung seharian penuh dan input waktu mulai & selesai tidak diperlukan.
-                  </small>
+              <div class="col-md-6">
+                <div class="p-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius); height:100%;">
+                  <div class="form-check">
+                    <input type="checkbox" id="tanpa_batas_waktu" class="form-check-input"
+                           style="width:18px;height:18px;cursor:pointer;"
+                           onchange="toggleWaktu(this)"
+                           {{ !$kegiatan->waktu_mulai || !$kegiatan->waktu_selesai ? 'checked' : '' }}>
+                    <label class="form-check-label text-white small fw-semibold" for="tanpa_batas_waktu" style="cursor:pointer;font-size:.82rem;">
+                      <i class="ti tabler-clock-off text-info me-1"></i>
+                      Kegiatan seharian penuh (tanpa batas waktu)
+                    </label>
+                    <small class="text-muted d-block mt-1" style="font-size:.7rem;">
+                      <i class="ti tabler-info-circle"></i> Jika diaktifkan, kegiatan berlangsung seharian penuh dan input waktu mulai & selesai tidak diperlukan.
+                    </small>
+                  </div>
                 </div>
               </div>
             </div>
@@ -639,14 +642,26 @@
     }, 100);
 
     // Inisialisasi Select2 AJAX untuk Target Siswa Spesifik
-    // Beri delay agar vendor script (select2.js) sempat dimuat lebih dulu
     setTimeout(function() {
       if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
-        jQuery('#select_target_siswa').select2({
+        const $el = jQuery('#select_target_siswa');
+        $el.select2({
           placeholder: 'Ketik nama siswa / NIS / NISN per individu...',
           allowClear: true,
           width: '100%',
           multiple: true,
+          dropdownParent: $el.parent(),
+          language: {
+            inputTooShort: function () {
+              return 'Ketik minimal 1 karakter untuk mencari...';
+            },
+            noResults: function () {
+              return 'Siswa tidak ditemukan';
+            },
+            searching: function () {
+              return 'Mencari siswa...';
+            }
+          },
           ajax: {
             url: '{{ route("admin.kegiatan.search-siswa") }}',
             dataType: 'json',
