@@ -76,6 +76,14 @@
       color: #fff !important;
       font-size: 0.85rem !important;
     }
+    /* Sembunyikan raw select sebelum Select2 di-init */
+    .select2-target-siswa {
+      display: none;
+    }
+    /* Pastikan container Select2 lebar penuh */
+    #select_target_siswa + .select2-container {
+      width: 100% !important;
+    }
   </style>
 @endsection
 
@@ -440,9 +448,9 @@
           {{-- Target Peserta (Siswa Individu - Select2) --}}
           <div class="col-12">
             <label class="das-form-label">Target Siswa Spesifik (Per Individu) <small class="text-muted" style="font-size:.65rem;text-transform:none;letter-spacing:0;">(Opsional)</small></label>
-            <select name="target_siswa[]" class="form-select select2" multiple id="select_target_siswa" data-placeholder="Ketik nama siswa / NISN per individu...">
+            <select name="target_siswa[]" class="select2-target-siswa" multiple id="select_target_siswa">
               @foreach($siswaList as $s)
-                <option value="{{ $s->id }}" {{ (is_array(old('target_siswa', $kegiatan->target_siswa)) && in_array($s->id, old('target_siswa', $kegiatan->target_siswa))) ? 'selected' : '' }}>
+                <option value="{{ $s->id }}" selected>
                   {{ $s->nama_lengkap }} — ({{ $s->kelas ? $s->kelas->nama : '-' }} / NIS: {{ $s->nis ?? '-' }})
                 </option>
               @endforeach
@@ -618,31 +626,30 @@
     }, 100);
 
     // Inisialisasi Select2 AJAX untuk Target Siswa Spesifik
-    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
-      const $select = jQuery('#select_target_siswa');
-      $select.select2({
-        placeholder: 'Ketik nama siswa / NIS / NISN per individu...',
-        allowClear: true,
-        width: '100%',
-        ajax: {
-          url: '{{ route("admin.kegiatan.search-siswa") }}',
-          dataType: 'json',
-          delay: 300,
-          data: function (params) {
-            return {
-              q: params.term
-            };
+    // Beri delay agar vendor script (select2.js) sempat dimuat lebih dulu
+    setTimeout(function() {
+      if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
+        jQuery('#select_target_siswa').select2({
+          placeholder: 'Ketik nama siswa / NIS / NISN per individu...',
+          allowClear: true,
+          width: '100%',
+          multiple: true,
+          ajax: {
+            url: '{{ route("admin.kegiatan.search-siswa") }}',
+            dataType: 'json',
+            delay: 300,
+            data: function (params) {
+              return { q: params.term };
+            },
+            processResults: function (data) {
+              return { results: data.results };
+            },
+            cache: true
           },
-          processResults: function (data) {
-            return {
-              results: data.results
-            };
-          },
-          cache: true
-        },
-        minimumInputLength: 1
-      });
-    }
+          minimumInputLength: 1
+        });
+      }
+    }, 500);
   });
 </script>
 @endsection
