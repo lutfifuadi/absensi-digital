@@ -2,6 +2,83 @@
 
 @section('title', 'Tambah Kegiatan Baru')
 
+@section('vendor-style')
+  @vite([
+    'resources/assets/vendor/libs/select2/select2.scss'
+  ])
+  <style>
+    .select2-container--default .select2-selection--multiple {
+      background-color: rgba(255, 255, 255, 0.04) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-radius: 5px !important;
+      color: #fff !important;
+      min-height: 44px;
+      padding: 4px 8px;
+    }
+    .select2-container--default.select2-container--focus .select2-selection--multiple {
+      border-color: #7367f0 !important;
+      background-color: rgba(255, 255, 255, 0.07) !important;
+      box-shadow: 0 0 0 2px rgba(115, 103, 240, 0.2) !important;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+      background-color: #7367f0 !important;
+      border: none !important;
+      color: #fff !important;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-top: 4px;
+      margin-right: 6px;
+      display: inline-flex;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(115, 103, 240, 0.3);
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+      color: rgba(255, 255, 255, 0.8) !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
+      margin-right: 6px !important;
+      padding-right: 6px !important;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+      color: #ffffff !important;
+      background-color: transparent !important;
+    }
+    .select2-dropdown {
+      background-color: #1e2130 !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      border-radius: 8px !important;
+      color: #fff !important;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+      z-index: 1060;
+    }
+    .select2-container--default .select2-search--dropdown .select2-search__field {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      color: #fff !important;
+      border-radius: 6px !important;
+      padding: 6px 12px !important;
+    }
+    .select2-container--default .select2-results__option {
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.8) !important;
+    }
+    .select2-container--default .select2-results__option[aria-selected=true] {
+      background-color: rgba(115, 103, 240, 0.2) !important;
+      color: #a5a2f7 !important;
+    }
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+      background-color: #7367f0 !important;
+      color: #fff !important;
+    }
+    .select2-container--default .select2-search--inline .select2-search__field {
+      color: #fff !important;
+      font-size: 0.85rem !important;
+    }
+  </style>
+@endsection
+
 @section('page-style')
 <style>
   :root {
@@ -174,38 +251,38 @@
             <div class="form-text text-white-50" style="font-size:.7rem;">Isi jika kegiatan berlangsung lebih dari 1 hari.</div>
           </div>
 
-          {{-- Tanpa Tanggal Pasti --}}
-          <div class="col-12">
-            <div class="p-3 mb-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
-              <div class="form-check">
-                <input type="checkbox" id="tanpa_tanggal_pasti" class="form-check-input"
-                       style="width:18px;height:18px;cursor:pointer;"
-                       onchange="toggleTanggal(this)">
-                <label class="form-check-label text-white small fw-semibold" for="tanpa_tanggal_pasti" style="cursor:pointer;font-size:.82rem;">
-                  <i class="ti tabler-calendar-off text-warning me-1"></i>
-                  Tanpa tanggal pasti (kegiatan rutin/fleksibel)
-                </label>
-                <small class="text-muted d-block mt-1" style="font-size:.7rem;">
-                  <i class="ti tabler-info-circle"></i> Jika diaktifkan, kegiatan tidak terikat pada tanggal tertentu (contoh: Sholat Dhuha).
-                </small>
+          {{-- Tanpa Tanggal Pasti & Tanpa Batas Waktu --}}
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <div class="p-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius); height:100%;">
+                <div class="form-check">
+                  <input type="checkbox" id="tanpa_tanggal_pasti" class="form-check-input"
+                         style="width:18px;height:18px;cursor:pointer;"
+                         onchange="toggleTanggal(this)">
+                  <label class="form-check-label text-white small fw-semibold" for="tanpa_tanggal_pasti" style="cursor:pointer;font-size:.82rem;">
+                    <i class="ti tabler-calendar-off text-warning me-1"></i>
+                    Tanpa tanggal pasti (kegiatan rutin/fleksibel)
+                  </label>
+                  <small class="text-muted d-block mt-1" style="font-size:.7rem;">
+                    <i class="ti tabler-info-circle"></i> Jika diaktifkan, kegiatan tidak terikat pada tanggal tertentu (contoh: Sholat Dhuha).
+                  </small>
+                </div>
               </div>
             </div>
-          </div>
-
-          {{-- Tanpa Batas Waktu --}}
-          <div class="col-12">
-            <div class="p-3 mb-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
-              <div class="form-check">
-                <input type="checkbox" id="tanpa_batas_waktu" class="form-check-input"
-                       style="width:18px;height:18px;cursor:pointer;"
-                       onchange="toggleWaktu(this)">
-                <label class="form-check-label text-white small fw-semibold" for="tanpa_batas_waktu" style="cursor:pointer;font-size:.82rem;">
-                  <i class="ti tabler-clock-off text-info me-1"></i>
-                  Kegiatan seharian penuh (tanpa batas waktu)
-                </label>
-                <small class="text-muted d-block mt-1" style="font-size:.7rem;">
-                  <i class="ti tabler-info-circle"></i> Jika diaktifkan, kegiatan berlangsung seharian penuh dan input waktu mulai & selesai tidak diperlukan.
-                </small>
+            <div class="col-md-6">
+              <div class="p-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius); height:100%;">
+                <div class="form-check">
+                  <input type="checkbox" id="tanpa_batas_waktu" class="form-check-input"
+                         style="width:18px;height:18px;cursor:pointer;"
+                         onchange="toggleWaktu(this)">
+                  <label class="form-check-label text-white small fw-semibold" for="tanpa_batas_waktu" style="cursor:pointer;font-size:.82rem;">
+                    <i class="ti tabler-clock-off text-info me-1"></i>
+                    Kegiatan seharian penuh (tanpa batas waktu)
+                  </label>
+                  <small class="text-muted d-block mt-1" style="font-size:.7rem;">
+                    <i class="ti tabler-info-circle"></i> Jika diaktifkan, kegiatan berlangsung seharian penuh dan input waktu mulai & selesai tidak diperlukan.
+                  </small>
+                </div>
               </div>
             </div>
           </div>
@@ -234,15 +311,15 @@
           {{-- Wajib / Opsional --}}
           <div class="col-12">
             <div class="p-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
-              <div class="form-check form-switch">
+              <div class="form-check form-switch mb-0">
                 <input class="form-check-input" type="checkbox" name="is_wajib" value="1" id="is_wajib"
                        style="width:40px;height:20px;cursor:pointer;"
                        {{ old('is_wajib') ? 'checked' : '' }}>
-                <label class="form-check-label text-white small fw-semibold" for="is_wajib" style="cursor:pointer;font-size:.82rem;">
+                <label class="form-check-label text-white small fw-semibold ms-2" for="is_wajib" style="cursor:pointer;font-size:.82rem;">
                   <i class="ti tabler-alert-triangle text-warning me-1"></i>
                   Wajib Hadir
                 </label>
-                <small class="text-muted d-block mt-1" style="font-size:.7rem;">
+                <small class="text-muted d-block mt-1 ms-2" style="font-size:.7rem;">
                   <i class="ti tabler-info-circle"></i> Jika diaktifkan, peserta diwajibkan hadir pada kegiatan ini.
                 </small>
               </div>
@@ -256,84 +333,103 @@
                       placeholder="Tuliskan deskripsi singkat kegiatan">{{ old('keterangan') }}</textarea>
           </div>
 
-          {{-- Target Peserta (Berdasarkan Tingkat) --}}
-          <div class="col-12">
-            <label class="das-form-label">Target Peserta (Berdasarkan Tingkat)</label>
-            <div class="row g-2 p-3 mb-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
-              @foreach($tingkat as $t)
-                <div class="col-md-2 col-4">
-                  <div class="form-check">
-                    <input class="form-check-input checkbox-tingkat" type="checkbox" name="target_tingkat[]" value="{{ $t }}" id="tingkat_{{ $t }}"
-                           data-tingkat="{{ $t }}"
-                           {{ is_array(old('target_tingkat')) && in_array($t, old('target_tingkat')) ? 'checked' : '' }}>
-                    <label class="form-check-label text-white small" for="tingkat_{{ $t }}">
-                      Tingkat {{ $t }}
-                    </label>
-                  </div>
-                </div>
-              @endforeach
+          {{-- ── SECTION: TARGET PESERTA & SEGMENTASI ──────────────────────── --}}
+          <div class="col-12 mt-4 pt-3" style="border-top:1px dashed var(--das-border);">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="avatar avatar-xs bg-label-info rounded-circle d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;">
+                <i class="ti tabler-users-group text-info fs-6"></i>
+              </span>
+              <h6 class="mb-0 text-white fw-bold" style="font-size:.9rem;letter-spacing:.3px;">Target Peserta & Segmentasi Absensi</h6>
             </div>
           </div>
 
-          {{-- Target Jenis Kelamin --}}
-          <div class="col-md-6">
+          {{-- Row: Target Jenis Kelamin & Target Tingkat --}}
+          <div class="col-md-5">
             <label class="das-form-label">Target Jenis Kelamin <small class="text-muted" style="font-size:.65rem;text-transform:none;letter-spacing:0;">(Opsional)</small></label>
             <select name="target_gender" class="form-select das-form-control">
-              <option value="" {{ old('target_gender') === null || old('target_gender') === '' ? 'selected' : '' }}>Semua Jenis Kelamin</option>
+              <option value="" {{ old('target_gender') === null || old('target_gender') === '' ? 'selected' : '' }}>Semua Jenis Kelamin (Laki-laki & Perempuan)</option>
               <option value="L" {{ old('target_gender') === 'L' ? 'selected' : '' }}>Laki-laki Saja</option>
               <option value="P" {{ old('target_gender') === 'P' ? 'selected' : '' }}>Perempuan Saja</option>
             </select>
+            <small class="text-muted mt-1 d-block" style="font-size:.7rem;">
+              <i class="ti tabler-info-circle"></i> Filter absensi berdasarkan gender siswa.
+            </small>
+          </div>
+
+          <div class="col-md-7">
+            <label class="das-form-label">Target Peserta (Berdasarkan Tingkat)</label>
+            <div class="p-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius); min-height:42px;">
+              <div class="d-flex flex-wrap gap-3">
+                @foreach($tingkat as $t)
+                  <div class="form-check mb-0">
+                    <input class="form-check-input checkbox-tingkat" type="checkbox" name="target_tingkat[]" value="{{ $t }}" id="tingkat_{{ $t }}"
+                           data-tingkat="{{ $t }}"
+                           {{ is_array(old('target_tingkat')) && in_array($t, old('target_tingkat')) ? 'checked' : '' }}>
+                    <label class="form-check-label text-white small fw-medium" for="tingkat_{{ $t }}">
+                      Tingkat {{ $t }}
+                    </label>
+                  </div>
+                @endforeach
+              </div>
+            </div>
+            <small class="text-muted mt-1 d-block" style="font-size:.7rem;">
+              <i class="ti tabler-info-circle"></i> Centang tingkat untuk menargetkan seluruh kelas pada tingkat tersebut.
+            </small>
           </div>
 
           {{-- Target Peserta (Jurusan) --}}
           <div class="col-12">
             <label class="das-form-label">Target Jurusan <small class="text-muted" style="font-size:.65rem;text-transform:none;letter-spacing:0;">(Opsional)</small></label>
-            <div class="row g-2 p-3 mb-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
-              @forelse($jurusanList as $jurusan)
-                <div class="col-md-2 col-4">
-                  <div class="form-check">
-                    <input class="form-check-input jurusan-checkbox" type="checkbox" name="target_jurusan[]" value="{{ $jurusan }}" id="jurusan_{{ \Illuminate\Support\Str::slug($jurusan) }}"
-                           {{ in_array($jurusan, old('target_jurusan', [])) ? 'checked' : '' }}>
-                    <label class="form-check-label text-white small" for="jurusan_{{ \Illuminate\Support\Str::slug($jurusan) }}">
-                      {{ $jurusan }}
-                    </label>
+            <div class="p-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
+              <div class="row g-2">
+                @forelse($jurusanList as $jurusan)
+                  <div class="col-md-3 col-6">
+                    <div class="form-check mb-0">
+                      <input class="form-check-input jurusan-checkbox" type="checkbox" name="target_jurusan[]" value="{{ $jurusan }}" id="jurusan_{{ \Illuminate\Support\Str::slug($jurusan) }}"
+                             {{ in_array($jurusan, old('target_jurusan', [])) ? 'checked' : '' }}>
+                      <label class="form-check-label text-white small fw-medium" for="jurusan_{{ \Illuminate\Support\Str::slug($jurusan) }}">
+                        {{ $jurusan }}
+                      </label>
+                    </div>
                   </div>
-                </div>
-              @empty
-                <div class="col-12">
-                  <p class="text-muted small mb-0" style="font-size:.75rem;">
-                    <i class="ti tabler-info-circle me-1"></i>Tidak ada data jurusan tersedia.
-                  </p>
-                </div>
-              @endforelse
+                @empty
+                  <div class="col-12">
+                    <p class="text-muted small mb-0" style="font-size:.75rem;">
+                      <i class="ti tabler-info-circle me-1"></i>Tidak ada data jurusan tersedia.
+                    </p>
+                  </div>
+                @endforelse
+              </div>
             </div>
           </div>
 
-          {{-- Target Peserta (Kelas) --}}
+          {{-- Target Peserta (Kelas Spesifik) --}}
           <div class="col-12">
             <label class="das-form-label">Target Peserta (Kelas Spesifik)</label>
-            <div class="row g-2 p-3 mb-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
-              @foreach($kelas as $k)
-                <div class="col-md-3 col-6 checkbox-kelas-wrapper" data-tingkat="{{ $k->tingkat }}" data-jurusan="{{ $k->jurusan?->nama ?? '' }}">
-                  <div class="form-check">
-                    <input class="form-check-input checkbox-kelas" type="checkbox" name="target_peserta[]" value="{{ $k->id }}" id="kelas_{{ $k->id }}"
-                           {{ is_array(old('target_peserta')) && in_array($k->id, old('target_peserta')) ? 'checked' : '' }}>
-                    <label class="form-check-label text-white small" for="kelas_{{ $k->id }}">
-                      {{ $k->nama }}
-                    </label>
+            <div class="p-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
+              <div class="row g-2">
+                @foreach($kelas as $k)
+                  <div class="col-md-3 col-6 checkbox-kelas-wrapper" data-tingkat="{{ $k->tingkat }}" data-jurusan="{{ $k->jurusan?->nama ?? '' }}">
+                    <div class="form-check mb-0">
+                      <input class="form-check-input checkbox-kelas" type="checkbox" name="target_peserta[]" value="{{ $k->id }}" id="kelas_{{ $k->id }}"
+                             {{ is_array(old('target_peserta')) && in_array($k->id, old('target_peserta')) ? 'checked' : '' }}>
+                      <label class="form-check-label text-white small" for="kelas_{{ $k->id }}">
+                        {{ $k->nama }}
+                      </label>
+                    </div>
                   </div>
-                </div>
-              @endforeach
+                @endforeach
+              </div>
             </div>
-            <small class="text-muted mt-1 d-block mb-3" style="font-size: .7rem;">
-              <i class="ti tabler-info-circle"></i> Jika tingkat dipilih, seluruh kelas di tingkat tersebut akan otomatis menjadi target. Gunakan "Kelas Spesifik" jika hanya ingin memilih kelas tertentu.
+            <small class="text-muted mt-1 d-block" style="font-size: .7rem;">
+              <i class="ti tabler-info-circle"></i> Gunakan pilihan kelas spesifik jika kegiatan hanya ditujukan untuk kelas tertentu.
             </small>
           </div>
 
-          {{-- Target Peserta (Siswa Individu) --}}
+          {{-- Target Peserta (Siswa Individu - Select2) --}}
           <div class="col-12">
             <label class="das-form-label">Target Siswa Spesifik (Per Individu) <small class="text-muted" style="font-size:.65rem;text-transform:none;letter-spacing:0;">(Opsional)</small></label>
-            <select name="target_siswa[]" class="form-select das-form-control select2" multiple id="select_target_siswa" style="min-height: 120px;">
+            <select name="target_siswa[]" class="form-select select2" multiple id="select_target_siswa" data-placeholder="Ketik nama siswa / NISN per individu...">
               @foreach($siswaList as $s)
                 <option value="{{ $s->id }}" {{ is_array(old('target_siswa')) && in_array($s->id, old('target_siswa')) ? 'selected' : '' }}>
                   {{ $s->nama_lengkap }} — ({{ $s->kelas ? $s->kelas->nama : '-' }} / NIS: {{ $s->nis ?? '-' }})
@@ -341,7 +437,7 @@
               @endforeach
             </select>
             <small class="text-muted mt-1 d-block" style="font-size: .7rem;">
-              <i class="ti tabler-info-circle"></i> Tahan tombol Ctrl/Cmd untuk memilih beberapa siswa secara langsung per individu.
+              <i class="ti tabler-info-circle"></i> Cari nama siswa atau NISN untuk menambahkan target individu kegiatan ini.
             </small>
           </div>
         </div>
@@ -490,6 +586,23 @@
         selesaiWrapper.style.display = 'block';
       }
     };
+
+    // Inisialisasi Select2 untuk Target Siswa Spesifik
+    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
+      const $select = jQuery('#select_target_siswa');
+      $select.select2({
+        placeholder: 'Ketik nama siswa / NISN per individu...',
+        allowClear: true,
+        width: '100%'
+      });
+    }
   });
 </script>
+@endsection
+
+@section('vendor-script')
+  @vite([
+    'resources/assets/vendor/libs/jquery/jquery.js',
+    'resources/assets/vendor/libs/select2/select2.js'
+  ])
 @endsection
