@@ -39,7 +39,7 @@
   {{-- ═══════════════════════════════════════════════════════
        SECTION 1: HERO HEADER — Identitas & Live Clock (Matching Dashboard Utama)
   ═══════════════════════════════════════════════════════ --}}
-  <div class="das-hero mb-6">
+  <div class="das-hero mb-4">
     <div class="das-hero__bg" aria-hidden="true"></div>
     <div class="das-hero__scanline" aria-hidden="true"></div>
     <div class="das-hero__grid-lines" aria-hidden="true"></div>
@@ -59,10 +59,10 @@
         <div class="das-hero__meta">
           <div class="das-hero__badge">
             <span class="das-hero__pulse-dot" aria-hidden="true"></span>
-            Sistem Administrasi Sekolah — Panel Guru
+            Panel Guru
           </div>
-          <h1 class="das-hero__school">Dashboard Analitik & Pemantauan Guru</h1>
-          <p class="das-hero__welcome">Visualisasi real-time tren presensi, kedisiplinan, & statistik {{ $pengaturanArr['nama_sekolah'] ?? 'sekolah' }} <span aria-hidden="true">📊</span></p>
+          <h1 class="das-hero__school">{{ $pengaturanArr['nama_sekolah'] ?? $pengaturanArr['nama_lembaga'] ?? 'Sistem Absensi' }}</h1>
+          <p class="das-hero__welcome">Analitik & Pemantauan Kehadiran Guru</p>
         </div>
       </div>
 
