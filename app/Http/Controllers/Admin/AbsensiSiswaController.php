@@ -494,24 +494,9 @@ class AbsensiSiswaController extends Controller
         } elseif ($isGuru) {
             $guru = $user->guru;
             $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
-            $guruKelasIds = [];
 
-            if ($guru) {
-                // Ambil kelas yang diampu guru dari Jadwal Pelajaran
-                $guruKelasIds = \App\Models\JadwalPelajaran::where('guru_id', $guru->id)
-                    ->pluck('kelas_id')
-                    ->unique()
-                    ->filter()
-                    ->toArray();
-
-                // Sertakan juga kelas bimbingan jika guru juga wali kelas
-                $waliKelasIds = Kelas::where('wali_kelas_id', $guru->id)
-                    ->where('tahun_akademik_id', $tahunAjaranId)
-                    ->pluck('id')->toArray();
-                $guruKelasIds = array_values(array_unique(array_merge($guruKelasIds, $waliKelasIds)));
-            }
-
-            $kelasOptions = Kelas::whereIn('id', $guruKelasIds)->orderBy('nama');
+            // Tampilkan seluruh pilihan kelas di tahun akademik aktif
+            $kelasOptions = Kelas::orderBy('nama');
             if ($tahunAjaranId) {
                 $kelasOptions->where('tahun_akademik_id', $tahunAjaranId);
             }
@@ -519,7 +504,7 @@ class AbsensiSiswaController extends Controller
 
             $selectedKelasId = $request->query('kelas_id');
 
-            // Jika belum pilih kelas, utamakan kelas yang sedang diampu di jam mengajar hari ini
+            // Jika belum pilih kelas secara manual, otomatis utamakan kelas yang sedang diampu di jam mengajar hari ini
             if (!$selectedKelasId && $guru) {
                 $hariIni = \Carbon\Carbon::now()->locale('id')->isoFormat('dddd');
                 $jamSekarang = \Carbon\Carbon::now()->format('H:i:s');
@@ -531,7 +516,7 @@ class AbsensiSiswaController extends Controller
                     ->where('jam_selesai', '>=', $jamSekarang)
                     ->first();
 
-                if ($jadwalSekarang && in_array($jadwalSekarang->kelas_id, $guruKelasIds)) {
+                if ($jadwalSekarang) {
                     $selectedKelasId = $jadwalSekarang->kelas_id;
                 } else {
                     // 2. Fallback: Cari kelas pada jadwal mengajar hari ini
@@ -539,7 +524,7 @@ class AbsensiSiswaController extends Controller
                         ->where('hari', $hariIni)
                         ->orderBy('jam_mulai')
                         ->first();
-                    if ($jadwalHariIni && in_array($jadwalHariIni->kelas_id, $guruKelasIds)) {
+                    if ($jadwalHariIni) {
                         $selectedKelasId = $jadwalHariIni->kelas_id;
                     } elseif ($kelasOptions->isNotEmpty()) {
                         $selectedKelasId = $kelasOptions->first()->id;
@@ -616,27 +601,8 @@ class AbsensiSiswaController extends Controller
                     return response()->json(['data' => [], 'message' => 'Anda belum memiliki kelas bimbingan.']);
                 }
             }
-        } elseif ($isGuru) {
-            $guru = $user->guru;
-            if ($guru) {
-                $guruKelasIds = \App\Models\JadwalPelajaran::where('guru_id', $guru->id)
-                    ->pluck('kelas_id')
-                    ->unique()
-                    ->filter()
-                    ->toArray();
-
-                $waliKelasIds = Kelas::where('wali_kelas_id', $guru->id)
-                    ->where('tahun_akademik_id', $tahunAjaranId)
-                    ->pluck('id')->toArray();
-                $guruKelasIds = array_values(array_unique(array_merge($guruKelasIds, $waliKelasIds)));
-
-                if (!empty($guruKelasIds)) {
-                    $siswaQuery->whereIn('kelas_id', $guruKelasIds);
-                } else {
-                    return response()->json(['data' => [], 'message' => 'Anda belum memiliki jadwal pelajaran/kelas mengajar.']);
-                }
-            }
         }
+        // Guru & Admin dapat mencari siswa di seluruh kelas aktif
 
         $results = $siswaQuery->orderBy('nama_lengkap')
             ->limit(20)
