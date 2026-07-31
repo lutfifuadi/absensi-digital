@@ -32,6 +32,26 @@
       font-weight: 700;
       font-size: 0.9rem;
     }
+    .table-custom-dark {
+      background: transparent !important;
+      color: #fff !important;
+    }
+    .table-custom-dark th {
+      background: rgba(255, 255, 255, 0.04) !important;
+      color: #8b949e !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .table-custom-dark td {
+      background: transparent !important;
+      color: #e6edf3 !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    }
+    .table-custom-dark tbody tr:hover td {
+      background: rgba(255, 255, 255, 0.03) !important;
+    }
   </style>
 @endsection
 
@@ -288,9 +308,9 @@
           </div>
 
           <div class="table-responsive">
-            <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+            <table class="table table-custom-dark align-middle mb-0">
               <thead>
-                <tr style="background: rgba(255,255,255,0.03); font-size:0.75rem; text-transform:uppercase;">
+                <tr>
                   <th class="ps-3">Nama Guru</th>
                   <th>Jam Masuk</th>
                   <th>Jam Pulang</th>
