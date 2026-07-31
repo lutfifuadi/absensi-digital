@@ -818,9 +818,13 @@ return response()->json([
     {
         $today = Carbon::today();
         $guru = Guru::where('user_id', $user->id)->first();
-        
+        if (!$guru) {
+            $guru = Guru::first();
+        }
+
         if (!$guru) {
             return [
+                'guru' => null,
                 'hadir_saya' => null,
                 'total_absen_bulan_ini' => 0,
                 'total_izin_bulan_ini' => 0,
@@ -831,6 +835,10 @@ return response()->json([
                 'holidays' => [],
                 'month' => (int)now()->month,
                 'year' => (int)now()->year,
+                'jadwalHariIni' => collect(),
+                'jadwalSekarang' => null,
+                'ringkasanSiswaHariIni' => ['total_siswa' => 0, 'hadir' => 0, 'terlambat' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0, 'belum_absen' => 0, 'persentase' => 0],
+                'pengaturanArr' => [],
             ];
         }
 
@@ -1186,6 +1194,10 @@ return response()->json([
         });
 
         $siswa = Siswa::where('user_id', $user->id)->first();
+        if (!$siswa) {
+            $siswa = Siswa::first();
+        }
+
         if (!$siswa) {
             return [
                 'attendance_streak' => 0,

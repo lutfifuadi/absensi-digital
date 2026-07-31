@@ -230,7 +230,7 @@ Route::middleware([
     });
 
     // ── PORTAL SISWA ──────────────────────────────────────────────────────────
-    Route::prefix('siswa')->middleware('role:siswa')->group(function () {
+    Route::prefix('siswa')->middleware('role:siswa,super_admin,admin_sekolah,operator')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('siswa.dashboard');
         Route::get('/profile', [SiswaController::class, 'profilSaya'])->name('siswa.profile');
         Route::get('/download-kartu', [PortalSiswaController::class, 'downloadKartu'])->name('siswa.download-kartu');
@@ -259,7 +259,7 @@ Route::middleware([
     });
 
     // ── PORTAL GURU ───────────────────────────────────────────────────────────
-    Route::prefix('guru')->middleware('role:guru')->group(function () {
+    Route::prefix('guru')->middleware('role:guru,super_admin,admin_sekolah,operator')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('guru.dashboard');
         Route::get('/absensi', [AbsensiGuruController::class, 'index'])->name('guru.absensi.index');
         Route::get('/absensi/scan', [AbsensiGuruController::class, 'scan'])->name('guru.absensi.scan');
