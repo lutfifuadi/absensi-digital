@@ -22,6 +22,148 @@
       "url": "/admin/ai-chat"
     },
     {
+      "menuHeader": "Data Sekolah & Civitas"
+    },
+    {
+      "name": "Data Civitas",
+      "icon": "menu-icon ti tabler-users-group",
+      "slug": [
+        "admin.siswa.index",
+        "admin.siswa.naik-kelas-massal",
+        "admin.upload-massal.index",
+        "admin.guru.index",
+        "admin.guru-bk.index",
+        "admin.wali-kelas.index",
+        "admin.orang-tua.index",
+        "admin.staff-tata-usaha.index",
+        "admin.alumni.index"
+      ],
+      "submenu": [
+        {
+          "name": "Data Siswa",
+          "icon": "menu-icon ti tabler-users",
+          "slug": "admin.siswa.index",
+          "url": "/admin/siswa"
+        },
+        {
+          "name": "Naik Kelas Massal",
+          "icon": "menu-icon ti tabler-arrow-up-right-circle",
+          "slug": "admin.siswa.naik-kelas-massal",
+          "url": "/admin/siswa/naik-kelas-massal"
+        },
+        {
+          "name": "Upload Massal Foto",
+          "icon": "menu-icon ti tabler-photo-plus",
+          "slug": "admin.upload-massal.index",
+          "url": "/admin/upload-massal"
+        },
+        {
+          "name": "Data Guru",
+          "icon": "menu-icon ti tabler-presentation",
+          "slug": "admin.guru.index",
+          "url": "/admin/guru"
+        },
+        {
+          "name": "Data Guru BK",
+          "icon": "menu-icon ti tabler-user-heart",
+          "slug": "admin.guru-bk.index",
+          "url": "/admin/guru-bk"
+        },
+        {
+          "name": "Data Wali Kelas",
+          "icon": "menu-icon ti tabler-users-group",
+          "slug": "admin.wali-kelas.index",
+          "url": "/admin/wali-kelas"
+        },
+        {
+          "name": "Data Orang Tua",
+          "icon": "menu-icon ti tabler-user-heart",
+          "slug": "admin.orang-tua.index",
+          "url": "/admin/orang-tua"
+        },
+        {
+          "name": "Data Staff TU",
+          "icon": "menu-icon ti tabler-briefcase",
+          "slug": "admin.staff-tata-usaha.index",
+          "url": "/admin/staff-tata-usaha"
+        },
+        {
+          "name": "Data Alumni",
+          "icon": "menu-icon ti tabler-school",
+          "slug": "admin.alumni.index",
+          "url": "/admin/alumni",
+          "roles": [
+            "super_admin"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Akademik & Kelas",
+      "icon": "menu-icon ti tabler-vocabulary",
+      "slug": [
+        "admin.mapel.index",
+        "admin.jadwal.index",
+        "admin.kelas.index",
+        "admin.jurusan.index",
+        "admin.tahun-akademik.index"
+      ],
+      "submenu": [
+        {
+          "name": "Mata Pelajaran",
+          "icon": "menu-icon ti tabler-book",
+          "slug": "admin.mapel.index",
+          "url": "/admin/mapel"
+        },
+        {
+          "name": "Jam Pelajaran",
+          "icon": "menu-icon ti tabler-clock",
+          "slug": "admin.jadwal.index",
+          "url": "/admin/jadwal"
+        },
+        {
+          "name": "Data Kelas",
+          "icon": "menu-icon ti tabler-door",
+          "slug": "admin.kelas.index",
+          "url": "/admin/kelas"
+        },
+        {
+          "name": "Master Jurusan",
+          "icon": "menu-icon ti tabler-books",
+          "slug": "admin.jurusan.index",
+          "url": "/admin/jurusan"
+        },
+        {
+          "name": "Tahun Ajaran",
+          "icon": "menu-icon ti tabler-calendar",
+          "slug": "admin.tahun-akademik.index",
+          "url": "/admin/tahun-akademik"
+        }
+      ]
+    },
+    {
+      "name": "Cetak ID Card",
+      "icon": "menu-icon ti tabler-id",
+      "slug": [
+        "admin.cetak-kartu.index",
+        "admin.id-card-templates.index"
+      ],
+      "submenu": [
+        {
+          "name": "Cetak ID Card",
+          "icon": "menu-icon ti tabler-printer",
+          "slug": "admin.cetak-kartu.index",
+          "url": "/admin/cetak-kartu"
+        },
+        {
+          "name": "Template ID Card",
+          "icon": "menu-icon ti tabler-palette",
+          "slug": "admin.id-card-templates.index",
+          "url": "/admin/id-card-templates"
+        }
+      ]
+    },
+    {
       "menuHeader": "Presensi & Kehadiran"
     },
     {
@@ -201,148 +343,6 @@
           "icon": "menu-icon ti tabler-star",
           "slug": "admin.ekskul",
           "url": "/admin/ekskul"
-        }
-      ]
-    },
-    {
-      "menuHeader": "Data Sekolah & Civitas"
-    },
-    {
-      "name": "Data Civitas",
-      "icon": "menu-icon ti tabler-users-group",
-      "slug": [
-        "admin.siswa.index",
-        "admin.siswa.naik-kelas-massal",
-        "admin.upload-massal.index",
-        "admin.guru.index",
-        "admin.guru-bk.index",
-        "admin.wali-kelas.index",
-        "admin.orang-tua.index",
-        "admin.staff-tata-usaha.index",
-        "admin.alumni.index"
-      ],
-      "submenu": [
-        {
-          "name": "Data Siswa",
-          "icon": "menu-icon ti tabler-users",
-          "slug": "admin.siswa.index",
-          "url": "/admin/siswa"
-        },
-        {
-          "name": "Naik Kelas Massal",
-          "icon": "menu-icon ti tabler-arrow-up-right-circle",
-          "slug": "admin.siswa.naik-kelas-massal",
-          "url": "/admin/siswa/naik-kelas-massal"
-        },
-        {
-          "name": "Upload Massal Foto",
-          "icon": "menu-icon ti tabler-photo-plus",
-          "slug": "admin.upload-massal.index",
-          "url": "/admin/upload-massal"
-        },
-        {
-          "name": "Data Guru",
-          "icon": "menu-icon ti tabler-presentation",
-          "slug": "admin.guru.index",
-          "url": "/admin/guru"
-        },
-        {
-          "name": "Data Guru BK",
-          "icon": "menu-icon ti tabler-user-heart",
-          "slug": "admin.guru-bk.index",
-          "url": "/admin/guru-bk"
-        },
-        {
-          "name": "Data Wali Kelas",
-          "icon": "menu-icon ti tabler-users-group",
-          "slug": "admin.wali-kelas.index",
-          "url": "/admin/wali-kelas"
-        },
-        {
-          "name": "Data Orang Tua",
-          "icon": "menu-icon ti tabler-user-heart",
-          "slug": "admin.orang-tua.index",
-          "url": "/admin/orang-tua"
-        },
-        {
-          "name": "Data Staff TU",
-          "icon": "menu-icon ti tabler-briefcase",
-          "slug": "admin.staff-tata-usaha.index",
-          "url": "/admin/staff-tata-usaha"
-        },
-        {
-          "name": "Data Alumni",
-          "icon": "menu-icon ti tabler-school",
-          "slug": "admin.alumni.index",
-          "url": "/admin/alumni",
-          "roles": [
-            "super_admin"
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Akademik & Kelas",
-      "icon": "menu-icon ti tabler-vocabulary",
-      "slug": [
-        "admin.mapel.index",
-        "admin.jadwal.index",
-        "admin.kelas.index",
-        "admin.jurusan.index",
-        "admin.tahun-akademik.index"
-      ],
-      "submenu": [
-        {
-          "name": "Mata Pelajaran",
-          "icon": "menu-icon ti tabler-book",
-          "slug": "admin.mapel.index",
-          "url": "/admin/mapel"
-        },
-        {
-          "name": "Jam Pelajaran",
-          "icon": "menu-icon ti tabler-clock",
-          "slug": "admin.jadwal.index",
-          "url": "/admin/jadwal"
-        },
-        {
-          "name": "Data Kelas",
-          "icon": "menu-icon ti tabler-door",
-          "slug": "admin.kelas.index",
-          "url": "/admin/kelas"
-        },
-        {
-          "name": "Master Jurusan",
-          "icon": "menu-icon ti tabler-books",
-          "slug": "admin.jurusan.index",
-          "url": "/admin/jurusan"
-        },
-        {
-          "name": "Tahun Ajaran",
-          "icon": "menu-icon ti tabler-calendar",
-          "slug": "admin.tahun-akademik.index",
-          "url": "/admin/tahun-akademik"
-        }
-      ]
-    },
-    {
-      "name": "Cetak ID Card",
-      "icon": "menu-icon ti tabler-id",
-      "slug": [
-        "admin.cetak-kartu.index",
-        "admin.id-card-templates.index"
-      ],
-      "submenu": [
-        {
-          "name": "Cetak ID Card",
-          "icon": "menu-icon ti tabler-printer",
-          "slug": "admin.cetak-kartu.index",
-          "url": "/admin/cetak-kartu"
-        },
-        {
-          "name": "Template ID Card",
-          "icon": "menu-icon ti tabler-palette",
-          "slug": "admin.id-card-templates.index",
-          "url": "/admin/id-card-templates"
         }
       ]
     },
