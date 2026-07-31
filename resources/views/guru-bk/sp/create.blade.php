@@ -1,6 +1,54 @@
 @extends('layouts/layoutMaster')
 
-@section('title', 'Terbitkan Surat Peringatan (SP)')
+@section('vendor-style')
+  @vite([
+    'resources/assets/vendor/libs/select2/select2.scss'
+  ])
+@endsection
+
+@section('vendor-script')
+  @vite([
+    'resources/assets/vendor/libs/select2/select2.js'
+  ])
+@endsection
+
+@section('page-script')
+  <script type="module">
+    $(function() {
+      const select2 = $('.select2');
+      if (select2.length) {
+        select2.each(function () {
+          var $this = $(this);
+          $this.wrap('<div class="position-relative"></div>').select2({
+            placeholder: $this.data('placeholder') || 'Pilih / Cari...',
+            dropdownParent: $this.parent()
+          });
+        });
+      }
+    });
+  </script>
+@endsection
+
+@section('page-style')
+  <style>
+    .position-relative .select2-container--default .select2-selection--single {
+      background-color: rgba(255, 255, 255, 0.04) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-radius: 5px !important;
+      color: #fff !important;
+      height: 42px !important;
+      display: flex;
+      align-items: center;
+    }
+    .position-relative .select2-container--default .select2-selection--single .select2-selection__rendered {
+      color: #e0e0e0 !important;
+      padding-left: 12px;
+    }
+    .position-relative .select2-container--default .select2-selection--single .select2-selection__arrow {
+      height: 40px !important;
+    }
+  </style>
+@endsection
 
 @section('content')
   <div class="mb-4">
