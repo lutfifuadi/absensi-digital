@@ -311,9 +311,9 @@
   @endif
 @endsection
 
-@push('page-script')
+@section('page-script')
 <script>
-  function updateSummary() {
+  window.updateSummary = function() {
     const totalRows = document.querySelectorAll('tr.student-row').length;
     const h = document.querySelectorAll('input[value="hadir"]:checked').length;
     const s = document.querySelectorAll('input[value="sakit"]:checked').length;
@@ -335,24 +335,28 @@
     if(sumA) sumA.innerText = a;
     if(sumT) sumT.innerText = t;
     if(sumU) sumU.innerText = Math.max(0, u);
-  }
+  };
 
-  function markAll(status) {
-    const radios = document.querySelectorAll(`input[value="${status}"]`);
-    radios.forEach(radio => radio.checked = true);
-    updateSummary();
-  }
+  window.markAll = function(status) {
+    const rows = document.querySelectorAll('tr.student-row');
+    rows.forEach(row => {
+      if (!row.classList.contains('hidden-search')) {
+        const radio = row.querySelector(`input[value="${status}"]`);
+        if (radio) radio.checked = true;
+      }
+    });
+    window.updateSummary();
+  };
 
-  function resetForm() {
+  window.resetForm = function() {
     if(confirm('Kosongkan semua pilihan status pada tabel ini?')) {
       document.querySelectorAll('tr.student-row input[type="radio"]').forEach(radio => radio.checked = false);
-      updateSummary();
+      window.updateSummary();
     }
-  }
-
+  };
 
   document.addEventListener('DOMContentLoaded', () => {
-    updateSummary();
+    window.updateSummary();
 
     // Sync tanggal filter ke tanggal submit
     const tFilter = document.getElementById('tanggal_filter');
@@ -549,10 +553,10 @@
            const radio = row.querySelector(`input[value="${map[e.key]}"]`);
            if (radio) {
               radio.checked = true;
-              updateSummary();
+              window.updateSummary();
            }
         }
      }
   });
 </script>
-@endpush
+@endsection
