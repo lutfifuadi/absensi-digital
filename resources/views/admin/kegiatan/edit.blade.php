@@ -72,18 +72,14 @@
       background-color: #7367f0 !important;
       color: #fff !important;
     }
-    .select2-container--default .select2-search--inline .select2-search__field {
+    /* Custom Styling for Select2 in Dark Mode */
+    .position-relative .select2-container--default .select2-selection--multiple {
+      background-color: rgba(255, 255, 255, 0.04) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-radius: 5px !important;
       color: #fff !important;
-      font-size: 0.85rem !important;
-    }
-    /* Sembunyikan raw select sebelum Select2 di-init */
-    .select2-target-siswa {
-      display: none;
-    }
-    /* Cegah horizontal scrollbar dari Select2 */
-    .select2-container {
-      max-width: 100% !important;
-      box-sizing: border-box !important;
+      min-height: 44px;
+      padding: 4px 8px;
     }
     .select2-container .select2-selection--multiple {
       overflow: hidden;
@@ -464,9 +460,9 @@
           {{-- Target Peserta (Siswa Individu - Select2) --}}
           <div class="col-12">
             <label class="das-form-label">Target Siswa Spesifik (Per Individu) <small class="text-muted" style="font-size:.65rem;text-transform:none;letter-spacing:0;">(Opsional)</small></label>
-            <select name="target_siswa[]" class="select2-target-siswa" multiple id="select_target_siswa">
+            <select name="target_siswa[]" class="select2 form-select" multiple id="select_target_siswa" data-placeholder="Ketik / pilih nama siswa per individu...">
               @foreach($siswaList as $s)
-                <option value="{{ $s->id }}" selected>
+                <option value="{{ $s->id }}" {{ (is_array(old('target_siswa', $kegiatan->target_siswa)) && in_array($s->id, old('target_siswa', $kegiatan->target_siswa))) ? 'selected' : '' }}>
                   {{ $s->nama_lengkap }} — ({{ $s->kelas ? $s->kelas->nama : '-' }} / NIS: {{ $s->nis ?? '-' }})
                 </option>
               @endforeach
@@ -505,8 +501,22 @@
 @endsection
 
 @section('page-script')
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
+  <script type="module">
+    $(function() {
+      const select2 = $('.select2');
+      if (select2.length) {
+        select2.each(function () {
+          var $this = $(this);
+          $this.wrap('<div class="position-relative"></div>').select2({
+            placeholder: $this.data('placeholder') || 'Pilih...',
+            dropdownParent: $this.parent()
+          });
+        });
+      }
+    });
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
     const tooltips = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltips.map(el => new bootstrap.Tooltip(el));
 
@@ -640,44 +650,6 @@
         window.toggleWaktu(cbWaktu);
       }
     }, 100);
-
-    // Inisialisasi Select2 AJAX untuk Target Siswa Spesifik
-    setTimeout(function() {
-      if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
-        const $el = jQuery('#select_target_siswa');
-        $el.select2({
-          placeholder: 'Ketik nama siswa / NIS / NISN per individu...',
-          allowClear: true,
-          width: '100%',
-          multiple: true,
-          dropdownParent: $el.parent(),
-          language: {
-            inputTooShort: function () {
-              return 'Ketik minimal 1 karakter untuk mencari...';
-            },
-            noResults: function () {
-              return 'Siswa tidak ditemukan';
-            },
-            searching: function () {
-              return 'Mencari siswa...';
-            }
-          },
-          ajax: {
-            url: '{{ route("admin.kegiatan.search-siswa") }}',
-            dataType: 'json',
-            delay: 300,
-            data: function (params) {
-              return { q: params.term };
-            },
-            processResults: function (data) {
-              return { results: data.results };
-            },
-            cache: true
-          },
-          minimumInputLength: 1
-        });
-      }
-    }, 500);
   });
 </script>
 @endsection

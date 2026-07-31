@@ -52,7 +52,7 @@ class KegiatanController extends Controller
         $kelas = Kelas::all();
         $tingkat = Kelas::distinct()->pluck('tingkat')->filter()->sort();
         $jurusanList = \App\Models\Jurusan::pluck('nama')->sort()->values();
-        $siswaList = collect();
+        $siswaList = \App\Models\Siswa::with('kelas')->where('status', 'aktif')->orderBy('nama_lengkap')->get();
         return view('admin.kegiatan.create', compact('tahunAkademiks', 'kelas', 'tingkat', 'jurusanList', 'siswaList'));
     }
 
@@ -107,11 +107,7 @@ class KegiatanController extends Controller
         $kelas = Kelas::all();
         $tingkat = Kelas::distinct()->pluck('tingkat')->filter()->sort();
         $jurusanList = \App\Models\Jurusan::pluck('nama')->sort()->values();
-        
-        $selectedSiswaIds = is_array($kegiatan->target_siswa) ? $kegiatan->target_siswa : [];
-        $siswaList = !empty($selectedSiswaIds) 
-            ? \App\Models\Siswa::with('kelas')->whereIn('id', $selectedSiswaIds)->get()
-            : collect();
+        $siswaList = \App\Models\Siswa::with('kelas')->where('status', 'aktif')->orderBy('nama_lengkap')->get();
 
         return view('admin.kegiatan.edit', compact('kegiatan', 'tahunAkademiks', 'kelas', 'tingkat', 'jurusanList', 'siswaList'));
     }
