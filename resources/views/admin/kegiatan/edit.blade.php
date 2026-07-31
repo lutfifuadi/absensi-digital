@@ -607,13 +607,30 @@
 
     // Run on page load to set correct initial state
     setTimeout(function() {
-    // Inisialisasi Select2 untuk Target Siswa Spesifik
+    // Inisialisasi Select2 AJAX untuk Target Siswa Spesifik
     if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
       const $select = jQuery('#select_target_siswa');
       $select.select2({
-        placeholder: 'Ketik nama siswa / NISN per individu...',
+        placeholder: 'Ketik nama siswa / NIS / NISN per individu...',
         allowClear: true,
-        width: '100%'
+        width: '100%',
+        ajax: {
+          url: '{{ route("admin.kegiatan.search-siswa") }}',
+          dataType: 'json',
+          delay: 300,
+          data: function (params) {
+            return {
+              q: params.term
+            };
+          },
+          processResults: function (data) {
+            return {
+              results: data.results
+            };
+          },
+          cache: true
+        },
+        minimumInputLength: 1
       });
     }
   });

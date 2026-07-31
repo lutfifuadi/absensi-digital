@@ -17,13 +17,42 @@ class KegiatanController extends Controller
         return view('admin.kegiatan.index', compact('kegiatans'));
     }
 
+    public function searchSiswa(Request $request)
+    {
+        $search = trim($request->query('q', ''));
+        if (strlen($search) < 1) {
+            return response()->json(['results' => []]);
+        }
+
+        $siswa = \App\Models\Siswa::with('kelas:id,nama')
+            ->where('status', 'aktif')
+            ->where(function ($q) use ($search) {
+                $q->where('nama_lengkap', 'like', "%{$search}%")
+                  ->orWhere('nis', 'like', "%{$search}%")
+                  ->orWhere('nisn', 'like', "%{$search}%");
+            })
+            ->orderBy('nama_lengkap')
+            ->limit(30)
+            ->get()
+            ->map(function ($s) {
+                $kelasNama = $s->kelas->nama ?? '-';
+                $nis = $s->nis ?? '-';
+                return [
+                    'id'   => $s->id,
+                    'text' => "{$s->nama_lengkap} — ({$kelasNama} / NIS: {$nis})",
+                ];
+            });
+
+        return response()->json(['results' => $siswa]);
+    }
+
     public function create()
     {
         $tahunAkademiks = TahunAkademik::all();
         $kelas = Kelas::all();
         $tingkat = Kelas::distinct()->pluck('tingkat')->filter()->sort();
         $jurusanList = \App\Models\Jurusan::pluck('nama')->sort()->values();
-        $siswaList = \App\Models\Siswa::with('kelas')->where('status', 'aktif')->orderBy('nama_lengkap')->get();
+        $siswaList = collect();
         return view('admin.kegiatan.create', compact('tahunAkademiks', 'kelas', 'tingkat', 'jurusanList', 'siswaList'));
     }
 
@@ -78,7 +107,12 @@ class KegiatanController extends Controller
         $kelas = Kelas::all();
         $tingkat = Kelas::distinct()->pluck('tingkat')->filter()->sort();
         $jurusanList = \App\Models\Jurusan::pluck('nama')->sort()->values();
-        $siswaList = \App\Models\Siswa::with('kelas')->where('status', 'aktif')->orderBy('nama_lengkap')->get();
+        
+        $selectedSiswaIds = is_array($kegiatan->target_siswa) ? $kegiatan->target_siswa : [];
+        $siswaList = !empty($selectedSiswaIds) 
+            ? \App\Models\Siswa::with('kelas')->whereIn('id', $selectedSiswaIds)->get()
+            : collect();
+
         return view('admin.kegiatan.edit', compact('kegiatan', 'tahunAkademiks', 'kelas', 'tingkat', 'jurusanList', 'siswaList'));
     }
 

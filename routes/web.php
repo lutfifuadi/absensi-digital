@@ -450,6 +450,9 @@ Route::middleware([
         Route::get('/master-data/search', [MasterDataController::class, 'search'])->middleware('role:super_admin,admin_sekolah,operator')->name('admin.master-data.search');
 
         // ── MODUL KEGIATAN KHUSUS ──────────────────────────────────────────────
+        Route::get('kegiatan/search-siswa', [KegiatanController::class, 'searchSiswa'])
+            ->name('admin.kegiatan.search-siswa')
+            ->middleware('role:super_admin,admin_sekolah,operator');
         Route::resource('kegiatan', KegiatanController::class)
             ->names('admin.kegiatan')
             ->middleware('role:super_admin,admin_sekolah,operator');
