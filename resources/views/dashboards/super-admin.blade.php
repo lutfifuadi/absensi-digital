@@ -921,7 +921,7 @@
   {{-- ═══════════════════════════════════════════════════════
        SECTION 6: RINGKASAN DATA PENGADUAN MASUK
   ═══════════════════════════════════════════════════════ --}}
-  <div class="row g-4 mb-6">
+  <div class="row g-4 mb-6 mt-5">
     <div class="col-12">
       <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, rgba(255,159,67,0.06) 0%, rgba(115,103,240,0.03) 100%); border: 1px solid rgba(255,159,67,0.18) !important; border-radius: 12px; backdrop-filter: blur(10px);">
         <div class="card-body p-4">
