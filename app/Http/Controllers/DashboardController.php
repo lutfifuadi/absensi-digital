@@ -817,127 +817,102 @@ return response()->json([
     private function guruData($user): array
     {
         $today = Carbon::today();
-        $guru = Guru::where('user_id', $user->id)->first();
-        if (!$guru) {
-            $guru = Guru::first();
-        }
-
-        if (!$guru) {
-            return [
-                'guru' => null,
-                'hadir_saya' => null,
-                'total_absen_bulan_ini' => 0,
-                'total_izin_bulan_ini' => 0,
-                'total_jam_mengajar' => 0,
-                'attendance_streak' => 0,
-                'rekapBulanan' => ['hadir' => 0, 'terlambat' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0],
-                'rawAbsensiBulan' => collect(),
-                'holidays' => [],
-                'month' => (int)now()->month,
-                'year' => (int)now()->year,
-                'jadwalHariIni' => collect(),
-                'jadwalSekarang' => null,
-                'ringkasanSiswaHariIni' => ['total_siswa' => 0, 'hadir' => 0, 'terlambat' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0, 'belum_absen' => 0, 'persentase' => 0],
-                'pengaturanArr' => [],
-            ];
-        }
-
-        // Hitung total jam mengajar bulan ini
-        $jamMengajar = AbsensiGuru::where('guru_id', $guru->id)
-                                  ->whereMonth('tanggal', now()->month)
-                                  ->whereIn('status', ['hadir', 'terlambat'])
-                                  ->count() * 8;
-
-        // Hitung Attendance Streak
-        $streakGuru = 0;
-        $absensiLaluGuru = AbsensiGuru::where('guru_id', $guru->id)
-                                ->whereIn('status', ['hadir', 'terlambat'])
-                                ->orderBy('tanggal', 'desc')
-                                ->pluck('tanggal')->toArray();
-        $checkDateGuru = Carbon::today();
-        foreach ($absensiLaluGuru as $tgl) {
-            if (Carbon::parse($tgl)->isSameDay($checkDateGuru) || Carbon::parse($tgl)->isSameDay($checkDateGuru->copy()->subDay()) && (Carbon::parse($tgl)->isWeekday() || \App\Models\Holiday::where('tanggal', $tgl)->exists() == false)) {
-                $streakGuru++;
-                $checkDateGuru = Carbon::parse($tgl)->subDay();
-            } else {
-                break;
-            }
-        }
-
-        // ── Data Kalender & Riwayat ─────────────────────────────────────
         $month = (int) request()->query('month', now()->month);
         $year  = (int) request()->query('year', now()->year);
 
-        // Rekap bulanan
-        $statsRaw = AbsensiGuru::where('guru_id', $guru->id)
-            ->whereMonth('tanggal', $month)
-            ->whereYear('tanggal', $year)
-            ->selectRaw('status, COUNT(*) as total')
-            ->groupBy('status')
-            ->pluck('total', 'status')
-            ->toArray();
+        // Agregat Total Guru
+        $totalGuru = Guru::count();
 
-        $rekapBulanan = [
-            'hadir'     => $statsRaw['hadir'] ?? 0,
-            'terlambat' => $statsRaw['terlambat'] ?? 0,
-            'sakit'     => $statsRaw['sakit'] ?? 0,
-            'izin'      => $statsRaw['izin'] ?? 0,
-            'alpha'     => $statsRaw['alpha'] ?? 0,
-        ];
+        // Presensi Guru Hari Ini (Seluruh Guru)
+        $absensiHariIni = AbsensiGuru::whereDate('tanggal', $today)->get();
+        $guruHadirToday = $absensiHariIni->where('status', 'hadir')->count();
+        $guruTerlambatToday = $absensiHariIni->where('status', 'terlambat')->count();
+        $guruIzinToday = $absensiHariIni->whereIn('status', ['sakit', 'izin'])->count();
+        $guruAlphaToday = max(0, $totalGuru - ($guruHadirToday + $guruTerlambatToday + $guruIzinToday));
+        
+        $persentaseHadirToday = $totalGuru > 0 ? round((($guruHadirToday + $guruTerlambatToday) / $totalGuru) * 100, 1) : 0;
 
-        // Raw absensi bulanan untuk kalender
+        // Top Streak Guru
+        $streakList = Guru::with('user')->get()->map(function($g) {
+            $abs = AbsensiGuru::where('guru_id', $g->id)
+                ->whereIn('status', ['hadir', 'terlambat'])
+                ->orderBy('tanggal', 'desc')
+                ->pluck('tanggal')->toArray();
+            
+            $streak = 0;
+            $checkDate = Carbon::today();
+            foreach ($abs as $tgl) {
+                if (Carbon::parse($tgl)->isSameDay($checkDate) || Carbon::parse($tgl)->isSameDay($checkDate->copy()->subDay())) {
+                    $streak++;
+                    $checkDate = Carbon::parse($tgl)->subDay();
+                } else {
+                    break;
+                }
+            }
+            $g->streak = $streak;
+            return $g;
+        })->sortByDesc('streak');
+
+        $bestStreakGuru = $streakList->first();
+
+        // Data Grafik Tren Kehadiran Bulanan (Seluruh Guru)
         $startOfMonth = Carbon::create($year, $month, 1)->startOfDay();
         $endOfMonth   = $startOfMonth->copy()->endOfMonth();
+        $daysInMonth  = $startOfMonth->daysInMonth;
 
-        $rawAbsensiBulan = AbsensiGuru::where('guru_id', $guru->id)
-            ->whereBetween('tanggal', [$startOfMonth, $endOfMonth])
-            ->get()
-            ->keyBy(function ($item) {
-                return $item->tanggal->toDateString();
-            });
+        $chartLabels = [];
+        $chartHadir = [];
+        $chartTerlambat = [];
+        $chartIzin = [];
+        $chartAlpha = [];
 
-        // Hari libur
-        $holidaysCollection = Holiday::whereBetween('tanggal', [$startOfMonth, $endOfMonth])->get();
-        $holidays = [];
-        foreach ($holidaysCollection as $h) {
-            $dateStr = $h->tanggal->toDateString();
-            if (isset($holidays[$dateStr])) {
-                $holidays[$dateStr] .= ' | ' . $h->nama;
-            } else {
-                $holidays[$dateStr] = $h->nama;
-            }
+        $allAbsensiMonth = AbsensiGuru::whereBetween('tanggal', [$startOfMonth, $endOfMonth])->get();
+
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $dt = Carbon::create($year, $month, $d)->toDateString();
+            $chartLabels[] = (string)$d;
+            
+            $dayAbs = $allAbsensiMonth->where('tanggal', $dt);
+            $chartHadir[] = $dayAbs->where('status', 'hadir')->count();
+            $chartTerlambat[] = $dayAbs->where('status', 'terlambat')->count();
+            $chartIzin[] = $dayAbs->whereIn('status', ['sakit', 'izin'])->count();
+            $chartAlpha[] = $dayAbs->where('status', 'alpha')->count();
         }
 
-        // ── Data Jadwal Pelajaran Guru Hari Ini ────
-        $hariIni = Carbon::now()->locale('id')->isoFormat('dddd');
-        $jamSekarang = Carbon::now()->format('H:i:s');
+        // Rekap Bulanan Agregat Seluruh Guru
+        $rekapBulananGuru = [
+            'hadir' => $allAbsensiMonth->where('status', 'hadir')->count(),
+            'terlambat' => $allAbsensiMonth->where('status', 'terlambat')->count(),
+            'sakit' => $allAbsensiMonth->where('status', 'sakit')->count(),
+            'izin' => $allAbsensiMonth->where('status', 'izin')->count(),
+            'alpha' => $allAbsensiMonth->where('status', 'alpha')->count(),
+        ];
 
-        $jadwalHariIni = \App\Models\JadwalPelajaran::with(['kelas', 'mapel'])
-            ->where('guru_id', $guru->id)
-            ->where('hari', $hariIni)
-            ->orderBy('jam_mulai')
-            ->get();
-
-        $jadwalSekarang = $jadwalHariIni->first(function($j) use ($jamSekarang) {
-            return $j->jam_mulai <= $jamSekarang && $j->jam_selesai >= $jamSekarang;
-        });
+        // Daftar Presensi Guru Hari Ini (Real-time monitoring)
+        $guruTodayList = Guru::with(['user', 'absensiGuru' => function($q) use ($today) {
+            $q->whereDate('tanggal', $today);
+        }])->get();
 
         $pengaturanArr = Pengaturan::pluck('value', 'key')->toArray();
 
         return [
-            'guru' => $guru,
-            'hadir_saya' => AbsensiGuru::where('guru_id', $guru->id)->whereDate('tanggal', $today)->first(),
-            'total_absen_bulan_ini' => AbsensiGuru::where('guru_id', $guru->id)->whereMonth('tanggal', now()->month)->count(),
-            'total_izin_bulan_ini' => AbsensiGuru::where('guru_id', $guru->id)->whereIn('status', ['sakit', 'izin'])->whereMonth('tanggal', now()->month)->count(),
-            'total_jam_mengajar' => $jamMengajar,
-            'attendance_streak' => $streakGuru,
-            'rekapBulanan' => $rekapBulanan,
-            'rawAbsensiBulan' => $rawAbsensiBulan,
-            'holidays' => $holidays,
+            'totalGuru' => $totalGuru,
+            'guruHadirToday' => $guruHadirToday,
+            'guruTerlambatToday' => $guruTerlambatToday,
+            'guruIzinToday' => $guruIzinToday,
+            'guruAlphaToday' => $guruAlphaToday,
+            'persentaseHadirToday' => $persentaseHadirToday,
+            'bestStreakGuru' => $bestStreakGuru,
+            'chartLabels' => $chartLabels,
+            'chartHadir' => $chartHadir,
+            'chartTerlambat' => $chartTerlambat,
+            'chartIzin' => $chartIzin,
+            'chartAlpha' => $chartAlpha,
+            'rekapBulananGuru' => $rekapBulananGuru,
+            'guruTodayList' => $guruTodayList,
+            'streakList' => $streakList->take(5),
             'month' => $month,
             'year' => $year,
-            'jadwalHariIni' => $jadwalHariIni,
-            'jadwalSekarang' => $jadwalSekarang,
             'pengaturanArr' => $pengaturanArr,
         ];
     }
