@@ -80,15 +80,28 @@
     .select2-target-siswa {
       display: none;
     }
-    /* Pastikan container Select2 lebar penuh */
-    #select_target_siswa + .select2-container {
-      width: 100% !important;
+    /* Cegah horizontal scrollbar dari Select2 */
+    .select2-container {
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    .select2-container .select2-selection--multiple {
+      overflow: hidden;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 2px 4px;
     }
   </style>
 @endsection
 
 @section('page-style')
 <style>
+  /* Cegah overflow horizontal dari Select2 atau elemen lain */
+  .das-panel__body, .das-panel__body form {
+    overflow-x: hidden;
+  }
   :root {
     --das-primary: #7367f0;
     --das-primary-soft: rgba(115, 103, 240, 0.12);
