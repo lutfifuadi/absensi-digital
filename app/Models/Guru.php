@@ -66,4 +66,9 @@ class Guru extends Model
     {
         return $this->hasMany(AbsensiGuru::class, 'guru_id');
     }
+
+    public function absensiGuru()
+    {
+        return $this->hasMany(AbsensiGuru::class, 'guru_id');
+    }
 }
