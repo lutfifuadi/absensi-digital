@@ -252,6 +252,149 @@
 
 
   {{-- ═══════════════════════════════════════════════════════
+       SECTION 1C: RINGKASAN DATA PENGADUAN MASUK
+  ═══════════════════════════════════════════════════════ --}}
+  <div class="row g-4 mb-6">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, rgba(255,159,67,0.06) 0%, rgba(115,103,240,0.03) 100%); border: 1px solid rgba(255,159,67,0.18) !important; border-radius: 12px; backdrop-filter: blur(10px);">
+        <div class="card-body p-4">
+          {{-- Header --}}
+          <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="avatar">
+                <span class="avatar-initial rounded" style="background: rgba(255,159,67,0.15); color: #ff9f43;">
+                  <i class="ti tabler-message-report fs-3"></i>
+                </span>
+              </div>
+              <div>
+                <h5 class="mb-0 fw-bold text-white d-flex align-items-center gap-2">
+                  Ringkasan Data Pengaduan Masuk
+                  @if(($pengaduanPendingCount ?? 0) > 0)
+                    <span class="badge bg-label-warning font-normal" style="font-size:0.75rem;">
+                      <i class="ti tabler-alert-circle me-1"></i> {{ $pengaduanPendingCount }} Pengaduan Baru
+                    </span>
+                  @else
+                    <span class="badge bg-label-success font-normal" style="font-size:0.75rem;">
+                      <i class="ti tabler-check me-1"></i> Semua Pengaduan Teratasi
+                    </span>
+                  @endif
+                </h5>
+                <small class="text-body-secondary">Pusat pemantauan & tindak lanjut laporan pengaduan data civitas sekolah</small>
+              </div>
+            </div>
+            <a href="{{ route('admin.pengaduan.index') }}" class="btn btn-sm btn-label-warning d-inline-flex align-items-center gap-1 font-semibold">
+              <i class="ti tabler-arrow-right"></i> Kelola Seluruh Pengaduan
+            </a>
+          </div>
+
+          <div class="row g-4">
+            {{-- Stat KPI mini-cards --}}
+            <div class="col-lg-4 col-md-5">
+              <div class="d-flex flex-column gap-3">
+                <div class="p-3 rounded d-flex align-items-center justify-content-between" style="background: rgba(255,159,67,0.08); border: 1px solid rgba(255,159,67,0.15);">
+                  <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-label-warning p-2 rounded"><i class="ti tabler-clock-play fs-5"></i></span>
+                    <div>
+                      <h6 class="mb-0 text-white fw-bold">Pengaduan Baru</h6>
+                      <small class="text-body-secondary">Menunggu verifikasi</small>
+                    </div>
+                  </div>
+                  <span class="h5 mb-0 fw-bold text-warning">{{ $pengaduanPendingCount ?? 0 }}</span>
+                </div>
+
+                <div class="p-3 rounded d-flex align-items-center justify-content-between" style="background: rgba(0,207,221,0.08); border: 1px solid rgba(0,207,221,0.15);">
+                  <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-label-info p-2 rounded"><i class="ti tabler-loader fs-5"></i></span>
+                    <div>
+                      <h6 class="mb-0 text-white fw-bold">Sedang Diproses</h6>
+                      <small class="text-body-secondary">Dalam penanganan admin</small>
+                    </div>
+                  </div>
+                  <span class="h5 mb-0 fw-bold text-info">{{ $pengaduanDiprosesCount ?? 0 }}</span>
+                </div>
+
+                <div class="p-3 rounded d-flex align-items-center justify-content-between" style="background: rgba(40,199,111,0.08); border: 1px solid rgba(40,199,111,0.15);">
+                  <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-label-success p-2 rounded"><i class="ti tabler-circle-check fs-5"></i></span>
+                    <div>
+                      <h6 class="mb-0 text-white fw-bold">Selesai Ditangani</h6>
+                      <small class="text-body-secondary">Telah dikonfirmasi</small>
+                    </div>
+                  </div>
+                  <span class="h5 mb-0 fw-bold text-success">{{ $pengaduanSelesaiCount ?? 0 }}</span>
+                </div>
+              </div>
+            </div>
+
+            {{-- Table list 5 pengaduan terbaru --}}
+            <div class="col-lg-8 col-md-7">
+              <div class="table-responsive" style="border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; background: rgba(255,255,255,0.02);">
+                <table class="table align-middle mb-0" style="font-size: 0.82rem;">
+                  <thead>
+                    <tr style="background: rgba(255,255,255,0.04); font-size: 0.75rem; text-transform: uppercase;">
+                      <th class="text-white fw-semibold py-2 ps-3">Pelapor</th>
+                      <th class="text-white fw-semibold py-2">Kategori</th>
+                      <th class="text-white fw-semibold py-2">Deskripsi Laporan</th>
+                      <th class="text-white fw-semibold py-2 text-center pe-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @forelse($latestPengaduanList ?? [] as $p)
+                      <tr style="border-color: rgba(255,255,255,0.04);">
+                        <td class="ps-3 text-nowrap">
+                          <div class="d-flex align-items-center gap-2">
+                            <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(255,159,67,0.15); color: #ff9f43; font-weight: 700; font-size: 0.7rem; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                              {{ strtoupper(substr($p->nama_lengkap ?? 'P', 0, 1)) }}
+                            </div>
+                            <div>
+                              <span class="text-white fw-medium d-block text-truncate" style="max-width:120px;">{{ $p->nama_lengkap }}</span>
+                              <small class="text-body-secondary" style="font-size:0.68rem;">{{ ucfirst($p->status_pelapor ?? 'Pelapor') }}</small>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="text-nowrap">
+                          <span class="badge bg-label-info fw-semibold" style="font-size: 0.68rem;">{{ $p->kategori ?? 'Umum' }}</span>
+                        </td>
+                        <td>
+                          <span class="text-white-50 text-truncate d-block" style="max-width: 220px;" title="{{ $p->deskripsi }}">
+                            {{ \Illuminate\Support\Str::limit($p->deskripsi, 45) }}
+                          </span>
+                        </td>
+                        <td class="text-center pe-3 text-nowrap">
+                          @php
+                            $badgeColor = match($p->status) {
+                              'baru' => 'warning',
+                              'diproses' => 'info',
+                              'selesai' => 'success',
+                              'ditolak' => 'danger',
+                              default => 'secondary'
+                            };
+                          @endphp
+                          <span class="badge bg-label-{{ $badgeColor }} px-2 py-1" style="font-size:0.7rem;">
+                            {{ ucfirst($p->status) }}
+                          </span>
+                        </td>
+                      </tr>
+                    @empty
+                      <tr>
+                        <td colspan="4" class="text-center py-4 text-body-secondary">
+                          <i class="ti tabler-message-check fs-3 d-block mb-1 text-success opacity-50"></i>
+                          <small>Belum ada pengaduan data masuk.</small>
+                        </td>
+                      </tr>
+                    @endforelse
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  {{-- ═══════════════════════════════════════════════════════
        SECTION 1B2: WIDGET BELUM ABSEN — Mini Chart + Daftar Siswa
   ═══════════════════════════════════════════════════════ --}}
   @if($belumAbsen > 0 || $isWeekend)

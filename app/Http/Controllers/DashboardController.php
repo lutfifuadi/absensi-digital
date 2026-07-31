@@ -10,6 +10,7 @@ use App\Models\Guru;
 use App\Models\Holiday;
 use App\Models\IzinSakit;
 use App\Models\Kelas;
+use App\Models\Pengaduan;
 use App\Models\Pengaturan;
 use App\Models\Siswa;
 use App\Models\StaffTataUsaha;
@@ -735,6 +736,13 @@ return response()->json([
             return TahunAkademik::where('is_aktif', true)->first();
         });
 
+        // ── Data Pengaduan Masuk ─────────────────────────────────────────
+        $pengaduanPendingCount  = Pengaduan::where('status', 'baru')->count();
+        $pengaduanDiprosesCount = Pengaduan::where('status', 'diproses')->count();
+        $pengaduanSelesaiCount  = Pengaduan::where('status', 'selesai')->count();
+        $pengaduanTotalCount    = Pengaduan::count();
+        $latestPengaduanList    = Pengaduan::orderBy('created_at', 'desc')->take(5)->get();
+
         return compact(
             'totalSiswa', 'totalGuru', 'totalStaff', 'totalKelas',
             'totalSiswaWajibAbsen',
@@ -749,7 +757,8 @@ return response()->json([
             'kehadiranPerKelas', 'monthlyStats', 'metodeAbsensi', 'recentLogs',
             'top5Pelanggaran',
             'belumAbsenPerKelas', 'listBelumAbsen',
-            'isWeekend'
+            'isWeekend',
+            'pengaduanPendingCount', 'pengaduanDiprosesCount', 'pengaduanSelesaiCount', 'pengaduanTotalCount', 'latestPengaduanList'
         );
     }
 
