@@ -17,6 +17,12 @@
       "url": "/guru/absensi/scan"
     },
     {
+      "name": "Absensi Cepat Siswa",
+      "icon": "menu-icon ti tabler-bolt",
+      "slug": "admin.absensi-cepat",
+      "url": "/admin/absensi-cepat"
+    },
+    {
       "name": "Pengajuan Izin",
       "icon": "menu-icon ti tabler-stethoscope",
       "slug": "guru.izin-sakit.index",

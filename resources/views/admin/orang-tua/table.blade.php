@@ -9,12 +9,6 @@
                         <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
                     @endif
                 </th>
-                <th class="py-3 sortable cursor-pointer text-nowrap" data-sort-by="email" style="user-select: none;">
-                    Akun
-                    @if(($sortBy ?? '') === 'email')
-                        <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
-                    @endif
-                </th>
                 <th class="py-3 text-center text-nowrap">No. WhatsApp</th>
                 <th class="py-3 text-center text-nowrap">Menghubungkan Siswa</th>
                 <th class="py-3 text-center sortable cursor-pointer text-nowrap" data-sort-by="status" style="user-select: none;">
@@ -42,10 +36,6 @@
                                 <div class="text-white-50 small" style="font-size:0.72rem;">ID: #{{ $item->id }}</div>
                             </div>
                         </div>
-                    </td>
-                    <td>
-                        <div class="small fw-medium">Username: {{ $item->username }}</div>
-                        <div class="text-white-50 small" style="font-size:0.72rem;">Pass Default: NISN Anak / password123</div>
                     </td>
                     <td class="text-center text-nowrap">
                         @php

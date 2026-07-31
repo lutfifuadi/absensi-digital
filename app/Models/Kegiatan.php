@@ -26,6 +26,8 @@ class Kegiatan extends Model
         'target_peserta',
         'target_tingkat',
         'target_jurusan',
+        'target_gender',
+        'target_siswa',
         'tahun_akademik_id',
     ];
 
@@ -36,6 +38,7 @@ class Kegiatan extends Model
         'target_peserta' => 'array',
         'target_tingkat' => 'array',
         'target_jurusan' => 'array',
+        'target_siswa' => 'array',
     ];
 
     public function tahunAkademik()

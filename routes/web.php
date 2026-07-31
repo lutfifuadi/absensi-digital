@@ -239,10 +239,14 @@ Route::middleware([
         Route::get('/absensi', [PortalSiswaController::class, 'absensi'])->name('siswa.absensi');
         Route::get('/absensi/data', [PortalSiswaController::class, 'absensiJson'])->name('siswa.absensi.data');
 
-        // Izin & Sakit (Scoped to self in Controller)
+        // Izin & Sakit (Hanya lihat riwayat, pengajuan dilakukan oleh Ortu/Guru/Wali Kelas/Piket/Admin)
         Route::get('/izin-sakit', [IzinSakitController::class, 'index'])->name('siswa.izin-sakit.index');
-        Route::get('/izin-sakit/create', [IzinSakitController::class, 'create'])->name('siswa.izin-sakit.create');
-        Route::post('/izin-sakit', [IzinSakitController::class, 'store'])->name('siswa.izin-sakit.store');
+        Route::get('/izin-sakit/create', function() {
+            return redirect()->route('siswa.izin-sakit.index')->with('error', 'Pengajuan izin/sakit siswa dilakukan oleh Orang Tua, Guru, Wali Kelas, Piket, atau Admin.');
+        })->name('siswa.izin-sakit.create');
+        Route::post('/izin-sakit', function() {
+            return redirect()->route('siswa.izin-sakit.index')->with('error', 'Pengajuan izin/sakit siswa dilakukan oleh Orang Tua, Guru, Wali Kelas, Piket, atau Admin.');
+        })->name('siswa.izin-sakit.store');
 
         // Penugasan Guru untuk Siswa
         Route::get('/assignments', [AssignmentController::class, 'index'])->name('siswa.assignments.index');
@@ -339,6 +343,12 @@ Route::middleware([
         Route::get('/anak/{id}/profil', [PortalOrangTuaController::class, 'profilAnak'])->name('ortu.anak.profil');
         Route::get('/anak/{id}/absensi', [PortalOrangTuaController::class, 'absensiAnak'])->name('ortu.anak.absensi');
         Route::get('/anak/{id}/absensi/data', [PortalOrangTuaController::class, 'absensiAnakJson'])->name('ortu.anak.absensi.data');
+
+        // Absensi Kegiatan Ortu
+        Route::get('/absensi-kegiatan', [PortalOrangTuaController::class, 'absensiKegiatan'])->name('ortu.absensi-kegiatan');
+
+        // Pelanggaran Ortu
+        Route::get('/pelanggaran', [PortalOrangTuaController::class, 'pelanggaran'])->name('ortu.pelanggaran');
 
         Route::get('/izin-sakit', [PortalOrangTuaController::class, 'izinSakit'])->name('ortu.izin-sakit.index');
         Route::get('/izin-sakit/create', [PortalOrangTuaController::class, 'izinSakitCreate'])->name('ortu.izin-sakit.create');
@@ -914,13 +924,13 @@ Route::middleware([
 
         Route::get('absensi-cepat', [AbsensiSiswaController::class, 'bulkForm'])
             ->name('admin.absensi-cepat')
-            ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator');
+            ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator,guru');
         Route::get('absensi-cepat/search', [AbsensiSiswaController::class, 'searchStudent'])
             ->name('admin.absensi-cepat.search')
-            ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator');
+            ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator,guru');
         Route::post('absensi-cepat', [AbsensiSiswaController::class, 'bulkStore'])
             ->name('admin.absensi-cepat.store')
-            ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator');
+            ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator,guru');
         Route::post('absensi-siswa/auto-alpha', [AbsensiSiswaController::class, 'triggerAutoAlpha'])
             ->name('admin.absensi-siswa.auto-alpha')
             ->middleware('role:super_admin,admin_sekolah,operator,wali_kelas');

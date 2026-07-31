@@ -275,6 +275,16 @@
             </div>
           </div>
 
+          {{-- Target Jenis Kelamin --}}
+          <div class="col-md-6">
+            <label class="das-form-label">Target Jenis Kelamin <small class="text-muted" style="font-size:.65rem;text-transform:none;letter-spacing:0;">(Opsional)</small></label>
+            <select name="target_gender" class="form-select das-form-control">
+              <option value="" {{ old('target_gender') === null || old('target_gender') === '' ? 'selected' : '' }}>Semua Jenis Kelamin</option>
+              <option value="L" {{ old('target_gender') === 'L' ? 'selected' : '' }}>Laki-laki Saja</option>
+              <option value="P" {{ old('target_gender') === 'P' ? 'selected' : '' }}>Perempuan Saja</option>
+            </select>
+          </div>
+
           {{-- Target Peserta (Jurusan) --}}
           <div class="col-12">
             <label class="das-form-label">Target Jurusan <small class="text-muted" style="font-size:.65rem;text-transform:none;letter-spacing:0;">(Opsional)</small></label>
@@ -302,7 +312,7 @@
           {{-- Target Peserta (Kelas) --}}
           <div class="col-12">
             <label class="das-form-label">Target Peserta (Kelas Spesifik)</label>
-            <div class="row g-2 p-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
+            <div class="row g-2 p-3 mb-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
               @foreach($kelas as $k)
                 <div class="col-md-3 col-6 checkbox-kelas-wrapper" data-tingkat="{{ $k->tingkat }}" data-jurusan="{{ $k->jurusan?->nama ?? '' }}">
                   <div class="form-check">
@@ -315,8 +325,23 @@
                 </div>
               @endforeach
             </div>
-            <small class="text-muted mt-2 d-block" style="font-size: .7rem;">
+            <small class="text-muted mt-1 d-block mb-3" style="font-size: .7rem;">
               <i class="ti tabler-info-circle"></i> Jika tingkat dipilih, seluruh kelas di tingkat tersebut akan otomatis menjadi target. Gunakan "Kelas Spesifik" jika hanya ingin memilih kelas tertentu.
+            </small>
+          </div>
+
+          {{-- Target Peserta (Siswa Individu) --}}
+          <div class="col-12">
+            <label class="das-form-label">Target Siswa Spesifik (Per Individu) <small class="text-muted" style="font-size:.65rem;text-transform:none;letter-spacing:0;">(Opsional)</small></label>
+            <select name="target_siswa[]" class="form-select das-form-control select2" multiple id="select_target_siswa" style="min-height: 120px;">
+              @foreach($siswaList as $s)
+                <option value="{{ $s->id }}" {{ is_array(old('target_siswa')) && in_array($s->id, old('target_siswa')) ? 'selected' : '' }}>
+                  {{ $s->nama_lengkap }} — ({{ $s->kelas ? $s->kelas->nama : '-' }} / NIS: {{ $s->nis ?? '-' }})
+                </option>
+              @endforeach
+            </select>
+            <small class="text-muted mt-1 d-block" style="font-size: .7rem;">
+              <i class="ti tabler-info-circle"></i> Tahan tombol Ctrl/Cmd untuk memilih beberapa siswa secara langsung per individu.
             </small>
           </div>
         </div>

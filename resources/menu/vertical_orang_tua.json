@@ -23,6 +23,18 @@
       "url": "/ortu/absensi"
     },
     {
+      "name": "Absensi Kegiatan",
+      "icon": "menu-icon ti tabler-calendar-event",
+      "slug": "ortu.absensi-kegiatan",
+      "url": "/ortu/absensi-kegiatan"
+    },
+    {
+      "name": "Pelanggaran",
+      "icon": "menu-icon ti tabler-alert-triangle",
+      "slug": "ortu.pelanggaran",
+      "url": "/ortu/pelanggaran"
+    },
+    {
       "name": "Izin & Sakit",
       "icon": "menu-icon ti tabler-stethoscope",
       "slug": "ortu.izin-sakit",

@@ -17,21 +17,10 @@
       "url": "/siswa/absensi"
     },
     {
-      "name": "Izin & Sakit",
+      "name": "Riwayat Izin & Sakit",
       "icon": "menu-icon ti tabler-stethoscope",
-      "slug": "siswa.izin-sakit",
-      "submenu": [
-        {
-          "name": "Riwayat Izin",
-          "slug": "siswa.izin-sakit.index",
-          "url": "/siswa/izin-sakit"
-        },
-        {
-          "name": "Ajukan Izin Mandiri",
-          "slug": "siswa.izin-sakit.create",
-          "url": "/siswa/izin-sakit/create"
-        }
-      ]
+      "slug": "siswa.izin-sakit.index",
+      "url": "/siswa/izin-sakit"
     },
     {
       "name": "Tugas Mandiri",

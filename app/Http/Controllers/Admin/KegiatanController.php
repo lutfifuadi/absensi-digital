@@ -23,7 +23,8 @@ class KegiatanController extends Controller
         $kelas = Kelas::all();
         $tingkat = Kelas::distinct()->pluck('tingkat')->filter()->sort();
         $jurusanList = \App\Models\Jurusan::pluck('nama')->sort()->values();
-        return view('admin.kegiatan.create', compact('tahunAkademiks', 'kelas', 'tingkat', 'jurusanList'));
+        $siswaList = \App\Models\Siswa::with('kelas')->where('status', 'aktif')->orderBy('nama_lengkap')->get();
+        return view('admin.kegiatan.create', compact('tahunAkademiks', 'kelas', 'tingkat', 'jurusanList', 'siswaList'));
     }
 
     public function store(Request $request)
@@ -41,6 +42,9 @@ class KegiatanController extends Controller
             'target_tingkat' => 'nullable|array',
             'target_jurusan' => 'nullable|array',
             'target_jurusan.*' => 'string|max:255',
+            'target_gender' => 'nullable|in:L,P',
+            'target_siswa' => 'nullable|array',
+            'target_siswa.*' => 'integer|exists:siswa,id',
             'is_wajib' => 'nullable|boolean',
         ]);
 
@@ -74,7 +78,8 @@ class KegiatanController extends Controller
         $kelas = Kelas::all();
         $tingkat = Kelas::distinct()->pluck('tingkat')->filter()->sort();
         $jurusanList = \App\Models\Jurusan::pluck('nama')->sort()->values();
-        return view('admin.kegiatan.edit', compact('kegiatan', 'tahunAkademiks', 'kelas', 'tingkat', 'jurusanList'));
+        $siswaList = \App\Models\Siswa::with('kelas')->where('status', 'aktif')->orderBy('nama_lengkap')->get();
+        return view('admin.kegiatan.edit', compact('kegiatan', 'tahunAkademiks', 'kelas', 'tingkat', 'jurusanList', 'siswaList'));
     }
 
     public function update(Request $request, Kegiatan $kegiatan)
@@ -92,6 +97,9 @@ class KegiatanController extends Controller
             'target_tingkat' => 'nullable|array',
             'target_jurusan' => 'nullable|array',
             'target_jurusan.*' => 'string|max:255',
+            'target_gender' => 'nullable|in:L,P',
+            'target_siswa' => 'nullable|array',
+            'target_siswa.*' => 'integer|exists:siswa,id',
             'is_wajib' => 'nullable|boolean',
         ]);
 

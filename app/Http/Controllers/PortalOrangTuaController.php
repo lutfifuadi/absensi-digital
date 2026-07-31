@@ -553,6 +553,138 @@ class PortalOrangTuaController extends Controller
     }
 
     /**
+     * Absensi Kegiatan Anak (Kondisional sesuai target anak).
+     */
+    public function absensiKegiatan(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $activeSiswaId = session('active_siswa_id');
+        $anak = Siswa::with(['kelas.jurusan', 'tahunAkademik'])
+            ->where(function($query) use ($user) {
+                $query->where('ortu_user_id', $user->id)
+                      ->orWhereHas('ortu', function($q) use ($user) {
+                          $q->where('users.id', $user->id);
+                      });
+            })
+            ->when($activeSiswaId, function($q) use ($activeSiswaId) {
+                $q->where('id', $activeSiswaId);
+            })
+            ->first();
+
+        if (!$anak) {
+            return redirect()->route('ortu.dashboard')->with('error', 'Data anak tidak ditemukan.');
+        }
+
+        // Ambil seluruh kegiatan dan filter sesuai target anak
+        $allKegiatan = \App\Models\Kegiatan::with(['absensiKegiatan' => function($q) use ($anak) {
+            $q->where('siswa_id', $anak->id);
+        }])->orderByDesc('tanggal_pelaksanaan')->get();
+
+        $kegiatans = $allKegiatan->filter(function($kg) use ($anak) {
+            // Check gender target
+            if (!empty($kg->target_gender) && $kg->target_gender !== $anak->jenis_kelamin) {
+                return false;
+            }
+
+            // Check target_siswa (individual target)
+            if (!empty($kg->target_siswa) && is_array($kg->target_siswa)) {
+                return in_array($anak->id, array_map('intval', $kg->target_siswa));
+            }
+
+            // Check target_peserta (kelas)
+            if (!empty($kg->target_peserta) && is_array($kg->target_peserta)) {
+                if (!in_array($anak->kelas_id, array_map('intval', $kg->target_peserta))) {
+                    return false;
+                }
+            }
+
+            // Check target_tingkat
+            if (!empty($kg->target_tingkat) && is_array($kg->target_tingkat)) {
+                if (!$anak->kelas || !in_array($anak->kelas->tingkat, $kg->target_tingkat)) {
+                    return false;
+                }
+            }
+
+            // Check target_jurusan
+            if (!empty($kg->target_jurusan) && is_array($kg->target_jurusan)) {
+                $namaJurusan = $anak->kelas?->jurusan?->nama;
+                if (!$namaJurusan || !in_array($namaJurusan, $kg->target_jurusan)) {
+                    return false;
+                }
+            }
+
+            return true;
+        })->values();
+
+        // Hitung statistik kegiatan
+        $stats = [
+            'total' => $kegiatans->count(),
+            'hadir' => 0,
+            'izin'  => 0,
+            'sakit' => 0,
+            'alpha' => 0,
+            'belum' => 0,
+        ];
+
+        foreach ($kegiatans as $kg) {
+            $absen = $kg->absensiKegiatan->first();
+            if ($absen) {
+                if (isset($stats[$absen->status])) {
+                    $stats[$absen->status]++;
+                }
+            } else {
+                $stats['belum']++;
+            }
+        }
+
+        return view('portal-ortu.absensi-kegiatan', compact('anak', 'kegiatans', 'stats'));
+    }
+
+    /**
+     * Rekap Pelanggaran Anak.
+     */
+    public function pelanggaran(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $activeSiswaId = session('active_siswa_id');
+        $anak = Siswa::with(['kelas'])
+            ->where(function($query) use ($user) {
+                $query->where('ortu_user_id', $user->id)
+                      ->orWhereHas('ortu', function($q) use ($user) {
+                          $q->where('users.id', $user->id);
+                      });
+            })
+            ->when($activeSiswaId, function($q) use ($activeSiswaId) {
+                $q->where('id', $activeSiswaId);
+            })
+            ->first();
+
+        if (!$anak) {
+            return redirect()->route('ortu.dashboard')->with('error', 'Data anak tidak ditemukan.');
+        }
+
+        $pelanggarans = \App\Models\PelanggaranSiswa::with(['jenisPelanggaran.kategori', 'pencatat', 'fotos'])
+            ->where('siswa_id', $anak->id)
+            ->where('is_diarsipkan', false)
+            ->orderByDesc('tanggal_kejadian')
+            ->get();
+
+        $spList = \App\Models\PelanggaranSp::where('siswa_id', $anak->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $totalPoin = $pelanggarans->sum(function($p) {
+            return $p->poin_saat_itu ?? $p->jenisPelanggaran?->poin ?? 0;
+        });
+
+        return view('portal-ortu.pelanggaran', compact('anak', 'pelanggarans', 'spList', 'totalPoin'));
+    }
+
+    /**
      * Build semua kemungkinan format nomor HP Indonesia dari satu input.
      * Mengembalikan array berisi format "08xxxx" dan "628xxxx".
      *

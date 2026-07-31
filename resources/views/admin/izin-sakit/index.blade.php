@@ -175,9 +175,15 @@
       </div>
 
       <div class="das-hero__actions">
-        <a href="{{ route('admin.izin-sakit.create') }}" class="das-btn das-btn--info">
-          <i class="ti tabler-plus me-1"></i> Tambah Pengajuan
-        </a>
+        @if(!auth()->user()->isRole(\App\Models\User::ROLE_SISWA))
+          <a href="{{ route('admin.izin-sakit.create') }}" class="das-btn das-btn--info">
+            <i class="ti tabler-plus me-1"></i> Tambah Pengajuan
+          </a>
+        @else
+          <span class="badge bg-label-info p-2" style="font-size:0.75rem;">
+            <i class="ti tabler-info-circle me-1"></i> Pengajuan izin siswa dilakukan oleh Orang Tua, Guru, Wali Kelas, Piket, atau Admin
+          </span>
+        @endif
       </div>
     </div>
   </div>
