@@ -896,10 +896,10 @@ return response()->json([
             'alpha' => $allAbsensiMonth->where('status', 'alpha')->count(),
         ];
 
-        // Daftar Presensi Guru Hari Ini (Real-time monitoring)
+        // Daftar Presensi Guru Hari Ini (Real-time monitoring - Sample 10 Data)
         $guruTodayList = Guru::with(['user', 'absensiGuru' => function($q) use ($today) {
             $q->whereDate('tanggal', $today);
-        }])->get();
+        }])->take(10)->get();
 
         $pengaturanArr = Pengaturan::pluck('value', 'key')->toArray();
 
