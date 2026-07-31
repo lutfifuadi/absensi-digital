@@ -65,16 +65,6 @@
           <p class="das-hero__welcome">Analitik & Pemantauan Kehadiran Guru</p>
         </div>
       </div>
-
-      {{-- Clock --}}
-      <div class="das-hero__clock" role="status" aria-live="off">
-        <div class="das-hero__date">{{ now()->locale('id')->translatedFormat('l, d F Y') }}</div>
-        <div class="das-hero__time">
-          <span id="live-clock">00:00:00</span>
-          <span class="das-hero__live-badge"><span class="das-hero__pulse-dot" aria-hidden="true"></span>LIVE</span>
-        </div>
-        <div class="das-hero__tz">WAKTU INDONESIA BARAT (WIB)</div>
-      </div>
     </div>
   </div>
 
