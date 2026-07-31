@@ -36,7 +36,34 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        
+
+        // ── Direct Route Handling (Ensures /guru/dashboard loads dashboards.guru) ──
+        if ($request->routeIs('guru.dashboard')) {
+            $data = array_merge(['user' => $user, 'pageTitle' => 'Dashboard Analitik Guru'], $this->guruData($user));
+            return view('dashboards.guru', $data);
+        }
+
+        if ($request->routeIs('siswa.dashboard')) {
+            $data = array_merge(['user' => $user, 'pageTitle' => 'Dashboard Siswa'], $this->siswaData($user));
+            return view('dashboards.siswa', $data);
+        }
+
+        if ($request->routeIs('wali-kelas.dashboard')) {
+            $data = array_merge(['user' => $user, 'pageTitle' => 'Portal Wali Kelas'], $this->waliKelasData($user));
+            return view('dashboards.wali-kelas', $data);
+        }
+
+        if ($request->routeIs('ortu.dashboard')) {
+            $data = array_merge(['user' => $user, 'pageTitle' => 'Portal Orang Tua'], $this->orangTuaData($user));
+            return view('dashboards.orang-tua', $data);
+        }
+
+        if ($request->routeIs('piket.dashboard')) {
+            $data = array_merge(['user' => $user, 'pageTitle' => 'Portal Guru Piket'], $this->piketData());
+            return view('dashboards.piket', $data);
+        }
+
+        // ── Generic /dashboard Route Handling ──────────────────────────────────
         $availableRoles = array_unique(array_filter(array_merge([$user->role], $user->roles ?? [])));
         
         if (count($availableRoles) > 1) {
@@ -74,46 +101,8 @@ class DashboardController extends Controller
             User::ROLE_PIKET          => 'dashboards.piket',
         ];
 
-        $titleMap = [
-            User::ROLE_SUPER_ADMIN    => 'Admin Panel',
-            User::ROLE_ADMIN_SEKOLAH  => 'Admin Panel',
-            User::ROLE_OPERATOR       => 'Panel Operator',
-            User::ROLE_GURU           => 'Portal Pendidik',
-            User::ROLE_WALI_KELAS     => 'Portal Wali Kelas',
-            User::ROLE_STAFF_TU       => 'Portal Staff',
-            User::ROLE_SISWA          => 'Portal Siswa',
-            User::ROLE_ORANG_TUA      => 'Portal Orang Tua',
-            User::ROLE_PIKET          => 'Portal Guru Piket',
-        ];
-
-        $view = $viewMap[$role] ?? 'dashboards.default';
-        $pageTitle = $titleMap[$role] ?? 'Dashboard';
-
-        $data = [
-            'user' => $user,
-            'pageTitle' => $pageTitle
-        ];
-
-        // Specific data fetching based on role
-        if ($role === User::ROLE_SUPER_ADMIN || $role === User::ROLE_ADMIN_SEKOLAH) {
-            $data = array_merge($data, $this->superAdminData());
-        } elseif ($role === User::ROLE_OPERATOR) {
-            $data = array_merge($data, $this->operatorData());
-        } elseif ($role === User::ROLE_STAFF_TU) {
-            $data = array_merge($data, $this->staffTuData($user));
-        } elseif ($role === User::ROLE_WALI_KELAS) {
-            $data = array_merge($data, $this->waliKelasData($user));
-        } elseif ($role === User::ROLE_GURU) {
-            $data = array_merge($data, $this->guruData($user));
-        } elseif ($role === User::ROLE_ORANG_TUA) {
-            $data = array_merge($data, $this->orangTuaData($user));
-        } elseif ($role === User::ROLE_SISWA) {
-            $data = array_merge($data, $this->siswaData($user));
-        } elseif ($role === User::ROLE_PIKET) {
-            $data = array_merge($data, $this->piketData());
-        }
-
-        return view($view, $data);
+        $view = $viewMap[$role] ?? 'dashboards.super-admin';
+        return view($view, array_merge(['user' => $user, 'pageTitle' => 'Dashboard'], $this->superAdminData()));
     }
 
     /**
