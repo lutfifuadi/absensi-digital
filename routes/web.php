@@ -264,6 +264,14 @@ Route::middleware([
         Route::get('/absensi', [AbsensiGuruController::class, 'index'])->name('guru.absensi.index');
         Route::get('/absensi/scan', [AbsensiGuruController::class, 'scan'])->name('guru.absensi.scan');
 
+        // Absensi Cepat Siswa (Portal Guru)
+        Route::get('/absensi-cepat', [AbsensiSiswaController::class, 'bulkForm'])
+            ->name('guru.absensi-cepat');
+        Route::get('/absensi-cepat/search', [AbsensiSiswaController::class, 'searchStudent'])
+            ->name('guru.absensi-cepat.search');
+        Route::post('/absensi-cepat', [AbsensiSiswaController::class, 'bulkStore'])
+            ->name('guru.absensi-cepat.store');
+
         // Izin & Sakit (Scoped to self in Controller)
         Route::get('/izin-sakit', [IzinSakitController::class, 'index'])->name('guru.izin-sakit.index');
         Route::get('/izin-sakit/create', [IzinSakitController::class, 'create'])->name('guru.izin-sakit.create');
@@ -934,17 +942,6 @@ Route::middleware([
         Route::post('absensi-cepat', [AbsensiSiswaController::class, 'bulkStore'])
             ->name('admin.absensi-cepat.store')
             ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator,guru');
-
-        // Route Absensi Cepat Guru (/guru/absensi-cepat)
-        Route::get('guru/absensi-cepat', [AbsensiSiswaController::class, 'bulkForm'])
-            ->name('guru.absensi-cepat')
-            ->middleware('role:guru,super_admin,admin_sekolah,wali_kelas,operator');
-        Route::get('guru/absensi-cepat/search', [AbsensiSiswaController::class, 'searchStudent'])
-            ->name('guru.absensi-cepat.search')
-            ->middleware('role:guru,super_admin,admin_sekolah,wali_kelas,operator');
-        Route::post('guru/absensi-cepat', [AbsensiSiswaController::class, 'bulkStore'])
-            ->name('guru.absensi-cepat.store')
-            ->middleware('role:guru,super_admin,admin_sekolah,wali_kelas,operator');
         Route::post('absensi-siswa/auto-alpha', [AbsensiSiswaController::class, 'triggerAutoAlpha'])
             ->name('admin.absensi-siswa.auto-alpha')
             ->middleware('role:super_admin,admin_sekolah,operator,wali_kelas');
