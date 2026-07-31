@@ -21,11 +21,13 @@
       if (select2.length) {
         select2.each(function () {
           var $this = $(this);
-          $this.wrap('<div class="position-relative"></div>').select2({
-            placeholder: $this.data('placeholder') || 'Pilih / Cari...',
-            dropdownParent: $this.parent(),
-            minimumResultsForSearch: 0
-          });
+          if (!$this.hasClass('select2-hidden-accessible')) {
+            $this.wrap('<div class="position-relative"></div>').select2({
+              placeholder: $this.data('placeholder') || 'Pilih / Cari...',
+              dropdownParent: $this.parent(),
+              minimumResultsForSearch: 0
+            });
+          }
         });
       }
     });
@@ -38,11 +40,21 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ asset('css/dashboards/super-admin.css') }}?v=4.3">
   <style>
+    /* Sembunyikan native select sepenuhnya saat Select2 aktif */
+    select.select2-hidden-accessible {
+      display: none !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      position: absolute !important;
+    }
     .form-alert {
       transition: all .2s ease;
     }
     .form-control, .form-select, .btn {
       border-radius: 5px !important;
+    }
+    .position-relative .select2-container {
+      width: 100% !important;
     }
     .position-relative .select2-container--default .select2-selection--single {
       background-color: rgba(255, 255, 255, 0.04) !important;
@@ -56,9 +68,14 @@
     .position-relative .select2-container--default .select2-selection--single .select2-selection__rendered {
       color: #e0e0e0 !important;
       padding-left: 12px;
+      line-height: 40px;
     }
     .position-relative .select2-container--default .select2-selection--single .select2-selection__arrow {
       height: 40px !important;
+      right: 8px;
+    }
+    .select2-container--default .select2-search--dropdown {
+      padding: 8px !important;
     }
     .select2-container--default .select2-search--dropdown .select2-search__field,
     .select2-container--default .select2-search--inline .select2-search__field {
@@ -75,7 +92,7 @@
       border: 1px solid rgba(255, 255, 255, 0.12) !important;
       border-radius: 8px !important;
       color: #fff !important;
-      z-index: 1060;
+      z-index: 1060 !important;
     }
     .select2-container--default .select2-results__option {
       padding: 8px 12px;
