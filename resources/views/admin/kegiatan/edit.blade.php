@@ -607,6 +607,16 @@
 
     // Run on page load to set correct initial state
     setTimeout(function() {
+      const cbTanggal = document.getElementById('tanpa_tanggal_pasti');
+      if (cbTanggal && cbTanggal.checked) {
+        window.toggleTanggal(cbTanggal);
+      }
+      const cbWaktu = document.getElementById('tanpa_batas_waktu');
+      if (cbWaktu && cbWaktu.checked) {
+        window.toggleWaktu(cbWaktu);
+      }
+    }, 100);
+
     // Inisialisasi Select2 AJAX untuk Target Siswa Spesifik
     if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
       const $select = jQuery('#select_target_siswa');
