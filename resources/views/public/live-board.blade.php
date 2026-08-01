@@ -1087,6 +1087,7 @@ const REFRESH_MS     = 3000; // leaderboard auto-refresh (Real-time speed)
 const DISMISS_MS     = 800;  // toast auto-hide
 const DEBOUNCE_MS    = 3000;  // anti-duplicate scan
 const CURRENT_MODE   = '{{ $mode }}';
+const APP_TIMEZONE   = '{{ $ianaTimezone ?? "Asia/Jakarta" }}';
 
 function switchMode(mode) {
   window.location.search = '?mode=' + mode;
@@ -1195,8 +1196,9 @@ setInterval(updateSessionCountdown, 1000);
     }
 
     function updateAnalogClock(){
+      const targetTz = (typeof APP_TIMEZONE !== 'undefined' && APP_TIMEZONE) ? APP_TIMEZONE : 'Asia/Jakarta';
       const now = new Date(
-        new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' })
+        new Date().toLocaleString('en-US', { timeZone: targetTz })
       );
       const h = now.getHours();
       const m = now.getMinutes();

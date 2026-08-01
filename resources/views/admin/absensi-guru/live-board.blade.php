@@ -958,6 +958,7 @@ const TOLERANSI_MENIT= {{ $toleransi }};
 const REFRESH_MS     = 3000;
 const DISMISS_MS     = 800;
 const CURRENT_MODE   = '{{ $mode }}';
+const APP_TIMEZONE   = '{{ $ianaTimezone ?? "Asia/Jakarta" }}';
 
 let guruListGlobal = @json($guruList);
 let currentFilter  = 'all';
@@ -1077,8 +1078,9 @@ setInterval(updateSessionCountdown, 1000);
     }
 
     function updateAnalogClock(){
+      const targetTz = (typeof APP_TIMEZONE !== 'undefined' && APP_TIMEZONE) ? APP_TIMEZONE : 'Asia/Jakarta';
       const now = new Date(
-        new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' })
+        new Date().toLocaleString('en-US', { timeZone: targetTz })
       );
       const h = now.getHours();
       const m = now.getMinutes();

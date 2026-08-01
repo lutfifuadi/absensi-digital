@@ -379,12 +379,16 @@ class LiveBoardGuruController extends Controller
         $zonaWaktu = Pengaturan::where('key', 'zona_waktu')->value('value') ?? 'Asia/Jakarta (WIB)';
         $zoneAbbr = 'WIB';
         $utcOffset = 'UTC+7';
+        $ianaTimezone = 'Asia/Jakarta';
+
         if (str_contains($zonaWaktu, 'WITA') || str_contains($zonaWaktu, 'Makassar')) {
             $zoneAbbr = 'WITA';
             $utcOffset = 'UTC+8';
+            $ianaTimezone = 'Asia/Makassar';
         } elseif (str_contains($zonaWaktu, 'WIT') || str_contains($zonaWaktu, 'Jayapura')) {
             $zoneAbbr = 'WIT';
             $utcOffset = 'UTC+9';
+            $ianaTimezone = 'Asia/Jayapura';
         }
 
         return [
@@ -396,6 +400,7 @@ class LiveBoardGuruController extends Controller
             'kotaSekolah'        => $kotaSekolah,
             'zoneAbbr'           => $zoneAbbr,
             'utcOffset'          => $utcOffset,
+            'ianaTimezone'       => $ianaTimezone,
             'totalKapasitasGuru' => $totalGuru,
             'jamMasukCfg'        => $jamMasukCfg,
             'jamMulaiAbsensi'    => $jamMulaiAbsensi,
