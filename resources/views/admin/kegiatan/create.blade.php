@@ -2,96 +2,6 @@
 
 @section('title', 'Tambah Kegiatan Baru')
 
-@section('vendor-style')
-  @vite([
-    'resources/assets/vendor/libs/select2/select2.scss'
-  ])
-  <style>
-    .select2-container--default .select2-selection--multiple {
-      background-color: rgba(255, 255, 255, 0.04) !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
-      border-radius: 5px !important;
-      color: #fff !important;
-      min-height: 44px;
-      padding: 4px 8px;
-    }
-    .select2-container--default.select2-container--focus .select2-selection--multiple {
-      border-color: #7367f0 !important;
-      background-color: rgba(255, 255, 255, 0.07) !important;
-      box-shadow: 0 0 0 2px rgba(115, 103, 240, 0.2) !important;
-    }
-    .select2-container--default .select2-selection--multiple .select2-selection__choice {
-      background-color: #7367f0 !important;
-      border: none !important;
-      color: #fff !important;
-      border-radius: 6px;
-      padding: 4px 10px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      margin-top: 4px;
-      margin-right: 6px;
-      display: inline-flex;
-      align-items: center;
-      box-shadow: 0 2px 6px rgba(115, 103, 240, 0.3);
-    }
-    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
-      color: rgba(255, 255, 255, 0.8) !important;
-      border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
-      margin-right: 6px !important;
-      padding-right: 6px !important;
-    }
-    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
-      color: #ffffff !important;
-      background-color: transparent !important;
-    }
-    .select2-dropdown {
-      background-color: #1e2130 !important;
-      border: 1px solid rgba(255, 255, 255, 0.12) !important;
-      border-radius: 8px !important;
-      color: #fff !important;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
-      z-index: 1060;
-    }
-    .select2-container--default .select2-search--dropdown .select2-search__field {
-      background-color: rgba(255, 255, 255, 0.05) !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
-      color: #fff !important;
-      border-radius: 6px !important;
-      padding: 6px 12px !important;
-    }
-    .select2-container--default .select2-results__option {
-      padding: 8px 12px;
-      font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.8) !important;
-    }
-    .select2-container--default .select2-results__option[aria-selected=true] {
-      background-color: rgba(115, 103, 240, 0.2) !important;
-      color: #a5a2f7 !important;
-    }
-    .select2-container--default .select2-results__option--highlighted[aria-selected] {
-      background-color: #7367f0 !important;
-      color: #fff !important;
-    }
-    /* Custom Styling for Select2 in Dark Mode */
-    .position-relative .select2-container--default .select2-selection--multiple {
-      background-color: rgba(255, 255, 255, 0.04) !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
-      border-radius: 5px !important;
-      color: #fff !important;
-      min-height: 44px;
-      padding: 4px 8px;
-    }
-    .select2-container .select2-selection--multiple {
-      overflow: hidden;
-    }
-    .select2-container--default .select2-selection--multiple .select2-selection__rendered {
-      display: flex;
-      flex-wrap: wrap;
-      padding: 2px 4px;
-    }
-  </style>
-@endsection
-
 @section('page-style')
 <style>
   /* Cegah overflow horizontal dari Select2 atau elemen layout manapun */
@@ -170,6 +80,185 @@
   /* TOOLTIP */
   .das-tooltip { position: relative; }
   .das-tooltip:hover::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #ccc; font-size: .65rem; font-weight: 600; padding: 4px 10px; border-radius: 4px; border: 1px solid var(--das-border); white-space: nowrap; z-index: 10; }
+
+  /* ════════════════════════════════════════════════════════════
+     TARGET SISWA — CUSTOM MULTI-SELECT SEARCH
+     (mengadopsi pola custom search di halaman Cetak Kartu)
+     ════════════════════════════════════════════════════════════ */
+  #targetSiswaSection .set-input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-top: .5rem;
+    margin-bottom: .5rem;
+  }
+  #targetSiswaSection .set-input-prefix {
+    position: absolute;
+    left: 1.15rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, .35);
+    transition: color .25s ease;
+    z-index: 5;
+    pointer-events: none;
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+  #targetSiswaSection .set-input-group:focus-within .set-input-prefix {
+    color: var(--das-primary);
+  }
+  #targetSiswaSection .set-input {
+    width: 100% !important;
+    max-width: 100% !important;
+    background: rgba(255, 255, 255, .04) !important;
+    border: 1px solid var(--das-border) !important;
+    border-radius: var(--das-radius) !important;
+    color: #e0e0e0 !important;
+    font-family: inherit;
+    font-size: .85rem !important;
+    transition: all .25s ease-in-out;
+    padding: .75rem 1.25rem .75rem 3rem;
+    margin: 0 !important;
+  }
+  #targetSiswaSection .set-input::placeholder {
+    color: rgba(255, 255, 255, .32);
+  }
+  #targetSiswaSection .set-input:focus {
+    background: rgba(255, 255, 255, .07) !important;
+    border-color: rgba(115, 103, 240, .5) !important;
+    box-shadow: 0 0 0 2px rgba(115, 103, 240, .2) !important;
+    color: #fff !important;
+    outline: none !important;
+  }
+
+  #targetSiswaSection .individu-search-results {
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid var(--das-border);
+    border-radius: var(--das-radius);
+    margin-top: .65rem;
+    width: 100%;
+    background: rgba(15, 23, 42, .88) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, .3);
+    z-index: 20;
+  }
+  #targetSiswaSection .individu-search-results:empty { display: none; }
+  #targetSiswaSection .individu-search-results::-webkit-scrollbar { width: 4px; }
+  #targetSiswaSection .individu-search-results::-webkit-scrollbar-track { background: transparent; }
+  #targetSiswaSection .individu-search-results::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, .12);
+    border-radius: 4px;
+  }
+
+  #targetSiswaSection .search-result-item {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: .65rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, .04);
+    border-left: 3px solid transparent;
+    transition: all .2s ease-in-out;
+    font-size: .83rem;
+    color: rgba(255, 255, 255, .7);
+  }
+  #targetSiswaSection .search-result-item:last-child { border-bottom: none; }
+  #targetSiswaSection .search-result-item:hover {
+    background: var(--das-primary-soft);
+    border-left-color: var(--das-primary);
+    color: #fff;
+  }
+  #targetSiswaSection .search-result-item.is-selected {
+    background: rgba(40, 199, 111, .06);
+    border-left-color: var(--das-success);
+    color: rgba(255, 255, 255, .55);
+  }
+  #targetSiswaSection .search-result-item.is-selected:hover {
+    background: rgba(40, 199, 111, .1);
+    color: rgba(255, 255, 255, .7);
+  }
+  #targetSiswaSection .search-result-item .sri-name {
+    font-weight: 600;
+    flex: 1;
+    color: #fff;
+  }
+  #targetSiswaSection .search-result-item.is-selected .sri-name { color: rgba(255, 255, 255, .6); }
+  #targetSiswaSection .search-result-item .sri-nip {
+    font-size: .73rem;
+    color: rgba(255, 255, 255, .45);
+    font-family: monospace;
+    background: rgba(255, 255, 255, .05);
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  #targetSiswaSection .search-result-item .sri-check {
+    color: var(--das-success);
+    font-size: .95rem;
+    flex-shrink: 0;
+  }
+
+  #targetSiswaSection .search-empty-msg {
+    text-align: center;
+    padding: 1.5rem;
+    font-size: .8rem;
+    color: rgba(255, 255, 255, .35);
+  }
+
+  #targetSiswaSection .avatar-initials-mini {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7367f0, #00cfe8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .7rem;
+    color: #fff;
+    font-weight: bold;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(115, 103, 240, .3);
+  }
+
+  #targetSiswaSection .selected-chip-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-top: .75rem;
+    min-height: 0;
+  }
+  #targetSiswaSection .selected-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .45rem .85rem;
+    border-radius: 8px;
+    background: var(--das-primary-soft);
+    border: 1px solid rgba(115, 103, 240, .25);
+    color: #c8c4f8;
+    font-size: .8rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(115, 103, 240, .1);
+  }
+  #targetSiswaSection .selected-chip .chip-remove {
+    cursor: pointer;
+    opacity: .6;
+    font-size: .8rem;
+    transition: all .2s ease-in-out;
+    line-height: 1;
+    color: rgba(255, 255, 255, .6);
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, .05);
+  }
+  #targetSiswaSection .selected-chip .chip-remove:hover {
+    opacity: 1;
+    color: var(--das-danger);
+    background: rgba(234, 84, 85, .15);
+  }
 </style>
 @endsection
 
@@ -446,19 +535,37 @@
             </small>
           </div>
 
-          {{-- Target Peserta (Siswa Individu - Select2) --}}
+          {{-- Target Peserta (Siswa Individu - Custom Multi-Select Search) --}}
           <div class="col-12">
             <label class="das-form-label">Target Siswa Spesifik (Per Individu) <small class="text-muted" style="font-size:.65rem;text-transform:none;letter-spacing:0;">(Opsional)</small></label>
-            <select name="target_siswa[]" class="select2 form-select" multiple id="select_target_siswa" data-placeholder="Ketik / pilih nama siswa per individu...">
-              @foreach($siswaList as $s)
-                <option value="{{ $s->id }}" {{ is_array(old('target_siswa')) && in_array($s->id, old('target_siswa')) ? 'selected' : '' }}>
-                  {{ $s->nama_lengkap }} — ({{ $s->kelas ? $s->kelas->nama : '-' }} / NIS: {{ $s->nis ?? '-' }})
-                </option>
-              @endforeach
-            </select>
-            <small class="text-muted mt-1 d-block" style="font-size: .7rem;">
-              <i class="ti tabler-info-circle"></i> Cari nama siswa atau NISN untuk menambahkan target individu kegiatan ini.
-            </small>
+            <div id="targetSiswaSection">
+              {{-- Select asli disembunyikan — nilainya di-sync via JS agar tetap mengirim name="target_siswa[]" --}}
+              <select name="target_siswa[]" multiple hidden id="select_target_siswa" tabindex="-1" aria-hidden="true">
+                @foreach($siswaList as $s)
+                  <option value="{{ $s->id }}" {{ is_array(old('target_siswa')) && in_array($s->id, old('target_siswa')) ? 'selected' : '' }}>
+                    {{ $s->nama_lengkap }} — ({{ $s->kelas ? $s->kelas->nama : '-' }} / NIS: {{ $s->nis ?? '-' }})
+                  </option>
+                @endforeach
+              </select>
+
+              {{-- Search box --}}
+              <div class="set-input-group">
+                <span class="set-input-prefix"><i class="ti tabler-search"></i></span>
+                <input type="text" class="set-input" id="searchTargetSiswa"
+                       placeholder="Ketik nama, NIS atau NISN siswa..." autocomplete="off"
+                       aria-label="Cari siswa untuk target individu">
+              </div>
+
+              {{-- Chip terpilih (multi-select) --}}
+              <div class="selected-chip-wrap" id="selectedSiswaChipWrap" aria-live="polite"></div>
+
+              {{-- Hasil pencarian --}}
+              <div class="individu-search-results" id="siswaSearchResultsList" role="listbox" aria-label="Hasil pencarian siswa"></div>
+
+              <small class="text-muted mt-1 d-block" style="font-size: .7rem;">
+                <i class="ti tabler-info-circle"></i> Cari nama siswa, NIS atau NISN untuk menambahkan target individu kegiatan ini.
+              </small>
+            </div>
           </div>
         </div>
 
@@ -478,19 +585,143 @@
 @endsection
 
 @section('page-script')
-  <script type="module">
-    $(function() {
-      const select2 = $('.select2');
-      if (select2.length) {
-        select2.each(function () {
-          var $this = $(this);
-          $this.wrap('<div class="position-relative"></div>').select2({
-            placeholder: $this.data('placeholder') || 'Pilih...',
-            dropdownParent: $this.parent(),
-            minimumResultsForSearch: 0
-          });
+  @php
+    // Normalisasi data siswa: hanya field yang dibutuhkan + nama kelas (hindari Eloquent mentah yang besar)
+    $siswaData = $siswaList->map(fn($s) => [
+        'id'           => $s->id,
+        'nama_lengkap' => $s->nama_lengkap,
+        'nis'          => $s->nis,
+        'nisn'         => $s->nisn,
+        'kelas'        => $s->kelas ? $s->kelas->nama : '-',
+    ])->values();
+  @endphp
+  <script>
+    // ════════════════════════════════════════════════════════════
+    // TARGET SISWA — CUSTOM MULTI-SELECT SEARCH
+    // (mengadopsi pola custom search di halaman Cetak Kartu)
+    // ════════════════════════════════════════════════════════════
+    const DATA_SISWA_KEGIATAN = @json($siswaData);
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const sectionEl = document.getElementById('targetSiswaSection');
+      const selectEl  = document.getElementById('select_target_siswa');
+      const searchEl  = document.getElementById('searchTargetSiswa');
+      const chipWrap  = document.getElementById('selectedSiswaChipWrap');
+      const listEl    = document.getElementById('siswaSearchResultsList');
+      if (!sectionEl || !selectEl || !searchEl || !chipWrap || !listEl) return;
+
+      let selectedIds = [];
+
+      function escHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      function buildSub(item) {
+        const kelas = item.kelas || '-';
+        const nis   = item.nis || '-';
+        return `(${kelas} / NIS: ${nis})`;
+      }
+
+      function buildLabel(item) {
+        return `${item.nama_lengkap} — ${buildSub(item)}`;
+      }
+
+      function searchable(item) {
+        return `${item.nama_lengkap} ${item.nis || ''} ${item.nisn || ''} ${item.kelas || ''}`.toLowerCase();
+      }
+
+      function findSiswa(id) {
+        return DATA_SISWA_KEGIATAN.find(d => String(d.id) === String(id)) || null;
+      }
+
+      /** Sync pilihan ke select tersembunyi agar submit mengirim target_siswa[] */
+      function syncSelect() {
+        Array.from(selectEl.options).forEach(opt => {
+          opt.selected = selectedIds.some(id => String(id) === opt.value);
         });
       }
+
+      function renderChips() {
+        if (selectedIds.length === 0) { chipWrap.innerHTML = ''; return; }
+        chipWrap.innerHTML = selectedIds.map(id => {
+          const item = findSiswa(id);
+          if (!item) return '';
+          return `<div class="selected-chip">
+            <div class="avatar-initials-mini">${escHtml(item.nama_lengkap.charAt(0).toUpperCase())}</div>
+            <span>${escHtml(buildLabel(item))}</span>
+            <span class="chip-remove" data-id="${item.id}" title="Hapus ${escHtml(item.nama_lengkap)}" aria-label="Hapus ${escHtml(item.nama_lengkap)}" role="button">✕</span>
+          </div>`;
+        }).join('');
+      }
+
+      function addSiswa(id) {
+        if (selectedIds.some(i => String(i) === String(id))) return;
+        selectedIds.push(id);
+        renderChips();
+        syncSelect();
+        searchEl.value = '';
+        listEl.innerHTML = '';
+      }
+
+      function removeSiswa(id) {
+        selectedIds = selectedIds.filter(i => String(i) !== String(id));
+        renderChips();
+        syncSelect();
+      }
+
+      function renderSearchResults(term) {
+        if (!term) { listEl.innerHTML = ''; return; }
+        const lc = term.toLowerCase();
+        const filtered = DATA_SISWA_KEGIATAN
+          .filter(item => searchable(item).includes(lc))
+          .slice(0, 40); // max 40 hasil
+
+        if (filtered.length === 0) {
+          listEl.innerHTML = `<div class="search-empty-msg"><i class="ti tabler-search-off" style="font-size:1.4rem;display:block;margin:0 auto 0.35rem;"></i>Tidak ada hasil untuk "<strong>${escHtml(term)}</strong>"</div>`;
+          return;
+        }
+
+        listEl.innerHTML = filtered.map(item => {
+          const isSelected = selectedIds.some(i => String(i) === String(item.id));
+          return `<div class="search-result-item${isSelected ? ' is-selected' : ''}" data-id="${item.id}" role="option" aria-selected="${isSelected}">
+            <div class="avatar-initials-mini">${escHtml(item.nama_lengkap.charAt(0).toUpperCase())}</div>
+            <span class="sri-name">${escHtml(item.nama_lengkap)}</span>
+            <span class="sri-nip">${escHtml(buildSub(item))}</span>
+            ${isSelected ? '<span class="sri-check"><i class="ti tabler-check"></i></span>' : ''}
+          </div>`;
+        }).join('');
+      }
+
+      // ── Init: render chip dari nilai lama/terpilih (dari select tersembunyi) ──
+      selectedIds = Array.from(selectEl.options).filter(o => o.selected).map(o => o.value);
+      renderChips();
+      syncSelect();
+
+      // ── Events ──
+      searchEl.addEventListener('input', function () {
+        renderSearchResults(this.value.trim());
+      });
+
+      listEl.addEventListener('click', function (e) {
+        const item = e.target.closest('.search-result-item');
+        if (item && item.dataset.id) addSiswa(item.dataset.id);
+      });
+
+      chipWrap.addEventListener('click', function (e) {
+        const rm = e.target.closest('.chip-remove');
+        if (rm && rm.dataset.id) removeSiswa(rm.dataset.id);
+      });
+
+      // Tutup daftar hasil saat klik di luar section / tekan Escape
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('#targetSiswaSection')) listEl.innerHTML = '';
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') listEl.innerHTML = '';
+      });
     });
   </script>
   <script>
@@ -624,11 +855,4 @@
 
   });
 </script>
-@endsection
-
-@section('vendor-script')
-  @vite([
-    'resources/assets/vendor/libs/jquery/jquery.js',
-    'resources/assets/vendor/libs/select2/select2.js'
-  ])
 @endsection

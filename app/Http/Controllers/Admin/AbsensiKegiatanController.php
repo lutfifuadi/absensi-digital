@@ -179,8 +179,15 @@ class AbsensiKegiatanController extends Controller
 
     public function scan()
     {
+        // Trigger generation sesi kegiatan berulang hari ini (fallback on-the-fly)
+        try {
+            app(\App\Services\PenjadwalanKegiatanService::class)->generateSesiForDate(now());
+        } catch (\Exception $e) {
+            // Silently catch error if database or service encounters temporary issue
+        }
+
         // Tampilkan semua kegiatan (tanpa filter tanggal) agar admin bisa scan kapan saja
-        $kegiatans = Kegiatan::latest('tanggal_pelaksanaan')->get();
+        $kegiatans = Kegiatan::with('jadwalKegiatan')->latest('tanggal_pelaksanaan')->get();
         return view('admin.kegiatan.scan', compact('kegiatans'));
     }
 

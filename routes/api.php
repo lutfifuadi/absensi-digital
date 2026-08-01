@@ -84,6 +84,22 @@ Route::get('/pengaduan/cek-wa', [PengaduanController::class, 'cekWa']);
 // ── WhatsApp Autoreply Webhook (PRD-005) — Publik API ───────────────────────
 Route::post('/v1/webhook/whatsapp-autoreply', [\App\Http\Controllers\Api\V1\WhatsAppWebhookController::class, 'handle']);
 
+// ── API Jadwal Kegiatan Berulang Hari Ini (PRD-005) ──────────────────────────
+Route::get('/jadwal-kegiatan/hari-ini', function (\App\Services\PenjadwalanKegiatanService $service) {
+    $service->generateSesiForDate(now());
+    $todayStr = now()->format('Y-m-d');
+    $kegiatans = \App\Models\Kegiatan::with('jadwalKegiatan')
+        ->whereNotNull('jadwal_kegiatan_id')
+        ->whereDate('tanggal_pelaksanaan', $todayStr)
+        ->get();
+    return response()->json([
+        'success' => true,
+        'tanggal' => $todayStr,
+        'count' => $kegiatans->count(),
+        'data' => $kegiatans,
+    ]);
+});
+
 // ── API V1 - Pengaturan Toggle (PRD-004) ──────────────────────────────────
 Route::prefix('v1/pengaturan')->middleware(['auth:sanctum,web', 'role:super_admin|admin_sekolah'])->group(function () {
     Route::post('/toggle', [\App\Http\Controllers\Api\V1\PengaturanApiController::class, 'toggle'])

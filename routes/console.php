@@ -16,6 +16,9 @@ Artisan::command('inspire', function () {
 // Jadwal: setiap hari jam 00.00 bersihkan file log laravel.log
 Schedule::command(\App\Console\Commands\LogsClear::class)->daily();
 
+// Jadwal: setiap hari generate sesi kegiatan dari jadwal berulang (PRD-005)
+Schedule::command(\App\Console\Commands\GenerateKegiatanFromJadwal::class)->daily();
+
 // Jadwal: jalankan auto-alpha secara berkala (setiap 15 menit) agar mengeksekusi sesuai batas_jam_masuk masing-masing kelas
 Schedule::command(AutoMarkAlphaCommand::class)->everyFifteenMinutes()->withoutOverlapping();
 

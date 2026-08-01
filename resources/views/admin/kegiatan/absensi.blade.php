@@ -55,12 +55,17 @@
   .das-chip--warning { background: var(--das-warning-soft); color: var(--das-warning); }
   .das-chip--danger { background: var(--das-danger-soft); color: var(--das-danger); }
 
-  /* BUTTONS */
-  .das-btn { display: inline-flex; align-items: center; gap: 5px; font-size: .75rem; font-weight: 600; padding: .5rem 1rem; border-radius: 5px; border: 1px solid transparent; cursor: pointer; transition: all .18s ease; text-decoration: none; white-space: nowrap; }
-  .das-btn--primary { background: var(--das-primary); color: white !important; border-color: var(--das-primary); }
-  .das-btn--primary:hover { background: #6259e8; transform: translateY(-2px); }
-  .das-btn--ghost { background: transparent; border-color: var(--das-border); color: #999 !important; }
-  .das-btn--ghost:hover { background: var(--das-surface-hover); color: white !important; }
+  /* BUTTONS - VIBRANT & MENCOLOK */
+  .das-btn { display: inline-flex; align-items: center; gap: 7px; font-size: .82rem; font-weight: 700; padding: .6rem 1.25rem; border-radius: 8px; border: 1px solid transparent; cursor: pointer; transition: all .2s cubic-bezier(0.4, 0, 0.2, 1); text-decoration: none; white-space: nowrap; letter-spacing: .3px; }
+  .das-btn--primary { background: linear-gradient(135deg, #7367f0 0%, #8b5cf6 100%); color: #ffffff !important; border-color: rgba(255,255,255,0.3); }
+  .das-btn--primary:hover { background: linear-gradient(135deg, #6259e8 0%, #7c3aed 100%); transform: translateY(-2px) scale(1.02); }
+  .das-btn--info { background: linear-gradient(135deg, #00cfe8 0%, #0284c7 100%); color: #ffffff !important; border-color: rgba(255,255,255,0.3); }
+  .das-btn--info:hover { background: linear-gradient(135deg, #00b8d4 0%, #0369a1 100%); transform: translateY(-2px) scale(1.02); }
+  .das-btn--warning { background: linear-gradient(135deg, #ff9f43 0%, #ea580c 100%); color: #ffffff !important; border-color: rgba(255,255,255,0.3); }
+  .das-btn--warning:hover { background: linear-gradient(135deg, #f58925 0%, #c2410c 100%); transform: translateY(-2px) scale(1.02); }
+  .das-btn--sm { padding: .45rem .85rem; font-size: .78rem; border-radius: 6px; }
+  .das-btn--ghost { background: #ffffff; color: #1e1b4b !important; font-weight: 700; border: 1px solid #ffffff; }
+  .das-btn--ghost:hover { background: #f1f5f9; color: #0f172a !important; transform: translateY(-2px) scale(1.02); }
 
   .activity-icon { width: 38px; height: 38px; border-radius: 8px; background: var(--das-primary-soft); border: 1px solid rgba(115,103,240,.2); display: flex; align-items: center; justify-content: center; color: var(--das-primary); font-size: 1rem; }
 
@@ -96,7 +101,10 @@
         <a href="{{ route('admin.absensi-kegiatan.scan') }}" class="das-btn das-btn--primary">
           <i class="ti tabler-qrcode me-1"></i> Scan QR Kegiatan
         </a>
-        <a href="{{ route('admin.kegiatan.index') }}" class="das-btn das-btn--ghost">
+        <a href="{{ route('admin.jadwal-kegiatan.index') }}" class="das-btn das-btn--info">
+          <i class="ti tabler-calendar-repeat me-1"></i> Jadwal Berulang
+        </a>
+        <a href="{{ route('admin.kegiatan.index') }}" class="das-btn das-btn--warning">
           <i class="ti tabler-settings me-1"></i> Kelola Kegiatan
         </a>
       </div>
@@ -183,8 +191,8 @@
               @endif
             </td>
             <td class="px-4 text-end">
-              <a href="{{ route('admin.absensi-kegiatan.live-board', $k->id) }}" class="das-btn das-btn--ghost das-btn--sm" target="_blank" title="Live Board & Scanner">
-                <i class="ti tabler-device-desktop-analytics"></i>
+              <a href="{{ route('admin.absensi-kegiatan.live-board', $k->id) }}" class="das-btn das-btn--info das-btn--sm px-2.5" target="_blank" title="Live Board & Scanner">
+                <i class="ti tabler-device-desktop-analytics fs-5"></i>
               </a>
               <button class="das-btn das-btn--primary das-btn--sm" onclick="viewAbsensi({{ $k->id }}, '{{ $k->nama_kegiatan }}')">
                 <i class="ti tabler-checkbox me-1"></i> Absensi
@@ -371,7 +379,7 @@ async function viewAbsensi(id, nama, page = 1) {
       'alpha': 'das-chip--danger'
     };
 
-    tbody.innerHTML = data.map(a => `
+    tbody.innerHTML = data.map(a => { return `
 
       <tr>
         <td>
@@ -398,7 +406,7 @@ async function viewAbsensi(id, nama, page = 1) {
           </select>
         </td>
       </tr>
-    `}).join('');
+    `; }).join('');
 
     renderPagination(result);
 

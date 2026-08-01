@@ -33,6 +33,7 @@ use App\Http\Controllers\Admin\ImpersonateController;
 use App\Http\Controllers\Admin\IzinSakitController;
 use App\Http\Controllers\Admin\JadwalPelajaranController;
 use App\Http\Controllers\Admin\JurusanController;
+use App\Http\Controllers\Admin\JadwalKegiatanController;
 use App\Http\Controllers\Admin\KegiatanController;
 use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Admin\LeaveLimitController;
@@ -472,6 +473,15 @@ Route::middleware([
             ->middleware('role:super_admin,admin_sekolah,operator');
         Route::resource('kegiatan', KegiatanController::class)
             ->names('admin.kegiatan')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+        Route::post('jadwal-kegiatan/sync', [JadwalKegiatanController::class, 'sync'])
+            ->name('admin.jadwal-kegiatan.sync')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+        Route::get('jadwal-kegiatan/{jadwalKegiatan}/rekap', [JadwalKegiatanController::class, 'rekap'])
+            ->name('admin.jadwal-kegiatan.rekap')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+        Route::resource('jadwal-kegiatan', JadwalKegiatanController::class)
+            ->names('admin.jadwal-kegiatan')
             ->middleware('role:super_admin,admin_sekolah,operator');
 
         Route::get('absensi-kegiatan/scan', [AbsensiKegiatanController::class, 'scan'])

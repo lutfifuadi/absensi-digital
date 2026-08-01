@@ -827,7 +827,7 @@
                 <option value="{{ $k->id }}"
                     data-tanggal="{{ $k->tanggal_pelaksanaan?->format('Y-m-d') ?? '' }}"
                     data-jam="{{ $k->waktu_mulai ?? '-' }} - {{ $k->waktu_selesai ?? '-' }}">
-                    {{ $k->nama_kegiatan }}
+                    @if($k->jadwal_kegiatan_id)[Berulang] @endif{{ $k->nama_kegiatan }}
                     @if($k->tanggal_pelaksanaan)
                         — {{ $k->tanggal_pelaksanaan->translatedFormat('d M Y') }}
                     @endif

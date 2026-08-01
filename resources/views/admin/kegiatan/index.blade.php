@@ -35,10 +35,14 @@
 
   /* BUTTONS */
   .das-btn { display: inline-flex; align-items: center; gap: 5px; font-size: .75rem; font-weight: 600; padding: .5rem 1rem; border-radius: 5px; border: 1px solid transparent; cursor: pointer; transition: all .18s ease; text-decoration: none; white-space: nowrap; }
-  .das-btn--primary { background: var(--das-primary); color: white !important; border-color: var(--das-primary); }
-  .das-btn--primary:hover { background: #6259e8; transform: translateY(-2px); }
-  .das-btn--ghost { background: transparent; border-color: var(--das-border); color: #999 !important; }
-  .das-btn--ghost:hover { background: var(--das-surface-hover); color: white !important; }
+  .das-btn--primary { background: var(--das-primary); color: white !important; border-color: var(--das-primary); box-shadow: none !important; }
+  .das-btn--primary:hover { background: #6259e8; transform: translateY(-2px); box-shadow: none !important; }
+  .das-btn--info { background: linear-gradient(135deg, #00cfe8 0%, #0284c7 100%); color: #ffffff !important; border-color: rgba(255,255,255,0.3); box-shadow: none !important; }
+  .das-btn--info:hover { background: linear-gradient(135deg, #00b8d4 0%, #0369a1 100%); transform: translateY(-2px) scale(1.02); box-shadow: none !important; }
+  .das-btn--warning { background: linear-gradient(135deg, #ff9f43 0%, #ea580c 100%); color: #ffffff !important; border-color: rgba(255,255,255,0.3); box-shadow: none !important; }
+  .das-btn--warning:hover { background: linear-gradient(135deg, #f58925 0%, #c2410c 100%); transform: translateY(-2px) scale(1.02); box-shadow: none !important; }
+  .das-btn--ghost { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #ffffff !important; box-shadow: none !important; }
+  .das-btn--ghost:hover { background: rgba(255, 255, 255, 0.1); color: #ffffff !important; transform: translateY(-2px); box-shadow: none !important; }
 
   /* PANEL */
   .das-panel { background: var(--das-surface); border: 1px solid var(--das-border); border-radius: var(--das-radius); overflow: hidden; backdrop-filter: blur(6px); }
@@ -104,7 +108,7 @@
         </div>
       </div>
       <div>
-        <button type="button" class="das-btn das-btn--primary shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCreate">
+        <button type="button" class="das-btn das-btn--primary" data-bs-toggle="modal" data-bs-target="#modalCreate">
           <i class="ti tabler-plus me-1"></i> Tambah Kegiatan
         </button>
       </div>
@@ -256,13 +260,12 @@
         <form action="{{ route('admin.kegiatan.store') }}" method="POST">
           @csrf
           <div class="das-modal-body">
-            <div class="mb-3">
-              <label class="das-form-label">Nama Kegiatan <span class="text-danger">*</span></label>
-              <input type="text" name="nama_kegiatan" class="form-control das-form-control" placeholder="Contoh: Upacara Bendera" required>
-            </div>
-            
             <div class="row g-3 mb-3">
-              <div class="col-md-4 col-12">
+              <div class="col-md-6 col-12">
+                <label class="das-form-label">Nama Kegiatan <span class="text-danger">*</span></label>
+                <input type="text" name="nama_kegiatan" class="form-control das-form-control" placeholder="Contoh: Upacara Bendera" required>
+              </div>
+              <div class="col-md-6 col-12">
                 <label class="das-form-label">Jenis <span class="text-danger">*</span></label>
                 <select name="jenis" class="form-select das-form-control" required>
                   <option value="EKSTRAKURIKULER">Ekstrakurikuler</option>
@@ -270,55 +273,6 @@
                   <option value="RAPAT">Rapat</option>
                   <option value="LAINNYA">Lainnya</option>
                 </select>
-              </div>
-              <div class="col-md-4 col-12" id="tanggal_modal_wrapper">
-                <label class="das-form-label">Tanggal Mulai</label>
-                <input type="date" name="tanggal_pelaksanaan" id="tanggal_pelaksanaan_modal" class="form-control das-form-control" value="{{ date('Y-m-d') }}">
-              </div>
-              <div class="col-md-4 col-12" id="tanggal_selesai_modal_wrapper">
-                <label class="das-form-label">Tanggal Selesai (Opsional)</label>
-                <input type="date" name="tanggal_selesai" id="tanggal_selesai_modal" class="form-control das-form-control">
-              </div>
-            </div>
-
-            {{-- Tanpa Tanggal Pasti & Tanpa Batas Waktu --}}
-            <div class="row g-3 mb-3">
-              <div class="col-6">
-                <div class="p-2" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
-                  <div class="form-check">
-                    <input type="checkbox" id="tanpa_tanggal_pasti_modal" class="form-check-input"
-                           style="width:18px;height:18px;cursor:pointer;"
-                           onchange="toggleTanggalModal(this)">
-                    <label class="form-check-label text-white small fw-semibold" for="tanpa_tanggal_pasti_modal" style="cursor:pointer;font-size:.75rem;">
-                      <i class="ti tabler-calendar-off text-warning me-1"></i>
-                      Tanpa tanggal pasti (kegiatan rutin/fleksibel)
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="p-2" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
-                  <div class="form-check">
-                    <input type="checkbox" id="tanpa_batas_waktu_modal" class="form-check-input"
-                           style="width:18px;height:18px;cursor:pointer;"
-                           onchange="toggleWaktuModal(this)">
-                    <label class="form-check-label text-white small fw-semibold" for="tanpa_batas_waktu_modal" style="cursor:pointer;font-size:.75rem;">
-                      <i class="ti tabler-clock-off text-info me-1"></i>
-                      Kegiatan seharian penuh (tanpa batas waktu)
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="row g-3 mb-3" id="waktu_modal_wrapper">
-              <div class="col-6">
-                <label class="das-form-label">Waktu Mulai</label>
-                <input type="time" name="waktu_mulai" id="waktu_mulai_modal" class="form-control das-form-control">
-              </div>
-              <div class="col-6">
-                <label class="das-form-label">Waktu Selesai</label>
-                <input type="time" name="waktu_selesai" id="waktu_selesai_modal" class="form-control das-form-control">
               </div>
             </div>
 
@@ -349,38 +303,5 @@
     const tooltips = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltips.map(el => new bootstrap.Tooltip(el));
   });
-
-  // Toggle tanggal modal
-  window.toggleTanggalModal = function(checkbox) {
-    const wrapper = document.getElementById('tanggal_modal_wrapper');
-    const tanggalInput = document.getElementById('tanggal_pelaksanaan_modal');
-    const selesaiWrapper = document.getElementById('tanggal_selesai_modal_wrapper');
-    const selesaiInput = document.getElementById('tanggal_selesai_modal');
-
-    if (checkbox.checked) {
-      wrapper.style.display = 'none';
-      tanggalInput.value = '';
-      selesaiWrapper.style.display = 'none';
-      selesaiInput.value = '';
-    } else {
-      wrapper.style.display = 'block';
-      selesaiWrapper.style.display = 'block';
-    }
-  };
-
-  // Toggle waktu modal
-  window.toggleWaktuModal = function(checkbox) {
-    const wrapper = document.getElementById('waktu_modal_wrapper');
-    const waktuMulai = document.getElementById('waktu_mulai_modal');
-    const waktuSelesai = document.getElementById('waktu_selesai_modal');
-
-    if (checkbox.checked) {
-      wrapper.style.display = 'none';
-      waktuMulai.value = '';
-      waktuSelesai.value = '';
-    } else {
-      wrapper.style.display = 'flex';
-    }
-  };
 </script>
 @endsection

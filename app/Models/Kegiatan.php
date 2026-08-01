@@ -29,6 +29,7 @@ class Kegiatan extends Model
         'target_gender',
         'target_siswa',
         'tahun_akademik_id',
+        'jadwal_kegiatan_id',
     ];
 
     protected $casts = [
@@ -40,6 +41,11 @@ class Kegiatan extends Model
         'target_jurusan' => 'array',
         'target_siswa' => 'array',
     ];
+
+    public function jadwalKegiatan()
+    {
+        return $this->belongsTo(JadwalKegiatan::class, 'jadwal_kegiatan_id');
+    }
 
     public function tahunAkademik()
     {
