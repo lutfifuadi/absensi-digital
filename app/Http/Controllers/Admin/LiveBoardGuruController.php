@@ -391,6 +391,10 @@ class LiveBoardGuruController extends Controller
             $ianaTimezone = 'Asia/Jayapura';
         }
 
+        $remainingCount = ($mode === 'pulang') 
+            ? max(0, $totalGuru - $pulangCount) 
+            : max(0, $totalGuru - ($hadirCount + $terlambatCount + $izinSakitCount));
+
         return [
             'mode'               => $mode,
             'namaSekolah'        => $namaSekolah,
