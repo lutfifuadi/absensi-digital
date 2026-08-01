@@ -209,19 +209,19 @@
       background: linear-gradient(135deg, #0e1726 0%, #152238 100%);
       border-radius: 4px;
       overflow: hidden;
-      flex-shrink: 0;
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 2rem 1.5rem;
+      justify-content: space-evenly;
+      padding: 1.25rem 1rem;
       border: 1px dashed rgba(115, 103, 240, 0.25);
     }
 
     /* Counter Besar Futuristik */
     .counter-widget {
       text-align: center;
-      margin-bottom: 2rem;
+      margin-bottom: 0.75rem;
       position: relative;
     }
     .counter-widget .counter-title {
@@ -345,7 +345,7 @@
     /* ─── CYBER ANALOG CLOCK INSTRUMENT ───────────────────── */
     .analog-clock-wrapper {
       position: relative;
-      margin: 0.75rem 0 1.25rem;
+      margin: 0.4rem 0 0.6rem;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -380,7 +380,8 @@
       height: 100%;
       border-radius: 8px;
       overflow: hidden;
-      background: radial-gradient(circle at 50% 40%, #152238 0%, #0e1726 80%);
+      background: radial-gradient(circle at 50% 40%, rgba(21, 34, 56, 0.88) 0%, rgba(14, 23, 38, 0.94) 80%);
+      backdrop-filter: blur(8px);
       box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
     }
     .analog-face::before {
@@ -933,12 +934,12 @@
 
     <!-- Scanner Area (Hardware Only) -->
     <div class="scanner-area">
-      <!-- Watermark Logo Sekolah (Ukuran Extra Besar) -->
-      <div class="watermark-logo" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; opacity: 0.08; z-index: 0; width: 85%; height: 85%; max-width: 460px; max-height: 460px; display: flex; align-items: center; justify-content: center;">
+      <!-- Watermark Logo Sekolah (Presisi Centered & Middle — 105% Bounds) -->
+      <div class="watermark-logo" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; opacity: 0.10; z-index: 0; padding: 0; overflow: hidden;">
         @if(!empty($logoSekolah))
-          <img src="{{ $logoSekolah }}" alt="Watermark Logo Sekolah" style="width: 100%; height: 100%; object-fit: contain; filter: brightness(130%);">
+          <img src="{{ $logoSekolah }}" alt="Watermark Logo Sekolah" style="width: 105%; height: 105%; max-width: none; max-height: none; object-fit: contain; filter: brightness(125%) drop-shadow(0 0 20px rgba(115,103,240,0.25));">
         @else
-          <span style="font-size: 240px; line-height: 1; opacity: 0.8;">🏫</span>
+          <span style="font-size: 335px; line-height: 1; opacity: 0.8;">🏫</span>
         @endif
       </div>
 
@@ -958,7 +959,7 @@
       </div>
 
       <!-- Separate Breakdown per Role (Siswa, Guru, Staff TU) -->
-      <div class="role-stat-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; width: 100%; margin-bottom: 0.75rem; padding: 0 0.25rem;">
+      <div class="role-stat-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; width: 100%; margin-bottom: 0.75rem; padding: 0 0.25rem; position: relative; z-index: 2;">
         <div class="role-stat-card" style="background: rgba(115, 103, 240, 0.08); border: 1px solid rgba(115, 103, 240, 0.25); border-radius: 8px; padding: 0.5rem 0.4rem; text-align: center; backdrop-filter: blur(4px);">
           <div style="font-size: 0.68rem; color: #a78bfa; font-weight: 800; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">🎓 Siswa</div>
           <div style="font-size: 1.1rem; font-weight: 900; color: #fff; font-family: 'Courier New', monospace; letter-spacing: -0.5px;">
@@ -1024,9 +1025,12 @@
         </div>
       </div>
 
-      <div style="text-align:center; color: var(--muted); font-size: 0.85rem; max-width: 280px; line-height: 1.4;">
-        <p style="color: #fff; font-weight: 700; margin-bottom: 0.25rem;">SIAP SCANNING</p>
-        <p>Silakan Arahkan QR-Code ke Alat Scanner</p>
+      <div style="text-align:center; color: var(--muted); font-size: 0.85rem; max-width: 280px; line-height: 1.4; position: relative; z-index: 2;">
+        <p style="color: #fff; font-weight: 700; margin-bottom: 0.25rem; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+          <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px var(--success); animation: pulse 1.4s ease-in-out infinite;"></span>
+          SIAP SCANNING
+        </p>
+        <p style="font-size: 0.75rem;">Silakan Arahkan QR Code / Kartu RFID ke Alat Scanner</p>
       </div>
 
       <!-- Result toast -->

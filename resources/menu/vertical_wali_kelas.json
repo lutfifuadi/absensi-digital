@@ -13,8 +13,8 @@
     {
       "name": "Input Absensi Kelas",
       "icon": "menu-icon ti tabler-edit",
-      "slug": "admin.absensi-cepat",
-      "url": "/admin/absensi-cepat"
+      "slug": "wali-kelas.absensi-cepat",
+      "url": "/wali-kelas/absensi-cepat"
     },
     {
       "name": "Absensi Harian Kelas",
@@ -39,92 +39,6 @@
       "icon": "menu-icon ti tabler-user-x",
       "slug": "wali-kelas.belum-absen",
       "url": "/wali-kelas/belum-absen"
-    },
-    {
-      "name": "Absensi Manual Cepat",
-      "icon": "menu-icon ti tabler-user-plus",
-      "slug": "wali-kelas.absensi-manual.create",
-      "url": "/wali-kelas/absensi-manual"
-    },
-    {
-      "menuHeader": "Tugas Piket",
-      "icon": "menu-icon ti tabler-shield-check"
-    },
-    {
-      "name": "Monitor Piket",
-      "icon": "menu-icon ti tabler-device-desktop-analytics",
-      "slug": [
-        "public.scan-qr.index",
-        "public.live-board"
-      ],
-      "submenu": [
-        {
-          "name": "Scanner QR Piket",
-          "icon": "menu-icon ti tabler-qrcode",
-          "slug": "public.scan-qr.index",
-          "url": "/scan-qr",
-          "target": "_blank"
-        },
-        {
-          "name": "Live Board Monitor",
-          "icon": "menu-icon ti tabler-screen-share",
-          "slug": "public.live-board",
-          "url": "/live-board",
-          "target": "_blank"
-        }
-      ]
-    },
-    {
-      "name": "Absensi Kegiatan",
-      "icon": "menu-icon ti tabler-calendar-event",
-      "slug": [
-        "admin.kegiatans.absensi",
-        "admin.absensi-kegiatan.scan"
-      ],
-      "submenu": [
-        {
-          "name": "Daftar Kegiatan",
-          "icon": "menu-icon ti tabler-list",
-          "slug": "admin.kegiatans.absensi",
-          "url": "/admin/kegiatans/absensi"
-        },
-        {
-          "name": "Scan Kegiatan Khusus",
-          "icon": "menu-icon ti tabler-qrcode",
-          "slug": "admin.absensi-kegiatan.scan",
-          "url": "/admin/absensi-kegiatan/scan"
-        }
-      ]
-    },
-    {
-      "name": "Ekstrakurikuler",
-      "icon": "menu-icon ti tabler-star",
-      "slug": [
-        "admin.ekskul"
-      ],
-      "url": "/admin/ekskul"
-    },
-    {
-      "name": "Poin Pelanggaran",
-      "icon": "menu-icon ti tabler-swords",
-      "slug": ["admin.pelanggaran.index", "admin.pelanggaran.create", "admin.pelanggaran.rekap"],
-      "submenu": [
-        {
-          "name": "Daftar Pelanggaran",
-          "slug": "admin.pelanggaran.index",
-          "url": "/admin/pelanggaran"
-        },
-        {
-          "name": "Tambah Pelanggaran",
-          "slug": "admin.pelanggaran.create",
-          "url": "/admin/pelanggaran/create"
-        },
-        {
-          "name": "Rekap Pelanggaran",
-          "slug": "admin.pelanggaran-siswa.rekap",
-          "url": "/admin/pelanggaran-siswa/rekap"
-        }
-      ]
     }
   ]
 }

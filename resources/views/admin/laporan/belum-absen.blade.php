@@ -126,7 +126,7 @@
                 </span>
               </td>
               <td class="text-center">
-                <a href="{{ route('wali-kelas.absensi-manual.create', ['siswa_id' => $siswa->id, 'tanggal' => $tanggal]) }}" class="btn btn-xs btn-info">
+                <a href="{{ route('wali-kelas.absensi-cepat', ['tanggal' => $tanggal]) }}" class="btn btn-xs btn-info">
                   <i class="ti tabler-edit-circle fs-6 me-1"></i> Absen Manual
                 </a>
               </td>
