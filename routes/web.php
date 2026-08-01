@@ -264,7 +264,7 @@ Route::middleware([
     Route::prefix('guru')->middleware('role:guru,super_admin,admin_sekolah,operator')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('guru.dashboard');
         Route::get('/absensi', [AbsensiGuruController::class, 'index'])->name('guru.absensi.index');
-        Route::get('/absensi/scan', [AbsensiGuruController::class, 'scan'])->name('guru.absensi.scan');
+        Route::get('/absensi/scan', [AbsensiGuruController::class, 'scan'])->name('guru.absensi.scan')->middleware('feature:fitur_scan_absensi_guru');
 
         // Absensi Cepat Siswa (Portal Guru)
         Route::get('/absensi-cepat', [AbsensiSiswaController::class, 'bulkForm'])
@@ -995,7 +995,7 @@ Route::middleware([
             ->middleware('role:super_admin,admin_sekolah,operator');
         Route::post('absensi-guru/scan', [AbsensiGuruController::class, 'scanAjax'])
             ->name('admin.absensi-guru.scan.ajax')
-            ->middleware('role:super_admin,admin_sekolah,operator');
+            ->middleware(['role:super_admin,admin_sekolah,operator', 'feature:fitur_scan_absensi_guru']);
 
         Route::resource('absensi-guru', AbsensiGuruController::class)
             ->names('admin.absensi-guru')

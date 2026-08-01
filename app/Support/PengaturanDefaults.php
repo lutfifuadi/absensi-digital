@@ -97,6 +97,17 @@ class PengaturanDefaults
                 'tenant_scoped' => false,
                 'permission'    => 'admin_sekolah',
             ],
+            'fitur_scan_absensi_guru' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'Scan Absensi Guru Mandiri',
+                'description'   => 'Izinkan guru melakukan presensi mandiri via QR Code dari portal guru.',
+                'icon'          => 'tabler-qrcode',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
             'fitur_download_kartu_siswa' => [
                 'default'       => '1',
                 'type'          => 'boolean',
