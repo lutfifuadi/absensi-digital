@@ -3676,7 +3676,7 @@ document.addEventListener('DOMContentLoaded', function () {
       switchEl.disabled = true;
 
       $.ajax({
-        url: '{{ route("api.v1.pengaturan.toggle") }}',
+        url: '{{ route("admin.pengaturan.toggle") }}',
         type: 'POST',
         data: JSON.stringify({ key: key, value: isChecked ? '1' : '0' }),
         contentType: 'application/json',

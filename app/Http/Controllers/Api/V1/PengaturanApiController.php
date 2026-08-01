@@ -44,7 +44,8 @@ class PengaturanApiController extends Controller
         // Permission check
         if (($meta['permission'] ?? 'admin_sekolah') === 'super_admin') {
             $user = $request->user();
-            if ($user && method_exists($user, 'hasRole') && !$user->hasRole('super_admin')) {
+            $isSuperAdmin = $user && method_exists($user, 'isSuperAdmin') ? $user->isSuperAdmin() : ($user && ($user->role === 'super_admin'));
+            if (!$isSuperAdmin) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anda tidak memiliki hak akses super_admin untuk mengubah pengaturan ini.',

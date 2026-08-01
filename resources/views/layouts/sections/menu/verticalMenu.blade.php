@@ -73,7 +73,15 @@
           $activeClass = null;
           $currentRouteName = Route::currentRouteName();
 
-          if ($currentRouteName === $menu->slug) {
+          if (isset($menu->url) && str_contains($menu->url, '?tab=')) {
+              $urlQuery = parse_url($menu->url, PHP_URL_QUERY);
+              parse_str($urlQuery, $queryParams);
+              if (isset($queryParams['tab']) && request('tab') === $queryParams['tab']) {
+                  $activeClass = 'active';
+              }
+          } elseif ($currentRouteName === $menu->slug && !request('tab')) {
+              $activeClass = 'active';
+          } elseif ($currentRouteName === $menu->slug) {
               $activeClass = 'active';
           } elseif (isset($menu->submenu)) {
               if (gettype($menu->slug) === 'array') {

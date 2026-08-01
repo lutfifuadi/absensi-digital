@@ -94,7 +94,7 @@ class JenjangHelper
             return null;
         }
 
-        $jumlahTahunSekolah = settingInt('jumlah_tahun_sekolah', 3);
+        $jumlahTahunSekolah = \settingInt('jumlah_tahun_sekolah', 3);
         $jenjang = self::getActiveJenjang();
         $tingkatOptions = self::getTingkatOptions($jenjang);
 

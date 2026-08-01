@@ -35,6 +35,30 @@ if (!function_exists('feature_is_on')) {
     }
 }
 
+if (!function_exists('settingBool')) {
+    /**
+     * Dapatkan nilai pengaturan sebagai boolean.
+     */
+    function settingBool(string $key, bool $default = false): bool
+    {
+        /** @var SettingsManager $manager */
+        $manager = app(SettingsManager::class);
+        return $manager->getBool($key, $default);
+    }
+}
+
+if (!function_exists('settingInt')) {
+    /**
+     * Dapatkan nilai pengaturan sebagai integer.
+     */
+    function settingInt(string $key, int $default = 0): int
+    {
+        /** @var SettingsManager $manager */
+        $manager = app(SettingsManager::class);
+        return $manager->getInt($key, $default);
+    }
+}
+
 if (!function_exists('feature_is_off')) {
     /**
      * Cek apakah suatu fitur non-aktif.

@@ -439,6 +439,12 @@
       "menuHeader": "Layanan & Pengaturan"
     },
     {
+      "name": "Aktivasi Fitur",
+      "icon": "menu-icon ti tabler-toggle-right",
+      "slug": "admin.pengaturan.fitur",
+      "url": "/admin/pengaturan?tab=aktivasi-fitur"
+    },
+    {
       "name": "Pengaduan Data",
       "icon": "menu-icon ti tabler-report",
       "slug": "admin.pengaduan.index",

@@ -60,6 +60,7 @@ class DashboardController extends Controller
         }
 
         if ($request->routeIs('ortu.dashboard')) {
+            \App\Facades\Feature::guard('fitur_portal_ortu');
             $data = array_merge(['user' => $user, 'pageTitle' => 'Portal Orang Tua'], $this->orangTuaData($user));
             return view('dashboards.orang-tua', $data);
         }
@@ -89,7 +90,12 @@ class DashboardController extends Controller
             if ($role === User::ROLE_SISWA) return redirect()->route('siswa.dashboard');
             if ($role === User::ROLE_GURU) return redirect()->route('guru.dashboard');
             if ($role === User::ROLE_WALI_KELAS) return redirect()->route('wali-kelas.dashboard');
-            if ($role === User::ROLE_ORANG_TUA) return redirect()->route('ortu.dashboard');
+            if ($role === User::ROLE_ORANG_TUA) {
+                if (\App\Facades\Feature::isOff('fitur_portal_ortu')) {
+                    abort(403, 'Portal Orang Tua sedang tidak aktif.');
+                }
+                return redirect()->route('ortu.dashboard');
+            }
             if ($role === User::ROLE_PIKET || ($role === User::ROLE_PIKET && $user->isPiket())) return redirect()->route('piket.dashboard');
             if ($role === User::ROLE_GURU_BK || ($user->guru && $user->guru->is_guru_bk && $role === User::ROLE_GURU_BK)) return redirect()->route('bk.dashboard');
             if ($role === User::ROLE_SUPER_ADMIN || $role === User::ROLE_ADMIN_SEKOLAH) return view('dashboards.super-admin', array_merge(['user' => $user, 'pageTitle' => 'Admin Panel'], $this->superAdminData()));
@@ -116,6 +122,7 @@ class DashboardController extends Controller
      */
     public function guruAnalytics(Request $request)
     {
+        \App\Facades\Feature::guard('fitur_dashboard_guru');
         $user = $request->user();
         $data = array_merge(['user' => $user, 'pageTitle' => 'Dashboard Analitik Guru'], $this->guruData($user));
         return view('dashboards.guru', $data);

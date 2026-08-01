@@ -254,6 +254,11 @@ class FloatingChat extends Component
 
     public function render()
     {
+        if (\App\Facades\Feature::isOff('fitur_ai_chat')) {
+            return <<<'HTML'
+            <div></div>
+            HTML;
+        }
         return view('livewire.admin.floating-chat');
     }
 }

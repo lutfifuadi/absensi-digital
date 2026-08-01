@@ -254,6 +254,7 @@ class AiChat extends Component
 
     public function render()
     {
+        \App\Facades\Feature::guard('fitur_ai_chat');
         return view('livewire.admin.ai-chat');
     }
 }

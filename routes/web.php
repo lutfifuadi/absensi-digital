@@ -156,7 +156,7 @@ Route::get('/prestasi', [PublicPagesController::class, 'prestasi'])->name('publi
 
 // ── Layanan Pengaduan Data Tidak Valid (PRD-002) ─────────────────────────────
 // Route utama /pengaduan — harus login, redirect ke halaman sesuai role (siswa/ortu)
-Route::prefix('pengaduan')->name('pengaduan.')->group(function () {
+Route::prefix('pengaduan')->name('pengaduan.')->middleware('feature:wa_pengaduan_enabled')->group(function () {
     Route::get('/', [PengaduanController::class, 'form'])->middleware('auth')->name('form');
     Route::get('/cek', [PengaduanController::class, 'cekForm'])->name('cek');
 });
@@ -207,14 +207,14 @@ Route::middleware([
     Route::post('/switch-role', [\App\Http\Controllers\RoleSelectorController::class, 'switch'])->name('role.switch');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/dashboard/guru', [DashboardController::class, 'guruAnalytics'])->name('admin.dashboard.guru')->middleware('role:super_admin,admin_sekolah,operator');
+    Route::get('/dashboard/guru', [DashboardController::class, 'guruAnalytics'])->name('admin.dashboard.guru')->middleware(['role:super_admin,admin_sekolah,operator', 'feature:fitur_dashboard_guru']);
     Route::get('/dashboard/refresh-stats', [DashboardController::class, 'refreshStats'])->name('admin.dashboard.refresh-stats')->middleware('role:super_admin,admin_sekolah');
     Route::get('/admin/wa-gateway/check-services-status', [\App\Http\Controllers\Admin\WaGatewayController::class, 'checkServicesStatus'])->name('admin.wa-gateway.check-services-status');
     Route::post('/admin/wa-gateway/batch-check-numbers', [\App\Http\Controllers\Admin\WaGatewayController::class, 'batchCheckNumbers'])->name('admin.wa-gateway.batch-check-numbers');
     Route::post('/admin/wa-gateway/check-all-role-numbers', [\App\Http\Controllers\Admin\WaGatewayController::class, 'checkAllRoleNumbers'])->name('admin.wa-gateway.check-all-role-numbers');
 
     // ── FITUR GURU BK (Bimbingan Konseling) ───────────────────────────────────
-    Route::prefix('bk')->name('bk.')->group(function () {
+    Route::prefix('bk')->name('bk.')->middleware('feature:fitur_modul_pelanggaran')->group(function () {
         Route::get('/dashboard', [BKDashboardController::class, 'index'])->name('dashboard');
         Route::get('/pelanggaran', [BKPelanggaranController::class, 'index'])->name('pelanggaran.index');
         Route::get('/pelanggaran/create', [BKPelanggaranController::class, 'create'])->name('pelanggaran.create');
@@ -234,9 +234,9 @@ Route::middleware([
     Route::prefix('siswa')->middleware('role:siswa,super_admin,admin_sekolah,operator')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('siswa.dashboard');
         Route::get('/profile', [SiswaController::class, 'profilSaya'])->name('siswa.profile');
-        Route::get('/download-kartu', [PortalSiswaController::class, 'downloadKartu'])->name('siswa.download-kartu');
-        Route::get('/download-kartu-pelepasan', [PortalSiswaController::class, 'downloadKartuPelepasan'])->name('siswa.download-kartu-pelepasan');
-        Route::get('/leaderboard', [PortalSiswaController::class, 'leaderboard'])->name('siswa.leaderboard');
+        Route::get('/download-kartu', [PortalSiswaController::class, 'downloadKartu'])->name('siswa.download-kartu')->middleware('feature:fitur_download_kartu_siswa');
+        Route::get('/download-kartu-pelepasan', [PortalSiswaController::class, 'downloadKartuPelepasan'])->name('siswa.download-kartu-pelepasan')->middleware('feature:fitur_download_kartu_siswa');
+        Route::get('/leaderboard', [PortalSiswaController::class, 'leaderboard'])->name('siswa.leaderboard')->middleware('feature:fitur_gamifikasi');
         Route::get('/absensi', [PortalSiswaController::class, 'absensi'])->name('siswa.absensi');
         Route::get('/absensi/data', [PortalSiswaController::class, 'absensiJson'])->name('siswa.absensi.data');
 
@@ -304,7 +304,7 @@ Route::middleware([
     });
 
     // ── PORTAL ORANG TUA ──────────────────────────────────────────────────────
-    Route::prefix('ortu')->middleware('ortu')->group(function () {
+    Route::prefix('ortu')->middleware(['ortu', 'feature:fitur_portal_ortu'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('ortu.dashboard');
         Route::get('/anak', function() {
             /** @var \App\Models\User $user */
@@ -1106,6 +1106,9 @@ Route::middleware([
         Route::post('pengaturan', [PengaturanController::class, 'update'])
             ->name('admin.pengaturan.update')
             ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pengaturan/toggle', [\App\Http\Controllers\Api\V1\PengaturanApiController::class, 'toggle'])
+            ->name('admin.pengaturan.toggle')
+            ->middleware('role:super_admin,admin_sekolah');
         Route::post('pengaturan/tema', [PengaturanController::class, 'updateTheme'])
             ->name('admin.pengaturan.tema.update')
             ->middleware('role:super_admin,admin_sekolah');
@@ -1287,16 +1290,16 @@ Route::middleware([
         // AI Chat — semua role terautentikasi bisa akses, tiered access di backend
         Route::get('ai-chat', [AiChatController::class, 'index'])
             ->name('admin.ai-chat.index')
-            ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas,staff_tu,siswa,orang_tua,piket');
+            ->middleware(['role:super_admin,admin_sekolah,operator,guru,wali_kelas,staff_tu,siswa,orang_tua,piket', 'feature:fitur_ai_chat']);
         Route::post('ai-chat/send', [AiChatController::class, 'sendMessage'])
             ->name('admin.ai-chat.send')
-            ->middleware(['role:super_admin,admin_sekolah,operator,guru,wali_kelas,staff_tu,siswa,orang_tua,piket', 'throttle:30,1']);
+            ->middleware(['role:super_admin,admin_sekolah,operator,guru,wali_kelas,staff_tu,siswa,orang_tua,piket', 'feature:fitur_ai_chat', 'throttle:30,1']);
         Route::get('ai-chat/history', [AiChatController::class, 'history'])
             ->name('admin.ai-chat.history')
-            ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas,staff_tu,siswa,orang_tua,piket');
+            ->middleware(['role:super_admin,admin_sekolah,operator,guru,wali_kelas,staff_tu,siswa,orang_tua,piket', 'feature:fitur_ai_chat']);
         Route::delete('ai-chat/clear', [AiChatController::class, 'clear'])
             ->name('admin.ai-chat.clear')
-            ->middleware('role:super_admin,admin_sekolah,operator,guru,wali_kelas,staff_tu,siswa,orang_tua,piket');
+            ->middleware(['role:super_admin,admin_sekolah,operator,guru,wali_kelas,staff_tu,siswa,orang_tua,piket', 'feature:fitur_ai_chat']);
 
         // Integrasi API
         Route::get('api-integration', [ApiIntegrationController::class, 'index'])
@@ -1402,16 +1405,16 @@ Route::middleware([
         // Gamifikasi
         Route::get('gamifikasi', [DashboardController::class, 'gamifikasi'])
             ->name('admin.gamifikasi.index')
-            ->middleware('role:super_admin,admin_sekolah');
+            ->middleware(['role:super_admin,admin_sekolah', 'feature:fitur_gamifikasi']);
 
         // Gamifikasi Rekapitulasi
         Route::get('gamifikasi/rekap', [DashboardController::class, 'gamifikasiRekap'])
             ->name('admin.gamifikasi.rekap')
-            ->middleware('role:super_admin,admin_sekolah');
+            ->middleware(['role:super_admin,admin_sekolah', 'feature:fitur_gamifikasi']);
 
         Route::get('gamifikasi/rekap/export', [DashboardController::class, 'gamifikasiRekapExport'])
             ->name('admin.gamifikasi.rekap.export')
-            ->middleware('role:super_admin,admin_sekolah');
+            ->middleware(['role:super_admin,admin_sekolah', 'feature:fitur_gamifikasi']);
 
         // Reminder Settings
         Route::get('reminder-settings', [DashboardController::class, 'reminderSettings'])
@@ -1421,7 +1424,7 @@ Route::middleware([
         // Absensi Kegiatan
         Route::get('kegiatans/absensi', [AbsensiActivityController::class, 'index'])
             ->name('admin.kegiatans.absensi')
-            ->middleware('role:super_admin,admin_sekolah,guru');
+            ->middleware(['role:super_admin,admin_sekolah,guru', 'feature:fitur_absensi_kegiatan']);
 
 
         // ── MODUL ALUMNI SISWA (PRD-001) ──────────────────────────────────────
@@ -1449,7 +1452,7 @@ Route::middleware([
         });
 
         // ── CETAK KARTU IDENTITAS ALL-IN-ONE (PRD-006) ─────────────────────
-        Route::prefix('cetak-kartu')->name('admin.cetak-kartu.')->middleware('role:super_admin,admin_sekolah,operator')->group(function () {
+        Route::prefix('cetak-kartu')->name('admin.cetak-kartu.')->middleware(['role:super_admin,admin_sekolah,operator', 'feature:fitur_download_kartu_siswa'])->group(function () {
             Route::get('/', [CetakKartuController::class, 'index'])->name('index');
             Route::post('/download', [CetakKartuController::class, 'download'])->name('download');
             Route::post('/preview', [CetakKartuController::class, 'preview'])->name('preview');
