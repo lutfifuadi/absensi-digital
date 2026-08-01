@@ -341,29 +341,64 @@ class LiveBoardGuruController extends Controller
             ?? 'Selamat Datang di Live Board Absensi Guru — Mohon untuk selalu melakukan presensi tepat waktu. Utamakan kedisiplinan demi mewujudkan keteladanan bagi para siswa.';
 
         $namaSekolah = Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
-        $logoRaw     = Pengaturan::where('key', 'logo_sekolah')->value('value');
-        $logoSekolah = null;
-        if ($logoRaw) {
-            if (filter_var($logoRaw, FILTER_VALIDATE_URL)) {
-                $logoSekolah = $logoRaw;
-            } elseif (file_exists(public_path('storage/' . $logoRaw))) {
-                $logoSekolah = asset('storage/' . $logoRaw);
-            } elseif (file_exists(public_path($logoRaw))) {
-                $logoSekolah = asset($logoRaw);
+        $logoUrl     = Pengaturan::where('key', 'logo_url')->value('value');
+        if (!$logoUrl) {
+            $logoLocal = Pengaturan::where('key', 'logo_sekolah')->value('value');
+            if ($logoLocal) {
+                if (filter_var($logoLocal, FILTER_VALIDATE_URL)) {
+                    $logoUrl = $logoLocal;
+                } elseif (file_exists(public_path('uploads/logo/' . $logoLocal))) {
+                    $logoUrl = asset('uploads/logo/' . $logoLocal);
+                } elseif (file_exists(public_path('storage/' . $logoLocal))) {
+                    $logoUrl = asset('storage/' . $logoLocal);
+                } elseif (file_exists(public_path($logoLocal))) {
+                    $logoUrl = asset($logoLocal);
+                } else {
+                    $logoUrl = asset('uploads/logo/' . $logoLocal);
+                }
             }
         }
+        $logoSekolah = $logoUrl;
 
-        $jamMasukCfg = Pengaturan::where('key', 'jam_masuk')->value('value') ?? '07:00';
-        $toleransi   = (int) (Pengaturan::where('key', 'toleransi_terlambat')->value('value') ?? 15);
+        $jamMasukCfg    = Pengaturan::where('key', 'jam_masuk')->value('value') ?? '07:00';
+        $jamMulaiAbsensi = Pengaturan::where('key', 'jam_mulai_absensi')->value('value') ?? '06:00';
+        $toleransi      = (int) (Pengaturan::where('key', 'toleransi_terlambat')->value('value') ?? 15);
 
-        $remainingCount = ($mode === 'pulang') 
-            ? max(0, $totalGuru - $pulangCount) 
-            : max(0, $totalGuru - ($hadirCount + $terlambatCount + $izinSakitCount));
+        $tahunAktif = \App\Models\TahunAkademik::where('is_aktif', true)->first();
+        $sloganSekolah = Pengaturan::where('key', 'slogan_sekolah')->value('value') 
+            ?? Pengaturan::where('key', 'motto_sekolah')->value('value') 
+            ?? Pengaturan::where('key', 'sub_judul_sekolah')->value('value') 
+            ?? 'Berakhlak Mulia, Disiplin, & Berprestasi';
+
+        $kotaRaw = Pengaturan::where('key', 'kota_penerbitan')->value('value') 
+            ?? Pengaturan::where('key', 'kota')->value('value') 
+            ?? Pengaturan::where('key', 'kabupaten')->value('value') 
+            ?? 'Bandung';
+        $kotaSekolah = strtoupper(str_replace(['Kota ', 'Kabupaten ', 'KOTA ', 'KABUPATEN '], '', $kotaRaw));
+        
+        $zonaWaktu = Pengaturan::where('key', 'zona_waktu')->value('value') ?? 'Asia/Jakarta (WIB)';
+        $zoneAbbr = 'WIB';
+        $utcOffset = 'UTC+7';
+        if (str_contains($zonaWaktu, 'WITA') || str_contains($zonaWaktu, 'Makassar')) {
+            $zoneAbbr = 'WITA';
+            $utcOffset = 'UTC+8';
+        } elseif (str_contains($zonaWaktu, 'WIT') || str_contains($zonaWaktu, 'Jayapura')) {
+            $zoneAbbr = 'WIT';
+            $utcOffset = 'UTC+9';
+        }
 
         return [
             'mode'               => $mode,
+            'namaSekolah'        => $namaSekolah,
+            'logoSekolah'        => $logoSekolah,
+            'tahunAktif'         => $tahunAktif,
+            'sloganSekolah'      => $sloganSekolah,
+            'kotaSekolah'        => $kotaSekolah,
+            'zoneAbbr'           => $zoneAbbr,
+            'utcOffset'          => $utcOffset,
             'totalKapasitasGuru' => $totalGuru,
             'jamMasukCfg'        => $jamMasukCfg,
+            'jamMulaiAbsensi'    => $jamMulaiAbsensi,
             'toleransi'          => $toleransi,
             'stats' => [
                 'total'      => $totalGuru,

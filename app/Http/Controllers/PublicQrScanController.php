@@ -659,8 +659,45 @@ class PublicQrScanController extends Controller
         $settings     = $this->getCachedSettings();
         $namaSekolah  = $settings['nama_sekolah']        ?? 'Madrasah Aliyah';
         $jamMasukCfg  = $settings['jam_masuk']          ?? '07:00';
+        $jamMulaiAbsensi = $settings['jam_mulai_absensi'] ?? '06:00';
         $toleransi    = (int)($settings['toleransi_terlambat'] ?? 15);
         $announcement = $settings['announcement_text']   ?? null;
+
+        $logoUrl = $settings['logo_url'] ?? null;
+        if (!$logoUrl) {
+            $logoLocal = $settings['logo_sekolah'] ?? null;
+            if ($logoLocal) {
+                if (filter_var($logoLocal, FILTER_VALIDATE_URL)) {
+                    $logoUrl = $logoLocal;
+                } elseif (file_exists(public_path('uploads/logo/' . $logoLocal))) {
+                    $logoUrl = asset('uploads/logo/' . $logoLocal);
+                } elseif (\Illuminate\Support\Facades\Storage::disk('public')->exists($logoLocal)) {
+                    $logoUrl = asset('storage/' . $logoLocal);
+                } else {
+                    $logoUrl = asset('uploads/logo/' . $logoLocal);
+                }
+            }
+        }
+        $logoSekolah = $logoUrl;
+
+        $tahunAktif = \App\Models\TahunAkademik::where('is_aktif', true)->first();
+        $sloganSekolah = $settings['slogan_sekolah'] ?? $settings['motto_sekolah'] ?? $settings['sub_judul_sekolah'] ?? 'Berakhlak Mulia, Disiplin, & Berprestasi';
+
+        // Dynamic City & Timezone Resolution for Analog Clock
+        $kotaRaw = $settings['kota_penerbitan'] ?? $settings['kota'] ?? $settings['kabupaten'] ?? 'Bandung';
+        // Remove "Kota" or "Kabupaten" prefix for clean display if desired, or uppercase
+        $kotaSekolah = strtoupper(str_replace(['Kota ', 'Kabupaten ', 'KOTA ', 'KABUPATEN '], '', $kotaRaw));
+        
+        $zonaWaktu = $settings['zona_waktu'] ?? 'Asia/Jakarta (WIB)';
+        $zoneAbbr = 'WIB';
+        $utcOffset = 'UTC+7';
+        if (str_contains($zonaWaktu, 'WITA') || str_contains($zonaWaktu, 'Makassar')) {
+            $zoneAbbr = 'WITA';
+            $utcOffset = 'UTC+8';
+        } elseif (str_contains($zonaWaktu, 'WIT') || str_contains($zonaWaktu, 'Jayapura')) {
+            $zoneAbbr = 'WIT';
+            $utcOffset = 'UTC+9';
+        }
 
         [$leaderboardAwal, $leaderboardTerbaru, $stats] = $this->getLeaderboardData($mode);
         $totalKapasitasSiswa = Cache::remember('total_civitas_count', now()->addMinutes(10), function () {
@@ -668,8 +705,9 @@ class PublicQrScanController extends Controller
         });
 
         return view('public.live-board', compact(
-            'namaSekolah', 'jamMasukCfg', 'toleransi', 'announcement',
-            'leaderboardAwal', 'leaderboardTerbaru', 'stats', 'totalKapasitasSiswa', 'mode'
+            'namaSekolah', 'logoSekolah', 'jamMasukCfg', 'jamMulaiAbsensi', 'toleransi', 'announcement',
+            'leaderboardAwal', 'leaderboardTerbaru', 'stats', 'totalKapasitasSiswa', 'mode',
+            'tahunAktif', 'sloganSekolah', 'kotaSekolah', 'zoneAbbr', 'utcOffset'
         ));
     }
 

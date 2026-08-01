@@ -12,16 +12,9 @@
     $liveCounterColor = \App\Models\Pengaturan::where('key', 'live_board_counter_color')->value('value') ?? '#7367f0';
     $browserFonts = ['Courier New', 'Courier', 'Arial', 'Helvetica', 'Times New Roman', 'Times', 'Georgia', 'Verdana', 'Trebuchet MS', 'Impact', 'Comic Sans MS', 'Palatino', 'Bookman Old Style', 'monospace', 'serif', 'sans-serif'];
   @endphp
-  @if($liveFont !== 'Product Sans' || (!in_array($liveCounterFont, $browserFonts) && $liveCounterFont !== 'Product Sans'))
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    @if($liveFont !== 'Product Sans')
-      <link href="https://fonts.googleapis.com/css2?family={{ urlencode($liveFont) }}:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    @endif
-    @if(!in_array($liveCounterFont, $browserFonts) && $liveCounterFont !== 'Product Sans')
-      <link href="https://fonts.googleapis.com/css2?family={{ urlencode($liveCounterFont) }}:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    @endif
-  @endif
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:ital,wght@0,600;0,700;0,800;1,600;1,700&family=Plus+Jakarta+Sans:ital,wght@0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -360,16 +353,194 @@
       100% { transform: scale(1.4); opacity: 0; }
     }
 
+    /* ─── CYBER ANALOG CLOCK INSTRUMENT ───────────────────── */
+    .analog-clock-wrapper {
+      position: relative;
+      margin: 0.75rem 0 1.25rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+    .analog-case {
+      width: 155px;
+      height: 155px;
+      border-radius: 12px;
+      padding: 6px;
+      background: conic-gradient(from 210deg, #1e1b4b 0deg, #7367f0 55deg, #00cfe8 120deg, #7367f0 190deg, #1e1b4b 260deg, #00cfe8 330deg, #1e1b4b 360deg);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.2), 0 0 20px rgba(115,103,240,0.3);
+      position: relative;
+    }
+    .analog-case .rivet {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #00cfe8, #7367f0 75%);
+      box-shadow: 0 0 4px rgba(0,207,232,0.8);
+    }
+    .analog-case .rivet.n { top: 6px; left: 6px; }
+    .analog-case .rivet.s { bottom: 6px; right: 6px; }
+    .analog-case .rivet.e { top: 6px; right: 6px; }
+    .analog-case .rivet.w { bottom: 6px; left: 6px; }
+
+    .analog-face {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 40%, #152238 0%, #0e1726 80%);
+      box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+    }
+    .analog-face::before {
+      content: "";
+      position: absolute; inset: 0;
+      background: repeating-conic-gradient(from 0deg, rgba(255,255,255,0.03) 0deg 0.6deg, transparent 0.6deg 5deg);
+      mix-blend-mode: screen;
+    }
+    .analog-face::after {
+      content: "";
+      position: absolute;
+      top: -25%; left: -35%;
+      width: 85%; height: 65%;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0) 65%);
+      transform: rotate(-18deg);
+      pointer-events: none;
+    }
+
+    .analog-face .tick {
+      position: absolute;
+      left: 50%; top: 3%;
+      width: 2px; height: 7px;
+      background: rgba(255,255,255,0.3);
+      transform-origin: 50% 65px;
+      border-radius: 1px;
+    }
+    .analog-face .tick.major {
+      width: 3px; height: 10px;
+      background: #00cfe8;
+      transform-origin: 50% 65px;
+      box-shadow: 0 0 6px rgba(0,207,232,0.6);
+    }
+
+    .analog-face .dial-label {
+      position: absolute;
+      top: 32%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: var(--muted);
+      pointer-events: none;
+    }
+    .analog-face .dial-label .city {
+      font-size: 9px;
+      font-weight: 800;
+      color: #7367f0;
+      letter-spacing: 2px;
+    }
+    .analog-face .dial-label .zone {
+      font-size: 7px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    .analog-face .hand {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform-origin: 50% 100%;
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.9));
+      transition: transform 0.25s cubic-bezier(0.4, 1.4, 0.4, 1);
+    }
+    .analog-face .hour-hand {
+      width: 8px; height: 36px;
+      margin-left: -4px; margin-top: -36px;
+      background: linear-gradient(180deg, #ffd700 0%, #ff9f43 100%);
+      box-shadow: 0 0 10px rgba(255, 184, 0, 0.85);
+      clip-path: polygon(50% 0%, 75% 18%, 60% 100%, 40% 100%, 25% 18%);
+      border-radius: 4px;
+      z-index: 3;
+    }
+    .analog-face .minute-hand {
+      width: 5px; height: 50px;
+      margin-left: -2.5px; margin-top: -50px;
+      background: linear-gradient(180deg, #ffffff 0%, #00cfe8 100%);
+      box-shadow: 0 0 10px rgba(0, 207, 232, 0.85);
+      clip-path: polygon(50% 0%, 70% 12%, 58% 100%, 42% 100%, 30% 12%);
+      border-radius: 3px;
+      z-index: 4;
+    }
+    .analog-face .second-hand {
+      width: 2px; height: 56px;
+      margin-left: -1px; margin-top: -56px;
+      background: #ea5455;
+      box-shadow: 0 0 10px #ea5455;
+      border-radius: 2px;
+      z-index: 5;
+    }
+    .analog-face .second-hand::after {
+      content: "";
+      position: absolute;
+      left: 50%; bottom: -12px;
+      width: 6px; height: 12px;
+      background: #ea5455;
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+
+    .analog-cap {
+      position: absolute;
+      left: 50%; top: 50%;
+      width: 12px; height: 12px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #00cfe8, #7367f0 100%);
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.6), 0 0 8px rgba(0,207,232,0.8);
+      z-index: 6;
+    }
+
+    .analog-plaque {
+      display: flex;
+      align-items: center;
+      margin-top: 8px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid rgba(115,103,240,0.4);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      background: #090e17;
+    }
+    .analog-plaque .plaque-time {
+      color: #00cfe8;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      padding: 3px 10px;
+      text-shadow: 0 0 8px rgba(0,207,232,0.4);
+    }
+    .analog-plaque .plaque-chip {
+      background: linear-gradient(135deg, #7367f0, #a78bfa);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 4px 8px;
+      letter-spacing: 1px;
+    }
+
     /* ─── RESULT TOAST ────────────────────────────────────── */
     .result-toast {
-      position: absolute; bottom: 0; left: 0; right: 0;
+      position: relative;
+      width: 100%;
+      margin-top: 1rem;
       padding: 0.8rem 1rem;
+      border-radius: 8px;
       opacity: 0;
       visibility: hidden;
-      transition: opacity 0.2s ease, visibility 0.2s ease;
+      transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+      transform: translateY(-6px);
       z-index: 10;
     }
-    .result-toast.show { opacity: 1; visibility: visible; }
+    .result-toast.show { opacity: 1; visibility: visible; transform: translateY(0); }
     .result-toast.success {
       background: rgba(40,199,111,.88);
       border-top: 2px solid var(--success);
@@ -486,9 +657,33 @@
     </div>
   </div>
 
-  <div class="header-center">
-    <div id="live-clock">--:--:--</div>
-    <div id="live-date">Memuat...</div>
+  <div class="header-center" style="text-align: center;">
+    <div id="session-status-badge" style="display: flex; align-items: center; justify-content: center; gap: 0.4rem; margin-bottom: 4px;">
+      <span id="session-pill" style="font-size: 0.68rem; font-weight: 800; padding: 2px 9px; border-radius: 99px; background: rgba(115, 103, 240, 0.15); color: #a78bfa; border: 1px solid rgba(115, 103, 240, 0.4); letter-spacing: 0.5px;">☀️ SESI MASUK GURU</span>
+      <span id="live-date" style="font-size: 0.72rem; color: var(--muted); font-weight: 600;">Memuat...</span>
+    </div>
+
+    <!-- 3 Timeline Badges + Live Countdown Inline -->
+    <div class="timeline-badges" style="display: flex; align-items: center; justify-content: center; gap: 0.35rem; font-size: 0.68rem; font-weight: 700; flex-wrap: wrap;">
+      <div class="tl-chip" title="Pintu scanner mulai aktif menerima absen" style="background: rgba(0, 207, 232, 0.1); border: 1px solid rgba(0, 207, 232, 0.3); color: #00cfe8; padding: 1px 7px; border-radius: 5px; display: flex; align-items: center; gap: 3px;">
+        <span>🔓 Mulai:</span>
+        <strong style="color: #fff; font-family: 'JetBrains Mono', monospace;">{{ $jamMulaiAbsensi ?? '06:00' }}</strong>
+      </div>
+      <span style="color: var(--muted); opacity: 0.4; font-size: 0.6rem;">➔</span>
+      <div class="tl-chip" title="Jam bel masuk (Batas tepat waktu)" style="background: rgba(115, 103, 240, 0.15); border: 1px solid rgba(115, 103, 240, 0.4); color: #a78bfa; padding: 1px 7px; border-radius: 5px; display: flex; align-items: center; gap: 3px;">
+        <span>⏰ Tepat Waktu:</span>
+        <strong style="color: #fff; font-family: 'JetBrains Mono', monospace;">{{ $jamMasukCfg }}</strong>
+      </div>
+      <span style="color: var(--muted); opacity: 0.4; font-size: 0.6rem;">➔</span>
+      <div class="tl-chip" title="Batas akhir toleransi keterlambatan" style="background: rgba(255, 159, 67, 0.15); border: 1px solid rgba(255, 159, 67, 0.4); color: var(--warning); padding: 1px 7px; border-radius: 5px; display: flex; align-items: center; gap: 3px;">
+        <span>⚠️ Batas:</span>
+        <strong style="color: #fff; font-family: 'JetBrains Mono', monospace;" id="tl-batas-time">--:--</strong>
+      </div>
+      <span style="color: var(--muted); opacity: 0.3; margin: 0 2px;">|</span>
+      <div id="session-countdown-wrap" style="font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center;">
+        <span id="session-countdown" style="color: var(--success); font-family: 'JetBrains Mono', monospace;">⏱️ Sisa Waktu: --:--</span>
+      </div>
+    </div>
   </div>
 
   <div class="header-right">
@@ -644,6 +839,15 @@
 
     <!-- Scanner Area -->
     <div class="scanner-area">
+      <!-- Watermark Logo Sekolah (Ukuran Extra Besar) -->
+      <div class="watermark-logo" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; opacity: 0.08; z-index: 0; width: 85%; height: 85%; max-width: 460px; max-height: 460px; display: flex; align-items: center; justify-content: center;">
+        @if(!empty($logoSekolah))
+          <img src="{{ $logoSekolah }}" alt="Watermark Logo Sekolah" style="width: 100%; height: 100%; object-fit: contain; filter: brightness(130%);">
+        @else
+          <span style="font-size: 240px; line-height: 1; opacity: 0.8;">👨‍🏫</span>
+        @endif
+      </div>
+
       <!-- Widget Counter Besar Futuristik (KHUSUS GURU) -->
       <div class="counter-widget">
         @if($mode === 'pulang')
@@ -659,32 +863,53 @@
         </div>
       </div>
 
-      <!-- Stat Chips (KHUSUS GURU) -->
-      <div class="stat-chips" id="stat-chips">
-        @if($mode === 'pulang')
-          <div class="stat-chip"><span class="dot" style="background:var(--success)"></span> Pulang: <strong id="s-hadir">{{ $stats['pulang'] }}</strong></div>
-          <div class="stat-chip"><span class="dot" style="background:var(--danger)"></span> Belum Pulang: <strong id="s-remaining">{{ $stats['remaining'] }}</strong></div>
-        @else
-          <div class="stat-chip"><span class="dot" style="background:var(--success)"></span> Hadir: <strong id="s-hadir">{{ $stats['hadir'] }}</strong></div>
-          <div class="stat-chip"><span class="dot" style="background:var(--warning)"></span> Terlambat: <strong id="s-terlambat">{{ $stats['terlambat'] }}</strong></div>
-          <div class="stat-chip"><span class="dot" style="background:var(--info)"></span> Izin/Sakit: <strong id="s-izin">{{ $stats['izin_sakit'] }}</strong></div>
-          <div class="stat-chip"><span class="dot" style="background:var(--danger)"></span> Belum Absen: <strong id="s-alpha">{{ $stats['belum_absen'] }}</strong></div>
+      <!-- Tahun Pelajaran & Slogan Header (Mencolok) -->
+      <div class="tp-slogan-wrapper" style="text-align: center; margin-top: 0.3rem; margin-bottom: 0.5rem; position: relative; z-index: 2;">
+        <div style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 4px 14px; border-radius: 5px; background: linear-gradient(135deg, rgba(115, 103, 240, 0.25) 0%, rgba(167, 139, 250, 0.15) 100%); border: 1px solid rgba(167, 139, 250, 0.5); box-shadow: 0 0 12px rgba(115, 103, 240, 0.35); margin-bottom: 5px;">
+          <span style="font-size: 0.88rem; font-weight: 900; color: #ffffff; text-shadow: 0 0 10px rgba(167, 139, 250, 0.8); letter-spacing: 0.8px;">🎓 TAHUN AJARAN {{ $tahunAktif->nama ?? '2025/2026' }} @if(!empty($tahunAktif->semester))({{ $tahunAktif->semester }})@endif</span>
+        </div>
+        @if(!empty($sloganSekolah))
+          <div style="font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif; font-size: 0.78rem; color: #e2d9f3; font-style: italic; font-weight: 700; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(167, 139, 250, 0.4); margin-top: 1px;">
+            “{{ $sloganSekolah }}”
+          </div>
         @endif
       </div>
 
-      <!-- RFID Animation -->
-      <div class="rfid-animation">
-        <div class="rfid-glow-ring"></div>
-        <div class="rfid-glow-ring"></div>
-        <div class="rfid-card">
-          <span class="wifi-icon">📶</span>
+      <!-- Cyber Analog Clock Instrument -->
+      <div class="analog-clock-wrapper">
+        <div class="rfid-glow-ring" style="width: 175px; height: 175px;"></div>
+        <div class="rfid-glow-ring" style="width: 175px; height: 175px; animation-delay: 1.25s;"></div>
+
+        <div class="analog-case">
+          <div class="rivet n"></div>
+          <div class="rivet s"></div>
+          <div class="rivet e"></div>
+          <div class="rivet w"></div>
+
+          <div class="analog-face" id="analogFace">
+            <div id="analogTicks"></div>
+
+            <div class="dial-label">
+              <div class="city">INDONESIA</div>
+              <div class="zone">{{ $zoneAbbr ?? 'WIB' }} · {{ $utcOffset ?? 'UTC+7' }}</div>
+            </div>
+
+            <div class="hand hour-hand" id="analogHourHand"></div>
+            <div class="hand minute-hand" id="analogMinuteHand"></div>
+            <div class="hand second-hand" id="analogSecondHand"></div>
+            <div class="analog-cap"></div>
+          </div>
         </div>
-        <div class="rfid-scanner-base"></div>
+
+        <div class="analog-plaque">
+          <div class="plaque-time" id="analogDigitalPlaque">--:--:--</div>
+          <div class="plaque-chip">{{ $zoneAbbr ?? 'WIB' }}</div>
+        </div>
       </div>
 
       <div style="text-align:center; color: var(--muted); font-size: 0.82rem; max-width: 280px; line-height: 1.4;">
         <p style="color: #fff; font-weight: 700; margin-bottom: 0.25rem;">SIAP SCANNING GURU</p>
-        <p>Silakan tap kartu RFID atau scan QR-Code / NIP Guru pada scanner</p>
+        <p>Silakan Arahkan QR-Code ke Alat Scanner</p>
       </div>
 
       <!-- Result toast -->
@@ -749,19 +974,135 @@ function toggleFullscreen() {
   }
 }
 
-// ─── CLOCK ────────────────────────────────────────────────────────────────
+// ─── SESSION COUNTDOWN & HEADER WIDGET ──────────────────────────────────────
 const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-function updateClock() {
+
+function updateSessionCountdown() {
+  const dateEl = document.getElementById('live-date');
+  const pillEl = document.getElementById('session-pill');
+  const cdEl   = document.getElementById('session-countdown');
+  
   const now = new Date();
-  const h = String(now.getHours()).padStart(2,'0');
-  const m = String(now.getMinutes()).padStart(2,'0');
-  const s = String(now.getSeconds()).padStart(2,'0');
-  document.getElementById('live-clock').textContent = `${h}:${m}:${s}`;
-  document.getElementById('live-date').textContent =
-    `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  if (dateEl) {
+    dateEl.textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  }
+
+  if (!cdEl || !pillEl) return;
+
+  const mode = CURRENT_MODE;
+  
+  const [targetH, targetM] = JAM_MASUK_CFG.split(':').map(Number);
+  const targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), targetH, targetM, 0);
+  const toleransiDate = new Date(targetDate.getTime() + TOLERANSI_MENIT * 60 * 1000);
+
+  const batasEl = document.getElementById('tl-batas-time');
+  if (batasEl) {
+    const bH = String(toleransiDate.getHours()).padStart(2, '0');
+    const bM = String(toleransiDate.getMinutes()).padStart(2, '0');
+    batasEl.textContent = `${bH}:${bM}`;
+  }
+
+  let isPulang = (mode === 'pulang');
+  if (mode === 'otomatis') {
+    isPulang = (now.getHours() >= 12);
+  }
+
+  if (isPulang) {
+    pillEl.textContent = '🌙 SESI PULANG GURU';
+    pillEl.style.background = 'rgba(0, 207, 232, 0.15)';
+    pillEl.style.color = '#00cfe8';
+    pillEl.style.borderColor = 'rgba(0, 207, 232, 0.4)';
+    cdEl.style.color = '#00cfe8';
+    cdEl.textContent = '🌙 Presensi Pulang Aktif';
+    return;
+  }
+
+  pillEl.textContent = '☀️ SESI MASUK GURU';
+  pillEl.style.background = 'rgba(115, 103, 240, 0.15)';
+  pillEl.style.color = '#a78bfa';
+  pillEl.style.borderColor = 'rgba(115, 103, 240, 0.4)';
+
+  const diffMs = targetDate.getTime() - now.getTime();
+
+  if (diffMs > 0) {
+    const mins = Math.floor(diffMs / 60000);
+    const secs = Math.floor((diffMs % 60000) / 1000);
+    cdEl.style.color = 'var(--success)';
+    cdEl.textContent = `⏱️ Sisa Waktu: ${String(mins).padStart(2,'0')}m ${String(secs).padStart(2,'0')}s`;
+  } else if (now.getTime() <= toleransiDate.getTime()) {
+    const tolDiffMs = toleransiDate.getTime() - now.getTime();
+    const mins = Math.floor(tolDiffMs / 60000);
+    const secs = Math.floor((tolDiffMs % 60000) / 1000);
+    cdEl.style.color = 'var(--warning)';
+    cdEl.textContent = `⏳ Toleransi: ${String(mins).padStart(2,'0')}m ${String(secs).padStart(2,'0')}s`;
+  } else {
+    cdEl.style.color = '#ea5455';
+    cdEl.textContent = '⏰ Status: Sesi Terlambat';
+  }
 }
-updateClock(); setInterval(updateClock, 1000);
+updateSessionCountdown();
+setInterval(updateSessionCountdown, 1000);
+
+// ─── CYBER ANALOG CLOCK LOGIC ──────────────────────────────────────────────
+(function initAnalogClock() {
+    const ticksEl = document.getElementById('analogTicks');
+    if(ticksEl && ticksEl.children.length === 0){
+      for(let i=0; i<60; i++){
+        const t = document.createElement('div');
+        t.className = 'tick' + (i % 5 === 0 ? ' major' : '');
+        t.style.transform = `rotate(${i*6}deg)`;
+        ticksEl.appendChild(t);
+      }
+    }
+
+    const hourHand = document.getElementById('analogHourHand');
+    const minuteHand = document.getElementById('analogMinuteHand');
+    const secondHand = document.getElementById('analogSecondHand');
+    const analogDigital = document.getElementById('analogDigitalPlaque');
+    const prevDeg = { hour: null, minute: null, second: null };
+
+    function setHandRotation(el, deg, key){
+      if(!el) return;
+      const prev = prevDeg[key];
+      if(prev !== null && deg < prev - 180){
+        el.style.transition = 'none';
+        el.style.transform = `rotate(${deg}deg)`;
+        void el.offsetWidth;
+        el.style.transition = '';
+      } else {
+        el.style.transform = `rotate(${deg}deg)`;
+      }
+      prevDeg[key] = deg;
+    }
+
+    function updateAnalogClock(){
+      const now = new Date(
+        new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' })
+      );
+      const h = now.getHours();
+      const m = now.getMinutes();
+      const s = now.getSeconds();
+
+      const hourDeg = (h % 12) * 30 + m * 0.5;
+      const minuteDeg = m * 6 + s * 0.1;
+      const secDeg = s * 6;
+
+      setHandRotation(hourHand, hourDeg, 'hour');
+      setHandRotation(minuteHand, minuteDeg, 'minute');
+      setHandRotation(secondHand, secDeg, 'second');
+
+      if(analogDigital) {
+        analogDigital.textContent =
+          String(h).padStart(2,'0') + ':' +
+          String(m).padStart(2,'0') + ':' +
+          String(s).padStart(2,'0');
+      }
+    }
+
+    updateAnalogClock();
+    setInterval(updateAnalogClock, 1000);
+})();
 
 // ─── SOUND & TTS ──────────────────────────────────────────────────────────
 let soundEnabled = true;

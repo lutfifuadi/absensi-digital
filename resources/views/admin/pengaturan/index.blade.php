@@ -274,6 +274,17 @@
               </div>
 
               <div class="set-field">
+                <label class="set-label">Slogan / Motto Sekolah</label>
+                <div class="set-input-group">
+                  <span class="set-input-prefix"><i class="ti tabler-quote"></i></span>
+                  <input type="text" class="set-input" name="slogan_sekolah"
+                    value="{{ old('slogan_sekolah', $settings['slogan_sekolah'] ?? '') }}"
+                    placeholder="Berakhlak Mulia, Disiplin, & Berprestasi">
+                </div>
+                <div class="set-field-hint --info"><i class="ti tabler-info-circle"></i> Slogan ini tampil di Papan Absensi Live Board</div>
+              </div>
+
+              <div class="set-field">
                 <label class="set-label">Nama Kepala Lembaga</label>
                 <div class="set-input-group">
                   <span class="set-input-prefix"><i class="ti tabler-user-tie"></i></span>

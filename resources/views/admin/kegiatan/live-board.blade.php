@@ -415,7 +415,7 @@
 
       <div style="text-align:center; color: var(--muted); font-size: 0.85rem; max-width: 280px; line-height: 1.4;">
         <p style="color: #fff; font-weight: 700; margin-bottom: 0.25rem;">SIAP SCANNING</p>
-        <p>Silakan tap kartu RFID atau scan QR-Code siswa pada scanner</p>
+        <p>Silakan Arahkan QR-Code ke Alat Scanner</p>
       </div>
 
       <div class="result-toast" id="result-toast">
