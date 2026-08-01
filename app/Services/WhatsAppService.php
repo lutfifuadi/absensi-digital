@@ -19,26 +19,24 @@ class WhatsAppService
 
     public function __construct()
     {
-        // on/off toggle khusus WA Gateway (terpisah dari jenis_notifikasi_ortu)
-        $waEnabled = Pengaturan::where('key', 'wa_gateway_enabled')->value('value');
-        $waAutoreplyEnabled = Pengaturan::where('key', 'wa_autoreply_enabled')->value('value');
+        $waEnabled = feature('wa_gateway_enabled');
+        $waAutoreplyEnabled = feature('wa_autoreply_enabled');
         
-        $this->isEnabled = (($waEnabled === null || $waEnabled === 'Ya')
-            && Pengaturan::where('key', 'jenis_notifikasi_ortu')->value('value') === 'WhatsApp (WA)')
-            || $waAutoreplyEnabled === 'Ya';
+        $this->isEnabled = ($waEnabled && setting('jenis_notifikasi_ortu') === 'WhatsApp (WA)')
+            || $waAutoreplyEnabled;
 
-        $link = Pengaturan::where('key', 'link_server_wa')->value('value') ?: 'https://wa.lutfifuadi.my.id/send-message';
+        $link = setting('link_server_wa') ?: 'https://wa.lutfifuadi.my.id/send-message';
         $this->baseUrl = rtrim(str_replace(['/send-message', '/send-media', '/check-number', '/send-location'], '', $link), '/');
 
         // API key dan sender nomor
-        $this->apiKey   = Pengaturan::where('key', 'wa_api_key')->value('value') ?: env('WA_API_KEY', '');
-        $this->sender   = Pengaturan::where('key', 'wa_nomor_notifikasi')->value('value')
-            ?: Pengaturan::where('key', 'nomor_server_wa_api_key')->value('value')
+        $this->apiKey   = setting('wa_api_key') ?: env('WA_API_KEY', '');
+        $this->sender   = setting('wa_nomor_notifikasi')
+            ?: setting('nomor_server_wa_api_key')
             ?: '';
 
         // Support format lama: sender|apikey dalam satu field
         if (empty($this->apiKey) || $this->apiKey === '1234567890') {
-            $waConfig = Pengaturan::where('key', 'nomor_server_wa_api_key')->value('value') ?: '';
+            $waConfig = setting('nomor_server_wa_api_key') ?: '';
             if (strpos($waConfig, '|') !== false) {
                 [$this->sender, $this->apiKey] = explode('|', $waConfig, 2);
             }
@@ -161,6 +159,12 @@ class WhatsAppService
 
     /**
      * Check if a number exists on WhatsApp
+     *
+     * Resilient terhadap timeout: retry manual dengan backoff (2x),
+     * timeout configurable via setting `wa_http_timeout` (default 15 dtk).
+     * Metode utama POST; GET hanya fallback jika server menolak POST
+     * (HTTP 404/405), BUKAN untuk timeout/error lain.
+     * Selalu return false (bukan throw) saat gagal.
      */
     public function checkNumber(string $number, bool $force = true, ?string $customSender = null, ?string $customApiKey = null): bool
     {
@@ -175,29 +179,139 @@ class WhatsAppService
             return false;
         }
 
-        try {
-            $response = Http::timeout(10)->post("{$this->baseUrl}/check-number", [
-                'api_key' => $apiKey,
-                'sender'  => $sender,
-                'number'  => $number
-            ]);
+        $timeout = $this->getHttpTimeout();
+        $url = "{$this->baseUrl}/check-number";
+        $payload = [
+            'api_key' => $apiKey,
+            'sender'  => $sender,
+            'number'  => $number,
+        ];
 
-            if (!$response->successful()) {
-                $response = Http::timeout(10)->get("{$this->baseUrl}/check-number", [
-                    'api_key' => $apiKey,
-                    'sender'  => $sender,
-                    'number'  => $number
-                ]);
+        // Retry manual: 3 percobaan, backoff 200ms lalu 400ms
+        $attempts  = 3;
+        $backoffs  = [200, 400]; // ms
+        $method    = 'post';
+        $lastError = null;
+
+        for ($attempt = 1; $attempt <= $attempts; $attempt++) {
+            $start = microtime(true);
+            $result = $this->requestCheckNumber($url, $payload, $method, $timeout);
+
+            if ($result['error'] !== null) {
+                $lastError = $result['error'];
+                Log::warning(sprintf(
+                    'WhatsApp Check Number: Percobaan %d gagal untuk nomor %s (%d ms): %s',
+                    $attempt,
+                    $this->maskNumber($number),
+                    (int) round((microtime(true) - $start) * 1000),
+                    $result['error']
+                ));
+
+                if ($attempt < $attempts) {
+                    usleep($backoffs[$attempt - 1] * 1000);
+                }
+                continue;
             }
 
-            $result = $response->json();
-            return isset($result['status']) && $result['status'] === true
-                && isset($result['msg']['exists']) && $result['msg']['exists'] === true;
+            /** @var \Illuminate\Http\Client\Response $response */
+            $response = $result['response'];
+            $elapsedMs = (int) round((microtime(true) - $start) * 1000);
+            $status = $response->status();
 
-        } catch (\Exception $e) {
-            Log::error('WhatsApp Check Number Exception: ' . $e->getMessage());
-            return false;
+            // Server menolak POST (405/404) → fallback GET sekali, tanpa memakai slot retry
+            if ($method === 'post' && in_array($status, [404, 405], true)) {
+                Log::info(sprintf(
+                    'WhatsApp Check Number: POST tidak didukung (HTTP %d) untuk nomor %s, fallback ke GET.',
+                    $status,
+                    $this->maskNumber($number)
+                ));
+                $method = 'get';
+                $attempt--; // ulangi iterasi yang sama dengan metode GET
+                continue;
+            }
+
+            if ($response->successful()) {
+                $resultJson = $response->json();
+                $valid = isset($resultJson['status']) && $resultJson['status'] === true
+                    && isset($resultJson['msg']['exists']) && $resultJson['msg']['exists'] === true;
+
+                Log::debug(sprintf(
+                    'WhatsApp Check Number: %s untuk nomor %s (HTTP %d, %d ms, percobaan %d).',
+                    $valid ? 'VALID' : 'TIDAK VALID',
+                    $this->maskNumber($number),
+                    $status,
+                    $elapsedMs,
+                    $attempt
+                ));
+                return $valid;
+            }
+
+            Log::warning(sprintf(
+                'WhatsApp Check Number: Respons HTTP %d untuk nomor %s (%d ms, percobaan %d).',
+                $status,
+                $this->maskNumber($number),
+                $elapsedMs,
+                $attempt
+            ));
+
+            // 4xx lain (selain 429) tidak akan berhasil walau diulang → berhenti
+            if ($response->clientError() && $status !== 429) {
+                break;
+            }
+
+            // 5xx / 429 / timeout → retry dengan backoff
+            if ($attempt < $attempts) {
+                usleep($backoffs[$attempt - 1] * 1000);
+            }
         }
+
+        Log::warning('WhatsApp Check Number: Gagal memvalidasi nomor ' . $this->maskNumber($number)
+            . ' setelah ' . $attempts . ' percobaan (error terakhir: ' . ($lastError ?? 'HTTP non-2xx') . ').');
+        return false;
+    }
+
+    /**
+     * Kirim SATU request check-number dengan try/catch.
+     *
+     * @return array{response: ?\Illuminate\Http\Client\Response, error: ?string}
+     */
+    private function requestCheckNumber(string $url, array $payload, string $method, int $timeout): array
+    {
+        try {
+            $response = $method === 'get'
+                ? Http::timeout($timeout)->get($url, $payload)
+                : Http::timeout($timeout)->post($url, $payload);
+
+            return ['response' => $response, 'error' => null];
+        } catch (\Exception $e) {
+            // Timeout (cURL 28) / koneksi gagal → kembalikan pesan error, bukan throw
+            return ['response' => null, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Timeout HTTP request WA gateway (detik), configurable via setting `wa_http_timeout`.
+     */
+    private function getHttpTimeout(): int
+    {
+        $timeout = (int) setting('wa_http_timeout', 15);
+        if ($timeout < 5 || $timeout > 60) {
+            $timeout = 15;
+        }
+        return $timeout;
+    }
+
+    /**
+     * Samarkan nomor untuk log (hindari data sensitif penuh).
+     * Contoh: 6281234567890 → 62812*****890
+     */
+    private function maskNumber(string $number): string
+    {
+        $len = strlen($number);
+        if ($len <= 6) {
+            return substr($number, 0, 3) . str_repeat('*', max($len - 3, 1));
+        }
+        return substr($number, 0, 5) . str_repeat('*', $len - 7) . substr($number, -2);
     }
 
     public function isEnabled(): bool

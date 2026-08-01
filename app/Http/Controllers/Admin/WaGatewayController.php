@@ -20,6 +20,7 @@ class WaGatewayController extends Controller
         'nomor_server_wa_api_key',
         'jeda_waktu_kirim_pesan_detik',
         'jeda_waktu_kirim_notifikasi_detik',
+        'wa_http_timeout',
         'jenis_notifikasi_ortu',
         'pengiriman_notifikasi_scan_qr',
         // WA Pengaduan
@@ -86,6 +87,7 @@ class WaGatewayController extends Controller
             'wa_nomor_notifikasi'               => 'nullable|string|max:20|regex:/^[0-9+]+$/',
             'jeda_waktu_kirim_pesan_detik'      => 'nullable|integer|min:1|max:300',
             'jeda_waktu_kirim_notifikasi_detik' => 'nullable|integer|min:1|max:60',
+            'wa_http_timeout'                   => 'nullable|integer|min:5|max:60',
             // WA Pengaduan
             'wa_pengaduan_enabled'              => 'nullable|in:Ya,Tidak',
             'wa_pengaduan_api_key'              => 'nullable|string|max:255',
@@ -296,6 +298,10 @@ class WaGatewayController extends Controller
 
     /**
      * Batch check status validitas nomor WhatsApp (untuk tabel Siswa, Guru, Ortu)
+     *
+     * Dilakukan per-request dengan jeda kecil antar nomor (rate-limit) agar
+     * tidak membebani server WA gateway. `force=true` tetap menghormati
+     * jeda yang sama.
      */
     public function batchCheckNumbers(Request $request)
     {
@@ -305,13 +311,19 @@ class WaGatewayController extends Controller
             $numbers = [$numbers];
         }
 
+        // Batas aman per request agar request tidak berlarut-larut
+        $numbers = array_slice($numbers, 0, 50);
+
         $waService = new WhatsAppService();
         $results = [];
+        $validCount = 0;
+        $invalidCount = 0;
 
         foreach ($numbers as $num) {
             $formatted = \App\Helpers\WhatsAppHelper::formatNumber($num);
             if (empty($formatted)) {
                 $results[$num] = false;
+                $invalidCount++;
                 continue;
             }
 
@@ -320,23 +332,37 @@ class WaGatewayController extends Controller
             } else {
                 $isValid = $waService->isNumberValidCached($formatted);
             }
+
+            // Jeda kecil antar request ke server WA gateway (anti overload)
+            if (!empty($numbers) && $num !== end($numbers)) {
+                usleep(100000); // 100ms
+            }
+
             $results[$num] = $isValid;
+            $isValid ? $validCount++ : $invalidCount++;
         }
 
         return response()->json([
-            'status'  => true,
-            'results' => $results,
+            'status'       => true,
+            'results'      => $results,
+            'valid_count'  => $validCount,
+            'invalid_count'=> $invalidCount,
         ]);
     }
 
     /**
      * Chunked bulk check for ALL numbers of a specific role (1000+ records)
+     *
+     * Default memanfaatkan cache (24 jam) agar tidak membebani server WA;
+     * `force=true` hanya untuk pemakaian yang memang butuh pengecekan ulang,
+     * dan tetap di-rate-limit dengan jeda 100ms antar nomor.
      */
     public function checkAllRoleNumbers(Request $request)
     {
         $role   = $request->input('role', 'siswa');
         $offset = $request->integer('offset', 0);
-        $limit  = $request->integer('limit', 20);
+        $limit  = min($request->integer('limit', 20), 25); // cap per chunk
+        $force  = $request->boolean('force', false);
 
         $waService = new WhatsAppService();
         $numbers = [];
@@ -370,18 +396,32 @@ class WaGatewayController extends Controller
         }
 
         $results = [];
+        $validCount = 0;
+        $invalidCount = 0;
+
         foreach ($numbers as $num) {
-            $results[$num] = $waService->revalidateNumber($num);
+            // Tanpa force → pakai cache 24 jam (hindari hammering server WA)
+            $results[$num] = $force
+                ? $waService->revalidateNumber($num)
+                : $waService->isNumberValidCached($num);
+
+            if (!empty($numbers) && $num !== end($numbers)) {
+                usleep(100000); // Jeda 100ms antar request
+            }
+
+            $results[$num] ? $validCount++ : $invalidCount++;
         }
 
         return response()->json([
-            'status'    => true,
-            'role'      => $role,
-            'offset'    => $offset,
-            'limit'     => $limit,
-            'total'     => $total,
-            'processed' => count($numbers),
-            'results'   => $results,
+            'status'       => true,
+            'role'         => $role,
+            'offset'       => $offset,
+            'limit'        => $limit,
+            'total'        => $total,
+            'processed'    => count($numbers),
+            'results'      => $results,
+            'valid_count'  => $validCount,
+            'invalid_count'=> $invalidCount,
         ]);
     }
 }
