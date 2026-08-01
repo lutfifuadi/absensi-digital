@@ -168,6 +168,14 @@ class WhatsAppService
      */
     public function checkNumber(string $number, bool $force = true, ?string $customSender = null, ?string $customApiKey = null): bool
     {
+        // ── 1. Jika WA Validator Aktif & Dikonfigurasi, Gunakan WhatsAppValidatorService ──
+        $valEnabled = settingBool('wa_validator_enabled') || setting('wa_validator_enabled') === 'Ya' || feature_is_on('wa_validator_enabled');
+        if ($valEnabled && empty($customApiKey) && empty($customSender)) {
+            /** @var WhatsAppValidatorService $validator */
+            $validator = app(WhatsAppValidatorService::class);
+            return $validator->validateNomor($number);
+        }
+
         // Pengecekan keberadaan nomor di WhatsApp adalah query read-only, selalu izinkan jika force=true atau endpoint tersedia
         $number = WhatsAppHelper::formatNumber($number);
         if (empty($number)) return false;
