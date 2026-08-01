@@ -61,21 +61,9 @@ class FloatingChat extends Component
      */
     protected function getSchoolName(): string
     {
-        try {
-            $nama = \App\Models\Pengaturan::where('key', 'nama_lembaga')->value('value');
-            if (!empty($nama)) {
-                return $nama;
-            }
-
-            $nama = \App\Models\Pengaturan::where('key', 'nama_sekolah')->value('value');
-            if (!empty($nama)) {
-                return $nama;
-            }
-
-            return env('SCHOOL_NAME', config('app.name', 'MAN 1 Kota Bandung'));
-        } catch (\Exception $e) {
-            return env('SCHOOL_NAME', config('app.name', 'MAN 1 Kota Bandung'));
-        }
+        return setting('nama_lembaga')
+            ?: setting('nama_sekolah')
+            ?: env('SCHOOL_NAME', config('app.name', 'MAN 1 Kota Bandung'));
     }
 
     public function toggle()

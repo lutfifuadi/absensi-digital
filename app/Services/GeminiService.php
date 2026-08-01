@@ -38,7 +38,7 @@ class GeminiService
     protected function loadApiKeys(): void
     {
         // Coba ambil dari key baru 'gemini_api_key'
-        $stored = Pengaturan::where('key', 'gemini_api_key')->value('value');
+        $stored = setting('gemini_api_key');
 
         if ($stored) {
             // Coba decode sebagai JSON (untuk format ["key1", "key2"])
@@ -55,7 +55,7 @@ class GeminiService
 
         // Fallback ke key lama 'gemini_api_keys' jika masih kosong
         if (empty($this->apiKeys)) {
-            $oldStored = Pengaturan::where('key', 'gemini_api_keys')->value('value');
+            $oldStored = setting('gemini_api_keys');
             if ($oldStored) {
                 $decodedOld = json_decode($oldStored, true);
                 if (is_array($decodedOld)) {
@@ -78,7 +78,7 @@ class GeminiService
 
         $this->apiKeys = array_values(array_unique($this->apiKeys));
 
-        $currentIndex = (int) Pengaturan::where('key', 'gemini_last_key_index')->value('value');
+        $currentIndex = (int) setting('gemini_last_key_index', 0);
         $currentIndex = min($currentIndex, max(count($this->apiKeys) - 1, 0));
         $this->apiKey = !empty($this->apiKeys) ? $this->apiKeys[$currentIndex] : null;
     }
@@ -90,15 +90,14 @@ class GeminiService
             return false;
         }
 
-        $lastIndex = (int) Pengaturan::where('key', 'gemini_last_key_index')->value('value');
+        $lastIndex = (int) setting('gemini_last_key_index', 0);
         $nextIndex = ($lastIndex + 1) % count($this->apiKeys);
 
         $this->apiKey = $this->apiKeys[$nextIndex];
 
-        Pengaturan::updateOrCreate(
-            ['key' => 'gemini_last_key_index'],
-            ['value' => (string) $nextIndex, 'group' => 'ai']
-        );
+        /** @var \App\Services\SettingsManager $sm */
+        $sm = app(\App\Services\SettingsManager::class);
+        $sm->set('gemini_last_key_index', (string) $nextIndex, 'ai');
 
         Log::info('GeminiService: rotated to next API key', [
             'from_index' => $lastIndex,

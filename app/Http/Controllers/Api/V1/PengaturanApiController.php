@@ -3,97 +3,86 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Models\ActivityLog;
-use App\Models\Pengaturan;
+use App\Services\SettingsManager;
+use App\Support\PengaturanDefaults;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PengaturanApiController extends Controller
 {
-    /**
-     * Daftar key toggle yang diizinkan.
-     */
-    private const ALLOWED_TOGGLE_KEYS = [
-        'auto_alpha_siswa_enabled',
-        'auto_alpha_wa_notif',
-    ];
+    protected SettingsManager $settings;
+
+    public function __construct(SettingsManager $settings)
+    {
+        $this->settings = $settings;
+    }
 
     /**
      * POST /api/v1/pengaturan/toggle
      *
-     * Toggle pengaturan Ya/Tidak via AJAX.
+     * Toggle pengaturan fitur secara otomatis tanpa whitelist manual.
      *
      * Body JSON:
-     *   - key: string (auto_alpha_siswa_enabled | auto_alpha_wa_notif)
-     *   - value: string (Ya | Tidak)
+     *   - key: string (key yang bertipe is_toggle = true)
+     *   - value: mixed (true|false, 1|0, "1"|"0", "Ya"|"Tidak")
      */
     public function toggle(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'key'   => ['required', 'string', 'in:' . implode(',', self::ALLOWED_TOGGLE_KEYS)],
-            'value' => ['required', 'string', 'in:Ya,Tidak'],
-        ], [
-            'key.required'   => 'Key wajib diisi.',
-            'key.in'         => 'Key tidak valid.',
-            'value.required' => 'Value wajib diisi.',
-            'value.in'       => 'Value harus berupa "Ya" atau "Tidak".',
-        ]);
+        $key = (string) $request->input('key');
+        $rawVal = $request->input('value');
 
-        $key   = $validated['key'];
-        $value = $validated['value'];
+        if (!$key || !PengaturanDefaults::isToggle($key)) {
+            return response()->json([
+                'success' => false,
+                'message' => "Pengaturan key \"{$key}\" tidak valid atau bukan merupakan feature toggle.",
+            ], 422);
+        }
+
+        $meta = PengaturanDefaults::get($key);
+
+        // Permission check
+        if (($meta['permission'] ?? 'admin_sekolah') === 'super_admin') {
+            $user = $request->user();
+            if ($user && method_exists($user, 'hasRole') && !$user->hasRole('super_admin')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki hak akses super_admin untuk mengubah pengaturan ini.',
+                ], 403);
+            }
+        }
+
+        // Parse boolean input
+        $boolValue = false;
+        if (is_bool($rawVal)) {
+            $boolValue = $rawVal;
+        } else {
+            $strVal = strtolower(trim((string) $rawVal));
+            $boolValue = in_array($strVal, ['1', 'true', 'ya', 'yes', 'on'], true);
+        }
 
         try {
-            DB::transaction(function () use ($key, $value) {
-                // Ambil data lama untuk activity log
-                $oldRow = Pengaturan::where('key', $key)->first();
-                $oldValue = $oldRow?->value ?? null;
+            $this->settings->setBool($key, $boolValue);
 
-                // Update atau buat baru
-                Pengaturan::updateOrCreate(
-                    ['key' => $key],
-                    [
-                        'value' => $value,
-                        'group' => 'auto_alpha',
-                    ]
-                );
-
-                // ── Log perubahan ke activity_log ───────────────────────
-                $label = match ($key) {
-                    'auto_alpha_siswa_enabled' => 'Auto-Alpha Siswa',
-                    'auto_alpha_wa_notif'      => 'Notifikasi WA Auto-Alpha',
-                    default                    => $key,
-                };
-
-                ActivityLog::record(
-                    action: 'toggle',
-                    module: 'pengaturan',
-                    description: "Mengubah {$label} dari \"{$oldValue}\" menjadi \"{$value}\"",
-                    oldData: ['key' => $key, 'value' => $oldValue],
-                    newData: ['key' => $key, 'value' => $value],
-                );
-
-                // ── Bersihkan cache terkait ──────────────────────────────
-                Cache::forget('absensi_settings');
-                Cache::forget('pengaturan');
-            });
+            $label = $meta['label'] ?? $key;
+            $statusText = $boolValue ? 'diaktifkan' : 'dinonaktifkan';
 
             return response()->json([
                 'success' => true,
-                'message' => "Pengaturan \"{$key}\" berhasil diubah menjadi \"{$value}\".",
+                'message' => "Fitur \"{$label}\" berhasil {$statusText}.",
                 'data'    => [
                     'key'   => $key,
-                    'value' => $value,
+                    'value' => $boolValue,
+                    'label' => $label,
                 ],
             ]);
 
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Gagal toggle pengaturan {$key}: " . $e->getMessage());
+            Log::error("PengaturanApiController: Gagal toggle {$key}: " . $e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan server. Silakan coba lagi atau hubungi administrator.',
+                'message' => 'Terjadi kesalahan server saat memperbarui pengaturan.',
             ], 500);
         }
     }
@@ -101,13 +90,21 @@ class PengaturanApiController extends Controller
     /**
      * GET /api/v1/pengaturan/status
      *
-     * Ambil status semua toggle auto-alpha.
+     * Ambil status seluruh feature toggle.
      */
     public function status(): JsonResponse
     {
+        $toggles = PengaturanDefaults::toggleFeatures();
         $statuses = [];
-        foreach (self::ALLOWED_TOGGLE_KEYS as $key) {
-            $statuses[$key] = Pengaturan::where('key', $key)->value('value') ?? 'Ya';
+
+        foreach ($toggles as $key => $meta) {
+            $statuses[$key] = [
+                'key'         => $key,
+                'label'       => $meta['label'],
+                'description' => $meta['description'],
+                'is_on'       => $this->settings->getBool($key),
+                'permission'  => $meta['permission'] ?? 'admin_sekolah',
+            ];
         }
 
         return response()->json([

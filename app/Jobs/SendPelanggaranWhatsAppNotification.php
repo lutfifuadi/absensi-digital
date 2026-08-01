@@ -59,8 +59,13 @@ class SendPelanggaranWhatsAppNotification implements ShouldQueue
             return;
         }
 
+        if (!feature('fitur_modul_pelanggaran')) {
+            Log::info('Fitur modul pelanggaran dinonaktifkan (OFF). Skip kirim WA notifikasi.');
+            return;
+        }
+
         // Ambil data nama lembaga / sekolah
-        $lembaga = Pengaturan::where('key', 'nama_sekolah')->value('value') ?: 'Sekolah';
+        $lembaga = setting('nama_lembaga') ?: setting('nama_sekolah') ?: 'Sekolah';
 
         // Buat pesan berdasarkan template dan tipe notifikasi
         $pesan = '';

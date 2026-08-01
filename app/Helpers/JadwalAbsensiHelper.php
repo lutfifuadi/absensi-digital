@@ -51,15 +51,9 @@ class JadwalAbsensiHelper
             ->first();
 
         // Ambil pengaturan global sebagai fallback
-        $settings = Cache::get('absensi_settings', function () {
-            return Pengaturan::whereIn('key', [
-                'jam_mulai_absensi',
-                'jam_masuk',
-                'jam_batas_masuk',
-                'jam_pulang',
-                'jam_akhir_pulang',
-            ])->pluck('value', 'key')->toArray();
-        });
+        /** @var \App\Services\SettingsManager $sm */
+        $sm = app(\App\Services\SettingsManager::class);
+        $settings = $sm->all();
 
         return [
             'jam_mulai_absensi' => self::formatTime($jadwal?->jam_mulai_absensi) ?? $settings['jam_mulai_absensi'] ?? '06:00',

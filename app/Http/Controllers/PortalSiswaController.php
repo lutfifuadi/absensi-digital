@@ -18,15 +18,17 @@ class PortalSiswaController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
+        \App\Facades\Feature::guard('fitur_download_kartu_siswa');
+
         $siswa = Siswa::with(['kelas', 'tahunAkademik'])->where('user_id', $user->id)->firstOrFail();
         
         $template = \App\Models\IdCardTemplate::where('type', 'siswa')->active()->first();
 
         // 1. Ambil data lembaga / pengaturan
-        $namaSekolah = Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
+        $namaSekolah = setting('nama_lembaga') ?: setting('nama_sekolah') ?: 'Madrasah Aliyah';
         
         // Logo sekolah - konversi ke base64 data URI biar html2canvas gak kena CORS
-        $logoPath = Pengaturan::where('key', 'logo_sekolah')->value('value');
+        $logoPath = setting('logo_sekolah');
         $logoSekolah = null;
         if ($logoPath) {
             $fullPath = public_path('storage/' . $logoPath);
@@ -47,7 +49,7 @@ class PortalSiswaController extends Controller
         }
 
         // TTD & Cap Sekolah
-        $ttdPath = Pengaturan::where('key', 'tanda_tangan_kepala_sekolah')->value('value');
+        $ttdPath = setting('tanda_tangan_kepala_sekolah');
         $ttdBase64 = null;
         if ($ttdPath) {
             if (strlen($ttdPath) > 30 && !str_contains($ttdPath, '/') && !str_contains($ttdPath, '\\')) {
@@ -76,7 +78,7 @@ class PortalSiswaController extends Controller
             }
         }
 
-        $capPath = Pengaturan::where('key', 'cap_sekolah')->value('value');
+        $capPath = setting('cap_sekolah');
         $capBase64 = null;
         if ($capPath) {
             if (strlen($capPath) > 30 && !str_contains($capPath, '/') && !str_contains($capPath, '\\')) {
@@ -204,12 +206,12 @@ class PortalSiswaController extends Controller
 
         $lembagaData = array_merge($lembagaDataService, [
             'nama_sekolah' => $namaSekolah,
-            'alamat_lembaga' => Pengaturan::where('key', 'alamat_lembaga')->value('value') ?? '',
-            'email_lembaga' => Pengaturan::where('key', 'email_lembaga')->value('value') ?? '',
-            'website_lembaga' => Pengaturan::where('key', 'website_lembaga')->value('value') ?? '',
-            'nama_kepala_lembaga' => Pengaturan::where('key', 'nama_kepala_lembaga')->value('value') ?? '',
-            'nip_kepala_lembaga' => Pengaturan::where('key', 'nip_kepala_lembaga')->value('value') ?? '',
-            'kota_penerbitan' => Pengaturan::where('key', 'kota_penerbitan')->value('value') ?? '',
+            'alamat_lembaga' => setting('alamat_lembaga', ''),
+            'email_lembaga' => setting('email_lembaga', ''),
+            'website_lembaga' => setting('website_lembaga', ''),
+            'nama_kepala_lembaga' => setting('nama_kepala_lembaga', ''),
+            'nip_kepala_lembaga' => setting('nip_kepala_lembaga', ''),
+            'kota_penerbitan' => setting('kota_penerbitan', ''),
             'logo_base64' => $logoSekolah ?: ($lembagaDataService['logo_base64'] ?? null),
             'ttd_base64' => $ttdBase64 ?: ($lembagaDataService['ttd_base64'] ?? null),
             'cap_base64' => $capBase64 ?: ($lembagaDataService['cap_base64'] ?? null),
@@ -234,6 +236,8 @@ class PortalSiswaController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
+        \App\Facades\Feature::guard('fitur_gamifikasi');
+
         $siswa = Siswa::with('kelas')->where('user_id', $user->id)->firstOrFail();
         
         return view('siswa.leaderboard', compact('siswa'));
@@ -246,6 +250,8 @@ class PortalSiswaController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
+        \App\Facades\Feature::guard('fitur_download_kartu_siswa');
+
         $siswa = Siswa::with('kelas')->where('user_id', $user->id)->firstOrFail();
 
         // Cek apakah siswa kelas XII
@@ -255,10 +261,10 @@ class PortalSiswaController extends Controller
         }
 
         // Data untuk view kartu pelepasan (format gambar PNG)
-        $namaSekolah  = Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
+        $namaSekolah  = setting('nama_lembaga') ?: setting('nama_sekolah') ?: 'Madrasah Aliyah';
 
         // Logo sekolah - konversi ke base64 data URI biar html2canvas gak kena CORS
-        $logoPath = Pengaturan::where('key', 'logo_sekolah')->value('value');
+        $logoPath = setting('logo_sekolah');
         $logoSekolah = null;
         if ($logoPath) {
             $fullPath = public_path('storage/' . $logoPath);

@@ -11,9 +11,7 @@ class JenjangHelper
      */
     public static function getActiveJenjang(): string
     {
-        // Default is SMA/MA/SMK
-        $setting = Pengaturan::where('key', 'jenjang')->first();
-        return $setting ? $setting->value : 'SMA/MA/SMK';
+        return setting('jenjang', 'SMA/MA/SMK');
     }
 
     /**
@@ -96,7 +94,7 @@ class JenjangHelper
             return null;
         }
 
-        $jumlahTahunSekolah = (int) (Pengaturan::where('key', 'jumlah_tahun_sekolah')->value('value') ?? 3);
+        $jumlahTahunSekolah = settingInt('jumlah_tahun_sekolah', 3);
         $jenjang = self::getActiveJenjang();
         $tingkatOptions = self::getTingkatOptions($jenjang);
 

@@ -16,7 +16,7 @@ class CheckAuthorizedDevice
     public function handle(Request $request, Closure $next): Response
     {
         // Check if device locking is enabled in settings
-        $isLockEnabled = Pengaturan::where('key', 'lock_device_pc')->value('value') === 'Ya';
+        $isLockEnabled = feature('lock_device_pc');
         
         if (!$isLockEnabled) {
             return $next($request);

@@ -27,7 +27,7 @@ class GuruImport implements ToModel, WithHeadingRow, WithValidation, SkipsEmptyR
 
     public function __construct()
     {
-        $this->domainEmail = Pengaturan::where('key', 'website_lembaga')->value('value') ?? 'madrasah.sch.id';
+        $this->domainEmail = setting('website_lembaga', 'madrasah.sch.id');
     }
 
     public function model(array $row)

@@ -105,7 +105,7 @@ class SyncService
 
             $email = $data['email'] ?? '';
             if (empty($email)) {
-                $domain = Pengaturan::where('key', 'website_lembaga')->value('value') ?? 'madrasah.sch.id';
+                $domain = setting('website_lembaga', 'madrasah.sch.id');
                 $email = strtolower(trim($data['nisn'] ?? $data['nis'] ?? $data['username'])).'@'.$domain;
             }
 
@@ -119,7 +119,7 @@ class SyncService
 
             // 1b. Sync Ortu Account
             $identifier = strtolower(trim($data['nisn'] ?? $data['nis'] ?? ''));
-            $domainEmail = Pengaturan::where('key', 'website_lembaga')->value('value') ?? 'madrasah.sch.id';
+            $domainEmail = setting('website_lembaga', 'madrasah.sch.id');
             $emailOrtu = 'ortu.'.$identifier.'@'.$domainEmail;
             $usernameOrtu = 'ortu.'.$identifier;
             

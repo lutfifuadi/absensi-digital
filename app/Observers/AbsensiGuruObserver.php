@@ -33,8 +33,7 @@ class AbsensiGuruObserver
     {
         try {
             // 1. Cek toggle on/off WA Gateway
-            $waEnabled = Pengaturan::where('key', 'wa_gateway_enabled')->value('value');
-            if ($waEnabled === 'Tidak') {
+            if (!feature('wa_gateway_enabled')) {
                 return;
             }
 
@@ -49,8 +48,7 @@ class AbsensiGuruObserver
             $nomorTujuan = $guru->no_hp;
 
             // Info lembaga
-            $namaLembaga = Pengaturan::where('key', 'nama_sekolah')->value('value')
-                ?: (Pengaturan::where('key', 'nama_lembaga')->value('value') ?: 'Sekolah');
+            $namaLembaga = setting('nama_lembaga') ?: setting('nama_sekolah') ?: 'Sekolah';
 
             // 3. Ambil Template Redaksi dari Database
             $templateType = $tipe === 'pulang' ? 'guru_pulang' : 'guru_' . strtolower($absensi->status) . '_masuk';
@@ -108,7 +106,7 @@ class AbsensiGuruObserver
             }
 
             // 4. Dispatch Job WA
-            $delaySecs = (int)(Pengaturan::where('key', 'jeda_waktu_kirim_notifikasi_detik')->value('value') ?: 1);
+            $delaySecs = (int) (setting('jeda_waktu_kirim_notifikasi_detik') ?: 1);
 
             SendWhatsAppMessage::dispatch(
                 $nomorTujuan,

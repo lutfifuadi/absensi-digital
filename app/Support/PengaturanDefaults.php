@@ -1,0 +1,837 @@
+<?php
+
+namespace App\Support;
+
+class PengaturanDefaults
+{
+    /**
+     * Definisi Single Source of Truth (SOT) untuk seluruh pengaturan aplikasi.
+     */
+    private static ?array $definitions = null;
+
+    /**
+     * Mengembalikan seluruh definisi pengaturan lengkap dengan metadata.
+     */
+    public static function definitions(): array
+    {
+        if (self::$definitions !== null) {
+            return self::$definitions;
+        }
+
+        self::$definitions = [
+            // ── TAB FITUR / FEATURE TOGGLES (FR-9 Baru + Existing) ──
+            'fitur_dashboard_guru' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'Dashboard Guru',
+                'description'   => 'Aktifkan modul analitik kehadiran dan dashboard khusus untuk guru.',
+                'icon'          => 'tabler-dashboard',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'fitur_live_board_publik' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'Live Board Publik',
+                'description'   => 'Tampilkan papan kehadiran real-time yang dapat diakses publik.',
+                'icon'          => 'tabler-screen-share',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'fitur_live_board_guru' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'Live Board Guru',
+                'description'   => 'Tampilkan papan kehadiran real-time khusus untuk pemantauan guru.',
+                'icon'          => 'tabler-chalkboard',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'fitur_absensi_kegiatan' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'Absensi Kegiatan',
+                'description'   => 'Aktifkan modul presensi untuk kegiatan khusus sekolah/madrasah.',
+                'icon'          => 'tabler-calendar-event',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'fitur_absensi_ekskul' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'Absensi Ekstrakurikuler',
+                'description'   => 'Aktifkan modul absensi kegiatan ekstrakurikuler siswa.',
+                'icon'          => 'tabler-ball-football',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'fitur_absensi_pelepasan' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'Absensi Pelepasan Kelas XII',
+                'description'   => 'Aktifkan modul presensi khusus acara pelepasan/wisuda siswa.',
+                'icon'          => 'tabler-school',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'fitur_absensi_mandiri' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'Absensi Mandiri (Web/Android)',
+                'description'   => 'Izinkan siswa/guru melakukan absensi mandiri dari perangkat masing-masing.',
+                'icon'          => 'tabler-device-mobile-check-in',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'fitur_download_kartu_siswa' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'Download Kartu Siswa (Portal)',
+                'description'   => 'Izinkan siswa atau orang tua mengunduh kartu pelajar dari portal.',
+                'icon'          => 'tabler-id-badge-2',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'fitur_gamifikasi' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'Gamifikasi & Leaderboard',
+                'description'   => 'Aktifkan sistem poin, streak kehadiran, papan peringkat, dan job kalkulasi harian.',
+                'icon'          => 'tabler-trophy',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'fitur_portal_ortu' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'Portal Orang Tua',
+                'description'   => 'Aktifkan halaman portal khusus untuk wali siswa memantau kehadiran.',
+                'icon'          => 'tabler-users-group',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'fitur_ai_chat' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'AI Assistant Chat',
+                'description'   => 'Aktifkan widget AI Chat berbasis Gemini pada panel admin dan floating chat.',
+                'icon'          => 'tabler-bot',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'fitur_modul_pelanggaran' => [
+                'default'       => '0',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'Modul Pelanggaran (BK)',
+                'description'   => 'Aktifkan pencatatan pelanggaran siswa dan bimbingan konseling.',
+                'icon'          => 'tabler-alert-triangle',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'fitur_monitoring_kehadiran_guru' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'Monitoring Kehadiran Guru',
+                'description'   => 'Aktifkan pemantauan real-time kehadiran pendidik dan tenaga kependidikan.',
+                'icon'          => 'tabler-user-check',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'fitur_rekap_export_laporan' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'Rekap & Export Laporan',
+                'description'   => 'Izinkan pencetakan dan pencetakan rekap laporan absensi format Excel/PDF.',
+                'icon'          => 'tabler-file-spreadsheet',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'fitur_webhook_pmbm' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'Webhook Masuk PMBM',
+                'description'   => 'Aktifkan penerimaan data pendaftaran dari sistem PMBM eksternal.',
+                'icon'          => 'tabler-webhook',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'super_admin',
+            ],
+            'fitur_offline_mode_android' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'Master Switch Offline Mode Android',
+                'description'   => 'Master toggle untuk mengizinkan sinkronisasi offline pada aplikasi Android terdaftar.',
+                'icon'          => 'tabler-wifi-off',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+
+            // ── EXISTING TOGGLES (Normalized to boolean 1/0) ──
+            'auto_alpha_siswa_enabled' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'auto_alpha',
+                'label'         => 'Auto-Alpha Siswa',
+                'description'   => 'Otomatis menandai siswa yang tidak hadir tanpa keterangan sebagai Alpha pada akhir jam absensi.',
+                'icon'          => 'tabler-clock-cancel',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'auto_alpha_wa_notif' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'auto_alpha',
+                'label'         => 'Notifikasi WA Auto-Alpha',
+                'description'   => 'Kirim pesan WhatsApp otomatis ke orang tua ketika siswa terdeteksi Auto-Alpha.',
+                'icon'          => 'tabler-brand-whatsapp',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'wa_gateway_enabled' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'notifikasi',
+                'label'         => 'WhatsApp Gateway Integrasi',
+                'description'   => 'Aktifkan pengiriman pesan melalui WhatsApp Gateway server.',
+                'icon'          => 'tabler-message-share',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'master_db_sync_enabled' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'master_sync',
+                'label'         => 'Sinkronisasi DB Master API',
+                'description'   => 'Aktifkan sinkronisasi otomatis data master dengan server pusat.',
+                'icon'          => 'tabler-database-import',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'super_admin',
+            ],
+            'tampilkan_beranda' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'umum',
+                'label'         => 'Tampilkan Landing Page / Beranda',
+                'description'   => 'Tampilkan halaman depan publik saat pengguna mengakses URL utama.',
+                'icon'          => 'tabler-home',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'aktifkan_ai_chat' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'ai',
+                'label'         => 'AI Assistant Chat (Legacy)',
+                'description'   => 'Key legacy toggle AI Chat.',
+                'icon'          => 'tabler-bot',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'izinkan_rfid' => [
+                'default'       => '0',
+                'type'          => 'boolean',
+                'group'         => 'keamanan',
+                'label'         => 'Izinkan Absensi Kartu RFID',
+                'description'   => 'Izinkan penggunaan tap kartu RFID/NFC untuk absensi.',
+                'icon'          => 'tabler-id',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'izinkan_lokasi_absensi_mandiri' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'keamanan',
+                'label'         => 'Verifikasi Lokasi Absensi Mandiri',
+                'description'   => 'Wajibkan verifikasi koordinat GPS saat siswa/guru melakukan absensi mandiri.',
+                'icon'          => 'tabler-map-pin-check',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'izinkan_lokasi_scan_qr' => [
+                'default'       => '0',
+                'type'          => 'boolean',
+                'group'         => 'keamanan',
+                'label'         => 'Verifikasi Lokasi Scan QR',
+                'description'   => 'Wajibkan verifikasi GPS pada perangkat scanner QR.',
+                'icon'          => 'tabler-qrcode',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'deteksi_fake_gps' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'keamanan',
+                'label'         => 'Deteksi Fake GPS / Mock Location',
+                'description'   => 'Tolak absensi dari perangkat yang terdeteksi mengaktifkan manipulasi lokasi.',
+                'icon'          => 'tabler-shield-x',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'ijinkan_absen_mandiri_web' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'keamanan',
+                'label'         => 'Absen Mandiri via Web Browser',
+                'description'   => 'Izinkan absensi mandiri melalui browser web PC/Mobile.',
+                'icon'          => 'tabler-world',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'ijinkan_absen_mandiri_android' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'keamanan',
+                'label'         => 'Absen Mandiri via Aplikasi Android',
+                'description'   => 'Izinkan absensi mandiri melalui aplikasi Android resmi.',
+                'icon'          => 'tabler-brand-android',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'ijinkan_simpan_foto_absen' => [
+                'default'       => '0',
+                'type'          => 'boolean',
+                'group'         => 'keamanan',
+                'label'         => 'Simpan Foto Selfie Absen',
+                'description'   => 'Simpan berkas foto bukti kehadiran ke penyimpanan server.',
+                'icon'          => 'tabler-camera',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'ijinkan_pembuatan_akun_mandiri' => [
+                'default'       => '0',
+                'type'          => 'boolean',
+                'group'         => 'keamanan',
+                'label'         => 'Pendaftaran Akun Mandiri Siswa',
+                'description'   => 'Izinkan siswa membuat akun sendiri tanpa dibuatkan oleh operator admin.',
+                'icon'          => 'tabler-user-plus',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'lock_device_android' => [
+                'default'       => '0',
+                'type'          => 'boolean',
+                'group'         => 'keamanan',
+                'label'         => 'Kunci Perangkat (Lock Device) Android',
+                'description'   => 'Membatasi 1 akun siswa hanya boleh absen di 1 HP Android terdaftar.',
+                'icon'          => 'tabler-device-mobile-message',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'lock_device_pc' => [
+                'default'       => '0',
+                'type'          => 'boolean',
+                'group'         => 'keamanan',
+                'label'         => 'Kunci Perangkat (Lock Device) PC',
+                'description'   => 'Membatasi browser PC yang digunakan untuk scan QR.',
+                'icon'          => 'tabler-device-desktop',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'ijinkan_pop_up_foto' => [
+                'default'       => '0',
+                'type'          => 'boolean',
+                'group'         => 'keamanan',
+                'label'         => 'Pop-Up Foto Setelah Scan',
+                'description'   => 'Tampilkan pop-up foto siswa di layar scanner setelah berhasil absen.',
+                'icon'          => 'tabler-photo',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'ijinkan_pop_up_jadwal' => [
+                'default'       => '0',
+                'type'          => 'boolean',
+                'group'         => 'keamanan',
+                'label'         => 'Pop-Up Jadwal Pelajaran',
+                'description'   => 'Tampilkan pop-up rincian jadwal kelas setelah berhasil absen.',
+                'icon'          => 'tabler-calendar-time',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'aktifkan_bunyi_notif_absensi' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'notifikasi',
+                'label'         => 'Bunyi Audio Scanner QR',
+                'description'   => 'Bunyikan sinyal beeper audio dari browser saat scan QR berhasil/gagal.',
+                'icon'          => 'tabler-volume',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+
+            // ── NON-TOGGLE SETTINGS (TEKS, ANGKA, CREDENTIALS) ──
+            'nama_yayasan_dinas' => [
+                'default'       => 'Kementerian Agama Republik Indonesia',
+                'type'          => 'string',
+                'group'         => 'umum',
+                'label'         => 'Nama Yayasan / Dinas Intansi',
+                'description'   => 'Instansi naungan sekolah/madrasah.',
+                'icon'          => 'tabler-building',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'nama_lembaga' => [
+                'default'       => 'Sistem Absensi',
+                'type'          => 'string',
+                'group'         => 'umum',
+                'label'         => 'Nama Lembaga Canonical',
+                'description'   => 'Nama resmi instansi/sekolah (canonical).',
+                'icon'          => 'tabler-school',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'nama_sekolah' => [
+                'default'       => 'Sistem Absensi',
+                'type'          => 'string',
+                'group'         => 'umum',
+                'label'         => 'Nama Sekolah (Legacy Alias)',
+                'description'   => 'Alias legacy untuk nama lembaga.',
+                'icon'          => 'tabler-school',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'status_akreditasi' => [
+                'default'       => 'Akreditasi A',
+                'type'          => 'string',
+                'group'         => 'umum',
+                'label'         => 'Status Akreditasi',
+                'description'   => 'Status akreditasi sekolah.',
+                'icon'          => 'tabler-certificate',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'jenjang' => [
+                'default'       => 'SMA/MA/SMK',
+                'type'          => 'string',
+                'group'         => 'umum',
+                'label'         => 'Jenjang Pendidikan',
+                'description'   => 'Tingkat jenjang pendidikan.',
+                'icon'          => 'tabler-books',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'jumlah_tahun_sekolah' => [
+                'default'       => '3',
+                'type'          => 'int',
+                'group'         => 'umum',
+                'label'         => 'Lama Pendidikan (Tahun)',
+                'description'   => 'Durasi studi siswa.',
+                'icon'          => 'tabler-number',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'website_lembaga' => [
+                'default'       => 'man1kotabandung.sch.id',
+                'type'          => 'string',
+                'group'         => 'umum',
+                'label'         => 'Alamat Domain Website',
+                'description'   => 'Domain resmi sekolah.',
+                'icon'          => 'tabler-world-www',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'nama_kepala_lembaga' => [
+                'default'       => 'YAYAN R JAYA, S.Pd., S.E., M.M',
+                'type'          => 'string',
+                'group'         => 'umum',
+                'label'         => 'Nama Kepala Sekolah/Lembaga',
+                'description'   => 'Nama kepala sekolah beserta gelar.',
+                'icon'          => 'tabler-user',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'nip_kepala_lembaga' => [
+                'default'       => '197002021993011004',
+                'type'          => 'string',
+                'group'         => 'umum',
+                'label'         => 'NIP/NIPPPK Kepala Lembaga',
+                'description'   => 'Nomor induk pegawai kepala sekolah.',
+                'icon'          => 'tabler-id',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'no_telp_lembaga' => [
+                'default'       => '0226027957',
+                'type'          => 'string',
+                'group'         => 'umum',
+                'label'         => 'Nomor Telepon Lembaga Canonical',
+                'description'   => 'Kontak telepon resmi.',
+                'icon'          => 'tabler-phone',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'telepon_lembaga' => [
+                'default'       => '0226027957',
+                'type'          => 'string',
+                'group'         => 'umum',
+                'label'         => 'Nomor Telepon Lembaga (Installer Legacy)',
+                'description'   => 'Alias legacy telepon.',
+                'icon'          => 'tabler-phone',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'kontak_lembaga' => [
+                'default'       => '0226027957',
+                'type'          => 'string',
+                'group'         => 'umum',
+                'label'         => 'Kontak Lembaga (Public Pages Legacy)',
+                'description'   => 'Alias legacy telepon.',
+                'icon'          => 'tabler-phone',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'alamat_lembaga' => [
+                'default'       => 'Jl. Jenderal Sudirman No.1, Bandung',
+                'type'          => 'string',
+                'group'         => 'umum',
+                'label'         => 'Alamat Lengkap Lembaga',
+                'description'   => 'Alamat lokasi sekolah.',
+                'icon'          => 'tabler-map-pin',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'email_lembaga' => [
+                'default'       => 'info@man1kotabandung.sch.id',
+                'type'          => 'string',
+                'group'         => 'umum',
+                'label'         => 'Alamat Email Lembaga',
+                'description'   => 'Email resmi sekolah.',
+                'icon'          => 'tabler-mail',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'kecamatan' => [
+                'default'       => 'Bandung',
+                'type'          => 'string',
+                'group'         => 'umum',
+                'label'         => 'Kecamatan',
+                'description'   => 'Lokasi kecamatan.',
+                'icon'          => 'tabler-building-community',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'minimal_hadir_persen' => [
+                'default'       => '90',
+                'type'          => 'int',
+                'group'         => 'umum',
+                'label'         => 'Minimal Kehadiran (%)',
+                'description'   => 'Persentase minimal kelayakan ujian.',
+                'icon'          => 'tabler-percentage',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'password_unlock_scan_qr' => [
+                'default'       => '',
+                'type'          => 'string',
+                'group'         => 'keamanan',
+                'label'         => 'Password Unlock Scanner QR',
+                'description'   => 'Password pengunci layar scan QR.',
+                'icon'          => 'tabler-lock',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'latitude' => [
+                'default'       => '-6.922405',
+                'type'          => 'string',
+                'group'         => 'keamanan',
+                'label'         => 'Latitude Lokasi Absensi',
+                'description'   => 'Koordinat lintang pusat lokasi.',
+                'icon'          => 'tabler-map-pin',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'longitude' => [
+                'default'       => '107.5717651',
+                'type'          => 'string',
+                'group'         => 'keamanan',
+                'label'         => 'Longitude Lokasi Absensi',
+                'description'   => 'Koordinat bujur pusat lokasi.',
+                'icon'          => 'tabler-map-pin',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'radius_jarak_absen' => [
+                'default'       => '900',
+                'type'          => 'int',
+                'group'         => 'keamanan',
+                'label'         => 'Radius Jarak Maksimal Absen (Meter)',
+                'description'   => 'Jarak toleransi absensi dari pusat titik lokasi.',
+                'icon'          => 'tabler-ruler-2',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'minimal_akurasi_gps' => [
+                'default'       => '100',
+                'type'          => 'int',
+                'group'         => 'keamanan',
+                'label'         => 'Minimal Akurasi GPS (Meter)',
+                'description'   => 'Toleransi keakuratan sinyal GPS HP.',
+                'icon'          => 'tabler-target-arrow',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'zona_waktu' => [
+                'default'       => 'Asia/Jakarta (WIB)',
+                'type'          => 'string',
+                'group'         => 'keamanan',
+                'label'         => 'Zona Waktu Sektor',
+                'description'   => 'WIB, WITA, atau WIT.',
+                'icon'          => 'tabler-clock',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'ijinkan_pulang_lebih_awal' => [
+                'default'       => '2024-07-27',
+                'type'          => 'string',
+                'group'         => 'keamanan',
+                'label'         => 'Tanggal Pengecualian Pulang Awal',
+                'description'   => 'Tanggal khusus diizinkan checkout lebih awal.',
+                'icon'          => 'tabler-calendar',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'jenis_notifikasi_ortu' => [
+                'default'       => 'WhatsApp (WA)',
+                'type'          => 'string',
+                'group'         => 'notifikasi',
+                'label'         => 'Jenis Notifikasi Wali Siswa',
+                'description'   => 'Saluran pengiriman notifikasi.',
+                'icon'          => 'tabler-bell',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'mode_notifikasi_scan_qr' => [
+                'default'       => 'Mode Audio',
+                'type'          => 'string',
+                'group'         => 'notifikasi',
+                'label'         => 'Mode Feedback Scanner QR',
+                'description'   => 'Mode audio/visual.',
+                'icon'          => 'tabler-volume-2',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'varian_notifikasi_suara' => [
+                'default'       => 'default',
+                'type'          => 'string',
+                'group'         => 'notifikasi',
+                'label'         => 'Varian Voice Audio',
+                'description'   => 'Voice pack scanner.',
+                'icon'          => 'tabler-speakerphone',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
+            'freq_bunyi_hadir' => ['default' => '880', 'type' => 'int', 'group' => 'notifikasi', 'label' => 'Frekuensi Hadir', 'description' => 'Tone audio', 'icon' => 'tabler-music', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'freq_bunyi_terlambat' => ['default' => '440', 'type' => 'int', 'group' => 'notifikasi', 'label' => 'Frekuensi Terlambat', 'description' => 'Tone audio', 'icon' => 'tabler-music', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'freq_bunyi_streak' => ['default' => '523', 'type' => 'int', 'group' => 'notifikasi', 'label' => 'Frekuensi Streak', 'description' => 'Tone audio', 'icon' => 'tabler-music', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'freq_bunyi_early' => ['default' => '698', 'type' => 'int', 'group' => 'notifikasi', 'label' => 'Frekuensi Early', 'description' => 'Tone audio', 'icon' => 'tabler-music', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'freq_bunyi_normal' => ['default' => '523', 'type' => 'int', 'group' => 'notifikasi', 'label' => 'Frekuensi Normal', 'description' => 'Tone audio', 'icon' => 'tabler-music', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'freq_bunyi_late' => ['default' => '349', 'type' => 'int', 'group' => 'notifikasi', 'label' => 'Frekuensi Late', 'description' => 'Tone audio', 'icon' => 'tabler-music', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'freq_bunyi_checkout' => ['default' => '392', 'type' => 'int', 'group' => 'notifikasi', 'label' => 'Frekuensi Checkout', 'description' => 'Tone audio', 'icon' => 'tabler-music', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'pengiriman_notifikasi_scan_qr' => ['default' => 'Kirim otomatis', 'type' => 'string', 'group' => 'notifikasi', 'label' => 'Mode Pengiriman Notif WA Scan', 'description' => 'Otomatis / Manual', 'icon' => 'tabler-send', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'token_bot_telegram' => ['default' => '6281285399737', 'type' => 'string', 'group' => 'notifikasi', 'label' => 'Token Bot Telegram', 'description' => 'Token telegram', 'icon' => 'tabler-brand-telegram', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'penerima_notifikasi_pendidik' => ['default' => 'w6282187771403', 'type' => 'string', 'group' => 'notifikasi', 'label' => 'Nomor WA Penerima Laporan Guru', 'description' => 'Nomor tujuan', 'icon' => 'tabler-phone-call', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'penerima_notifikasi_ajuan_ijin' => ['default' => '6282295556906', 'type' => 'string', 'group' => 'notifikasi', 'label' => 'Nomor WA Penerima Ajuan Izin', 'description' => 'Nomor tujuan', 'icon' => 'tabler-phone-call', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'link_server_wa' => ['default' => 'https://wa.lutfifuadi.my.id/send-message', 'type' => 'string', 'group' => 'notifikasi', 'label' => 'Endpoint Server WA Gateway', 'description' => 'URL API gateway', 'icon' => 'tabler-link', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+            'nomor_server_wa_api_key' => ['default' => '6282295556906', 'type' => 'string', 'group' => 'notifikasi', 'label' => 'Sender Phone / Key WA', 'description' => 'Nomor pengirim', 'icon' => 'tabler-key', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+            'jeda_waktu_kirim_pesan_detik' => ['default' => '5', 'type' => 'int', 'group' => 'notifikasi', 'label' => 'Jeda Pengiriman Pesan (Detik)', 'description' => 'Anti-spam delay', 'icon' => 'tabler-clock-play', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'jeda_waktu_kirim_notifikasi_detik' => ['default' => '1', 'type' => 'int', 'group' => 'notifikasi', 'label' => 'Jeda Antar Notifikasi (Detik)', 'description' => 'Delay queue', 'icon' => 'tabler-clock-pause', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'wa_api_key' => ['default' => '', 'type' => 'string', 'group' => 'notifikasi', 'label' => 'WA Gateway API Key Dedicated', 'description' => 'Kredensial API', 'icon' => 'tabler-keyhole', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+            'wa_nomor_admin' => ['default' => '', 'type' => 'string', 'group' => 'notifikasi', 'label' => 'Nomor WA Admin Sistem', 'description' => 'Nomor admin', 'icon' => 'tabler-user-shield', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'wa_nomor_notifikasi' => ['default' => '', 'type' => 'string', 'group' => 'notifikasi', 'label' => 'Nomor Pengirim Notifikasi WA', 'description' => 'Sender number', 'icon' => 'tabler-phone-outgoing', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'wa_http_timeout' => ['default' => '15', 'type' => 'int', 'group' => 'notifikasi', 'label' => 'Timeout HTTP WA Gateway (Detik)', 'description' => 'Timeout request ke server WA (5-60 detik)', 'icon' => 'tabler-timer', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+
+            'master_db_sync_mode' => ['default' => 'otomatis', 'type' => 'string', 'group' => 'master_sync', 'label' => 'Mode Sync DB Master', 'description' => 'Otomatis atau manual', 'icon' => 'tabler-refresh', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+            'master_db_sync_time' => ['default' => '03:00', 'type' => 'string', 'group' => 'master_sync', 'label' => 'Waktu Sync Master Harian', 'description' => 'Jam eksekusi cron', 'icon' => 'tabler-alarm', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+            'master_db_api_url' => ['default' => '', 'type' => 'string', 'group' => 'master_sync', 'label' => 'URL Master DB Server', 'description' => 'Endpoint API', 'icon' => 'tabler-api', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+            'master_db_api_key' => ['default' => '', 'type' => 'string', 'group' => 'master_sync', 'label' => 'API Key Sync Master DB', 'description' => 'Auth Token', 'icon' => 'tabler-lock-access', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+            'pmbm_incoming_api_key' => ['default' => '', 'type' => 'string', 'group' => 'notifikasi', 'label' => 'API Key Webhook PMBM Masuk', 'description' => 'Token pmbm', 'icon' => 'tabler-key', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+
+            'tanda_tangan_kepala_sekolah' => ['default' => '', 'type' => 'string', 'group' => 'branding', 'label' => 'Berkas TTD Kepala Sekolah', 'description' => 'Path TTD', 'icon' => 'tabler-signature', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'ttd_url' => ['default' => '', 'type' => 'string', 'group' => 'branding', 'label' => 'URL TTD (Legacy)', 'description' => 'Path TTD legacy', 'icon' => 'tabler-signature', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'cap_sekolah' => ['default' => '', 'type' => 'string', 'group' => 'branding', 'label' => 'Berkas Stempel Cap Sekolah', 'description' => 'Path Stempel', 'icon' => 'tabler-rubber-stamp', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'cap_url' => ['default' => '', 'type' => 'string', 'group' => 'branding', 'label' => 'URL Cap (Legacy)', 'description' => 'Path Stempel legacy', 'icon' => 'tabler-rubber-stamp', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'kota_penerbitan' => ['default' => '', 'type' => 'string', 'group' => 'branding', 'label' => 'Kota Penerbitan Dokumen/Kartu', 'description' => 'Lokasi cetak', 'icon' => 'tabler-building-bank', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'logo_dinas' => ['default' => '', 'type' => 'string', 'group' => 'branding', 'label' => 'Berkas Logo Dinas/Yayasan', 'description' => 'Path logo dinas', 'icon' => 'tabler-photo', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'logo_dinas_url' => ['default' => '', 'type' => 'string', 'group' => 'branding', 'label' => 'URL Logo Dinas (Legacy)', 'description' => 'Path logo dinas legacy', 'icon' => 'tabler-photo', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'logo_sekolah' => ['default' => '', 'type' => 'string', 'group' => 'branding', 'label' => 'Berkas Logo Utama Sekolah', 'description' => 'Path logo sekolah', 'icon' => 'tabler-photo-star', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'logo_url' => ['default' => '', 'type' => 'string', 'group' => 'branding', 'label' => 'URL Logo Sekolah (Legacy)', 'description' => 'Path logo legacy', 'icon' => 'tabler-photo-star', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+
+            'jam_mulai_absensi' => ['default' => '06:00', 'type' => 'string', 'group' => 'umum', 'label' => 'Jam Mulai Absensi Masuk', 'description' => 'Mulai scan', 'icon' => 'tabler-clock-play', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'jam_masuk' => ['default' => '07:00', 'type' => 'string', 'group' => 'umum', 'label' => 'Jam Masuk Standar', 'description' => 'Target masuk', 'icon' => 'tabler-clock', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'jam_batas_masuk' => ['default' => '08:00', 'type' => 'string', 'group' => 'umum', 'label' => 'Batas Akhir Jam Masuk', 'description' => 'Batas late', 'icon' => 'tabler-clock-stop', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'jam_pulang' => ['default' => '15:00', 'type' => 'string', 'group' => 'umum', 'label' => 'Jam Pulang Standar', 'description' => 'Target pulang', 'icon' => 'tabler-clock-check', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'jam_akhir_pulang' => ['default' => '17:00', 'type' => 'string', 'group' => 'umum', 'label' => 'Batas Akhir Absen Pulang', 'description' => 'Selesai scan pulang', 'icon' => 'tabler-clock-off', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'jam_mulai_pulang' => ['default' => '14:00', 'type' => 'string', 'group' => 'umum', 'label' => 'Jam Mulai Absen Pulang', 'description' => 'Mulai scan pulang', 'icon' => 'tabler-clock-down', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'toleransi_terlambat' => ['default' => '15', 'type' => 'int', 'group' => 'umum', 'label' => 'Toleransi Keterlambatan (Menit)', 'description' => 'Toleransi menit', 'icon' => 'tabler-hourglass', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+
+            'github_repo_owner' => ['default' => '', 'type' => 'string', 'group' => 'update', 'label' => 'GitHub Repo Owner', 'description' => 'Owner repository', 'icon' => 'tabler-brand-github', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+            'github_repo_name' => ['default' => '', 'type' => 'string', 'group' => 'update', 'label' => 'GitHub Repo Name', 'description' => 'Nama repository', 'icon' => 'tabler-brand-github', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+            'app_version' => ['default' => '1.14.0', 'type' => 'string', 'group' => 'update', 'label' => 'Versi Aplikasi Presensi', 'description' => 'Versi rilis', 'icon' => 'tabler-versions', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+
+            'gemini_api_key' => ['default' => '', 'type' => 'string', 'group' => 'ai', 'label' => 'Google Gemini API Key', 'description' => 'Kredensial API AI', 'icon' => 'tabler-key', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+
+            'google_drive_folder_id' => ['default' => '', 'type' => 'string', 'group' => 'drive', 'label' => 'Google Drive Folder ID', 'description' => 'Folder ID backup', 'icon' => 'tabler-folder-google-drive', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+            'google_drive_credentials_json' => ['default' => '', 'type' => 'string', 'group' => 'drive', 'label' => 'Google Drive Credentials JSON', 'description' => 'Auth JSON', 'icon' => 'tabler-file-code', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+            'google_drive_auth_type' => ['default' => 'service_account', 'type' => 'string', 'group' => 'drive', 'label' => 'Google Drive Auth Type', 'description' => 'Auth method', 'icon' => 'tabler-shield-lock', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+            'google_drive_client_id' => ['default' => '', 'type' => 'string', 'group' => 'drive', 'label' => 'Google Drive Client ID', 'description' => 'Client ID', 'icon' => 'tabler-id-badge', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+            'google_drive_client_secret' => ['default' => '', 'type' => 'string', 'group' => 'drive', 'label' => 'Google Drive Client Secret', 'description' => 'Client secret', 'icon' => 'tabler-lock-password', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+            'google_drive_refresh_token' => ['default' => '', 'type' => 'string', 'group' => 'drive', 'label' => 'Google Drive Refresh Token', 'description' => 'OAuth token', 'icon' => 'tabler-refresh-dot', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'super_admin'],
+
+            'google_font_family' => ['default' => 'Product Sans', 'type' => 'string', 'group' => 'umum', 'label' => 'Google Font Family Utama', 'description' => 'Font web', 'icon' => 'tabler-typography', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'live_board_font_family' => ['default' => 'Product Sans', 'type' => 'string', 'group' => 'umum', 'label' => 'Font Family Live Board', 'description' => 'Font papan live', 'icon' => 'tabler-typography', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'live_board_counter_font_family' => ['default' => 'Courier New', 'type' => 'string', 'group' => 'umum', 'label' => 'Font Counter Live Board', 'description' => 'Font angka live board', 'icon' => 'tabler-numbers', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+            'live_board_counter_color' => ['default' => '#7367f0', 'type' => 'string', 'group' => 'umum', 'label' => 'Warna Counter Live Board', 'description' => 'Hex color', 'icon' => 'tabler-color-picker', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
+        ];
+
+        return self::$definitions;
+    }
+
+    /**
+     * Mengembalikan seluruh key beserta default value-nya (key => default).
+     */
+    public static function defaults(): array
+    {
+        $result = [];
+        foreach (self::definitions() as $key => $meta) {
+            $result[$key] = $meta['default'];
+        }
+        return $result;
+    }
+
+    /**
+     * Mengembalikan metadata untuk key spesifik.
+     */
+    public static function get(string $key): ?array
+    {
+        $defs = self::definitions();
+        if (!isset($defs[$key])) {
+            return null;
+        }
+
+        $meta = $defs[$key];
+        $meta['key'] = $key;
+        return $meta;
+    }
+
+    /**
+     * Cek apakah key terdaftar di SOT.
+     */
+    public static function has(string $key): bool
+    {
+        return isset(self::definitions()[$key]);
+    }
+
+    /**
+     * Cek apakah key bertipe toggle (is_toggle = true).
+     */
+    public static function isToggle(string $key): bool
+    {
+        $meta = self::get($key);
+        return $meta !== null && !empty($meta['is_toggle']);
+    }
+
+    /**
+     * Mengembalikan daftar semua toggle item (is_toggle = true).
+     */
+    public static function toggleFeatures(): array
+    {
+        $toggles = [];
+        foreach (self::definitions() as $key => $meta) {
+            if (!empty($meta['is_toggle'])) {
+                $meta['key'] = $key;
+                $toggles[$key] = $meta;
+            }
+        }
+        return $toggles;
+    }
+
+    /**
+     * Mengembalikan daftar item berdasarkan grup.
+     */
+    public static function getByGroup(string $group): array
+    {
+        $items = [];
+        foreach (self::definitions() as $key => $meta) {
+            if ($meta['group'] === $group) {
+                $meta['key'] = $key;
+                $items[$key] = $meta;
+            }
+        }
+        return $items;
+    }
+}

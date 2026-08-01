@@ -580,7 +580,7 @@ class GoogleSheetsService
             $chunkEnd = $offset + count($chunk);
 
             // Ambil website_lembaga untuk default email
-            $domain = \App\Models\Pengaturan::where('key', 'website_lembaga')->value('value') ?? 'madrasah.sch.id';
+            $domain = setting('website_lembaga', 'madrasah.sch.id');
 
             foreach ($chunk as $index => $row) {
                 $rowIndex = $offset + $index;

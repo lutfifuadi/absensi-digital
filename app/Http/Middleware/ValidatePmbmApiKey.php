@@ -21,8 +21,14 @@ class ValidatePmbmApiKey
             ], 401);
         }
 
-        $storedKey = trim((string) (Pengaturan::where('key', 'pmbm_incoming_api_key')->value('value')
-            ?: env('PMBM_INCOMING_API_KEY', '')));
+        if (!feature('fitur_webhook_pmbm')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Fitur webhook PMBM sedang dinonaktifkan oleh administrator.',
+            ], 403);
+        }
+
+        $storedKey = trim((string) (setting('pmbm_incoming_api_key') ?: env('PMBM_INCOMING_API_KEY', '')));
 
         if (empty($storedKey)) {
             Log::warning('PMBM Webhook: pmbm_incoming_api_key belum dikonfigurasi di pengaturan atau environment.');

@@ -368,28 +368,25 @@ class InstallerController extends Controller
             // 1. Jalankan migrasi
             Artisan::call('migrate:fresh', ['--force' => true]);
             
-            // 2. Seed data pengaturan default
-            $pengaturanDefaults = [
-                'master_db_sync_enabled' => 'Ya',
-                'zona_waktu'             => 'Asia/Jakarta',
+            // 2. Seed data pengaturan default dari SOT
+            Artisan::call('db:seed', ['--class' => 'PengaturanSeeder', '--force' => true]);
+
+            $customSettings = [
+                'master_db_sync_enabled' => '1',
+                'zona_waktu'             => 'Asia/Jakarta (WIB)',
                 'nama_lembaga'           => session('install_school_name'),
                 'nama_sekolah'           => session('install_school_name'),
-                'slogan_lembaga'         => session('install_school_slogan') ?? 'Sistem Absensi Digital Modern',
                 'alamat_lembaga'         => session('install_school_address'),
+                'no_telp_lembaga'        => session('install_school_phone'),
                 'telepon_lembaga'        => session('install_school_phone'),
                 'email_lembaga'         => session('install_school_email'),
-                'tampilkan_beranda'     => session('install_enable_website'),
-                'license_key'           => env('LICENSE_KEY'),
-                'github_repo_owner'     => env('GITHUB_REPO_OWNER'),
-                'github_repo_name'      => env('GITHUB_REPO_NAME'),
-                'app_version'           => env('APP_VERSION', '1.0.0'),
+                'tampilkan_beranda'     => in_array(strtolower((string) session('install_enable_website')), ['1', 'true', 'ya', 'yes'], true) ? '1' : '0',
+                'app_version'           => env('APP_VERSION', '1.14.0'),
             ];
-            foreach ($pengaturanDefaults as $key => $value) {
-                \App\Models\Pengaturan::create([
-                    'key' => $key, 
-                    'value' => $value,
-                ]);
-            }
+
+            /** @var \App\Services\SettingsManager $settingsManager */
+            $settingsManager = app(\App\Services\SettingsManager::class);
+            $settingsManager->setMany($customSettings);
 
             // 3. Buat User Admin
             User::create([

@@ -90,7 +90,7 @@ class SiswaImport implements SkipsEmptyRows, ToModel, WithHeadingRow, WithValida
 
             // ── Auto-create akun User siswa ───────────────────────────────────────
             if ($this->domainEmail === null) {
-                $this->domainEmail = Pengaturan::where('key', 'website_lembaga')->value('value') ?? 'madrasah.sch.id';
+                $this->domainEmail = setting('website_lembaga', 'madrasah.sch.id');
             }
             $nisn = isset($row['nisn']) ? trim((string) $row['nisn']) : '';
             $nis = isset($row['nis']) ? trim((string) $row['nis']) : '';

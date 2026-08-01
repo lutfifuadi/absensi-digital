@@ -41,7 +41,7 @@ class CheckLicense
 
         try {
             // Double-check with database to bypass config caching issues
-            $dbStatus = \App\Models\Pengaturan::where('key', 'license_status')->value('value');
+            $dbStatus = setting('license_status');
 
             if (empty($licenseKey) || $dbStatus === 'inactive') {
                 \Illuminate\Support\Facades\Log::info(

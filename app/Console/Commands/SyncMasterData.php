@@ -45,14 +45,13 @@ class SyncMasterData extends Command
         $forcedTahunAkademikId = $this->option('tahun_akademik_id');
         $forcedKelasId = $this->option('kelas_id');
 
-        $syncEnabled = Pengaturan::where('key', 'master_db_sync_enabled')->value('value') ?? 'Ya';
-        if (strtolower($syncEnabled) === 'tidak') {
+        if (!feature('master_db_sync_enabled')) {
             $this->warn('Sinkronisasi master data dinonaktifkan melalui pengaturan.');
             return Command::SUCCESS;
         }
 
-        $apiUrl = rtrim(Pengaturan::where('key', 'master_db_api_url')->value('value') ?? env('MASTER_DB_API_URL', ''), '/');
-        $apiKey = Pengaturan::where('key', 'master_db_api_key')->value('value') ?? env('MASTER_DB_API_KEY', '');
+        $apiUrl = rtrim(setting('master_db_api_url') ?: env('MASTER_DB_API_URL', ''), '/');
+        $apiKey = setting('master_db_api_key') ?: env('MASTER_DB_API_KEY', '');
 
         if (empty($apiUrl)) {
             $this->error('Gagal: master_db_api_url belum diatur di pengaturan admin atau .env');

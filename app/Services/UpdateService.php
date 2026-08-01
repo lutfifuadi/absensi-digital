@@ -13,7 +13,7 @@ class UpdateService
 {
     public function getCurrentVersion(): string
     {
-        $dbVersion = Pengaturan::where('key', 'app_version')->value('value');
+        $dbVersion = setting('app_version');
         if ($dbVersion) return $dbVersion;
         
         return config('app.version', '1.0.0');
@@ -21,10 +21,8 @@ class UpdateService
 
     public function checkForUpdates(): array
     {
-        $owner = Pengaturan::where('key', 'github_repo_owner')->value('value')
-               ?: config('services.github.repo_owner');
-        $repo = Pengaturan::where('key', 'github_repo_name')->value('value')
-              ?: config('services.github.repo_name');
+        $owner = setting('github_repo_owner') ?: config('services.github.repo_owner');
+        $repo  = setting('github_repo_name')  ?: config('services.github.repo_name');
 
         if (empty($owner) || empty($repo)) {
             return [
@@ -129,15 +127,13 @@ class UpdateService
 
     public function getCachedUpdateInfo(): array
     {
-        $version = Pengaturan::where('key', 'update_available_version')->value('value');
-        
         return [
-            'latest_version' => $version,
-            'changelog' => Pengaturan::where('key', 'update_changelog')->value('value'),
-            'package_url' => Pengaturan::where('key', 'update_package_url')->value('value'),
-            'last_check' => Pengaturan::where('key', 'update_last_check')->value('value'),
-            'sync_status' => (bool) Pengaturan::where('key', 'update_sync_status')->value('value'),
-            'sync_message' => Pengaturan::where('key', 'update_sync_message')->value('value'),
+            'latest_version' => setting('update_available_version'),
+            'changelog'      => setting('update_changelog'),
+            'package_url'    => setting('update_package_url'),
+            'last_check'     => setting('update_last_check'),
+            'sync_status'    => (bool) setting('update_sync_status'),
+            'sync_message'   => setting('update_sync_message'),
         ];
     }
 

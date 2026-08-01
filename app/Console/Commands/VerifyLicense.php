@@ -51,7 +51,7 @@ class VerifyLicense extends Command
             return 0;
         }
 
-        $schoolName = \App\Models\Pengaturan::where('key', 'nama_sekolah')->value('value') ?: 'Unknown School';
+        $schoolName = setting('nama_lembaga') ?: setting('nama_sekolah') ?: 'Unknown School';
 
         $this->info("Verifying license: {$licenseKey} for domain: {$domain} (School: {$schoolName})");
 

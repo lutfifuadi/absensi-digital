@@ -16,10 +16,10 @@ class WhatsAppPengaduanService
 
     public function __construct()
     {
-        $this->apiKey   = Pengaturan::where('key', 'wa_pengaduan_api_key')->value('value') ?? '';
-        $this->endpoint = Pengaturan::where('key', 'wa_pengaduan_endpoint')->value('value') ?? 'https://wa.lutfifuadi.my.id';
-        $this->sender   = Pengaturan::where('key', 'wa_pengaduan_sender')->value('value') ?? '';
-        $this->groupId  = Pengaturan::where('key', 'wa_pengaduan_group_id')->value('value') ?? '';
+        $this->apiKey   = setting('wa_pengaduan_api_key', '');
+        $this->endpoint = setting('wa_pengaduan_endpoint', 'https://wa.lutfifuadi.my.id');
+        $this->sender   = setting('wa_pengaduan_sender', '');
+        $this->groupId  = setting('wa_pengaduan_group_id', '');
     }
 
     /**

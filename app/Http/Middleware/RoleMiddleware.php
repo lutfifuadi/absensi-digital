@@ -22,9 +22,15 @@ class RoleMiddleware
             abort(403, 'Unauthorized action.');
         }
 
-        // BUG-003: Fallback ke user->role jika session tidak tersedia (API context)
+        $allowedRoles = [];
+        foreach ($roles as $roleArg) {
+            foreach (explode('|', $roleArg) as $r) {
+                $allowedRoles[] = trim($r);
+            }
+        }
+
         $activeRole = session('active_role') ?? $user->role?->slug ?? $user->role;
-        if (! in_array($activeRole, $roles, true)) {
+        if (! in_array($activeRole, $allowedRoles, true)) {
             abort(403, 'Unauthorized action.');
         }
 

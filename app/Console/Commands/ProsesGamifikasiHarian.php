@@ -15,6 +15,11 @@ class ProsesGamifikasiHarian extends Command
 
     public function handle(): int
     {
+        if (!feature('fitur_gamifikasi')) {
+            $this->info('Fitur gamifikasi sedang non-aktif (OFF). Skip eksekusi.');
+            return self::SUCCESS;
+        }
+
         $tanggal = now()->toDateString();
 
         $this->info("Memulai proses gamifikasi harian untuk tanggal: {$tanggal}");

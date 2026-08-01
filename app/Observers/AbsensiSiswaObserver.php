@@ -96,14 +96,13 @@ class AbsensiSiswaObserver
     private function kirimNotifikasiKeOrtu(AbsensiSiswa $absensi, string $tipe = 'masuk'): void
     {
         // 1. Cek apakah WA aktif di pengaturan
-        $platform = Pengaturan::where('key', 'jenis_notifikasi_ortu')->value('value');
+        $platform = setting('jenis_notifikasi_ortu');
         if ($platform !== 'WhatsApp (WA)') {
             return;
         }
 
         // 1b. Cek toggle on/off WA Gateway
-        $waEnabled = Pengaturan::where('key', 'wa_gateway_enabled')->value('value');
-        if ($waEnabled === 'Tidak') {
+        if (!feature('wa_gateway_enabled')) {
             return;
         }
 
@@ -117,7 +116,7 @@ class AbsensiSiswaObserver
         }
 
         // Ambil info lembaga
-        $namaLembaga = Pengaturan::where('key', 'nama_lembaga')->value('value') ?: 'Sekolah';
+        $namaLembaga = setting('nama_lembaga') ?: setting('nama_sekolah') ?: 'Sekolah';
         
         // 3. Ambil Template Redaksi dari Database
         $templateType = $tipe === 'pulang' ? 'pulang' : strtolower($absensi->status) . '_masuk';

@@ -46,22 +46,31 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Guru::observe(\App\Observers\GuruObserver::class);
         \App\Models\AbsensiSiswa::observe(\App\Observers\AbsensiSiswaObserver::class);
 
+        // Daftarkan Blade directive @fitur
+        \Illuminate\Support\Facades\Blade::directive('fitur', function ($expression) {
+            return "<?php if (feature({$expression})): ?>";
+        });
+        \Illuminate\Support\Facades\Blade::directive('endfitur', function () {
+            return '<?php endif; ?>';
+        });
+
+        // Daftarkan middleware alias 'feature'
+        $router = $this->app->make(\Illuminate\Routing\Router::class);
+        $router->aliasMiddleware('feature', \App\Http\Middleware\EnsureFeatureEnabled::class);
+
         if (!file_exists(storage_path('installed'))) {
             return;
         }
         try {
-            // Deteksi Zona Waktu & Nama Sekolah dari pengaturan database jika tabel sudah ada
             if (\Illuminate\Support\Facades\Schema::hasTable('pengaturan')) {
-                $pengaturan = \App\Models\Pengaturan::whereIn('key', ['zona_waktu', 'nama_sekolah'])->get()->pluck('value', 'key');
-                
-                $zonaWaktu = $pengaturan->get('zona_waktu');
+                $zonaWaktu = setting('zona_waktu');
                 if ($zonaWaktu) {
                     $validTz = explode(' ', trim($zonaWaktu))[0];
                     date_default_timezone_set($validTz);
                     config(['app.timezone' => $validTz]);
                 }
 
-                $namaSekolah = $pengaturan->get('nama_sekolah');
+                $namaSekolah = setting('nama_lembaga') ?: setting('nama_sekolah');
                 if ($namaSekolah) {
                     config(['variables.templateName' => $namaSekolah]);
                 }

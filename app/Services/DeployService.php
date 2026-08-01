@@ -166,7 +166,7 @@ class DeployService
 
             // Update database version setting to match new code version
             try {
-                $targetVersion = \App\Models\Pengaturan::where('key', 'update_available_version')->value('value');
+                $targetVersion = setting('update_available_version');
 
                 if (empty($targetVersion)) {
                     $commitInfo = $this->getCurrentCommitInfo();
@@ -177,10 +177,9 @@ class DeployService
                     $cleanVersion = ltrim(trim($targetVersion), 'v');
 
                     // 1. Update Database
-                    \App\Models\Pengaturan::updateOrCreate(
-                        ['key' => 'app_version'],
-                        ['value' => $cleanVersion, 'group' => 'update']
-                    );
+                    /** @var \App\Services\SettingsManager $sm */
+                    $sm = app(\App\Services\SettingsManager::class);
+                    $sm->set('app_version', $cleanVersion, 'update');
 
                     // 2. Update .env file
                     $envPath = base_path('.env');
@@ -195,11 +194,11 @@ class DeployService
                     }
 
                     // 3. Clear cached update available info so system knows it's now updated
+                    $sm->forget('update_available_version');
+                    $sm->forget('update_changelog');
+                    $sm->forget('update_package_url');
                     \App\Models\Pengaturan::whereIn('key', ['update_available_version', 'update_changelog', 'update_package_url'])->delete();
-                    \App\Models\Pengaturan::updateOrCreate(
-                        ['key' => 'update_last_check'],
-                        ['value' => now()->toDateTimeString(), 'group' => 'update']
-                    );
+                    $sm->set('update_last_check', now()->toDateTimeString(), 'update');
 
                     $logOutput .= "[OK] Database & .env version updated to: {$cleanVersion}\n";
                 }

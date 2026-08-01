@@ -37,7 +37,10 @@ class IdCardPdfService
             'jumlah_tahun_sekolah',
         ];
 
-        $rows = Pengaturan::whereIn('key', $keys)->pluck('value', 'key')->toArray();
+        $rows = [];
+        foreach ($keys as $k) {
+            $rows[$k] = setting($k);
+        }
 
         $logoVal      = !empty($rows['logo_url']) ? $rows['logo_url'] : ($rows['logo_sekolah'] ?? '');
         $logoDinasVal = !empty($rows['logo_dinas_url']) ? $rows['logo_dinas_url'] : ($rows['logo_dinas'] ?? '');
@@ -245,7 +248,7 @@ class IdCardPdfService
         $lembaga = $this->getLembagaData();
 
         // Masa berlaku guru: statis dari pengaturan atau default
-        $masaBerlakuDefault = Pengaturan::where('key', 'masa_berlaku_kartu')->value('value')
+        $masaBerlakuDefault = setting('masa_berlaku_kartu')
             ?? 'Selama menjadi guru aktif';
 
         // Jika template null → fallback kartu QR lama
@@ -319,7 +322,7 @@ class IdCardPdfService
     {
         $lembaga = $this->getLembagaData();
 
-        $masaBerlakuDefault = Pengaturan::where('key', 'masa_berlaku_kartu')->value('value')
+        $masaBerlakuDefault = setting('masa_berlaku_kartu')
             ?? 'Selama menjadi staff aktif';
 
         // Jika template null → fallback

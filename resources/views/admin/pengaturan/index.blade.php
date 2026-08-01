@@ -175,6 +175,7 @@
         ['id' => 'lembaga',    'icon' => 'tabler-building-arch',  'label' => 'Identitas Lembaga'],
         ['id' => 'waktu',      'icon' => 'tabler-clock',           'label' => 'Waktu & Absensi'],
         ['id' => 'keamanan',   'icon' => 'tabler-shield-lock',     'label' => 'Keamanan & Lokasi'],
+        ['id' => 'aktivasi-fitur', 'icon' => 'tabler-toggle-right', 'label' => 'Aktivasi Fitur'],
         ['id' => 'branding',   'icon' => 'tabler-photo',           'label' => 'Logo & Branding'],
         ['id' => 'google-drive', 'icon' => 'tabler-brand-google-drive', 'label' => 'Google Drive (Foto)'],
         ['id' => 'notifikasi', 'icon' => 'tabler-bell-ringing',    'label' => 'Integrasi & Notifikasi'],
@@ -624,6 +625,73 @@
               @endif
             </div>
 
+          </div>
+        </div>
+      </div>
+
+      {{-- ══ TAB: AKTIVASI FITUR (FEATURE TOGGLE SYSTEM) ══ --}}
+      <div class="set-tab" id="tab-aktivasi-fitur">
+        <div class="set-panel">
+          <div class="set-panel__head">
+            <div class="set-panel__title-wrap">
+              <div class="set-panel__icon --primary"><i class="ti tabler-toggle-right"></i></div>
+              <div>
+                <div class="set-panel__title">Aktivasi Fitur Sistem (Feature Toggles)</div>
+                <div class="set-panel__sub">Kelola aktivasi modul dan fitur aplikasi secara real-time tanpa perlu deploy ulang.</div>
+              </div>
+            </div>
+          </div>
+          <div class="set-panel__body">
+            <div class="row g-3">
+              @if(!empty($featureToggles))
+                @foreach ($featureToggles as $key => $meta)
+                  @php
+                    $isOn = !empty($meta['is_on']);
+                    $isSuperAdminOnly = ($meta['permission'] ?? 'admin_sekolah') === 'super_admin';
+                    $isDisabled = $isSuperAdminOnly && !auth()->user()->isSuperAdmin();
+                  @endphp
+                  <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card h-100 border shadow-none p-3 position-relative" style="background: rgba(255,255,255,0.03); border-radius: 12px; border-color: rgba(255,255,255,0.08) !important;">
+                      <div class="d-flex align-items-start justify-content-between mb-2 gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0"
+                               style="width: 36px; height: 36px; background: rgba(115, 103, 240, 0.15); color: #7367f0;">
+                            <i class="ti {{ $meta['icon'] ?? 'tabler-adjustments-horizontal' }} fs-5"></i>
+                          </div>
+                          <div>
+                            <h6 class="mb-0 fw-semibold text-white" style="font-size: 0.9rem;">{{ $meta['label'] }}</h6>
+                            @if($isSuperAdminOnly)
+                              <span class="badge bg-label-warning px-1 py-0" style="font-size: 0.65rem;">Super Admin Only</span>
+                            @endif
+                          </div>
+                        </div>
+
+                        <div class="form-check form-switch m-0 flex-shrink-0">
+                          <input class="form-check-input feature-toggle-switch"
+                                 type="checkbox"
+                                 id="switch-{{ $key }}"
+                                 data-key="{{ $key }}"
+                                 {{ $isOn ? 'checked' : '' }}
+                                 {{ $isDisabled ? 'disabled' : '' }}
+                                 style="width: 2.3em; height: 1.2em; cursor: {{ $isDisabled ? 'not-allowed' : 'pointer' }};">
+                        </div>
+                      </div>
+
+                      <p class="text-muted mb-3 flex-grow-1" style="font-size: 0.78rem; line-height: 1.4;">
+                        {{ $meta['description'] }}
+                      </p>
+
+                      <div class="d-flex align-items-center justify-content-between pt-2 border-top border-light-subtle" style="font-size: 0.75rem;">
+                        <span class="text-muted">Status Fitur:</span>
+                        <span class="badge {{ $isOn ? 'bg-label-success' : 'bg-label-secondary' }}" id="status-badge-{{ $key }}">
+                          {{ $isOn ? 'AKTIF (ON)' : 'NON-AKTIF (OFF)' }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                @endforeach
+              @endif
+            </div>
           </div>
         </div>
       </div>
@@ -3596,6 +3664,59 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
   }
+
+  // ── AJAX Feature Toggle Handler ──
+  document.querySelectorAll('.feature-toggle-switch').forEach(function(el) {
+    el.addEventListener('change', function() {
+      const key = this.getAttribute('data-key');
+      const isChecked = this.checked;
+      const badge = document.getElementById('status-badge-' + key);
+      const switchEl = this;
+
+      switchEl.disabled = true;
+
+      $.ajax({
+        url: '{{ route("api.v1.pengaturan.toggle") }}',
+        type: 'POST',
+        data: JSON.stringify({ key: key, value: isChecked ? '1' : '0' }),
+        contentType: 'application/json',
+        headers: {
+          'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        success: function(response) {
+          switchEl.disabled = false;
+          if (response.success) {
+            if (badge) {
+              badge.className = 'badge ' + (isChecked ? 'bg-label-success' : 'bg-label-secondary');
+              badge.textContent = isChecked ? 'AKTIF (ON)' : 'NON-AKTIF (OFF)';
+            }
+            if (typeof Swal !== 'undefined') {
+              const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+              });
+              Toast.fire({
+                icon: 'success',
+                title: response.message
+              });
+            }
+          } else {
+            switchEl.checked = !isChecked;
+            alert(response.message || 'Gagal mengubah status fitur.');
+          }
+        },
+        error: function(xhr) {
+          switchEl.disabled = false;
+          switchEl.checked = !isChecked;
+          const msg = xhr.responseJSON?.message || 'Terjadi kesalahan server.';
+          alert(msg);
+        }
+      });
+    });
+  });
 });
 
 </script>

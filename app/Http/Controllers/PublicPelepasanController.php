@@ -38,7 +38,7 @@ class PublicPelepasanController extends Controller
         ]);
 
         // Ambil kata kunci dari pengaturan, fallback ke 'pelepasan2026'
-        $storedValue = Pengaturan::where('key', 'password_pelepasan_publik')->value('value');
+        $storedValue = setting('password_pelepasan_publik');
 
         $isValid = false;
         if ($storedValue) {
@@ -197,7 +197,7 @@ class PublicPelepasanController extends Controller
     private function getOrCreatePelepasanKegiatan($taId)
     {
         // Prioritas 1: Cek pengaturan yang disimpan admin
-        $savedKegiatanId = Pengaturan::where('key', 'pelepasan_kegiatan_id')->value('value');
+        $savedKegiatanId = setting('pelepasan_kegiatan_id');
 
         if ($savedKegiatanId) {
             $kegiatan = Kegiatan::where('id', $savedKegiatanId)
@@ -208,8 +208,10 @@ class PublicPelepasanController extends Controller
                 return $kegiatan;
             }
 
-            // ✅ Cleanup: setting menyimpan ID yang tidak valid (kegiatan sudah dihapus atau beda tahun akademik)
-            // Hapus setting rusak agar tidak mengganggu sinkronisasi data
+            // ✅ Cleanup: setting menyimpan ID yang tidak valid
+            /** @var \App\Services\SettingsManager $sm */
+            $sm = app(\App\Services\SettingsManager::class);
+            $sm->forget('pelepasan_kegiatan_id');
             Pengaturan::where('key', 'pelepasan_kegiatan_id')->delete();
             Log::warning('Setting pelepasan_kegiatan_id tidak valid (ID ' . $savedKegiatanId . '), telah dihapus dan akan dicari ulang.');
         }

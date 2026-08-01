@@ -36,7 +36,7 @@ class PublicKegiatanController extends Controller
         ]);
 
         // Ambil hash password dari setting password_unlock_scan_qr di tabel pengaturan
-        $storedValue = Pengaturan::where('key', 'password_unlock_scan_qr')->value('value');
+        $storedValue = setting('password_unlock_scan_qr');
 
         // Jika setting di database tidak ada atau bernilai kosong/null, fallback gunakan password default 'kegiatan2026'
         $passwordToCheck = !empty($storedValue) ? $storedValue : 'kegiatan2026';

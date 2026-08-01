@@ -22,19 +22,9 @@ class PublicQrScanController extends Controller
      */
     private function getCachedSettings()
     {
-        return Cache::remember('absensi_settings', now()->addDay(), function () {
-            return Pengaturan::whereIn('key', [
-                'jam_mulai_absensi',
-                'jam_masuk', 
-                'jam_batas_masuk', 
-                'jam_pulang', 
-                'jam_mulai_pulang', 
-                'jam_akhir_pulang', 
-                'toleransi_terlambat',
-                'nama_sekolah',
-                'announcement_text'
-            ])->pluck('value', 'key')->toArray();
-        });
+        /** @var \App\Services\SettingsManager $sm */
+        $sm = app(\App\Services\SettingsManager::class);
+        return $sm->all();
     }
 
     /**
@@ -66,7 +56,7 @@ class PublicQrScanController extends Controller
 
         $ip = $request->ip();
 
-        $storedHash = Pengaturan::where('key', 'password_unlock_scan_qr')->value('value');
+        $storedHash = setting('password_unlock_scan_qr');
 
         if (! $storedHash) {
             QrScanLogger::warning('LOGIN_NO_PASSWORD', [

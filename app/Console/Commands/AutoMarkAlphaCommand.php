@@ -45,7 +45,7 @@ class AutoMarkAlphaCommand extends Command
             ? Carbon::parse($this->option('tanggal'))->toDateString()
             : now()->toDateString();
 
-        $jamMasuk = Pengaturan::where('key', 'jam_masuk')->value('value') ?? '07:00';
+        $jamMasuk = setting('jam_masuk', '07:00');
 
         $this->info("Auto-mark alpha untuk tanggal: {$tanggal}");
 

@@ -20,17 +20,9 @@ class PiketScannerController extends Controller
      */
     private function getCachedSettings()
     {
-        return Cache::remember('absensi_settings_piket', now()->addMinutes(10), function () {
-            return Pengaturan::whereIn('key', [
-                'jam_masuk', 
-                'jam_batas_masuk', 
-                'jam_pulang', 
-                'jam_mulai_pulang', 
-                'jam_akhir_pulang', 
-                'toleransi_terlambat',
-                'nama_sekolah'
-            ])->pluck('value', 'key')->toArray();
-        });
+        /** @var \App\Services\SettingsManager $sm */
+        $sm = app(\App\Services\SettingsManager::class);
+        return $sm->all();
     }
 
     /**

@@ -140,28 +140,37 @@ class PengaturanController extends Controller
     ];
 
     protected \App\Services\UpdateService $updateService;
+    protected \App\Services\SettingsManager $settingsManager;
 
-    public function __construct(\App\Services\UpdateService $updateService)
+    public function __construct(\App\Services\UpdateService $updateService, \App\Services\SettingsManager $settingsManager)
     {
         $this->updateService = $updateService;
+        $this->settingsManager = $settingsManager;
     }
 
     public function index()
     {
+        $allDefs = \App\Support\PengaturanDefaults::definitions();
         $settings = [];
-        foreach ($this->defaults as $key => $default) {
-            $row = Pengaturan::where('key', $key)->first();
-            $value = $row ? $row->value : null;
 
+        foreach ($allDefs as $key => $meta) {
+            $value = $this->settingsManager->get($key);
             if ($key === 'pmbm_incoming_api_key' && trim((string) $value) === '') {
-                $value = env('PMBM_INCOMING_API_KEY', $default);
+                $value = env('PMBM_INCOMING_API_KEY', $meta['default']);
             }
-
-            $settings[$key] = $row ? $value : $default;
+            $settings[$key] = $value;
         }
+
         // Jangan tampilkan hash password, hanya status apakah sudah diset
         $settings['scan_qr_password_set'] = !empty($settings['password_unlock_scan_qr']);
         $settings['password_unlock_scan_qr'] = '';
+
+        // Toggles metadata untuk Tab Aktivasi Fitur
+        $featureToggles = \App\Support\PengaturanDefaults::toggleFeatures();
+        foreach ($featureToggles as $key => &$meta) {
+            $meta['is_on'] = $this->settingsManager->getBool($key);
+        }
+        unset($meta);
 
         $currentVersion = $this->updateService->getCurrentVersion();
         $updateInfo = $this->updateService->getCachedUpdateInfo();
@@ -177,7 +186,7 @@ class PengaturanController extends Controller
             ->orderBy('nama', 'asc')
             ->get();
 
-        return view('admin.pengaturan.index', compact('settings', 'currentVersion', 'updateInfo', 'setting', 'guruSetting', 'tahunAkademikList', 'kelasList'));
+        return view('admin.pengaturan.index', compact('settings', 'featureToggles', 'currentVersion', 'updateInfo', 'setting', 'guruSetting', 'tahunAkademikList', 'kelasList'));
     }
 
     public function clearCache(Request $request)
@@ -394,26 +403,26 @@ class PengaturanController extends Controller
             }
         }
 
+        $validKeysToSave = [];
         foreach ($data as $key => $value) {
-            if (array_key_exists($key, $this->defaults)) {
-                $group = $this->groupFor($key);
+            if (\App\Support\PengaturanDefaults::has($key)) {
+                $meta = \App\Support\PengaturanDefaults::get($key);
+                $group = $meta['group'] ?? 'umum';
 
                 // Proteksi: Hanya super_admin yang boleh update grup 'update' atau setting API Master
-                if ($group === 'update' || str_starts_with($key, 'master_db_')) {
+                if ($group === 'update' || str_starts_with($key, 'master_db_') || ($meta['permission'] ?? '') === 'super_admin') {
                     if (!auth()->user()->isSuperAdmin()) {
                         continue;
                     }
                 }
 
-                Pengaturan::updateOrCreate(
-                    ['key' => $key],
-                    ['value' => $value, 'group' => $group]
-                );
+                $validKeysToSave[$key] = $value;
             }
         }
 
-        // Hapus cache absensi_settings agar live-board pakai nilai terbaru
-        Cache::forget('absensi_settings');
+        if (!empty($validKeysToSave)) {
+            $this->settingsManager->setMany($validKeysToSave);
+        }
 
         // Return JSON for AJAX requests
         if ($request->ajax() || $request->wantsJson()) {

@@ -2,16 +2,21 @@
 
 namespace App\Services;
 
-use App\Models\Pengaturan;
-
 class PengaturanService
 {
+    protected SettingsManager $settings;
+
+    public function __construct(SettingsManager $settings)
+    {
+        $this->settings = $settings;
+    }
+
     /**
-     * Baca nilai toggle dari tabel pengaturan, bypass cache.
+     * Baca nilai toggle dari tabel pengaturan (via SettingsManager cache).
      */
     public function getToggleValue(string $key): string
     {
-        return Pengaturan::where('key', $key)->value('value') ?? 'Ya';
+        return $this->settings->getBool($key) ? 'Ya' : 'Tidak';
     }
 
     /**
@@ -19,7 +24,7 @@ class PengaturanService
      */
     public function isAutoAlphaEnabled(): bool
     {
-        return $this->getToggleValue('auto_alpha_siswa_enabled') === 'Ya';
+        return $this->settings->getBool('auto_alpha_siswa_enabled');
     }
 
     /**
@@ -27,6 +32,6 @@ class PengaturanService
      */
     public function isAutoAlphaWaNotifEnabled(): bool
     {
-        return $this->getToggleValue('auto_alpha_wa_notif') === 'Ya';
+        return $this->settings->getBool('auto_alpha_wa_notif');
     }
 }

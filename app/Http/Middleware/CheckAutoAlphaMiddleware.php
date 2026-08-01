@@ -51,7 +51,7 @@ class CheckAutoAlphaMiddleware
             }
 
             // Ambil batas jam masuk global
-            $batasJamMasuk = Pengaturan::where('key', 'jam_batas_masuk')->value('value') ?? '08:00';
+            $batasJamMasuk = setting('jam_batas_masuk', '08:00');
             $currentTimeStr = now()->format('H:i');
 
             // Jika jam sekarang sudah mencapai atau melewati batas jam masuk (misal 08:00 WIB)
