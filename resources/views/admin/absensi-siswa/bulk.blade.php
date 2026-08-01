@@ -25,9 +25,68 @@
       border-color: var(--bs-info) !important;
     }
 
+    .absensi-radios .btn {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
     .absensi-radios .btn-check:checked + .btn {
       transform: translateY(-2px);
+      font-weight: 700;
+    }
+
+    /* Status Hadir — Green Shadow */
+    .absensi-radios .btn-check:checked + .btn-outline-success {
+      background-color: #28c76f !important;
+      border-color: #28c76f !important;
+      color: #fff !important;
       box-shadow: 0 4px 14px rgba(40, 199, 111, 0.55) !important;
+    }
+    .absensi-radios .btn-outline-success:hover {
+      box-shadow: 0 2px 8px rgba(40, 199, 111, 0.35);
+    }
+
+    /* Status Sakit — Info Blue Shadow */
+    .absensi-radios .btn-check:checked + .btn-outline-info {
+      background-color: #00cfe8 !important;
+      border-color: #00cfe8 !important;
+      color: #fff !important;
+      box-shadow: 0 4px 14px rgba(0, 207, 232, 0.55) !important;
+    }
+    .absensi-radios .btn-outline-info:hover {
+      box-shadow: 0 2px 8px rgba(0, 207, 232, 0.35);
+    }
+
+    /* Status Izin — Warning Orange Shadow */
+    .absensi-radios .btn-check:checked + .btn-outline-warning {
+      background-color: #ff9f43 !important;
+      border-color: #ff9f43 !important;
+      color: #fff !important;
+      box-shadow: 0 4px 14px rgba(255, 159, 67, 0.55) !important;
+    }
+    .absensi-radios .btn-outline-warning:hover {
+      box-shadow: 0 2px 8px rgba(255, 159, 67, 0.35);
+    }
+
+    /* Status Alpha — Danger Red Shadow */
+    .absensi-radios .btn-check:checked + .btn-outline-danger {
+      background-color: #ea5455 !important;
+      border-color: #ea5455 !important;
+      color: #fff !important;
+      box-shadow: 0 4px 14px rgba(234, 84, 85, 0.55) !important;
+    }
+    .absensi-radios .btn-outline-danger:hover {
+      box-shadow: 0 2px 8px rgba(234, 84, 85, 0.35);
+    }
+
+    /* Status Terlambat — Primary Purple Shadow */
+    .absensi-radios .btn-check:checked + .btn-outline-primary {
+      background-color: #7367f0 !important;
+      border-color: #7367f0 !important;
+      color: #fff !important;
+      box-shadow: 0 4px 14px rgba(115, 103, 240, 0.55) !important;
+    }
+    .absensi-radios .btn-outline-primary:hover {
+      box-shadow: 0 2px 8px rgba(115, 103, 240, 0.35);
     }
 
     .student-row:hover {
