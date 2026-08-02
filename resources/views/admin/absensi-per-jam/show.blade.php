@@ -1,33 +1,28 @@
 @extends('layouts/layoutMaster')
 
-@section('title', 'Isi Absensi Siswa per Jam')
+@section('title', 'Isi Absensi Siswa per Jam — Absensi Cepat')
 
 @section('page-style')
   <style>
-    /* Override form control dark — pola jadwal/index */
+    /* Override form control dark — pola absensi cepat */
     .form-control,
     .form-select {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: inherit;
-      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      color: #fff !important;
+      border-radius: 6px !important;
       transition: border-color 0.2s ease, background 0.2s ease;
     }
 
     .form-control:focus,
     .form-select:focus {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(0, 207, 232, 0.6);
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: var(--bs-info) !important;
       box-shadow: 0 0 0 3px rgba(0, 207, 232, 0.12);
     }
 
     .form-control::placeholder {
       opacity: 0.4;
-    }
-
-    .form-select option {
-      background: #1e1e2d;
-      color: #cdd2e0;
     }
 
     .form-control[disabled],
@@ -36,31 +31,102 @@
       cursor: not-allowed;
     }
 
-    /* Roster row hover */
+    /* Radios styling — Gaya Absensi Cepat Button Pills */
+    .absensi-radios .btn {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 0.72rem !important;
+      padding: 0.25rem 0.55rem !important;
+      border-radius: 5px !important;
+      white-space: nowrap;
+    }
+
+    .absensi-radios .btn-check:checked + .btn {
+      transform: translateY(-1px);
+      font-weight: 700;
+    }
+
+    /* Status Hadir — Green Glow */
+    .absensi-radios .btn-check:checked + .btn-outline-success {
+      background-color: #28c76f !important;
+      border-color: #28c76f !important;
+      color: #fff !important;
+      box-shadow: 0 3px 10px rgba(40, 199, 111, 0.5) !important;
+    }
+    .absensi-radios .btn-outline-success:hover {
+      box-shadow: 0 2px 6px rgba(40, 199, 111, 0.35);
+    }
+
+    /* Status Terlambat — Primary Purple Glow */
+    .absensi-radios .btn-check:checked + .btn-outline-primary {
+      background-color: #7367f0 !important;
+      border-color: #7367f0 !important;
+      color: #fff !important;
+      box-shadow: 0 3px 10px rgba(115, 103, 240, 0.5) !important;
+    }
+    .absensi-radios .btn-outline-primary:hover {
+      box-shadow: 0 2px 6px rgba(115, 103, 240, 0.35);
+    }
+
+    /* Status Alpha — Danger Red Glow */
+    .absensi-radios .btn-check:checked + .btn-outline-danger {
+      background-color: #ea5455 !important;
+      border-color: #ea5455 !important;
+      color: #fff !important;
+      box-shadow: 0 3px 10px rgba(234, 84, 85, 0.5) !important;
+    }
+    .absensi-radios .btn-outline-danger:hover {
+      box-shadow: 0 2px 6px rgba(234, 84, 85, 0.35);
+    }
+
+    /* Status Izin — Warning Orange Glow */
+    .absensi-radios .btn-check:checked + .btn-outline-warning {
+      background-color: #ff9f43 !important;
+      border-color: #ff9f43 !important;
+      color: #fff !important;
+      box-shadow: 0 3px 10px rgba(255, 159, 67, 0.5) !important;
+    }
+    .absensi-radios .btn-outline-warning:hover {
+      box-shadow: 0 2px 6px rgba(255, 159, 67, 0.35);
+    }
+
+    /* Status Sakit — Info Cyan Glow */
+    .absensi-radios .btn-check:checked + .btn-outline-info {
+      background-color: #00cfe8 !important;
+      border-color: #00cfe8 !important;
+      color: #fff !important;
+      box-shadow: 0 3px 10px rgba(0, 207, 232, 0.5) !important;
+    }
+    .absensi-radios .btn-outline-info:hover {
+      box-shadow: 0 2px 6px rgba(0, 207, 232, 0.35);
+    }
+
+    /* Roster row hover & focus */
     .siswa-row-hover {
       transition: background 0.15s ease;
     }
-
     .siswa-row-hover:hover {
-      background: rgba(255, 255, 255, 0.04) !important;
+      background: rgba(255, 255, 255, 0.03) !important;
+    }
+    .siswa-row-hover:focus-within {
+      background: rgba(0, 207, 232, 0.05) !important;
     }
 
-    /* Sticky kolom nama (mobile / scroll horizontal) — pola sticky-col */
+    /* Sticky kolom nama */
     .roster-sticky {
       position: sticky;
       left: 0;
-      background: #1e1e2d !important;
+      background: #141b2d !important;
       z-index: 1;
     }
 
     .roster-table thead th {
-      font-size: 0.62rem;
+      font-size: 0.65rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.8px;
-      color: #666;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      background: rgba(255, 255, 255, 0.02);
+      color: #8a92a6;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(0, 0, 0, 0.2);
     }
 
     /* Modal konfirmasi simpan */
@@ -86,20 +152,10 @@
     $records = $sesiData['records'] ?? collect();
     $sesiTerisi = $sesiData['terisi'] ?? false;
     $jumlahTerisi = $sesiData['jumlah_terisi'] ?? 0;
-
-    // Mapping status → warna & ikon (UI-SPEC-006 §4.1/§5.4)
-    $statusMeta = [
-        'hadir'     => ['label' => 'Hadir',     'color' => 'success',  'icon' => 'tabler-user-check'],
-        'terlambat' => ['label' => 'Terlambat', 'color' => 'warning',  'icon' => 'tabler-clock-exclamation'],
-        'alpha'     => ['label' => 'Alpha',     'color' => 'danger',   'icon' => 'tabler-user-x'],
-        'izin'      => ['label' => 'Izin',      'color' => 'info',     'icon' => 'tabler-file-description'],
-        'sakit'     => ['label' => 'Sakit',     'color' => 'secondary','icon' => 'tabler-stethoscope'],
-        'dispen'    => ['label' => 'Dispen',    'color' => 'primary',  'icon' => 'tabler-file-check'],
-    ];
   @endphp
 
   {{-- ═══════════════════════════════════════════════════════
-       HERO HEADER (ringkas)
+       HERO HEADER (Gaya Absensi Cepat)
   ═══════════════════════════════════════════════════════ --}}
   <div class="das-hero mb-4">
     <div class="das-hero__bg"></div>
@@ -110,7 +166,7 @@
       <div class="das-hero__identity">
         <div class="das-hero__logo-wrapper">
           <div class="das-hero__logo-placeholder">
-            <i class="ti tabler-clipboard-check text-info"></i>
+            <i class="ti tabler-bolt text-info"></i>
           </div>
           <div class="das-hero__logo-glow"></div>
         </div>
@@ -119,14 +175,15 @@
           <div class="das-hero__badge">
             <span class="pulse-dot"></span>
             @if ($isAdmin)
-              Absensi / Absensi Siswa per Jam / Form Roster
+              Absensi / Absensi Kelas & Mapel / Form Roster Cepat
             @else
-              Kelas Saya / Absensi Siswa per Jam / Form Roster
+              Portal Guru / Absensi Kelas & Mapel / Form Roster Cepat
             @endif
           </div>
-          <h4 class="das-hero__title text-gradient-gold">Isi Absensi Siswa</h4>
+          <h4 class="das-hero__title text-gradient-gold">Absensi Kelas & Mapel</h4>
           <p class="das-hero__subtitle">
-            {{ $jadwal->kelas->nama ?? '-' }} · {{ $jadwal->mata_pelajaran }} ·
+            <span class="text-white fw-bold">{{ $jadwal->kelas->nama ?? '-' }}</span> ·
+            <span class="text-info fw-bold">{{ $jadwal->mata_pelajaran }}</span> ·
             {{ substr($jadwal->jam_mulai, 0, 5) }} – {{ substr($jadwal->jam_selesai, 0, 5) }} ·
             {{ \Carbon\Carbon::parse($tanggal)->locale('id')->translatedFormat('l, d F Y') }}
           </p>
@@ -134,14 +191,17 @@
       </div>
 
       <div class="das-hero__actions">
-        <div class="d-flex flex-wrap gap-2">
-          <span class="badge bg-black bg-opacity-25 p-2 px-3 border border-white border-opacity-10 text-white">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          <span class="badge bg-black bg-opacity-25 p-2 px-3 border border-white border-opacity-10 text-white rounded-pill">
             <i class="ti tabler-calendar me-1"></i>
             {{ \Carbon\Carbon::parse($tanggal)->locale('id')->translatedFormat('d F Y') }}
           </span>
+          <span class="badge bg-black bg-opacity-25 p-2 px-3 border border-white border-opacity-10 text-white rounded-pill">
+            <i class="ti tabler-keyboard me-1"></i> Shortcut: <span class="text-info ms-1 fw-bold">Keyboard Angka 1-5</span>
+          </span>
           @if ($isPengganti)
             <span class="badge bg-label-warning p-2 px-3 rounded-pill">
-              <i class="ti tabler-user-swap me-1"></i> Pengganti
+              <i class="ti tabler-user-swap me-1"></i> Guru Pengganti
             </span>
           @endif
           @if ($sesiTerisi)
@@ -172,7 +232,7 @@
     </div>
   @endif
 
-  {{-- VALIDASI EROR (AC-F1-6) — ringkasan baris yang ditolak --}}
+  {{-- VALIDASI ERROR --}}
   @if ($errors->any())
     <div class="alert alert-danger alert-dismissible d-flex align-items-start gap-2 mb-4 border-0 shadow-sm"
       role="alert" style="border-radius:8px;">
@@ -197,7 +257,7 @@
   @endif
 
   {{-- ═══════════════════════════════════════════════════════
-       FORM ROSTER
+       FORM ROSTER — GAYA ABSENSI CEPAT
   ═══════════════════════════════════════════════════════ --}}
   <form id="absensiForm" method="POST"
     action="{{ route('admin.absensi-per-jam.store', $jadwal->id) }}"
@@ -212,10 +272,10 @@
       {{-- Head panel --}}
       <div class="das-panel__head">
         <div class="das-panel__title">
-          <i class="ti tabler-users text-info"></i> Roster Absensi
-          <span class="das-chip --info">{{ $roster->count() }} Siswa</span>
+          <i class="ti tabler-bolt text-info me-1"></i> Roster Absensi Kelas
+          <span class="das-chip --info ms-1">{{ $roster->count() }} Siswa</span>
           @if ($sesiTerisi)
-            <span class="das-chip --warning">
+            <span class="das-chip --warning ms-1">
               <i class="ti tabler-pencil me-1"></i>Diedit
             </span>
           @endif
@@ -229,15 +289,15 @@
       </div>
 
       {{-- Tabel roster --}}
-      <div class="table-responsive" style="max-height:60vh;overflow-y:auto;">
+      <div class="table-responsive" style="max-height:65vh;overflow-y:auto;">
         <table class="das-table roster-table align-middle mb-0">
           <thead>
             <tr>
-              <th class="ps-4 py-3" style="width:46px;">#</th>
+              <th class="ps-4 py-3 text-center" style="width:46px;">#</th>
               <th class="py-3 roster-sticky" style="min-width:200px;">Nama Siswa</th>
-              <th class="py-3 text-center" style="min-width:150px;">Status</th>
-              <th class="py-3 text-center" style="min-width:130px;">Lama Terlambat</th>
-              <th class="py-3 pe-4" style="min-width:190px;">Keterangan</th>
+              <th class="py-3 text-center" style="min-width:340px;">Pilihan Status (Gaya Absensi Cepat)</th>
+              <th class="py-3 text-center" style="min-width:120px;">Terlambat</th>
+              <th class="py-3 pe-4" style="min-width:180px;">Keterangan</th>
             </tr>
           </thead>
           <tbody>
@@ -249,8 +309,8 @@
                 $lama = old("rows.{$i}.lama_terlambat", $existing->lama_terlambat ?? '');
                 $ket = old("rows.{$i}.keterangan", $existing->keterangan ?? '');
               @endphp
-              <tr class="siswa-row-hover" x-data="{ status: '{{ $status }}' }">
-                <td class="ps-4 text-white-50 small">{{ $loop->iteration }}</td>
+              <tr class="siswa-row-hover" x-data="{ status: '{{ $status }}' }" tabindex="0" @keydown.window="handleKeydown($event, {{ $i }})">
+                <td class="ps-4 text-white-50 small text-center">{{ $loop->iteration }}</td>
                 <td class="roster-sticky">
                   <div class="d-flex align-items-center gap-2">
                     <div class="avatar avatar-xs flex-shrink-0">
@@ -259,42 +319,83 @@
                       </span>
                     </div>
                     <div>
-                      <div class="fw-semibold" style="font-size:.8rem;">{{ $siswa->nama_lengkap ?? '-' }}</div>
+                      <div class="fw-semibold text-white" style="font-size:.82rem;">{{ $siswa->nama_lengkap ?? '-' }}</div>
                       <div class="text-white-50" style="font-size:.68rem;">{{ $siswa->nis ?? '-' }}</div>
                     </div>
                   </div>
                 </td>
-                <td class="text-center">
+
+                {{-- Status Pills (Absensi Cepat Style) --}}
+                <td class="text-center py-2">
                   <input type="hidden" name="rows[{{ $i }}][siswa_id]" value="{{ $siswa->id }}">
-                  <select name="rows[{{ $i }}][status]" data-roster-status
-                    class="form-select form-select-sm text-center @error("rows.{$i}.status") is-invalid @enderror"
-                    style="min-width:120px;"
-                    x-model="status"
-                    @change="$dispatch('roster-change')"
-                    @if (!$canEdit) disabled @endif
-                    aria-label="Status kehadiran {{ $siswa->nama_lengkap }}">
-                    @foreach ($statusOptions as $st)
-                      <option value="{{ $st }}" @selected($status === $st)>{{ $statusMeta[$st]['label'] ?? ucfirst($st) }}</option>
-                    @endforeach
-                  </select>
+                  <div class="absensi-radios btn-group btn-group-sm flex-wrap gap-1 justify-content-center" role="group">
+
+                    {{-- HADIR --}}
+                    <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_hadir"
+                      value="hadir" x-model="status" @change="$dispatch('roster-change')" data-roster-status
+                      @if (!$canEdit) disabled @endif>
+                    <label class="btn btn-outline-success" for="status_{{ $i }}_hadir">
+                      <i class="ti tabler-user-check me-1"></i>Hadir
+                    </label>
+
+                    {{-- TERLAMBAT --}}
+                    <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_terlambat"
+                      value="terlambat" x-model="status" @change="$dispatch('roster-change')" data-roster-status
+                      @if (!$canEdit) disabled @endif>
+                    <label class="btn btn-outline-primary" for="status_{{ $i }}_terlambat">
+                      <i class="ti tabler-clock-exclamation me-1"></i>Terlambat
+                    </label>
+
+                    {{-- ALPHA --}}
+                    <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_alpha"
+                      value="alpha" x-model="status" @change="$dispatch('roster-change')" data-roster-status
+                      @if (!$canEdit) disabled @endif>
+                    <label class="btn btn-outline-danger" for="status_{{ $i }}_alpha">
+                      <i class="ti tabler-user-x me-1"></i>Alpha
+                    </label>
+
+                    {{-- IZIN --}}
+                    <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_izin"
+                      value="izin" x-model="status" @change="$dispatch('roster-change')" data-roster-status
+                      @if (!$canEdit) disabled @endif>
+                    <label class="btn btn-outline-warning" for="status_{{ $i }}_izin">
+                      <i class="ti tabler-file-description me-1"></i>Izin
+                    </label>
+
+                    {{-- SAKIT --}}
+                    <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_sakit"
+                      value="sakit" x-model="status" @change="$dispatch('roster-change')" data-roster-status
+                      @if (!$canEdit) disabled @endif>
+                    <label class="btn btn-outline-info" for="status_{{ $i }}_sakit">
+                      <i class="ti tabler-stethoscope me-1"></i>Sakit
+                    </label>
+
+                  </div>
                   @error("rows.{$i}.status")
-                    <div class="invalid-feedback">{{ $message }}</div>
+                    <div class="invalid-feedback d-block text-center mt-1">{{ $message }}</div>
                   @enderror
                 </td>
-                <td class="text-center" x-show="status === 'terlambat'">
-                  <input type="number" name="rows[{{ $i }}][lama_terlambat]" min="1" max="600"
-                    data-roster-lama
-                    class="form-control form-control-sm text-center @error("rows.{$i}.lama_terlambat") is-invalid @enderror"
-                    style="width:90px;margin:0 auto;"
-                    value="{{ $lama }}"
-                    placeholder="Menit"
-                    :required="status === 'terlambat'"
-                    @if (!$canEdit) disabled @endif
-                    aria-label="Lama keterlambatan {{ $siswa->nama_lengkap }} (menit)">
-                  @error("rows.{$i}.lama_terlambat")
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
+
+                {{-- Input Lama Terlambat --}}
+                <td class="text-center">
+                  <div x-show="status === 'terlambat'" x-transition>
+                    <input type="number" name="rows[{{ $i }}][lama_terlambat]" min="1" max="600"
+                      data-roster-lama
+                      class="form-control form-control-sm text-center @error("rows.{$i}.lama_terlambat") is-invalid @enderror"
+                      style="width:90px;margin:0 auto;"
+                      value="{{ $lama }}"
+                      placeholder="Menit"
+                      :required="status === 'terlambat'"
+                      @if (!$canEdit) disabled @endif
+                      aria-label="Lama keterlambatan {{ $siswa->nama_lengkap }} (menit)">
+                    @error("rows.{$i}.lama_terlambat")
+                      <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                  </div>
+                  <span class="text-white-50 small" x-show="status !== 'terlambat'">-</span>
                 </td>
+
+                {{-- Input Keterangan --}}
                 <td class="pe-4">
                   <input type="text" name="rows[{{ $i }}][keterangan]" maxlength="500"
                     data-roster-ket
@@ -325,14 +426,13 @@
       {{-- Footer sticky: live counter + aksi --}}
       @if ($roster->isNotEmpty())
         <div class="p-3 d-flex align-items-center justify-content-between flex-wrap gap-2"
-          style="border-top:1px solid rgba(255,255,255,0.06);">
+          style="border-top:1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.15);">
           <div class="d-flex flex-wrap align-items-center gap-2">
-            <span class="das-chip --success"><i class="ti tabler-user-check me-1"></i>Hadir: <span x-text="counts.hadir">0</span></span>
-            <span class="das-chip --warning"><i class="ti tabler-clock-exclamation me-1"></i>Terlambat: <span x-text="counts.terlambat">0</span></span>
-            <span class="das-chip --danger"><i class="ti tabler-user-x me-1"></i>Alpha: <span x-text="counts.alpha">0</span></span>
-            <span class="das-chip --info"><i class="ti tabler-file-description me-1"></i>Izin: <span x-text="counts.izin">0</span></span>
-            <span class="das-chip --secondary"><i class="ti tabler-stethoscope me-1"></i>Sakit: <span x-text="counts.sakit">0</span></span>
-            <span class="das-chip --primary"><i class="ti tabler-file-check me-1"></i>Dispen: <span x-text="counts.dispen">0</span></span>
+            <span class="das-chip --success"><i class="ti tabler-user-check me-1"></i>Hadir: <span x-text="counts.hadir" class="fw-bold">0</span></span>
+            <span class="das-chip --primary"><i class="ti tabler-clock-exclamation me-1"></i>Terlambat: <span x-text="counts.terlambat" class="fw-bold">0</span></span>
+            <span class="das-chip --danger"><i class="ti tabler-user-x me-1"></i>Alpha: <span x-text="counts.alpha" class="fw-bold">0</span></span>
+            <span class="das-chip --warning"><i class="ti tabler-file-description me-1"></i>Izin: <span x-text="counts.izin" class="fw-bold">0</span></span>
+            <span class="das-chip --info"><i class="ti tabler-stethoscope me-1"></i>Sakit: <span x-text="counts.sakit" class="fw-bold">0</span></span>
           </div>
           <div class="d-flex align-items-center gap-2">
             <a href="{{ route('admin.absensi-per-jam.index', ['tanggal' => $tanggal]) }}" class="das-btn das-btn--ghost">
@@ -348,7 +448,7 @@
   </form>
 
   {{-- ═══════════════════════════════════════════════════════
-       MODAL KONFIRMASI SIMPAN / TIMPA (UI-SPEC-006 §2.3-A)
+       MODAL KONFIRMASI SIMPAN / TIMPA
   ═══════════════════════════════════════════════════════ --}}
   <div class="modal fade" id="modalSimpanAbsensi" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
@@ -419,32 +519,32 @@
           this.recount();
         },
 
-        // Hitung ulang counter status dari semua select roster (live)
+        // Hitung ulang counter status dari radio button ter-check (live)
         recount() {
           const c = { hadir: 0, terlambat: 0, sakit: 0, izin: 0, alpha: 0, dispen: 0 };
-          document.querySelectorAll('[data-roster-status]').forEach(sel => {
-            if (c[sel.value] !== undefined) c[sel.value]++;
+          document.querySelectorAll('[data-roster-status]:checked').forEach(radio => {
+            if (c[radio.value] !== undefined) c[radio.value]++;
           });
           this.counts = c;
         },
 
-        // AC-F1-2: Tandai Semua Hadir — set semua select hadir + bersihkan lama/keterangan
+        // Tandai Semua Hadir — set semua radio button hadir
         setAllHadir() {
           const msg = this.sesiTerisi
             ? 'Roster sudah pernah diisi. Timpa seluruh status menjadi Hadir?'
             : 'Tandai semua siswa sebagai Hadir?';
           if (!confirm(msg)) return;
 
-          document.querySelectorAll('[data-roster-status]').forEach(sel => {
-            sel.value = 'hadir';
-            sel.dispatchEvent(new Event('change', { bubbles: true }));
+          document.querySelectorAll('input[value="hadir"][data-roster-status]').forEach(radio => {
+            radio.checked = true;
+            radio.dispatchEvent(new Event('change', { bubbles: true }));
           });
           document.querySelectorAll('[data-roster-lama]').forEach(inp => inp.value = '');
           document.querySelectorAll('[data-roster-ket]').forEach(inp => inp.value = '');
           this.recount();
         },
 
-        // AC-F1-2/3: buka modal konfirmasi sebelum simpan (timpa bila sesi terisi)
+        // Modal konfirmasi simpan
         openConfirm() {
           this.confirmMsg = this.sesiTerisi
             ? 'Sesi ini sudah pernah diisi. Menyimpan akan menimpa data lama untuk semua siswa.'
