@@ -944,12 +944,7 @@
       style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;"
     >
 
-    <div class="scan-info">
-      <div class="scan-count-wrap">Scan Sesi Ini:&nbsp;<span id="scan-count">0</span></div>
-      <div style="font-size:0.72rem; color:var(--muted);">
-        Status: <strong style="color:#fff;" id="sync-status">Real-time</strong>
-      </div>
-    </div>
+
 
   </div>
 
