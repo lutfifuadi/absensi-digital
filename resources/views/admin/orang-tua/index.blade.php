@@ -358,26 +358,34 @@
     {{-- FILTER PANEL --}}
     <div class="das-panel mb-4">
         <div class="das-panel__body">
-            <form id="filterForm" method="GET" class="row gy-3 gx-3 align-items-end">
-                <div class="col-md-5">
+            <form id="filterForm" method="GET" class="row g-3 align-items-end">
+                <div class="col-12 col-md-4">
                     <label class="form-label text-white-50 small fw-bold">Cari Orang Tua</label>
                     <input type="text" id="filterSearch" name="search" class="form-control"
                         placeholder="Nama ortu, email, username, No. HP, nama siswa..." value="{{ request('search') }}">
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label text-white-50 small fw-bold">Status</label>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <label class="form-label text-white-50 small fw-bold">Status Akun</label>
                     <select id="filterStatus" name="status" class="form-select">
                         <option value="">Semua Status</option>
                         <option value="aktif" @selected(request('status') === 'aktif')>Aktif</option>
                         <option value="nonaktif" @selected(request('status') === 'nonaktif')>Nonaktif</option>
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-12 col-sm-6 col-md-3">
+                    <label class="form-label text-white-50 small fw-bold">Koneksi Siswa</label>
+                    <select id="filterKoneksiSiswa" name="koneksi_siswa" class="form-select">
+                        <option value="">Semua Koneksi</option>
+                        <option value="terhubung" @selected(request('koneksi_siswa') === 'terhubung')>Terhubung ke Siswa</option>
+                        <option value="belum" @selected(request('koneksi_siswa') === 'belum')>Belum Terhubung</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn das-btn --info w-100">
+                        <button type="submit" class="btn das-btn --info w-100 justify-content-center">
                             <i class="ti tabler-search me-1"></i> Cari
                         </button>
-                        <button type="button" id="resetFilterBtn" class="btn das-btn --secondary" title="Reset">
+                        <button type="button" id="resetFilterBtn" class="btn das-btn --secondary" title="Reset Filter">
                             <i class="ti tabler-refresh"></i>
                         </button>
                     </div>
@@ -768,6 +776,7 @@
             const perPageSelect = document.getElementById('perPageSelect');
             const filterSearch = document.getElementById('filterSearch');
             const filterStatus = document.getElementById('filterStatus');
+            const filterKoneksiSiswa = document.getElementById('filterKoneksiSiswa');
             const filterForm = document.getElementById('filterForm');
             const resetFilterBtn = document.getElementById('resetFilterBtn');
             let searchTimeout;
@@ -779,7 +788,8 @@
                 const search = encodeURIComponent(filterSearch.value || '');
                 const perPage = perPageSelect.value || 10;
                 const status = filterStatus ? filterStatus.value || '' : '';
-                const url = `{{ route('admin.orang-tua.index') }}?page=${page}&search=${search}&per_page=${perPage}&sort_by=${currentSortBy}&sort_dir=${currentSortDir}&status=${status}`;
+                const koneksiSiswa = filterKoneksiSiswa ? filterKoneksiSiswa.value || '' : '';
+                const url = `{{ route('admin.orang-tua.index') }}?page=${page}&search=${search}&per_page=${perPage}&sort_by=${currentSortBy}&sort_dir=${currentSortDir}&status=${status}&koneksi_siswa=${koneksiSiswa}`;
 
                 container.style.opacity = '0.5';
                 container.style.pointerEvents = 'none';
@@ -823,6 +833,13 @@
                 });
             }
 
+            // filter koneksi siswa change
+            if (filterKoneksiSiswa) {
+                filterKoneksiSiswa.addEventListener('change', function() {
+                    fetchData(1);
+                });
+            }
+
             // form submit
             if (filterForm) {
                 filterForm.addEventListener('submit', function(e) {
@@ -836,6 +853,7 @@
                 resetFilterBtn.addEventListener('click', function() {
                     if (filterSearch) filterSearch.value = '';
                     if (filterStatus) filterStatus.value = '';
+                    if (filterKoneksiSiswa) filterKoneksiSiswa.value = '';
                     fetchData(1);
                 });
             }

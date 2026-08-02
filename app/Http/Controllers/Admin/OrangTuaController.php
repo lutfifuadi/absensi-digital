@@ -23,15 +23,23 @@ class OrangTuaController extends Controller
         $sortBy = $request->query('sort_by', 'name');
         $sortDir = $request->query('sort_dir', 'asc');
         $status = $request->query('status');
+        $koneksiSiswa = $request->query('koneksi_siswa');
 
         $allowedSortColumns = ['name', 'email', 'username', 'status', 'created_at'];
         $sortBy = in_array($sortBy, $allowedSortColumns) ? $sortBy : 'name';
         $sortDir = in_array($sortDir, ['asc', 'desc']) ? $sortDir : 'asc';
 
         $orangTua = User::withRole(User::ROLE_ORANG_TUA)
-            ->with('children')
+            ->with('children.kelas')
             ->when($status, function ($query, $status) {
                 $query->where('users.status', $status);
+            })
+            ->when($koneksiSiswa, function ($query, $koneksiSiswa) {
+                if ($koneksiSiswa === 'terhubung') {
+                    $query->has('children');
+                } elseif ($koneksiSiswa === 'belum') {
+                    $query->doesntHave('children');
+                }
             })
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {

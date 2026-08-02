@@ -75,7 +75,9 @@
                                 @endforeach
                             </div>
                         @else
-                            <span class="text-white-50 small">- Belum ada siswa -</span>
+                            <span class="badge bg-label-warning text-warning px-2.5 py-1" style="font-size:0.7rem;">
+                                <i class="ti tabler-alert-circle me-1"></i>Belum Terhubung
+                            </span>
                         @endif
                     </td>
                     <td class="text-center">
