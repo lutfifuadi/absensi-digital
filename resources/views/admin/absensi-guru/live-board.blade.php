@@ -126,24 +126,39 @@
     .btn-control-head:hover { color: #fff; background: rgba(255,255,255,0.1); }
     .btn-control-head.active { color: var(--success); border-color: rgba(40,199,111,0.4); }
 
-    .announce-bar {
-      background: rgba(115,103,240,.12); border-bottom: 1px solid rgba(115,103,240,.2);
-      padding: 6px 1.5rem; overflow: hidden; white-space: nowrap;
+    .bottom-running-bar {
+      grid-column: 2 / -1;
+      grid-row: 2;
+      background: linear-gradient(90deg, rgba(15, 22, 35, 0.95) 0%, rgba(115, 103, 240, 0.15) 50%, rgba(15, 22, 35, 0.95) 100%);
+      border: 1px solid rgba(115, 103, 240, 0.3);
+      border-radius: 4px;
+      padding: 6px 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     }
-    .announce-bar marquee { font-size: 0.8rem; color: rgba(255,255,255,.7); }
+    .bottom-running-bar .announce-icon {
+      font-size: 0.9rem;
+      color: #ff9f43;
+      flex-shrink: 0;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    .bottom-running-bar marquee { font-size: 0.85rem; font-weight: 600; color: #f1f5f9; letter-spacing: 0.5px; }
 
     /* ─── MAIN GRID ──────────────────────────────────────── */
     .main {
       display: grid;
       grid-template-columns: 460px 1fr 1fr;
-      grid-template-rows: 1fr;
+      grid-template-rows: 1fr auto;
       gap: 0.75rem;
       padding: 0.75rem;
       flex: 1;
       min-height: 0;
       overflow: hidden;
     }
-    .scanner-col { grid-column: 1; grid-row: 1; }
+    .scanner-col { grid-column: 1; grid-row: 1 / span 2; }
 
     /* ─── PANELS ─────────────────────────────────────────── */
     .panel {
@@ -464,8 +479,8 @@
     .analog-face .minute-hand {
       width: 5px; height: 50px;
       margin-left: -2.5px; margin-top: -50px;
-      background: linear-gradient(180deg, #ffffff 0%, #00cfe8 100%);
-      box-shadow: 0 0 10px rgba(0, 207, 232, 0.85);
+      background: linear-gradient(180deg, #ffd700 0%, #ff9f43 100%);
+      box-shadow: 0 0 10px rgba(255, 184, 0, 0.85);
       clip-path: polygon(50% 0%, 70% 12%, 58% 100%, 42% 100%, 30% 12%);
       border-radius: 3px;
       z-index: 4;
@@ -700,12 +715,6 @@
   </div>
 </header>
 
-@if($announcement)
-<div class="announce-bar">
-  <marquee scrollamount="4">📢 &nbsp; {{ $announcement }}</marquee>
-</div>
-@endif
-
 <!-- ══ MAIN GRID ════════════════════════════════════════════════════ -->
 <div class="main">
 
@@ -905,11 +914,9 @@
           <div class="plaque-time" id="analogDigitalPlaque">--:--:--</div>
           <div class="plaque-chip">{{ $zoneAbbr ?? 'WIB' }}</div>
         </div>
-      </div>
 
       <div style="text-align:center; color: var(--muted); font-size: 0.82rem; max-width: 280px; line-height: 1.4;">
         <p style="color: #fff; font-weight: 700; margin-bottom: 0.25rem;">SIAP SCANNING GURU</p>
-        <p>Silakan Arahkan QR-Code ke Alat Scanner</p>
       </div>
 
       <!-- Result toast -->
@@ -944,6 +951,15 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- ── BOTTOM RUNNING TEXT (Spans Columns 2 & 3) ──────────────── -->
+  @php
+    $runningText = $announcement ?? ('✨ Selamat Datang di Live Presensi Guru & Karyawan ' . $namaSekolah . ' — Budayakan Disiplin & Tepat Waktu! ✨');
+  @endphp
+  <div class="bottom-running-bar">
+    <div class="announce-icon">📢</div>
+    <marquee scrollamount="5" onmouseover="this.stop()" onmouseout="this.start()">{{ $runningText }}</marquee>
   </div>
 
 </div><!-- /main -->
