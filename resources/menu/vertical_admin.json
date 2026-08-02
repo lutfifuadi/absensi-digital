@@ -25,6 +25,49 @@
       "menuHeader": "Data Sekolah & Civitas"
     },
     {
+      "name": "Akademik & Kelas",
+      "icon": "menu-icon ti tabler-vocabulary",
+      "slug": [
+        "admin.tahun-akademik.index",
+        "admin.jurusan.index",
+        "admin.kelas.index",
+        "admin.mapel.index",
+        "admin.jadwal.index"
+      ],
+      "submenu": [
+        {
+          "name": "Tahun Ajaran",
+          "icon": "menu-icon ti tabler-calendar",
+          "slug": "admin.tahun-akademik.index",
+          "url": "/admin/tahun-akademik"
+        },
+        {
+          "name": "Master Jurusan",
+          "icon": "menu-icon ti tabler-books",
+          "slug": "admin.jurusan.index",
+          "url": "/admin/jurusan"
+        },
+        {
+          "name": "Data Kelas",
+          "icon": "menu-icon ti tabler-door",
+          "slug": "admin.kelas.index",
+          "url": "/admin/kelas"
+        },
+        {
+          "name": "Mata Pelajaran",
+          "icon": "menu-icon ti tabler-book",
+          "slug": "admin.mapel.index",
+          "url": "/admin/mapel"
+        },
+        {
+          "name": "Jam Pelajaran",
+          "icon": "menu-icon ti tabler-clock",
+          "slug": "admin.jadwal.index",
+          "url": "/admin/jadwal"
+        }
+      ]
+    },
+    {
       "name": "Data Civitas",
       "icon": "menu-icon ti tabler-users-group",
       "slug": [
@@ -95,49 +138,6 @@
           "roles": [
             "super_admin"
           ]
-        }
-      ]
-    },
-    {
-      "name": "Akademik & Kelas",
-      "icon": "menu-icon ti tabler-vocabulary",
-      "slug": [
-        "admin.tahun-akademik.index",
-        "admin.jurusan.index",
-        "admin.kelas.index",
-        "admin.mapel.index",
-        "admin.jadwal.index"
-      ],
-      "submenu": [
-        {
-          "name": "Tahun Ajaran",
-          "icon": "menu-icon ti tabler-calendar",
-          "slug": "admin.tahun-akademik.index",
-          "url": "/admin/tahun-akademik"
-        },
-        {
-          "name": "Master Jurusan",
-          "icon": "menu-icon ti tabler-books",
-          "slug": "admin.jurusan.index",
-          "url": "/admin/jurusan"
-        },
-        {
-          "name": "Data Kelas",
-          "icon": "menu-icon ti tabler-door",
-          "slug": "admin.kelas.index",
-          "url": "/admin/kelas"
-        },
-        {
-          "name": "Mata Pelajaran",
-          "icon": "menu-icon ti tabler-book",
-          "slug": "admin.mapel.index",
-          "url": "/admin/mapel"
-        },
-        {
-          "name": "Jam Pelajaran",
-          "icon": "menu-icon ti tabler-clock",
-          "slug": "admin.jadwal.index",
-          "url": "/admin/jadwal"
         }
       ]
     },
