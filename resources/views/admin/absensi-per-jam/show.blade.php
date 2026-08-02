@@ -129,45 +129,6 @@
       background: rgba(0, 0, 0, 0.2);
     }
 
-    /* Perfect Scrollbar & Custom Scrollbar Styling */
-    #rosterTableContainer.ps .ps__rail-y {
-      width: 8px !important;
-      background-color: transparent !important;
-      right: 2px !important;
-      opacity: 0.6;
-      transition: opacity 0.2s ease;
-    }
-    #rosterTableContainer.ps:hover .ps__rail-y {
-      opacity: 1;
-    }
-    #rosterTableContainer.ps .ps__rail-y .ps__thumb-y {
-      background-color: rgba(255, 255, 255, 0.25) !important;
-      width: 6px !important;
-      border-radius: 5px !important;
-      right: 1px !important;
-    }
-    #rosterTableContainer.ps .ps__rail-y:hover .ps__thumb-y,
-    #rosterTableContainer.ps .ps__rail-y:focus .ps__thumb-y {
-      background-color: rgba(0, 207, 232, 0.75) !important;
-      width: 8px !important;
-    }
-
-    /* Fallback Custom Scrollbar (Webkit) jika PS belum ter-attach */
-    #rosterTableContainer::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    #rosterTableContainer::-webkit-scrollbar-track {
-      background: rgba(0, 0, 0, 0.15);
-      border-radius: 5px;
-    }
-    #rosterTableContainer::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 5px;
-    }
-    #rosterTableContainer::-webkit-scrollbar-thumb:hover {
-      background: rgba(0, 207, 232, 0.6);
-    }
 
     /* Modal konfirmasi simpan */
     #modalSimpanAbsensi .modal-content {
@@ -551,16 +512,26 @@
       // Inisialisasi Perfect Scrollbar pada kontainer tabel Roster
       const container = document.getElementById('rosterTableContainer');
       if (container) {
-        if (typeof PerfectScrollbar !== 'undefined') {
-          new PerfectScrollbar(container, {
-            wheelPropagation: false,
-            suppressScrollX: false
-          });
-        } else if (window.PerfectScrollbar) {
-          new window.PerfectScrollbar(container, {
-            wheelPropagation: false,
-            suppressScrollX: false
-          });
+        const initScrollbar = () => {
+          const PS = window.PerfectScrollbar || (typeof PerfectScrollbar !== 'undefined' ? PerfectScrollbar : null);
+          if (PS) {
+            new PS(container, {
+              wheelPropagation: false,
+              suppressScrollX: false
+            });
+            return true;
+          }
+          return false;
+        };
+
+        if (!initScrollbar()) {
+          // Polling jika plugin belum termuat (karena deferral load order di Vite)
+          const interval = setInterval(() => {
+            if (initScrollbar()) {
+              clearInterval(interval);
+            }
+          }, 50);
+          setTimeout(() => clearInterval(interval), 3000);
         }
       }
     });
