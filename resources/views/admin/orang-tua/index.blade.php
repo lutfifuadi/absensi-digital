@@ -278,6 +278,85 @@
         .text-purple {
             color: #a5a2f7 !important;
         }
+
+        /* ICON BUTTONS HERO ACTIONS */
+        .das-icon-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 1px solid transparent;
+            text-decoration: none;
+        }
+
+        .das-icon-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .das-icon-btn.--warning {
+            background: rgba(255, 159, 67, 0.15);
+            border-color: rgba(255, 159, 67, 0.3);
+            color: #ff9f43;
+        }
+        .das-icon-btn.--warning:hover {
+            background: rgba(255, 159, 67, 0.3);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(255, 159, 67, 0.3);
+        }
+
+        .das-icon-btn.--info {
+            background: rgba(0, 207, 232, 0.15);
+            border-color: rgba(0, 207, 232, 0.3);
+            color: #00cfe8;
+        }
+        .das-icon-btn.--info:hover {
+            background: rgba(0, 207, 232, 0.3);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(0, 207, 232, 0.3);
+        }
+
+        .das-icon-btn.--success {
+            background: rgba(40, 199, 111, 0.15);
+            border-color: rgba(40, 199, 111, 0.3);
+            color: #28c76f;
+        }
+        .das-icon-btn.--success:hover {
+            background: rgba(40, 199, 111, 0.3);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(40, 199, 111, 0.3);
+        }
+
+        .das-icon-btn.--danger {
+            background: rgba(234, 84, 85, 0.15);
+            border-color: rgba(234, 84, 85, 0.3);
+            color: #ea5455;
+        }
+        .das-icon-btn.--danger:hover {
+            background: rgba(234, 84, 85, 0.3);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(234, 84, 85, 0.3);
+        }
+
+        .das-icon-btn.--primary {
+            background: rgba(115, 103, 240, 0.15);
+            border-color: rgba(115, 103, 240, 0.3);
+            color: #7367f0;
+        }
+        .das-icon-btn.--primary:hover {
+            background: rgba(115, 103, 240, 0.3);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(115, 103, 240, 0.3);
+        }
+
+        .dropdown-toggle-nocaret::after {
+            display: none !important;
+        }
     </style>
     @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
 @endsection
@@ -309,13 +388,13 @@
                 </div>
             </div>
 
-            <div class="das-hero__actions">
-                <button type="button" class="btn das-btn --warning" id="btnSyncOrtu">
-                    <i class="ti tabler-refresh me-1"></i> Sync Data
+            <div class="das-hero__actions" style="display: flex; gap: 0.5rem; align-items: center;">
+                <button type="button" class="das-icon-btn --warning" id="btnSyncOrtu" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Sync Data Ortu">
+                    <i class="ti tabler-refresh"></i>
                 </button>
                 <div class="btn-group">
-                    <button type="button" class="btn das-btn --info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Cek Status WA">
-                        <i class="ti tabler-brand-whatsapp me-1" id="iconManualCheckWa"></i> Cek WA
+                    <button type="button" class="das-icon-btn --info dropdown-toggle dropdown-toggle-nocaret" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Cek Status WA">
+                        <i class="ti tabler-brand-whatsapp" id="iconManualCheckWa"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end das-modal border-0 shadow-lg" style="min-width: 250px;">
                         <li>
@@ -339,17 +418,17 @@
                         </li>
                     </ul>
                 </div>
-                <button type="button" class="btn das-btn --success" id="btnRegeneratePhone">
-                    <i class="ti tabler-phone me-1"></i> Generate Format WA
+                <button type="button" class="das-icon-btn --success" id="btnRegeneratePhone" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Generate Format WA">
+                    <i class="ti tabler-phone"></i>
                 </button>
-                <button type="button" class="btn das-btn --info" id="btnResetPasswordAll">
-                    <i class="ti tabler-key me-1"></i> Reset PW Massal
+                <button type="button" class="das-icon-btn --info" id="btnResetPasswordAll" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Reset PW Massal">
+                    <i class="ti tabler-key"></i>
                 </button>
-                <button type="button" class="btn das-btn --danger" data-bs-toggle="modal" data-bs-target="#deleteAllModal">
-                    <i class="ti tabler-trash me-1"></i> Hapus Semua
+                <button type="button" class="das-icon-btn --danger" data-bs-toggle="modal" data-bs-target="#deleteAllModal" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Hapus Semua Ortu">
+                    <i class="ti tabler-trash"></i>
                 </button>
-                <a href="{{ route('admin.orang-tua.create') }}" class="btn das-btn --primary">
-                    <i class="ti tabler-plus me-1"></i> Tambah Ortu
+                <a href="{{ route('admin.orang-tua.create') }}" class="das-icon-btn --primary" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Tambah Ortu Baru">
+                    <i class="ti tabler-plus"></i>
                 </a>
             </div>
         </div>
