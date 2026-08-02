@@ -916,9 +916,13 @@
           <div class="plaque-time" id="analogDigitalPlaque">--:--:--</div>
           <div class="plaque-chip">{{ $zoneAbbr ?? 'WIB' }}</div>
         </div>
+      </div>
 
-      <div style="text-align:center; color: var(--muted); font-size: 0.82rem; max-width: 280px; line-height: 1.4;">
-        <p style="color: #fff; font-weight: 700; margin-bottom: 0.25rem;">SIAP SCANNING GURU</p>
+      <div style="text-align:center; color: var(--muted); font-size: 0.85rem; max-width: 280px; line-height: 1.4; position: relative; z-index: 2; margin-top: 1.25rem;">
+        <p style="color: #fff; font-weight: 700; margin-bottom: 0.25rem; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+          <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px var(--success); animation: pulse 1.4s ease-in-out infinite;"></span>
+          SIAP SCANNING GURU
+        </p>
       </div>
 
       <!-- Result toast -->
