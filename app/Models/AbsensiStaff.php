@@ -19,6 +19,8 @@ class AbsensiStaff extends Model
         'status',
         'keterangan',
         'metode',
+        'is_pulang_cepat',
+        'izin_pulang_cepat_id',
     ];
 
     protected $casts = [
@@ -28,5 +30,10 @@ class AbsensiStaff extends Model
     public function staff()
     {
         return $this->belongsTo(StaffTataUsaha::class, 'staff_id');
+    }
+
+    public function izinPulangCepat()
+    {
+        return $this->belongsTo(IzinPulangCepat::class, 'izin_pulang_cepat_id');
     }
 }

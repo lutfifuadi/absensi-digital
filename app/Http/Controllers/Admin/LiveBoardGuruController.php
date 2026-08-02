@@ -7,11 +7,16 @@ use App\Models\AbsensiGuru;
 use App\Models\Guru;
 use App\Models\Pengaturan;
 use App\Helpers\JadwalAbsensiHelper;
+use App\Services\KehadiranGuruService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
 class LiveBoardGuruController extends Controller
 {
+    public function __construct(
+        private KehadiranGuruService $kehadiranGuruService
+    ) {
+    }
     /**
      * Tampilkan halaman Live Board Absensi Guru (TV Display Ready).
      */
@@ -184,6 +189,16 @@ class LiveBoardGuruController extends Controller
         $izinCount      = 0;
         $alphaCount     = 0;
         $pulangCount    = 0;
+        $belumAbsenCount = 0;
+
+        // ── PRD-007: counter part time (informasi tambahan untuk UI) ──
+        $pakaiStatusKepegawaian = feature('fitur_status_kepegawaian');
+        $partTimeCount            = 0;
+        $partTimeBelumScanCount   = 0;
+        $partTimeSesuaiJadwalCount = 0;
+        $partTimeTidakHadirCount  = 0;
+        $partTimeTanpaSlotCount   = 0;
+        $belumMonitorPartTimeCount = 0;
 
         $guruListFormatted = [];
 
@@ -194,36 +209,112 @@ class LiveBoardGuruController extends Controller
             $jamPulang = null;
             $metode   = null;
 
+            $tipeKepegawaian = $guru->tipe_kepegawaian ?? 'full_time';
+            $isPartTime = $pakaiStatusKepegawaian && $tipeKepegawaian === 'part_time';
+
+            if ($isPartTime) {
+                $partTimeCount++;
+            }
+
+            // PRD-007 (BUG-1): status part time SELALU ditentukan dari monitoring slot
+            // agar konsisten dengan Dashboard. Info scan (jam masuk/pulang) tetap
+            // ditampilkan sebagai info tambahan, bukan penentu status.
+            $statusSlot = null;
+            if ($isPartTime) {
+                $statusSlot = $this->kehadiranGuruService
+                    ->isGuruDianggapHadirHariIni($guru->id, $today);
+            }
+
             if ($absensi) {
-                $rawStatus = strtolower($absensi->status);
                 $jamMasuk  = $absensi->jam_masuk;
                 $jamPulang = $absensi->jam_pulang;
                 $metode    = $absensi->metode;
 
-                if ($rawStatus === 'hadir') {
-                    $hadirCount++;
-                    $status = 'hadir';
-                } elseif ($rawStatus === 'terlambat') {
-                    $terlambatCount++;
-                    $status = 'terlambat';
-                } elseif (in_array($rawStatus, ['izin', 'sakit', 'dinas', 'cuti'])) {
-                    $izinSakitCount++;
-                    if ($rawStatus === 'sakit') {
-                        $sakitCount++;
-                    } else {
-                        $izinCount++;
+                if ($isPartTime) {
+                    // Status mengikuti slot; bila tanpa slot hari ini → status ikut scan
+                    // (bukti hadir/izin resmi), tidak pernah alpha.
+                    $status = $this->applyPartTimeSlotStatus(
+                        $statusSlot,
+                        $hadirCount,
+                        $terlambatCount,
+                        $partTimeTidakHadirCount,
+                        $partTimeSesuaiJadwalCount,
+                        $belumMonitorPartTimeCount,
+                        $belumAbsenCount
+                    );
+
+                    if ($status === 'part_time') {
+                        $rawStatus = strtolower($absensi->status);
+                        if ($rawStatus === 'hadir') {
+                            $hadirCount++;
+                            $status = 'hadir';
+                        } elseif ($rawStatus === 'terlambat') {
+                            $terlambatCount++;
+                            $status = 'terlambat';
+                        } elseif (in_array($rawStatus, ['izin', 'sakit', 'dinas', 'cuti'])) {
+                            $izinSakitCount++;
+                            if ($rawStatus === 'sakit') {
+                                $sakitCount++;
+                            } else {
+                                $izinCount++;
+                            }
+                            $status = $rawStatus;
+                        } else {
+                            // Record alpha lama pada part time: jangan tampil alpha,
+                            // scan tetap dianggap hadir (BR-06).
+                            $hadirCount++;
+                            $status = 'hadir';
+                        }
                     }
-                    $status = $rawStatus;
                 } else {
-                    $alphaCount++;
-                    $status = 'alpha';
+                    // Full time: perilaku lama persis (status dari absensi_guru).
+                    $rawStatus = strtolower($absensi->status);
+                    if ($rawStatus === 'hadir') {
+                        $hadirCount++;
+                        $status = 'hadir';
+                    } elseif ($rawStatus === 'terlambat') {
+                        $terlambatCount++;
+                        $status = 'terlambat';
+                    } elseif (in_array($rawStatus, ['izin', 'sakit', 'dinas', 'cuti'])) {
+                        $izinSakitCount++;
+                        if ($rawStatus === 'sakit') {
+                            $sakitCount++;
+                        } else {
+                            $izinCount++;
+                        }
+                        $status = $rawStatus;
+                    } else {
+                        $alphaCount++;
+                        $status = 'alpha';
+                    }
                 }
 
                 if ($jamPulang) {
                     $pulangCount++;
                 }
             } else {
-                $alphaCount++;
+                // Tanpa scan
+                if ($isPartTime) {
+                    // PRD-007 (F-4): part time tanpa absensi_guru TIDAK dihitung alpha.
+                    $partTimeBelumScanCount++;
+                    $status = $this->applyPartTimeSlotStatus(
+                        $statusSlot,
+                        $hadirCount,
+                        $terlambatCount,
+                        $partTimeTidakHadirCount,
+                        $partTimeSesuaiJadwalCount,
+                        $belumMonitorPartTimeCount,
+                        $belumAbsenCount
+                    );
+
+                    if ($status === 'part_time') {
+                        // BR-05: tanpa slot terjadwal hari ini → tidak dihitung hadir/alpha
+                        $partTimeTanpaSlotCount++;
+                    }
+                } else {
+                    $alphaCount++;
+                    $belumAbsenCount++;
+                }
             }
 
             $fotoUrl = asset('assets/img/avatars/1.png');
@@ -244,6 +335,7 @@ class LiveBoardGuruController extends Controller
                 'jabatan'        => $guru->jabatan ?? 'Guru Pengajar',
                 'mata_pelajaran' => $guru->mata_pelajaran ?? '—',
                 'foto'           => $fotoUrl,
+                'tipe_kepegawaian' => $tipeKepegawaian,
                 'status'         => $status,
                 'jam_masuk'      => $jamMasuk ? substr($jamMasuk, 0, 5) : null,
                 'jam_pulang'     => $jamPulang ? substr($jamPulang, 0, 5) : null,
@@ -265,6 +357,7 @@ class LiveBoardGuruController extends Controller
                         'jabatan' => $guru?->jabatan ?? 'Guru Pengajar',
                         'jam'     => $rec->jam_pulang,
                         'status'  => 'pulang',
+                        'tipe_kepegawaian' => $guru?->tipe_kepegawaian ?? 'full_time',
                     ];
                 })->all();
         } else {
@@ -280,6 +373,7 @@ class LiveBoardGuruController extends Controller
                         'jabatan' => $guru?->jabatan ?? 'Guru Pengajar',
                         'jam'     => $rec->jam_masuk,
                         'status'  => strtolower($rec->status),
+                        'tipe_kepegawaian' => $guru?->tipe_kepegawaian ?? 'full_time',
                     ];
                 })->all();
         }
@@ -297,6 +391,7 @@ class LiveBoardGuruController extends Controller
                     'jabatan' => $guru?->jabatan ?? 'Guru Pengajar',
                     'jam'     => $jamVal,
                     'status'  => $rec->jam_pulang ? 'pulang' : strtolower($rec->status),
+                    'tipe_kepegawaian' => $guru?->tipe_kepegawaian ?? 'full_time',
                 ];
             })->all();
 
@@ -327,6 +422,7 @@ class LiveBoardGuruController extends Controller
                     'jabatan'    => $guru?->jabatan ?? 'Guru Pengajar',
                     'foto'       => $fotoUrl,
                     'status'     => strtolower($rec->status),
+                    'tipe_kepegawaian' => $guru?->tipe_kepegawaian ?? 'full_time',
                     'waktu'      => $waktuDisplay,
                     'tipe_scan'  => $tipeScan,
                     'metode'     => $rec->metode ?? 'QR Code',
@@ -391,9 +487,11 @@ class LiveBoardGuruController extends Controller
             $ianaTimezone = 'Asia/Jayapura';
         }
 
-        $remainingCount = ($mode === 'pulang') 
-            ? max(0, $totalGuru - $pulangCount) 
-            : max(0, $totalGuru - ($hadirCount + $terlambatCount + $izinSakitCount));
+        // PRD-007 (F-4): 'remaining' = guru yang masih diharapkan absen/monitoring.
+        // Part time tanpa slot terjadwal hari ini tidak dihitung (BR-05).
+        $remainingCount = ($mode === 'pulang')
+            ? max(0, $totalGuru - $pulangCount)
+            : $belumAbsenCount;
 
         return [
             'mode'               => $mode,
@@ -417,9 +515,16 @@ class LiveBoardGuruController extends Controller
                 'sakit'      => $sakitCount,
                 'izin'       => $izinCount,
                 'alpha'      => $alphaCount,
-                'belum_absen'=> $alphaCount,
+                'belum_absen'=> $belumAbsenCount,
                 'pulang'     => $pulangCount,
                 'remaining'  => $remainingCount,
+                // ── PRD-007: statistik part time (informasi tambahan untuk UI) ──
+                'part_time'                  => $partTimeCount,
+                'part_time_belum_scan'       => $partTimeBelumScanCount,
+                'part_time_sesuai_jadwal'    => $partTimeSesuaiJadwalCount,
+                'part_time_tidak_hadir'      => $partTimeTidakHadirCount,
+                'part_time_tanpa_slot'       => $partTimeTanpaSlotCount,
+                'part_time_belum_dimonitor'  => $belumMonitorPartTimeCount,
             ],
             'leaderboardAwal'    => $leaderboardAwal,
             'leaderboardTerbaru' => $leaderboardTerbaru,
@@ -432,5 +537,58 @@ class LiveBoardGuruController extends Controller
             'tanggalIndo'        => now()->locale('id')->isoFormat('D MMMM YYYY'),
             'hariIndo'           => ucfirst(now()->locale('id')->isoFormat('dddd')),
         ];
+    }
+
+    /**
+     * Terapkan status part time berbasis monitoring slot ke counter live board.
+     *
+     * PRD-007 (BUG-1): status part time SELALU mengikuti slot (konsisten dengan
+     * Dashboard). Mengembalikan label status:
+     *   - 'hadir'           — seluruh slot hadir
+     *   - 'terlambat'       — seluruh slot terlambat
+     *   - 'tidak_hadir'     — seluruh slot tidak_hadir (bukan alpha)
+     *   - 'sesuai_jadwal'   — sebagian slot hadir/terlambat
+     *   - 'belum_dimonitor' — ada slot, belum dicatat piket (masuk counter belum_absen)
+     *   - 'part_time'       — tanpa slot terjadwal hari ini (tidak dihitung, BR-05)
+     *
+     * @param string|null $statusSlot hasil isGuruDianggapHadirHariIni()
+     */
+    private function applyPartTimeSlotStatus(
+        ?string $statusSlot,
+        int &$hadirCount,
+        int &$terlambatCount,
+        int &$partTimeTidakHadirCount,
+        int &$partTimeSesuaiJadwalCount,
+        int &$belumMonitorPartTimeCount,
+        int &$belumAbsenCount
+    ): string {
+        if ($statusSlot === null) {
+            return 'part_time';
+        }
+
+        if ($statusSlot === 'hadir') {
+            $hadirCount++;
+            return 'hadir';
+        }
+
+        if ($statusSlot === 'terlambat') {
+            $terlambatCount++;
+            return 'terlambat';
+        }
+
+        if ($statusSlot === 'tidak_hadir') {
+            $partTimeTidakHadirCount++;
+            return 'tidak_hadir';
+        }
+
+        if ($statusSlot === 'sesuai_jadwal') {
+            $partTimeSesuaiJadwalCount++;
+            return 'sesuai_jadwal';
+        }
+
+        // belum_dimonitor
+        $belumMonitorPartTimeCount++;
+        $belumAbsenCount++;
+        return 'belum_dimonitor';
     }
 }

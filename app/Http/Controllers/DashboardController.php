@@ -17,6 +17,7 @@ use App\Models\StaffTataUsaha;
 use App\Models\TahunAkademik;
 use App\Models\User;
 use App\Services\GamifikasiRekapService;
+use App\Services\KehadiranGuruService;
 use App\Support\QrScanLogger;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -32,6 +33,11 @@ class DashboardController extends Controller
      * Jumlah top guru untuk leaderboard streak.
      */
     private const TOP_N_GURU = 5;
+
+    public function __construct(
+        private KehadiranGuruService $kehadiranGuruService
+    ) {
+    }
 
     /**
      * Display the dashboard based on the user's role.
@@ -851,8 +857,25 @@ return response()->json([
         // Agregat Total Guru
         $totalGuru = Guru::count();
 
-        // ── FIX #2: Presensi Hari Ini via Aggregate Query (bukan load semua record) ──
-        $absensiStats = AbsensiGuru::whereDate('tanggal', $today)
+        // ── PRD-007: pisahkan full time & part time ─────────────────────────
+        // Bila feature toggle OFF → seluruh guru diperlakukan full time (perilaku lama).
+        $pakaiStatusKepegawaian = feature('fitur_status_kepegawaian');
+
+        $fullTimeGuruIds = null; // null = semua guru dihitung (perilaku lama)
+        $partTimeGuruIds = [];
+
+        if ($pakaiStatusKepegawaian) {
+            $allTipe = Guru::pluck('tipe_kepegawaian', 'id');
+            $fullTimeGuruIds = $allTipe->filter(fn ($t) => $t !== 'part_time')->keys()->all();
+            $partTimeGuruIds = $allTipe->filter(fn ($t) => $t === 'part_time')->keys()->all();
+        }
+
+        // ── Presensi Hari Ini dari AbsensiGuru (full time; part time opsional) ──
+        $absensiQuery = AbsensiGuru::whereDate('tanggal', $today);
+        if ($pakaiStatusKepegawaian && $fullTimeGuruIds !== null && ! empty($fullTimeGuruIds)) {
+            $absensiQuery->whereIn('guru_id', $fullTimeGuruIds);
+        }
+        $absensiStats = $absensiQuery
             ->selectRaw('status, COUNT(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status');
@@ -860,9 +883,51 @@ return response()->json([
         $guruHadirToday    = (int) ($absensiStats->get('hadir', 0));
         $guruTerlambatToday = (int) ($absensiStats->get('terlambat', 0));
         $guruIzinToday     = (int) (($absensiStats->get('sakit', 0)) + ($absensiStats->get('izin', 0)));
-        $guruAlphaToday    = max(0, $totalGuru - ($guruHadirToday + $guruTerlambatToday + $guruIzinToday));
 
-        $persentaseHadirToday = $totalGuru > 0 ? round((($guruHadirToday + $guruTerlambatToday) / $totalGuru) * 100, 1) : 0;
+        // ── Part time hari ini: dinilai dari monitoring slot (F-2/F-4) ────────
+        $partTimeStatusMap = []; // guru_id => status|null
+        foreach ($partTimeGuruIds as $ptId) {
+            $partTimeStatusMap[$ptId] = $this->kehadiranGuruService
+                ->isGuruDianggapHadirHariIni($ptId, $today->toDateString());
+        }
+
+        $partTimeHadirToday       = count(array_filter($partTimeStatusMap, fn ($s) => $s === 'hadir'));
+        $partTimeTerlambatToday   = count(array_filter($partTimeStatusMap, fn ($s) => $s === 'terlambat'));
+        $partTimeSesuaiJadwalToday = count(array_filter($partTimeStatusMap, fn ($s) => $s === 'sesuai_jadwal'));
+        $partTimeTidakHadirToday  = count(array_filter($partTimeStatusMap, fn ($s) => $s === 'tidak_hadir'));
+        $partTimeBelumMonitorToday = count(array_filter($partTimeStatusMap, fn ($s) => $s === 'belum_dimonitor'));
+
+        $guruHadirToday    += $partTimeHadirToday;
+        $guruTerlambatToday += $partTimeTerlambatToday;
+
+        // Jumlah guru yang DINILAI hari ini (full time + part time yang punya slot
+        // & statusnya sudah diketahui). Part time tanpa slot (null) tidak dihitung (BR-05).
+        $guruDinilaiHariIni = $totalGuru;
+        if ($pakaiStatusKepegawaian && $fullTimeGuruIds !== null) {
+            $guruDinilaiHariIni = count($fullTimeGuruIds)
+                + $partTimeHadirToday
+                + $partTimeTerlambatToday
+                + $partTimeSesuaiJadwalToday
+                + $partTimeTidakHadirToday;
+        }
+
+        // Alpha hanya untuk guru yang DINILAI tapi belum hadir.
+        // Part time tidak pernah masuk alpha hanya karena tanpa absensi_guru
+        // (status part time diketahui dari monitoring slot; yang tercatat
+        //  'tidak_hadir' / 'belum_dimonitor' dilaporkan terpisah, bukan alpha).
+        $guruAlphaToday = max(
+            0,
+            $guruDinilaiHariIni
+                - $guruHadirToday
+                - $guruTerlambatToday
+                - $partTimeSesuaiJadwalToday
+                - $partTimeTidakHadirToday
+                - $guruIzinToday
+        );
+
+        $persentaseHadirToday = $guruDinilaiHariIni > 0
+            ? round((($guruHadirToday + $guruTerlambatToday + $partTimeSesuaiJadwalToday) / $guruDinilaiHariIni) * 100, 1)
+            : 0;
 
         // ── FIX #1: Top Streak Guru — Eager Load + Single Query (bukan N+1) ──
         // Ambil hanya guru yang punya presensi 30 hari terakhir
@@ -984,12 +1049,44 @@ return response()->json([
             'alpha'     => $rekapAlpha,
         ];
 
+        // ── PRD-007: Rekap bulanan part time berbasis slot (terpisah agar tidak
+        //    double-count dengan absensi harian). Kosong bila toggle OFF. ──────
+        $rekapBulananGuruPartTime = [
+            'total_slot'       => 0,
+            'hadir'            => 0,
+            'terlambat'        => 0,
+            'tidak_hadir'      => 0,
+            'belum_dimonitor'  => 0,
+            'persentase_hadir' => 0,
+        ];
+        if ($pakaiStatusKepegawaian) {
+            foreach ($partTimeGuruIds as $ptId) {
+                $slotBulanan = $this->kehadiranGuruService->getSlotPartTimeBulanan($ptId, $month, $year);
+                foreach (['total_slot', 'hadir', 'terlambat', 'tidak_hadir', 'belum_dimonitor'] as $key) {
+                    $rekapBulananGuruPartTime[$key] += $slotBulanan[$key];
+                }
+            }
+            $rekapBulananGuruPartTime['persentase_hadir'] = $rekapBulananGuruPartTime['total_slot'] > 0
+                ? round((($rekapBulananGuruPartTime['hadir'] + $rekapBulananGuruPartTime['terlambat']) / $rekapBulananGuruPartTime['total_slot']) * 100, 1)
+                : 0;
+        }
+
         // ── FIX #5: Daftar Presensi Guru Hari Ini (sorted by nama) ──
         // Gunakan orderByRaw('LOWER(nama_lengkap) ASC') agar urutan ascending konsisten
         // di semua engine database (SQLite/MySQL) dan tidak bergantung pada case sensitivity.
         $guruTodayList = Guru::with(['user', 'absensiGuru' => function ($q) use ($today) {
             $q->whereDate('tanggal', $today);
         }])->orderByRaw('LOWER(nama_lengkap) ASC')->take(self::TOP_N_GURU)->get();
+
+        // ── PRD-007: lampirkan status kehadiran per tipe ke tiap item daftar hari ini ──
+        foreach ($guruTodayList as $g) {
+            $g->tipe_kepegawaian = $g->tipe_kepegawaian ?? 'full_time';
+            $g->status_kehadiran_hari_ini = $this->kehadiranGuruService
+                ->isGuruDianggapHadirHariIni($g->id, $today->toDateString());
+            $g->ringkasan_slot_hari_ini = ($pakaiStatusKepegawaian && $g->tipe_kepegawaian === 'part_time')
+                ? $this->kehadiranGuruService->getKehadiranPartTimeHarian($g->id, $today->toDateString())
+                : null;
+        }
 
         // ── FIX #4: Pengaturan dengan Cache ──
         $pengaturanArr = Cache::remember('pengaturan_all', 300, function () {
@@ -1015,6 +1112,14 @@ return response()->json([
             'month'               => $month,
             'year'                => $year,
             'pengaturanArr'       => $pengaturanArr,
+            // ── PRD-007 (part time) ──
+            'pakaiStatusKepegawaian'    => $pakaiStatusKepegawaian,
+            'guruDinilaiHariIni'        => $guruDinilaiHariIni,
+            'guruSesuaiJadwalToday'     => $partTimeSesuaiJadwalToday,
+            'guruTidakHadirPartTimeToday' => $partTimeTidakHadirToday,
+            'guruBelumMonitorPartTimeToday' => $partTimeBelumMonitorToday,
+            'partTimeStatusMap'         => $partTimeStatusMap,
+            'rekapBulananGuruPartTime'  => $rekapBulananGuruPartTime,
         ];
     }
 

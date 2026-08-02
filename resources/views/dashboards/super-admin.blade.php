@@ -35,14 +35,85 @@
         </div>
       </div>
 
-      {{-- Clock --}}
-      <div class="das-hero__clock" role="status" aria-live="off">
-        <div class="das-hero__date">{{ now()->locale('id')->translatedFormat('l, d F Y') }}</div>
-        <div class="das-hero__time">
-          <span id="live-clock">00:00:00</span>
-          <span class="das-hero__live-badge"><span class="das-hero__pulse-dot" aria-hidden="true"></span>LIVE</span>
+      {{-- Chronos Luxury Sport Watch — Reference Design (Hublot-inspired) --}}
+      <div class="d-flex flex-column align-items-center text-center">
+        <div class="chronos-watch-container">
+
+          <!-- TOP STRAP LUG -->
+          <div class="chronos-strap-lug top-lug"></div>
+
+          <!-- MAIN WATCH BODY -->
+          <div class="chronos-body">
+
+            <!-- SIDE CROWN & PUSHERS (Right side) -->
+            <div class="chronos-side-buttons">
+              <div class="side-btn top-btn"><div class="btn-grip"></div></div>
+              <div class="side-btn mid-crown"><div class="btn-grip"></div></div>
+              <div class="side-btn bot-btn"><div class="btn-grip"></div></div>
+            </div>
+
+            <!-- OCTAGONAL BEZEL WITH CORNER SCREWS -->
+            <div class="chronos-bezel-outer">
+              <div class="outer-screw sc-1"></div>
+              <div class="outer-screw sc-2"></div>
+              <div class="outer-screw sc-3"></div>
+              <div class="outer-screw sc-4"></div>
+              <div class="outer-screw sc-5"></div>
+              <div class="outer-screw sc-6"></div>
+              <div class="outer-screw sc-7"></div>
+              <div class="outer-screw sc-8"></div>
+
+              <!-- CIRCULAR BEZEL RING WITH TICK MARKS -->
+              <div class="chronos-bezel-ring">
+                <div id="chronosBezelTicks"></div>
+
+                <!-- CARBON FIBER DIAL FACE -->
+                <div class="chronos-dial-face" id="chronosDial">
+                  <div class="dial-inner-ring"></div>
+                  <div id="chronosLumiBars"></div>
+
+                  <div class="chronos-logo-area">
+                    <div class="brand-emblem">◈</div>
+                    <div class="brand-name">INDONESIA</div>
+                    <div class="brand-auto">AUTOMATIC | 100M</div>
+                  </div>
+
+                  <!-- LEFT SUB-DIAL (9 o'clock — Orange) -->
+                  <div class="chronos-sub sub-left">
+                    <div id="subLeftTicks"></div>
+                    <div class="sub-hand" id="chronosSubLeftHand"></div>
+                    <div class="sub-center-dot"></div>
+                  </div>
+
+                  <!-- RIGHT SUB-DIAL (3 o'clock — Blue) -->
+                  <div class="chronos-sub sub-right">
+                    <div id="subRightTicks"></div>
+                    <div class="sub-hand" id="chronosSubRightHand"></div>
+                    <div class="sub-center-dot"></div>
+                  </div>
+
+                  <!-- BOTTOM LCD DISPLAY -->
+                  <div class="chronos-lcd">
+                    <div class="lcd-inner">
+                      <span class="lcd-day" id="chronosLcdDay">RAB 25</span>
+                      <span class="lcd-sep">|</span>
+                      <span class="lcd-time" id="chronosLcdTime">00:00:00</span>
+                    </div>
+                  </div>
+
+                  <div class="hand hour-hand" id="chronosHourHand"></div>
+                  <div class="hand minute-hand" id="chronosMinuteHand"></div>
+                  <div class="hand second-hand" id="chronosSecondHand"></div>
+                  <div class="chronos-cap"></div>
+                  <div class="glass-glare"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BOTTOM STRAP LUG -->
+          <div class="chronos-strap-lug bot-lug"></div>
         </div>
-        <div class="das-hero__tz">WAKTU INDONESIA BARAT (WIB)</div>
       </div>
     </div>
   </div>{{-- /das-hero --}}
@@ -1508,6 +1579,116 @@
           if (btn) btn.disabled = false;
         });
     }
+
+    // ─── CHRONOS LUXURY SPORT WATCH LOGIC ────────────────────────────────────────
+    (function initChronosWatch() {
+      // 1. LumiBrite Minute & Hour Tick Marks (60 ticks with 12 glowing major hour bars)
+      const lumiEl = document.getElementById('chronosLumiBars');
+      if (lumiEl && lumiEl.children.length === 0) {
+        for (let i = 0; i < 60; i++) {
+          const tick = document.createElement('div');
+          tick.className = 'lumi-tick' + (i % 5 === 0 ? ' major' : '');
+          tick.style.transform = `rotate(${i * 6}deg)`;
+          lumiEl.appendChild(tick);
+        }
+      }
+
+      // 3. Bezel outer ring tick marks (60 minor ticks)
+      const bezelTicksEl = document.getElementById('chronosBezelTicks');
+      if (bezelTicksEl && bezelTicksEl.children.length === 0) {
+        for (let i = 0; i < 60; i++) {
+          const tick = document.createElement('div');
+          tick.className = 'bezel-tick' + (i % 5 === 0 ? ' major' : '');
+          tick.style.transform = `rotate(${i * 6}deg)`;
+          bezelTicksEl.appendChild(tick);
+        }
+      }
+
+      // 4. Sub-dial tick marks (Left = Orange, Right = Blue)
+      function buildSubTicks(containerId, count) {
+        const el = document.getElementById(containerId);
+        if (!el || el.children.length > 0) return;
+        for (let i = 0; i < count; i++) {
+          const tick = document.createElement('div');
+          tick.className = 'sub-tick' + (i % (count / 4) === 0 ? ' major' : '');
+          tick.style.transform = `rotate(${(i / count) * 360}deg)`;
+          el.appendChild(tick);
+        }
+      }
+      buildSubTicks('subLeftTicks', 20);
+      buildSubTicks('subRightTicks', 20);
+
+      // 5. Hand elements
+      const hourHand   = document.getElementById('chronosHourHand');
+      const minuteHand = document.getElementById('chronosMinuteHand');
+      const secondHand = document.getElementById('chronosSecondHand');
+      const subLeftHand  = document.getElementById('chronosSubLeftHand');
+      const subRightHand = document.getElementById('chronosSubRightHand');
+      const lcdDay  = document.getElementById('chronosLcdDay');
+      const lcdTime = document.getElementById('chronosLcdTime');
+
+      const prevDeg = { hour: null, minute: null, second: null };
+
+      function setHandRotation(el, deg, key) {
+        if (!el) return;
+        const prev = prevDeg[key];
+        if (prev !== null && deg < prev - 180) {
+          el.style.transition = 'none';
+          el.style.transform = `rotate(${deg}deg)`;
+          void el.offsetWidth;
+          el.style.transition = '';
+        } else {
+          el.style.transform = `rotate(${deg}deg)`;
+        }
+        prevDeg[key] = deg;
+      }
+
+      const DAYS  = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'];
+      const MONTHS = ['JAN', 'PEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES'];
+      const appTimezone = "{{ config('app.timezone', 'Asia/Jakarta') }}";
+
+      function getNowInTimezone() {
+        try {
+          const now = new Date();
+          const tzStr = now.toLocaleString("en-US", { timeZone: appTimezone });
+          return new Date(tzStr);
+        } catch (e) {
+          return new Date();
+        }
+      }
+
+      function updateChronosWatch() {
+        const now = getNowInTimezone();
+        const h = now.getHours();
+        const m = now.getMinutes();
+        const s = now.getSeconds();
+
+        // Main hands
+        setHandRotation(hourHand,   (h % 12) * 30 + m * 0.5, 'hour');
+        setHandRotation(minuteHand, m * 6 + s * 0.1, 'minute');
+        setHandRotation(secondHand, s * 6, 'second');
+
+        // Sub-dial hands
+        if (subLeftHand)  subLeftHand.style.transform  = `rotate(${(m / 60) * 360}deg)`;
+        if (subRightHand) subRightHand.style.transform = `rotate(${(h / 12) * 360}deg)`;
+
+        // LCD display — day abbreviation + date | HH:MM:SS
+        if (lcdDay) {
+          const dayAbbr = DAYS[now.getDay()];
+          const date    = String(now.getDate()).padStart(2, '0');
+          lcdDay.textContent = `${dayAbbr} ${date}`;
+        }
+        if (lcdTime) {
+          const hh = String(h).padStart(2,'0');
+          const mm = String(m).padStart(2,'0');
+          const ss = String(s).padStart(2,'0');
+          lcdTime.textContent = `${hh}:${mm}:${ss}`;
+        }
+      }
+
+      updateChronosWatch();
+      setInterval(updateChronosWatch, 1000);
+    })();
 
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', function () {

@@ -140,4 +140,9 @@ class Siswa extends Model
     {
         return $this->hasMany(AbsensiSiswaPerJadwal::class, 'siswa_id');
     }
+
+    public function izinPulangCepat()
+    {
+        return $this->hasMany(IzinPulangCepat::class, 'reference_id')->where('kategori', 'siswa');
+    }
 }

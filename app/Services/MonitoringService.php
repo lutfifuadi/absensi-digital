@@ -323,6 +323,11 @@ class MonitoringService
                 $q->where('guru_id', $filters['guru_id']);
             });
         }
+        if (!empty($filters['tipe_kepegawaian'])) {
+            $query->whereHas('jadwalPelajaran.guru', function ($q) use ($filters) {
+                $q->where('tipe_kepegawaian', $filters['tipe_kepegawaian']);
+            });
+        }
 
         return $query->orderBy('tanggal', 'desc')
             ->orderBy('id', 'desc')

@@ -174,6 +174,17 @@ class PengaturanDefaults
                 'tenant_scoped' => false,
                 'permission'    => 'admin_sekolah',
             ],
+            'fitur_status_kepegawaian' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'Status Kepegawaian Guru',
+                'description'   => 'Aktifkan kategori kepegawaian guru (full time / part time) & penilaian kehadiran part time berbasis slot jam mengajar.',
+                'icon'          => 'tabler-briefcase',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
             'fitur_rekap_export_laporan' => [
                 'default'       => '1',
                 'type'          => 'boolean',

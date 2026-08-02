@@ -627,6 +627,20 @@
     .pill-izin      { background: rgba(0,207,232,0.14);  color: var(--info);    border: 1px solid rgba(0,207,232,0.25); }
     .pill-pulang    { background: rgba(167,139,250,0.14);color: var(--purple);  border: 1px solid rgba(167,139,250,0.25); }
     .pill-belum     { background: rgba(100,116,139,0.12);color: var(--muted);   border: 1px solid rgba(100,116,139,0.2); }
+    .pill-sesuai    { background: rgba(0,207,232,0.14);  color: var(--info);    border: 1px solid rgba(0,207,232,0.25); }
+    .pill-tidak-hadir  { background: rgba(255,159,67,0.14); color: var(--warning); border: 1px solid rgba(255,159,67,0.25); }
+    .pill-belum-dimonitor { background: rgba(100,116,139,0.12); color: var(--muted); border: 1px solid rgba(100,116,139,0.2); }
+    .pill-part-time { background: rgba(115,103,240,0.14); color: #a78bfa;       border: 1px solid rgba(115,103,240,0.3); }
+
+    /* Strip ringkasan slot part time (Panel Daftar Presensi Guru) */
+    .stat-chips-pt { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0.45rem 0.8rem; border-top: 1px solid var(--border); align-items: center; }
+    .stat-chips-pt .label-pt { font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); }
+    .stat-chip-pt {
+      display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.66rem; font-weight: 700;
+      padding: 2px 9px; border-radius: 99px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); color: var(--text);
+    }
+    .stat-chip-pt b { color: #fff; }
+    .stat-chip-pt .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 
     /* ─── RESPONSIVE BREAKPOINTS ─────────────────────────── */
     @media (max-width: 1279px) {
@@ -833,6 +847,17 @@
         <span>Daftar Presensi Guru</span>
         <span id="guruTotalSub" style="font-size:0.68rem; text-transform:none;">({{ count($guruList) }} Guru)</span>
       </div>
+
+      <!-- Ringkasan Slot Part Time (PRD-007) -->
+      <div class="stat-chips-pt">
+        <span class="label-pt"><i class="ti tabler-briefcase-off" style="font-size:0.8rem;"></i> Part Time</span>
+        <span class="stat-chip-pt"><span class="dot" style="background:var(--primary);"></span> Total: <b id="s-part-time">{{ $stats['part_time'] ?? 0 }}</b></span>
+        <span class="stat-chip-pt"><span class="dot" style="background:var(--info);"></span> Sesuai Jadwal: <b id="s-pt-sesuai">{{ $stats['part_time_sesuai_jadwal'] ?? 0 }}</b></span>
+        <span class="stat-chip-pt"><span class="dot" style="background:var(--muted);"></span> Belum Dimonitor: <b id="s-pt-belum-monitor">{{ $stats['part_time_belum_dimonitor'] ?? 0 }}</b></span>
+        <span class="stat-chip-pt"><span class="dot" style="background:var(--warning);"></span> Tidak Hadir: <b id="s-pt-tidak-hadir">{{ $stats['part_time_tidak_hadir'] ?? 0 }}</b></span>
+        <span class="stat-chip-pt"><span class="dot" style="background:var(--purple);"></span> Tanpa Slot: <b id="s-pt-tanpa-slot">{{ $stats['part_time_tanpa_slot'] ?? 0 }}</b></span>
+      </div>
+
       <div class="guru-grid" id="guruGrid">
         <!-- Rendered via JS -->
       </div>
@@ -1197,6 +1222,10 @@ function renderPill(status) {
     cuti:        ['pill pill-izin', '🌴 Cuti'],
     alpha:       ['pill pill-belum', '🕐 Belum Absen'],
     belum_absen: ['pill pill-belum', '🕐 Belum Absen'],
+    sesuai_jadwal:    ['pill pill-sesuai', '📋 Sesuai Jadwal'],
+    tidak_hadir:      ['pill pill-tidak-hadir', '⚠️ Tidak Hadir'],
+    belum_dimonitor:  ['pill pill-belum-dimonitor', '🕐 Belum Dimonitor'],
+    part_time:        ['pill pill-part-time', '🕐 Part Time'],
   };
   const [cls, label] = map[status] || ['pill pill-belum', '🕐 ' + status];
   return `<span class="${cls}">${label}</span>`;
@@ -1210,7 +1239,7 @@ function renderGuruGrid() {
   if (currentFilter === 'hadir')          list = list.filter(g => g.status === 'hadir');
   else if (currentFilter === 'terlambat') list = list.filter(g => g.status === 'terlambat');
   else if (currentFilter === 'izin')      list = list.filter(g => ['izin','sakit','dinas','cuti'].includes(g.status));
-  else if (currentFilter === 'belum')     list = list.filter(g => ['belum_absen','alpha'].includes(g.status));
+  else if (currentFilter === 'belum')     list = list.filter(g => ['belum_absen','alpha','belum_dimonitor','part_time','tidak_hadir'].includes(g.status));
 
   const subEl = document.getElementById('guruTotalSub');
   if (subEl) subEl.textContent = `(${list.length} Guru)`;
@@ -1221,19 +1250,24 @@ function renderGuruGrid() {
   }
 
   grid.innerHTML = list.map(g => {
+    const isPartTime = g.tipe_kepegawaian === 'part_time';
+
     let jamText = '';
     if (g.jam_masuk) jamText = `Masuk ${g.jam_masuk}`;
     if (g.jam_pulang) jamText += ` &bull; Pulang ${g.jam_pulang}`;
-    if (!jamText) jamText = 'Belum scan';
+    if (!jamText) {
+      jamText = ['sesuai_jadwal', 'belum_dimonitor', 'tidak_hadir', 'part_time'].includes(g.status) ? 'Slot mengajar' : 'Belum scan';
+    }
 
-    const isBelum = ['belum_absen', 'alpha'].includes(g.status);
+    const isBelum = ['belum_absen', 'alpha', 'belum_dimonitor', 'part_time', 'tidak_hadir'].includes(g.status);
 
     return `<div class="guru-card ${isBelum ? 'is-belum' : ''}">
       <img class="guru-card-avatar" src="${g.foto}" alt="${g.nama}" onerror="this.src='{{ asset('assets/img/avatars/1.png') }}'">
       <div class="guru-card-info">
         <div class="guru-card-name">${g.nama}</div>
-        <div class="guru-card-sub">${g.jabatan}</div>
+        <div class="guru-card-sub">${g.jabatan}${isPartTime ? ' · Part Time' : ''}</div>
         <div class="guru-card-meta">
+          ${isPartTime ? '<span class="pill pill-part-time">Part Time</span>' : ''}
           ${renderPill(g.status)}
           <span style="font-size:0.6rem; color:var(--muted);">${jamText}</span>
         </div>
@@ -1378,7 +1412,12 @@ async function refreshLeaderboard() {
         's-izin': data.stats.izin_sakit ?? 0,
         's-alpha': data.stats.belum_absen ?? 0,
         's-terlambat': data.stats.terlambat ?? 0,
-        's-remaining': data.stats.remaining ?? 0
+        's-remaining': data.stats.remaining ?? 0,
+        's-part-time': data.stats.part_time ?? 0,
+        's-pt-sesuai': data.stats.part_time_sesuai_jadwal ?? 0,
+        's-pt-belum-monitor': data.stats.part_time_belum_dimonitor ?? 0,
+        's-pt-tidak-hadir': data.stats.part_time_tidak_hadir ?? 0,
+        's-pt-tanpa-slot': data.stats.part_time_tanpa_slot ?? 0
       };
       for (const [id, val] of Object.entries(statsMap)) {
         const el = document.getElementById(id);

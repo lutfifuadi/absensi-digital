@@ -36,6 +36,8 @@
           $displayJabatan = $item->jabatan ?? 'Guru';
           $displayMapel = $item->mata_pelajaran ?: 'Belum diisi';
           $statusColor = $item->status === 'aktif' ? 'success' : 'danger';
+          $tipeKepegawaian = $item->tipe_kepegawaian ?? 'full_time';
+          $isPartTimeGuru = $tipeKepegawaian === 'part_time';
           $inisial = strtoupper(substr($displayName, 0, 1)) . strtoupper(substr(strrchr($displayName, ' ') ?: $displayName, 1, 1));
         @endphp
         <tr class="guru-row-hover">
@@ -51,6 +53,11 @@
               </div>
               <div>
                 <div class="fw-bold mb-0" style="font-size:0.9rem;">{{ $displayName }}</div>
+                <span class="badge {{ $isPartTimeGuru ? 'bg-label-primary' : 'bg-label-secondary' }} px-2 py-1 mt-1"
+                      style="font-size:0.62rem;">
+                  <i class="ti {{ $isPartTimeGuru ? 'tabler-briefcase-off' : 'tabler-briefcase' }} me-1"></i>
+                  {{ $isPartTimeGuru ? 'Part Time' : 'Full Time' }}
+                </span>
               </div>
             </div>
           </td>

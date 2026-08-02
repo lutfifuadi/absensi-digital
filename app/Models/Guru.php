@@ -25,6 +25,7 @@ class Guru extends Model
         'qr_code_nip',
         'is_guru_bk',
         'konseling_limit',
+        'tipe_kepegawaian',
     ];
 
     protected $casts = [
@@ -70,5 +71,10 @@ class Guru extends Model
     public function absensiGuru()
     {
         return $this->hasMany(AbsensiGuru::class, 'guru_id');
+    }
+
+    public function izinPulangCepat()
+    {
+        return $this->hasMany(IzinPulangCepat::class, 'reference_id')->where('kategori', 'guru');
     }
 }

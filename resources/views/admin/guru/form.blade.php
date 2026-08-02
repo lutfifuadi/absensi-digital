@@ -290,7 +290,7 @@
                     </select>
                   </div>
 
-                  <div class="row">
+                    <div class="row">
                     <div class="col-sm-6 mb-3 mb-sm-0">
                       <label class="form-label fw-semibold small" for="jabatan">
                         <i class="ti tabler-stairs-up me-1 text-info"></i> Jabatan
@@ -310,6 +310,24 @@
                         <option value="nonaktif" {{ old('status', $guru->status) === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
                       </select>
                     </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold small" for="tipe_kepegawaian">
+                      <i class="ti tabler-briefcase me-1 text-info"></i> Status Kepegawaian <span class="text-danger">*</span>
+                    </label>
+                    <select id="tipe_kepegawaian" name="tipe_kepegawaian"
+                      class="form-select @error('tipe_kepegawaian') is-invalid @enderror" required>
+                      <option value="full_time" {{ old('tipe_kepegawaian', $guru->tipe_kepegawaian ?? 'full_time') === 'full_time' ? 'selected' : '' }}>Full Time</option>
+                      <option value="part_time" {{ old('tipe_kepegawaian', $guru->tipe_kepegawaian ?? 'full_time') === 'part_time' ? 'selected' : '' }}>Part Time</option>
+                    </select>
+                    <div class="form-text text-white-50 small mt-1">
+                      <i class="ti tabler-info-circle me-1"></i>
+                      Full Time dinilai dari absensi harian (masuk–pulang); Part Time dinilai dari slot jam mengajar.
+                    </div>
+                    @error('tipe_kepegawaian')
+                      <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
                   </div>
                 </div>
               </div>

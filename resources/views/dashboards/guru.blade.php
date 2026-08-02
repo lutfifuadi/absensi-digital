@@ -103,8 +103,13 @@
             <p class="mb-1 text-body-secondary text-nowrap">Kehadiran Guru Hari Ini</p>
             <p class="mb-0">
               <span class="text-success fw-medium me-2">{{ $guruHadirToday + $guruTerlambatToday }} Guru</span>
-              <small class="text-body-secondary">dari {{ $totalGuru }} guru</small>
+              <small class="text-body-secondary">dari {{ $guruDinilaiHariIni ?? $totalGuru }} guru dinilai</small>
             </p>
+            @if (!empty($pakaiStatusKepegawaian))
+              <small class="text-body-secondary d-block mt-1" style="font-size:0.68rem;">
+                <i class="ti tabler-briefcase-off me-1"></i> Part time dinilai dari slot mengajar
+              </small>
+            @endif
           </div>
         </div>
       </a>
@@ -178,6 +183,78 @@
       </a>
     </div>
   </div>
+
+  {{-- ═══════════════════════════════════════════════════════
+       SECTION 1C: RINGKASAN GURU PART TIME — Slot Mengajar
+  ═══════════════════════════════════════════════════════ --}}
+  @if (!empty($pakaiStatusKepegawaian))
+  <div class="row g-6 mb-6">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm glass-card">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2 border-bottom border-white-10 pb-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="avatar">
+                <span class="avatar-initial rounded bg-label-primary">
+                  <i class="ti tabler-briefcase-off fs-4"></i>
+                </span>
+              </div>
+              <div>
+                <h5 class="mb-0 fw-bold text-white d-flex align-items-center gap-2">
+                  Ringkasan Guru Part Time
+                  <span class="badge bg-label-primary font-normal" style="font-size:0.7rem;">Berbasis Slot Mengajar</span>
+                </h5>
+                <small class="text-body-secondary">Kehadiran part time dinilai dari slot jam mengajar (monitoring), bukan absensi harian masuk–pulang</small>
+              </div>
+            </div>
+            <a href="{{ route('admin.monitoring.index') }}" class="btn btn-sm btn-label-primary d-inline-flex align-items-center gap-1 font-semibold">
+              <i class="ti tabler-arrow-right"></i> Lihat Rekap Monitoring
+            </a>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-6 col-lg-3">
+              <div class="d-flex align-items-center gap-3 p-3 rounded h-100" style="background: rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.07);">
+                <i class="ti tabler-calendar-check text-info fs-3"></i>
+                <div>
+                  <div class="h4 mb-0 text-white fw-bold">{{ $guruSesuaiJadwalToday ?? 0 }}</div>
+                  <small class="text-body-secondary">Sesuai Jadwal Hari Ini</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-lg-3">
+              <div class="d-flex align-items-center gap-3 p-3 rounded h-100" style="background: rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.07);">
+                <i class="ti tabler-x text-danger fs-3"></i>
+                <div>
+                  <div class="h4 mb-0 text-white fw-bold">{{ $guruTidakHadirPartTimeToday ?? 0 }}</div>
+                  <small class="text-body-secondary">Tidak Hadir (Slot)</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-lg-3">
+              <div class="d-flex align-items-center gap-3 p-3 rounded h-100" style="background: rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.07);">
+                <i class="ti tabler-clock-exclamation text-warning fs-3"></i>
+                <div>
+                  <div class="h4 mb-0 text-white fw-bold">{{ $guruBelumMonitorPartTimeToday ?? 0 }}</div>
+                  <small class="text-body-secondary">Belum Dimonitor</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-lg-3">
+              <div class="d-flex align-items-center gap-3 p-3 rounded h-100" style="background: rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.07);">
+                <i class="ti tabler-percentage text-success fs-3"></i>
+                <div>
+                  <div class="h4 mb-0 text-white fw-bold">{{ $rekapBulananGuruPartTime['persentase_hadir'] ?? 0 }}%</div>
+                  <small class="text-body-secondary">Kehadiran Slot Bulan Ini ({{ $rekapBulananGuruPartTime['total_slot'] ?? 0 }} slot)</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  @endif
 
   {{-- ═══════════════════════════════════════════════════════
        SECTION 2: GRAFIK TREN & DISTRIBUSI PRESENSI GURU
@@ -294,7 +371,7 @@
                   Monitoring Presensi Guru Hari Ini
                   <span class="badge bg-label-primary font-normal" style="font-size:0.7rem;">Sampel 5 Data</span>
                 </h5>
-                <small class="text-body-secondary">Status jam masuk, jam pulang, dan metode presensi real-time</small>
+                <small class="text-body-secondary">Status jam masuk, jam pulang, dan metode presensi real-time — part time dinilai dari slot mengajar</small>
               </div>
             </div>
             <a href="{{ route('admin.absensi-guru.index') }}" class="btn btn-sm btn-label-primary d-inline-flex align-items-center gap-1 font-semibold">
@@ -317,34 +394,73 @@
                 @forelse($guruTodayList as $g)
                   @php
                     $absToday = $g->absensiGuru->first();
+                    $tipeGuru = $g->tipe_kepegawaian ?? 'full_time';
+                    $isPartTimeGuru = !empty($pakaiStatusKepegawaian) && $tipeGuru === 'part_time';
+                    $statusSlot = $g->status_kehadiran_hari_ini ?? null;
+                    $ringkasSlot = $g->ringkasan_slot_hari_ini ?? null;
                   @endphp
                   <tr>
                     <td class="ps-3">
                       <div class="d-flex align-items-center">
                         <div class="avatar avatar-sm me-3">
-                          <span class="avatar-initial rounded-circle bg-label-info">
+                          <span class="avatar-initial rounded-circle {{ $isPartTimeGuru ? 'bg-label-primary' : 'bg-label-info' }}">
                             {{ strtoupper(substr($g->nama_lengkap ?? $g->user->name ?? 'G', 0, 2)) }}
                           </span>
                         </div>
                         <div>
                           <h6 class="mb-0 text-white text-truncate" style="max-width:180px;">{{ $g->nama_lengkap ?? $g->user->name ?? '-' }}</h6>
                           <small class="text-body-secondary">{{ $g->jabatan ?? 'Guru Pengajar' }}</small>
+                          @if($isPartTimeGuru)
+                            <span class="badge bg-label-primary px-2 py-1 mt-1 d-block" style="font-size:0.6rem; width:max-content;">
+                              <i class="ti tabler-briefcase-off me-1"></i> Part Time
+                            </span>
+                          @endif
                         </div>
                       </div>
                     </td>
                     <td class="text-white fw-medium">
-                      {{ $absToday->jam_masuk ?? '-' }}
+                      @if($isPartTimeGuru)
+                        @if($absToday)
+                          {{ $absToday->jam_masuk }}
+                        @elseif($ringkasSlot && ($ringkasSlot['total_slot'] ?? 0) > 0)
+                          <span class="text-info">{{ ($ringkasSlot['hadir'] ?? 0) + ($ringkasSlot['terlambat'] ?? 0) }}/{{ $ringkasSlot['total_slot'] }} slot</span>
+                        @else
+                          -
+                        @endif
+                      @else
+                        {{ $absToday->jam_masuk ?? '-' }}
+                      @endif
                     </td>
                     <td class="text-white fw-medium">
                       {{ $absToday->jam_pulang ?? '-' }}
                     </td>
                     <td>
-                      <span class="badge bg-label-secondary">
-                        <i class="ti tabler-qrcode me-1"></i> {{ ucfirst($absToday->metode ?? 'System/QR') }}
-                      </span>
+                      @if($isPartTimeGuru && !$absToday)
+                        <span class="badge bg-label-primary">
+                          <i class="ti tabler-briefcase-off me-1"></i> Slot Mengajar
+                        </span>
+                      @else
+                        <span class="badge bg-label-secondary">
+                          <i class="ti tabler-qrcode me-1"></i> {{ ucfirst($absToday->metode ?? 'System/QR') }}
+                        </span>
+                      @endif
                     </td>
                     <td class="pe-3 text-center">
-                      @if($absToday)
+                      @if($isPartTimeGuru && $statusSlot)
+                        @if($statusSlot === 'hadir')
+                          <span class="badge bg-label-success px-3 py-1">Hadir (Slot)</span>
+                        @elseif($statusSlot === 'terlambat')
+                          <span class="badge bg-label-warning px-3 py-1">Terlambat (Slot)</span>
+                        @elseif($statusSlot === 'sesuai_jadwal')
+                          <span class="badge bg-label-info px-3 py-1">Sesuai Jadwal</span>
+                        @elseif($statusSlot === 'tidak_hadir')
+                          <span class="badge bg-label-danger px-3 py-1">Tidak Hadir (Slot)</span>
+                        @elseif($statusSlot === 'belum_dimonitor')
+                          <span class="badge bg-label-secondary px-3 py-1">Belum Dimonitor</span>
+                        @else
+                          <span class="badge bg-label-secondary text-body-secondary px-3 py-1">Tanpa Slot Hari Ini</span>
+                        @endif
+                      @elseif($absToday)
                         @if($absToday->status === 'hadir')
                           <span class="badge bg-label-success px-3 py-1">Hadir Tepat Waktu</span>
                         @elseif($absToday->status === 'terlambat')
@@ -355,7 +471,7 @@
                           <span class="badge bg-label-danger px-3 py-1">Alpha</span>
                         @endif
                       @else
-                        <span class="badge bg-label-secondary text-body-secondary px-3 py-1">Belum Presensi</span>
+                        <span class="badge bg-label-secondary text-body-secondary px-3 py-1">{{ $isPartTimeGuru ? 'Tanpa Slot Hari Ini' : 'Belum Presensi' }}</span>
                       @endif
                     </td>
                   </tr>

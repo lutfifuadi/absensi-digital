@@ -25,7 +25,9 @@ class AbsensiSiswa extends Model
         'guru_id',
         'metode',
         'is_early_bird',
-        'points_earned'
+        'points_earned',
+        'is_pulang_cepat',
+        'izin_pulang_cepat_id',
     ];
 
     protected $casts = [
@@ -45,5 +47,10 @@ class AbsensiSiswa extends Model
     public function guru()
     {
         return $this->belongsTo(Guru::class);
+    }
+
+    public function izinPulangCepat()
+    {
+        return $this->belongsTo(IzinPulangCepat::class, 'izin_pulang_cepat_id');
     }
 }

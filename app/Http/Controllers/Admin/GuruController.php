@@ -122,6 +122,7 @@ class GuruController extends Controller
             'no_hp' => 'nullable|string|max:50',
             'status' => 'required|in:aktif,nonaktif',
             'user_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
+            'tipe_kepegawaian' => ['nullable', Rule::in(['full_time', 'part_time'])],
         ];
 
         if (! $request->filled('user_id')) {
@@ -183,6 +184,7 @@ class GuruController extends Controller
                 'status' => $data['status'],
                 'qr_code' => QrCodeGenerator::generate('GURU'),
                 'qr_code_nip' => $data['nip'],
+                'tipe_kepegawaian' => $data['tipe_kepegawaian'] ?? 'full_time',
             ]);
 
             $guru->mapels()->sync($finalMapelIds);
@@ -243,6 +245,7 @@ class GuruController extends Controller
             'roles' => 'nullable|array',
             'roles.*' => 'string|in:guru,guru_bk,wali_kelas,staff_tu,piket',
             'kelas_id' => 'nullable|integer|exists:kelas,id',
+            'tipe_kepegawaian' => ['nullable', Rule::in(['full_time', 'part_time'])],
         ]);
 
         $domainEmail = Pengaturan::where('key', 'website_lembaga')->value('value') ?? 'madrasah.sch.id';
@@ -279,6 +282,7 @@ class GuruController extends Controller
                 'status' => $data['status'],
                 'qr_code' => $guru->qr_code ?? QrCodeGenerator::generate('GURU'),
                 'qr_code_nip' => $data['nip'],
+                'tipe_kepegawaian' => $data['tipe_kepegawaian'] ?? 'full_time',
             ]);
 
             $guru->mapels()->sync($finalMapelIds);

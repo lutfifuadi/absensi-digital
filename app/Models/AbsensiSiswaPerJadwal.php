@@ -30,6 +30,8 @@ class AbsensiSiswaPerJadwal extends Model
         'keterangan',
         'metode',
         'dicatat_oleh',
+        'is_pulang_cepat',
+        'izin_pulang_cepat_id',
     ];
 
     protected $casts = [
@@ -67,5 +69,10 @@ class AbsensiSiswaPerJadwal extends Model
     public function notifLogs(): HasMany
     {
         return $this->hasMany(AbsensiPerJamNotifLog::class, 'absensi_per_jadwal_id');
+    }
+
+    public function izinPulangCepat(): BelongsTo
+    {
+        return $this->belongsTo(IzinPulangCepat::class, 'izin_pulang_cepat_id');
     }
 }

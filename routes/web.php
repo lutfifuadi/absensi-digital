@@ -32,6 +32,7 @@ use App\Http\Controllers\Admin\MapelController;
 use App\Http\Controllers\Admin\IdCardTemplateController;
 use App\Http\Controllers\Admin\ImpersonateController;
 use App\Http\Controllers\Admin\IzinSakitController;
+use App\Http\Controllers\Admin\IzinPulangCepatController;
 use App\Http\Controllers\Admin\JadwalPelajaranController;
 use App\Http\Controllers\Admin\JurusanController;
 use App\Http\Controllers\Admin\JadwalKegiatanController;
@@ -294,6 +295,16 @@ Route::middleware([
         // Absensi Siswa per Jam (PRD-006) — halaman "Absensi Kelas Saya" (index saja)
         Route::get('/absensi-per-jam', [AbsensiPerJamController::class, 'index'])
             ->name('guru.absensi-per-jam');
+    });
+
+    // ── PORTAL SATPAM/GATEKEEPER ──────────────────────────────────────────────
+    Route::prefix('satpam')->middleware('role:satpam,super_admin,admin_sekolah,operator,piket')->group(function () {
+        Route::get('/gatekeeper-scan', [\App\Http\Controllers\Satpam\GatekeeperController::class, 'index'])
+            ->name('satpam.gatekeeper.scan');
+        Route::post('/gatekeeper-verify', [\App\Http\Controllers\Satpam\GatekeeperController::class, 'verify'])
+            ->name('satpam.gatekeeper.verify');
+        Route::post('/gatekeeper-checkout/{izin}', [\App\Http\Controllers\Satpam\GatekeeperController::class, 'confirmCheckout'])
+            ->name('satpam.gatekeeper.checkout');
     });
 
     // ── PORTAL WALI KELAS ─────────────────────────────────────────────────────
@@ -1029,6 +1040,17 @@ Route::middleware([
             ->names('admin.izin-sakit')
             ->except(['show'])
             ->middleware('role:super_admin,admin_sekolah,operator,staff_tu');
+
+        // Izin Pulang Cepat Route Group / Resource
+        Route::post('izin-pulang-cepat/{izin_pulang_cepat}/approve', [IzinPulangCepatController::class, 'approve'])
+            ->name('admin.izin-pulang-cepat.approve')
+            ->middleware('role:super_admin,admin_sekolah,operator,guru_bk,guru,piket');
+        Route::post('izin-pulang-cepat/{izin_pulang_cepat}/reject', [IzinPulangCepatController::class, 'reject'])
+            ->name('admin.izin-pulang-cepat.reject')
+            ->middleware('role:super_admin,admin_sekolah,operator,guru_bk,guru,piket');
+        Route::resource('izin-pulang-cepat', IzinPulangCepatController::class)
+            ->names('admin.izin-pulang-cepat')
+            ->middleware('role:super_admin,admin_sekolah,operator,guru_bk,guru,piket');
 
         // Penugasan Guru untuk Admin/Super Admin/Operator
         Route::get('assignments', [AssignmentController::class, 'index'])->name('admin.assignments.index');

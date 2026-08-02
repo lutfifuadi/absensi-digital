@@ -6,6 +6,7 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>Live Absensi — {{ $namaSekolah }}</title>
   <link rel="stylesheet" href="{{ asset('assets/css/local-fonts.css') }}">
+  @vite(['resources/css/das-theme.css'])
   @php
     $liveFont = \App\Models\Pengaturan::where('key', 'live_board_font_family')->value('value') ?? 'Product Sans';
     $liveCounterFont = \App\Models\Pengaturan::where('key', 'live_board_counter_font_family')->value('value') ?? 'Courier New';
@@ -1004,36 +1005,83 @@
         @endif
       </div>
 
-      <!-- Cyber Analog Clock Instrument -->
-      <div class="analog-clock-wrapper">
-        <div class="rfid-glow-ring" style="width: 175px; height: 175px;"></div>
-        <div class="rfid-glow-ring" style="width: 175px; height: 175px; animation-delay: 1.25s;"></div>
+      <!-- INDONESIA Luxury Sport Watch (same as Admin Dashboard) -->
+      <div class="chronos-watch-container" style="transform: scale(0.78); margin: -18px 0;">
 
-        <div class="analog-case">
-          <div class="rivet n"></div>
-          <div class="rivet s"></div>
-          <div class="rivet e"></div>
-          <div class="rivet w"></div>
+        <!-- TOP STRAP LUG -->
+        <div class="chronos-strap-lug top-lug"></div>
 
-          <div class="analog-face" id="analogFace">
-            <div id="analogTicks"></div>
+        <!-- MAIN WATCH BODY -->
+        <div class="chronos-body">
 
-            <div class="dial-label">
-              <div class="city">INDONESIA</div>
-              <div class="zone">{{ $zoneAbbr ?? 'WIB' }} · {{ $utcOffset ?? 'UTC+7' }}</div>
+          <!-- SIDE CROWN & PUSHERS -->
+          <div class="chronos-side-buttons">
+            <div class="side-btn top-btn"><div class="btn-grip"></div></div>
+            <div class="side-btn mid-crown"><div class="btn-grip"></div></div>
+            <div class="side-btn bot-btn"><div class="btn-grip"></div></div>
+          </div>
+
+          <!-- OCTAGONAL BEZEL WITH CORNER SCREWS -->
+          <div class="chronos-bezel-outer">
+            <div class="outer-screw sc-1"></div>
+            <div class="outer-screw sc-2"></div>
+            <div class="outer-screw sc-3"></div>
+            <div class="outer-screw sc-4"></div>
+            <div class="outer-screw sc-5"></div>
+            <div class="outer-screw sc-6"></div>
+            <div class="outer-screw sc-7"></div>
+            <div class="outer-screw sc-8"></div>
+
+            <!-- CIRCULAR BEZEL RING -->
+            <div class="chronos-bezel-ring">
+              <div id="lbBezelTicks"></div>
+
+              <!-- CARBON FIBER DIAL FACE -->
+              <div class="chronos-dial-face" id="lbDial">
+                <div class="dial-inner-ring"></div>
+                <div id="lbLumiBars"></div>
+
+                <div class="chronos-logo-area">
+                  <div class="brand-emblem">◈</div>
+                  <div class="brand-name">INDONESIA</div>
+                  <div class="brand-auto">{{ $zoneAbbr ?? 'WIB' }} · {{ $utcOffset ?? 'UTC+7' }}</div>
+                </div>
+
+                <!-- LEFT SUB-DIAL (9 o'clock — Orange) -->
+                <div class="chronos-sub sub-left">
+                  <div id="lbSubLeftTicks"></div>
+                  <div class="sub-hand" id="lbSubLeftHand"></div>
+                  <div class="sub-center-dot"></div>
+                </div>
+
+                <!-- RIGHT SUB-DIAL (3 o'clock — Blue) -->
+                <div class="chronos-sub sub-right">
+                  <div id="lbSubRightTicks"></div>
+                  <div class="sub-hand" id="lbSubRightHand"></div>
+                  <div class="sub-center-dot"></div>
+                </div>
+
+                <!-- BOTTOM LCD DISPLAY -->
+                <div class="chronos-lcd">
+                  <div class="lcd-inner">
+                    <span class="lcd-day" id="lbLcdDay">RAB 02</span>
+                    <span class="lcd-sep">|</span>
+                    <span class="lcd-time" id="lbLcdTime">00:00:00</span>
+                  </div>
+                </div>
+
+                <div class="hand hour-hand" id="lbHourHand"></div>
+                <div class="hand minute-hand" id="lbMinuteHand"></div>
+                <div class="hand second-hand" id="lbSecondHand"></div>
+                <div class="chronos-cap"></div>
+                <div class="glass-glare"></div>
+              </div>
             </div>
-
-            <div class="hand hour-hand" id="analogHourHand"></div>
-            <div class="hand minute-hand" id="analogMinuteHand"></div>
-            <div class="hand second-hand" id="analogSecondHand"></div>
-            <div class="analog-cap"></div>
           </div>
         </div>
 
-        <div class="analog-plaque">
-          <div class="plaque-time" id="analogDigitalPlaque">--:--:--</div>
-          <div class="plaque-chip">{{ $zoneAbbr ?? 'WIB' }}</div>
-        </div>
+        <!-- BOTTOM STRAP LUG -->
+        <div class="chronos-strap-lug bot-lug"></div>
       </div>
 
       <div style="text-align:center; color: var(--muted); font-size: 0.85rem; max-width: 280px; line-height: 1.4; position: relative; z-index: 2; margin-top: 1.25rem;">
@@ -1186,65 +1234,93 @@ function updateSessionCountdown() {
 updateSessionCountdown();
 setInterval(updateSessionCountdown, 1000);
 
-// ─── CYBER ANALOG CLOCK LOGIC ──────────────────────────────────────────────
-(function initAnalogClock() {
-    const ticksEl = document.getElementById('analogTicks');
-    if(ticksEl && ticksEl.children.length === 0){
-      for(let i=0; i<60; i++){
-        const t = document.createElement('div');
-        t.className = 'tick' + (i % 5 === 0 ? ' major' : '');
-        t.style.transform = `rotate(${i*6}deg)`;
-        ticksEl.appendChild(t);
-      }
+// ─── INDONESIA LUXURY SPORT WATCH — Live Board ─────────────────────────────
+(function initLbWatch() {
+  // 1. LumiBrite tick marks (60 with 12 major)
+  const lumiEl = document.getElementById('lbLumiBars');
+  if (lumiEl && lumiEl.children.length === 0) {
+    for (let i = 0; i < 60; i++) {
+      const tick = document.createElement('div');
+      tick.className = 'lumi-tick' + (i % 5 === 0 ? ' major' : '');
+      tick.style.transform = `rotate(${i * 6}deg)`;
+      lumiEl.appendChild(tick);
     }
+  }
 
-    const hourHand = document.getElementById('analogHourHand');
-    const minuteHand = document.getElementById('analogMinuteHand');
-    const secondHand = document.getElementById('analogSecondHand');
-    const analogDigital = document.getElementById('analogDigitalPlaque');
-    const prevDeg = { hour: null, minute: null, second: null };
-
-    function setHandRotation(el, deg, key){
-      if(!el) return;
-      const prev = prevDeg[key];
-      if(prev !== null && deg < prev - 180){
-        el.style.transition = 'none';
-        el.style.transform = `rotate(${deg}deg)`;
-        void el.offsetWidth;
-        el.style.transition = '';
-      } else {
-        el.style.transform = `rotate(${deg}deg)`;
-      }
-      prevDeg[key] = deg;
+  // 2. Bezel ticks (60)
+  const bezelEl = document.getElementById('lbBezelTicks');
+  if (bezelEl && bezelEl.children.length === 0) {
+    for (let i = 0; i < 60; i++) {
+      const tick = document.createElement('div');
+      tick.className = 'bezel-tick' + (i % 5 === 0 ? ' major' : '');
+      tick.style.transform = `rotate(${i * 6}deg)`;
+      bezelEl.appendChild(tick);
     }
+  }
 
-    function updateAnalogClock(){
-      const targetTz = (typeof APP_TIMEZONE !== 'undefined' && APP_TIMEZONE) ? APP_TIMEZONE : 'Asia/Jakarta';
-      const now = new Date(
-        new Date().toLocaleString('en-US', { timeZone: targetTz })
-      );
-      const h = now.getHours();
-      const m = now.getMinutes();
-      const s = now.getSeconds();
-
-      const hourDeg = (h % 12) * 30 + m * 0.5;
-      const minuteDeg = m * 6 + s * 0.1;
-      const secDeg = s * 6;
-
-      setHandRotation(hourHand, hourDeg, 'hour');
-      setHandRotation(minuteHand, minuteDeg, 'minute');
-      setHandRotation(secondHand, secDeg, 'second');
-
-      if(analogDigital) {
-        analogDigital.textContent =
-          String(h).padStart(2,'0') + ':' +
-          String(m).padStart(2,'0') + ':' +
-          String(s).padStart(2,'0');
-      }
+  // 3. Sub-dial ticks
+  function buildSubTicks(id, count, color) {
+    const el = document.getElementById(id);
+    if (!el || el.children.length > 0) return;
+    for (let i = 0; i < count; i++) {
+      const tick = document.createElement('div');
+      tick.className = 'sub-tick' + (i % (count / 4) === 0 ? ' major' : '');
+      tick.style.transform = `rotate(${(i / count) * 360}deg)`;
+      el.appendChild(tick);
     }
+  }
+  buildSubTicks('lbSubLeftTicks', 20);
+  buildSubTicks('lbSubRightTicks', 20);
 
-    updateAnalogClock();
-    setInterval(updateAnalogClock, 1000);
+  // 4. Hand & LCD elements
+  const hourHand    = document.getElementById('lbHourHand');
+  const minuteHand  = document.getElementById('lbMinuteHand');
+  const secondHand  = document.getElementById('lbSecondHand');
+  const subLeftHand  = document.getElementById('lbSubLeftHand');
+  const subRightHand = document.getElementById('lbSubRightHand');
+  const lcdDay  = document.getElementById('lbLcdDay');
+  const lcdTime = document.getElementById('lbLcdTime');
+
+  const DAYS_ID = ['MIN','SEN','SEL','RAB','KAM','JUM','SAB'];
+  const prevDeg = { hour: null, minute: null, second: null };
+
+  function setRot(el, deg, key) {
+    if (!el) return;
+    const prev = prevDeg[key];
+    if (prev !== null && deg < prev - 180) {
+      el.style.transition = 'none';
+      el.style.transform = `rotate(${deg}deg)`;
+      void el.offsetWidth;
+      el.style.transition = '';
+    } else {
+      el.style.transform = `rotate(${deg}deg)`;
+    }
+    prevDeg[key] = deg;
+  }
+
+  function updateLbWatch() {
+    const tz = (typeof APP_TIMEZONE !== 'undefined' && APP_TIMEZONE) ? APP_TIMEZONE : 'Asia/Jakarta';
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
+    const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+
+    setRot(hourHand,   (h % 12) * 30 + m * 0.5, 'hour');
+    setRot(minuteHand, m * 6 + s * 0.1,          'minute');
+    setRot(secondHand, s * 6,                     'second');
+    secondHand && (secondHand.style.transformOrigin = '50% 56px');
+
+    if (subLeftHand)  subLeftHand.style.transform  = `rotate(${(m / 60) * 360}deg)`;
+    if (subRightHand) subRightHand.style.transform = `rotate(${(h / 12) * 360}deg)`;
+
+    if (lcdDay) {
+      lcdDay.textContent = `${DAYS_ID[now.getDay()]} ${String(now.getDate()).padStart(2,'0')}`;
+    }
+    if (lcdTime) {
+      lcdTime.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+  }
+
+  updateLbWatch();
+  setInterval(updateLbWatch, 1000);
 })();
 
 // ─── SOUND ────────────────────────────────────────────────────────────────

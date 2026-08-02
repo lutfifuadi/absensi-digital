@@ -150,7 +150,14 @@ class AutoMarkAlphaCommand extends Command
 
             if (!$isGlobalHoliday && !$isWeekend) {
                 // --- Guru aktif ---
-                $guruAktif = Guru::where('status', 'aktif')->pluck('id');
+                // PRD-007 (BUG-2): bila fitur status kepegawaian AKTIF, guru part time
+                // TIDAK diwajibkan absensi harian (BR-02/BR-05) → jangan di-alpha.
+                // Bila toggle OFF → perilaku lama (semua guru aktif di-alpha).
+                $guruQuery = Guru::where('status', 'aktif');
+                if (\App\Facades\Feature::isOn('fitur_status_kepegawaian')) {
+                    $guruQuery->where('tipe_kepegawaian', '!=', 'part_time');
+                }
+                $guruAktif = $guruQuery->pluck('id');
                 $sudahAbsenGuru = AbsensiGuru::whereDate('tanggal', $tanggal)
                     ->whereIn('guru_id', $guruAktif)->pluck('guru_id')->toArray();
                 $belumAbsenGuru = $guruAktif->diff($sudahAbsenGuru);

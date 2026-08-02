@@ -33,4 +33,9 @@ class StaffTataUsaha extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function izinPulangCepat()
+    {
+        return $this->hasMany(IzinPulangCepat::class, 'reference_id')->where('kategori', 'staff');
+    }
 }
