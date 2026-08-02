@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 
 class JadwalPelajaranController extends Controller
 {
-    private array $hariOptions = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    private array $hariOptions = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Ahad'];
 
     public function index(Request $request)
     {
@@ -26,7 +26,7 @@ class JadwalPelajaranController extends Controller
             ->whereHas('kelas', function($q) use ($tahunAjaranId) {
                 $q->where('tahun_akademik_id', $tahunAjaranId);
             })
-            ->orderByRaw("FIELD(hari,'Senin','Selasa','Rabu','Kamis','Jumat','Sabtu')")
+            ->orderByRaw("FIELD(hari,'Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Ahad')")
             ->orderBy('jam_mulai');
 
         if ($request->filled('kelas_id')) {
@@ -55,7 +55,7 @@ class JadwalPelajaranController extends Controller
             'kelas_id'       => 'required|exists:kelas,id',
             'guru_id'        => 'nullable|exists:guru,id',
             'mata_pelajaran' => 'required|exists:mapels,nama_mapel',
-            'hari'           => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
+            'hari'           => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu,Ahad',
             'jam_mulai'      => 'required|date_format:H:i',
             'jam_selesai'    => 'required|date_format:H:i|after:jam_mulai',
         ]);
@@ -82,7 +82,7 @@ class JadwalPelajaranController extends Controller
             'kelas_id'       => 'required|exists:kelas,id',
             'guru_id'        => 'nullable|exists:guru,id',
             'mata_pelajaran' => 'required|exists:mapels,nama_mapel',
-            'hari'           => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
+            'hari'           => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu,Ahad',
             'jam_mulai'      => 'required|date_format:H:i',
             'jam_selesai'    => 'required|date_format:H:i|after:jam_mulai',
         ]);
