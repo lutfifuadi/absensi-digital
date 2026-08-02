@@ -19,8 +19,8 @@
     {
       "name": "Absensi Kelas & Mapel",
       "icon": "menu-icon ti tabler-clipboard-check",
-      "slug": "admin.absensi-per-jam.index",
-      "url": "/admin/absensi-per-jam"
+      "slug": "guru.absensi-per-jam",
+      "url": "/guru/absensi-per-jam"
     },
     {
       "name": "Absensi Cepat Siswa",
