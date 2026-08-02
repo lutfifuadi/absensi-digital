@@ -105,7 +105,7 @@ class PengaduanController extends Controller
      */
     public function show(Pengaduan $pengaduan)
     {
-        $pengaduan->load('logs');
+        $pengaduan->load(['logs', 'kelas', 'siswa.kelas', 'user.siswa.kelas']);
 
         // Determine next available statuses based on current status
         $availableStatuses = [];

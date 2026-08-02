@@ -279,7 +279,7 @@
                     / Detail
                 </div>
                 <h4 class="das-hero__title text-gradient-gold">{{ $pengaduan->kode_unik }}</h4>
-                <p class="das-hero__subtitle">Laporan pengaduan data tidak valid dari <strong>{{ $pengaduan->nama_lengkap }}</strong>.</p>
+                <p class="das-hero__subtitle">Laporan pengaduan data tidak valid dari <strong>{{ $pengaduan->nama_lengkap }}</strong>@if($pengaduan->nama_kelas) <span class="badge ms-1 px-2.5 py-1 text-white fw-bold" style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8;"><i class="ti tabler-school me-1 text-info"></i>Kelas {{ $pengaduan->nama_kelas }}</span>@endif.</p>
             </div>
         </div>
 
@@ -353,6 +353,18 @@
                         <div class="info-value">{{ $pengaduan->nama_lengkap }}</div>
                     </div>
                     <div class="col-12 col-sm-6">
+                        <div class="info-label">Kelas Siswa</div>
+                        <div class="info-value">
+                            @if($pengaduan->nama_kelas)
+                                <span class="badge px-3 py-1.5 fs-6 fw-bold text-white d-inline-flex align-items-center gap-1" style="background: rgba(56, 189, 248, 0.18); border: 1px solid #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);">
+                                    <i class="ti tabler-school me-1 text-info"></i>Kelas {{ $pengaduan->nama_kelas }}
+                                </span>
+                            @else
+                                <span class="text-muted fs-6">—</span>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6">
                         <div class="info-label">Status Pelapor</div>
                         <div>
                             @if($pengaduan->status_pelapor === 'siswa')
@@ -379,7 +391,7 @@
                         <div class="info-label">Kategori</div>
                         <div class="info-value">{{ $pengaduan->kategori }}</div>
                     </div>
-                    <div class="col-12">
+                    <div class="col-12 col-sm-6">
                         <div class="info-label">Tanggal Masuk</div>
                         <div class="info-value">{{ $pengaduan->created_at->format('d F Y H:i:s') }}</div>
                     </div>

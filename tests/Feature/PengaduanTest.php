@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Pengaduan;
 use App\Models\LogPengaduan;
 use App\Models\User;
+use App\Models\Kelas;
+use App\Models\Siswa;
 use App\Services\WhatsAppValidatorService;
 use App\Services\WhatsAppPengaduanService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -642,6 +644,66 @@ class PengaduanTest extends TestCase
         $availableStatuses = $response->viewData('availableStatuses');
         $this->assertContains('selesai', $availableStatuses);
         $this->assertContains('ditolak', $availableStatuses);
+    }
+
+    public function test_pengaduan_model_relations(): void
+    {
+        $user = User::factory()->create();
+        
+        $jurusan = \App\Models\Jurusan::create([
+            'kode' => 'PPLG',
+            'nama' => 'Pengembangan Perangkat Lunak dan Gim',
+        ]);
+
+        $tahunAkademik = \App\Models\TahunAkademik::create([
+            'nama' => '2025/2026',
+            'semester' => 'Ganjil',
+            'tanggal_mulai' => '2025-07-01',
+            'tanggal_selesai' => '2026-06-30',
+            'is_aktif' => true,
+        ]);
+
+        $kelas = Kelas::create([
+            'nama' => 'X PPLG 1',
+            'tingkat' => '10',
+            'jurusan_id' => $jurusan->id,
+            'tahun_akademik_id' => $tahunAkademik->id,
+        ]);
+        
+        $siswa = Siswa::create([
+            'user_id' => $user->id,
+            'kelas_id' => $kelas->id,
+            'tahun_akademik_id' => $tahunAkademik->id,
+            'nis' => '123456',
+            'nisn' => '0012345678',
+            'nama_lengkap' => 'Siswa Test',
+            'jenis_kelamin' => 'L',
+            'tempat_lahir' => 'Bandung',
+            'tanggal_lahir' => '2008-01-01',
+            'status' => 'aktif',
+        ]);
+
+        $pengaduan = Pengaduan::create([
+            'kode_unik' => 'PGN-20260802-999',
+            'user_id' => $user->id,
+            'siswa_id' => $siswa->id,
+            'kelas_id' => $kelas->id,
+            'nama_lengkap' => 'Pelapor Relation Test',
+            'status_pelapor' => 'siswa',
+            'kategori' => 'Absensi',
+            'deskripsi' => 'Deskripsi test relation',
+            'nomor_wa' => '081234567899',
+            'status' => 'baru',
+        ]);
+
+        $this->assertInstanceOf(User::class, $pengaduan->user);
+        $this->assertEquals($user->id, $pengaduan->user->id);
+
+        $this->assertInstanceOf(Siswa::class, $pengaduan->siswa);
+        $this->assertEquals($siswa->id, $pengaduan->siswa->id);
+
+        $this->assertInstanceOf(Kelas::class, $pengaduan->kelas);
+        $this->assertEquals($kelas->id, $pengaduan->kelas->id);
     }
 
     protected function tearDown(): void

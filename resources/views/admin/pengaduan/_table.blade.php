@@ -24,6 +24,11 @@
                     </td>
                     <td>
                         <div class="fw-semibold" style="font-size:0.9rem;">{{ $item->nama_lengkap }}</div>
+                        @if($item->nama_kelas)
+                            <div class="text-info small mt-1" style="font-size: 0.75rem;">
+                                <i class="ti tabler-school me-1"></i>Kelas {{ $item->nama_kelas }}
+                            </div>
+                        @endif
                     </td>
                     <td class="d-none d-md-table-cell">
                         @if($item->status_pelapor === 'siswa')

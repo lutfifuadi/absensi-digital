@@ -88,9 +88,44 @@ class PengaduanController extends Controller
 
                 $kodeUnik = sprintf("PGN-{$datePrefix}-%03d", $newNumber);
 
+                // Auto resolve user_id, siswa_id, & kelas_id
+                $user = auth()->user();
+                $userId = $user?->id;
+                $siswaId = null;
+                $kelasId = null;
+
+                if ($user) {
+                    if ($user->siswa) {
+                        $siswaId = $user->siswa->id;
+                        $kelasId = $user->siswa->kelas_id;
+                    } elseif ($user->orangTua && $user->orangTua->siswa) {
+                        $siswaId = $user->orangTua->siswa->id;
+                        $kelasId = $user->orangTua->siswa->kelas_id;
+                    }
+                }
+
+                if (!$siswaId && !empty($validated['nomor_wa'])) {
+                    $waFormatted = \App\Helpers\WhatsAppHelper::formatNumber($validated['nomor_wa']);
+                    $siswaFound = \App\Models\Siswa::where('no_hp', $waFormatted)
+                        ->orWhere('no_hp_ortu', $waFormatted)
+                        ->orWhere('nama_lengkap', 'LIKE', $validated['nama_lengkap'])
+                        ->first();
+
+                    if ($siswaFound) {
+                        $siswaId = $siswaFound->id;
+                        $kelasId = $siswaFound->kelas_id;
+                        if (!$userId && $siswaFound->user_id) {
+                            $userId = $siswaFound->user_id;
+                        }
+                    }
+                }
+
                 // Simpan pengaduan
                 $pengaduan = Pengaduan::create([
                     'kode_unik'      => $kodeUnik,
+                    'user_id'        => $userId,
+                    'siswa_id'       => $siswaId,
+                    'kelas_id'       => $kelasId,
                     'nama_lengkap'   => $validated['nama_lengkap'],
                     'status_pelapor' => $validated['status_pelapor'],
                     'kategori'       => $validated['kategori'],

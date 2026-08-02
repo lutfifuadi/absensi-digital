@@ -809,16 +809,31 @@ document.addEventListener('DOMContentLoaded', function() {
       const kodeUnik = result.kode_unik || (result.data && result.data.kode_unik) || '—';
       if (typeof Swal !== 'undefined') {
         Swal.fire({
-          icon: 'success',
-          title: 'Pengaduan Terkirim!',
-          html: `Pengaduan Anda telah terdaftar dengan kode:<br><strong class="fs-4 text-success">${kodeUnik}</strong><br><br><small class="text-muted">Kode tracking telah dikirim ke nomor WhatsApp Anda.</small>`,
-          confirmButtonColor: '#696cff',
-          confirmButtonText: 'OK',
+          title: '<span class="fw-bold fs-4 text-white">Pengaduan Terkirim!</span>',
+          html: `
+            <div class="text-center py-2">
+              <div class="d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 68px; height: 68px; background: rgba(40, 199, 111, 0.12); border: 1px solid rgba(40, 199, 111, 0.25); border-radius: 50%;">
+                <i class="ti tabler-circle-check text-success" style="font-size: 2.5rem;"></i>
+              </div>
+              <p class="text-light opacity-75 small mb-3">Pengaduan Anda telah terdaftar dengan kode tracking:</p>
+              <div class="py-2 px-3 mb-3 d-inline-block rounded-2" style="background: rgba(40, 199, 111, 0.08); border: 1px solid rgba(40, 199, 111, 0.25);">
+                <span class="fs-4 fw-bold text-success font-monospace" style="letter-spacing: 1.5px;">${kodeUnik}</span>
+              </div>
+              <div class="d-flex align-items-center justify-content-center gap-1 text-muted small mt-1">
+                <i class="ti tabler-brand-whatsapp text-success fs-5"></i>
+                <span>Kode tracking telah dikirim ke nomor WhatsApp Anda.</span>
+              </div>
+            </div>
+          `,
+          buttonsStyling: false,
+          confirmButtonText: '<i class="ti tabler-check me-1"></i> OK, Mengerti',
           customClass: {
-            popup: 'bg-1e293b text-white border-secondary-subtle',
-            title: 'text-white',
-            htmlContainer: 'text-muted'
-          }
+            popup: 'bg-1e293b border border-secondary border-opacity-25 rounded-4 shadow-lg p-3 text-white',
+            htmlContainer: 'p-0 text-white',
+            confirmButton: 'btn btn-primary px-4 py-2 rounded-2 fw-semibold shadow-sm mt-2'
+          },
+          background: '#1e293b',
+          color: '#ffffff'
         }).then(() => {
           window.location.reload();
         });
@@ -836,11 +851,24 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (error) {
       if (typeof Swal !== 'undefined') {
         Swal.fire({
-          icon: 'error',
-          title: 'Gagal Mengirim Pengaduan',
-          text: error.message || 'Terjadi kesalahan saat memproses pengaduan Anda. Silakan coba lagi.',
-          confirmButtonColor: '#696cff',
-          confirmButtonText: 'Coba Lagi'
+          title: '<span class="fw-bold fs-4 text-white">Gagal Mengirim Pengaduan</span>',
+          html: `
+            <div class="text-center py-2">
+              <div class="d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 68px; height: 68px; background: rgba(234, 84, 85, 0.12); border: 1px solid rgba(234, 84, 85, 0.25); border-radius: 50%;">
+                <i class="ti tabler-alert-circle text-danger" style="font-size: 2.5rem;"></i>
+              </div>
+              <p class="text-light opacity-75 small mb-0">${error.message || 'Terjadi kesalahan saat memproses pengaduan Anda. Silakan coba lagi.'}</p>
+            </div>
+          `,
+          buttonsStyling: false,
+          confirmButtonText: '<i class="ti tabler-refresh me-1"></i> Coba Lagi',
+          customClass: {
+            popup: 'bg-1e293b border border-secondary border-opacity-25 rounded-4 shadow-lg p-3 text-white',
+            htmlContainer: 'p-0 text-white',
+            confirmButton: 'btn btn-danger px-4 py-2 rounded-2 fw-semibold shadow-sm mt-2'
+          },
+          background: '#1e293b',
+          color: '#ffffff'
         });
       } else {
         alert('Gagal: ' + (error.message || 'Terjadi kesalahan. Silakan coba lagi.'));
