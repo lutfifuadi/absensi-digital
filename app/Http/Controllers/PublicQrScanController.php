@@ -708,10 +708,46 @@ class PublicQrScanController extends Controller
             return Siswa::count() + Guru::count() + StaffTataUsaha::count();
         });
 
+        // --- Cek Hari Libur ---
+        // 1) Global holiday (tingkat NULL & kelas_id NULL)
+        $todayHoliday = \App\Models\Holiday::whereDate('tanggal', now()->toDateString())
+            ->whereNull('tingkat')
+            ->whereNull('kelas_id')
+            ->first();
+
+        // 2) Cek apakah semua kelas libur (weekend)
+        $dayName = strtolower(now()->locale('id')->isoFormat('dddd'));
+        $dayName = \App\Helpers\JadwalAbsensiHelper::normalizeHari($dayName);
+
+        $isWeekend   = in_array($dayName, ['sabtu', 'minggu']);
+        $allClassesOff = false;
+
+        if ($isWeekend) {
+            $activeClasses  = \App\Models\Kelas::where('is_aktif_absensi', true)->count();
+            $classesOffToday = \App\Models\KelasJadwalAbsensi::where('hari', $dayName)
+                ->where('is_libur', true)
+                ->count();
+
+            $allClassesOff = ($activeClasses > 0 && $classesOffToday >= $activeClasses);
+        }
+
+        // 3) Compile hasil
+        $isHariLibur = false;
+        $liburReason = null;
+
+        if ($todayHoliday) {
+            $isHariLibur = true;
+            $liburReason = $todayHoliday->nama;
+        } elseif ($allClassesOff) {
+            $isHariLibur = true;
+            $liburReason = 'Semua kelas tidak ada jadwal hari ini';
+        }
+
         return view('public.live-board', compact(
             'namaSekolah', 'logoSekolah', 'jamMasukCfg', 'jamMulaiAbsensi', 'toleransi', 'announcement',
             'leaderboardAwal', 'leaderboardTerbaru', 'stats', 'totalKapasitasSiswa', 'mode',
-            'tahunAktif', 'sloganSekolah', 'kotaSekolah', 'zoneAbbr', 'utcOffset', 'ianaTimezone'
+            'tahunAktif', 'sloganSekolah', 'kotaSekolah', 'zoneAbbr', 'utcOffset', 'ianaTimezone',
+            'isHariLibur', 'liburReason'
         ));
     }
 
@@ -724,6 +760,19 @@ class PublicQrScanController extends Controller
         $mode = $request->input('mode', 'otomatis');
         if (!in_array($mode, ['masuk', 'pulang', 'otomatis'])) {
             $mode = 'otomatis';
+        }
+
+        // Cek global holiday SEBELUM proses scan — tolak scan pada hari libur global
+        $todayHoliday = \App\Models\Holiday::whereDate('tanggal', now()->toDateString())
+            ->whereNull('tingkat')
+            ->whereNull('kelas_id')
+            ->first();
+
+        if ($todayHoliday) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Absensi ditutup. Hari ini adalah Hari Libur: ' . $todayHoliday->nama . '.',
+            ]);
         }
 
         $data   = $request->validate(['qr_code' => 'required|string|max:255']);

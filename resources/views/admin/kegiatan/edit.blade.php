@@ -323,29 +323,32 @@
 
   {{-- ── ALERT JADWAL BERULANG ──────────────────────── --}}
   @if($kegiatan->jadwal_kegiatan_id && $kegiatan->jadwalKegiatan)
-    <div class="das-alert slide-in-up mb-4 d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3" 
-         style="background: rgba(115, 103, 240, 0.08); border-left: 4px solid var(--das-primary) !important; border-radius: 8px; padding: 1.25rem;">
-      <div class="d-flex align-items-start gap-3">
-        <div class="das-alert__icon-wrap" style="color: var(--das-primary); font-size: 1.5rem; line-height: 1;">
-          <i class="ti tabler-calendar-repeat"></i>
+    <div class="slide-in-up mb-4 p-3 p-md-4 rounded-3 d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3" 
+         style="background: linear-gradient(135deg, rgba(115, 103, 240, 0.12) 0%, rgba(115, 103, 240, 0.04) 100%); border: 1px solid rgba(115, 103, 240, 0.25); border-left: 4px solid var(--das-primary) !important;">
+      <div class="d-flex align-items-start gap-3 flex-grow-1 min-w-0">
+        <div class="p-2.5 rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="background: rgba(115, 103, 240, 0.2); color: #a5a2f7; width: 44px; height: 44px;">
+          <i class="ti tabler-calendar-repeat fs-3"></i>
         </div>
-        <div>
-          <strong class="d-block text-white mb-1" style="font-size: 0.95rem;">Sesi Kegiatan Berulang Terdeteksi</strong>
-          <p class="text-white-50 mb-1" style="font-size: 0.85rem; line-height: 1.4;">
-            Kegiatan ini dibuat secara otomatis berdasarkan Jadwal Berulang: <strong>{{ $kegiatan->jadwalKegiatan->nama }}</strong>.
+        <div class="flex-grow-1 min-w-0">
+          <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+            <h6 class="text-white fw-bold mb-0" style="font-size: 0.95rem;">Sesi Kegiatan Berulang Terdeteksi</h6>
+            <span class="das-chip das-chip--primary" style="font-size: 0.68rem; text-transform: none;">Jadwal Otomatis</span>
+          </div>
+          <p class="text-white-50 mb-2" style="font-size: 0.85rem; line-height: 1.4;">
+            Kegiatan ini dibuat secara otomatis berdasarkan Jadwal Berulang: <strong class="text-white">{{ $kegiatan->jadwalKegiatan->nama }}</strong>.
           </p>
-          <div class="d-flex align-items-center gap-1.5 mt-2">
-            <span class="das-chip das-chip--primary" style="text-transform: none; font-size: 0.72rem; padding: 3px 10px;">
-              Hari Pelaksanaan: {{ collect($kegiatan->jadwalKegiatan->hari)->map(fn($h) => ucfirst($h))->implode(', ') }}
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="das-chip das-chip--primary" style="text-transform: none; font-size: 0.73rem; padding: 4px 12px; white-space: normal;">
+              <i class="ti tabler-calendar-event me-1"></i> Hari Pelaksanaan: {{ collect($kegiatan->jadwalKegiatan->hari)->map(fn($h) => ucfirst($h))->implode(', ') }}
             </span>
           </div>
         </div>
       </div>
-      <div class="flex-shrink-0 w-100 w-md-auto mt-3 mt-md-0">
+      <div class="flex-shrink-0 mt-2 mt-md-0 d-flex justify-content-start justify-content-md-end">
         <a href="{{ route('admin.jadwal-kegiatan.edit', $kegiatan->jadwal_kegiatan_id) }}" 
-           class="das-btn das-btn--primary w-100 justify-content-center" 
-           style="box-shadow: none !important;">
-          ✏️ Edit Jadwal Rutin
+           class="das-btn das-btn--primary px-3 py-2 text-nowrap" 
+           style="box-shadow: 0 4px 12px rgba(115, 103, 240, 0.3) !important;">
+          <i class="ti tabler-pencil me-1.5"></i> Edit Jadwal Rutin
         </a>
       </div>
     </div>
@@ -385,21 +388,21 @@
           </div>
 
           {{-- Tanggal --}}
-          <div class="col-md-4" id="tanggal_wrapper">
-            <label class="das-form-label">Tanggal</label>
+          <div class="col-md-6" id="tanggal_wrapper">
+            <label class="das-form-label">Tanggal Pelaksanaan</label>
             <input type="date" name="tanggal_pelaksanaan" id="tanggal_pelaksanaan" value="{{ old('tanggal_pelaksanaan', $kegiatan->tanggal_pelaksanaan?->format('Y-m-d')) }}"
                    class="form-control das-form-control">
           </div>
 
-          <div class="col-md-4 mb-3" id="tanggal_selesai_wrapper">
-            <label class="das-form-label" for="tanggal_selesai">Tanggal Selesai (Opsional)</label>
+          <div class="col-md-6" id="tanggal_selesai_wrapper">
+            <label class="das-form-label" for="tanggal_selesai">Tanggal Selesai <small class="text-muted" style="font-size:.65rem;text-transform:none;letter-spacing:0;">(Opsional)</small></label>
             <input type="date" name="tanggal_selesai" id="tanggal_selesai" class="form-control das-form-control" value="{{ old('tanggal_selesai', $kegiatan->tanggal_selesai?->format('Y-m-d')) }}">
             <div class="form-text text-white-50" style="font-size:.7rem;">Isi jika kegiatan berlangsung lebih dari 1 hari.</div>
           </div>
 
           {{-- Tanpa Tanggal Pasti & Tanpa Batas Waktu --}}
           <div class="col-12">
-            <div class="row g-3 mb-3">
+            <div class="row g-3 mb-1">
               <div class="col-md-6">
                 <div class="p-3" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius); height:100%;">
                   <div class="form-check">
@@ -407,11 +410,11 @@
                            style="width:18px;height:18px;cursor:pointer;"
                            onchange="toggleTanggal(this)"
                            {{ !$kegiatan->tanggal_pelaksanaan ? 'checked' : '' }}>
-                    <label class="form-check-label text-white small fw-semibold" for="tanpa_tanggal_pasti" style="cursor:pointer;font-size:.82rem;">
+                    <label class="form-check-label text-white small fw-semibold ms-1" for="tanpa_tanggal_pasti" style="cursor:pointer;font-size:.82rem;">
                       <i class="ti tabler-calendar-off text-warning me-1"></i>
                       Tanpa tanggal pasti (kegiatan rutin/fleksibel)
                     </label>
-                    <small class="text-muted d-block mt-1" style="font-size:.7rem;">
+                    <small class="text-muted d-block mt-1 ms-1" style="font-size:.7rem;">
                       <i class="ti tabler-info-circle"></i> Jika diaktifkan, kegiatan tidak terikat pada tanggal tertentu (contoh: Sholat Dhuha).
                     </small>
                   </div>
@@ -424,11 +427,11 @@
                            style="width:18px;height:18px;cursor:pointer;"
                            onchange="toggleWaktu(this)"
                            {{ !$kegiatan->waktu_mulai || !$kegiatan->waktu_selesai ? 'checked' : '' }}>
-                    <label class="form-check-label text-white small fw-semibold" for="tanpa_batas_waktu" style="cursor:pointer;font-size:.82rem;">
+                    <label class="form-check-label text-white small fw-semibold ms-1" for="tanpa_batas_waktu" style="cursor:pointer;font-size:.82rem;">
                       <i class="ti tabler-clock-off text-info me-1"></i>
                       Kegiatan seharian penuh (tanpa batas waktu)
                     </label>
-                    <small class="text-muted d-block mt-1" style="font-size:.7rem;">
+                    <small class="text-muted d-block mt-1 ms-1" style="font-size:.7rem;">
                       <i class="ti tabler-info-circle"></i> Jika diaktifkan, kegiatan berlangsung seharian penuh dan input waktu mulai & selesai tidak diperlukan.
                     </small>
                   </div>
@@ -438,14 +441,14 @@
           </div>
 
           {{-- Waktu Mulai --}}
-          <div class="col-md-4" id="waktu_mulai_wrapper">
+          <div class="col-md-6" id="waktu_mulai_wrapper">
             <label class="das-form-label">Waktu Mulai</label>
             <input type="time" name="waktu_mulai" id="waktu_mulai" value="{{ old('waktu_mulai', $kegiatan->waktu_mulai) }}"
                    class="form-control das-form-control">
           </div>
 
           {{-- Waktu Selesai --}}
-          <div class="col-md-4" id="waktu_selesai_wrapper">
+          <div class="col-md-6" id="waktu_selesai_wrapper">
             <label class="das-form-label">Waktu Selesai</label>
             <input type="time" name="waktu_selesai" id="waktu_selesai" value="{{ old('waktu_selesai', $kegiatan->waktu_selesai) }}"
                    class="form-control das-form-control">
@@ -501,13 +504,17 @@
                 <div class="col-12">
                   <label class="das-form-label">Hari Pelaksanaan</label>
                   <div class="d-flex flex-wrap gap-3 p-2" style="background:rgba(255,255,255,0.02); border:1px solid var(--das-border); border-radius:var(--das-radius);">
-                    @foreach(['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'] as $hari)
+                    @foreach(['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'ahad'] as $hari)
+                      @php
+                        $selectedHariList = old('hari_pelaksanaan', optional($kegiatan->jadwalKegiatan)->hari ?? []);
+                        $isChecked = in_array($hari, $selectedHariList) || ($hari === 'ahad' && in_array('minggu', $selectedHariList));
+                      @endphp
                       <div class="form-check form-check-inline mb-0">
                         <input class="form-check-input" type="checkbox" name="hari_pelaksanaan[]" value="{{ $hari }}" id="hari_{{ $hari }}"
                                style="box-shadow:none !important;"
-                               {{ in_array($hari, old('hari_pelaksanaan', optional($kegiatan->jadwalKegiatan)->hari ?? [])) ? 'checked' : '' }}>
+                               {{ $isChecked ? 'checked' : '' }}>
                         <label class="form-check-label text-white small" for="hari_{{ $hari }}" style="cursor:pointer;">
-                          {{ ucfirst($hari) }}
+                          {{ $hari === 'ahad' ? 'Ahad' : ucfirst($hari) }}
                         </label>
                       </div>
                     @endforeach
@@ -928,13 +935,18 @@
     // Toggle tanggal berdasarkan checkbox tanpa tanggal pasti
     window.toggleTanggal = function(checkbox) {
       const tanggalWrapper = document.getElementById('tanggal_wrapper');
+      const selesaiWrapper = document.getElementById('tanggal_selesai_wrapper');
       const tanggalInput = document.getElementById('tanggal_pelaksanaan');
+      const selesaiInput = document.getElementById('tanggal_selesai');
 
       if (checkbox.checked) {
-        tanggalWrapper.style.display = 'none';
-        tanggalInput.value = '';
+        if (tanggalWrapper) tanggalWrapper.style.display = 'none';
+        if (selesaiWrapper) selesaiWrapper.style.display = 'none';
+        if (tanggalInput) tanggalInput.value = '';
+        if (selesaiInput) selesaiInput.value = '';
       } else {
-        tanggalWrapper.style.display = 'block';
+        if (tanggalWrapper) tanggalWrapper.style.display = 'block';
+        if (selesaiWrapper) selesaiWrapper.style.display = 'block';
       }
     };
 

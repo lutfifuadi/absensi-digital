@@ -17,7 +17,7 @@ class PenjadwalanKegiatanService
     {
         if ($dateOrString instanceof Carbon || $dateOrString instanceof \DateTimeInterface) {
             $map = [
-                0 => 'minggu',
+                0 => 'ahad',
                 1 => 'senin',
                 2 => 'selasa',
                 3 => 'rabu',
@@ -30,13 +30,15 @@ class PenjadwalanKegiatanService
 
         $str = strtolower(trim((string)$dateOrString));
         $aliases = [
-            'monday' => 'senin',
-            'tuesday' => 'selasa',
+            'monday'    => 'senin',
+            'tuesday'   => 'selasa',
             'wednesday' => 'rabu',
-            'thursday' => 'kamis',
-            'friday' => 'jumat',
-            'saturday' => 'sabtu',
-            'sunday' => 'minggu',
+            'thursday'  => 'kamis',
+            'friday'    => 'jumat',
+            'saturday'  => 'sabtu',
+            'sunday'    => 'ahad',
+            'minggu'    => 'ahad',
+            'ahad'      => 'ahad',
         ];
 
         return $aliases[$str] ?? $str;

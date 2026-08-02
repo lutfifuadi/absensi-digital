@@ -762,6 +762,75 @@
       .jam-cell { font-size: 0.65rem; }
       .rank-cell { width: 20px; font-size: 0.72rem; }
     }
+
+    /* ─── HOLIDAY BANNER ──────────────────────────────────── */
+    .holiday-banner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+      background: linear-gradient(135deg, rgba(255, 159, 67, 0.08) 0%, rgba(234, 84, 85, 0.08) 100%);
+      border: 1px dashed rgba(255, 159, 67, 0.3);
+      border-radius: 4px;
+      text-align: center;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .holiday-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 40%, rgba(255, 159, 67, 0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .holiday-banner .holiday-icon {
+      font-size: 4.5rem;
+      margin-bottom: 1rem;
+      opacity: 0.7;
+      filter: drop-shadow(0 0 20px rgba(255, 159, 67, 0.3));
+      animation: holidayPulse 3s ease-in-out infinite;
+    }
+    .holiday-banner .holiday-title {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--warning);
+      margin-bottom: 0.5rem;
+      letter-spacing: 2px;
+      text-shadow: 0 0 20px rgba(255, 159, 67, 0.3);
+    }
+    .holiday-banner .holiday-reason {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.35rem;
+    }
+    .holiday-banner .holiday-msg {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    @keyframes holidayPulse {
+      0%, 100% { transform: scale(1); opacity: 0.7; }
+      50% { transform: scale(1.05); opacity: 0.9; }
+    }
+
+    /* ─── RESPONSIVE HOLIDAY BANNER ───────────────────────── */
+    @media (max-width: 767px) {
+      .holiday-banner { padding: 2rem 1.5rem; }
+      .holiday-banner .holiday-icon { font-size: 3.5rem; }
+      .holiday-banner .holiday-title { font-size: 1.2rem; letter-spacing: 1px; }
+      .holiday-banner .holiday-reason { font-size: 0.88rem; }
+      .holiday-banner .holiday-msg { font-size: 0.78rem; }
+    }
+    @media (max-width: 599px) {
+      .holiday-banner { padding: 1.5rem 1rem; }
+      .holiday-banner .holiday-icon { font-size: 2.8rem; margin-bottom: 0.75rem; }
+      .holiday-banner .holiday-title { font-size: 1rem; }
+      .holiday-banner .holiday-reason { font-size: 0.82rem; }
+      .holiday-banner .holiday-msg { font-size: 0.72rem; }
+    }
   </style>
 </head>
 <body>
@@ -812,11 +881,17 @@
   </div>
 
   <div class="header-right">
+    @if(!$isHariLibur)
     <div class="segmented-control">
       <button class="{{ $mode === 'otomatis' ? 'active' : '' }}" onclick="switchMode('otomatis')">⏰ Otomatis</button>
       <button class="{{ $mode === 'masuk' ? 'active' : '' }}" onclick="switchMode('masuk')">☀️ Masuk</button>
       <button class="{{ $mode === 'pulang' ? 'active' : '' }}" onclick="switchMode('pulang')">🌙 Pulang</button>
     </div>
+    @else
+    <div class="segmented-control" style="opacity: 0.4; pointer-events: none;">
+      <button class="active" disabled>🗓️ Hari Libur</button>
+    </div>
+    @endif
     <div class="live-badge">
       <span class="live-dot"></span> LIVE
     </div>
@@ -936,6 +1011,7 @@
   </div>
 
   <!-- ── PANEL 3: PUSAT KONTROL & COUNTER SCANNER ────────────────── -->
+  @if(!$isHariLibur)
   <div class="panel scanner-col" style="position:relative; overflow:hidden;">
     <div class="panel-header">
       <div class="panel-title">🔌 <span>Pusat Kontrol &amp; Counter Scanner</span></div>
@@ -1119,6 +1195,23 @@
 
 
   </div>
+  @else
+  <!-- ── HOLIDAY BANNER ─────────────────────────────────────────── -->
+  <div class="panel scanner-col" style="position:relative; overflow:hidden;">
+    <div class="panel-header">
+      <div class="panel-title">🗓️ <span>Status Hari Ini</span></div>
+      <div style="font-size:.7rem; color:var(--muted);">{{ \Carbon\Carbon::today()->translatedFormat('d F Y') }}</div>
+    </div>
+    <div class="holiday-banner">
+      <div style="position: relative; z-index: 1;">
+        <div class="holiday-icon">🗓️</div>
+        <h2 class="holiday-title">HARI INI LIBUR</h2>
+        <p class="holiday-reason">{{ $liburReason }}</p>
+        <p class="holiday-msg">Absensi tidak berlaku hari ini</p>
+      </div>
+    </div>
+  </div>
+  @endif
 
   <!-- ── BOTTOM RUNNING TEXT (Spans Columns 2 & 3) ──────────────── -->
   @php
@@ -1159,6 +1252,7 @@ const DISMISS_MS     = 800;  // toast auto-hide
 const DEBOUNCE_MS    = 3000;  // anti-duplicate scan
 const CURRENT_MODE   = '{{ $mode }}';
 const APP_TIMEZONE   = '{{ $ianaTimezone ?? "Asia/Jakarta" }}';
+const IS_HARI_LIBUR  = {{ $isHariLibur ? 'true' : 'false' }};
 
 function switchMode(mode) {
   window.location.search = '?mode=' + mode;
@@ -1569,6 +1663,9 @@ setInterval(refreshLeaderboard, REFRESH_MS);
 //   4. Setiap 300ms sistem memastikan input tetap fokus (guard loop)
 
 (function initPiketScanner() {
+  // Skip scanner initialization during holiday
+  if (IS_HARI_LIBUR) return;
+
   const CHAR_INTERVAL_MAX = 100; // ms maks antar karakter scanner (scanner < 100ms, manusia > 200ms)
   const COMMIT_TIMEOUT_MS = 200; // commit otomatis jika tidak ada Enter setelah 200ms
   const REFOCUS_INTERVAL  = 300; // cek & refocus setiap 300ms

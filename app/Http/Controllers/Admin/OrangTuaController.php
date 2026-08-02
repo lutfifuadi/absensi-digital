@@ -60,7 +60,7 @@ class OrangTuaController extends Controller
      */
     public function create()
     {
-        $siswaOptions = Siswa::orderBy('nama_lengkap')->get();
+        $siswaOptions = Siswa::with('kelas')->orderBy('nama_lengkap')->get();
         return view('admin.orang-tua.create', compact('siswaOptions'));
     }
 
@@ -110,7 +110,7 @@ class OrangTuaController extends Controller
     public function edit(string $id)
     {
         $orangTua = User::withRole(User::ROLE_ORANG_TUA)->with('children')->findOrFail($id);
-        $siswaOptions = Siswa::orderBy('nama_lengkap')->get();
+        $siswaOptions = Siswa::with('kelas')->orderBy('nama_lengkap')->get();
         $selectedSiswaIds = $orangTua->children->pluck('id')->toArray();
 
         return view('admin.orang-tua.edit', compact('orangTua', 'siswaOptions', 'selectedSiswaIds'));
