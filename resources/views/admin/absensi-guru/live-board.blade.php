@@ -235,11 +235,12 @@
       background: linear-gradient(135deg, #0e1726 0%, #152238 100%);
       border-radius: 4px;
       overflow: hidden;
-      flex-shrink: 0;
+      flex: 1;
+      min-height: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: space-evenly;
       padding: 1.5rem 1.25rem;
       border: 1px dashed rgba(115, 103, 240, 0.25);
     }
@@ -247,8 +248,9 @@
     /* Counter Besar Futuristik */
     .counter-widget {
       text-align: center;
-      margin-bottom: 1.5rem;
+      margin: 0.25rem 0 0.5rem;
       position: relative;
+      z-index: 2;
     }
     .counter-widget .counter-title {
       font-size: 0.82rem;
