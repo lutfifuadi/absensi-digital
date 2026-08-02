@@ -151,7 +151,7 @@
 <header class="header">
   <div class="header-brand">
     @if (isset($pengaturanArr['logo_sekolah']))
-      <img src="{{ asset('uploads/logo/' . $pengaturanArr['logo_sekolah']) }}" alt="Logo" class="logo-icon" style="object-fit:cover; background:#fff; padding:2px;">
+      <img src="{{ (filter_var($pengaturanArr['logo_sekolah'], FILTER_VALIDATE_URL) || str_starts_with($pengaturanArr['logo_sekolah'], 'http://') || str_starts_with($pengaturanArr['logo_sekolah'], 'https://')) ? $pengaturanArr['logo_sekolah'] : asset('uploads/logo/' . $pengaturanArr['logo_sekolah']) }}" alt="Logo" class="logo-icon" style="object-fit:cover; background:#fff; padding:2px;">
     @else
       <div class="logo-icon">🏫</div>
     @endif

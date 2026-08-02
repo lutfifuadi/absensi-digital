@@ -49,10 +49,14 @@ class PublicPagesController extends Controller
     public function prestasi()
     {
         $namaSekolah = setting('nama_lembaga') ?: setting('nama_sekolah') ?: 'Madrasah Aliyah';
-        $logoUrl = setting('logo_url');
-        if (!$logoUrl) {
-            $logoLocal = setting('logo_sekolah');
-            if ($logoLocal) $logoUrl = asset('uploads/logo/' . $logoLocal);
+        $logoUrl = null;
+        $logoLocal = setting('logo_sekolah');
+        if ($logoLocal) {
+            $logoUrl = (filter_var($logoLocal, FILTER_VALIDATE_URL) || str_starts_with($logoLocal, 'http://') || str_starts_with($logoLocal, 'https://'))
+                ? $logoLocal
+                : asset('uploads/logo/' . $logoLocal);
+        } elseif (setting('logo_url')) {
+            $logoUrl = setting('logo_url');
         }
         return view('public.prestasi', compact('namaSekolah', 'logoUrl'));
     }

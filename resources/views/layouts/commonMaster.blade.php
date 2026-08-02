@@ -130,12 +130,14 @@
   <link rel="canonical" href="{{ config('variables.productPage') ? config('variables.productPage') : '' }}" />
   <!-- Favicon -->
   @php
-    $faviconSetting = $siteSettings['logo_url'] ?? null;
-    if (!$faviconSetting) {
-      $faviconLogoSekolah = $siteSettings['logo_sekolah'] ?? null;
-      if ($faviconLogoSekolah) {
-        $faviconSetting = asset('uploads/logo/' . $faviconLogoSekolah);
-      }
+    $faviconLogoSekolah = $siteSettings['logo_sekolah'] ?? null;
+    $faviconSetting = null;
+    if ($faviconLogoSekolah) {
+      $faviconSetting = (filter_var($faviconLogoSekolah, FILTER_VALIDATE_URL) || str_starts_with($faviconLogoSekolah, 'http://') || str_starts_with($faviconLogoSekolah, 'https://'))
+        ? $faviconLogoSekolah
+        : asset('uploads/logo/' . $faviconLogoSekolah);
+    } elseif (!empty($siteSettings['logo_url'])) {
+      $faviconSetting = $siteSettings['logo_url'];
     }
   @endphp
   @if($faviconSetting)

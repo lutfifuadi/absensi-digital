@@ -663,20 +663,20 @@ class PublicQrScanController extends Controller
         $toleransi    = (int)($settings['toleransi_terlambat'] ?? 15);
         $announcement = $settings['announcement_text']   ?? null;
 
-        $logoUrl = $settings['logo_url'] ?? null;
-        if (!$logoUrl) {
-            $logoLocal = $settings['logo_sekolah'] ?? null;
-            if ($logoLocal) {
-                if (filter_var($logoLocal, FILTER_VALIDATE_URL)) {
-                    $logoUrl = $logoLocal;
-                } elseif (file_exists(public_path('uploads/logo/' . $logoLocal))) {
-                    $logoUrl = asset('uploads/logo/' . $logoLocal);
-                } elseif (\Illuminate\Support\Facades\Storage::disk('public')->exists($logoLocal)) {
-                    $logoUrl = asset('storage/' . $logoLocal);
-                } else {
-                    $logoUrl = asset('uploads/logo/' . $logoLocal);
-                }
+        $logoUrl = null;
+        $logoLocal = $settings['logo_sekolah'] ?? null;
+        if ($logoLocal) {
+            if (filter_var($logoLocal, FILTER_VALIDATE_URL) || str_starts_with($logoLocal, 'http://') || str_starts_with($logoLocal, 'https://')) {
+                $logoUrl = $logoLocal;
+            } elseif (file_exists(public_path('uploads/logo/' . $logoLocal))) {
+                $logoUrl = asset('uploads/logo/' . $logoLocal);
+            } elseif (\Illuminate\Support\Facades\Storage::disk('public')->exists($logoLocal)) {
+                $logoUrl = asset('storage/' . $logoLocal);
+            } else {
+                $logoUrl = asset('uploads/logo/' . $logoLocal);
             }
+        } elseif (!empty($settings['logo_url'])) {
+            $logoUrl = $settings['logo_url'];
         }
         $logoSekolah = $logoUrl;
 

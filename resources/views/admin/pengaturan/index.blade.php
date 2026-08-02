@@ -726,7 +726,7 @@
                   $logoSrc = null;
                   $logoVal = !empty($settings['logo_url']) ? $settings['logo_url'] : ($settings['logo_sekolah'] ?? '');
                   if (!empty($logoVal)) {
-                    if (str_starts_with($logoVal, 'http://') || str_starts_with($logoVal, 'https://')) {
+                    if (filter_var($logoVal, FILTER_VALIDATE_URL) || str_starts_with($logoVal, 'http://') || str_starts_with($logoVal, 'https://')) {
                       $logoSrc = $logoVal;
                     } elseif (strlen($logoVal) > 25 && !str_contains($logoVal, '/') && !str_contains($logoVal, '\\') && !str_contains($logoVal, '.')) {
                       $logoSrc = 'https://drive.google.com/thumbnail?id=' . $logoVal . '&sz=w200';
@@ -801,7 +801,7 @@
                 $logoDinasSrc = null;
                 $logoDinasVal = !empty($settings['logo_dinas_url']) ? $settings['logo_dinas_url'] : ($settings['logo_dinas'] ?? '');
                 if (!empty($logoDinasVal)) {
-                  if (str_starts_with($logoDinasVal, 'http://') || str_starts_with($logoDinasVal, 'https://')) {
+                  if (filter_var($logoDinasVal, FILTER_VALIDATE_URL) || str_starts_with($logoDinasVal, 'http://') || str_starts_with($logoDinasVal, 'https://')) {
                     $logoDinasSrc = $logoDinasVal;
                   } elseif (strlen($logoDinasVal) > 25 && !str_contains($logoDinasVal, '/') && !str_contains($logoDinasVal, '\\') && !str_contains($logoDinasVal, '.')) {
                     $logoDinasSrc = 'https://drive.google.com/thumbnail?id=' . $logoDinasVal . '&sz=w200';

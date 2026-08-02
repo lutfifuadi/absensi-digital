@@ -63,7 +63,7 @@
       <div class="das-hero__identity">
         <div class="das-hero__logo-wrapper">
           @if (isset($pengaturanArr['logo_sekolah']))
-            <img src="{{ asset('uploads/logo/' . $pengaturanArr['logo_sekolah']) }}" alt="Logo {{ $pengaturanArr['nama_sekolah'] ?? 'sekolah' }}" class="das-hero__logo">
+            <img src="{{ (filter_var($pengaturanArr['logo_sekolah'], FILTER_VALIDATE_URL) || str_starts_with($pengaturanArr['logo_sekolah'], 'http://') || str_starts_with($pengaturanArr['logo_sekolah'], 'https://')) ? $pengaturanArr['logo_sekolah'] : asset('uploads/logo/' . $pengaturanArr['logo_sekolah']) }}" alt="Logo {{ $pengaturanArr['nama_sekolah'] ?? 'sekolah' }}" class="das-hero__logo">
           @else
             <div class="das-hero__logo-placeholder">
               <i class="ti tabler-school" aria-hidden="true"></i>

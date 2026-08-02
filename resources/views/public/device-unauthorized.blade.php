@@ -7,12 +7,15 @@
     <meta name="description" content="Perangkat Anda belum terdaftar dalam sistem absensi. Hubungi admin untuk aktivasi." />
     <meta name="robots" content="noindex, nofollow" />
     @php
-      $faviconSetting = \App\Models\Pengaturan::where('key', 'logo_url')->value('value');
-      if (!$faviconSetting) {
-        $faviconSetting = \App\Models\Pengaturan::where('key', 'logo_sekolah')->value('value');
-        if ($faviconSetting) {
-          $faviconSetting = asset('uploads/logo/' . $faviconSetting);
-        }
+      $logoSekolah = \App\Models\Pengaturan::where('key', 'logo_sekolah')->value('value');
+      $logoUrl = \App\Models\Pengaturan::where('key', 'logo_url')->value('value');
+      $faviconSetting = null;
+      if ($logoSekolah) {
+        $faviconSetting = (filter_var($logoSekolah, FILTER_VALIDATE_URL) || str_starts_with($logoSekolah, 'http://') || str_starts_with($logoSekolah, 'https://'))
+          ? $logoSekolah
+          : asset('uploads/logo/' . $logoSekolah);
+      } elseif ($logoUrl) {
+        $faviconSetting = $logoUrl;
       }
     @endphp
     @if($faviconSetting)

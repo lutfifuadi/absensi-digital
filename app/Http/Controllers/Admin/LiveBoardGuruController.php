@@ -437,22 +437,22 @@ class LiveBoardGuruController extends Controller
             ?? 'Selamat Datang di Live Board Absensi Guru — Mohon untuk selalu melakukan presensi tepat waktu. Utamakan kedisiplinan demi mewujudkan keteladanan bagi para siswa.';
 
         $namaSekolah = Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
-        $logoUrl     = Pengaturan::where('key', 'logo_url')->value('value');
-        if (!$logoUrl) {
-            $logoLocal = Pengaturan::where('key', 'logo_sekolah')->value('value');
-            if ($logoLocal) {
-                if (filter_var($logoLocal, FILTER_VALIDATE_URL)) {
-                    $logoUrl = $logoLocal;
-                } elseif (file_exists(public_path('uploads/logo/' . $logoLocal))) {
-                    $logoUrl = asset('uploads/logo/' . $logoLocal);
-                } elseif (file_exists(public_path('storage/' . $logoLocal))) {
-                    $logoUrl = asset('storage/' . $logoLocal);
-                } elseif (file_exists(public_path($logoLocal))) {
-                    $logoUrl = asset($logoLocal);
-                } else {
-                    $logoUrl = asset('uploads/logo/' . $logoLocal);
-                }
+        $logoUrl = null;
+        $logoLocal = Pengaturan::where('key', 'logo_sekolah')->value('value');
+        if ($logoLocal) {
+            if (filter_var($logoLocal, FILTER_VALIDATE_URL) || str_starts_with($logoLocal, 'http://') || str_starts_with($logoLocal, 'https://')) {
+                $logoUrl = $logoLocal;
+            } elseif (file_exists(public_path('uploads/logo/' . $logoLocal))) {
+                $logoUrl = asset('uploads/logo/' . $logoLocal);
+            } elseif (file_exists(public_path('storage/' . $logoLocal))) {
+                $logoUrl = asset('storage/' . $logoLocal);
+            } elseif (file_exists(public_path($logoLocal))) {
+                $logoUrl = asset($logoLocal);
+            } else {
+                $logoUrl = asset('uploads/logo/' . $logoLocal);
             }
+        } elseif (Pengaturan::where('key', 'logo_url')->value('value')) {
+            $logoUrl = Pengaturan::where('key', 'logo_url')->value('value');
         }
         $logoSekolah = $logoUrl;
 

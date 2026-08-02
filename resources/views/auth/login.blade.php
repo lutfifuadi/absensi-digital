@@ -5,14 +5,15 @@
   $customizerHidden = 'customizer-hide';
 
   $logoSrc = null;
+  $logoLocal = \App\Models\Pengaturan::where('key', 'logo_sekolah')->value('value');
   $logoUrl = \App\Models\Pengaturan::where('key', 'logo_url')->value('value');
-  if ($logoUrl) {
+  
+  if ($logoLocal) {
+    $logoSrc = (filter_var($logoLocal, FILTER_VALIDATE_URL) || str_starts_with($logoLocal, 'http://') || str_starts_with($logoLocal, 'https://'))
+      ? $logoLocal
+      : asset('uploads/logo/' . $logoLocal);
+  } elseif ($logoUrl) {
     $logoSrc = $logoUrl;
-  } else {
-    $logoLocal = \App\Models\Pengaturan::where('key', 'logo_sekolah')->value('value');
-    if ($logoLocal) {
-      $logoSrc = asset('uploads/logo/' . $logoLocal);
-    }
   }
 @endphp
 

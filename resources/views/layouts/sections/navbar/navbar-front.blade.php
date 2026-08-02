@@ -87,11 +87,16 @@ $namaSekolah = \App\Models\Pengaturan::where('key', 'nama_lembaga')->value('valu
       @php
         $logoSekolah = \App\Models\Pengaturan::where('key', 'logo_sekolah')->value('value');
         $logoUrl = \App\Models\Pengaturan::where('key', 'logo_url')->value('value');
+        $getLogoSrc = function ($val) {
+            if (!$val) return null;
+            return (filter_var($val, FILTER_VALIDATE_URL) || str_starts_with($val, 'http://') || str_starts_with($val, 'https://'))
+                ? $val
+                : asset('uploads/logo/' . $val);
+        };
+        $finalLogoSrc = $getLogoSrc($logoSekolah) ?? $logoUrl;
       @endphp
-      @if ($logoSekolah)
-        <img src="{{ asset('uploads/logo/' . $logoSekolah) }}" alt="Logo" style="height:36px;width:auto;margin-right:10px;border-radius:6px;object-fit:contain;">
-      @elseif ($logoUrl)
-        <img src="{{ $logoUrl }}" alt="Logo" style="height:36px;width:auto;margin-right:10px;border-radius:6px;object-fit:contain;">
+      @if ($finalLogoSrc)
+        <img src="{{ $finalLogoSrc }}" alt="Logo" style="height:36px;width:auto;margin-right:10px;border-radius:6px;object-fit:contain;">
       @else
         <div class="avatar avatar-sm me-2 bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width:32px; height:32px;">
           <i class="ti tabler-school text-white fs-5"></i>
@@ -111,10 +116,8 @@ $namaSekolah = \App\Models\Pengaturan::where('key', 'nama_lembaga')->value('valu
       </div>
       
       <div class="d-lg-none mb-4 pt-2">
-         @if ($logoSekolah)
-           <img src="{{ asset('uploads/logo/' . $logoSekolah) }}" alt="Logo" style="height:40px;width:auto;margin-bottom:8px;border-radius:6px;object-fit:contain;">
-         @elseif ($logoUrl)
-           <img src="{{ $logoUrl }}" alt="Logo" style="height:40px;width:auto;margin-bottom:8px;border-radius:6px;object-fit:contain;">
+         @if ($finalLogoSrc)
+           <img src="{{ $finalLogoSrc }}" alt="Logo" style="height:40px;width:auto;margin-bottom:8px;border-radius:6px;object-fit:contain;">
          @endif
          <span class="fw-bold text-primary fs-4">E-Absensi</span>
          <hr class="border-secondary opacity-25">
