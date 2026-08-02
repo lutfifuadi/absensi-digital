@@ -40,6 +40,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(GuideCategory::class, GuidePolicy::class);
         Gate::policy(\App\Models\PelanggaranSiswa::class, \App\Policies\PelanggaranSiswaPolicy::class);
 
+        // Absensi per jam (PRD-006): Gate::authorize('isi', [$jadwal, $tanggal])
+        // ter-resolve ke policy ini karena argumen pertama adalah JadwalPelajaran.
+        Gate::policy(\App\Models\JadwalPelajaran::class, \App\Policies\AbsensiPerJamPolicy::class);
+
         // Observer untuk sync password_plain saat password berubah
         User::observe(UserPasswordObserver::class);
         \App\Models\Siswa::observe(\App\Observers\SiswaObserver::class);

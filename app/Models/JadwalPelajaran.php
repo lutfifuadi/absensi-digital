@@ -40,4 +40,20 @@ class JadwalPelajaran extends Model
         return $this->hasOne(MonitoringKehadiranGuru::class, 'jadwal_pelajaran_id')
             ->where('tanggal', date('Y-m-d'));
     }
+
+    /**
+     * Catatan absensi siswa per jam untuk jadwal ini (PRD-006).
+     */
+    public function absensiSiswaPerJadwal()
+    {
+        return $this->hasMany(AbsensiSiswaPerJadwal::class, 'jadwal_pelajaran_id');
+    }
+
+    /**
+     * Header sesi pencatatan untuk jadwal ini (PRD-006, P1 — F-9).
+     */
+    public function sesiAbsensi()
+    {
+        return $this->hasMany(AbsensiPerJamSesi::class, 'jadwal_pelajaran_id');
+    }
 }

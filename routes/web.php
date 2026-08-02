@@ -9,6 +9,7 @@ use App\Http\Controllers\AbsensiMandiriController;
 use App\Http\Controllers\Admin\AbsensiActivityController;
 use App\Http\Controllers\Admin\AbsensiGuruController;
 use App\Http\Controllers\Admin\AbsensiKegiatanController;
+use App\Http\Controllers\Admin\AbsensiPerJamController;
 use App\Http\Controllers\Admin\AbsensiSiswaController;
 use App\Http\Controllers\Admin\AbsensiStaffController;
 use App\Http\Controllers\Admin\ActivityLogController;
@@ -289,6 +290,10 @@ Route::middleware([
             'destroy' => 'assignments.destroy',
             'show' => 'assignments.show',
         ]);
+
+        // Absensi Siswa per Jam (PRD-006) — halaman "Absensi Kelas Saya" (index saja)
+        Route::get('/absensi-per-jam', [AbsensiPerJamController::class, 'index'])
+            ->name('guru.absensi-per-jam');
     });
 
     // ── PORTAL WALI KELAS ─────────────────────────────────────────────────────
@@ -1078,6 +1083,30 @@ Route::middleware([
         Route::delete('laporan/reset', [LaporanController::class, 'reset'])
             ->name('admin.laporan.reset')
             ->middleware('role:super_admin');
+
+        // ── ABSENSI SISWA PER JAM (PRD-006, P0 — F-1..F-5) ────────────────────
+        // BUG-1 fix (QA Kang Asep): wali_kelas berhak melihat rekap kelas asuhan
+        // (PRD-006 F-3/F-5), tapi TIDAK boleh mengisi absensi (matriks F-3).
+        // Grup B (rekap/export) WAJIB didaftarkan SEBELUM Grup A yang berisi
+        // /{jadwal} — agar route statis /rekap tidak tertangkap route param.
+        Route::prefix('absensi-per-jam')
+            ->name('admin.absensi-per-jam.')
+            ->middleware('role:super_admin,admin_sekolah,operator,guru,piket,wali_kelas')
+            ->group(function () {
+                Route::get('/rekap', [AbsensiPerJamController::class, 'rekapIndex'])->name('rekap');
+                Route::get('/rekap/export-excel', [AbsensiPerJamController::class, 'exportExcel'])->name('rekap.export');
+                Route::get('/rekap/siswa/{siswa}', [AbsensiPerJamController::class, 'rekapSiswa'])->name('rekap.siswa');
+            });
+
+        // Grup A: pengisian absensi (index/show/store) — tanpa wali_kelas
+        Route::prefix('absensi-per-jam')
+            ->name('admin.absensi-per-jam.')
+            ->middleware('role:super_admin,admin_sekolah,operator,guru,piket')
+            ->group(function () {
+                Route::get('/', [AbsensiPerJamController::class, 'index'])->name('index');
+                Route::get('/{jadwal}', [AbsensiPerJamController::class, 'show'])->name('show');
+                Route::post('/{jadwal}', [AbsensiPerJamController::class, 'store'])->name('store');
+            });
 
         // WA Gateway Settings
         Route::get('wa-gateway', [WaGatewayController::class, 'index'])

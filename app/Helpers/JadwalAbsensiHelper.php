@@ -55,30 +55,32 @@ class JadwalAbsensiHelper
         $sm = app(\App\Services\SettingsManager::class);
         $settings = $sm->all();
 
+        $defaultLibur = ($hari === 'sabtu' || $hari === 'minggu');
+
         return [
             'jam_mulai_absensi' => self::formatTime($jadwal?->jam_mulai_absensi) ?? $settings['jam_mulai_absensi'] ?? '06:00',
             'jam_masuk'         => self::formatTime($jadwal?->jam_masuk) ?? $settings['jam_masuk'] ?? '07:00',
             'batas_jam_masuk'   => self::formatTime($jadwal?->batas_jam_masuk) ?? $settings['jam_batas_masuk'] ?? '09:00',
             'jam_pulang'        => self::formatTime($jadwal?->jam_pulang) ?? $settings['jam_pulang'] ?? '15:00',
             'jam_akhir_pulang'  => self::formatTime($jadwal?->jam_akhir_pulang) ?? $settings['jam_akhir_pulang'] ?? '17:00',
-            'is_libur'          => $jadwal?->is_libur ?? false,
+            'is_libur'          => $jadwal ? (bool) $jadwal->is_libur : $defaultLibur,
         ];
     }
 
     /**
      * Normalisasi nama hari.
      *
-     * Carbon locale 'id' bisa mengembalikan format seperti "Senin" atau "senin".
+     * Carbon locale 'id' bisa mengembalikan format seperti "Senin", "senin", atau "Ahad".
      * Kita pastikan selalu lowercase dan cocok dengan enum di database.
      *
      * @param  string $hari
      * @return string
      */
-    private static function normalizeHari(string $hari): string
+    public static function normalizeHari(string $hari): string
     {
         $hari = strtolower(trim($hari));
 
-        // Mapping jika Carbon mengembalikan nama Inggris
+        // Mapping jika Carbon mengembalikan nama Inggris atau variasi lokal (seperti Ahad/Jum'at)
         $mapping = [
             'monday'    => 'senin',
             'tuesday'   => 'selasa',
@@ -87,6 +89,8 @@ class JadwalAbsensiHelper
             'friday'    => 'jumat',
             'saturday'  => 'sabtu',
             'sunday'    => 'minggu',
+            'ahad'      => 'minggu',
+            'jum\'at'   => 'jumat',
         ];
 
         return $mapping[$hari] ?? $hari;
@@ -103,6 +107,31 @@ class JadwalAbsensiHelper
     {
         $jadwal = self::getJadwalForKelas($kelasId, $hari);
         return $jadwal['is_libur'];
+    }
+
+    /**
+     * Pengecekan komprehensif apakah seorang siswa libur pada tanggal tertentu.
+     * Mengecek dari:
+     * 1. Tabel `holidays` (Hari Libur Nasional / Libur Sekolah)
+     * 2. Tabel `kelas_jadwal_absensi` (Pengaturan Jam Absensi Kelas per hari)
+     * 3. Default Weekend jika siswa tidak memiliki kelas
+     */
+    public static function isHariLiburSiswa(\App\Models\Siswa $siswa, string $tanggal): bool
+    {
+        // 1. Cek dari tabel holidays (global, tingkat, atau per kelas_id)
+        if (\App\Models\Holiday::isSiswaHoliday($siswa, $tanggal)) {
+            return true;
+        }
+
+        // 2. Cek dari jadwal absensi kelas (is_libur per hari)
+        $hariNama = self::normalizeHari(\Illuminate\Support\Carbon::parse($tanggal)->format('l'));
+        if ($siswa->kelas_id) {
+            return self::isLibur($siswa->kelas_id, $hariNama);
+        }
+
+        // 3. Fallback jika tidak punya kelas, cek weekend
+        $dayOfWeek = \Illuminate\Support\Carbon::parse($tanggal)->dayOfWeek;
+        return ($dayOfWeek === \Illuminate\Support\Carbon::SUNDAY || $dayOfWeek === \Illuminate\Support\Carbon::SATURDAY);
     }
 
     /**

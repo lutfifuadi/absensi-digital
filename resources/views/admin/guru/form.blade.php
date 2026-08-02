@@ -419,24 +419,126 @@
                             @endforeach
                         </div>
 
-                        {{-- Dropdown Kelas — muncul hanya jika wali_kelas dipilih --}}
+                        {{-- Live Search Kelas (Wali Kelas) — Dark Theme & Radius <= 5px --}}
                         <div id="kelas-wrapper" class="mt-4 {{ in_array('wali_kelas', $userRoles ?? []) ? '' : 'd-none' }}">
                             <hr class="my-3" style="border-color:rgba(255,255,255,0.06);">
-                            <label class="form-label fw-semibold small mb-2" for="kelas_id">
+                            <label class="form-label fw-semibold small mb-2">
                                 <i class="ti tabler-school me-1 text-info"></i> Pilih Kelas (Wali Kelas)
                             </label>
-                            <select id="kelas_id" name="kelas_id"
-                                class="form-select select2-kelas @error('kelas_id') is-invalid @enderror"
-                                data-placeholder="Pilih kelas...">
-                                <option value="">— Pilih Kelas —</option>
-                                @foreach($kelasOptions as $kelas)
-                                    <option value="{{ $kelas->id }}"
-                                        {{ $kelasSaatIni && $kelasSaatIni->id == $kelas->id ? 'selected' : '' }}>
-                                        {{ $kelas->nama }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            
+                            {{-- Hidden input yang dikirim ke controller saat submit --}}
+                            <input type="hidden" name="kelas_id" id="kelas_id" value="{{ old('kelas_id', $kelasSaatIni?->id) }}">
+                            
+                            {{-- Search input box --}}
+                            <div class="search-kelas-group">
+                                <span class="search-kelas-prefix"><i class="ti tabler-search"></i></span>
+                                <input type="text" class="search-kelas-input @error('kelas_id') is-invalid @enderror" 
+                                    id="searchKelasInput" 
+                                    placeholder="Ketik nama kelas (misal: XII.F-4)..." 
+                                    autocomplete="off">
+                            </div>
+                            @error('kelas_id')
+                                <div class="invalid-feedback d-block mt-1">{{ $message }}</div>
+                            @enderror
+
+                            {{-- Selected Chip Wrap --}}
+                            <div id="selectedKelasChipWrap" class="mt-2"></div>
+
+                            {{-- Search Results Dropdown List --}}
+                            <div class="kelas-search-results-list mt-2 d-none" id="kelasResultsList"></div>
                         </div>
+
+                        <style>
+                        .search-kelas-group {
+                          position: relative;
+                          display: flex;
+                          align-items: center;
+                          width: 100%;
+                        }
+                        .search-kelas-prefix {
+                          position: absolute;
+                          left: 0.9rem;
+                          top: 50%;
+                          transform: translateY(-50%);
+                          color: rgba(255, 255, 255, 0.4);
+                          z-index: 5;
+                          pointer-events: none;
+                          font-size: 1rem;
+                        }
+                        .search-kelas-input {
+                          width: 100% !important;
+                          background: rgba(0, 0, 0, 0.25) !important;
+                          border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                          color: #fff !important;
+                          border-radius: 5px !important;
+                          padding: 0.6rem 1rem 0.6rem 2.6rem !important;
+                          font-size: 0.88rem;
+                          transition: all 0.2s ease-in-out;
+                        }
+                        .search-kelas-input::placeholder {
+                          color: rgba(255, 255, 255, 0.35) !important;
+                        }
+                        .search-kelas-input:focus {
+                          background: rgba(0, 0, 0, 0.4) !important;
+                          border-color: rgba(115, 103, 240, 0.6) !important;
+                          box-shadow: 0 0 8px rgba(115, 103, 240, 0.25) !important;
+                          outline: none;
+                        }
+                        .kelas-search-results-list {
+                          max-height: 220px;
+                          overflow-y: auto;
+                          border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                          border-radius: 5px !important;
+                          background: #141b2d !important;
+                          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+                          position: relative;
+                          z-index: 10;
+                        }
+                        .kelas-item-option {
+                          display: flex;
+                          align-items: center;
+                          justify-content: space-between;
+                          padding: 0.6rem 0.9rem;
+                          cursor: pointer;
+                          border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+                          transition: all 0.2s ease;
+                          color: rgba(255, 255, 255, 0.8);
+                          font-size: 0.85rem;
+                          border-radius: 0 !important;
+                        }
+                        .kelas-item-option:last-child {
+                          border-bottom: none;
+                        }
+                        .kelas-item-option:hover, .kelas-item-option.is-selected {
+                          background: rgba(115, 103, 240, 0.2) !important;
+                          color: #fff !important;
+                        }
+                        .kelas-item-option .badge {
+                          border-radius: 4px !important;
+                        }
+                        .kelas-selected-chip {
+                          display: inline-flex;
+                          align-items: center;
+                          gap: 0.5rem;
+                          padding: 0.35rem 0.75rem;
+                          background: rgba(115, 103, 240, 0.15);
+                          border: 1px solid rgba(115, 103, 240, 0.35);
+                          border-radius: 5px !important;
+                          color: #c8c4f8;
+                          font-size: 0.83rem;
+                          font-weight: 500;
+                        }
+                        .kelas-selected-chip .chip-remove-btn {
+                          cursor: pointer;
+                          color: #ff4c51;
+                          font-weight: bold;
+                          margin-left: 0.25rem;
+                          transition: transform 0.15s ease;
+                        }
+                        .kelas-selected-chip .chip-remove-btn:hover {
+                          transform: scale(1.2);
+                        }
+                        </style>
                     </div>
                 </div>
             </div>
@@ -528,15 +630,104 @@
         });
       }
 
-      // 2. Select2 for Kelas / select2-kelas
-      const $kelasSelect = $('.select2-kelas');
-      if ($kelasSelect.length) {
-        $kelasSelect.wrap('<div class="position-relative"></div>').select2({
-          placeholder: 'Pilih Kelas',
-          dropdownParent: $kelasSelect.parent(),
-          width: '100%'
-        });
+      // 2. Custom Live Search for Kelas (Wali Kelas) — Ala Cetak Kartu
+      const KELAS_DATA = [
+        @foreach($kelasOptions as $k)
+          { id: "{{ $k->id }}", nama: "{!! addslashes(e($k->nama)) !!}", tingkat: "{!! addslashes(e($k->tingkat ?? '')) !!}" },
+        @endforeach
+      ];
+
+      let currentSelectedKelasId = $('#kelas_id').val();
+
+      function escKelas(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       }
+
+      function renderKelasChip(kelas) {
+        if (!kelas) {
+          $('#selectedKelasChipWrap').html('');
+          return;
+        }
+        const chipHtml = `
+          <div class="kelas-selected-chip">
+            <i class="ti tabler-school text-info"></i>
+            <span>Wali Kelas: <strong>${escKelas(kelas.nama)}</strong></span>
+            <span class="chip-remove-btn" id="btnRemoveKelas" title="Hapus pilihan kelas">✕</span>
+          </div>
+        `;
+        $('#selectedKelasChipWrap').html(chipHtml);
+      }
+
+      function renderKelasResults(searchTerm) {
+        const $list = $('#kelasResultsList');
+        const term = (searchTerm || '').trim().toLowerCase();
+
+        const filtered = KELAS_DATA.filter(k => {
+          return k.nama.toLowerCase().includes(term) || (k.tingkat && k.tingkat.toLowerCase().includes(term));
+        });
+
+        if (filtered.length === 0) {
+          $list.html('<div class="p-3 text-muted text-center small"><i class="ti tabler-search-off me-1"></i>Tidak ada kelas ditemukan</div>').removeClass('d-none');
+          return;
+        }
+
+        let html = '';
+        filtered.forEach(k => {
+          const isSel = (k.id == currentSelectedKelasId);
+          html += `
+            <div class="kelas-item-option ${isSel ? 'is-selected' : ''}" data-id="${k.id}" data-nama="${escKelas(k.nama)}">
+              <div class="d-flex align-items-center gap-2">
+                <i class="ti tabler-school ${isSel ? 'text-primary' : 'text-muted'}"></i>
+                <span class="fw-semibold">${escKelas(k.nama)}</span>
+              </div>
+              ${isSel ? '<span class="badge bg-primary text-white"><i class="ti tabler-check me-1"></i>Terpilih</span>' : '<span class="text-muted small">Pilih</span>'}
+            </div>
+          `;
+        });
+
+        $list.html(html).removeClass('d-none');
+      }
+
+      // Initial Chip Render
+      if (currentSelectedKelasId) {
+        const initialKelas = KELAS_DATA.find(k => k.id == currentSelectedKelasId);
+        if (initialKelas) {
+          renderKelasChip(initialKelas);
+        }
+      }
+
+      // Event Focus / Input Search Box
+      $('#searchKelasInput').on('focus input', function() {
+        renderKelasResults($(this).val());
+      });
+
+      // Select Kelas Item
+      $(document).on('click', '.kelas-item-option', function() {
+        const id = $(this).data('id');
+        const nama = $(this).data('nama');
+        currentSelectedKelasId = id;
+        $('#kelas_id').val(id);
+        $('#searchKelasInput').val('');
+        $('#kelasResultsList').addClass('d-none').html('');
+        renderKelasChip({ id, nama });
+      });
+
+      // Remove Selected Kelas
+      $(document).on('click', '#btnRemoveKelas', function() {
+        currentSelectedKelasId = '';
+        $('#kelas_id').val('');
+        $('#searchKelasInput').val('');
+        $('#selectedKelasChipWrap').html('');
+        $('#kelasResultsList').addClass('d-none').html('');
+      });
+
+      // Close results dropdown on outside click
+      $(document).on('click', function(e) {
+        if (!$(e.target).closest('#kelas-wrapper').length) {
+          $('#kelasResultsList').addClass('d-none');
+        }
+      });
 
       // 3. Toggle Kelas Dropdown (wali_kelas)
       const $waliKelasCheckbox = $('#role_wali_kelas');

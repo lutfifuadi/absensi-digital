@@ -132,4 +132,12 @@ class Siswa extends Model
     {
         return $this->hasMany(PelanggaranNotifLog::class, 'siswa_id');
     }
+
+    /**
+     * Catatan absensi siswa per jam pelajaran (PRD-006).
+     */
+    public function absensiPerJadwal()
+    {
+        return $this->hasMany(AbsensiSiswaPerJadwal::class, 'siswa_id');
+    }
 }

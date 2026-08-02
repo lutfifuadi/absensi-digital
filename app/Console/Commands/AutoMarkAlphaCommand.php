@@ -58,7 +58,7 @@ class AutoMarkAlphaCommand extends Command
         $currentTimeStr = now()->format('H:i');
         $isToday        = ($tanggal === now()->toDateString());
         $isForce        = (bool) $this->option('force');
-        $hariNama       = strtolower(Carbon::parse($tanggal)->locale('id')->isoFormat('dddd'));
+        $hariNama       = JadwalAbsensiHelper::normalizeHari(Carbon::parse($tanggal)->format('l'));
 
         // ── Wrap seluruh proses dalam DB::transaction (C1) ──────────────
         DB::transaction(function () use (
@@ -80,30 +80,12 @@ class AutoMarkAlphaCommand extends Command
                 ->whereIn('siswa_id', $siswaAktifIds)->pluck('siswa_id')->toArray();
             $belumAbsenSiswaIds = $siswaAktifIds->diff($sudahAbsenSiswa);
 
-            $holidaysToday = \App\Models\Holiday::whereDate('tanggal', $tanggal)->get();
-
             $countSiswaAlpha = 0;
             foreach ($belumAbsenSiswaIds as $siswaId) {
                 $s = $siswaAktif->firstWhere('id', $siswaId);
                 if ($s) {
-                    // Cek apakah hari tersebut libur untuk siswa tersebut menggunakan $holidaysToday->contains(...)
-                    $isLibur = $holidaysToday->contains(function ($holiday) use ($s) {
-                        // Global holiday (tingkat & kelas null)
-                        if (is_null($holiday->tingkat) && is_null($holiday->kelas_id)) {
-                            return true;
-                        }
-                        // Cocok tingkat
-                        if ($holiday->tingkat && $s->kelas && $s->kelas->tingkat === $holiday->tingkat) {
-                            return true;
-                        }
-                        // Cocok kelas_id
-                        if ($holiday->kelas_id && $s->kelas_id === $holiday->kelas_id) {
-                            return true;
-                        }
-                        return false;
-                    });
-
-                    if ($isLibur) {
+                    // Cek apakah hari tersebut libur untuk siswa (Tabel Holidays + Jadwal Absensi Kelas)
+                    if (JadwalAbsensiHelper::isHariLiburSiswa($s, $tanggal)) {
                         continue;
                     }
 
@@ -159,42 +141,51 @@ class AutoMarkAlphaCommand extends Command
             }
 
 
-            // --- Guru aktif (H4: metode 'auto-alpha' untuk konsistensi) ---
-            $guruAktif = Guru::where('status', 'aktif')->pluck('id');
-            $sudahAbsenGuru = AbsensiGuru::whereDate('tanggal', $tanggal)
-                ->whereIn('guru_id', $guruAktif)->pluck('guru_id')->toArray();
-            $belumAbsenGuru = $guruAktif->diff($sudahAbsenGuru);
+            // --- Pengecekan Libur Global untuk Guru & Staff ---
+            $isGlobalHoliday = \App\Models\Holiday::whereDate('tanggal', $tanggal)
+                ->whereNull('tingkat')
+                ->whereNull('kelas_id')
+                ->exists();
+            $isWeekend = Carbon::parse($tanggal)->isWeekend();
 
-            foreach ($belumAbsenGuru as $guruId) {
-                AbsensiGuru::create([
-                    'guru_id'    => $guruId,
-                    'tanggal'    => $tanggal,
-                    'jam_masuk'  => null,
-                    'jam_pulang' => null,
-                    'status'     => 'alpha',
-                    'keterangan' => 'Otomatis oleh sistem',
-                    'metode'     => 'auto-alpha',
-                ]);
-                $countGuruAlpha++;
-            }
+            if (!$isGlobalHoliday && !$isWeekend) {
+                // --- Guru aktif ---
+                $guruAktif = Guru::where('status', 'aktif')->pluck('id');
+                $sudahAbsenGuru = AbsensiGuru::whereDate('tanggal', $tanggal)
+                    ->whereIn('guru_id', $guruAktif)->pluck('guru_id')->toArray();
+                $belumAbsenGuru = $guruAktif->diff($sudahAbsenGuru);
 
-            // --- Staff aktif (H4: metode 'auto-alpha' untuk konsistensi) ---
-            $staffAktif = StaffTataUsaha::where('status', 'aktif')->pluck('id');
-            $sudahAbsenStaff = AbsensiStaff::whereDate('tanggal', $tanggal)
-                ->whereIn('staff_id', $staffAktif)->pluck('staff_id')->toArray();
-            $belumAbsenStaff = $staffAktif->diff($sudahAbsenStaff);
+                foreach ($belumAbsenGuru as $guruId) {
+                    AbsensiGuru::create([
+                        'guru_id'    => $guruId,
+                        'tanggal'    => $tanggal,
+                        'jam_masuk'  => null,
+                        'jam_pulang' => null,
+                        'status'     => 'alpha',
+                        'keterangan' => 'Otomatis oleh sistem',
+                        'metode'     => 'auto-alpha',
+                    ]);
+                    $countGuruAlpha++;
+                }
 
-            foreach ($belumAbsenStaff as $staffId) {
-                AbsensiStaff::create([
-                    'staff_id'   => $staffId,
-                    'tanggal'    => $tanggal,
-                    'jam_masuk'  => null,
-                    'jam_pulang' => null,
-                    'status'     => 'alpha',
-                    'keterangan' => 'Otomatis oleh sistem',
-                    'metode'     => 'auto-alpha',
-                ]);
-                $countStaffAlpha++;
+                // --- Staff aktif ---
+                $staffAktif = StaffTataUsaha::where('status', 'aktif')->pluck('id');
+                $sudahAbsenStaff = AbsensiStaff::whereDate('tanggal', $tanggal)
+                    ->whereIn('staff_id', $staffAktif)->pluck('staff_id')->toArray();
+                $belumAbsenStaff = $staffAktif->diff($sudahAbsenStaff);
+
+                foreach ($belumAbsenStaff as $staffId) {
+                    AbsensiStaff::create([
+                        'staff_id'   => $staffId,
+                        'tanggal'    => $tanggal,
+                        'jam_masuk'  => null,
+                        'jam_pulang' => null,
+                        'status'     => 'alpha',
+                        'keterangan' => 'Otomatis oleh sistem',
+                        'metode'     => 'auto-alpha',
+                    ]);
+                    $countStaffAlpha++;
+                }
             }
         }); // ── End DB::transaction (C1) ──
 
