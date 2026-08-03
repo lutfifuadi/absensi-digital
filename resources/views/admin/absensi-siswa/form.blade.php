@@ -311,16 +311,18 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       // Form Data Options
-      const ALL_SISWA = @json($siswaOptions->map(function($s) {
-          return [
-              'id' => $s->id,
-              'nama' => $s->nama_lengkap,
-              'nis' => $s->nis ?? '-',
-              'nisn' => $s->nisn ?? '-',
-              'kelas_id' => $s->kelas_id,
-              'kelas_nama' => $s->kelas->nama ?? 'Tanpa Kelas',
-          ];
-      }));
+      const ALL_SISWA = [
+      @foreach ($siswaOptions as $s)
+        {
+          id: {{ $s->id }},
+          nama: @json($s->nama_lengkap ?? ''),
+          nis: @json($s->nis ?? '-'),
+          nisn: @json($s->nisn ?? '-'),
+          kelas_id: {{ $s->kelas_id ?? 'null' }},
+          kelas_nama: @json($s->kelas->nama ?? 'Tanpa Kelas')
+        }@if (!$loop->last),@endif
+      @endforeach
+      ];
 
       const hiddenInput = document.getElementById('siswa_id');
       const searchInputWrapper = document.getElementById('siswaSearchInputWrapper');
