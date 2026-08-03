@@ -1551,7 +1551,7 @@ async function handleScan(qrCode) {
     const resp = await fetch(SCAN_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-      body: JSON.stringify({ qr_code: qrCode, mode: CURRENT_MODE }),
+      body: JSON.stringify({ qr_code: qrCode, mode: CURRENT_MODE, client_timestamp: new Date().toISOString() }),
     });
     const data = await resp.json();
     if (data.success) {

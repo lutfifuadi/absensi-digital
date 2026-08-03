@@ -780,9 +780,13 @@ class PublicQrScanController extends Controller
             ]);
         }
 
-        $data   = $request->validate(['qr_code' => 'required|string|max:255']);
-        $qrCode = $data['qr_code'];
-        $ip     = $request->ip();
+        $data   = $request->validate([
+            'qr_code'          => 'required|string|max:255',
+            'client_timestamp' => 'nullable|string|max:50',
+        ]);
+        $qrCode          = $data['qr_code'];
+        $clientTimestamp = $data['client_timestamp'] ?? null;
+        $ip              = $request->ip();
 
         $settings = $this->getCachedSettings();
 
@@ -794,8 +798,39 @@ class PublicQrScanController extends Controller
         $jamAkhirPulang = $settings['jam_akhir_pulang'] ?? '17:00';
         $toleransi      = (int)($settings['toleransi_terlambat'] ?? 15);
 
-        $currentTime    = now()->format('H:i:s');
-        $tanggal        = now()->toDateString();
+        // ─── CLIENT TIMESTAMP: gunakan waktu client jika valid ──────────────
+        // Siswa scan di HP masing-masing → timestamp berasal dari device client.
+        // Jika internet jelek, request bisa delayed beberapa menit/jam.
+        // Kita pakai waktu client ASAL tanggalnya masih sama dengan server (anti backdate).
+        $serverNow = now();
+        $currentTime = $serverNow->format('H:i:s');
+        $tanggal     = $serverNow->toDateString();
+
+        if ($clientTimestamp) {
+            try {
+                $clientTime = \Carbon\Carbon::parse($clientTimestamp);
+                // Validasi: tanggal harus sama dengan server (anti backdate/advance)
+                if ($clientTime->toDateString() === $serverNow->toDateString()) {
+                    $currentTime = $clientTime->format('H:i:s');
+                    $tanggal     = $clientTime->toDateString();
+
+                    // Log delay > 5 menit untuk monitoring
+                    $delayMinutes = (int) $serverNow->diffInSeconds($clientTime) / 60;
+                    if ($delayMinutes > 5) {
+                        \Log::info('LIVEBOARD_SCAN_DELAYED', [
+                            'qr_code'      => $qrCode,
+                            'client_time'  => $clientTimestamp,
+                            'server_time'  => $serverNow->toDateTimeString(),
+                            'delay_minutes'=> round($delayMinutes, 1),
+                            'ip'           => $ip,
+                        ]);
+                    }
+                }
+                // Jika tanggal beda → fallback ke server time (default di atas)
+            } catch (\Exception $e) {
+                // Timestamp invalid → fallback ke server time (default di atas)
+            }
+        }
 
         // PRD-016: Load jadwal per kelas SEBELUM time check "belum dibuka" (untuk liveBoardScan)
         // FIX #1: Eager load kelas sekaligus, tidak query ulang di dalam transaction
