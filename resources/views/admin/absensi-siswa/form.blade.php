@@ -12,10 +12,85 @@
       transition: all .2s ease;
     }
 
-    /* Tambahkan style kustom jika diperlukan, pastikan border-radius maksimal 5px */
-    .form-control, .form-select, .btn {
+    /* Strict max 5px border-radius */
+    .form-control, .form-select, .btn, .input-group-text {
       border-radius: 5px !important;
     }
+
+    /* Custom Single Live Search Styles */
+    .selected-siswa-card {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 5px;
+      padding: 0.55rem 0.85rem;
+    }
+    .ssc-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 5px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .ssc-info { flex: 1; min-width: 0; }
+    .ssc-name { font-weight: 700; font-size: 0.88rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ssc-sub  { font-size: 0.72rem; color: #94a3b8; margin-top: 1px; }
+    .ssc-remove-btn {
+      background: rgba(234, 84, 85, 0.15);
+      border: 1px solid rgba(234, 84, 85, 0.3);
+      color: #ea5455;
+      width: 28px;
+      height: 28px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .ssc-remove-btn:hover {
+      background: #ea5455;
+      color: #fff;
+    }
+
+    .siswa-search-input-wrapper { position: relative; }
+    .siswa-search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      max-height: 240px;
+      overflow-y: auto;
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 5px;
+      margin-top: 4px;
+      z-index: 100;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    .siswa-search-results:empty { display: none; }
+    .siswa-search-item {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.55rem 0.85rem;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: background 0.15s;
+    }
+    .siswa-search-item:hover {
+      background: rgba(115, 103, 240, 0.2);
+    }
+    .ssi-name { font-weight: 600; font-size: 0.83rem; color: #fff; }
+    .ssi-sub  { font-size: 0.72rem; color: #94a3b8; }
   </style>
 @endsection
 
@@ -44,7 +119,7 @@
           <h4 class="das-hero__title text-gradient-gold">
             {{ isset($absensiSiswa) ? 'Ubah Data Absensi' : 'Tambah Absensi Baru' }}
           </h4>
-          <p class="das-hero__subtitle">Catat absensi siswa dengan cepat dan konsisten.</p>
+          <p class="das-hero__subtitle">Catat absensi siswa dengan pencarian cepat nama / NIS.</p>
         </div>
       </div>
     </div>
@@ -55,7 +130,7 @@
       @if ($errors->any())
         <div
           class="alert alert-danger alert-dismissible d-flex align-items-start gap-2 mb-4 border-0 shadow-sm form-alert"
-          style="border-radius:8px; background: rgba(234, 84, 85, 0.15); color: #ea5455;">
+          style="border-radius:5px; background: rgba(234, 84, 85, 0.15); color: #ea5455;">
           <i class="ti tabler-alert-circle fs-5 mt-1 flex-shrink-0"></i>
           <ul class="mb-0 ps-3 small">
             @foreach ($errors->all() as $error)
@@ -66,7 +141,7 @@
         </div>
       @endif
 
-      <div class="das-panel" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+      <div class="das-panel" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 5px;">
         <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center gap-2"
           style="border-color:rgba(255,255,255,0.08) !important; background:transparent;">
           <i class="ti tabler-forms text-info"></i>
@@ -82,20 +157,40 @@
             @endif
 
             <div class="row g-4">
-              <div class="col-md-6">
-                <label class="form-label fw-semibold small" for="siswa_id">
+              {{-- FIELD SISWA — CUSTOM SINGLE LIVE SEARCH --}}
+              <div class="col-md-6" id="singleSiswaSearchSection">
+                <label class="form-label fw-semibold small">
                   <i class="ti tabler-user me-1 text-info"></i> Siswa <span class="text-danger">*</span>
                 </label>
-                <select id="siswa_id" name="siswa_id" class="form-select" required>
-                  <option value="">Pilih siswa</option>
-                  @foreach ($siswaOptions as $siswa)
-                    <option value="{{ $siswa->id }}"
-                      {{ old('siswa_id', $absensiSiswa->siswa_id ?? '') == $siswa->id ? 'selected' : '' }}>
-                      {{ $siswa->nama_lengkap }}</option>
-                  @endforeach
-                </select>
+
+                {{-- Hidden input yang dikirim ke controller --}}
+                <input type="hidden" id="siswa_id" name="siswa_id" value="{{ old('siswa_id', $absensiSiswa->siswa_id ?? '') }}" required>
+
+                {{-- Card Siswa Terpilih (Tampil jika sudah memilih 1 siswa) --}}
+                <div id="selectedSiswaCard" class="selected-siswa-card" style="display: none;">
+                  <div class="ssc-avatar" id="sscAvatar">A</div>
+                  <div class="ssc-info">
+                    <div class="ssc-name" id="sscName">Nama Siswa</div>
+                    <div class="ssc-sub" id="sscSub">Kelas · NIS</div>
+                  </div>
+                  <button type="button" class="ssc-remove-btn" id="btnRemoveSelectedSiswa" title="Ganti Pilihan Siswa">
+                    <i class="ti tabler-x"></i>
+                  </button>
+                </div>
+
+                {{-- Input Live Search (Tampil jika belum ada siswa terpilih) --}}
+                <div id="siswaSearchInputWrapper" class="siswa-search-input-wrapper">
+                  <div class="input-group">
+                    <span class="input-group-text" style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: #94a3b8;">
+                      <i class="ti tabler-search text-info"></i>
+                    </span>
+                    <input type="text" id="siswaSearchInput" class="form-control" placeholder="Ketik nama atau NIS / NISN siswa..." autocomplete="off">
+                  </div>
+                  <div id="siswaSearchResults" class="siswa-search-results"></div>
+                </div>
               </div>
 
+              {{-- FIELD KELAS --}}
               <div class="col-md-6">
                 <label class="form-label fw-semibold small" for="kelas_id">
                   <i class="ti tabler-door me-1 text-info"></i> Kelas <span class="text-danger">*</span>
@@ -110,15 +205,17 @@
                 </select>
               </div>
 
+              {{-- FIELD TANGGAL --}}
               <div class="col-md-4">
                 <label class="form-label fw-semibold small" for="tanggal">
                   <i class="ti tabler-calendar me-1 text-info"></i> Tanggal <span class="text-danger">*</span>
                 </label>
                 <input id="tanggal" type="date" name="tanggal" class="form-control"
-                  value="{{ old('tanggal', isset($absensiSiswa) ? $absensiSiswa->tanggal->format('Y-m-d') : '') }}"
+                  value="{{ old('tanggal', isset($absensiSiswa) ? $absensiSiswa->tanggal->format('Y-m-d') : date('Y-m-d')) }}"
                   required>
               </div>
 
+              {{-- FIELD JAM MASUK --}}
               <div class="col-md-4">
                 <label class="form-label fw-semibold small" for="jam_masuk">
                   <i class="ti tabler-clock me-1 text-info"></i> Jam Masuk
@@ -127,6 +224,7 @@
                   value="{{ old('jam_masuk', $absensiSiswa->jam_masuk ?? '') }}">
               </div>
 
+              {{-- FIELD JAM PULANG --}}
               <div class="col-md-4">
                 <label class="form-label fw-semibold small" for="jam_pulang">
                   <i class="ti tabler-clock-play me-1 text-info"></i> Jam Pulang
@@ -135,6 +233,7 @@
                   value="{{ old('jam_pulang', $absensiSiswa->jam_pulang ?? '') }}">
               </div>
 
+              {{-- FIELD STATUS --}}
               <div class="col-md-6">
                 <label class="form-label fw-semibold small" for="status">
                   <i class="ti tabler-circle-check me-1 text-info"></i> Status <span class="text-danger">*</span>
@@ -155,6 +254,7 @@
                 </select>
               </div>
 
+              {{-- FIELD METODE --}}
               <div class="col-md-6">
                 <label class="form-label fw-semibold small" for="metode">
                   <i class="ti tabler-layout-grid me-1 text-info"></i> Metode <span class="text-danger">*</span>
@@ -162,12 +262,13 @@
                 <select id="metode" name="metode" class="form-select" required>
                   @foreach (['manual', 'qr', 'rfid'] as $metode)
                     <option value="{{ $metode }}"
-                      {{ old('metode', $absensiSiswa->metode ?? '') === $metode ? 'selected' : '' }}>
+                      {{ old('metode', $absensiSiswa->metode ?? 'manual') === $metode ? 'selected' : '' }}>
                       {{ strtoupper($metode) }}</option>
                   @endforeach
                 </select>
               </div>
 
+              {{-- FIELD GURU --}}
               <div class="col-md-6">
                 <label class="form-label fw-semibold small" for="guru_id">
                   <i class="ti tabler-presentation me-1 text-info"></i> Guru
@@ -182,11 +283,12 @@
                 </select>
               </div>
 
+              {{-- FIELD KETERANGAN --}}
               <div class="col-12">
                 <label class="form-label fw-semibold small" for="keterangan">
                   <i class="ti tabler-message-circle me-1 text-info"></i> Keterangan
                 </label>
-                <textarea id="keterangan" name="keterangan" class="form-control" rows="3">{{ old('keterangan', $absensiSiswa->keterangan ?? '') }}</textarea>
+                <textarea id="keterangan" name="keterangan" class="form-control" rows="3" placeholder="Tambahkan catatan jika diperlukan...">{{ old('keterangan', $absensiSiswa->keterangan ?? '') }}</textarea>
               </div>
             </div>
 
@@ -195,7 +297,7 @@
               <a href="{{ route('admin.absensi-siswa.index') }}" class="btn das-btn --secondary">
                 <i class="ti tabler-arrow-left me-1"></i> Kembali
               </a>
-              <button type="submit" class="btn das-btn --primary">
+              <button type="submit" class="btn das-btn --primary" style="background:#7367f0; color:#fff; border-color:#7367f0;">
                 <i class="ti tabler-device-floppy me-1"></i>
                 {{ isset($absensiSiswa) ? 'Perbarui Absensi' : 'Simpan Absensi' }}
               </button>
@@ -205,4 +307,131 @@
       </div>
     </div>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Form Data Options
+      const ALL_SISWA = @json($siswaOptions->map(function($s) {
+          return [
+              'id' => $s->id,
+              'nama' => $s->nama_lengkap,
+              'nis' => $s->nis ?? '-',
+              'nisn' => $s->nisn ?? '-',
+              'kelas_id' => $s->kelas_id,
+              'kelas_nama' => $s->kelas->nama ?? 'Tanpa Kelas',
+          ];
+      }));
+
+      const hiddenInput = document.getElementById('siswa_id');
+      const searchInputWrapper = document.getElementById('siswaSearchInputWrapper');
+      const searchInput = document.getElementById('siswaSearchInput');
+      const searchResults = document.getElementById('siswaSearchResults');
+      const selectedCard = document.getElementById('selectedSiswaCard');
+      const sscAvatar = document.getElementById('sscAvatar');
+      const sscName = document.getElementById('sscName');
+      const sscSub = document.getElementById('sscSub');
+      const btnRemove = document.getElementById('btnRemoveSelectedSiswa');
+      const kelasSelect = document.getElementById('kelas_id');
+
+      // Fungsi memilih 1 siswa
+      function selectSingleSiswa(siswa) {
+        hiddenInput.value = siswa.id;
+        sscAvatar.innerText = (siswa.nama || '?').charAt(0).toUpperCase();
+        sscName.innerText = siswa.nama;
+        sscSub.innerText = `Kelas: ${siswa.kelas_nama} · NIS: ${siswa.nis}`;
+
+        // Auto Select Kelas jika belum terpilih
+        if (siswa.kelas_id && kelasSelect) {
+          kelasSelect.value = siswa.kelas_id;
+        }
+
+        searchInputWrapper.style.display = 'none';
+        selectedCard.style.display = 'flex';
+        searchResults.innerHTML = '';
+        searchInput.value = '';
+      }
+
+      // Fungsi membatalkan/mengganti pilihan
+      function clearSingleSiswa() {
+        hiddenInput.value = '';
+        selectedCard.style.display = 'none';
+        searchInputWrapper.style.display = 'block';
+        searchInput.focus();
+      }
+
+      // Render daftar pencarian
+      function renderSearchResults(query) {
+        if (!query) {
+          searchResults.innerHTML = '';
+          return;
+        }
+
+        const q = query.toLowerCase();
+        const filtered = ALL_SISWA.filter(s => 
+          (s.nama && s.nama.toLowerCase().includes(q)) ||
+          (s.nis && s.nis.toLowerCase().includes(q)) ||
+          (s.nisn && s.nisn.toLowerCase().includes(q)) ||
+          (s.kelas_nama && s.kelas_nama.toLowerCase().includes(q))
+        ).slice(0, 15); // Maksimal 15 hasil
+
+        if (filtered.length === 0) {
+          searchResults.innerHTML = `
+            <div style="padding: 0.75rem 1rem; color: #94a3b8; font-size: 0.8rem; text-align: center;">
+              Tidak ada siswa yang cocok dengan "${query}"
+            </div>
+          `;
+          return;
+        }
+
+        searchResults.innerHTML = filtered.map(s => `
+          <div class="siswa-search-item" data-id="${s.id}">
+            <div style="width: 28px; height: 28px; border-radius: 5px; background: rgba(115, 103, 240, 0.2); color: #7367f0; font-weight: 700; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              ${(s.nama || '?').charAt(0).toUpperCase()}
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <div class="ssi-name">${s.nama}</div>
+              <div class="ssi-sub">Kelas: ${s.kelas_nama} · NIS: ${s.nis}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Event listener input search
+      searchInput.addEventListener('input', function () {
+        renderSearchResults(this.value.trim());
+      });
+
+      // Event listener klik hasil pencarian
+      searchResults.addEventListener('click', function (e) {
+        const item = e.target.closest('.siswa-search-item');
+        if (item && item.dataset.id) {
+          const found = ALL_SISWA.find(s => String(s.id) === String(item.dataset.id));
+          if (found) {
+            selectSingleSiswa(found);
+          }
+        }
+      });
+
+      // Event listener tombol remove
+      btnRemove.addEventListener('click', function () {
+        clearSingleSiswa();
+      });
+
+      // Init saat halaman dimuat (jika mode edit atau re-populate old value)
+      const initialSiswaId = hiddenInput.value;
+      if (initialSiswaId) {
+        const initialFound = ALL_SISWA.find(s => String(s.id) === String(initialSiswaId));
+        if (initialFound) {
+          selectSingleSiswa(initialFound);
+        }
+      }
+
+      // Klik di luar menutup dropdown hasil
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('#singleSiswaSearchSection')) {
+          searchResults.innerHTML = '';
+        }
+      });
+    });
+  </script>
 @endsection

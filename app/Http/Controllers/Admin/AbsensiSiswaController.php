@@ -252,11 +252,11 @@ class AbsensiSiswaController extends Controller
             $tahunAjaranId = $activeTa ? $activeTa->id : null;
         }
 
-        $siswaOptions = Siswa::when($tahunAjaranId, function ($q, $taId) {
+        $siswaOptions = Siswa::with('kelas')->when($tahunAjaranId, function ($q, $taId) {
             $q->whereHas('kelas', fn($k) => $k->where('tahun_akademik_id', $taId));
         })->orderBy('nama_lengkap')->get();
         if ($siswaOptions->isEmpty()) {
-            $siswaOptions = Siswa::orderBy('nama_lengkap')->get();
+            $siswaOptions = Siswa::with('kelas')->orderBy('nama_lengkap')->get();
         }
 
         $kelasOptions = Kelas::when($tahunAjaranId, function ($q, $taId) {
@@ -311,7 +311,7 @@ class AbsensiSiswaController extends Controller
             $tahunAjaranId = $activeTa ? $activeTa->id : null;
         }
 
-        $siswaOptions = Siswa::orderBy('nama_lengkap')->get();
+        $siswaOptions = Siswa::with('kelas')->orderBy('nama_lengkap')->get();
         $kelasOptions = Kelas::when($tahunAjaranId, function ($q, $taId) {
             $q->where('tahun_akademik_id', $taId);
         })->orderBy('nama')->get();
