@@ -185,19 +185,18 @@
                 </div>
               </div>
 
-              {{-- FIELD KELAS --}}
+              {{-- FIELD KELAS (READONLY / OTOMATIS TERKUNCI DARI SISWA) --}}
               <div class="col-md-6">
-                <label class="form-label fw-semibold small" for="kelas_id">
+                <label class="form-label fw-semibold small" for="kelas_display">
                   <i class="ti tabler-door me-1 text-info"></i> Kelas <span class="text-danger">*</span>
                 </label>
-                <select id="kelas_id" name="kelas_id" class="form-select" required>
-                  <option value="">Pilih kelas</option>
-                  @foreach ($kelasOptions as $kelas)
-                    <option value="{{ $kelas->id }}"
-                      {{ old('kelas_id', $absensiSiswa->kelas_id ?? '') == $kelas->id ? 'selected' : '' }}>
-                      {{ $kelas->nama }}</option>
-                  @endforeach
-                </select>
+                <input type="hidden" id="kelas_id" name="kelas_id" value="{{ old('kelas_id', $absensiSiswa->kelas_id ?? '') }}" required>
+                <div class="input-group">
+                  <input type="text" id="kelas_display" class="form-control" placeholder="Pilih siswa terlebih dahulu..." readonly style="background: rgba(255,255,255,0.03); cursor: not-allowed; color: #e2e8f0; font-weight: 600;">
+                  <span class="input-group-text" style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: #10b981;" title="Kelas otomatis terisi & terkunci dari data siswa">
+                    <i class="ti tabler-lock-check"></i>
+                  </span>
+                </div>
               </div>
 
               {{-- FIELD TANGGAL --}}
@@ -328,7 +327,9 @@
       const sscName = document.getElementById('sscName');
       const sscSub = document.getElementById('sscSub');
       const btnRemove = document.getElementById('btnRemoveSelectedSiswa');
-      const kelasSelect = document.getElementById('kelas_id');
+      
+      const hiddenKelasInput = document.getElementById('kelas_id');
+      const kelasDisplay = document.getElementById('kelas_display');
 
       // Fungsi memilih 1 siswa
       function selectSingleSiswa(siswa) {
@@ -337,9 +338,10 @@
         sscName.innerText = siswa.nama;
         sscSub.innerText = `Kelas: ${siswa.kelas_nama} · NIS: ${siswa.nis}`;
 
-        // Auto Select Kelas jika belum terpilih
-        if (siswa.kelas_id && kelasSelect) {
-          kelasSelect.value = siswa.kelas_id;
+        // Auto-fill & lock field Kelas
+        if (hiddenKelasInput && kelasDisplay) {
+          hiddenKelasInput.value = siswa.kelas_id || '';
+          kelasDisplay.value = siswa.kelas_nama || 'Tanpa Kelas';
         }
 
         searchInputWrapper.style.display = 'none';
@@ -351,6 +353,11 @@
       // Fungsi membatalkan/mengganti pilihan
       function clearSingleSiswa() {
         hiddenInput.value = '';
+        if (hiddenKelasInput && kelasDisplay) {
+          hiddenKelasInput.value = '';
+          kelasDisplay.value = '';
+          kelasDisplay.placeholder = 'Pilih siswa terlebih dahulu...';
+        }
         selectedCard.style.display = 'none';
         searchInputWrapper.style.display = 'block';
         searchInput.focus();
