@@ -1327,6 +1327,38 @@ setInterval(updateSessionCountdown, 1000);
 
 // ─── SOUND ────────────────────────────────────────────────────────────────
 let soundEnabled = true;
+let _audioUnlocked = false;
+
+// Auto-resume AudioContext saat user interaction pertama
+// Browser wajib ada user gesture sebelum AudioContext boleh play audio
+function _unlockAudio() {
+  if (_audioUnlocked) return;
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    if (!window._audioCtx) window._audioCtx = new AudioCtx();
+    if (window._audioCtx.state === 'suspended') {
+      window._audioCtx.resume();
+    }
+    _audioUnlocked = true;
+    // Sembunyikan toast tip setelah berhasil unlock
+    const tip = document.getElementById('audio-unlock-tip');
+    if (tip) tip.style.display = 'none';
+  } catch (_) {}
+}
+
+// Dengarkan interaksi pertama (click, keydown, touchstart)
+['click', 'keydown', 'touchstart'].forEach(evt => {
+  document.addEventListener(evt, _unlockAudio, { once: false, passive: true });
+});
+
+// Tampilkan toast tip setelah 3 detik jika belum ada interaksi
+setTimeout(() => {
+  if (!_audioUnlocked) {
+    const tip = document.getElementById('audio-unlock-tip');
+    if (tip) tip.style.opacity = '1';
+  }
+}, 3000);
 
 // ─── INDONESIA LUXURY SPORT WATCH — Live Board ─────────────────────────────
 const _lbTz = (typeof APP_TIMEZONE !== 'undefined' && APP_TIMEZONE) ? APP_TIMEZONE : 'Asia/Jakarta';
@@ -1859,5 +1891,33 @@ async function refreshLeaderboard() {
   console.log('[Piket Scanner] Sistem siap. Colokkan alat USB/Bluetooth QR scanner — langsung bisa scan.');
 })();
 </script>
+
+<!-- Audio unlock toast tip -->
+<style>
+  #audio-unlock-tip {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 22, 35, 0.95);
+    border: 1px solid rgba(115, 103, 240, 0.4);
+    color: #e2e8f0;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    white-space: nowrap;
+  }
+  #audio-unlock-tip span { margin-right: 6px; }
+</style>
+<div id="audio-unlock-tip">
+  <span>🔊</span> Klik di mana saja untuk mengaktifkan suara jam
+</div>
+
 </body>
 </html>
