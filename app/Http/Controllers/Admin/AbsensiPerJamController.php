@@ -116,6 +116,49 @@ class AbsensiPerJamController extends Controller
     }
 
     /**
+     * Simpan absensi otomatis per baris siswa via AJAX (Auto-Save).
+     */
+    public function storeSingle(Request $request, JadwalPelajaran $jadwal)
+    {
+        try {
+            $validated = $request->validate([
+                'tanggal'        => 'required|date',
+                'siswa_id'       => 'required|integer|exists:siswa,id',
+                'status'         => 'required|string|in:hadir,terlambat,alpha,izin,sakit,bolos',
+                'lama_terlambat' => 'nullable|integer|min:1|max:600',
+                'keterangan'     => 'nullable|string|max:500',
+            ]);
+
+            $tanggal = $validated['tanggal'];
+            Gate::authorize('isi', [$jadwal, $tanggal]);
+
+            $result = $this->absensiPerJamService->simpanAbsensi(
+                $jadwal->id,
+                $tanggal,
+                [[
+                    'siswa_id'       => $validated['siswa_id'],
+                    'status'         => $validated['status'],
+                    'lama_terlambat' => $validated['lama_terlambat'] ?? null,
+                    'keterangan'     => $validated['keterangan'] ?? null,
+                ]],
+                auth()->id(),
+                'manual'
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Absensi berhasil diperbarui.',
+                'result'  => $result,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
      * Rekap per kelas/mapel — matriks siswa × pertemuan (F-5).
      */
     public function rekapIndex(Request $request)

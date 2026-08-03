@@ -1155,6 +1155,7 @@ Route::middleware([
                 Route::get('/', [AbsensiPerJamController::class, 'index'])->name('index');
                 Route::get('/{jadwal}', [AbsensiPerJamController::class, 'show'])->name('show');
                 Route::post('/{jadwal}', [AbsensiPerJamController::class, 'store'])->name('store');
+                Route::post('/{jadwal}/store-single', [AbsensiPerJamController::class, 'storeSingle'])->name('store-single');
             });
 
         // WA Gateway Settings

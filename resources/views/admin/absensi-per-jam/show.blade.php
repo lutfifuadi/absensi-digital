@@ -540,7 +540,7 @@
 
                     {{-- HADIR --}}
                     <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_hadir"
-                      value="hadir" x-model="status" @change="$dispatch('roster-change')" data-roster-status
+                      value="hadir" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', status, $el.closest('tr'))" data-roster-status
                       @if (!$canEdit) disabled @endif>
                     <label class="btn btn-outline-success" for="status_{{ $i }}_hadir">
                       <i class="ti tabler-user-check me-1"></i>Hadir
@@ -548,7 +548,7 @@
 
                     {{-- TERLAMBAT --}}
                     <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_terlambat"
-                      value="terlambat" x-model="status" @change="$dispatch('roster-change')" data-roster-status
+                      value="terlambat" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', status, $el.closest('tr'))" data-roster-status
                       @if (!$canEdit) disabled @endif>
                     <label class="btn btn-outline-primary" for="status_{{ $i }}_terlambat">
                       <i class="ti tabler-clock-exclamation me-1"></i>Terlambat
@@ -556,7 +556,7 @@
 
                     {{-- ALPHA --}}
                     <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_alpha"
-                      value="alpha" x-model="status" @change="$dispatch('roster-change')" data-roster-status
+                      value="alpha" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', status, $el.closest('tr'))" data-roster-status
                       @if (!$canEdit) disabled @endif>
                     <label class="btn btn-outline-danger" for="status_{{ $i }}_alpha">
                       <i class="ti tabler-user-x me-1"></i>Alpha
@@ -564,7 +564,7 @@
 
                     {{-- IZIN --}}
                     <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_izin"
-                      value="izin" x-model="status" @change="$dispatch('roster-change')" data-roster-status
+                      value="izin" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', status, $el.closest('tr'))" data-roster-status
                       @if (!$canEdit) disabled @endif>
                     <label class="btn btn-outline-warning" for="status_{{ $i }}_izin">
                       <i class="ti tabler-file-description me-1"></i>Izin
@@ -572,7 +572,7 @@
 
                     {{-- SAKIT --}}
                     <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_sakit"
-                      value="sakit" x-model="status" @change="$dispatch('roster-change')" data-roster-status
+                      value="sakit" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', status, $el.closest('tr'))" data-roster-status
                       @if (!$canEdit) disabled @endif>
                     <label class="btn btn-outline-info" for="status_{{ $i }}_sakit">
                       <i class="ti tabler-stethoscope me-1"></i>Sakit
@@ -580,7 +580,7 @@
 
                     {{-- BOLOS --}}
                     <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_bolos"
-                      value="bolos" x-model="status" @change="$dispatch('roster-change')" data-roster-status
+                      value="bolos" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', status, $el.closest('tr'))" data-roster-status
                       @if (!$canEdit) disabled @endif>
                     <label class="btn btn-outline-dark" for="status_{{ $i }}_bolos">
                       <i class="ti tabler-walk me-1"></i>Bolos
@@ -714,6 +714,25 @@
   </div>
 </div>
 
+{{-- FLOATING TOAST NOTIFICATION CONTAINER (AUTO-SAVE) --}}
+<div id="autoSaveToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+  <div id="toastNotification" class="toast align-items-center border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" style="border-radius: 5px !important; background: #1e2640; border: 1px solid rgba(255,255,255,0.15) !important;">
+    <div class="d-flex align-items-center p-2 px-3">
+      <div id="toastIconBox" class="me-2 p-1 px-2 rounded-circle" style="background: rgba(40,199,111,0.2); color: #28c76f;">
+        <i id="toastIcon" class="ti tabler-circle-check-filled fs-5"></i>
+      </div>
+      <div class="toast-body p-0 me-auto">
+        <div id="toastTitle" class="fw-bold text-white small">Otomatis Tersimpan</div>
+        <div id="toastMessage" class="text-white-50 fs-7">Absensi siswa berhasil diperbarui.</div>
+      </div>
+      <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="progress" style="height: 3px; background: rgba(255,255,255,0.1); border-radius: 0 0 5px 5px;">
+      <div id="toastProgressBar" class="progress-bar bg-success" style="width: 100%;"></div>
+    </div>
+  </div>
+</div>
+
 @endsection
 
 @section('page-script')
@@ -804,6 +823,86 @@
           if (form) {
             HTMLFormElement.prototype.submit.call(form);
           }
+        },
+
+        // Auto-Save Single Row via AJAX
+        autoSaveSingle(siswaId, namaSiswa, statusVal, rowEl) {
+          if (!{{ $canEdit ? 'true' : 'false' }}) return;
+
+          const singleUrl = "{{ route('admin.absensi-per-jam.store-single', $jadwal->id) }}";
+          const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "{{ csrf_token() }}";
+          const tanggal = "{{ $tanggal }}";
+
+          const lamaInp = rowEl ? rowEl.querySelector('[data-roster-lama]') : null;
+          const ketInp = rowEl ? rowEl.querySelector('[data-roster-ket]') : null;
+
+          const payload = {
+            _token: csrfToken,
+            tanggal: tanggal,
+            siswa_id: siswaId,
+            status: statusVal,
+            lama_terlambat: statusVal === 'terlambat' ? (lamaInp && lamaInp.value ? parseInt(lamaInp.value) : 1) : null,
+            keterangan: ketInp ? ketInp.value : ''
+          };
+
+          fetch(singleUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'X-CSRF-TOKEN': csrfToken,
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(payload)
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              const statusText = statusVal.charAt(0).toUpperCase() + statusVal.slice(1);
+              this.showToast('success', 'Otomatis Tersimpan', `${namaSiswa}: Status diubah menjadi ${statusText}`);
+            } else {
+              this.showToast('error', 'Gagal Auto-Save', data.message || 'Gagal menyimpan absensi');
+            }
+          })
+          .catch(err => {
+            this.showToast('error', 'Koneksi Bermasalah', 'Gagal terhubung ke server');
+          });
+        },
+
+        showToast(type, title, msg) {
+          const toastEl = document.getElementById('toastNotification');
+          if (!toastEl) return;
+
+          const iconBox = document.getElementById('toastIconBox');
+          const icon = document.getElementById('toastIcon');
+          const titleEl = document.getElementById('toastTitle');
+          const msgEl = document.getElementById('toastMessage');
+          const bar = document.getElementById('toastProgressBar');
+
+          if (titleEl) titleEl.textContent = title;
+          if (msgEl) msgEl.textContent = msg;
+
+          if (type === 'success') {
+            if (iconBox) { iconBox.style.background = 'rgba(40,199,111,0.2)'; iconBox.style.color = '#28c76f'; }
+            if (icon) icon.className = 'ti tabler-circle-check-filled fs-5';
+            if (bar) { bar.className = 'progress-bar bg-success'; }
+          } else {
+            if (iconBox) { iconBox.style.background = 'rgba(234,84,85,0.2)'; iconBox.style.color = '#ea5455'; }
+            if (icon) icon.className = 'ti tabler-alert-circle-filled fs-5';
+            if (bar) { bar.className = 'progress-bar bg-danger'; }
+          }
+
+          if (bar) {
+            bar.style.transition = 'none';
+            bar.style.width = '100%';
+            setTimeout(() => {
+              bar.style.transition = 'width 2.5s linear';
+              bar.style.width = '0%';
+            }, 50);
+          }
+
+          const bsToast = bootstrap.Toast.getInstance(toastEl) || new bootstrap.Toast(toastEl, { delay: 2500 });
+          bsToast.show();
         }
       };
     }
