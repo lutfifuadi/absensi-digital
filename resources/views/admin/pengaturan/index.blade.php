@@ -6,6 +6,54 @@
   @vite([
     'resources/assets/vendor/libs/select2/select2.scss'
   ])
+@section('page-style')
+<style>
+  /* Colorful Feature Toggle Styles */
+  .ft-card {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.07) !important;
+    border-radius: 12px;
+  }
+  .ft-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+  }
+  .ft-card.is-active {
+    border-color: var(--ft-color-border) !important;
+    background: var(--ft-color-bg) !important;
+    box-shadow: 0 4px 20px var(--ft-color-glow);
+  }
+  .ft-icon-box {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+    transition: all 0.25s ease;
+  }
+  .ft-card.is-active .ft-icon-box {
+    background: var(--ft-color-main);
+    color: #ffffff;
+    box-shadow: 0 3px 12px var(--ft-color-glow);
+  }
+  .ft-switch-custom .form-check-input {
+    width: 2.5em;
+    height: 1.3em;
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+    transition: all 0.25s ease;
+  }
+  .ft-switch-custom .form-check-input:checked {
+    background-color: var(--ft-color-main) !important;
+    border-color: var(--ft-color-main) !important;
+    box-shadow: 0 0 12px var(--ft-color-glow) !important;
+  }
+</style>
 @endsection
 
 @section('vendor-script')
@@ -639,39 +687,15 @@
           </div>
           <div class="set-panel__body">
 
-            {{-- Toggle Section --}}
-            <div class="set-section-label">Fitur Cerdas</div>
-            <div class="set-toggles">
-              @php
-                $toggles = [
-                  ['name'=>'tampilkan_beranda',              'label'=>'Tampilkan Landing Page', 'sub'=>'Tampilkan halaman beranda saat akses awal', 'color'=>'primary', 'icon' => 'tabler-home-heart'],
-                  ['name'=>'fitur_absensi_cepat_publik',      'label'=>'Absensi Cepat Publik',  'sub'=>'Aktifkan halaman absensi cepat tanpa login untuk piket', 'color'=>'primary', 'icon' => 'tabler-bolt'],
-                  ['name'=>'lock_device_pc',                 'label'=>'Kunci Perangkat PC',    'sub'=>'Lock akses scanner hanya untuk device terdaftar', 'color'=>'warning', 'icon' => 'tabler-device-desktop'],
-                  ['name'=>'fitur_absensi_mandiri',          'label'=>'Absensi Mandiri Siswa', 'sub'=>'Izinkan siswa presensi mandiri dari portal siswa', 'color'=>'success', 'icon' => 'tabler-device-mobile-check-in'],
-                  ['name'=>'izinkan_lokasi_absensi_mandiri', 'label'=>'Validasi Lokasi Mandiri', 'sub'=>'Kunci absensi mandiri dalam radius lokasi sekolah', 'color'=>'primary', 'icon' => 'tabler-map-pin'],
-                  ['name'=>'deteksi_fake_gps',               'label'=>'Anti Fake GPS',         'sub'=>'Deteksi & cegah mock-location',    'color'=>'danger', 'icon' => 'tabler-shield-x'],
-                  ['name'=>'izinkan_lokasi_scan_qr',         'label'=>'Scanner Publik Lokasi',  'sub'=>'Minta GPS di laman QR publik',     'color'=>'success', 'icon' => 'tabler-qrcode'],
-                  ['name'=>'ijinkan_pembuatan_akun_mandiri', 'label'=>'Pendaftaran Akun Mandiri', 'sub'=>'Izinkan pengguna daftar akun sendiri di landing page', 'color'=>'info', 'icon' => 'tabler-user-plus'],
-                  ['name'=>'izinkan_rfid',                   'label'=>'Perangkat RFID',         'sub'=>'Enable sensor tap card external',  'color'=>'info', 'icon' => 'tabler-wifi'],
-                ];
-              @endphp
-              @foreach ($toggles as $tg)
-                <div class="set-toggle-item set-toggle-item--{{ $tg['color'] }}">
-                  <div class="set-toggle-item__icon">
-                    <i class="ti {{ $tg['icon'] }}"></i>
-                  </div>
-                  <div class="set-toggle-item__info">
-                    <div class="set-toggle-item__label">{{ $tg['label'] }}</div>
-                    <div class="set-toggle-item__sub">{{ $tg['sub'] }}</div>
-                  </div>
-                  <label class="set-switch set-switch--{{ $tg['color'] }}">
-                    <input type="hidden" name="{{ $tg['name'] }}" value="Tidak">
-                    <input type="checkbox" class="set-switch__input" name="{{ $tg['name'] }}" value="Ya"
-                      {{ ($settings[$tg['name']] ?? '') == 'Ya' ? 'checked' : '' }}>
-                    <span class="set-switch__slider"></span>
-                  </label>
+            {{-- Information Banner regarding Feature Toggles Migration --}}
+            <div class="set-info-banner set-info-banner--info mb-4 d-flex align-items-center gap-3 p-3" style="background: rgba(115, 103, 240, 0.08); border: 1px solid rgba(115, 103, 240, 0.2); border-radius: 8px;">
+              <i class="ti tabler-toggle-right text-primary fs-2 flex-shrink-0"></i>
+              <div>
+                <div class="fw-bold text-white mb-1" style="font-size: 0.92rem;">Aktivasi Fitur & Saklar Keamanan Terpusat</div>
+                <div class="small text-muted" style="line-height: 1.4;">
+                  Seluruh saklar On/Off fitur cerdas (Absensi Mandiri, Anti Fake GPS, Lock Device PC/Android, RFID, dsb) kini dikelola secara terpusat, real-time & colorful pada menu tab <strong class="text-primary cursor-pointer" onclick="document.querySelector('[data-tab=aktivasi-fitur]').click()">Aktivasi Fitur</strong>.
                 </div>
-              @endforeach
+              </div>
             </div>
 
             {{-- Geofencing --}}
@@ -791,61 +815,216 @@
               <div class="set-panel__icon --primary"><i class="ti tabler-toggle-right"></i></div>
               <div>
                 <div class="set-panel__title">Aktivasi Fitur Sistem (Feature Toggles)</div>
-                <div class="set-panel__sub">Kelola aktivasi modul dan fitur aplikasi secara real-time tanpa perlu deploy ulang.</div>
+                <div class="set-panel__sub">Kelola saklar terpusat seluruh modul & keamanan aplikasi secara real-time dengan tampilan visual colorful.</div>
               </div>
             </div>
           </div>
           <div class="set-panel__body">
-            <div class="row g-3">
-              @if(!empty($featureToggles))
-                @foreach ($featureToggles as $key => $meta)
-                  @php
-                    $isOn = !empty($meta['is_on']);
-                    $isSuperAdminOnly = ($meta['permission'] ?? 'admin_sekolah') === 'super_admin';
-                    $isDisabled = $isSuperAdminOnly && !auth()->user()->isSuperAdmin();
-                  @endphp
-                  <div class="col-12 col-md-6 col-lg-4">
-                    <div class="card h-100 border shadow-none p-3 position-relative" style="background: rgba(255,255,255,0.03); border-radius: 12px; border-color: rgba(255,255,255,0.08) !important;">
-                      <div class="d-flex align-items-start justify-content-between mb-2 gap-2">
-                        <div class="d-flex align-items-center gap-2">
-                          <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0"
-                               style="width: 36px; height: 36px; background: rgba(115, 103, 240, 0.15); color: #7367f0;">
-                            <i class="ti {{ $meta['icon'] ?? 'tabler-adjustments-horizontal' }} fs-5"></i>
-                          </div>
-                          <div>
-                            <h6 class="mb-0 fw-semibold text-white" style="font-size: 0.9rem;">{{ $meta['label'] }}</h6>
-                            @if($isSuperAdminOnly)
-                              <span class="badge bg-label-warning px-1 py-0" style="font-size: 0.65rem;">Super Admin Only</span>
-                            @endif
+            @if(!empty($featureToggles))
+              @php
+                $colorThemeMap = [
+                  // Palette Theme Maps: color hex
+                  'tampilkan_beranda'              => ['color' => '#7367f0'],
+                  'fitur_dashboard_guru'           => ['color' => '#0ea5e9'],
+                  'fitur_live_board_publik'        => ['color' => '#8b5cf6'],
+                  'fitur_live_board_guru'          => ['color' => '#a855f7'],
+                  'fitur_portal_ortu'              => ['color' => '#10b981'],
+                  'fitur_ai_chat'                  => ['color' => '#ec4899'],
+                  'aktifkan_ai_chat'               => ['color' => '#ec4899'],
+                  'fitur_modul_pelanggaran'        => ['color' => '#f43f5e'],
+                  'fitur_rekap_export_laporan'     => ['color' => '#14b8a6'],
+                  'fitur_webhook_pmbm'             => ['color' => '#f97316'],
+
+                  'fitur_absensi_mandiri'          => ['color' => '#10b981'],
+                  'fitur_scan_absensi_guru'        => ['color' => '#06b6d4'],
+                  'fitur_absensi_cepat_publik'      => ['color' => '#f59e0b'],
+                  'fitur_absensi_kegiatan'         => ['color' => '#6366f1'],
+                  'fitur_absensi_ekskul'           => ['color' => '#22c55e'],
+                  'fitur_absensi_pelepasan'        => ['color' => '#8b5cf6'],
+                  'fitur_download_kartu_siswa'     => ['color' => '#0284c7'],
+                  'fitur_gamifikasi'               => ['color' => '#eab308'],
+                  'fitur_monitoring_kehadiran_guru'=> ['color' => '#3b82f6'],
+                  'fitur_status_kepegawaian'       => ['color' => '#9333ea'],
+
+                  'izinkan_rfid'                   => ['color' => '#14b8a6'],
+                  'lock_device_pc'                 => ['color' => '#f59e0b'],
+                  'lock_device_android'            => ['color' => '#f97316'],
+                  'izinkan_lokasi_absensi_mandiri' => ['color' => '#3b82f6'],
+                  'izinkan_lokasi_scan_qr'         => ['color' => '#06b6d4'],
+                  'deteksi_fake_gps'               => ['color' => '#ef4444'],
+                  'ijinkan_absen_mandiri_web'      => ['color' => '#0ea5e9'],
+                  'ijinkan_absen_mandiri_android'  => ['color' => '#10b981'],
+                  'ijinkan_simpan_foto_absen'      => ['color' => '#ec4899'],
+                  'fitur_offline_mode_android'     => ['color' => '#64748b'],
+                  'ijinkan_pembuatan_akun_mandiri' => ['color' => '#8b5cf6'],
+
+                  'auto_alpha_siswa_enabled'       => ['color' => '#f97316'],
+                  'auto_alpha_wa_notif'            => ['color' => '#22c55e'],
+                  'wa_gateway_enabled'             => ['color' => '#10b981'],
+                  'master_db_sync_enabled'         => ['color' => '#6366f1'],
+                ];
+
+                $sections = [
+                  'fitur_utama' => [
+                    'title' => '📱 Modul Utama & Portal Sekolah',
+                    'sub'   => 'Aktivasi modul beranda publik, portal guru, siswa, ortu, dan AI assistant.',
+                    'keys'  => ['tampilkan_beranda', 'fitur_dashboard_guru', 'fitur_live_board_publik', 'fitur_live_board_guru', 'fitur_portal_ortu', 'fitur_ai_chat', 'aktifkan_ai_chat', 'fitur_modul_pelanggaran', 'fitur_rekap_export_laporan', 'fitur_webhook_pmbm']
+                  ],
+                  'presensi' => [
+                    'title' => '⏰ Absensi & Presensi Sekolah',
+                    'sub'   => 'Aktivasi berbagai moda presensi (Mandiri, Piket, Ekskul, Kegiatan, Guru, & Gamifikasi).',
+                    'keys'  => ['fitur_absensi_mandiri', 'fitur_scan_absensi_guru', 'fitur_absensi_cepat_publik', 'fitur_absensi_kegiatan', 'fitur_absensi_ekskul', 'fitur_absensi_pelepasan', 'fitur_download_kartu_siswa', 'fitur_gamifikasi', 'fitur_monitoring_kehadiran_guru', 'fitur_status_kepegawaian']
+                  ],
+                  'keamanan' => [
+                    'title' => '🛡️ Keamanan, Perangkat & Geofencing',
+                    'sub'   => 'Aktivasi proteksi Anti-Fake GPS, RFID, Geofencing, Lock Device, dan Akun Mandiri.',
+                    'keys'  => ['izinkan_rfid', 'lock_device_pc', 'lock_device_android', 'izinkan_lokasi_absensi_mandiri', 'izinkan_lokasi_scan_qr', 'deteksi_fake_gps', 'ijinkan_absen_mandiri_web', 'ijinkan_absen_mandiri_android', 'ijinkan_simpan_foto_absen', 'fitur_offline_mode_android', 'ijinkan_pembuatan_akun_mandiri']
+                  ],
+                  'integrasi' => [
+                    'title' => '⚡ Otomatisasi & Server Sync',
+                    'sub'   => 'Aktivasi fitur Auto-Alpha, WhatsApp Gateway, dan sinkronisasi server master.',
+                    'keys'  => ['auto_alpha_siswa_enabled', 'auto_alpha_wa_notif', 'wa_gateway_enabled', 'master_db_sync_enabled']
+                  ],
+                ];
+
+                $categorizedKeys = [];
+                foreach ($sections as $s) {
+                  $categorizedKeys = array_merge($categorizedKeys, $s['keys']);
+                }
+                $uncategorized = array_diff(array_keys($featureToggles), $categorizedKeys);
+              @endphp
+
+              @foreach ($sections as $secKey => $sec)
+                @php
+                  $secItems = array_intersect_key($featureToggles, array_flip($sec['keys']));
+                @endphp
+                @if(!empty($secItems))
+                  <div class="ft-section mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom" style="border-color: rgba(255,255,255,0.08) !important;">
+                      <h6 class="fw-bold mb-0 text-white" style="font-size: 0.95rem;">{{ $sec['title'] }}</h6>
+                      <span class="badge bg-label-secondary ms-auto" style="font-size: 0.7rem;">{{ count($secItems) }} Fitur</span>
+                    </div>
+                    <p class="text-muted small mb-3" style="font-size: 0.8rem;">{{ $sec['sub'] }}</p>
+
+                    <div class="row g-3">
+                      @foreach ($secItems as $key => $meta)
+                        @php
+                          $isOn = !empty($meta['is_on']);
+                          $isSuperAdminOnly = ($meta['permission'] ?? 'admin_sekolah') === 'super_admin';
+                          $isDisabled = $isSuperAdminOnly && !auth()->user()->isSuperAdmin();
+                          $theme = $colorThemeMap[$key] ?? ['color' => '#7367f0'];
+                          $mainColor = $theme['color'];
+                        @endphp
+                        <div class="col-12 col-md-6 col-lg-4">
+                          <div class="card h-100 border shadow-none p-3 position-relative ft-card {{ $isOn ? 'is-active' : '' }}"
+                               id="ft-card-{{ $key }}"
+                               style="--ft-color-main: {{ $mainColor }}; --ft-color-border: {{ $mainColor }}66; --ft-color-bg: {{ $mainColor }}0d; --ft-color-glow: {{ $mainColor }}33;">
+                            <div class="d-flex align-items-start justify-content-between mb-2 gap-2">
+                              <div class="d-flex align-items-center gap-2" style="min-width: 0;">
+                                <div class="ft-icon-box flex-shrink-0" id="ft-icon-{{ $key }}">
+                                  <i class="ti {{ $meta['icon'] ?? 'tabler-adjustments-horizontal' }} fs-5"></i>
+                                </div>
+                                <div style="min-width: 0;">
+                                  <h6 class="mb-0 fw-semibold text-white text-truncate" style="font-size: 0.88rem;" title="{{ $meta['label'] }}">{{ $meta['label'] }}</h6>
+                                  @if($isSuperAdminOnly)
+                                    <span class="badge bg-label-warning px-1 py-0" style="font-size: 0.62rem;">Super Admin</span>
+                                  @endif
+                                </div>
+                              </div>
+
+                              <div class="form-check form-switch m-0 flex-shrink-0 ft-switch-custom">
+                                <input class="form-check-input feature-toggle-switch"
+                                       type="checkbox"
+                                       id="switch-{{ $key }}"
+                                       data-key="{{ $key }}"
+                                       {{ $isOn ? 'checked' : '' }}
+                                       {{ $isDisabled ? 'disabled' : '' }}>
+                              </div>
+                            </div>
+
+                            <p class="text-muted mb-3 flex-grow-1" style="font-size: 0.77rem; line-height: 1.4;">
+                              {{ $meta['description'] }}
+                            </p>
+
+                            <div class="d-flex align-items-center justify-content-between pt-2 border-top" style="border-color: rgba(255,255,255,0.06) !important; font-size: 0.74rem;">
+                              <span class="text-muted">Status Fitur:</span>
+                              <span class="badge {{ $isOn ? 'bg-label-success' : 'bg-label-secondary' }}" id="status-badge-{{ $key }}">
+                                {{ $isOn ? 'AKTIF (ON)' : 'NON-AKTIF (OFF)' }}
+                              </span>
+                            </div>
                           </div>
                         </div>
-
-                        <div class="form-check form-switch m-0 flex-shrink-0">
-                          <input class="form-check-input feature-toggle-switch"
-                                 type="checkbox"
-                                 id="switch-{{ $key }}"
-                                 data-key="{{ $key }}"
-                                 {{ $isOn ? 'checked' : '' }}
-                                 {{ $isDisabled ? 'disabled' : '' }}
-                                 style="width: 2.3em; height: 1.2em; cursor: {{ $isDisabled ? 'not-allowed' : 'pointer' }};">
-                        </div>
-                      </div>
-
-                      <p class="text-muted mb-3 flex-grow-1" style="font-size: 0.78rem; line-height: 1.4;">
-                        {{ $meta['description'] }}
-                      </p>
-
-                      <div class="d-flex align-items-center justify-content-between pt-2 border-top border-light-subtle" style="font-size: 0.75rem;">
-                        <span class="text-muted">Status Fitur:</span>
-                        <span class="badge {{ $isOn ? 'bg-label-success' : 'bg-label-secondary' }}" id="status-badge-{{ $key }}">
-                          {{ $isOn ? 'AKTIF (ON)' : 'NON-AKTIF (OFF)' }}
-                        </span>
-                      </div>
+                      @endforeach
                     </div>
                   </div>
-                @endforeach
+                @endif
+              @endforeach
+
+              {{-- Fallback Uncategorized Features --}}
+              @if(!empty($uncategorized))
+                @php
+                  $uncatItems = array_intersect_key($featureToggles, array_flip($uncategorized));
+                @endphp
+                @if(!empty($uncatItems))
+                  <div class="ft-section mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom" style="border-color: rgba(255,255,255,0.08) !important;">
+                      <h6 class="fw-bold mb-0 text-white" style="font-size: 0.95rem;">✨ Fitur Toggles Lainnya</h6>
+                      <span class="badge bg-label-secondary ms-auto" style="font-size: 0.7rem;">{{ count($uncatItems) }} Fitur</span>
+                    </div>
+
+                    <div class="row g-3">
+                      @foreach ($uncatItems as $key => $meta)
+                        @php
+                          $isOn = !empty($meta['is_on']);
+                          $isSuperAdminOnly = ($meta['permission'] ?? 'admin_sekolah') === 'super_admin';
+                          $isDisabled = $isSuperAdminOnly && !auth()->user()->isSuperAdmin();
+                          $mainColor = '#7367f0';
+                        @endphp
+                        <div class="col-12 col-md-6 col-lg-4">
+                          <div class="card h-100 border shadow-none p-3 position-relative ft-card {{ $isOn ? 'is-active' : '' }}"
+                               id="ft-card-{{ $key }}"
+                               style="--ft-color-main: {{ $mainColor }}; --ft-color-border: {{ $mainColor }}66; --ft-color-bg: {{ $mainColor }}0d; --ft-color-glow: {{ $mainColor }}33;">
+                            <div class="d-flex align-items-start justify-content-between mb-2 gap-2">
+                              <div class="d-flex align-items-center gap-2" style="min-width: 0;">
+                                <div class="ft-icon-box flex-shrink-0" id="ft-icon-{{ $key }}">
+                                  <i class="ti {{ $meta['icon'] ?? 'tabler-adjustments-horizontal' }} fs-5"></i>
+                                </div>
+                                <div style="min-width: 0;">
+                                  <h6 class="mb-0 fw-semibold text-white text-truncate" style="font-size: 0.88rem;" title="{{ $meta['label'] }}">{{ $meta['label'] }}</h6>
+                                  @if($isSuperAdminOnly)
+                                    <span class="badge bg-label-warning px-1 py-0" style="font-size: 0.62rem;">Super Admin</span>
+                                  @endif
+                                </div>
+                              </div>
+
+                              <div class="form-check form-switch m-0 flex-shrink-0 ft-switch-custom">
+                                <input class="form-check-input feature-toggle-switch"
+                                       type="checkbox"
+                                       id="switch-{{ $key }}"
+                                       data-key="{{ $key }}"
+                                       {{ $isOn ? 'checked' : '' }}
+                                       {{ $isDisabled ? 'disabled' : '' }}>
+                              </div>
+                            </div>
+
+                            <p class="text-muted mb-3 flex-grow-1" style="font-size: 0.77rem; line-height: 1.4;">
+                              {{ $meta['description'] }}
+                            </p>
+
+                            <div class="d-flex align-items-center justify-content-between pt-2 border-top" style="border-color: rgba(255,255,255,0.06) !important; font-size: 0.74rem;">
+                              <span class="text-muted">Status Fitur:</span>
+                              <span class="badge {{ $isOn ? 'bg-label-success' : 'bg-label-secondary' }}" id="status-badge-{{ $key }}">
+                                {{ $isOn ? 'AKTIF (ON)' : 'NON-AKTIF (OFF)' }}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      @endforeach
+                    </div>
+                  </div>
+                @endif
               @endif
-            </div>
+            @endif
           </div>
         </div>
       </div>
@@ -3823,6 +4002,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const key = this.getAttribute('data-key');
       const isChecked = this.checked;
       const badge = document.getElementById('status-badge-' + key);
+      const card = document.getElementById('ft-card-' + key);
       const switchEl = this;
 
       switchEl.disabled = true;
@@ -3838,6 +4018,13 @@ document.addEventListener('DOMContentLoaded', function () {
         success: function(response) {
           switchEl.disabled = false;
           if (response.success) {
+            if (card) {
+              if (isChecked) {
+                card.classList.add('is-active');
+              } else {
+                card.classList.remove('is-active');
+              }
+            }
             if (badge) {
               badge.className = 'badge ' + (isChecked ? 'bg-label-success' : 'bg-label-secondary');
               badge.textContent = isChecked ? 'AKTIF (ON)' : 'NON-AKTIF (OFF)';
