@@ -2706,44 +2706,48 @@ select.set-input option {
             {{-- Frekuensi Bunyi Variasi Absensi --}}
             {{-- ══ AUTO-ALPHA SISWA ══ --}}
             <div class="set-section-label mt-4"><i class="ti tabler-alert-triangle me-1"></i> Auto-Alpha Siswa</div>
-            <div class="set-toggles mb-4">
+            <div class="d-flex flex-column gap-3 mb-4">
               @php
-                $autoAlphaToggles = [
-                  [
-                    'name' => 'auto_alpha_siswa_enabled',
-                    'label' => 'Aktifkan Auto-Alpha Siswa',
-                    'sub' => 'Secara otomatis menandai siswa yang tidak hadir tanpa keterangan (alpha) setelah jam batas masuk.',
-                    'color' => 'danger',
-                    'icon' => 'tabler-user-off',
-                    'default' => 'Ya',
-                  ],
-                  [
-                    'name' => 'auto_alpha_wa_notif',
-                    'label' => 'Notifikasi WA ke Orang Tua',
-                    'sub' => 'Kirim notifikasi WhatsApp otomatis ke orang tua saat siswa terdeteksi alpha.',
-                    'color' => 'success',
-                    'icon' => 'tabler-brand-whatsapp',
-                    'default' => 'Ya',
-                  ],
-                ];
+                $autoAlphaEnabled = ($settings['auto_alpha_siswa_enabled'] ?? 'Ya') === 'Ya' || ($settings['auto_alpha_siswa_enabled'] ?? '1') === '1';
+                $autoAlphaWaNotif = ($settings['auto_alpha_wa_notif'] ?? 'Ya') === 'Ya' || ($settings['auto_alpha_wa_notif'] ?? '1') === '1';
               @endphp
-              @foreach ($autoAlphaToggles as $tg)
-                <div class="set-toggle-item set-toggle-item--{{ $tg['color'] }}">
-                  <div class="set-toggle-item__icon">
-                    <i class="ti {{ $tg['icon'] }}"></i>
+              <div class="d-flex align-items-center justify-content-between p-3 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px;">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="d-flex align-items-center justify-content-center rounded" style="width:40px;height:40px;background:{{ $autoAlphaEnabled ? 'rgba(234,84,85,0.15)' : 'rgba(255,255,255,0.05)' }};">
+                    <i class="ti tabler-user-off fs-4" style="color:{{ $autoAlphaEnabled ? '#ea5455' : '#64748b' }};"></i>
                   </div>
-                  <div class="set-toggle-item__info">
-                    <div class="set-toggle-item__label">{{ $tg['label'] }}</div>
-                    <div class="set-toggle-item__sub">{{ $tg['sub'] }}</div>
+                  <div>
+                    <h6 class="mb-0 text-white" style="font-size:0.85rem;">Auto-Alpha Siswa</h6>
+                    <small class="text-muted">Menandai siswa alpa otomatis setelah batas waktu masuk.</small>
                   </div>
-                  <label class="set-switch set-switch--{{ $tg['color'] }}">
-                    <input type="hidden" name="{{ $tg['name'] }}" value="Tidak">
-                    <input type="checkbox" class="set-switch__input" name="{{ $tg['name'] }}" value="Ya"
-                      {{ ($settings[$tg['name']] ?? $tg['default']) == 'Ya' ? 'checked' : '' }}>
-                    <span class="set-switch__slider"></span>
-                  </label>
                 </div>
-              @endforeach
+                <span class="badge {{ $autoAlphaEnabled ? 'bg-label-success' : 'bg-label-secondary' }}">
+                  {{ $autoAlphaEnabled ? 'AKTIF (ON)' : 'NON-AKTIF (OFF)' }}
+                </span>
+              </div>
+
+              <div class="d-flex align-items-center justify-content-between p-3 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px;">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="d-flex align-items-center justify-content-center rounded" style="width:40px;height:40px;background:{{ $autoAlphaWaNotif ? 'rgba(40,199,111,0.15)' : 'rgba(255,255,255,0.05)' }};">
+                    <i class="ti tabler-brand-whatsapp fs-4" style="color:{{ $autoAlphaWaNotif ? '#28c76f' : '#64748b' }};"></i>
+                  </div>
+                  <div>
+                    <h6 class="mb-0 text-white" style="font-size:0.85rem;">Notifikasi WA Auto-Alpha</h6>
+                    <small class="text-muted">Kirim notifikasi WA ke orang tua saat auto-alpha dipicu.</small>
+                  </div>
+                </div>
+                <span class="badge {{ $autoAlphaWaNotif ? 'bg-label-success' : 'bg-label-secondary' }}">
+                  {{ $autoAlphaWaNotif ? 'AKTIF (ON)' : 'NON-AKTIF (OFF)' }}
+                </span>
+              </div>
+
+              <div class="alert alert-warning d-flex align-items-center gap-2 border-0 py-2 px-3 mt-1 mb-0" style="background: rgba(255, 159, 67, 0.12); color: #ff9f43; border-radius: 8px; font-size: 0.78rem;">
+                <i class="ti tabler-alert-triangle fs-5"></i>
+                <span>Status fitur Auto-Alpha di atas dikelola terpusat melalui halaman Aktivasi Fitur.</span>
+                <button type="button" class="btn btn-xs btn-warning ms-auto fw-bold" onclick="document.querySelector('.set-tab-btn[data-tab=\'aktivasi-fitur\']').click();">
+                  <i class="ti tabler-external-link me-1"></i>Kelola Fitur
+                </button>
+              </div>
             </div>
 
             <div class="set-section-label mt-4">Frekuensi Bunyi per Konteks Absensi (Hz)</div>
@@ -2940,22 +2944,27 @@ select.set-input option {
             </div>
           </div>
           <div class="set-panel__body">
-            <!-- Switch On/Off Feature AI Chat Assistant -->
-            <div class="mb-4 p-3 rounded d-flex align-items-center justify-content-between" style="background: rgba(115, 103, 240, 0.08); border: 1px solid rgba(115, 103, 240, 0.2);">
+            <!-- Info Feature AI Chat Assistant -->
+            @php
+              $aiOn = ($settings['aktifkan_ai_chat'] ?? 'Ya') === 'Ya' || ($settings['aktifkan_ai_chat'] ?? '1') === '1';
+            @endphp
+            <div class="mb-4 p-3 rounded d-flex align-items-center justify-content-between" style="background: rgba(115, 103, 240, 0.08); border: 1px solid rgba(115, 103, 240, 0.2); border-radius: 8px;">
               <div class="d-flex align-items-center gap-3">
                 <div class="p-2 rounded bg-label-primary">
                   <i class="ti tabler-message-bot fs-3"></i>
                 </div>
                 <div>
-                  <h6 class="mb-0 fw-bold">Aktifkan Floating AI Chat Assistant Widget</h6>
-                  <small class="text-muted">Tampilkan widget floating chat Gemini AI di seluruh halaman aplikasi untuk membantu pengguna.</small>
+                  <h6 class="mb-0 fw-bold">Floating AI Chat Assistant Widget</h6>
+                  <small class="text-muted">Tampilkan widget floating chat Gemini AI di seluruh halaman aplikasi.</small>
                 </div>
               </div>
-              <div class="form-check form-switch form-switch-success ms-3 mb-0">
-                <input class="form-check-input" type="checkbox" role="switch" id="aktifkan_ai_chat_switch" style="width: 3rem; height: 1.5rem; cursor: pointer;"
-                  {{ old('aktifkan_ai_chat', $settings['aktifkan_ai_chat'] ?? 'Ya') === 'Ya' ? 'checked' : '' }}
-                  onchange="document.getElementById('aktifkan_ai_chat_hidden').value = this.checked ? 'Ya' : 'Tidak'">
-                <input type="hidden" name="aktifkan_ai_chat" id="aktifkan_ai_chat_hidden" value="{{ old('aktifkan_ai_chat', $settings['aktifkan_ai_chat'] ?? 'Ya') }}">
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge {{ $aiOn ? 'bg-label-success' : 'bg-label-secondary' }}">
+                  {{ $aiOn ? 'AKTIF (ON)' : 'NON-AKTIF (OFF)' }}
+                </span>
+                <button type="button" class="btn btn-xs btn-outline-primary ms-2" onclick="document.querySelector('.set-tab-btn[data-tab=\'aktivasi-fitur\']').click();">
+                  <i class="ti tabler-external-link me-1"></i>Kelola Fitur
+                </button>
               </div>
             </div>
 
@@ -3392,55 +3401,6 @@ document.addEventListener('DOMContentLoaded', function () {
       this.closest('.set-toast')?.remove();
     });
   });
-
-  /* ── AUTO-ALPHA AJAX TOGGLE ── */
-  document.querySelectorAll('input[name="auto_alpha_siswa_enabled"], input[name="auto_alpha_wa_notif"]').forEach(function(toggle) {
-    toggle.addEventListener('change', function() {
-      var key = this.name;
-      var value = this.checked ? 'Ya' : 'Tidak';
-      var csrfToken = '{{ csrf_token() }}';
-
-      fetch('{{ route("admin.pengaturan.update") }}', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-CSRF-TOKEN': csrfToken,
-          'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: encodeURIComponent(key) + '=' + encodeURIComponent(value) + '&_token=' + encodeURIComponent(csrfToken)
-      })
-      .then(function(response) { return response.json(); })
-      .then(function(data) {
-        showAutoAlphaToast('Pengaturan berhasil disimpan');
-      })
-      .catch(function() {
-        showAutoAlphaToast('Gagal menyimpan pengaturan', 'error');
-      });
-    });
-  });
-
-  function showAutoAlphaToast(message, type) {
-    type = type || 'success';
-    var existing = document.getElementById('autoAlphaToast');
-    if (existing) existing.remove();
-
-    var toast = document.createElement('div');
-    toast.id = 'autoAlphaToast';
-    toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;display:flex;align-items:center;gap:10px;padding:12px 20px;border-radius:8px;font-size:0.85rem;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.15);animation:alphaToastIn 0.3s ease;max-width:360px;' +
-      (type === 'success'
-        ? 'background:#28c76f;color:#fff;'
-        : 'background:#ea5455;color:#fff;');
-
-    var icon = type === 'success' ? 'tabler-circle-check' : 'tabler-alert-circle';
-    toast.innerHTML = '<i class="ti ' + icon + '" style="font-size:1.1rem;"></i><span>' + message + '</span>';
-
-    document.body.appendChild(toast);
-
-    setTimeout(function() {
-      toast.style.animation = 'alphaToastOut 0.3s ease forwards';
-      setTimeout(function() { toast.remove(); }, 300);
-    }, 3000);
-  }
 
   /* ── AUTO UPDATE TAHUN BELAJAR BERDASARKAN JENJANG ── */
   const jenjangSelect = $('#jenjangSelect');
