@@ -240,6 +240,7 @@ class AbsensiPerJamController extends Controller
             $header[] = 'I';
             $header[] = 'A';
             $header[] = 'D';
+            $header[] = 'B';
             $header[] = '% Kehadiran';
             // Catatan: fromArray default $strictNullComparison=false → nilai 0 (loose == null)
             // ikut terbuang. Paksa strict=true agar 0 akumulasi tetap tertulis.
@@ -262,6 +263,7 @@ class AbsensiPerJamController extends Controller
                 $data[] = $acc['izin'] ?? 0;
                 $data[] = $acc['alpha'] ?? 0;
                 $data[] = $acc['dispen'] ?? 0;
+                $data[] = $acc['bolos'] ?? 0;
                 $data[] = ($acc['persen'] ?? 0.0) . '%';
 
                 $sheet->fromArray($data, null, "A{$row}", true);

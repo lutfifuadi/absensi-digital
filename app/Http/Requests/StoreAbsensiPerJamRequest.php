@@ -25,7 +25,7 @@ class StoreAbsensiPerJamRequest extends FormRequest
             'tanggal'             => ['required', 'date', 'after_or_equal:today'],
             'rows'                => ['required', 'array', 'min:1'],
             'rows.*.siswa_id'     => ['required', 'exists:siswa,id'],
-            'rows.*.status'       => ['required', Rule::in(['hadir', 'terlambat', 'sakit', 'izin', 'alpha', 'dispen'])],
+            'rows.*.status'       => ['required', Rule::in(['hadir', 'terlambat', 'sakit', 'izin', 'alpha', 'dispen', 'bolos'])],
             // BR-07: status terlambat wajib mengisi lama_terlambat (menit > 0)
             'rows.*.lama_terlambat' => ['required_if:rows.*.status,terlambat', 'nullable', 'integer', 'min:1'],
             'rows.*.keterangan'     => ['nullable', 'string', 'max:500'],

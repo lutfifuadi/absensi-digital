@@ -146,6 +146,7 @@ Route::prefix('absensi-cepat')->name('public.absensi-cepat.')->group(function ()
     Route::middleware(['absensi.cepat.auth'])->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\PublicAbsensiCepatController::class, 'dashboard'])->name('dashboard');
         Route::get('/siswa/{kelasId}', [\App\Http\Controllers\PublicAbsensiCepatController::class, 'getSiswaByKelas'])->name('siswa');
+        Route::get('/search-people', [\App\Http\Controllers\PublicAbsensiCepatController::class, 'searchPeople'])->name('search-people');
         Route::post('/scan', [\App\Http\Controllers\PublicAbsensiCepatController::class, 'processQr'])->name('scan')->middleware('throttle:120,1');
         Route::post('/bulk', [\App\Http\Controllers\PublicAbsensiCepatController::class, 'storeBulk'])->name('bulk');
     });

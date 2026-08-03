@@ -74,7 +74,7 @@
     $perMapel = $rekap['perMapel'] ?? collect();
 
     $total = $riwayat->count();
-    $acc = ['hadir' => 0, 'terlambat' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0, 'dispen' => 0];
+    $acc = ['hadir' => 0, 'terlambat' => 0, 'sakit' => 0, 'izin' => 0, 'alpha' => 0, 'dispen' => 0, 'bolos' => 0];
     foreach ($riwayat as $r) {
         if (isset($acc[$r['status']])) {
             $acc[$r['status']]++;
@@ -90,6 +90,7 @@
         'izin'      => ['label' => 'Izin',      'color' => 'info',     'icon' => 'tabler-file-description'],
         'sakit'     => ['label' => 'Sakit',     'color' => 'secondary','icon' => 'tabler-stethoscope'],
         'dispen'    => ['label' => 'Dispen',    'color' => 'primary',  'icon' => 'tabler-file-check'],
+        'bolos'     => ['label' => 'Bolos',     'color' => 'dark',     'icon' => 'tabler-walk'],
     ];
   @endphp
 

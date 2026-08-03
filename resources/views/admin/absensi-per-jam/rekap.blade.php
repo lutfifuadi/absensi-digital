@@ -93,6 +93,7 @@
     .st-izin { background: rgba(0, 207, 232, 0.15) !important; color: #00cfe8 !important; }
     .st-alpha { background: rgba(234, 84, 85, 0.15) !important; color: #ea5455 !important; }
     .st-dispen { background: rgba(115, 103, 240, 0.15) !important; color: #7367f0 !important; }
+    .st-bolos { background: rgba(110, 107, 123, 0.25) !important; color: #b6b4ba !important; }
 
     .st-dash {
       color: rgba(255, 255, 255, 0.25);
@@ -104,7 +105,7 @@
 @section('content')
 
   @php
-    // Kode rekap H/T/S/I/A/D → class .st-* (UI-SPEC-006 §4.1)
+    // Kode rekap H/T/S/I/A/D/B → class .st-* (UI-SPEC-006 §4.1)
     $stClass = [
         'H' => 'st-hadir',
         'T' => 'st-terlambat',
@@ -112,6 +113,7 @@
         'I' => 'st-izin',
         'A' => 'st-alpha',
         'D' => 'st-dispen',
+        'B' => 'st-bolos',
     ];
     // Warna badge akumulasi (sinkron §4.1)
     $accMeta = [
@@ -121,6 +123,7 @@
         'izin'      => ['label' => 'I', 'color' => 'info'],
         'alpha'     => ['label' => 'A', 'color' => 'danger'],
         'dispen'    => ['label' => 'D', 'color' => 'primary'],
+        'bolos'     => ['label' => 'B', 'color' => 'dark'],
     ];
     $hasFilter = !empty($filters['kelas_id']);
     $exportParams = array_filter($filters);
@@ -256,7 +259,7 @@
         </div>
 
         <div class="d-flex align-items-center gap-2 flex-wrap">
-          {{-- Legend H·T·S·I·A·D --}}
+          {{-- Legend H·T·S·I·A·D·B --}}
           <div class="d-flex align-items-center gap-1">
             <span class="das-chip --success">H</span>
             <span class="das-chip --warning">T</span>
@@ -264,6 +267,7 @@
             <span class="das-chip --info">I</span>
             <span class="das-chip --danger">A</span>
             <span class="das-chip --primary">D</span>
+            <span class="das-chip --dark">B</span>
           </div>
 
           {{-- Rekap per Siswa (F-5) — bila daftar siswa tersedia --}}
@@ -307,6 +311,7 @@
                 <th class="text-center">I</th>
                 <th class="text-center">A</th>
                 <th class="text-center">D</th>
+                <th class="text-center">B</th>
                 <th class="text-center" style="min-width:80px;">% Hadir</th>
               </tr>
             </thead>
@@ -343,7 +348,7 @@
                     </td>
                   @endforeach
 
-                  @foreach (['hadir', 'terlambat', 'sakit', 'izin', 'alpha', 'dispen'] as $key)
+                  @foreach (['hadir', 'terlambat', 'sakit', 'izin', 'alpha', 'dispen', 'bolos'] as $key)
                     <td class="text-center">
                       <span class="badge bg-label-{{ $accMeta[$key]['color'] }} px-2 py-1 small">
                         {{ $acc[$key] ?? 0 }}
@@ -357,7 +362,7 @@
                 </tr>
               @empty
                 <tr>
-                  <td colspan="{{ $pertemuan->count() + 8 }}" class="text-center py-5 text-white-50 opacity-50 small">
+                  <td colspan="{{ $pertemuan->count() + 9 }}" class="text-center py-5 text-white-50 opacity-50 small">
                     Tidak ada siswa aktif di kelas ini.
                   </td>
                 </tr>

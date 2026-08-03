@@ -100,6 +100,17 @@
       box-shadow: 0 2px 6px rgba(0, 207, 232, 0.35);
     }
 
+    /* Status Bolos — Dark Glow */
+    .absensi-radios .btn-check:checked + .btn-outline-dark {
+      background-color: #4b4b4b !important;
+      border-color: #6e6b7b !important;
+      color: #fff !important;
+      box-shadow: 0 3px 10px rgba(110, 107, 123, 0.5) !important;
+    }
+    .absensi-radios .btn-outline-dark:hover {
+      box-shadow: 0 2px 6px rgba(110, 107, 123, 0.35);
+    }
+
     /* Roster row hover & focus */
     .siswa-row-hover {
       transition: background 0.15s ease;
@@ -371,6 +382,14 @@
                       <i class="ti tabler-stethoscope me-1"></i>Sakit
                     </label>
 
+                    {{-- BOLOS --}}
+                    <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_bolos"
+                      value="bolos" x-model="status" @change="$dispatch('roster-change')" data-roster-status
+                      @if (!$canEdit) disabled @endif>
+                    <label class="btn btn-outline-dark" for="status_{{ $i }}_bolos">
+                      <i class="ti tabler-walk me-1"></i>Bolos
+                    </label>
+
                   </div>
                   @error("rows.{$i}.status")
                     <div class="invalid-feedback d-block text-center mt-1">{{ $message }}</div>
@@ -434,6 +453,7 @@
             <span class="das-chip --danger"><i class="ti tabler-user-x me-1"></i>Alpha: <span x-text="counts.alpha" class="fw-bold">0</span></span>
             <span class="das-chip --warning"><i class="ti tabler-file-description me-1"></i>Izin: <span x-text="counts.izin" class="fw-bold">0</span></span>
             <span class="das-chip --info"><i class="ti tabler-stethoscope me-1"></i>Sakit: <span x-text="counts.sakit" class="fw-bold">0</span></span>
+            <span class="das-chip --secondary"><i class="ti tabler-walk me-1"></i>Bolos: <span x-text="counts.bolos" class="fw-bold">0</span></span>
           </div>
           <div class="d-flex align-items-center gap-2">
             <a href="{{ route('admin.absensi-per-jam.index', ['tanggal' => $tanggal]) }}" class="das-btn das-btn--ghost">
@@ -538,7 +558,7 @@
 
     function absensiRoster(config = {}) {
       return {
-        counts: { hadir: 0, terlambat: 0, sakit: 0, izin: 0, alpha: 0, dispen: 0 },
+        counts: { hadir: 0, terlambat: 0, sakit: 0, izin: 0, alpha: 0, dispen: 0, bolos: 0 },
         sesiTerisi: config.sesiTerisi || false,
         confirmMsg: 'Simpan absensi untuk seluruh siswa di kelas ini?',
         isOverwrite: false,
@@ -550,7 +570,7 @@
 
         // Hitung ulang counter status dari radio button ter-check (live)
         recount() {
-          const c = { hadir: 0, terlambat: 0, sakit: 0, izin: 0, alpha: 0, dispen: 0 };
+          const c = { hadir: 0, terlambat: 0, sakit: 0, izin: 0, alpha: 0, dispen: 0, bolos: 0 };
           document.querySelectorAll('[data-roster-status]:checked').forEach(radio => {
             if (c[radio.value] !== undefined) c[radio.value]++;
           });

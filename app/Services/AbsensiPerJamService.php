@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\DB;
  */
 class AbsensiPerJamService
 {
-    public const STATUS_LIST = ['hadir', 'terlambat', 'sakit', 'izin', 'alpha', 'dispen'];
+    public const STATUS_LIST = ['hadir', 'terlambat', 'sakit', 'izin', 'alpha', 'dispen', 'bolos'];
 
     public const STATUS_KODE = [
         'hadir'     => 'H',
@@ -37,6 +37,7 @@ class AbsensiPerJamService
         'izin'      => 'I',
         'alpha'     => 'A',
         'dispen'    => 'D',
+        'bolos'     => 'B',
     ];
 
     /**
@@ -391,6 +392,7 @@ class AbsensiPerJamService
                 'izin'      => 0,
                 'alpha'     => 0,
                 'dispen'    => 0,
+                'bolos'     => 0,
                 'persen'    => 0.0,
             ];
         }
@@ -473,10 +475,13 @@ class AbsensiPerJamService
                     'izin'      => 0,
                     'alpha'     => 0,
                     'dispen'    => 0,
+                    'bolos'     => 0,
                 ];
 
                 foreach ($items as $r) {
-                    $acc[$r->status]++;
+                    if (isset($acc[$r->status])) {
+                        $acc[$r->status]++;
+                    }
                     $acc['total']++;
                 }
 
@@ -494,6 +499,7 @@ class AbsensiPerJamService
                     'izin'           => $acc['izin'],
                     'alpha'          => $acc['alpha'],
                     'dispen'         => $acc['dispen'],
+                    'bolos'          => $acc['bolos'],
                     'persen'         => $acc['persen'],
                 ];
             })
