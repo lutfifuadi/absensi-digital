@@ -75,7 +75,14 @@ class JadwalAbsensiController extends Controller
 
         $globalJadwal = \App\Helpers\JadwalAbsensiHelper::getJadwalForKelas(0);
 
-        return view('admin.jadwal-absensi.index', compact('kelas', 'tingkat', 'tingkatOptions', 'allKelas', 'globalJadwal'));
+        // Load guru/staff attendance hour settings
+        $guruKeys = ['jam_mulai_absensi_guru', 'jam_masuk_guru', 'jam_batas_masuk_guru', 'jam_pulang_guru', 'jam_akhir_pulang_guru', 'jam_mulai_pulang_guru', 'toleransi_guru'];
+        $guruSettings = [];
+        foreach ($guruKeys as $key) {
+            $guruSettings[$key] = \App\Models\Pengaturan::where('key', $key)->value('value') ?? (\App\Support\PengaturanDefaults::definitions()[$key]['default'] ?? '');
+        }
+
+        return view('admin.jadwal-absensi.index', compact('kelas', 'tingkat', 'tingkatOptions', 'allKelas', 'globalJadwal', 'guruSettings'));
     }
 
     /**
@@ -380,5 +387,46 @@ class JadwalAbsensiController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * Simpan pengaturan jam absensi guru & staff (AJAX).
+     */
+    public function saveGuruSettings(Request $request)
+    {
+        $data = $request->validate([
+            'jam_mulai_absensi_guru' => 'required|date_format:H:i',
+            'jam_masuk_guru'         => 'required|date_format:H:i',
+            'jam_batas_masuk_guru'   => 'required|date_format:H:i',
+            'toleransi_guru'         => 'required|integer|min:0|max:60',
+            'jam_mulai_pulang_guru'  => 'required|date_format:H:i',
+            'jam_pulang_guru'        => 'required|date_format:H:i',
+            'jam_akhir_pulang_guru'  => 'required|date_format:H:i',
+        ]);
+
+        // Validasi urutan waktu
+        if (strtotime($data['jam_mulai_absensi_guru']) >= strtotime($data['jam_masuk_guru'])) {
+            return response()->json(['success' => false, 'message' => 'Jam Mulai Absensi harus lebih awal dari Jam Masuk.'], 422);
+        }
+        if (strtotime($data['jam_masuk_guru']) > strtotime($data['jam_batas_masuk_guru'])) {
+            return response()->json(['success' => false, 'message' => 'Jam Masuk harus lebih awal atau sama dengan Batas Jam Masuk.'], 422);
+        }
+        if (strtotime($data['jam_mulai_pulang_guru']) >= strtotime($data['jam_pulang_guru'])) {
+            return response()->json(['success' => false, 'message' => 'Jam Mulai Pulang harus lebih awal dari Jam Pulang.'], 422);
+        }
+        if (strtotime($data['jam_pulang_guru']) > strtotime($data['jam_akhir_pulang_guru'])) {
+            return response()->json(['success' => false, 'message' => 'Jam Pulang harus lebih awal atau sama dengan Batas Akhir Pulang.'], 422);
+        }
+
+        foreach ($data as $key => $value) {
+            \App\Models\Pengaturan::updateOrCreate(
+                ['key' => $key],
+                ['value' => $value]
+            );
+        }
+
+        \Illuminate\Support\Facades\Cache::forget('pengaturan_all');
+
+        return response()->json(['success' => true, 'message' => 'Jam absensi guru & staff berhasil disimpan.']);
     }
 }

@@ -509,6 +509,63 @@
     </div>
   @endif
 
+  {{-- ═══════════════════════════════════════════════════════════════
+       JAM ABSENSI GURU & STAFF
+  ═══════════════════════════════════════════════════════════════ --}}
+  <div class="das-panel mb-4">
+    <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center gap-2"
+      style="border-color:rgba(255,255,255,0.08) !important;">
+      <i class="ti tabler-users text-primary"></i>
+      <h6 class="das-panel__title mb-0">Jam Absensi Guru & Staff</h6>
+      <span class="badge bg-primary-subtle text-primary ms-2" style="font-size: 0.65rem;">Global Setting</span>
+    </div>
+    <div class="das-panel__body py-3 px-4">
+      <form id="formJamGuru" class="row g-3 align-items-end">
+        @csrf
+        <div class="col-md-3">
+          <label class="form-label text-white-50 small fw-bold">Jam Mulai Absensi</label>
+          <input type="time" class="form-control" name="jam_mulai_absensi_guru"
+            value="{{ $guruSettings['jam_mulai_absensi_guru'] ?? '06:00' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label text-white-50 small fw-bold">Jam Masuk</label>
+          <input type="time" class="form-control" name="jam_masuk_guru"
+            value="{{ $guruSettings['jam_masuk_guru'] ?? '07:00' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label text-white-50 small fw-bold">Batas Jam Masuk</label>
+          <input type="time" class="form-control" name="jam_batas_masuk_guru"
+            value="{{ $guruSettings['jam_batas_masuk_guru'] ?? '08:00' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label text-white-50 small fw-bold">Toleransi (Menit)</label>
+          <input type="number" class="form-control" name="toleransi_guru"
+            value="{{ $guruSettings['toleransi_guru'] ?? '15' }}" min="0" max="60">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label text-white-50 small fw-bold">Jam Mulai Scan Pulang</label>
+          <input type="time" class="form-control" name="jam_mulai_pulang_guru"
+            value="{{ $guruSettings['jam_mulai_pulang_guru'] ?? '14:00' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label text-white-50 small fw-bold">Jam Pulang</label>
+          <input type="time" class="form-control" name="jam_pulang_guru"
+            value="{{ $guruSettings['jam_pulang_guru'] ?? '15:00' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label text-white-50 small fw-bold">Batas Absen Pulang</label>
+          <input type="time" class="form-control" name="jam_akhir_pulang_guru"
+            value="{{ $guruSettings['jam_akhir_pulang_guru'] ?? '17:00' }}">
+        </div>
+        <div class="col-md-3">
+          <button type="submit" class="btn das-btn --primary w-100">
+            <i class="ti tabler-device-floppy me-1"></i> Simpan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   {{-- TABLE CARD --}}
   <div class="das-panel">
     <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3"
@@ -1235,6 +1292,42 @@
         <span class="jadwal-loading-text">Memuat jadwal...</span>
       `;
       currentJadwalData = {};
+    });
+
+    // ═══════════════════════════════════════════════════════════════
+    // FORM JAM GURU: AJAX SUBMIT
+    // ═══════════════════════════════════════════════════════════════
+    document.getElementById('formJamGuru').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const form = this;
+      const btn = form.querySelector('button[type="submit"]');
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ti tabler-loader me-1"></i> Menyimpan...';
+
+      try {
+        const fd = new FormData(form);
+        const res = await fetch('{{ route("admin.jadwal-absensi.save-guru-settings") }}', {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': fd.get('_token'),
+            'Accept': 'application/json',
+          },
+          body: fd,
+        });
+        const json = await res.json();
+        if (json.success) {
+          showToast(json.message, 'success');
+        } else {
+          showToast(json.message || 'Gagal menyimpan.', 'error');
+        }
+      } catch (err) {
+        showToast('Terjadi kesalahan jaringan.', 'error');
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
     });
   </script>
 @endsection
