@@ -739,6 +739,23 @@
               @endif
             </div>
 
+            <div class="set-field mb-4">
+              <label class="set-label">Password Login Scanner Ekskul Publik (/ekskul/scan-qr)</label>
+              <div class="set-input-group set-password-toggle">
+                <span class="set-input-prefix"><i class="ti tabler-lock-check"></i></span>
+                <input type="password" class="set-input" name="password_unlock_scan_ekskul"
+                  placeholder="Isi untuk mengubah PIN khusus ekskul..." autocomplete="new-password">
+                <button type="button" class="set-input-eye">
+                  <i class="ti tabler-eye-off"></i>
+                </button>
+              </div>
+              @if (!empty($settings['password_unlock_scan_ekskul_set']))
+                <div class="set-field-hint --success"><i class="ti tabler-check"></i> PIN Ekskul Terpisah: AKTIF</div>
+              @else
+                <div class="set-field-hint --info"><i class="ti tabler-info-circle"></i> PIN Ekskul Terpisah: Belum diisi (Menggunakan Password Scanner Publik)</div>
+              @endif
+            </div>
+
             <div class="set-field">
               <label class="set-label">Password Absensi Cepat Publik</label>
               <div class="set-input-group set-password-toggle">

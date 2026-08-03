@@ -193,6 +193,15 @@ Route::prefix('panduan')->name('guide.')->group(function () {
 Route::get('/scan-ekskul', function () {
     return view('scan-ekskul');
 })->name('public.scan-ekskul');
+
+// ── Halaman Scan Ekskul oleh Pembina (publik — tanpa login, pakai PIN/passcode) ──
+Route::prefix('ekskul/scan-qr')->name('public.ekskul.scan.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\PublicEkskulScanController::class, 'index'])->name('index');
+    Route::post('/auth', [\App\Http\Controllers\PublicEkskulScanController::class, 'auth'])->name('auth')->middleware('throttle:5,15');
+    Route::get('/scanner', [\App\Http\Controllers\PublicEkskulScanController::class, 'scanner'])->name('scanner');
+    Route::post('/process', [\App\Http\Controllers\PublicEkskulScanController::class, 'process'])->name('process')->middleware('throttle:120,1');
+    Route::post('/logout', [\App\Http\Controllers\PublicEkskulScanController::class, 'logout'])->name('logout');
+});
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── Halaman Live Board Publik (tanpa login) ───────────────────────────────────

@@ -164,6 +164,8 @@ class PengaturanController extends Controller
         // Jangan tampilkan hash password, hanya status apakah sudah diset
         $settings['scan_qr_password_set'] = !empty($settings['password_unlock_scan_qr']);
         $settings['password_unlock_scan_qr'] = '';
+        $settings['password_unlock_scan_ekskul_set'] = !empty($settings['password_unlock_scan_ekskul']);
+        $settings['password_unlock_scan_ekskul'] = '';
         $settings['password_absensi_cepat_set'] = !empty($settings['password_absensi_cepat']);
         $settings['password_absensi_cepat'] = '';
 
@@ -260,6 +262,13 @@ class PengaturanController extends Controller
             $data['password_unlock_scan_qr'] = Hash::make($data['password_unlock_scan_qr']);
         } else {
             unset($data['password_unlock_scan_qr']);
+        }
+
+        // Hash password scan ekskul jika diisi, atau hapus dari $data jika kosong
+        if (!empty($data['password_unlock_scan_ekskul'])) {
+            $data['password_unlock_scan_ekskul'] = Hash::make($data['password_unlock_scan_ekskul']);
+        } else {
+            unset($data['password_unlock_scan_ekskul']);
         }
 
         // Hash password absensi cepat jika diisi, atau hapus dari $data jika kosong

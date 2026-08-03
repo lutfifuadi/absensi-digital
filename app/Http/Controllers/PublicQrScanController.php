@@ -1501,9 +1501,9 @@ class PublicQrScanController extends Controller
             $staffQuery = AbsensiStaff::with('staff')->whereDate('tanggal', $today);
 
             if ($mode === 'pulang') {
-                $siswaQuery->whereNotNull('jam_pulang');
-                $guruQuery->whereNotNull('jam_pulang');
-                $staffQuery->whereNotNull('jam_pulang');
+                $siswaQuery->whereNotNull('jam_pulang')->where('jam_pulang', '>=', '11:00:00');
+                $guruQuery->whereNotNull('jam_pulang')->where('jam_pulang', '>=', '11:00:00');
+                $staffQuery->whereNotNull('jam_pulang')->where('jam_pulang', '>=', '11:00:00');
             } else {
                 $siswaQuery->whereNotNull('jam_masuk')->whereIn('status', ['hadir', 'terlambat']);
                 $guruQuery->whereNotNull('jam_masuk')->whereIn('status', ['hadir', 'terlambat']);
@@ -1572,9 +1572,9 @@ class PublicQrScanController extends Controller
             $totalCivitas = $totalSiswa + $totalGuru + $totalStaff;
 
             if ($mode === 'pulang') {
-                $checkedOutSiswa = AbsensiSiswa::whereDate('tanggal', $today)->whereNotNull('jam_pulang')->count();
-                $checkedOutGuru  = AbsensiGuru::whereDate('tanggal', $today)->whereNotNull('jam_pulang')->count();
-                $checkedOutStaff = AbsensiStaff::whereDate('tanggal', $today)->whereNotNull('jam_pulang')->count();
+                $checkedOutSiswa = AbsensiSiswa::whereDate('tanggal', $today)->whereNotNull('jam_pulang')->where('jam_pulang', '>=', '11:00:00')->count();
+                $checkedOutGuru  = AbsensiGuru::whereDate('tanggal', $today)->whereNotNull('jam_pulang')->where('jam_pulang', '>=', '11:00:00')->count();
+                $checkedOutStaff = AbsensiStaff::whereDate('tanggal', $today)->whereNotNull('jam_pulang')->where('jam_pulang', '>=', '11:00:00')->count();
 
                 $checkedOutTotal = $checkedOutSiswa + $checkedOutGuru + $checkedOutStaff;
                 $remaining = max(0, $totalCivitas - $checkedOutTotal);

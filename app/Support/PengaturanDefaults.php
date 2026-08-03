@@ -640,6 +640,17 @@ class PengaturanDefaults
                 'tenant_scoped' => false,
                 'permission'    => 'admin_sekolah',
             ],
+            'password_unlock_scan_ekskul' => [
+                'default'       => '',
+                'type'          => 'string',
+                'group'         => 'keamanan',
+                'label'         => 'Password Unlock Scanner Ekskul',
+                'description'   => 'Password pengunci layar scan presensi ekskul.',
+                'icon'          => 'tabler-lock-check',
+                'is_toggle'     => false,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
             'latitude' => [
                 'default'       => '-6.922405',
                 'type'          => 'string',
