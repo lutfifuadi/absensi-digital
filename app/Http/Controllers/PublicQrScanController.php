@@ -225,6 +225,8 @@ class PublicQrScanController extends Controller
                     ]);
                 }
 
+                $isTanpaMasuk = false;
+
                 if (!$absensi) {
                     $absensi = AbsensiSiswa::create([
                         'siswa_id'   => $siswa->id,
@@ -233,27 +235,41 @@ class PublicQrScanController extends Controller
                         'jam_masuk'  => null,
                         'jam_pulang' => $currentTime,
                         'status'     => 'hadir',
-                        'keterangan' => 'Scan QR pulang publik',
+                        'keterangan' => 'Scan QR pulang (Tanpa presensi masuk pagi)',
                         'guru_id'    => null,
                         'metode'     => 'qr',
                     ]);
+                    $isTanpaMasuk = true;
                 } else {
                     $absensi->update(['jam_pulang' => $currentTime]);
+                    if (empty($absensi->jam_masuk)) {
+                        $isTanpaMasuk = true;
+                        if (empty($absensi->keterangan)) {
+                            $absensi->update(['keterangan' => 'Scan QR pulang (Tanpa presensi masuk pagi)']);
+                        }
+                    }
                 }
                 Cache::forget('live_board_leaderboard_data');
 
                 QrScanLogger::info('QR_SCAN_PULANG_SUCCESS', [
-                    'ip'      => $ip,
-                    'siswa'   => $siswa->nama_lengkap,
-                    'kelas'   => $siswa->kelas?->nama ?? '-',
-                    'jam'     => $currentTime,
-                    'tanggal' => $tanggal,
+                    'ip'          => $ip,
+                    'siswa'       => $siswa->nama_lengkap,
+                    'kelas'       => $siswa->kelas?->nama ?? '-',
+                    'jam'         => $currentTime,
+                    'tanggal'     => $tanggal,
+                    'tanpa_masuk' => $isTanpaMasuk,
                 ]);
 
+                $message = $isTanpaMasuk
+                    ? 'Jam pulang ' . $siswa->nama_lengkap . ' tercatat. ⚠️ Peringatan: Tidak terdaftar presensi masuk pagi ini.'
+                    : 'Selamat beristirahat! Jam pulang ' . $siswa->nama_lengkap . ' tercatat.';
+
                 return response()->json([
-                    'success' => true,
-                    'message' => 'Selamat beristirahat! Jam pulang ' . $siswa->nama_lengkap . ' tercatat.',
-                    'siswa'   => [
+                    'success'  => true,
+                    'warning'  => $isTanpaMasuk,
+                    'no_masuk' => $isTanpaMasuk,
+                    'message'  => $message,
+                    'siswa'    => [
                         'nama'  => $siswa->nama_lengkap,
                         'kelas' => $siswa->kelas?->nama ?? '-',
                         'jam'   => substr($currentTime, 0, 5),

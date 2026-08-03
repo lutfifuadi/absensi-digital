@@ -172,6 +172,9 @@ class AbsensiSiswaObserver
                 $pesan .= "Membagikan informasi kepulangan untuk:\n";
                 $pesan .= "📅 *Tanggal*: {$tanggal}\n";
                 $pesan .= "⏰ *Jam Kepulangan*: {$waktu}\n\n";
+                if (empty($absensi->jam_masuk)) {
+                    $pesan .= "⚠️ *Peringatan*: Siswa tercatat tidak melakukan presensi masuk di pagi hari.\n\n";
+                }
                 $pesan .= "Semoga selamat sampai di rumah.\n\n";
             }
         }
