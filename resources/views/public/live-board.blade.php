@@ -1491,13 +1491,13 @@ function playTickSound() {
     const now = ctx.currentTime;
     osc.type = 'sine';
     osc.frequency.setValueAtTime(1200, now);
-    osc.frequency.exponentialRampToValueAtTime(400, now + 0.015);
-    gain.gain.setValueAtTime(0.04, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.015);
+    osc.frequency.exponentialRampToValueAtTime(400, now + 0.02);
+    gain.gain.setValueAtTime(0.10, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.02);
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start(now);
-    osc.stop(now + 0.015);
+    osc.stop(now + 0.02);
     osc.onended = () => { osc.disconnect(); gain.disconnect(); };
   } catch (_) {}
 }
