@@ -418,7 +418,13 @@
           </div>
           <div class="set-panel__body">
 
-            {{-- Row 1: Masuk Window --}}
+            {{-- ══ JAM ABSENSI SISWA ══ --}}
+            <div class="set-section-label mb-2">
+              <i class="ti tabler-school" style="font-size: 1.1rem; color: var(--das-warning);"></i>
+              <span>Jam Absensi Siswa</span>
+            </div>
+
+            {{-- Row 1: Sesi Masuk Siswa --}}
             <div class="set-time-cards mb-3">
               <div class="set-time-card set-time-card--masuk" style="border-style: dashed; opacity: 0.85;">
                 <div class="set-time-card__icon"><i class="ti tabler-clock-play"></i></div>
@@ -453,8 +459,20 @@
               </div>
             </div>
 
-            {{-- Row 2: Pulang Window --}}
-            <div class="set-time-cards">
+            {{-- Row 2: Sesi Pulang Siswa --}}
+            <div class="set-time-cards mb-4">
+              <div class="set-time-card set-time-card--pulang" style="border-style: dashed; opacity: 0.85;">
+                <div class="set-time-card__icon"><i class="ti tabler-clock-play"></i></div>
+                <div class="set-time-card__label">Mulai Boleh Scan Pulang</div>
+                <input type="time" name="jam_mulai_pulang" class="set-time-input"
+                  value="{{ old('jam_mulai_pulang', $settings['jam_mulai_pulang'] ?? '14:00') }}">
+                <div class="set-time-card__hint">Awal buka scan pulang</div>
+              </div>
+              <div class="set-time-card__divider">
+                <div class="set-time-card__divider-line"></div>
+                <div class="set-time-card__divider-icon"><i class="ti tabler-arrow-right"></i></div>
+                <div class="set-time-card__divider-line"></div>
+              </div>
               <div class="set-time-card set-time-card--pulang">
                 <div class="set-time-card__icon"><i class="ti tabler-moon"></i></div>
                 <div class="set-time-card__label">Jam Pulang</div>
@@ -476,26 +494,16 @@
               </div>
             </div>
 
-            <div class="set-form-grid mt-4">
+            <div class="set-form-grid mt-3">
               <div class="set-field">
-                <label class="set-label">Mulai Boleh Scan Pulang</label>
-                <div class="set-input-group">
-                  <span class="set-input-prefix"><i class="ti tabler-clock-play"></i></span>
-                  <input type="time" class="set-input" name="jam_mulai_pulang"
-                    value="{{ old('jam_mulai_pulang', $settings['jam_mulai_pulang'] ?? '14:00') }}">
-                </div>
-                <div class="set-field-hint --info"><i class="ti tabler-info-circle"></i> Earliest time to scan out</div>
-              </div>
-
-              <div class="set-field">
-                <label class="set-label">Toleransi Keterlambatan (Menit)</label>
+                <label class="set-label">Toleransi Keterlambatan Siswa (Menit)</label>
                 <div class="set-input-group">
                   <span class="set-input-prefix"><i class="ti tabler-hourglass-low"></i></span>
                   <input type="number" class="set-input" name="toleransi_terlambat"
                     value="{{ old('toleransi_terlambat', $settings['toleransi_terlambat'] ?? '15') }}">
                   <span class="set-input-suffix">Menit</span>
                 </div>
-                <div class="set-field-hint --warning"><i class="ti tabler-info-circle"></i> Setelah Jam Masuk</div>
+                <div class="set-field-hint --warning"><i class="ti tabler-info-circle"></i> Setelah Jam Masuk Siswa</div>
               </div>
 
               <div class="set-field">
@@ -507,18 +515,20 @@
                     min="0" max="100">
                   <span class="set-input-suffix">%</span>
                 </div>
+                <div class="set-field-hint --info"><i class="ti tabler-info-circle"></i> Persentase minimal syarat kehadiran</div>
               </div>
             </div>
 
             {{-- ══ JAM ABSENSI GURU & STAFF ══ --}}
-            <div class="set-section-label mt-4" style="display: flex; align-items: center; gap: 8px;">
-              <i class="ti tabler-users" style="font-size: 1.1rem; color: var(--primary);"></i>
+            <div class="set-section-label mt-5 mb-2">
+              <i class="ti tabler-users" style="font-size: 1.1rem; color: var(--das-primary);"></i>
               <span>Jam Absensi Guru & Staff</span>
             </div>
             <div class="set-field-hint --info mb-3"><i class="ti tabler-info-circle"></i> Pengaturan jam khusus untuk guru dan staf tata usaha</div>
 
-            <div class="set-time-cards">
-              <div class="set-time-card">
+            {{-- Row 1: Sesi Masuk Guru --}}
+            <div class="set-time-cards mb-3">
+              <div class="set-time-card set-time-card--masuk" style="border-style: dashed; opacity: 0.85;">
                 <div class="set-time-card__icon"><i class="ti tabler-clock-play"></i></div>
                 <div class="set-time-card__label">Jam Mulai Absensi</div>
                 <input type="time" name="jam_mulai_absensi_guru" class="set-time-input"
@@ -551,7 +561,20 @@
               </div>
             </div>
 
-            <div class="set-time-cards">
+            {{-- Row 2: Sesi Pulang Guru --}}
+            <div class="set-time-cards mb-4">
+              <div class="set-time-card set-time-card--pulang" style="border-style: dashed; opacity: 0.85;">
+                <div class="set-time-card__icon"><i class="ti tabler-clock-play"></i></div>
+                <div class="set-time-card__label">Mulai Boleh Scan Pulang</div>
+                <input type="time" name="jam_mulai_pulang_guru" class="set-time-input"
+                  value="{{ old('jam_mulai_pulang_guru', $settings['jam_mulai_pulang_guru'] ?? '14:00') }}">
+                <div class="set-time-card__hint">Awal buka scan pulang guru</div>
+              </div>
+              <div class="set-time-card__divider">
+                <div class="set-time-card__divider-line"></div>
+                <div class="set-time-card__divider-icon"><i class="ti tabler-arrow-right"></i></div>
+                <div class="set-time-card__divider-line"></div>
+              </div>
               <div class="set-time-card set-time-card--pulang">
                 <div class="set-time-card__icon"><i class="ti tabler-moon"></i></div>
                 <div class="set-time-card__label">Jam Pulang</div>
@@ -573,17 +596,7 @@
               </div>
             </div>
 
-            <div class="set-form-grid mt-4">
-              <div class="set-field">
-                <label class="set-label">Mulai Boleh Scan Pulang</label>
-                <div class="set-input-group">
-                  <span class="set-input-prefix"><i class="ti tabler-clock-play"></i></span>
-                  <input type="time" class="set-input" name="jam_mulai_pulang_guru"
-                    value="{{ old('jam_mulai_pulang_guru', $settings['jam_mulai_pulang_guru'] ?? '14:00') }}">
-                </div>
-                <div class="set-field-hint --info"><i class="ti tabler-info-circle"></i> Earliest time guru/staf boleh scan pulang</div>
-              </div>
-
+            <div class="set-form-grid mt-3">
               <div class="set-field">
                 <label class="set-label">Toleransi Keterlambatan Guru (Menit)</label>
                 <div class="set-input-group">
@@ -594,7 +607,9 @@
                 </div>
                 <div class="set-field-hint --warning"><i class="ti tabler-info-circle"></i> Setelah Jam Masuk Guru</div>
               </div>
-            </div>
+
+              <div class="set-field">
+                <label class="set-label">Zona Waktu Sistem</label>
                 <div class="select2-wrapper" style="position: relative;">
                   <select class="select2 form-select" name="zona_waktu">
                     @foreach(['Asia/Jakarta (WIB)','Asia/Makassar (WITA)','Asia/Jayapura (WIT)'] as $tz)
@@ -602,8 +617,10 @@
                     @endforeach
                   </select>
                 </div>
+                <div class="set-field-hint --info"><i class="ti tabler-info-circle"></i> Zona waktu utama presensi</div>
               </div>
             </div>
+
           </div>
         </div>
       </div>
@@ -628,6 +645,7 @@
               @php
                 $toggles = [
                   ['name'=>'tampilkan_beranda',              'label'=>'Tampilkan Landing Page', 'sub'=>'Tampilkan halaman beranda saat akses awal', 'color'=>'primary', 'icon' => 'tabler-home-heart'],
+                  ['name'=>'fitur_absensi_cepat_publik',      'label'=>'Absensi Cepat Publik',  'sub'=>'Aktifkan halaman absensi cepat tanpa login untuk piket', 'color'=>'primary', 'icon' => 'tabler-bolt'],
                   ['name'=>'lock_device_pc',                 'label'=>'Kunci Perangkat PC',    'sub'=>'Lock akses scanner hanya untuk device terdaftar', 'color'=>'warning', 'icon' => 'tabler-device-desktop'],
                   ['name'=>'fitur_absensi_mandiri',          'label'=>'Absensi Mandiri Siswa', 'sub'=>'Izinkan siswa presensi mandiri dari portal siswa', 'color'=>'success', 'icon' => 'tabler-device-mobile-check-in'],
                   ['name'=>'izinkan_lokasi_absensi_mandiri', 'label'=>'Validasi Lokasi Mandiri', 'sub'=>'Kunci absensi mandiri dalam radius lokasi sekolah', 'color'=>'primary', 'icon' => 'tabler-map-pin'],
@@ -704,7 +722,7 @@
                 <span>Gunakan password di bawah untuk memproteksi laman <code>/scan-qr</code>.</span>
               </div>
             </div>
-            <div class="set-field">
+            <div class="set-field mb-4">
               <label class="set-label">Password Login Scanner Publik</label>
               <div class="set-input-group set-password-toggle">
                 <span class="set-input-prefix"><i class="ti tabler-lock"></i></span>
@@ -718,6 +736,29 @@
                 <div class="set-field-hint --success"><i class="ti tabler-check"></i> Proteksi Scanner: AKTIF</div>
               @else
                 <div class="set-field-hint --warning"><i class="ti tabler-alert-triangle"></i> Proteksi Scanner: BELUM AKTIF</div>
+              @endif
+            </div>
+
+            <div class="set-field">
+              <label class="set-label">Password Absensi Cepat Publik</label>
+              <div class="set-input-group set-password-toggle">
+                <span class="set-input-prefix"><i class="ti tabler-lock-bolt"></i></span>
+                <input type="password" class="set-input" name="password_absensi_cepat"
+                  placeholder="Isi untuk mengubah, kosongkan jika tetap..." autocomplete="new-password">
+                <button type="button" class="set-input-eye">
+                  <i class="ti tabler-eye-off"></i>
+                </button>
+              </div>
+              @if (!empty($settings['password_absensi_cepat']))
+                <div class="set-field-hint --success">
+                  <i class="ti tabler-check"></i> Proteksi Absensi Cepat: <span class="badge bg-label-success">Set</span>
+                  <a href="/absensi-cepat" target="_blank" class="ms-2 text-primary text-decoration-underline">Buka Link</a>
+                </div>
+              @else
+                <div class="set-field-hint --warning">
+                  <i class="ti tabler-alert-triangle"></i> Proteksi Absensi Cepat: <span class="badge bg-label-secondary">Belum Diatur</span>
+                  <a href="/absensi-cepat" target="_blank" class="ms-2 text-primary text-decoration-underline">Buka Link</a>
+                </div>
               @endif
             </div>
 
@@ -1935,8 +1976,6 @@
       <span>Simpan Semua Konfigurasi</span>
     </button>
   </div>
-
-</div>
 
 @endsection
 

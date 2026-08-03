@@ -137,6 +137,20 @@ Route::prefix('scan-qr')->name('public.scan-qr.')->group(function () {
         ->name('search');
 });
 
+// ── Absensi Cepat Publik ──────────────────────────────────────────────────────
+Route::prefix('absensi-cepat')->name('public.absensi-cepat.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\PublicAbsensiCepatController::class, 'index'])->name('index');
+    Route::post('/auth', [\App\Http\Controllers\PublicAbsensiCepatController::class, 'auth'])->name('auth')->middleware('throttle:5,15');
+    Route::post('/logout', [\App\Http\Controllers\PublicAbsensiCepatController::class, 'logout'])->name('logout');
+
+    Route::middleware(['absensi.cepat.auth'])->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\PublicAbsensiCepatController::class, 'dashboard'])->name('dashboard');
+        Route::get('/siswa/{kelasId}', [\App\Http\Controllers\PublicAbsensiCepatController::class, 'getSiswaByKelas'])->name('siswa');
+        Route::post('/scan', [\App\Http\Controllers\PublicAbsensiCepatController::class, 'processQr'])->name('scan')->middleware('throttle:120,1');
+        Route::post('/bulk', [\App\Http\Controllers\PublicAbsensiCepatController::class, 'storeBulk'])->name('bulk');
+    });
+});
+
 // Scan absensi kegiatan publik ber-password tanpa lock device
 Route::prefix('kegiatan/scan-publik')->name('public.kegiatan.')->group(function () {
     Route::get('/', [PublicKegiatanController::class, 'index'])->name('index');

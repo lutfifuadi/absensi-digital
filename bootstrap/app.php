@@ -26,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role'           => \App\Http\Middleware\RoleMiddleware::class,
             'ortu'           => \App\Http\Middleware\OrangTuaMiddleware::class,
             'qr.scan.auth'   => \App\Http\Middleware\QrScanAuth::class,
+            'absensi.cepat.auth' => \App\Http\Middleware\AbsensiCepatAuth::class,
             'device.trusted' => \App\Http\Middleware\CheckAuthorizedDevice::class,
             'pmbm.api.key'   => \App\Http\Middleware\ValidatePmbmApiKey::class,
             'tenant'         => \App\Http\Middleware\LocaleMiddleware::class, // Fallback alias
