@@ -12,49 +12,76 @@
       transition: all .2s ease;
     }
 
-    /* Strict max 5px border-radius */
+    /* Strict max 5px border-radius and uniform 42px height for perfect alignment */
     .form-control, .form-select, .btn, .input-group-text {
       border-radius: 5px !important;
+      height: 42px !important;
+      font-size: 0.85rem !important;
+    }
+    textarea.form-control {
+      height: auto !important;
     }
 
     /* Custom Single Live Search Styles */
     .selected-siswa-card {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      border-radius: 5px;
-      padding: 0.55rem 0.85rem;
+      gap: 0.65rem;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 5px !important;
+      padding: 0.35rem 0.75rem;
+      height: 42px !important;
+      box-sizing: border-box;
     }
     .ssc-avatar {
-      width: 36px;
-      height: 36px;
+      width: 26px;
+      height: 26px;
       border-radius: 5px;
       background: linear-gradient(135deg, #10b981, #059669);
       color: #fff;
       font-weight: 800;
-      font-size: 0.85rem;
+      font-size: 0.75rem;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
     }
-    .ssc-info { flex: 1; min-width: 0; }
-    .ssc-name { font-weight: 700; font-size: 0.88rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .ssc-sub  { font-size: 0.72rem; color: #94a3b8; margin-top: 1px; }
+    .ssc-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      overflow: hidden;
+    }
+    .ssc-name {
+      font-weight: 700;
+      font-size: 0.82rem;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ssc-sub {
+      font-size: 0.72rem;
+      color: #94a3b8;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
     .ssc-remove-btn {
-      background: rgba(234, 84, 85, 0.15);
-      border: 1px solid rgba(234, 84, 85, 0.3);
+      background: rgba(234, 84, 85, 0.12);
+      border: 1px solid rgba(234, 84, 85, 0.25);
       color: #ea5455;
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       border-radius: 5px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       transition: all 0.2s;
+      flex-shrink: 0;
     }
     .ssc-remove-btn:hover {
       background: #ea5455;
@@ -171,7 +198,7 @@
                   <div class="ssc-avatar" id="sscAvatar">A</div>
                   <div class="ssc-info">
                     <div class="ssc-name" id="sscName">Nama Siswa</div>
-                    <div class="ssc-sub" id="sscSub">Kelas · NIS</div>
+                    <div class="ssc-sub" id="sscSub">· NIS: -</div>
                   </div>
                   <button type="button" class="ssc-remove-btn" id="btnRemoveSelectedSiswa" title="Ganti Pilihan Siswa">
                     <i class="ti tabler-x"></i>
@@ -191,7 +218,7 @@
                   <i class="ti tabler-door me-1 text-info"></i> Kelas <span class="text-danger">*</span>
                 </label>
                 <input type="hidden" id="kelas_id" name="kelas_id" value="{{ old('kelas_id', $absensiSiswa->kelas_id ?? '') }}" required>
-                <div class="input-group">
+                <div class="input-group" style="height: 42px;">
                   <input type="text" id="kelas_display" class="form-control" placeholder="Pilih siswa terlebih dahulu..." readonly style="background: rgba(255,255,255,0.03); cursor: not-allowed; color: #e2e8f0; font-weight: 600;">
                   <span class="input-group-text" style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: #10b981;" title="Kelas otomatis terisi & terkunci dari data siswa">
                     <i class="ti tabler-lock-check"></i>
@@ -288,10 +315,10 @@
 
             <div class="d-flex align-items-center justify-content-end gap-3 pt-4 mt-2 border-top"
               style="border-color:rgba(255,255,255,0.08) !important;">
-              <a href="{{ route('admin.absensi-siswa.index') }}" class="btn das-btn --secondary">
+              <a href="{{ route('admin.absensi-siswa.index') }}" class="btn das-btn --secondary" style="height: 38px !important;">
                 <i class="ti tabler-arrow-left me-1"></i> Kembali
               </a>
-              <button type="submit" class="btn das-btn --primary" style="background:#7367f0; color:#fff; border-color:#7367f0;">
+              <button type="submit" class="btn das-btn --primary" style="background:#7367f0; color:#fff; border-color:#7367f0; height: 38px !important;">
                 <i class="ti tabler-device-floppy me-1"></i>
                 {{ isset($absensiSiswa) ? 'Perbarui Absensi' : 'Simpan Absensi' }}
               </button>
@@ -336,7 +363,7 @@
         hiddenInput.value = siswa.id;
         sscAvatar.innerText = (siswa.nama || '?').charAt(0).toUpperCase();
         sscName.innerText = siswa.nama;
-        sscSub.innerText = `Kelas: ${siswa.kelas_nama} · NIS: ${siswa.nis}`;
+        sscSub.innerText = `· NIS: ${siswa.nis}`;
 
         // Auto-fill & lock field Kelas
         if (hiddenKelasInput && kelasDisplay) {
@@ -389,7 +416,7 @@
 
         searchResults.innerHTML = filtered.map(s => `
           <div class="siswa-search-item" data-id="${s.id}">
-            <div style="width: 28px; height: 28px; border-radius: 5px; background: rgba(115, 103, 240, 0.2); color: #7367f0; font-weight: 700; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <div style="width: 26px; height: 26px; border-radius: 5px; background: rgba(115, 103, 240, 0.2); color: #7367f0; font-weight: 700; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
               ${(s.nama || '?').charAt(0).toUpperCase()}
             </div>
             <div style="flex: 1; min-width: 0;">
