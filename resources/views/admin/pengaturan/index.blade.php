@@ -545,7 +545,8 @@
                 $toggles = [
                   ['name'=>'tampilkan_beranda',              'label'=>'Tampilkan Landing Page', 'sub'=>'Tampilkan halaman beranda saat akses awal', 'color'=>'primary', 'icon' => 'tabler-home-heart'],
                   ['name'=>'lock_device_pc',                 'label'=>'Kunci Perangkat PC',    'sub'=>'Lock akses scanner hanya untuk device terdaftar', 'color'=>'warning', 'icon' => 'tabler-device-desktop'],
-                  ['name'=>'izinkan_lokasi_absensi_mandiri', 'label'=>'Validasi Lokasi Siswa', 'sub'=>'Kunci absensi dalam radius sekolah', 'color'=>'primary', 'icon' => 'tabler-map-pin'],
+                  ['name'=>'fitur_absensi_mandiri',          'label'=>'Absensi Mandiri Siswa', 'sub'=>'Izinkan siswa presensi mandiri dari portal siswa', 'color'=>'success', 'icon' => 'tabler-device-mobile-check-in'],
+                  ['name'=>'izinkan_lokasi_absensi_mandiri', 'label'=>'Validasi Lokasi Mandiri', 'sub'=>'Kunci absensi mandiri dalam radius lokasi sekolah', 'color'=>'primary', 'icon' => 'tabler-map-pin'],
                   ['name'=>'deteksi_fake_gps',               'label'=>'Anti Fake GPS',         'sub'=>'Deteksi & cegah mock-location',    'color'=>'danger', 'icon' => 'tabler-shield-x'],
                   ['name'=>'izinkan_lokasi_scan_qr',         'label'=>'Scanner Publik Lokasi',  'sub'=>'Minta GPS di laman QR publik',     'color'=>'success', 'icon' => 'tabler-qrcode'],
                   ['name'=>'ijinkan_pembuatan_akun_mandiri', 'label'=>'Pendaftaran Akun Mandiri', 'sub'=>'Izinkan pengguna daftar akun sendiri di landing page', 'color'=>'info', 'icon' => 'tabler-user-plus'],

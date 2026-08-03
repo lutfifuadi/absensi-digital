@@ -743,11 +743,16 @@ class PublicQrScanController extends Controller
             $liburReason = 'Semua kelas tidak ada jadwal hari ini';
         }
 
+        $liveFont        = $settings['live_board_font_family']         ?? 'Product Sans';
+        $liveCounterFont = $settings['live_board_counter_font_family'] ?? 'Courier New';
+        $liveCounterColor= $settings['live_board_counter_color']       ?? '#7367f0';
+
         return view('public.live-board', compact(
             'namaSekolah', 'logoSekolah', 'jamMasukCfg', 'jamMulaiAbsensi', 'toleransi', 'announcement',
             'leaderboardAwal', 'leaderboardTerbaru', 'stats', 'totalKapasitasSiswa', 'mode',
             'tahunAktif', 'sloganSekolah', 'kotaSekolah', 'zoneAbbr', 'utcOffset', 'ianaTimezone',
-            'isHariLibur', 'liburReason'
+            'isHariLibur', 'liburReason',
+            'liveFont', 'liveCounterFont', 'liveCounterColor'
         ));
     }
 
@@ -793,7 +798,8 @@ class PublicQrScanController extends Controller
         $tanggal        = now()->toDateString();
 
         // PRD-016: Load jadwal per kelas SEBELUM time check "belum dibuka" (untuk liveBoardScan)
-        $siswaLookup = Siswa::where('qr_code', $qrCode)->first();
+        // FIX #1: Eager load kelas sekaligus, tidak query ulang di dalam transaction
+        $siswaLookup = Siswa::with('kelas')->where('qr_code', $qrCode)->first();
         if ($siswaLookup && $siswaLookup->kelas_id) {
             $jadwalKelas = \App\Helpers\JadwalAbsensiHelper::getJadwalForKelas($siswaLookup->kelas_id);
             $jamMulaiAbsensi = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_mulai_absensi']) ?? $jamMulaiAbsensi;
@@ -812,8 +818,6 @@ class PublicQrScanController extends Controller
             ]);
         }
 
-        return DB::transaction(function () use ($mode, $qrCode, $ip, $jamMasuk, $jamBatasMasuk, $jamMulaiPulang, $jamAkhirPulang, $toleransi, $currentTime, $tanggal) {
-
         // Helper untuk invalidate leaderboard cache
         $forgetCache = function() {
             Cache::forget('live_board_leaderboard_data_otomatis');
@@ -821,21 +825,12 @@ class PublicQrScanController extends Controller
             Cache::forget('live_board_leaderboard_data_pulang');
         };
 
-        // 1. Cek Siswa
-        $siswa = Siswa::with('kelas')->where('qr_code', $qrCode)->first();
-        if ($siswa) {
-            // PRD-016: Load jadwal absensi per kelas per hari (override untuk logika di dalam transaction)
-            if ($siswa->kelas_id) {
-                $jadwalKelas = \App\Helpers\JadwalAbsensiHelper::getJadwalForKelas($siswa->kelas_id);
-                $jamMulaiAbsensi = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_mulai_absensi']) ?? '06:00';
-                $jamMasuk        = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_masuk']) ?? '07:00';
-                $jamPulang       = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_pulang']) ?? '15:00';
-                $jamAkhirPulang  = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_akhir_pulang']) ?? '17:00';
-                $jamMulaiPulang  = $jamPulang;
-                $toleransi       = (int)($settings['toleransi_terlambat'] ?? 15);
-                $jamBatasMasuk   = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['batas_jam_masuk']) ?? \Carbon\Carbon::parse($jamMasuk)->addMinutes($toleransi)->format('H:i');
-            }
+        // === SEMUA READ DI LUAR TRANSACTION ===
 
+        // 1. Cek Siswa — gunakan $siswaLookup yang sudah di-query + eager load kelas
+        $siswa = $siswaLookup;
+        if ($siswa) {
+            // === READ: holiday check (di luar transaction) ===
             if (\App\Models\Holiday::isSiswaHoliday($siswa, $tanggal)) {
                 $holidayName = \App\Models\Holiday::whereDate('tanggal', $tanggal)
                     ->where(function ($query) use ($siswa) {
@@ -863,6 +858,7 @@ class PublicQrScanController extends Controller
                 ]);
             }
 
+            // === READ: cek absensi existing (di luar transaction) ===
             $absensi = AbsensiSiswa::where('siswa_id', $siswa->id)->whereDate('tanggal', $tanggal)->first();
 
             // PULANG MODE
@@ -875,27 +871,37 @@ class PublicQrScanController extends Controller
                     ]);
                 }
 
-                if ($absensi) {
-                    $absensi->update(['jam_pulang' => $currentTime]);
-                } else {
-                    try {
-                        AbsensiSiswa::create([
-                            'siswa_id'   => $siswa->id,
-                            'kelas_id'   => $siswa->kelas_id,
-                            'tanggal'    => $tanggal,
-                            'jam_masuk'  => null,
-                            'jam_pulang' => $currentTime,
-                            'status'     => 'hadir',
-                            'keterangan' => 'Scan QR Live Board Pulang',
-                            'metode'     => 'qr',
-                        ]);
-                    } catch (\Illuminate\Database\QueryException $e) {
-                        if ($e->errorInfo[1] === 1062) {
-                            return response()->json(['success' => false, 'already' => true, 'message' => $siswa->nama_lengkap . ' sudah tercatat pulang hari ini.']);
+                // === WRITE: transaction kecil hanya untuk operasi tulis ===
+                DB::transaction(function () use ($siswa, $absensi, $currentTime, $tanggal, $forgetCache) {
+                    if ($absensi) {
+                        $absensi->update(['jam_pulang' => $currentTime]);
+                    } else {
+                        try {
+                            AbsensiSiswa::create([
+                                'siswa_id'   => $siswa->id,
+                                'kelas_id'   => $siswa->kelas_id,
+                                'tanggal'    => $tanggal,
+                                'jam_masuk'  => null,
+                                'jam_pulang' => $currentTime,
+                                'status'     => 'hadir',
+                                'keterangan' => 'Scan QR Live Board Pulang',
+                                'metode'     => 'qr',
+                            ]);
+                        } catch (\Illuminate\Database\QueryException $e) {
+                            if ($e->errorInfo[1] === 1062) {
+                                return;
+                            }
+                            throw $e;
                         }
-                        throw $e;
                     }
+                });
+
+                // Re-check duplicate setelah transaction (race condition)
+                $freshAbsensi = AbsensiSiswa::where('siswa_id', $siswa->id)->whereDate('tanggal', $tanggal)->first();
+                if ($freshAbsensi && $freshAbsensi->jam_pulang && $absensi && $absensi->jam_pulang) {
+                    return response()->json(['success' => false, 'already' => true, 'message' => $siswa->nama_lengkap . ' sudah tercatat pulang hari ini.']);
                 }
+
                 $forgetCache();
 
                 return response()->json([
@@ -918,29 +924,39 @@ class PublicQrScanController extends Controller
                 $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i:s');
                 $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
 
-                if ($absensi) {
-                    $absensi->update([
-                        'jam_masuk' => $currentTime,
-                        'status'    => $status,
-                    ]);
-                } else {
-                    try {
-                        AbsensiSiswa::create([
-                            'siswa_id'   => $siswa->id,
-                            'kelas_id'   => $siswa->kelas_id,
-                            'tanggal'    => $tanggal,
-                            'jam_masuk'  => $currentTime,
-                            'status'     => $status,
-                            'keterangan' => 'Scan QR Live Board Masuk',
-                            'metode'     => 'qr',
+                // === WRITE: transaction kecil hanya untuk operasi tulis ===
+                $duplicate1062 = false;
+                DB::transaction(function () use ($siswa, $absensi, $currentTime, $tanggal, $status, &$duplicate1062) {
+                    if ($absensi) {
+                        $absensi->update([
+                            'jam_masuk' => $currentTime,
+                            'status'    => $status,
                         ]);
-                    } catch (\Illuminate\Database\QueryException $e) {
-                        if ($e->errorInfo[1] === 1062) {
-                            return response()->json(['success' => false, 'already' => true, 'message' => $siswa->nama_lengkap . ' sudah tercatat hadir hari ini.']);
+                    } else {
+                        try {
+                            AbsensiSiswa::create([
+                                'siswa_id'   => $siswa->id,
+                                'kelas_id'   => $siswa->kelas_id,
+                                'tanggal'    => $tanggal,
+                                'jam_masuk'  => $currentTime,
+                                'status'     => $status,
+                                'keterangan' => 'Scan QR Live Board Masuk',
+                                'metode'     => 'qr',
+                            ]);
+                        } catch (\Illuminate\Database\QueryException $e) {
+                            if ($e->errorInfo[1] === 1062) {
+                                $duplicate1062 = true;
+                                return;
+                            }
+                            throw $e;
                         }
-                        throw $e;
                     }
+                });
+
+                if ($duplicate1062) {
+                    return response()->json(['success' => false, 'already' => true, 'message' => $siswa->nama_lengkap . ' sudah tercatat hadir hari ini.']);
                 }
+
                 $forgetCache();
 
                 return response()->json([
@@ -964,7 +980,10 @@ class PublicQrScanController extends Controller
                     ]);
                 }
 
-                $absensi->update(['jam_pulang' => $currentTime]);
+                // === WRITE: transaction kecil ===
+                DB::transaction(function () use ($absensi, $currentTime) {
+                    $absensi->update(['jam_pulang' => $currentTime]);
+                });
                 $forgetCache();
 
                 return response()->json([
@@ -989,23 +1008,33 @@ class PublicQrScanController extends Controller
             $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i:s');
             $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
 
-            try {
-                AbsensiSiswa::create([
-                    'siswa_id'   => $siswa->id,
-                    'kelas_id'   => $siswa->kelas_id,
-                    'tanggal'    => $tanggal,
-                    'jam_masuk'  => $currentTime,
-                    'status'     => $status,
-                    'keterangan' => 'Scan QR Live Board',
-                    'metode'     => 'qr',
-                ]);
-                $forgetCache();
-            } catch (\Illuminate\Database\QueryException $e) {
-                if ($e->errorInfo[1] === 1062) {
-                    return response()->json(['success' => false, 'already' => true, 'message' => 'Sudah tercatat hadir.']);
+            // === WRITE: transaction kecil ===
+            $duplicate1062 = false;
+            DB::transaction(function () use ($siswa, $currentTime, $tanggal, $status, &$duplicate1062) {
+                try {
+                    AbsensiSiswa::create([
+                        'siswa_id'   => $siswa->id,
+                        'kelas_id'   => $siswa->kelas_id,
+                        'tanggal'    => $tanggal,
+                        'jam_masuk'  => $currentTime,
+                        'status'     => $status,
+                        'keterangan' => 'Scan QR Live Board',
+                        'metode'     => 'qr',
+                    ]);
+                } catch (\Illuminate\Database\QueryException $e) {
+                    if ($e->errorInfo[1] === 1062) {
+                        $duplicate1062 = true;
+                        return;
+                    }
+                    throw $e;
                 }
-                throw $e;
+            });
+
+            if ($duplicate1062) {
+                return response()->json(['success' => false, 'already' => true, 'message' => 'Sudah tercatat hadir.']);
             }
+
+            $forgetCache();
 
             return response()->json([
                 'success' => true,
@@ -1015,8 +1044,10 @@ class PublicQrScanController extends Controller
         }
 
         // 2. Cek Guru (bisa scan QR Unik, QR NIP, atau NIP mentah)
+        // === READ: di luar transaction ===
         $guru = Guru::where('qr_code', $qrCode)->orWhere('qr_code_nip', $qrCode)->orWhere('nip', $qrCode)->first();
         if ($guru) {
+            // === READ: cek absensi existing guru (di luar transaction) ===
             $absensi = AbsensiGuru::where('guru_id', $guru->id)->whereDate('tanggal', $tanggal)->first();
 
             // PULANG MODE GURU
@@ -1029,26 +1060,30 @@ class PublicQrScanController extends Controller
                     ]);
                 }
 
-                if ($absensi) {
-                    $absensi->update(['jam_pulang' => $currentTime]);
-                } else {
-                    try {
-                        AbsensiGuru::create([
-                            'guru_id'    => $guru->id,
-                            'tanggal'    => $tanggal,
-                            'jam_masuk'  => null,
-                            'jam_pulang' => $currentTime,
-                            'status'     => 'hadir',
-                            'keterangan' => 'Scan QR Live Board Pulang',
-                            'metode'     => 'qr',
-                        ]);
-                    } catch (\Illuminate\Database\QueryException $e) {
-                        if ($e->errorInfo[1] === 1062) {
-                            return response()->json(['success' => false, 'already' => true, 'message' => 'Guru ' . $guru->nama_lengkap . ' sudah tercatat pulang hari ini.']);
+                // === WRITE: transaction kecil ===
+                DB::transaction(function () use ($guru, $absensi, $currentTime, $tanggal) {
+                    if ($absensi) {
+                        $absensi->update(['jam_pulang' => $currentTime]);
+                    } else {
+                        try {
+                            AbsensiGuru::create([
+                                'guru_id'    => $guru->id,
+                                'tanggal'    => $tanggal,
+                                'jam_masuk'  => null,
+                                'jam_pulang' => $currentTime,
+                                'status'     => 'hadir',
+                                'keterangan' => 'Scan QR Live Board Pulang',
+                                'metode'     => 'qr',
+                            ]);
+                        } catch (\Illuminate\Database\QueryException $e) {
+                            if ($e->errorInfo[1] === 1062) {
+                                return;
+                            }
+                            throw $e;
                         }
-                        throw $e;
                     }
-                }
+                });
+
                 $forgetCache();
 
                 return response()->json([
@@ -1071,28 +1106,38 @@ class PublicQrScanController extends Controller
                 $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i:s');
                 $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
 
-                if ($absensi) {
-                    $absensi->update([
-                        'jam_masuk' => $currentTime,
-                        'status'    => $status,
-                    ]);
-                } else {
-                    try {
-                        AbsensiGuru::create([
-                            'guru_id'    => $guru->id,
-                            'tanggal'    => $tanggal,
-                            'jam_masuk'  => $currentTime,
-                            'status'     => $status,
-                            'keterangan' => 'Scan QR Live Board Masuk',
-                            'metode'     => 'qr',
+                // === WRITE: transaction kecil ===
+                $duplicate1062 = false;
+                DB::transaction(function () use ($guru, $absensi, $currentTime, $tanggal, $status, &$duplicate1062) {
+                    if ($absensi) {
+                        $absensi->update([
+                            'jam_masuk' => $currentTime,
+                            'status'    => $status,
                         ]);
-                    } catch (\Illuminate\Database\QueryException $e) {
-                        if ($e->errorInfo[1] === 1062) {
-                            return response()->json(['success' => false, 'already' => true, 'message' => 'Guru ' . $guru->nama_lengkap . ' sudah tercatat hadir hari ini.']);
+                    } else {
+                        try {
+                            AbsensiGuru::create([
+                                'guru_id'    => $guru->id,
+                                'tanggal'    => $tanggal,
+                                'jam_masuk'  => $currentTime,
+                                'status'     => $status,
+                                'keterangan' => 'Scan QR Live Board Masuk',
+                                'metode'     => 'qr',
+                            ]);
+                        } catch (\Illuminate\Database\QueryException $e) {
+                            if ($e->errorInfo[1] === 1062) {
+                                $duplicate1062 = true;
+                                return;
+                            }
+                            throw $e;
                         }
-                        throw $e;
                     }
+                });
+
+                if ($duplicate1062) {
+                    return response()->json(['success' => false, 'already' => true, 'message' => 'Guru ' . $guru->nama_lengkap . ' sudah tercatat hadir hari ini.']);
                 }
+
                 $forgetCache();
 
                 return response()->json([
@@ -1110,7 +1155,10 @@ class PublicQrScanController extends Controller
                 if ($absensi->jam_pulang) {
                     return response()->json(['success' => false, 'already' => true, 'message' => 'Sudah scan pulang.',]);
                 }
-                $absensi->update(['jam_pulang' => $currentTime]);
+                // === WRITE: transaction kecil ===
+                DB::transaction(function () use ($absensi, $currentTime) {
+                    $absensi->update(['jam_pulang' => $currentTime]);
+                });
                 $forgetCache();
                 return response()->json([
                     'success' => true,
@@ -1130,40 +1178,49 @@ class PublicQrScanController extends Controller
             $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i:s');
             $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
 
-            try {
-                AbsensiGuru::create([
-                    'guru_id'    => $guru->id,
-                    'tanggal'    => $tanggal,
-                    'jam_masuk'  => $currentTime,
-                    'status'     => $status,
-                    'keterangan' => 'Scan QR Live Board',
-                    'metode'     => 'qr',
-                ]);
-                $forgetCache();
-            } catch (\Illuminate\Database\QueryException $e) {
-                if ($e->errorInfo[1] === 1062) {
-                    QrScanLogger::warning('QR_SCAN_GURU_DUPLICATE', [
-                        'ip'    => $ip,
-                        'guru'  => $guru->nama_lengkap,
-                        'jam'   => $currentTime,
-                        'tanggal' => $tanggal,
+            // === WRITE: transaction kecil ===
+            $duplicate1062 = false;
+            DB::transaction(function () use ($guru, $currentTime, $tanggal, $status, &$duplicate1062) {
+                try {
+                    AbsensiGuru::create([
+                        'guru_id'    => $guru->id,
+                        'tanggal'    => $tanggal,
+                        'jam_masuk'  => $currentTime,
+                        'status'     => $status,
+                        'keterangan' => 'Scan QR Live Board',
+                        'metode'     => 'qr',
                     ]);
-
-                    return response()->json([
-                        'success' => false,
-                        'already' => true,
-                        'message' => 'Guru ' . $guru->nama_lengkap . ' sudah tercatat hadir hari ini.',
-                    ]);
+                } catch (\Illuminate\Database\QueryException $e) {
+                    if ($e->errorInfo[1] === 1062) {
+                        $duplicate1062 = true;
+                        QrScanLogger::warning('QR_SCAN_GURU_DUPLICATE', [
+                            'ip'      => request()->ip(),
+                            'guru'    => $guru->nama_lengkap,
+                            'jam'     => $currentTime,
+                            'tanggal' => $tanggal,
+                        ]);
+                        return;
+                    }
+                    throw $e;
                 }
-                throw $e;
+            });
+
+            if ($duplicate1062) {
+                return response()->json([
+                    'success' => false,
+                    'already' => true,
+                    'message' => 'Guru ' . $guru->nama_lengkap . ' sudah tercatat hadir hari ini.',
+                ]);
             }
 
             QrScanLogger::info('QR_SCAN_GURU_SUCCESS', [
-                'ip'    => $ip,
-                'guru'  => $guru->nama_lengkap,
-                'jam'   => $currentTime,
+                'ip'      => $ip,
+                'guru'    => $guru->nama_lengkap,
+                'jam'     => $currentTime,
                 'tanggal' => $tanggal,
             ]);
+
+            $forgetCache();
 
             return response()->json([
                 'success' => true,
@@ -1173,8 +1230,10 @@ class PublicQrScanController extends Controller
         }
 
         // 3. Cek Staff Tata Usaha (bisa scan QR Unik, QR NIP, atau NIP mentah)
+        // === READ: di luar transaction ===
         $staff = StaffTataUsaha::where('qr_code', $qrCode)->orWhere('qr_code_nip', $qrCode)->orWhere('nip', $qrCode)->first();
         if ($staff) {
+            // === READ: cek absensi existing staff (di luar transaction) ===
             $absensi = AbsensiStaff::where('staff_id', $staff->id)->whereDate('tanggal', $tanggal)->first();
 
             // PULANG MODE STAFF
@@ -1187,26 +1246,30 @@ class PublicQrScanController extends Controller
                     ]);
                 }
 
-                if ($absensi) {
-                    $absensi->update(['jam_pulang' => $currentTime]);
-                } else {
-                    try {
-                        AbsensiStaff::create([
-                            'staff_id'   => $staff->id,
-                            'tanggal'    => $tanggal,
-                            'jam_masuk'  => null,
-                            'jam_pulang' => $currentTime,
-                            'status'     => 'hadir',
-                            'keterangan' => 'Scan QR Live Board Pulang',
-                            'metode'     => 'qr',
-                        ]);
-                    } catch (\Illuminate\Database\QueryException $e) {
-                        if ($e->errorInfo[1] === 1062) {
-                            return response()->json(['success' => false, 'already' => true, 'message' => 'Staff ' . $staff->nama_lengkap . ' sudah tercatat pulang hari ini.']);
+                // === WRITE: transaction kecil ===
+                DB::transaction(function () use ($staff, $absensi, $currentTime, $tanggal) {
+                    if ($absensi) {
+                        $absensi->update(['jam_pulang' => $currentTime]);
+                    } else {
+                        try {
+                            AbsensiStaff::create([
+                                'staff_id'   => $staff->id,
+                                'tanggal'    => $tanggal,
+                                'jam_masuk'  => null,
+                                'jam_pulang' => $currentTime,
+                                'status'     => 'hadir',
+                                'keterangan' => 'Scan QR Live Board Pulang',
+                                'metode'     => 'qr',
+                            ]);
+                        } catch (\Illuminate\Database\QueryException $e) {
+                            if ($e->errorInfo[1] === 1062) {
+                                return;
+                            }
+                            throw $e;
                         }
-                        throw $e;
                     }
-                }
+                });
+
                 $forgetCache();
 
                 return response()->json([
@@ -1229,28 +1292,38 @@ class PublicQrScanController extends Controller
                 $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i:s');
                 $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
 
-                if ($absensi) {
-                    $absensi->update([
-                        'jam_masuk' => $currentTime,
-                        'status'    => $status,
-                    ]);
-                } else {
-                    try {
-                        AbsensiStaff::create([
-                            'staff_id'   => $staff->id,
-                            'tanggal'    => $tanggal,
-                            'jam_masuk'  => $currentTime,
-                            'status'     => $status,
-                            'keterangan' => 'Scan QR Live Board Masuk',
-                            'metode'     => 'qr',
+                // === WRITE: transaction kecil ===
+                $duplicate1062 = false;
+                DB::transaction(function () use ($staff, $absensi, $currentTime, $tanggal, $status, &$duplicate1062) {
+                    if ($absensi) {
+                        $absensi->update([
+                            'jam_masuk' => $currentTime,
+                            'status'    => $status,
                         ]);
-                    } catch (\Illuminate\Database\QueryException $e) {
-                        if ($e->errorInfo[1] === 1062) {
-                            return response()->json(['success' => false, 'already' => true, 'message' => 'Staff ' . $staff->nama_lengkap . ' sudah tercatat hadir hari ini.']);
+                    } else {
+                        try {
+                            AbsensiStaff::create([
+                                'staff_id'   => $staff->id,
+                                'tanggal'    => $tanggal,
+                                'jam_masuk'  => $currentTime,
+                                'status'     => $status,
+                                'keterangan' => 'Scan QR Live Board Masuk',
+                                'metode'     => 'qr',
+                            ]);
+                        } catch (\Illuminate\Database\QueryException $e) {
+                            if ($e->errorInfo[1] === 1062) {
+                                $duplicate1062 = true;
+                                return;
+                            }
+                            throw $e;
                         }
-                        throw $e;
                     }
+                });
+
+                if ($duplicate1062) {
+                    return response()->json(['success' => false, 'already' => true, 'message' => 'Staff ' . $staff->nama_lengkap . ' sudah tercatat hadir hari ini.']);
                 }
+
                 $forgetCache();
 
                 return response()->json([
@@ -1268,7 +1341,10 @@ class PublicQrScanController extends Controller
                 if ($absensi->jam_pulang) {
                     return response()->json(['success' => false, 'already' => true, 'message' => 'Sudah scan pulang.',]);
                 }
-                $absensi->update(['jam_pulang' => $currentTime]);
+                // === WRITE: transaction kecil ===
+                DB::transaction(function () use ($absensi, $currentTime) {
+                    $absensi->update(['jam_pulang' => $currentTime]);
+                });
                 $forgetCache();
                 return response()->json([
                     'success' => true,
@@ -1288,26 +1364,36 @@ class PublicQrScanController extends Controller
             $limitHadir = \Carbon\Carbon::createFromFormat('H:i', $jamMasuk)->addMinutes($toleransi)->format('H:i:s');
             $status = ($currentTime > $limitHadir) ? 'terlambat' : 'hadir';
 
-            try {
-                AbsensiStaff::create([
-                    'staff_id'   => $staff->id,
-                    'tanggal'    => $tanggal,
-                    'jam_masuk'  => $currentTime,
-                    'status'     => $status,
-                    'keterangan' => 'Scan QR Live Board',
-                    'metode'     => 'qr',
-                ]);
-                $forgetCache();
-            } catch (\Illuminate\Database\QueryException $e) {
-                if ($e->errorInfo[1] === 1062) {
-                    return response()->json([
-                        'success' => false,
-                        'already' => true,
-                        'message' => 'Staff ' . $staff->nama_lengkap . ' sudah tercatat hadir hari ini.',
+            // === WRITE: transaction kecil ===
+            $duplicate1062 = false;
+            DB::transaction(function () use ($staff, $currentTime, $tanggal, $status, &$duplicate1062) {
+                try {
+                    AbsensiStaff::create([
+                        'staff_id'   => $staff->id,
+                        'tanggal'    => $tanggal,
+                        'jam_masuk'  => $currentTime,
+                        'status'     => $status,
+                        'keterangan' => 'Scan QR Live Board',
+                        'metode'     => 'qr',
                     ]);
+                } catch (\Illuminate\Database\QueryException $e) {
+                    if ($e->errorInfo[1] === 1062) {
+                        $duplicate1062 = true;
+                        return;
+                    }
+                    throw $e;
                 }
-                throw $e;
+            });
+
+            if ($duplicate1062) {
+                return response()->json([
+                    'success' => false,
+                    'already' => true,
+                    'message' => 'Staff ' . $staff->nama_lengkap . ' sudah tercatat hadir hari ini.',
+                ]);
             }
+
+            $forgetCache();
 
             return response()->json([
                 'success' => true,
@@ -1315,8 +1401,8 @@ class PublicQrScanController extends Controller
                 'siswa'   => ['nama' => $staff->nama_lengkap, 'kelas' => 'STAFF TU', 'jam' => $currentTime],
             ]);
         }
+
         return response()->json(['success' => false, 'message' => 'QR code tidak dikenal.']);
-    });
     }
 
 
@@ -1350,7 +1436,7 @@ class PublicQrScanController extends Controller
     /** Helper: ambil data leaderboard + stats hari ini. */
     private function getLeaderboardData(string $mode = 'otomatis'): array
     {
-        return Cache::remember('live_board_leaderboard_data_' . $mode, 10, function () use ($mode) {
+        return Cache::remember('live_board_leaderboard_data_' . $mode, 20, function () use ($mode) {
             $today = today()->toDateString();
 
             // Tentukan field jam berdasarkan mode

@@ -45,26 +45,30 @@ class JadwalAbsensiHelper
         // Normalisasi hari (handle case Carbon locale fallback)
         $hari = self::normalizeHari($hari);
 
-        // Ambil jadwal spesifik kelas + hari
-        $jadwal = KelasJadwalAbsensi::where('kelas_id', $kelasId)
-            ->where('hari', $hari)
-            ->first();
+        $cacheKey = "jadwal_kelas_{$kelasId}_{$hari}";
 
-        // Ambil pengaturan global sebagai fallback
-        /** @var \App\Services\SettingsManager $sm */
-        $sm = app(\App\Services\SettingsManager::class);
-        $settings = $sm->all();
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function () use ($kelasId, $hari) {
+            // Ambil jadwal spesifik kelas + hari
+            $jadwal = \App\Models\KelasJadwalAbsensi::where('kelas_id', $kelasId)
+                ->where('hari', $hari)
+                ->first();
 
-        $defaultLibur = ($hari === 'sabtu' || $hari === 'minggu');
+            // Ambil pengaturan global sebagai fallback
+            /** @var \App\Services\SettingsManager $sm */
+            $sm = app(\App\Services\SettingsManager::class);
+            $settings = $sm->all();
 
-        return [
-            'jam_mulai_absensi' => self::formatTime($jadwal?->jam_mulai_absensi) ?? $settings['jam_mulai_absensi'] ?? '06:00',
-            'jam_masuk'         => self::formatTime($jadwal?->jam_masuk) ?? $settings['jam_masuk'] ?? '07:00',
-            'batas_jam_masuk'   => self::formatTime($jadwal?->batas_jam_masuk) ?? $settings['jam_batas_masuk'] ?? '09:00',
-            'jam_pulang'        => self::formatTime($jadwal?->jam_pulang) ?? $settings['jam_pulang'] ?? '15:00',
-            'jam_akhir_pulang'  => self::formatTime($jadwal?->jam_akhir_pulang) ?? $settings['jam_akhir_pulang'] ?? '17:00',
-            'is_libur'          => $jadwal ? (bool) $jadwal->is_libur : $defaultLibur,
-        ];
+            $defaultLibur = ($hari === 'sabtu' || $hari === 'minggu');
+
+            return [
+                'jam_mulai_absensi' => self::formatTime($jadwal?->jam_mulai_absensi) ?? $settings['jam_mulai_absensi'] ?? '06:00',
+                'jam_masuk'         => self::formatTime($jadwal?->jam_masuk) ?? $settings['jam_masuk'] ?? '07:00',
+                'batas_jam_masuk'   => self::formatTime($jadwal?->batas_jam_masuk) ?? $settings['jam_batas_masuk'] ?? '09:00',
+                'jam_pulang'        => self::formatTime($jadwal?->jam_pulang) ?? $settings['jam_pulang'] ?? '15:00',
+                'jam_akhir_pulang'  => self::formatTime($jadwal?->jam_akhir_pulang) ?? $settings['jam_akhir_pulang'] ?? '17:00',
+                'is_libur'          => $jadwal ? (bool) $jadwal->is_libur : $defaultLibur,
+            ];
+        });
     }
 
     /**

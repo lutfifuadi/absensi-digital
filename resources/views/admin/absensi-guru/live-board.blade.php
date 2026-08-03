@@ -1142,6 +1142,8 @@ setInterval(updateSessionCountdown, 1000);
           String(m).padStart(2,'0') + ':' +
           String(s).padStart(2,'0');
       }
+
+      playTickSound();
     }
 
     updateAnalogClock();
@@ -1154,6 +1156,33 @@ function toggleSound() {
   soundEnabled = !soundEnabled;
   document.getElementById('toggle-sound-btn').textContent = soundEnabled ? '🔊' : '🔇';
   document.getElementById('toggle-sound-btn').classList.toggle('active', soundEnabled);
+}
+
+function playTickSound() {
+  if (!soundEnabled) return;
+  try {
+    if (!window._audioCtx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      window._audioCtx = new AudioCtx();
+    }
+    const ctx = window._audioCtx;
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const now = ctx.currentTime;
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1200, now);
+    osc.frequency.exponentialRampToValueAtTime(400, now + 0.015);
+    gain.gain.setValueAtTime(0.04, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.015);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.015);
+  } catch (_) {}
 }
 
 function speak(text) {

@@ -24,9 +24,9 @@ class AbsensiMandiriController extends Controller
             return response()->json(['success' => false, 'message' => 'Hanya siswa yang dapat absen mandiri.']);
         }
 
-        $izinkan = Pengaturan::where('key', 'izinkan_lokasi_absensi_mandiri')->value('value');
-        if ($izinkan !== 'Ya') {
-            return response()->json(['success' => false, 'message' => 'Absensi mandiri dinonaktifkan oleh sekolah.']);
+        $fiturAktif = Pengaturan::where('key', 'fitur_absensi_mandiri')->value('value');
+        if ($fiturAktif !== '1' && $fiturAktif !== 'Ya') {
+            return response()->json(['success' => false, 'message' => 'Fitur absensi mandiri siswa dinonaktifkan oleh sekolah.']);
         }
 
         $siswa = Siswa::where('user_id', $user->id)->first();

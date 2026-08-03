@@ -49,7 +49,7 @@
     $logoSekolah = $pengaturanSiswa['logo_sekolah'] ?? null;
     $namaSekolah = $pengaturanSiswa['nama_sekolah'] ?? 'Sistem Absensi';
     
-    $absenMandiriEnabled = ($pengaturanSiswa['izinkan_lokasi_absensi_mandiri'] ?? '') === 'Ya';
+    $absenMandiriEnabled = (($pengaturanSiswa['fitur_absensi_mandiri'] ?? '1') == '1' || ($pengaturanSiswa['fitur_absensi_mandiri'] ?? '') === 'Ya');
     $aktifkanBunyi = ($pengaturanSiswa['aktifkan_bunyi_notif_absensi'] ?? '') === 'Ya';
     $freqHadir = (int)($pengaturanSiswa['freq_bunyi_hadir'] ?? 880);
     $freqTerlambat = (int)($pengaturanSiswa['freq_bunyi_terlambat'] ?? 440);

@@ -8,9 +8,6 @@
   <link rel="stylesheet" href="{{ asset('assets/css/local-fonts.css') }}">
   @vite(['resources/css/das-theme.css'])
   @php
-    $liveFont = \App\Models\Pengaturan::where('key', 'live_board_font_family')->value('value') ?? 'Product Sans';
-    $liveCounterFont = \App\Models\Pengaturan::where('key', 'live_board_counter_font_family')->value('value') ?? 'Courier New';
-    $liveCounterColor = \App\Models\Pengaturan::where('key', 'live_board_counter_color')->value('value') ?? '#7367f0';
     $browserFonts = ['Courier New', 'Courier', 'Arial', 'Helvetica', 'Times New Roman', 'Times', 'Georgia', 'Verdana', 'Trebuchet MS', 'Impact', 'Comic Sans MS', 'Palatino', 'Bookman Old Style', 'monospace', 'serif', 'sans-serif'];
   @endphp
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1328,7 +1325,21 @@ function updateSessionCountdown() {
 updateSessionCountdown();
 setInterval(updateSessionCountdown, 1000);
 
+// ─── SOUND ────────────────────────────────────────────────────────────────
+let soundEnabled = true;
+
 // ─── INDONESIA LUXURY SPORT WATCH — Live Board ─────────────────────────────
+const _lbTz = (typeof APP_TIMEZONE !== 'undefined' && APP_TIMEZONE) ? APP_TIMEZONE : 'Asia/Jakarta';
+const _lbTzFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: _lbTz,
+  hour: 'numeric', minute: 'numeric', second: 'numeric',
+  hour12: false
+});
+const _lbDayFormatter = new Intl.DateTimeFormat('id-ID', {
+  timeZone: _lbTz,
+  weekday: 'short', day: '2-digit'
+});
+
 (function initLbWatch() {
   // 1. LumiBrite tick marks (60 with 12 major)
   const lumiEl = document.getElementById('lbLumiBars');
@@ -1393,9 +1404,11 @@ setInterval(updateSessionCountdown, 1000);
   }
 
   function updateLbWatch() {
-    const tz = (typeof APP_TIMEZONE !== 'undefined' && APP_TIMEZONE) ? APP_TIMEZONE : 'Asia/Jakarta';
-    const now = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
-    const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+    const now = new Date();
+    const timeParts = _lbTzFormatter.formatToParts(now);
+    const h = +timeParts.find(p => p.type === 'hour').value;
+    const m = +timeParts.find(p => p.type === 'minute').value;
+    const s = +timeParts.find(p => p.type === 'second').value;
 
     setRot(hourHand,   (h % 12) * 30 + m * 0.5, 'hour');
     setRot(minuteHand, m * 6 + s * 0.1,          'minute');
@@ -1406,23 +1419,55 @@ setInterval(updateSessionCountdown, 1000);
     if (subRightHand) subRightHand.style.transform = `rotate(${(h / 12) * 360}deg)`;
 
     if (lcdDay) {
-      lcdDay.textContent = `${DAYS_ID[now.getDay()]} ${String(now.getDate()).padStart(2,'0')}`;
+      const dayParts = _lbDayFormatter.formatToParts(now);
+      const weekday = dayParts.find(p => p.type === 'weekday').value.toUpperCase();
+      const day     = dayParts.find(p => p.type === 'day').value;
+      lcdDay.textContent = `${weekday} ${day}`;
     }
     if (lcdTime) {
       lcdTime.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     }
+
+    // Play tick sound for analog clock
+    playTickSound();
   }
 
   updateLbWatch();
   setInterval(updateLbWatch, 1000);
 })();
 
-// ─── SOUND ────────────────────────────────────────────────────────────────
-let soundEnabled = true;
 function toggleSound() {
   soundEnabled = !soundEnabled;
   const btn = document.getElementById('toggle-sound-btn');
   if (btn) btn.textContent = soundEnabled ? '🔊' : '🔇';
+}
+
+function playTickSound() {
+  if (!soundEnabled) return;
+  try {
+    if (!window._audioCtx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      window._audioCtx = new AudioCtx();
+    }
+    const ctx = window._audioCtx;
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const now = ctx.currentTime;
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1200, now);
+    osc.frequency.exponentialRampToValueAtTime(400, now + 0.015);
+    gain.gain.setValueAtTime(0.04, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.015);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.015);
+    osc.onended = () => { osc.disconnect(); gain.disconnect(); };
+  } catch (_) {}
 }
 
 /**
@@ -1465,6 +1510,7 @@ function beep(type = 'success') {
       }
       osc.start(startTime);
       osc.stop(startTime + duration + 0.01);
+      osc.onended = () => { osc.disconnect(); gain.disconnect(); };
     }
 
     const now = ctx.currentTime;
@@ -1632,8 +1678,13 @@ async function refreshLeaderboard() {
   } catch(_) {}
 }
 
-// Auto-refresh leaderboard every 3s (Real-time speed)
-setInterval(refreshLeaderboard, REFRESH_MS);
+// Auto-refresh leaderboard — jitter agar tidak thundering herd
+(function scheduleRefresh() {
+  setTimeout(function() {
+    refreshLeaderboard();
+    scheduleRefresh();
+  }, REFRESH_MS + Math.floor(Math.random() * 1500));
+})();
 </script>
 
 <style>
@@ -1668,7 +1719,7 @@ setInterval(refreshLeaderboard, REFRESH_MS);
 
   const CHAR_INTERVAL_MAX = 100; // ms maks antar karakter scanner (scanner < 100ms, manusia > 200ms)
   const COMMIT_TIMEOUT_MS = 200; // commit otomatis jika tidak ada Enter setelah 200ms
-  const REFOCUS_INTERVAL  = 300; // cek & refocus setiap 300ms
+  const REFOCUS_INTERVAL  = 500; // cek & refocus setiap 500ms
   const MIN_CODE_LENGTH   = 4;   // panjang minimum kode valid
 
   const hwInput    = document.getElementById('hw-scanner-input');
@@ -1775,7 +1826,7 @@ setInterval(refreshLeaderboard, REFRESH_MS);
     }
   }
 
-  // Jalankan guard setiap 300ms
+  // Jalankan guard setiap 500ms
   guardTmr = setInterval(ensureFocus, REFOCUS_INTERVAL);
 
   // Fokus awal
