@@ -111,6 +111,47 @@
     .live-dot { width: 7px; height: 7px; background: var(--danger); border-radius: 50%; animation: pulse 1.4s ease-in-out infinite; }
     @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.4; transform:scale(1.4); } }
 
+    /* ─── VOLUME CONTROL ─────────────────────────────────── */
+    .volume-control {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+    }
+    .volume-icon { font-size: 0.85rem; cursor: pointer; }
+    .volume-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 70px;
+      height: 4px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      background: var(--primary);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(115,103,240,0.5);
+    }
+    .volume-slider::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      background: var(--primary);
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 0 6px rgba(115,103,240,0.5);
+    }
+
     .bottom-running-bar {
       grid-column: 2 / -1;
       grid-row: 2;
@@ -889,6 +930,10 @@
       <button class="active" disabled>🗓️ Hari Libur</button>
     </div>
     @endif
+    <div class="volume-control">
+      <span class="volume-icon" id="volume-icon">🔊</span>
+      <input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="50">
+    </div>
     <div class="live-badge">
       <span class="live-dot"></span> LIVE
     </div>
@@ -1329,6 +1374,43 @@ setInterval(updateSessionCountdown, 1000);
 let soundEnabled = true;
 let _audioUnlocked = false;
 
+// ─── VOLUME CONTROL ──────────────────────────────────────────────────────
+// Load volume dari localStorage (default 50%)
+let tickVolume = parseFloat(localStorage.getItem('liveboard_volume') || '0.5');
+
+function updateVolumeIcon(vol) {
+  const icon = document.getElementById('volume-icon');
+  if (!icon) return;
+  if (vol === 0) icon.textContent = '🔇';
+  else if (vol < 0.33) icon.textContent = '🔈';
+  else if (vol < 0.66) icon.textContent = '🔉';
+  else icon.textContent = '🔊';
+}
+
+// Init volume saat page load
+document.addEventListener('DOMContentLoaded', () => {
+  const slider = document.getElementById('volume-slider');
+  if (slider) {
+    slider.value = Math.round(tickVolume * 100);
+    updateVolumeIcon(tickVolume);
+  }
+});
+
+// Setup slider event listener
+(function initVolumeControl() {
+  const slider = document.getElementById('volume-slider');
+  if (!slider) return;
+
+  slider.value = Math.round(tickVolume * 100);
+  updateVolumeIcon(tickVolume);
+
+  slider.addEventListener('input', function() {
+    tickVolume = this.value / 100;
+    localStorage.setItem('liveboard_volume', tickVolume);
+    updateVolumeIcon(tickVolume);
+  });
+})();
+
 // Auto-resume AudioContext saat user interaction pertama
 // Browser wajib ada user gesture sebelum AudioContext boleh play audio
 function _unlockAudio() {
@@ -1489,10 +1571,12 @@ function playTickSound() {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     const now = ctx.currentTime;
+    // Map tickVolume (0-1) ke actual volume (0-0.15)
+    const vol = tickVolume * 0.15;
     osc.type = 'sine';
     osc.frequency.setValueAtTime(1200, now);
     osc.frequency.exponentialRampToValueAtTime(400, now + 0.02);
-    gain.gain.setValueAtTime(0.10, now);
+    gain.gain.setValueAtTime(vol, now);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.02);
     osc.connect(gain);
     gain.connect(ctx.destination);
