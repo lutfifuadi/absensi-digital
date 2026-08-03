@@ -159,7 +159,8 @@ class PengaduanController extends Controller
                 $pengaduan->nama_lengkap,
                 $pengaduan->status_pelapor,
                 $pengaduan->kategori,
-                $pengaduan->deskripsi
+                $pengaduan->deskripsi,
+                $pengaduan->nama_kelas ?? '-'
             );
 
             return response()->json([

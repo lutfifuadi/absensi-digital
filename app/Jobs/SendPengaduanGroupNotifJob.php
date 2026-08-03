@@ -34,17 +34,19 @@ class SendPengaduanGroupNotifJob implements ShouldQueue
     public string $statusPelapor;
     public string $kategori;
     public string $deskripsi;
+    public string $kelas;
 
     /**
      * Create a new job instance.
      */
-    public function __construct(string $kodeUnik, string $nama, string $statusPelapor, string $kategori, string $deskripsi)
+    public function __construct(string $kodeUnik, string $nama, string $statusPelapor, string $kategori, string $deskripsi, string $kelas = '-')
     {
-        $this->kodeUnik     = $kodeUnik;
-        $this->nama         = $nama;
+        $this->kodeUnik      = $kodeUnik;
+        $this->nama          = $nama;
         $this->statusPelapor = $statusPelapor;
-        $this->kategori     = $kategori;
-        $this->deskripsi    = $deskripsi;
+        $this->kategori      = $kategori;
+        $this->deskripsi     = $deskripsi;
+        $this->kelas         = $kelas;
         $this->onQueue('notifications');
     }
 
@@ -58,7 +60,8 @@ class SendPengaduanGroupNotifJob implements ShouldQueue
             $this->nama,
             $this->statusPelapor,
             $this->kategori,
-            $this->deskripsi
+            $this->deskripsi,
+            $this->kelas
         );
 
         if (!$sent) {

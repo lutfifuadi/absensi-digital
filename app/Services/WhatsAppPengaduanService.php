@@ -25,8 +25,11 @@ class WhatsAppPengaduanService
     /**
      * Kirim kode unik ke nomor pelapor.
      */
-    public function sendKodeUnik(string $nomorWa, string $kodeUnik, string $nama): bool
+    public function sendKodeUnik(string $nomorWa, string $kodeUnik, string $nama, string $kelas = '-'): bool
     {
+        $namaKelas = !empty($kelas) && $kelas !== '-' ? $kelas : '-';
+        $namaLembaga = setting('nama_lembaga') ?: setting('nama_sekolah') ?: 'Sekolah';
+
         $template = NotificationTemplate::where('type', 'pengaduan_kode_unik')->value('content');
         if (empty($template)) {
             $message = "Halo *{$nama}*,\n\n"
@@ -34,13 +37,19 @@ class WhatsAppPengaduanService
                 . "Berikut kode unik pengaduan Anda:\n"
                 . "*{$kodeUnik}*\n\n"
                 . "Simpan kode ini untuk mengecek status pengaduan Anda.\n\n"
-                . "Sistem Pengaduan Data - MAN 1 Kota Bandung";
+                . "Sistem Pengaduan Data - {$namaLembaga}";
         } else {
-            $message = str_replace(
-                ['{nama}', '{kode_unik}'],
-                [$nama, $kodeUnik],
-                $template
-            );
+            $search = [
+                '{nama}', '{nama_lengkap}', '(nama)', '(nama_lengkap)',
+                '{kode_unik}', '{kode}', '(kode_unik)', '(kode)',
+                '{kelas}', '{kelas_nama}', '(kelas)', '(kelas_nama)', '{class}', '(class)'
+            ];
+            $replace = [
+                $nama, $nama, $nama, $nama,
+                $kodeUnik, $kodeUnik, $kodeUnik, $kodeUnik,
+                $namaKelas, $namaKelas, $namaKelas, $namaKelas, $namaKelas, $namaKelas
+            ];
+            $message = str_replace($search, $replace, $template);
         }
 
         return $this->sendMessage($nomorWa, $message);
@@ -49,7 +58,7 @@ class WhatsAppPengaduanService
     /**
      * Kirim update status ke pelapor.
      */
-    public function sendStatusUpdate(string $nomorWa, string $kodeUnik, string $status, string $catatan = ''): bool
+    public function sendStatusUpdate(string $nomorWa, string $kodeUnik, string $status, string $catatan = '', string $nama = '', string $kelas = '-'): bool
     {
         $statusLabel = match ($status) {
             'diproses' => 'Diproses',
@@ -57,6 +66,8 @@ class WhatsAppPengaduanService
             'ditolak'  => 'Ditolak',
             default    => ucfirst($status),
         };
+        $namaKelas = !empty($kelas) && $kelas !== '-' ? $kelas : '-';
+        $namaLembaga = setting('nama_lembaga') ?: setting('nama_sekolah') ?: 'Sekolah';
 
         $template = NotificationTemplate::where('type', 'pengaduan_status_update')->value('content');
         if (empty($template)) {
@@ -69,14 +80,24 @@ class WhatsAppPengaduanService
             }
 
             $message .= "\nTerima kasih telah menggunakan layanan pengaduan kami.\n\n"
-                . "Sistem Pengaduan Data - MAN 1 Kota Bandung";
+                . "Sistem Pengaduan Data - {$namaLembaga}";
         } else {
             $catatanText = $catatan ? "Catatan: {$catatan}\n" : '';
-            $message = str_replace(
-                ['{kode_unik}', '{status}', '{catatan}'],
-                [$kodeUnik, $statusLabel, $catatanText],
-                $template
-            );
+            $search = [
+                '{kode_unik}', '{kode}', '(kode_unik)', '(kode)',
+                '{status}', '(status)',
+                '{catatan}', '{catatan_admin}', '(catatan)', '(catatan_admin)',
+                '{nama}', '{nama_lengkap}', '(nama)', '(nama_lengkap)',
+                '{kelas}', '{kelas_nama}', '(kelas)', '(kelas_nama)', '{class}', '(class)'
+            ];
+            $replace = [
+                $kodeUnik, $kodeUnik, $kodeUnik, $kodeUnik,
+                $statusLabel, $statusLabel,
+                $catatanText, $catatanText, $catatanText, $catatanText,
+                $nama, $nama, $nama, $nama,
+                $namaKelas, $namaKelas, $namaKelas, $namaKelas, $namaKelas, $namaKelas
+            ];
+            $message = str_replace($search, $replace, $template);
         }
 
         return $this->sendMessage($nomorWa, $message);
@@ -85,26 +106,41 @@ class WhatsAppPengaduanService
     /**
      * Kirim notifikasi ke grup admin.
      */
-    public function sendToGroupAdmin(string $kodeUnik, string $nama, string $statusPelapor, string $kategori, string $deskripsi): bool
+    public function sendToGroupAdmin(string $kodeUnik, string $nama, string $statusPelapor, string $kategori, string $deskripsi, string $kelas = '-'): bool
     {
         $statusPelaporLabel = $statusPelapor === 'siswa' ? 'Siswa' : 'Orang Tua';
+        $namaKelas = !empty($kelas) && $kelas !== '-' ? $kelas : '-';
+        $namaLembaga = setting('nama_lembaga') ?: setting('nama_sekolah') ?: 'Sekolah';
 
         $template = NotificationTemplate::where('type', 'pengaduan_group_admin')->value('content');
         if (empty($template)) {
             $message = "━━━ *PENGADUAN BARU* ━━━\n\n"
                 . "Kode: *{$kodeUnik}*\n"
                 . "Nama: {$nama}\n"
+                . "Kelas: {$namaKelas}\n"
                 . "Status: {$statusPelaporLabel}\n"
                 . "Kategori: {$kategori}\n\n"
                 . "Deskripsi:\n{$deskripsi}\n\n"
                 . "Silakan proses pengaduan ini di panel admin.\n"
-                . "Sistem Pengaduan Data - MAN 1 Kota Bandung";
+                . "Sistem Pengaduan Data - {$namaLembaga}";
         } else {
-            $message = str_replace(
-                ['{kode_unik}', '{nama}', '{status}', '{kategori}', '{deskripsi}'],
-                [$kodeUnik, $nama, $statusPelaporLabel, $kategori, $deskripsi],
-                $template
-            );
+            $search = [
+                '{kode_unik}', '{kode}', '(kode_unik)', '(kode)',
+                '{nama}', '{nama_lengkap}', '(nama)', '(nama_lengkap)',
+                '{kelas}', '{kelas_nama}', '(kelas)', '(kelas_nama)', '{class}', '(class)',
+                '{status}', '{status_pelapor}', '(status)', '(status_pelapor)',
+                '{kategori}', '(kategori)',
+                '{deskripsi}', '{pesan}', '(deskripsi)', '(pesan)'
+            ];
+            $replace = [
+                $kodeUnik, $kodeUnik, $kodeUnik, $kodeUnik,
+                $nama, $nama, $nama, $nama,
+                $namaKelas, $namaKelas, $namaKelas, $namaKelas, $namaKelas, $namaKelas,
+                $statusPelaporLabel, $statusPelaporLabel, $statusPelaporLabel, $statusPelaporLabel,
+                $kategori, $kategori,
+                $deskripsi, $deskripsi, $deskripsi, $deskripsi
+            ];
+            $message = str_replace($search, $replace, $template);
         }
 
         return $this->sendMessage($this->groupId, $message);
