@@ -272,7 +272,7 @@
                     <tr style="background: rgba(255, 255, 255, 0.03);">
                       <th class="text-center" style="width: 70px;">RANK</th>
                       <th>KELAS</th>
-                      <th class="text-center">ABSENSI</th>
+                      <th class="text-center" title="Jumlah sesi hadir dibanding total sesi absensi dalam periode ini (bukan jumlah siswa)">SESI HADIR <i class="ti tabler-info-circle" style="font-size:.75rem; opacity:.55; cursor:help;"></i></th>
                       <th class="text-center">KEHADIRAN (%)</th>
                       <th class="text-center">PERFORMA</th>
                     </tr>
@@ -545,7 +545,10 @@
                 <div class="fw-bold text-white">${item.kelas?.nama || '-'}</div>
                 <div class="small text-muted" style="font-size:.7rem;">${jurusanName}</div>
               </td>
-              <td class="text-center font-monospace">${item.total_present} / ${item.total_attendance}</td>
+              <td class="text-center font-monospace" title="${item.total_present} sesi hadir dari ${item.total_attendance} total sesi absensi">
+                ${item.total_present}
+                <span class="text-muted" style="font-size:.75rem;">/ ${item.total_attendance} sesi</span>
+              </td>
               <td class="text-center">
                 <div class="d-flex align-items-center justify-content-center gap-2">
                   <div class="progress w-px-75" style="height: 6px; background: rgba(255,255,255,0.06);">
