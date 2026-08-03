@@ -1082,6 +1082,15 @@ class PublicQrScanController extends Controller
         // === READ: di luar transaction ===
         $guru = Guru::where('qr_code', $qrCode)->orWhere('qr_code_nip', $qrCode)->orWhere('nip', $qrCode)->first();
         if ($guru) {
+            // ─── OVERWRITE: pakai jam guru/staff ─────────────────────────────
+            $jamMulaiAbsensi = $settings['jam_mulai_absensi_guru'] ?? '06:00';
+            $jamMasuk        = $settings['jam_masuk_guru'] ?? '07:00';
+            $jamBatasMasuk   = $settings['jam_batas_masuk_guru'] ?? '08:00';
+            $jamPulang       = $settings['jam_pulang_guru'] ?? '15:00';
+            $jamMulaiPulang  = $settings['jam_mulai_pulang_guru'] ?? '14:00';
+            $jamAkhirPulang  = $settings['jam_akhir_pulang_guru'] ?? '17:00';
+            $toleransi       = (int)($settings['toleransi_guru'] ?? 15);
+
             // === READ: cek absensi existing guru (di luar transaction) ===
             $absensi = AbsensiGuru::where('guru_id', $guru->id)->whereDate('tanggal', $tanggal)->first();
 
@@ -1268,6 +1277,15 @@ class PublicQrScanController extends Controller
         // === READ: di luar transaction ===
         $staff = StaffTataUsaha::where('qr_code', $qrCode)->orWhere('qr_code_nip', $qrCode)->orWhere('nip', $qrCode)->first();
         if ($staff) {
+            // ─── OVERWRITE: pakai jam guru/staff (sama dengan guru) ──────────
+            $jamMulaiAbsensi = $settings['jam_mulai_absensi_guru'] ?? '06:00';
+            $jamMasuk        = $settings['jam_masuk_guru'] ?? '07:00';
+            $jamBatasMasuk   = $settings['jam_batas_masuk_guru'] ?? '08:00';
+            $jamPulang       = $settings['jam_pulang_guru'] ?? '15:00';
+            $jamMulaiPulang  = $settings['jam_mulai_pulang_guru'] ?? '14:00';
+            $jamAkhirPulang  = $settings['jam_akhir_pulang_guru'] ?? '17:00';
+            $toleransi       = (int)($settings['toleransi_guru'] ?? 15);
+
             // === READ: cek absensi existing staff (di luar transaction) ===
             $absensi = AbsensiStaff::where('staff_id', $staff->id)->whereDate('tanggal', $tanggal)->first();
 
