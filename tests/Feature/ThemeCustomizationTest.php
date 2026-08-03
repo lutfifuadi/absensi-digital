@@ -118,8 +118,8 @@ class ThemeCustomizationTest extends TestCase
     public function test_admin_can_reset_theme_customization(): void
     {
         // Seed some theme configs in database
-        Pengaturan::create(['key' => 'theme_primary', 'value' => '#7367f0', 'group' => 'theme']);
-        Pengaturan::create(['key' => 'theme_primary_soft', 'value' => 'rgba(115, 103, 240, 0.12)', 'group' => 'theme']);
+        Pengaturan::updateOrCreate(['key' => 'theme_primary'], ['value' => '#7367f0', 'group' => 'theme']);
+        Pengaturan::updateOrCreate(['key' => 'theme_primary_soft'], ['value' => 'rgba(115, 103, 240, 0.12)', 'group' => 'theme']);
         
         Cache::put('das_theme_vars', ['theme_primary' => '#7367f0']);
 

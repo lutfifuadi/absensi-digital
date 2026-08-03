@@ -22,30 +22,26 @@ class WhatsAppAutoreplyWebhookTest extends TestCase
         parent::setUp();
 
         // Setup setting default
-        Pengaturan::create(['key' => 'wa_autoreply_webhook_token', 'value' => 'rahasia123']);
-        Pengaturan::create(['key' => 'wa_autoreply_enabled', 'value' => 'Ya']);
-        Pengaturan::create(['key' => 'wa_autoreply_sender', 'value' => '62811111111']);
-        Pengaturan::create(['key' => 'wa_nomor_notifikasi', 'value' => '62822222222']);
-        Pengaturan::create(['key' => 'link_portal_ortu', 'value' => 'https://portal.ortu.test']);
+        Pengaturan::updateOrCreate(['key' => 'wa_autoreply_webhook_token'], ['value' => 'rahasia123']);
+        Pengaturan::updateOrCreate(['key' => 'wa_autoreply_enabled'], ['value' => 'Ya']);
+        Pengaturan::updateOrCreate(['key' => 'wa_autoreply_sender'], ['value' => '62811111111']);
+        Pengaturan::updateOrCreate(['key' => 'wa_nomor_notifikasi'], ['value' => '62822222222']);
+        Pengaturan::updateOrCreate(['key' => 'link_portal_ortu'], ['value' => 'https://portal.ortu.test']);
 
         // Seed templates
-        NotificationTemplate::create([
-            'type' => 'autoreply_bantuan',
+        NotificationTemplate::updateOrCreate(['type' => 'autoreply_bantuan'], [
             'content' => 'Butuh bantuan? Gunakan keyword: #absen, #rekap, #link'
         ]);
 
-        NotificationTemplate::create([
-            'type' => 'autoreply_absen',
+        NotificationTemplate::updateOrCreate(['type' => 'autoreply_absen'], [
             'content' => 'Halo {nama}, tanggal {tanggal} status Anda: {status} jam {waktu}. Link: {link_portal}'
         ]);
 
-        NotificationTemplate::create([
-            'type' => 'autoreply_rekap',
+        NotificationTemplate::updateOrCreate(['type' => 'autoreply_rekap'], [
             'content' => 'Halo {nama}, berikut rekap mingguan Anda: {rekap_detail}'
         ]);
 
-        NotificationTemplate::create([
-            'type' => 'autoreply_nomor_tak_dikenal',
+        NotificationTemplate::updateOrCreate(['type' => 'autoreply_nomor_tak_dikenal'], [
             'content' => 'Nomor Anda tidak dikenal.'
         ]);
 

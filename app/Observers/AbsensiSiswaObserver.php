@@ -35,7 +35,8 @@ class AbsensiSiswaObserver
             }
         }
 
-        $this->kirimNotifikasiKeOrtu($absensiSiswa);
+        $tipe = (empty($absensiSiswa->jam_masuk) && !empty($absensiSiswa->jam_pulang)) ? 'pulang' : 'masuk';
+        $this->kirimNotifikasiKeOrtu($absensiSiswa, $tipe);
 
         $this->hitungPoinGamifikasi($absensiSiswa);
 
@@ -206,10 +207,10 @@ class AbsensiSiswaObserver
             default     => $poin = 0,
         };
 
-        // 2. Early Bird: jam masuk <= 06:00
+        // 2. Early Bird: jam masuk >= 04:00 dan <= 06:00
         if (in_array($statusLower, ['hadir', 'terlambat'])) {
-            $jamMasuk = $absensi->jam_masuk ? substr($absensi->jam_masuk, 0, 5) : null;
-            if ($jamMasuk && $jamMasuk <= '06:00') {
+            $jamMasuk = !empty($absensi->jam_masuk) ? substr($absensi->jam_masuk, 0, 5) : null;
+            if (!empty($jamMasuk) && $jamMasuk >= '04:00' && $jamMasuk <= '06:00') {
                 $poin += 5;
                 $isEarlyBird = true;
             }
@@ -240,8 +241,8 @@ class AbsensiSiswaObserver
 
         $stat->save();
 
-        // 4. Simpan poin ke absensi (H5: gunakan model langsung)
-        $absensi->update([
+        // 4. Simpan poin ke absensi secara quiet
+        $absensi->updateQuietly([
             'points_earned' => $poin,
             'is_early_bird' => $isEarlyBird,
         ]);

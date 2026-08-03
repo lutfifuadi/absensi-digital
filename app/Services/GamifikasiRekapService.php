@@ -162,6 +162,10 @@ class GamifikasiRekapService
         // ── Hitung absensi ───────────────────────────────────────────────────
         [$startDate, $endDate] = $this->getDateRange($filters);
 
+        $timeToSecSql = DB::connection()->getDriverName() === 'sqlite'
+            ? "(cast(substr(jam_masuk, 1, 2) as integer) * 3600 + cast(substr(jam_masuk, 4, 2) as integer) * 60 + cast(substr(jam_masuk, 7, 2) as integer))"
+            : "TIME_TO_SEC(jam_masuk)";
+
         $absensiQuery = AbsensiSiswa::whereIn('siswa_id', $siswaIds)
             ->select(
                 'siswa_id',
@@ -172,7 +176,7 @@ class GamifikasiRekapService
                 DB::raw("SUM(CASE WHEN status = 'Alpha' OR status = 'alpha' THEN 1 ELSE 0 END) AS total_alpha"),
                 DB::raw("SUM(points_earned) AS total_points_earned"),
                 DB::raw("SUM(CASE WHEN is_early_bird = 1 OR is_early_bird = true THEN 1 ELSE 0 END) AS total_early_bird"),
-                DB::raw("AVG(CASE WHEN (status IN ('Hadir','hadir','Terlambat','terlambat')) AND jam_masuk IS NOT NULL AND jam_masuk != '' THEN TIME_TO_SEC(jam_masuk) ELSE NULL END) AS avg_jam_masuk_sec"),
+                DB::raw("AVG(CASE WHEN (status IN ('Hadir','hadir','Terlambat','terlambat')) AND jam_masuk IS NOT NULL AND jam_masuk != '' THEN {$timeToSecSql} ELSE NULL END) AS avg_jam_masuk_sec"),
                 DB::raw('COUNT(*) AS total_absensi')
             );
 
@@ -250,6 +254,13 @@ class GamifikasiRekapService
         });
 
         $sortedSiswa = $mappedSiswa->sort(function ($a, $b) {
+            // 0. Siswa Teladan (0 Alpha & minimal 1 Hadir) didahulukan
+            $isTeladanA = ($a['total_alpha'] === 0 && $a['total_hadir'] > 0);
+            $isTeladanB = ($b['total_alpha'] === 0 && $b['total_hadir'] > 0);
+            if ($isTeladanA !== $isTeladanB) {
+                return $isTeladanB <=> $isTeladanA;
+            }
+
             // 1. Total Kehadiran (Hadir + Terlambat) terbanyak (Hadir Full)
             $presentA = $a['total_hadir'] + $a['total_terlambat'];
             $presentB = $b['total_hadir'] + $b['total_terlambat'];

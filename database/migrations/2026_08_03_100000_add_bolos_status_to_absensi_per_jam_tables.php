@@ -14,7 +14,9 @@ return new class extends Migration
     public function up(): void
     {
         if (Schema::hasTable('absensi_siswa_per_jadwal')) {
-            DB::statement("ALTER TABLE `absensi_siswa_per_jadwal` MODIFY COLUMN `status` ENUM('hadir', 'terlambat', 'sakit', 'izin', 'alpha', 'dispen', 'bolos') NOT NULL");
+            if (DB::getDriverName() !== 'sqlite') {
+                DB::statement("ALTER TABLE `absensi_siswa_per_jadwal` MODIFY COLUMN `status` ENUM('hadir', 'terlambat', 'sakit', 'izin', 'alpha', 'dispen', 'bolos') NOT NULL");
+            }
         }
 
         if (Schema::hasTable('absensi_per_jam_stat')) {
@@ -40,7 +42,9 @@ return new class extends Migration
         }
 
         if (Schema::hasTable('absensi_siswa_per_jadwal')) {
-            DB::statement("ALTER TABLE `absensi_siswa_per_jadwal` MODIFY COLUMN `status` ENUM('hadir', 'terlambat', 'sakit', 'izin', 'alpha', 'dispen') NOT NULL");
+            if (DB::getDriverName() !== 'sqlite') {
+                DB::statement("ALTER TABLE `absensi_siswa_per_jadwal` MODIFY COLUMN `status` ENUM('hadir', 'terlambat', 'sakit', 'izin', 'alpha', 'dispen') NOT NULL");
+            }
         }
     }
 };

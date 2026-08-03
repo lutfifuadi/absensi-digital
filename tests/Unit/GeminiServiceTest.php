@@ -32,11 +32,10 @@ class GeminiServiceTest extends TestCase
     public function test_build_dynamic_system_instruction_contains_nama_lembaga_from_database()
     {
         // Arrange: set nama_lembaga di pengaturan
-        Pengaturan::factory()->create([
-            'key' => 'nama_lembaga',
-            'value' => 'SMAN 1 Jakarta',
-            'group' => 'sekolah',
-        ]);
+        Pengaturan::updateOrCreate(
+            ['key' => 'nama_lembaga'],
+            ['value' => 'SMAN 1 Jakarta', 'group' => 'sekolah']
+        );
 
         // Act: panggil method protected via reflection
         $result = $this->invokeBuildDynamicSystemInstruction('siswa');
@@ -49,8 +48,8 @@ class GeminiServiceTest extends TestCase
     /** @test */
     public function test_build_dynamic_system_instruction_fallback_to_app_name_when_nama_lembaga_null()
     {
-        // Arrange: Hapus atau jangan set nama_lembaga, pastikan null
-        Pengaturan::where('key', 'nama_lembaga')->delete();
+        // Arrange: Hapus nama_lembaga & nama_sekolah, pastikan null
+        Pengaturan::whereIn('key', ['nama_lembaga', 'nama_sekolah'])->delete();
 
         // Act
         $result = $this->invokeBuildDynamicSystemInstruction('siswa');
@@ -64,11 +63,10 @@ class GeminiServiceTest extends TestCase
     public function test_build_dynamic_system_instruction_mentions_user_role()
     {
         // Arrange: set nama_lembaga
-        Pengaturan::factory()->create([
-            'key' => 'nama_lembaga',
-            'value' => 'SMAN 1 Jakarta',
-            'group' => 'sekolah',
-        ]);
+        Pengaturan::updateOrCreate(
+            ['key' => 'nama_lembaga'],
+            ['value' => 'SMAN 1 Jakarta', 'group' => 'sekolah']
+        );
 
         // Act: test untuk role guru
         $resultGuru = $this->invokeBuildDynamicSystemInstruction('guru');

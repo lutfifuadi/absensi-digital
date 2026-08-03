@@ -48,7 +48,6 @@ class AppServiceProvider extends ServiceProvider
         User::observe(UserPasswordObserver::class);
         \App\Models\Siswa::observe(\App\Observers\SiswaObserver::class);
         \App\Models\Guru::observe(\App\Observers\GuruObserver::class);
-        \App\Models\AbsensiSiswa::observe(\App\Observers\AbsensiSiswaObserver::class);
 
         // Daftarkan Blade directive @fitur
         \Illuminate\Support\Facades\Blade::directive('fitur', function ($expression) {

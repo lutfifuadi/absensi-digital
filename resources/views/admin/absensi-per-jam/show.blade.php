@@ -35,9 +35,18 @@
     .absensi-radios .btn {
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       font-size: 0.72rem !important;
-      padding: 0.25rem 0.55rem !important;
-      border-radius: 5px !important;
+      padding: 0.28rem 0.6rem !important;
+      border-radius: 6px !important;
       white-space: nowrap;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 0.3rem !important;
+      line-height: 1.2 !important;
+    }
+    .absensi-radios .btn i {
+      font-size: 0.88rem !important;
+      line-height: 1 !important;
     }
 
     .absensi-radios .btn-check:checked + .btn {
@@ -141,11 +150,203 @@
     }
 
 
-    /* Modal konfirmasi simpan */
+    /* Modal Layout & Proportion Refinements */
     #modalSimpanAbsensi .modal-content {
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
+      background: #1e2640 !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
       overflow: hidden;
+    }
+
+    #modalSimpanAbsensi .modal-header-custom {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    #modalSimpanAbsensi .modal-header-custom.--warning {
+      background: linear-gradient(90deg, rgba(255, 159, 67, 0.18) 0%, rgba(30, 38, 64, 0) 100%);
+    }
+    #modalSimpanAbsensi .modal-header-custom.--info {
+      background: linear-gradient(90deg, rgba(0, 207, 232, 0.18) 0%, rgba(30, 38, 64, 0) 100%);
+    }
+
+    .modal-icon-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .modal-icon-badge.--warning {
+      background: rgba(255, 159, 67, 0.2);
+      border: 1px solid rgba(255, 159, 67, 0.4);
+      color: #ff9f43;
+    }
+    .modal-icon-badge.--info {
+      background: rgba(0, 207, 232, 0.2);
+      border: 1px solid rgba(0, 207, 232, 0.4);
+      color: #00cfe8;
+    }
+
+    .modal-center-icon-wrapper {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0.5rem auto 1.25rem auto;
+    }
+    .modal-center-icon-wrapper.--warning {
+      background: rgba(255, 159, 67, 0.15);
+      border: 2px solid rgba(255, 159, 67, 0.4);
+      color: #ff9f43;
+      box-shadow: 0 0 30px rgba(255, 159, 67, 0.3);
+    }
+    .modal-center-icon-wrapper.--info {
+      background: rgba(0, 207, 232, 0.15);
+      border: 2px solid rgba(0, 207, 232, 0.4);
+      color: #00cfe8;
+      box-shadow: 0 0 30px rgba(0, 207, 232, 0.3);
+    }
+    .modal-center-icon-wrapper i {
+      font-size: 2.4rem;
+      line-height: 1;
+    }
+
+    #modalSimpanAbsensi .modal-body-custom {
+      padding: 2rem 1.75rem 1.75rem 1.75rem;
+      text-align: center;
+    }
+
+    #modalSimpanAbsensi .modal-footer-custom {
+      padding: 1.1rem 1.5rem;
+      background: rgba(0, 0, 0, 0.25);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    #modalSimpanAbsensi .modal-btn-confirm-warning {
+      background: linear-gradient(135deg, #ff9f43 0%, #d97706 100%) !important;
+      color: #ffffff !important;
+      font-weight: 700 !important;
+      border: none !important;
+      padding: 0.6rem 1.35rem !important;
+      border-radius: 8px !important;
+      box-shadow: 0 4px 15px rgba(255, 159, 67, 0.45) !important;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.2s ease;
+    }
+    #modalSimpanAbsensi .modal-btn-confirm-warning:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 159, 67, 0.65) !important;
+    }
+
+    #modalSimpanAbsensi .modal-btn-confirm-info {
+      background: linear-gradient(135deg, #7367f0 0%, #5e50ee 100%) !important;
+      color: #ffffff !important;
+      font-weight: 700 !important;
+      border: none !important;
+      padding: 0.6rem 1.35rem !important;
+      border-radius: 8px !important;
+      box-shadow: 0 4px 15px rgba(115, 103, 240, 0.45) !important;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.2s ease;
+    }
+    #modalSimpanAbsensi .modal-btn-confirm-info:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(115, 103, 240, 0.65) !important;
+    }
+
+    #modalSimpanAbsensi .modal-btn-cancel {
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: #cbd5e1 !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      font-weight: 600 !important;
+      padding: 0.6rem 1.35rem !important;
+      border-radius: 8px !important;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.2s ease;
+    }
+    #modalSimpanAbsensi .modal-btn-cancel:hover {
+      background: rgba(255, 255, 255, 0.15) !important;
+      color: #ffffff !important;
+    }
+
+    /* Enforce 5px border-radius across all UI elements on this page */
+    .das-hero,
+    .das-hero__badge,
+    .das-hero__logo-wrapper,
+    .das-hero__logo-placeholder,
+    .das-panel,
+    .das-chip,
+    .das-btn,
+    .btn,
+    .badge,
+    .alert,
+    .alert-flash-success,
+    .alert-flash-danger,
+    .alert-flash-warning,
+    .form-control,
+    .form-select,
+    .absensi-radios .btn,
+    #modalSimpanAbsensi .modal-content,
+    .modal-icon-badge,
+    #modalSimpanAbsensi .modal-btn-confirm-warning,
+    #modalSimpanAbsensi .modal-btn-confirm-info,
+    #modalSimpanAbsensi .modal-btn-cancel {
+      border-radius: 5px !important;
+    }
+    .alert-flash-success {
+      background: linear-gradient(135deg, #28c76f 0%, #1f9d55 100%) !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      box-shadow: 0 6px 22px rgba(40, 199, 111, 0.5) !important;
+    }
+    .alert-flash-danger {
+      background: linear-gradient(135deg, #ea5455 0%, #c53030 100%) !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      box-shadow: 0 6px 22px rgba(234, 84, 85, 0.5) !important;
+    }
+    .alert-flash-warning {
+      background: linear-gradient(135deg, #ff9f43 0%, #d97706 100%) !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      box-shadow: 0 6px 22px rgba(255, 159, 67, 0.5) !important;
+    }
+
+    /* Enhanced Button & Header Styling — Bright & Striking */
+    .das-btn--success {
+      background: linear-gradient(135deg, #28c76f 0%, #20c997 100%) !important;
+      color: #ffffff !important;
+      font-weight: 700 !important;
+      border: none !important;
+      box-shadow: 0 4px 14px rgba(40, 199, 111, 0.45) !important;
+      transition: all 0.2s ease;
+    }
+    .das-btn--success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(40, 199, 111, 0.6) !important;
+    }
+    .das-chip {
+      font-weight: 700 !important;
+      letter-spacing: 0.3px;
     }
   </style>
 @endsection
@@ -228,53 +429,48 @@
 
   {{-- FLASH MESSAGE --}}
   @if (session('success'))
-    <div class="alert alert-success alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm"
-      role="alert" style="border-radius:8px;">
-      <i class="ti tabler-circle-check fs-5"></i>
-      <span>{{ session('success') }}</span>
-      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    <div class="alert alert-flash-success alert-dismissible d-flex align-items-center gap-2 mb-4 p-3 shadow-lg" role="alert">
+      <i class="ti tabler-circle-check fs-4 text-white"></i>
+      <span class="fw-bold fs-6 text-white">{{ session('success') }}</span>
+      <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert" style="opacity: 0.9;"></button>
     </div>
   @endif
   @if (session('error'))
-    <div class="alert alert-danger alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm"
-      role="alert" style="border-radius:8px;">
-      <i class="ti tabler-alert-circle fs-5"></i>
-      <span>{{ session('error') }}</span>
-      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    <div class="alert alert-flash-danger alert-dismissible d-flex align-items-center gap-2 mb-4 p-3 shadow-lg" role="alert">
+      <i class="ti tabler-alert-circle fs-4 text-white"></i>
+      <span class="fw-bold fs-6 text-white">{{ session('error') }}</span>
+      <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert" style="opacity: 0.9;"></button>
     </div>
   @endif
 
   {{-- VALIDASI ERROR --}}
   @if ($errors->any())
-    <div class="alert alert-danger alert-dismissible d-flex align-items-start gap-2 mb-4 border-0 shadow-sm"
-      role="alert" style="border-radius:8px;">
-      <i class="ti tabler-alert-circle fs-5 mt-1 flex-shrink-0"></i>
-      <ul class="mb-0 ps-3 small">
+    <div class="alert alert-flash-danger alert-dismissible d-flex align-items-start gap-2 mb-4 p-3 shadow-lg" role="alert">
+      <i class="ti tabler-alert-circle fs-4 text-white mt-1 flex-shrink-0"></i>
+      <ul class="mb-0 ps-3 small fw-bold text-white">
         @foreach ($errors->all() as $error)
           <li>{{ $error }}</li>
         @endforeach
       </ul>
-      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+      <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert" style="opacity: 0.9;"></button>
     </div>
   @endif
 
   {{-- INFO: form dinonaktifkan (non-admin di luar tanggal hari ini) --}}
   @if (!$canEdit)
-    <div class="alert alert-warning d-flex align-items-center gap-2 border-0 shadow-sm mb-4"
-      role="alert" style="border-radius:8px;">
-      <i class="ti tabler-calendar-x fs-5"></i>
-      <span>Pengisian absensi dinonaktifkan untuk tanggal selain hari ini. Anda hanya dapat mengisi absensi pada
-        tanggal hari ini.</span>
+    <div class="alert alert-flash-warning d-flex align-items-center gap-2 mb-4 p-3 shadow-lg" role="alert">
+      <i class="ti tabler-calendar-x fs-4 text-white"></i>
+      <span class="fw-bold text-white small">Pengisian absensi dinonaktifkan untuk tanggal selain hari ini. Anda hanya dapat mengisi absensi pada tanggal hari ini.</span>
     </div>
   @endif
 
   {{-- ═══════════════════════════════════════════════════════
        FORM ROSTER — GAYA ABSENSI CEPAT
   ═══════════════════════════════════════════════════════ --}}
-  <form id="absensiForm" method="POST"
-    action="{{ route('admin.absensi-per-jam.store', $jadwal->id) }}"
-    x-data="absensiRoster({ sesiTerisi: {{ $sesiTerisi ? 'true' : 'false' }} })"
-    @roster-change="recount" @submit.prevent="openConfirm">
+  <div x-data="absensiRoster({ sesiTerisi: {{ $sesiTerisi ? 'true' : 'false' }} })" @roster-change="recount">
+    <form id="absensiForm" method="POST"
+      action="{{ route('admin.absensi-per-jam.store', $jadwal->id) }}"
+      @submit.prevent="openConfirm">
 
     @csrf
     <input type="hidden" name="jadwal_pelajaran_id" value="{{ $jadwal->id }}">
@@ -472,57 +668,51 @@
        MODAL KONFIRMASI SIMPAN / TIMPA
   ═══════════════════════════════════════════════════════ --}}
   <div class="modal fade" id="modalSimpanAbsensi" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
-      <div class="modal-content das-modal shadow-lg">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:500px;">
+      <div class="modal-content shadow-lg">
 
-        <div class="das-modal__head" :class="isOverwrite ? 'das-modal__head--warning' : 'das-modal__head--info'">
-          <div class="d-flex align-items-center gap-3">
-            <div class="modal-icon-header"
-              :style="isOverwrite
-                ? 'background:rgba(255,159,67,0.2);border:1px solid rgba(255,159,67,0.35);'
-                : 'background:rgba(0,207,232,0.2);border:1px solid rgba(0,207,232,0.35);'">
-              <i class="ti fs-5" :class="isOverwrite ? 'tabler-alert-triangle text-warning' : 'tabler-device-floppy text-info'"></i>
-            </div>
-            <div>
-              <h5 class="das-modal__title mb-0" x-text="isOverwrite ? 'Timpa Absensi' : 'Simpan Absensi'">Simpan Absensi</h5>
-              <small class="text-white-50" x-text="isOverwrite ? 'Sesi sudah pernah diisi' : 'Konfirmasi sebelum menyimpan'">
-                Konfirmasi sebelum menyimpan
-              </small>
-            </div>
+        {{-- Header --}}
+        <div class="modal-header-custom" :class="isOverwrite ? '--warning' : '--info'">
+          <div class="modal-icon-badge" :class="isOverwrite ? '--warning' : '--info'">
+            <i class="ti" :class="isOverwrite ? 'tabler-alert-triangle' : 'tabler-device-floppy'"></i>
           </div>
+          <div>
+            <h5 class="fw-bold text-white mb-0" style="font-size:1.05rem;" x-text="isOverwrite ? 'Timpa Absensi' : 'Simpan Absensi'">Simpan Absensi</h5>
+            <small class="text-white-50 fs-7" x-text="isOverwrite ? 'Sesi sudah pernah diisi' : 'Konfirmasi sebelum menyimpan'">Konfirmasi sebelum menyimpan</small>
+          </div>
+          <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
 
-        <div class="das-modal__body">
-          <div class="text-center py-4">
-            <div :class="isOverwrite ? 'dev-confirm-warning-icon' : 'dev-confirm-info-icon'">
-              <div :class="isOverwrite ? 'dev-confirm-warning-icon__ring' : 'dev-confirm-info-icon__ring'"></div>
-              <div :class="isOverwrite ? 'dev-confirm-warning-icon__symbol' : 'dev-confirm-info-icon__symbol'">
-                <i class="ti" :class="isOverwrite ? 'tabler-alert-triangle' : 'tabler-device-floppy'"></i>
-              </div>
-            </div>
-            <p class="mb-1 text-white-50" x-text="confirmMsg">Simpan absensi untuk seluruh siswa di kelas ini?</p>
-            @if ($sesiTerisi)
-              <small class="text-white-50 opacity-75">
-                <i class="ti tabler-history me-1"></i>Perubahan akan tercatat sebagai edit pada sesi ini.
-              </small>
-            @endif
+        {{-- Body --}}
+        <div class="modal-body-custom">
+          <div class="modal-center-icon-wrapper" :class="isOverwrite ? '--warning' : '--info'">
+            <i class="ti" :class="isOverwrite ? 'tabler-alert-triangle-filled' : 'tabler-device-floppy'"></i>
           </div>
+          <h6 class="fw-bold text-white fs-6 mb-2" x-text="isOverwrite ? 'Konfirmasi Timpa Data Absensi' : 'Konfirmasi Simpan Absensi'">Konfirmasi Simpan Absensi</h6>
+          <p class="text-white-50 small mb-3 px-2 lh-base" x-text="confirmMsg">Simpan absensi untuk seluruh siswa di kelas ini?</p>
+          @if ($sesiTerisi)
+            <div class="d-inline-flex align-items-center gap-1 p-2 px-3 rounded-pill bg-black bg-opacity-30 border border-warning border-opacity-20 text-warning small">
+              <i class="ti tabler-history fs-6 me-1"></i>
+              <span>Perubahan akan tercatat sebagai edit pada sesi ini.</span>
+            </div>
+          @endif
         </div>
 
-        <div class="das-modal__foot">
-          <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">
-            <i class="ti tabler-x me-1"></i> Batal
+        {{-- Footer --}}
+        <div class="modal-footer-custom">
+          <button type="button" class="modal-btn-cancel" data-bs-dismiss="modal">
+            <i class="ti tabler-x fs-6 me-1"></i> Batal
           </button>
-          <button type="button" class="das-btn"
-            :class="isOverwrite ? 'das-btn--warning-solid' : 'das-btn--primary'" @click="submitForm">
-            <i class="ti tabler-device-floppy me-1"></i>
-            <span x-text="isOverwrite ? 'Ya, Timpa' : 'Ya, Simpan'">Ya, Simpan</span>
+          <button type="button" :class="isOverwrite ? 'modal-btn-confirm-warning' : 'modal-btn-confirm-info'" @click="submitForm">
+            <i class="ti" :class="isOverwrite ? 'tabler-refresh' : 'tabler-device-floppy'"></i>
+            <span x-text="isOverwrite ? 'Ya, Timpa Data' : 'Ya, Simpan'">Ya, Simpan</span>
           </button>
         </div>
 
       </div>
     </div>
   </div>
+</div>
 
 @endsection
 
@@ -599,15 +789,21 @@
             ? 'Sesi ini sudah pernah diisi. Menyimpan akan menimpa data lama untuk semua siswa.'
             : 'Simpan absensi untuk seluruh siswa di kelas ini?';
           this.isOverwrite = this.sesiTerisi;
-          if (!this.confirmModal) {
-            this.confirmModal = new bootstrap.Modal(document.getElementById('modalSimpanAbsensi'));
+          const modalEl = document.getElementById('modalSimpanAbsensi');
+          if (modalEl) {
+            this.confirmModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            this.confirmModal.show();
           }
-          this.confirmModal.show();
         },
 
         submitForm() {
-          if (this.confirmModal) this.confirmModal.hide();
-          document.getElementById('absensiForm').submit();
+          if (this.confirmModal) {
+            this.confirmModal.hide();
+          }
+          const form = document.getElementById('absensiForm');
+          if (form) {
+            HTMLFormElement.prototype.submit.call(form);
+          }
         }
       };
     }
