@@ -180,12 +180,7 @@
 
                 {{-- Input Live Search (Tampil jika belum ada siswa terpilih) --}}
                 <div id="siswaSearchInputWrapper" class="siswa-search-input-wrapper">
-                  <div class="input-group">
-                    <span class="input-group-text" style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: #94a3b8;">
-                      <i class="ti tabler-search text-info"></i>
-                    </span>
-                    <input type="text" id="siswaSearchInput" class="form-control" placeholder="Ketik nama atau NIS / NISN siswa..." autocomplete="off">
-                  </div>
+                  <input type="text" id="siswaSearchInput" class="form-control" placeholder="Ketik nama atau NIS / NISN siswa..." autocomplete="off">
                   <div id="siswaSearchResults" class="siswa-search-results"></div>
                 </div>
               </div>
