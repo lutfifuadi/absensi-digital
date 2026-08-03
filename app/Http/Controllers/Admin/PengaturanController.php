@@ -78,6 +78,10 @@ class PengaturanController extends Controller
         'jeda_waktu_kirim_notifikasi_detik' => '1',
         // WA Gateway dedicated settings
         'wa_gateway_enabled' => 'Ya',
+        'wa_og_preview_enabled' => 'Ya',
+        'wa_pengaduan_enabled' => 'Tidak',
+        'wa_validator_enabled' => 'Tidak',
+        'wa_autoreply_enabled' => 'Tidak',
         'wa_api_key' => '',
         'wa_nomor_admin' => '',
         'wa_nomor_notifikasi' => '',

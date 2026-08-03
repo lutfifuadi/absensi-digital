@@ -1,4 +1,4 @@
-﻿@extends('layouts/layoutMaster')
+@extends('layouts/layoutMaster')
 
 @section('title', 'Pengaturan Sistem')
 
@@ -1863,6 +1863,10 @@ select.set-input option {
                   'auto_alpha_siswa_enabled'       => ['color' => '#f97316'],
                   'auto_alpha_wa_notif'            => ['color' => '#22c55e'],
                   'wa_gateway_enabled'             => ['color' => '#10b981'],
+                  'wa_og_preview_enabled'          => ['color' => '#0284c7'],
+                  'wa_pengaduan_enabled'           => ['color' => '#f59e0b'],
+                  'wa_validator_enabled'           => ['color' => '#00cfe8'],
+                  'wa_autoreply_enabled'           => ['color' => '#28c76f'],
                   'master_db_sync_enabled'         => ['color' => '#6366f1'],
                 ];
 
@@ -1882,10 +1886,15 @@ select.set-input option {
                     'sub'   => 'Aktivasi proteksi Anti-Fake GPS, RFID, Geofencing, Lock Device, dan Akun Mandiri.',
                     'keys'  => ['izinkan_rfid', 'lock_device_pc', 'lock_device_android', 'izinkan_lokasi_absensi_mandiri', 'izinkan_lokasi_scan_qr', 'deteksi_fake_gps', 'ijinkan_absen_mandiri_web', 'ijinkan_absen_mandiri_android', 'ijinkan_simpan_foto_absen', 'fitur_offline_mode_android', 'ijinkan_pembuatan_akun_mandiri']
                   ],
+                  'whatsapp' => [
+                    'title' => '💬 Integrasi WhatsApp Gateway',
+                    'sub'   => 'Kelola saklar untuk fitur notifikasi, link preview, pengaduan, validasi nomor, dan autoreply WhatsApp.',
+                    'keys'  => ['wa_gateway_enabled', 'auto_alpha_wa_notif', 'wa_og_preview_enabled', 'wa_pengaduan_enabled', 'wa_validator_enabled', 'wa_autoreply_enabled']
+                  ],
                   'integrasi' => [
                     'title' => '⚡ Otomatisasi & Server Sync',
-                    'sub'   => 'Aktivasi fitur Auto-Alpha, WhatsApp Gateway, dan sinkronisasi server master.',
-                    'keys'  => ['auto_alpha_siswa_enabled', 'auto_alpha_wa_notif', 'wa_gateway_enabled', 'master_db_sync_enabled']
+                    'sub'   => 'Aktivasi fitur Auto-Alpha dan sinkronisasi server master.',
+                    'keys'  => ['auto_alpha_siswa_enabled', 'master_db_sync_enabled']
                   ],
                 ];
 

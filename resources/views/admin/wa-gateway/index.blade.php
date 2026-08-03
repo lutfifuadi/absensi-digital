@@ -55,7 +55,7 @@
   <a href="{{ route('admin.wa-gateway.keywords.index') }}" class="btn btn-sm btn-primary">
     <i class="ti tabler-key me-1"></i>Kelola Keyword Autoreply
   </a>
-  @php $waOn = ($settings['wa_gateway_enabled'] ?? 'Ya') === 'Ya'; @endphp
+  @php $waOn = ($settings['wa_gateway_enabled'] ?? 'Ya') === 'Ya' || ($settings['wa_gateway_enabled'] ?? '1') === '1'; @endphp
   <span class="badge {{ $waOn ? 'bg-success' : 'bg-secondary' }} fs-6 px-3 py-2">
     <i class="ti {{ $waOn ? 'tabler-wifi' : 'tabler-wifi-off' }} me-1"></i>
     WA Gateway {{ $waOn ? 'AKTIF' : 'NONAKTIF' }}
@@ -69,66 +69,55 @@
       <div class="set-panel mb-4">
         <div class="set-panel__head">
           <div class="set-panel__title-wrap">
-            <div class="set-panel__icon --primary"><i class="ti tabler-toggle-right"></i></div>
+            <div class="set-panel__icon --primary"><i class="ti tabler-info-circle"></i></div>
             <div>
-              <div class="set-panel__title">Status WA Gateway</div>
-              <div class="set-panel__sub">Aktifkan atau nonaktifkan pengiriman notifikasi WhatsApp.</div>
+              <div class="set-panel__title">Status Fitur WA Gateway</div>
+              <div class="set-panel__sub">Status aktivasi modul-modul WhatsApp di aplikasi.</div>
             </div>
           </div>
         </div>
         <div class="set-panel__body">
-          <div class="set-form-grid">
-            <div class="set-field set-field--full">
-              <div class="form-check form-switch form-check-lg">
-                <input class="form-check-input" type="checkbox" id="wa_gateway_enabled_check"
-                       style="width:3rem;height:1.5rem;"
-                       onchange="document.getElementById('wa_gateway_enabled').value = this.checked ? 'Ya' : 'Tidak'"
-                       {{ ($settings['wa_gateway_enabled'] ?? 'Ya') === 'Ya' ? 'checked' : '' }}>
-                <label class="form-check-label fs-6 fw-semibold ms-2" for="wa_gateway_enabled_check">
-                  Aktifkan Pengiriman Notifikasi WhatsApp
-                </label>
+          <div class="d-flex flex-column gap-3">
+            @php
+              $waEnabled = ($settings['wa_gateway_enabled'] ?? 'Ya') === 'Ya' || ($settings['wa_gateway_enabled'] ?? '1') === '1';
+              $ogEnabled = ($settings['wa_og_preview_enabled'] ?? 'Ya') === 'Ya' || ($settings['wa_og_preview_enabled'] ?? '1') === '1';
+            @endphp
+            <div class="d-flex align-items-center justify-content-between p-3 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px;">
+              <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center justify-content-center rounded" style="width:40px;height:40px;background:{{ $waEnabled ? 'rgba(40,199,111,0.15)' : 'rgba(255,255,255,0.05)' }};">
+                  <i class="ti tabler-message-share fs-4" style="color:{{ $waEnabled ? '#28c76f' : '#64748b' }};"></i>
+                </div>
+                <div>
+                  <h6 class="mb-0 text-white" style="font-size:0.85rem;">WhatsApp Gateway Notifikasi</h6>
+                  <small class="text-muted">Mengirimkan notifikasi absensi real-time ke orang tua.</small>
+                </div>
               </div>
-              <input type="hidden" name="wa_gateway_enabled" id="wa_gateway_enabled"
-                     value="{{ ($settings['wa_gateway_enabled'] ?? 'Ya') }}">
-              <div class="set-field-hint --info mt-3">
-                <i class="ti tabler-info-circle"></i>
-                Jika dinonaktifkan, tidak ada notifikasi WA yang akan dikirim ke orang tua.
-              </div>
+              <span class="badge {{ $waEnabled ? 'bg-label-success' : 'bg-label-secondary' }}">
+                {{ $waEnabled ? 'AKTIF (ON)' : 'NON-AKTIF (OFF)' }}
+              </span>
             </div>
-          </div>
-        </div>
-      </div>
 
-      {{-- Open Graph & Link Preview --}}
-      <div class="set-panel mb-4">
-        <div class="set-panel__head">
-          <div class="set-panel__title-wrap">
-            <div class="set-panel__icon --primary"><i class="ti tabler-photo"></i></div>
-            <div>
-              <div class="set-panel__title">Open Graph & Link Preview (WhatsApp / Medsos)</div>
-              <div class="set-panel__sub">Tampilkan atau sembunyikan gambar logo dan kartu preview saat link website dibagikan via WhatsApp.</div>
+            <div class="d-flex align-items-center justify-content-between p-3 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px;">
+              <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center justify-content-center rounded" style="width:40px;height:40px;background:{{ $ogEnabled ? 'rgba(105,108,255,0.15)' : 'rgba(255,255,255,0.05)' }};">
+                  <i class="ti tabler-photo fs-4" style="color:{{ $ogEnabled ? '#696cff' : '#64748b' }};"></i>
+                </div>
+                <div>
+                  <h6 class="mb-0 text-white" style="font-size:0.85rem;">Open Graph &amp; Link Preview</h6>
+                  <small class="text-muted">Menampilkan gambar logo dan deskripsi saat link dibagikan.</small>
+                </div>
+              </div>
+              <span class="badge {{ $ogEnabled ? 'bg-label-success' : 'bg-label-secondary' }}">
+                {{ $ogEnabled ? 'AKTIF (ON)' : 'NON-AKTIF (OFF)' }}
+              </span>
             </div>
-          </div>
-        </div>
-        <div class="set-panel__body">
-          <div class="set-form-grid">
-            <div class="set-field set-field--full">
-              <div class="form-check form-switch form-check-lg">
-                <input class="form-check-input" type="checkbox" id="wa_og_preview_enabled_check"
-                       style="width:3rem;height:1.5rem;"
-                       onchange="document.getElementById('wa_og_preview_enabled').value = this.checked ? 'Ya' : 'Tidak'"
-                       {{ ($settings['wa_og_preview_enabled'] ?? 'Ya') === 'Ya' ? 'checked' : '' }}>
-                <label class="form-check-label fs-6 fw-semibold ms-2" for="wa_og_preview_enabled_check">
-                  Tampilkan Gambar Preview Logo & Kartu Link Preview
-                </label>
-              </div>
-              <input type="hidden" name="wa_og_preview_enabled" id="wa_og_preview_enabled"
-                     value="{{ ($settings['wa_og_preview_enabled'] ?? 'Ya') }}">
-              <div class="set-field-hint --info mt-3">
-                <i class="ti tabler-info-circle"></i>
-                <b>Aktif (Ya):</b> WhatsApp akan merender gambar logo instansi dan deskripsi saat balasan berisi link.<br>
-                <b>Nonaktif (Tidak):</b> Tag preview disembunyikan sehingga balasan WhatsApp murni berupa teks biasa tanpa gambar preview.
-              </div>
+
+            <div class="alert alert-warning d-flex align-items-center gap-2 border-0 py-2 px-3 mt-2 mb-0" style="background: rgba(255, 159, 67, 0.12); color: #ff9f43; border-radius: 8px; font-size: 0.78rem;">
+              <i class="ti tabler-alert-triangle fs-5"></i>
+              <span>Untuk mengubah status aktivasi fitur di atas, silakan kelola secara terpusat melalui halaman pengaturan fitur.</span>
+              <a href="{{ route('admin.pengaturan.index', ['tab' => 'aktivasi-fitur']) }}" class="btn btn-xs btn-warning ms-auto fw-bold">
+                <i class="ti tabler-external-link me-1"></i>Kelola Fitur
+              </a>
             </div>
           </div>
         </div>
@@ -282,22 +271,22 @@
         <div class="set-panel__body">
           <div class="set-form-grid">
 
-            {{-- Aktifkan --}}
             <div class="set-field set-field--full">
-              <div class="form-check form-switch form-check-lg">
-                <input class="form-check-input" type="checkbox" id="wa_pengaduan_enabled_check"
-                       style="width:3rem;height:1.5rem;"
-                       onchange="document.getElementById('wa_pengaduan_enabled').value = this.checked ? 'Ya' : 'Tidak'"
-                       {{ ($settings['wa_pengaduan_enabled'] ?? 'Tidak') === 'Ya' ? 'checked' : '' }}>
-                <label class="form-check-label fs-6 fw-semibold ms-2" for="wa_pengaduan_enabled_check">
-                  Aktifkan WA Pengaduan
-                </label>
+              @php
+                $pengaduanOn = ($settings['wa_pengaduan_enabled'] ?? 'Tidak') === 'Ya' || ($settings['wa_pengaduan_enabled'] ?? '1') === '1';
+              @endphp
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge {{ $pengaduanOn ? 'bg-label-success' : 'bg-label-secondary' }} px-3 py-2">
+                  <i class="ti {{ $pengaduanOn ? 'tabler-circle-check' : 'tabler-circle-x' }} me-1"></i>
+                  WA Pengaduan {{ $pengaduanOn ? 'AKTIF (ON)' : 'NON-AKTIF (OFF)' }}
+                </span>
+                <a href="{{ route('admin.pengaturan.index', ['tab' => 'aktivasi-fitur']) }}" class="btn btn-xs btn-outline-primary ms-auto">
+                  <i class="ti tabler-external-link me-1"></i>Ubah Status Fitur
+                </a>
               </div>
-              <input type="hidden" name="wa_pengaduan_enabled" id="wa_pengaduan_enabled"
-                     value="{{ $settings['wa_pengaduan_enabled'] ?? 'Tidak' }}">
-              <div class="set-field-hint --info mt-3">
+              <div class="set-field-hint --info">
                 <i class="ti tabler-info-circle"></i>
-                Jika diaktifkan, notifikasi pengaduan baru akan dikirim ke grup admin WA.
+                Jika diaktifkan di Pengaturan Sistem, notifikasi pengaduan baru akan dikirim ke grup admin WA.
               </div>
             </div>
 
@@ -382,22 +371,22 @@
         <div class="set-panel__body">
           <div class="set-form-grid">
 
-            {{-- Aktifkan --}}
             <div class="set-field set-field--full">
-              <div class="form-check form-switch form-check-lg">
-                <input class="form-check-input" type="checkbox" id="wa_validator_enabled_check"
-                       style="width:3rem;height:1.5rem;"
-                       onchange="document.getElementById('wa_validator_enabled').value = this.checked ? 'Ya' : 'Tidak'"
-                       {{ ($settings['wa_validator_enabled'] ?? 'Tidak') === 'Ya' ? 'checked' : '' }}>
-                <label class="form-check-label fs-6 fw-semibold ms-2" for="wa_validator_enabled_check">
-                  Aktifkan WA Validator
-                </label>
+              @php
+                $validatorOn = ($settings['wa_validator_enabled'] ?? 'Tidak') === 'Ya' || ($settings['wa_validator_enabled'] ?? '1') === '1';
+              @endphp
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge {{ $validatorOn ? 'bg-label-success' : 'bg-label-secondary' }} px-3 py-2">
+                  <i class="ti {{ $validatorOn ? 'tabler-circle-check' : 'tabler-circle-x' }} me-1"></i>
+                  WA Validator {{ $validatorOn ? 'AKTIF (ON)' : 'NON-AKTIF (OFF)' }}
+                </span>
+                <a href="{{ route('admin.pengaturan.index', ['tab' => 'aktivasi-fitur']) }}" class="btn btn-xs btn-outline-primary ms-auto">
+                  <i class="ti tabler-external-link me-1"></i>Ubah Status Fitur
+                </a>
               </div>
-              <input type="hidden" name="wa_validator_enabled" id="wa_validator_enabled"
-                     value="{{ $settings['wa_validator_enabled'] ?? 'Tidak' }}">
-              <div class="set-field-hint --info mt-3">
+              <div class="set-field-hint --info">
                 <i class="ti tabler-info-circle"></i>
-                Jika diaktifkan, sistem akan memvalidasi nomor WA sebelum mengirim notifikasi pengaduan.
+                Jika diaktifkan di Pengaturan Sistem, sistem akan memvalidasi nomor WA sebelum mengirim notifikasi pengaduan.
               </div>
             </div>
 
@@ -466,22 +455,22 @@
         <div class="set-panel__body">
           <div class="set-form-grid">
 
-            {{-- Aktifkan --}}
             <div class="set-field set-field--full">
-              <div class="form-check form-switch form-check-lg">
-                <input class="form-check-input" type="checkbox" id="wa_autoreply_enabled_check"
-                       style="width:3rem;height:1.5rem;"
-                       onchange="document.getElementById('wa_autoreply_enabled').value = this.checked ? 'Ya' : 'Tidak'"
-                       {{ ($settings['wa_autoreply_enabled'] ?? 'Tidak') === 'Ya' ? 'checked' : '' }}>
-                <label class="form-check-label fs-6 fw-semibold ms-2" for="wa_autoreply_enabled_check">
-                  Aktifkan Autoreply WA
-                </label>
+              @php
+                $autoreplyOn = ($settings['wa_autoreply_enabled'] ?? 'Tidak') === 'Ya' || ($settings['wa_autoreply_enabled'] ?? '1') === '1';
+              @endphp
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge {{ $autoreplyOn ? 'bg-label-success' : 'bg-label-secondary' }} px-3 py-2">
+                  <i class="ti {{ $autoreplyOn ? 'tabler-circle-check' : 'tabler-circle-x' }} me-1"></i>
+                  Autoreply WA {{ $autoreplyOn ? 'AKTIF (ON)' : 'NON-AKTIF (OFF)' }}
+                </span>
+                <a href="{{ route('admin.pengaturan.index', ['tab' => 'aktivasi-fitur']) }}" class="btn btn-xs btn-outline-primary ms-auto">
+                  <i class="ti tabler-external-link me-1"></i>Ubah Status Fitur
+                </a>
               </div>
-              <input type="hidden" name="wa_autoreply_enabled" id="wa_autoreply_enabled"
-                     value="{{ $settings['wa_autoreply_enabled'] ?? 'Tidak' }}">
-              <div class="set-field-hint --info mt-3">
+              <div class="set-field-hint --info">
                 <i class="ti tabler-info-circle"></i>
-                Jika diaktifkan, sistem akan memproses pesan masuk dan menjawab otomatis sesuai kata kunci.
+                Jika diaktifkan di Pengaturan Sistem, sistem akan memproses pesan masuk dan menjawab otomatis sesuai kata kunci.
               </div>
             </div>
 
