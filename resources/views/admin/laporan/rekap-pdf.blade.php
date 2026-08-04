@@ -108,7 +108,6 @@
       padding: 2px 1px;
       text-align: center;
       overflow: hidden;
-      word-wrap: break-word;
     }
     table.data-table th {
       background-color: #1e293b;
@@ -123,10 +122,10 @@
     }
     table.data-table td.nama {
       text-align: left;
-      padding-left: 4px;
+      padding-left: 5px;
       padding-right: 2px;
       font-weight: 600;
-      font-size: 7pt;
+      font-size: 7.5pt;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -220,13 +219,16 @@
     $headerContact = array_filter([$telpSekolah ? 'Telp: '.$telpSekolah : null, $emailSekolah ? 'Email: '.$emailSekolah : null]);
 
     $totalDates = count($dates);
-    // Presisi kalkulasi persen kolom
-    $noWidth = 2.5;
-    $namaWidth = 19.5;
-    $summaryWidth = 2.3; // H, S, I, A, T
-    $persenWidth = 3.2; // %
-    $availableForDates = 100 - ($noWidth + $namaWidth + ($summaryWidth * 5) + $persenWidth);
-    $dateWidth = $totalDates > 0 ? ($availableForDates / $totalDates) : 2.0;
+    $noWidth = 2.0;
+    $summaryWidth = 1.8; // H, S, I, A, T
+    $persenWidth = 2.6; // %
+    $dateWidth = $totalDates > 0 ? 1.6 : 2.0;
+    $totalDatesWidth = $totalDates * $dateWidth;
+    // Berikan porsi terbesar untuk Nama Siswa (sekitar 36.9%)
+    $namaWidth = 100.0 - ($noWidth + $totalDatesWidth + ($summaryWidth * 5) + $persenWidth);
+    if ($namaWidth < 25.0) {
+      $namaWidth = 25.0;
+    }
   @endphp
 
   <!-- KOP SURAT RESMI -->
@@ -239,7 +241,7 @@
           </td>
         @endif
         <td class="kop-text" style="{{ !$hasLogo ? 'padding-left:0; padding-right:0;' : '' }}">
-          @if(!empty($namaLembaga))
+          @if(!empty($namaLembaga) && strtoupper(trim($namaLembaga)) !== strtoupper(trim($namaSekolah)))
             <div class="nama-lembaga">{{ strtoupper($namaLembaga) }}</div>
           @endif
           <div class="nama-sekolah">{{ strtoupper($namaSekolah) }}</div>
@@ -281,7 +283,7 @@
     <thead>
       <tr>
         <th rowspan="2">#</th>
-        <th rowspan="2" style="text-align:left; padding-left:4px;">Nama Siswa</th>
+        <th rowspan="2" style="text-align:left; padding-left:5px;">Nama Siswa</th>
         @foreach ($dates as $date)
           @php
             $dt = \Carbon\Carbon::parse($date);
