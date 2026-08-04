@@ -136,7 +136,7 @@
       </div>
     </div>
     <div class="das-panel__body">
-      <form method="GET" action="{{ route('admin.laporan.index') }}" class="row gy-3 gx-2 align-items-end">
+      <form method="GET" action="{{ url()->current() }}" class="row gy-3 gx-2 align-items-end">
         <div class="col-12 col-sm-6 col-md-3">
           <label class="form-label text-white-50 small fw-bold d-flex align-items-center justify-content-between">
             <span>KELAS</span>

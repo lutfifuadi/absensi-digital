@@ -322,6 +322,9 @@ Route::middleware([
         // Absensi Siswa per Jam (PRD-006) — halaman "Absensi Kelas Saya" (index saja)
         Route::get('/absensi-per-jam', [AbsensiPerJamController::class, 'index'])
             ->name('guru.absensi-per-jam');
+
+        Route::get('/rekap-absensi', [LaporanController::class, 'index'])
+            ->name('guru.laporan.index');
     });
 
     // ── PORTAL SATPAM/GATEKEEPER ──────────────────────────────────────────────
@@ -346,6 +349,7 @@ Route::middleware([
         Route::post('/absensi-cepat', [AbsensiSiswaController::class, 'bulkStore'])->name('wali-kelas.absensi-cepat.store');
         Route::post('/absensi-cepat/store-single', [AbsensiSiswaController::class, 'storeSingle'])->name('wali-kelas.absensi-cepat.store-single');
         Route::get('/rekap-harian', [LaporanController::class, 'rekapHarian'])->name('wali-kelas.rekap-harian');
+        Route::get('/rekap-bulanan', [LaporanController::class, 'index'])->name('wali-kelas.rekap-bulanan');
         Route::get('/belum-absen', [LaporanController::class, 'belumAbsen'])->name('wali-kelas.belum-absen');
     });
 
@@ -437,6 +441,8 @@ Route::middleware([
             ->name('piket.absensi-cepat.store');
         Route::post('/absensi-cepat/store-single', [AbsensiSiswaController::class, 'storeSingle'])
             ->name('piket.absensi-cepat.store-single');
+        Route::get('/rekap-absensi', [LaporanController::class, 'index'])
+            ->name('piket.laporan.index');
     });
 
     // ── Impersonation routes ────────────────────────────────────────────────────

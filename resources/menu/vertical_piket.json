@@ -62,8 +62,8 @@
     {
       "name": "Rekap Absensi Siswa",
       "icon": "menu-icon ti tabler-report-analytics",
-      "slug": "admin.laporan.index",
-      "url": "/admin/laporan"
+      "slug": "piket.laporan.index",
+      "url": "/piket/rekap-absensi"
     },
     {
       "name": "Rekap Monitoring Guru",
