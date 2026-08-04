@@ -1061,10 +1061,10 @@ Route::middleware([
 
         Route::get('laporan', [LaporanController::class, 'index'])
             ->name('admin.laporan.index')
-            ->middleware('role:super_admin,admin_sekolah,operator');
+            ->middleware('role:super_admin,admin_sekolah,operator,wali_kelas,guru,piket,guru_bk,waka_kurikulum');
         Route::get('laporan/export-excel', [LaporanController::class, 'exportExcel'])
             ->name('admin.laporan.exportExcel')
-            ->middleware('role:super_admin,admin_sekolah,operator');
+            ->middleware('role:super_admin,admin_sekolah,operator,wali_kelas,guru,piket,guru_bk,waka_kurikulum');
         Route::get('laporan/export-excel-guru', [LaporanController::class, 'exportExcelGuru'])
             ->name('admin.laporan.exportExcelGuru')
             ->middleware('role:super_admin,admin_sekolah,operator');
@@ -1130,12 +1130,12 @@ Route::middleware([
         // Laporan individual siswa
         Route::get('laporan/siswa/{siswa}', [LaporanController::class, 'individualSiswa'])
             ->name('admin.laporan.individualSiswa')
-            ->middleware('role:super_admin,admin_sekolah,operator');
+            ->middleware('role:super_admin,admin_sekolah,operator,wali_kelas,guru,piket,guru_bk,waka_kurikulum');
 
         // Export PDF
         Route::get('laporan/export-pdf', [LaporanController::class, 'exportPdf'])
             ->name('admin.laporan.exportPdf')
-            ->middleware('role:super_admin,admin_sekolah,operator');
+            ->middleware('role:super_admin,admin_sekolah,operator,wali_kelas,guru,piket,guru_bk,waka_kurikulum');
 
         // Reset Data Absensi
         Route::delete('laporan/reset', [LaporanController::class, 'reset'])

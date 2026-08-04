@@ -7,6 +7,7 @@ use App\Models\AbsensiSiswa;
 use App\Models\Kelas;
 use App\Models\Pengaturan;
 use App\Models\Siswa;
+use App\Models\User;
 use App\Exports\RekapBulananSiswaExport;
 use App\Exports\RekapBulananGuruExport;
 use App\Exports\RekapBulananStaffExport;
@@ -17,12 +18,50 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class LaporanController extends Controller
 {
+    /**
+     * Dapatkan kelas khusus jika user yang sedang login bertindak sebagai Wali Kelas.
+     */
+    private function getWaliKelasAssignedClass()
+    {
+        $user = auth()->user();
+        if (!$user) return null;
+
+        // Super Admin, Admin Sekolah, Operator memiliki akses penuh ke seluruh kelas
+        if ($user->isSuperAdmin() || $user->isRole(User::ROLE_ADMIN_SEKOLAH) || $user->isRole(User::ROLE_OPERATOR)) {
+            return null;
+        }
+
+        // Cari data Guru berdasarkan user_id
+        $guru = \App\Models\Guru::where('user_id', $user->id)->first();
+        if ($guru) {
+            $assignedClass = Kelas::where('wali_kelas_id', $guru->id)->first();
+            if ($assignedClass) {
+                return $assignedClass;
+            }
+        }
+
+        // Fallback jika user memiliki role wali_kelas
+        if ($user->isRole(User::ROLE_WALI_KELAS)) {
+            $assignedClass = Kelas::whereHas('waliKelas', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })->first();
+            return $assignedClass;
+        }
+
+        return null;
+    }
+
     public function index(Request $request)
     {
-        $kelasOptions = Kelas::orderBy('nama')->get();
+        $assignedClass = $this->getWaliKelasAssignedClass();
+        $isWaliKelasLocked = $assignedClass !== null;
+
+        // Jika Wali Kelas, kunci otomatis kelas_id ke kelas yang diampunya
+        $kelasId = $assignedClass ? $assignedClass->id : $request->input('kelas_id');
+        $kelasOptions = $assignedClass ? collect([$assignedClass]) : Kelas::orderBy('nama')->get();
 
         $filters = [
-            'kelas_id' => $request->input('kelas_id'),
+            'kelas_id' => $kelasId,
             'bulan'    => (int) $request->input('bulan', now()->month),
             'tahun'    => (int) $request->input('tahun', now()->year),
         ];
@@ -73,14 +112,18 @@ class LaporanController extends Controller
                 SUM(CASE WHEN status='terlambat' THEN 1 ELSE 0 END) as terlambat")
             ->first() : null;
 
-        return view('admin.laporan.index', compact('kelasOptions', 'filters', 'summary', 'siswaList', 'dates', 'absensiPivot', 'kelas'));
+        return view('admin.laporan.index', compact(
+            'kelasOptions', 'filters', 'summary', 'siswaList', 'dates', 'absensiPivot', 'kelas',
+            'isWaliKelasLocked', 'assignedClass'
+        ));
     }
 
     public function exportExcel(Request $request)
     {
+        $assignedClass = $this->getWaliKelasAssignedClass();
+        $kelasId = $assignedClass ? $assignedClass->id : ($request->input('kelas_id') ? (int) $request->kelas_id : null);
         $bulan   = (int) $request->input('bulan', now()->month);
         $tahun   = (int) $request->input('tahun', now()->year);
-        $kelasId = $request->input('kelas_id') ? (int) $request->kelas_id : null;
 
         return Excel::download(
             new RekapBulananSiswaExport($bulan, $tahun, $kelasId),
@@ -90,9 +133,10 @@ class LaporanController extends Controller
 
     public function exportPdf(Request $request)
     {
+        $assignedClass = $this->getWaliKelasAssignedClass();
+        $kelasId      = $assignedClass ? $assignedClass->id : $request->input('kelas_id');
         $bulan        = (int) $request->input('bulan', now()->month);
         $tahun        = (int) $request->input('tahun', now()->year);
-        $kelasId      = $request->input('kelas_id');
         $tipeLaporan  = $request->input('tipe_laporan', 'matriks');
 
         $kelas = $kelasId ? Kelas::find($kelasId) : null;
@@ -198,7 +242,7 @@ class LaporanController extends Controller
         ];
         $summary['belum'] = max(0, $summary['total'] - ($summary['hadir'] + $summary['terlambat'] + $summary['izin'] + $summary['sakit'] + $summary['alpha']));
 
-        return view('admin.laporan.absensi-hari-ini', compact('siswaList', 'kelasOptions', 'summary', 'tanggal'));
+        return view('admin.laporan.index', compact('kelasOptions', 'filters', 'summary', 'siswaList', 'dates', 'absensiPivot', 'kelas'));
     }
 
     public function exportExcelGuru(Request $request)
