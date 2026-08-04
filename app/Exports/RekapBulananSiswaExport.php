@@ -40,21 +40,23 @@ class RekapBulananSiswaExport extends DefaultValueBinder implements FromView, Wi
 
     public function view(): View
     {
+        $bulan = $this->bulan;
+        $tahun = $this->tahun;
         $kelas = $this->kelasId ? Kelas::find($this->kelasId) : null;
         $siswaList = $this->kelasId
             ? Siswa::where('kelas_id', $this->kelasId)->orderBy('nama_lengkap')->get()
             : Siswa::orderBy('nama_lengkap')->get();
 
-        $daysInMonth = Carbon::createFromDate($this->tahun, $this->bulan, 1)->daysInMonth;
+        $daysInMonth = Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
         $dates = [];
         for ($d = 1; $d <= $daysInMonth; $d++) {
-            $dates[] = Carbon::createFromDate($this->tahun, $this->bulan, $d)->format('Y-m-d');
+            $dates[] = Carbon::createFromDate($tahun, $bulan, $d)->format('Y-m-d');
         }
 
         $absensiPivot = [];
         if ($siswaList->isNotEmpty()) {
             $absensiRows = AbsensiSiswa::whereIn('siswa_id', $siswaList->pluck('id'))
-                ->whereYear('tanggal', $this->tahun)->whereMonth('tanggal', $this->bulan)
+                ->whereYear('tanggal', $tahun)->whereMonth('tanggal', $bulan)
                 ->get()->groupBy('siswa_id');
 
             foreach ($siswaList as $s) {
@@ -65,7 +67,7 @@ class RekapBulananSiswaExport extends DefaultValueBinder implements FromView, Wi
             }
         }
 
-        $namaBulan   = Carbon::createFromDate($this->tahun, $this->bulan, 1)->translatedFormat('F');
+        $namaBulan   = Carbon::createFromDate($tahun, $bulan, 1)->translatedFormat('F');
         $namaSekolah = Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
 
         return view('exports.rekap-siswa-excel', compact(
