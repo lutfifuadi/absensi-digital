@@ -526,19 +526,66 @@
                  .catch(err => console.error(err))
                  .finally(() => this.loading = false);
              },
-             markAllHadir() {
-               this.students.forEach(s => s.status = 'H');
-               Swal.fire({
-                 toast: true,
-                 position: 'top-end',
-                 icon: 'success',
-                 title: 'Semua ditandai Hadir',
-                 showConfirmButton: false,
-                 timer: 1500,
-                 background: '#0f172a',
-                 color: '#f8fafc'
-               });
-             },
+              markAllHadir() {
+                this.students.forEach(s => {
+                  s.status = 'H';
+                  this.autoSaveSingle(s);
+                });
+                Swal.fire({
+                  toast: true,
+                  position: 'top-end',
+                  icon: 'success',
+                  title: 'Semua ditandai Hadir & Tersimpan',
+                  showConfirmButton: false,
+                  timer: 1500,
+                  background: '#0f172a',
+                  color: '#f8fafc'
+                });
+              },
+              autoSaveSingle(student) {
+                if (!student || !student.id) return;
+                fetch('{{ route('public.absensi-cepat.store-single') }}', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                  },
+                  body: JSON.stringify({
+                    id: student.id,
+                    type: student.type || 'siswa',
+                    status: student.status,
+                    keterangan: student.keterangan || '',
+                    kelas_id: this.selectedKelas || null
+                  })
+                })
+                .then(res => res.json())
+                .then(res => {
+                  if (res.success) {
+                    Swal.fire({
+                      toast: true,
+                      position: 'top-end',
+                      icon: 'success',
+                      title: `${student.nama_lengkap}: ${student.status} tersimpan`,
+                      showConfirmButton: false,
+                      timer: 1500,
+                      background: '#0f172a',
+                      color: '#f8fafc'
+                    });
+                  } else {
+                    Swal.fire({
+                      toast: true,
+                      position: 'top-end',
+                      icon: 'error',
+                      title: res.message || 'Gagal auto-save',
+                      showConfirmButton: false,
+                      timer: 2000,
+                      background: '#0f172a',
+                      color: '#f8fafc'
+                    });
+                  }
+                })
+                .catch(err => console.error('Public AutoSave Error:', err));
+              },
              submitBulk() {
                if (this.students.length === 0) return;
                this.submitting = true;
@@ -716,29 +763,29 @@
                       <div class="flex items-center justify-center gap-1">
                         <!-- Radio buttons for H, S, I, A, T -->
                         <label class="cursor-pointer">
-                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="H" x-model="student.status" class="sr-only peer">
+                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="H" x-model="student.status" @change="autoSaveSingle(student)" class="sr-only peer">
                           <span class="w-8 h-7 rounded-[5px] text-xs font-black border border-slate-800 flex items-center justify-center peer-checked:border-emerald-500 peer-checked:bg-emerald-500/10 peer-checked:text-emerald-400 text-slate-400 hover:text-slate-200 transition">H</span>
                         </label>
                         <label class="cursor-pointer">
-                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="S" x-model="student.status" class="sr-only peer">
+                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="S" x-model="student.status" @change="autoSaveSingle(student)" class="sr-only peer">
                           <span class="w-8 h-7 rounded-[5px] text-xs font-black border border-slate-800 flex items-center justify-center peer-checked:border-blue-500 peer-checked:bg-blue-500/10 peer-checked:text-blue-400 text-slate-400 hover:text-slate-200 transition">S</span>
                         </label>
                         <label class="cursor-pointer">
-                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="I" x-model="student.status" class="sr-only peer">
+                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="I" x-model="student.status" @change="autoSaveSingle(student)" class="sr-only peer">
                           <span class="w-8 h-7 rounded-[5px] text-xs font-black border border-slate-800 flex items-center justify-center peer-checked:border-yellow-500 peer-checked:bg-yellow-500/10 peer-checked:text-yellow-400 text-slate-400 hover:text-slate-200 transition">I</span>
                         </label>
                         <label class="cursor-pointer">
-                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="A" x-model="student.status" class="sr-only peer">
+                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="A" x-model="student.status" @change="autoSaveSingle(student)" class="sr-only peer">
                           <span class="w-8 h-7 rounded-[5px] text-xs font-black border border-slate-800 flex items-center justify-center peer-checked:border-rose-500 peer-checked:bg-rose-500/10 peer-checked:text-rose-400 text-slate-400 hover:text-slate-200 transition">A</span>
                         </label>
                         <label class="cursor-pointer">
-                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="T" x-model="student.status" class="sr-only peer">
+                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="T" x-model="student.status" @change="autoSaveSingle(student)" class="sr-only peer">
                           <span class="w-8 h-7 rounded-[5px] text-xs font-black border border-slate-800 flex items-center justify-center peer-checked:border-amber-500 peer-checked:bg-amber-500/10 peer-checked:text-amber-400 text-slate-400 hover:text-slate-200 transition">T</span>
                         </label>
                       </div>
                     </td>
                     <td class="px-4 py-2.5">
-                      <input type="text" x-model="student.keterangan" placeholder="Keterangan..."
+                      <input type="text" x-model="student.keterangan" @blur="autoSaveSingle(student)" placeholder="Keterangan..."
                              class="w-full h-8 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-[5px] px-3 text-xs text-slate-200 placeholder-slate-600 outline-none transition">
                     </td>
                   </tr>

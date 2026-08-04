@@ -723,6 +723,113 @@ class AbsensiSiswaController extends Controller
     }
 
     /**
+     * AJAX: Simpan otomatis absensi single siswa.
+     */
+    public function storeSingle(Request $request)
+    {
+        try {
+            $user = auth()->user();
+            $activeRole = session('active_role', $user ? $user->role : 'guest');
+            $isWaliKelasRoute = $request->is('wali-kelas/*') || $request->routeIs('wali-kelas.*');
+            $isWaliKelas = $activeRole === \App\Models\User::ROLE_WALI_KELAS || $isWaliKelasRoute;
+            $isGuru = $activeRole === \App\Models\User::ROLE_GURU;
+
+            if ($isWaliKelas) {
+                $guru = $user->guru;
+                $kelasWaliId = null;
+                if ($guru) {
+                    $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
+                    $kelasWali = Kelas::where('wali_kelas_id', $guru->id)
+                        ->where('tahun_akademik_id', $tahunAjaranId)
+                        ->first();
+                    if ($kelasWali) {
+                        $kelasWaliId = $kelasWali->id;
+                    }
+                }
+                if ($request->kelas_id != $kelasWaliId) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda hanya diizinkan menginput absensi kelas bimbingan Anda.'
+                    ], 403);
+                }
+            } elseif ($isGuru) {
+                $guru = $user->guru;
+                if ($guru) {
+                    $tahunAjaranId = session('tahun_ajaran_id', session('tahun_akademik_id'));
+                    $guruKelasIds = \App\Models\JadwalPelajaran::where('guru_id', $guru->id)
+                        ->pluck('kelas_id')
+                        ->unique()
+                        ->filter()
+                        ->toArray();
+
+                    $waliKelasIds = Kelas::where('wali_kelas_id', $guru->id)
+                        ->where('tahun_akademik_id', $tahunAjaranId)
+                        ->pluck('id')->toArray();
+                    $guruKelasIds = array_values(array_unique(array_merge($guruKelasIds, $waliKelasIds)));
+
+                    if (!in_array($request->kelas_id, $guruKelasIds)) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Anda hanya diizinkan menginput absensi pada kelas mengajar Anda.'
+                        ], 403);
+                    }
+                }
+            }
+
+            $validated = $request->validate([
+                'kelas_id'   => 'required|exists:kelas,id',
+                'siswa_id'   => 'required|exists:siswa,id',
+                'tanggal'    => 'required|date',
+                'status'     => 'required|in:hadir,sakit,izin,alpha,terlambat',
+                'keterangan' => 'nullable|string',
+            ]);
+
+            $status = $validated['status'];
+            $activeJenjang = \App\Helpers\JenjangHelper::getActiveJenjang();
+            if (in_array($activeJenjang, ['SD/MI', 'SMP/MTs']) && $status === 'terlambat') {
+                $status = 'hadir';
+            }
+
+            $absensi = AbsensiSiswa::updateOrCreate(
+                [
+                    'siswa_id' => $validated['siswa_id'],
+                    'tanggal'  => $validated['tanggal'],
+                ],
+                [
+                    'kelas_id'   => $validated['kelas_id'],
+                    'status'     => $status,
+                    'keterangan' => $validated['keterangan'] ?? null,
+                    'metode'     => 'manual',
+                    'jam_masuk'  => ($status === 'hadir' || $status === 'terlambat') ? now()->format('H:i') : null,
+                ]
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Absensi berhasil tersimpan.',
+                'data'    => [
+                    'id'         => $absensi->id,
+                    'siswa_id'   => $absensi->siswa_id,
+                    'status'     => $absensi->status,
+                    'keterangan' => $absensi->keterangan,
+                ]
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak valid.',
+                'errors'  => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('AbsensiSiswaController@storeSingle Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan absensi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Pemicu manual Auto Alpha untuk siswa yang belum absen hingga batas waktu.
      */
     public function triggerAutoAlpha(Request $request)

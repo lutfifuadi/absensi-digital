@@ -562,4 +562,117 @@ class PublicAbsensiCepatController extends Controller
             ],
         ]);
     }
+
+    public function storeSingle(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'id'         => 'required|integer',
+                'type'       => 'nullable|string|in:siswa,guru,staff',
+                'status'     => 'required|string|in:H,S,I,A,T,hadir,sakit,izin,alpha,terlambat',
+                'keterangan' => 'nullable|string',
+                'kelas_id'   => 'nullable|integer',
+            ]);
+
+            $statusMap = [
+                'H' => 'hadir',
+                'S' => 'sakit',
+                'I' => 'izin',
+                'A' => 'alpha',
+                'T' => 'terlambat',
+                'hadir' => 'hadir',
+                'sakit' => 'sakit',
+                'izin' => 'izin',
+                'alpha' => 'alpha',
+                'terlambat' => 'terlambat',
+            ];
+
+            $type = $validated['type'] ?? 'siswa';
+            $personId = $validated['id'];
+            $dbStatus = $statusMap[$validated['status']] ?? 'hadir';
+            $keterangan = $validated['keterangan'] ?? null;
+            $tanggal = now()->toDateString();
+            $currentTime = now()->format('H:i');
+
+            if ($type === 'guru') {
+                $absensi = AbsensiGuru::where('guru_id', $personId)->where('tanggal', $tanggal)->first();
+                if ($absensi) {
+                    $absensi->update([
+                        'status'     => $dbStatus,
+                        'keterangan' => $keterangan,
+                        'jam_masuk'  => in_array($dbStatus, ['hadir', 'terlambat']) ? ($absensi->jam_masuk ?? $currentTime) : null,
+                        'metode'     => 'manual',
+                    ]);
+                } else {
+                    AbsensiGuru::create([
+                        'guru_id'    => $personId,
+                        'tanggal'    => $tanggal,
+                        'jam_masuk'  => in_array($dbStatus, ['hadir', 'terlambat']) ? $currentTime : null,
+                        'status'     => $dbStatus,
+                        'keterangan' => $keterangan,
+                        'metode'     => 'manual',
+                    ]);
+                }
+            } elseif ($type === 'staff') {
+                $absensi = AbsensiStaff::where('staff_tu_id', $personId)->where('tanggal', $tanggal)->first();
+                if ($absensi) {
+                    $absensi->update([
+                        'status'     => $dbStatus,
+                        'keterangan' => $keterangan,
+                        'jam_masuk'  => in_array($dbStatus, ['hadir', 'terlambat']) ? ($absensi->jam_masuk ?? $currentTime) : null,
+                        'metode'     => 'manual',
+                    ]);
+                } else {
+                    AbsensiStaff::create([
+                        'staff_tu_id' => $personId,
+                        'tanggal'    => $tanggal,
+                        'jam_masuk'  => in_array($dbStatus, ['hadir', 'terlambat']) ? $currentTime : null,
+                        'status'     => $dbStatus,
+                        'keterangan' => $keterangan,
+                        'metode'     => 'manual',
+                    ]);
+                }
+            } else {
+                $siswa = Siswa::find($personId);
+                $targetKelasId = $siswa ? $siswa->kelas_id : ($validated['kelas_id'] ?? null);
+                $absensi = AbsensiSiswa::where('siswa_id', $personId)->where('tanggal', $tanggal)->first();
+                if ($absensi) {
+                    $absensi->update([
+                        'status'     => $dbStatus,
+                        'keterangan' => $keterangan,
+                        'jam_masuk'  => in_array($dbStatus, ['hadir', 'terlambat']) ? ($absensi->jam_masuk ?? $currentTime) : null,
+                        'metode'     => 'manual',
+                    ]);
+                } else {
+                    AbsensiSiswa::create([
+                        'siswa_id'   => $personId,
+                        'kelas_id'   => $targetKelasId,
+                        'tanggal'    => $tanggal,
+                        'jam_masuk'  => in_array($dbStatus, ['hadir', 'terlambat']) ? $currentTime : null,
+                        'status'     => $dbStatus,
+                        'keterangan' => $keterangan,
+                        'metode'     => 'manual',
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Absensi berhasil tersimpan.',
+                'status'  => $dbStatus,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak valid.',
+                'errors'  => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('PublicAbsensiCepatController@storeSingle Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan absensi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

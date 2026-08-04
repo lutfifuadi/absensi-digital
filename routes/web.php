@@ -149,6 +149,7 @@ Route::prefix('absensi-cepat')->name('public.absensi-cepat.')->group(function ()
         Route::get('/search-people', [\App\Http\Controllers\PublicAbsensiCepatController::class, 'searchPeople'])->name('search-people');
         Route::post('/scan', [\App\Http\Controllers\PublicAbsensiCepatController::class, 'processQr'])->name('scan')->middleware('throttle:120,1');
         Route::post('/bulk', [\App\Http\Controllers\PublicAbsensiCepatController::class, 'storeBulk'])->name('bulk');
+        Route::post('/store-single', [\App\Http\Controllers\PublicAbsensiCepatController::class, 'storeSingle'])->name('store-single');
     });
 });
 
@@ -299,6 +300,8 @@ Route::middleware([
             ->name('guru.absensi-cepat.search');
         Route::post('/absensi-cepat', [AbsensiSiswaController::class, 'bulkStore'])
             ->name('guru.absensi-cepat.store');
+        Route::post('/absensi-cepat/store-single', [AbsensiSiswaController::class, 'storeSingle'])
+            ->name('guru.absensi-cepat.store-single');
 
         // Izin & Sakit (Scoped to self in Controller)
         Route::get('/izin-sakit', [IzinSakitController::class, 'index'])->name('guru.izin-sakit.index');
@@ -341,6 +344,7 @@ Route::middleware([
         Route::get('/absensi-cepat', [AbsensiSiswaController::class, 'bulkForm'])->name('wali-kelas.absensi-cepat');
         Route::get('/absensi-cepat/search', [AbsensiSiswaController::class, 'searchStudent'])->name('wali-kelas.absensi-cepat.search');
         Route::post('/absensi-cepat', [AbsensiSiswaController::class, 'bulkStore'])->name('wali-kelas.absensi-cepat.store');
+        Route::post('/absensi-cepat/store-single', [AbsensiSiswaController::class, 'storeSingle'])->name('wali-kelas.absensi-cepat.store-single');
         Route::get('/rekap-harian', [LaporanController::class, 'rekapHarian'])->name('wali-kelas.rekap-harian');
         Route::get('/belum-absen', [LaporanController::class, 'belumAbsen'])->name('wali-kelas.belum-absen');
     });
@@ -431,6 +435,8 @@ Route::middleware([
             ->name('piket.absensi-cepat.search');
         Route::post('/absensi-cepat', [AbsensiSiswaController::class, 'bulkStore'])
             ->name('piket.absensi-cepat.store');
+        Route::post('/absensi-cepat/store-single', [AbsensiSiswaController::class, 'storeSingle'])
+            ->name('piket.absensi-cepat.store-single');
     });
 
     // ── Impersonation routes ────────────────────────────────────────────────────
@@ -1004,6 +1010,9 @@ Route::middleware([
             ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator,guru,piket');
         Route::post('absensi-cepat', [AbsensiSiswaController::class, 'bulkStore'])
             ->name('admin.absensi-cepat.store')
+            ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator,guru,piket');
+        Route::post('absensi-cepat/store-single', [AbsensiSiswaController::class, 'storeSingle'])
+            ->name('admin.absensi-cepat.store-single')
             ->middleware('role:super_admin,admin_sekolah,wali_kelas,operator,guru,piket');
         Route::post('absensi-siswa/auto-alpha', [AbsensiSiswaController::class, 'triggerAutoAlpha'])
             ->name('admin.absensi-siswa.auto-alpha')

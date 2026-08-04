@@ -8,6 +8,7 @@
   $isWaliKelasRoute = request()->is('wali-kelas/*') || request()->routeIs('wali-kelas.*');
   $urlBulkForm = $isWaliKelasRoute ? route('wali-kelas.absensi-cepat') : ($isPiketRoute ? route('piket.absensi-cepat') : ($isGuruRoute ? route('guru.absensi-cepat') : route('admin.absensi-cepat')));
   $urlBulkStore = $isWaliKelasRoute ? route('wali-kelas.absensi-cepat.store') : ($isPiketRoute ? route('piket.absensi-cepat.store') : ($isGuruRoute ? route('guru.absensi-cepat.store') : route('admin.absensi-cepat.store')));
+  $urlStoreSingle = $isWaliKelasRoute ? route('wali-kelas.absensi-cepat.store-single') : ($isPiketRoute ? route('piket.absensi-cepat.store-single') : ($isGuruRoute ? route('guru.absensi-cepat.store-single') : route('admin.absensi-cepat.store-single')));
 @endphp
 
 @section('page-style')
@@ -224,22 +225,22 @@
                     <div class="d-flex justify-content-center gap-2 absensi-radios">
                       {{-- HADIR --}}
                       <input type="radio" class="btn-check" name="absensi[{{ $index }}][status]" 
-                        id="h-{{ $s->id }}" value="hadir" {{ $existingStatus === 'hadir' ? 'checked' : '' }} autocomplete="off" onchange="updateSummary()">
+                        id="h-{{ $s->id }}" value="hadir" {{ $existingStatus === 'hadir' ? 'checked' : '' }} autocomplete="off" onchange="updateSummary(); autoSaveSingle('{{ $s->id }}', '{{ addslashes($s->nama_lengkap) }}', this.value, this.closest('tr'))">
                       <label class="btn btn-sm btn-outline-success rounded-pill px-3" for="h-{{ $s->id }}" title="Hadir">H</label>
 
                       {{-- SAKIT --}}
                       <input type="radio" class="btn-check" name="absensi[{{ $index }}][status]" 
-                        id="s-{{ $s->id }}" value="sakit" {{ $existingStatus === 'sakit' ? 'checked' : '' }} autocomplete="off" onchange="updateSummary()">
+                        id="s-{{ $s->id }}" value="sakit" {{ $existingStatus === 'sakit' ? 'checked' : '' }} autocomplete="off" onchange="updateSummary(); autoSaveSingle('{{ $s->id }}', '{{ addslashes($s->nama_lengkap) }}', this.value, this.closest('tr'))">
                       <label class="btn btn-sm btn-outline-info rounded-pill px-3" for="s-{{ $s->id }}" title="Sakit">S</label>
 
                       {{-- IZIN --}}
                       <input type="radio" class="btn-check" name="absensi[{{ $index }}][status]" 
-                        id="i-{{ $s->id }}" value="izin" {{ $existingStatus === 'izin' ? 'checked' : '' }} autocomplete="off" onchange="updateSummary()">
+                        id="i-{{ $s->id }}" value="izin" {{ $existingStatus === 'izin' ? 'checked' : '' }} autocomplete="off" onchange="updateSummary(); autoSaveSingle('{{ $s->id }}', '{{ addslashes($s->nama_lengkap) }}', this.value, this.closest('tr'))">
                       <label class="btn btn-sm btn-outline-warning rounded-pill px-3" for="i-{{ $s->id }}" title="Izin">I</label>
 
                       {{-- ALPHA --}}
                       <input type="radio" class="btn-check" name="absensi[{{ $index }}][status]" 
-                        id="a-{{ $s->id }}" value="alpha" {{ $existingStatus === 'alpha' ? 'checked' : '' }} autocomplete="off" onchange="updateSummary()">
+                        id="a-{{ $s->id }}" value="alpha" {{ $existingStatus === 'alpha' ? 'checked' : '' }} autocomplete="off" onchange="updateSummary(); autoSaveSingle('{{ $s->id }}', '{{ addslashes($s->nama_lengkap) }}', this.value, this.closest('tr'))">
                       <label class="btn btn-sm btn-outline-danger rounded-pill px-3" for="a-{{ $s->id }}" title="Alpha">A</label>
 
                       @php
@@ -248,13 +249,13 @@
                       @if(!in_array($activeJenjang, ['SD/MI', 'SMP/MTs']))
                         {{-- TERLAMBAT --}}
                         <input type="radio" class="btn-check" name="absensi[{{ $index }}][status]" 
-                          id="t-{{ $s->id }}" value="terlambat" {{ $existingStatus === 'terlambat' ? 'checked' : '' }} autocomplete="off" onchange="updateSummary()">
+                          id="t-{{ $s->id }}" value="terlambat" {{ $existingStatus === 'terlambat' ? 'checked' : '' }} autocomplete="off" onchange="updateSummary(); autoSaveSingle('{{ $s->id }}', '{{ addslashes($s->nama_lengkap) }}', this.value, this.closest('tr'))">
                         <label class="btn btn-sm btn-outline-primary rounded-pill px-3" for="t-{{ $s->id }}" title="Terlambat">T</label>
                       @endif
                     </div>
                   </td>
                   <td class="pe-4 text-end">
-                    <input type="text" name="absensi[{{ $index }}][keterangan]" class="form-control form-control-sm ms-auto" style="max-width:200px;" placeholder="..." value="{{ $existingKet }}">
+                    <input type="text" name="absensi[{{ $index }}][keterangan]" class="form-control form-control-sm ms-auto" style="max-width:200px;" placeholder="..." value="{{ $existingKet }}" onblur="autoSaveSingle('{{ $s->id }}', '{{ addslashes($s->nama_lengkap) }}', null, this.closest('tr'))">
                   </td>
                 </tr>
               @endforeach
@@ -299,10 +300,83 @@
       </div>
     </div>
   @endif
+
+  {{-- Toast Notification Container --}}
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+    <div id="autoSaveToast" class="toast align-items-center text-white bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body d-flex align-items-center gap-2">
+          <i class="ti tabler-circle-check fs-5"></i>
+          <span id="toastMessage">Otomatis Tersimpan</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
 @endsection
 
 @section('page-script')
 <script>
+  const urlStoreSingle = "{{ $urlStoreSingle }}";
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "{{ csrf_token() }}";
+
+  window.autoSaveSingle = function(siswaId, namaSiswa, statusVal, rowEl) {
+    if (!rowEl) return;
+    const kelasId = document.querySelector('input[name="kelas_id"]')?.value || "{{ $selectedKelasId }}";
+    const tanggal = document.getElementById('tanggal_submit')?.value || "{{ request('tanggal', now()->toDateString()) }}";
+
+    if (!statusVal) {
+      const checkedRadio = rowEl.querySelector('input[type="radio"]:checked');
+      if (!checkedRadio) return;
+      statusVal = checkedRadio.value;
+    }
+
+    const ketInp = rowEl.querySelector('input[name*="[keterangan]"]');
+    const keterangan = ketInp ? ketInp.value : '';
+
+    fetch(urlStoreSingle, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+      },
+      body: JSON.stringify({
+        kelas_id: kelasId,
+        siswa_id: siswaId,
+        tanggal: tanggal,
+        status: statusVal,
+        keterangan: keterangan
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        window.showToast('success', `${namaSiswa}: Status ${statusVal.toUpperCase()} tersimpan`);
+      } else {
+        window.showToast('danger', data.message || 'Gagal menyimpan absensi');
+      }
+    })
+    .catch(err => {
+      console.error('AutoSave Error:', err);
+      window.showToast('danger', 'Koneksi bermasalah saat auto-save');
+    });
+  };
+
+  window.showToast = function(type, msg) {
+    const toastEl = document.getElementById('autoSaveToast');
+    if (!toastEl) return;
+
+    toastEl.className = `toast align-items-center text-white bg-${type} border-0 shadow`;
+    const msgEl = document.getElementById('toastMessage');
+    if (msgEl) msgEl.innerText = msg;
+
+    if (window.bootstrap && window.bootstrap.Toast) {
+      const bsToast = window.bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 2000 });
+      bsToast.show();
+    }
+  };
+
   window.updateSummary = function() {
     const totalRows = document.querySelectorAll('tr.student-row').length;
     const h = document.querySelectorAll('input[value="hadir"]:checked').length;
@@ -331,7 +405,16 @@
     const rows = document.querySelectorAll('tr.student-row');
     rows.forEach(row => {
       const radio = row.querySelector(`input[value="${status}"]`);
-      if (radio) radio.checked = true;
+      if (radio) {
+        radio.checked = true;
+        const siswaIdInp = row.querySelector('input[name*="[siswa_id]"]');
+        const siswaId = siswaIdInp ? siswaIdInp.value : null;
+        const namaEl = row.querySelector('.fw-bold.text-white');
+        const nama = namaEl ? namaEl.innerText : '';
+        if (siswaId) {
+          window.autoSaveSingle(siswaId, nama, status, row);
+        }
+      }
     });
     window.updateSummary();
   };
@@ -363,10 +446,18 @@
         const row = active.closest('tr');
         if (row) {
            const map = {'1':'hadir', '2':'sakit', '3':'izin', '4':'alpha', '5':'terlambat'};
-           const radio = row.querySelector(`input[value="${map[e.key]}"]`);
+           const statusVal = map[e.key];
+           const radio = row.querySelector(`input[value="${statusVal}"]`);
            if (radio) {
               radio.checked = true;
               window.updateSummary();
+              const siswaIdInp = row.querySelector('input[name*="[siswa_id]"]');
+              const siswaId = siswaIdInp ? siswaIdInp.value : null;
+              const namaEl = row.querySelector('.fw-bold.text-white');
+              const nama = namaEl ? namaEl.innerText : '';
+              if (siswaId) {
+                window.autoSaveSingle(siswaId, nama, statusVal, row);
+              }
            }
         }
      }
