@@ -32,27 +32,33 @@ class Holiday extends Model
 
     public static function isSiswaHoliday(Siswa $siswa, string $tanggal): bool
     {
-        $tingkat = $siswa->kelas?->tingkat;
-        $kelasId = $siswa->kelas_id;
+        $tingkat = $siswa->kelas?->tingkat ?? 'none';
+        $kelasId = $siswa->kelas_id ?? 0;
+        $cacheKey = "holiday_siswa_{$tanggal}_{$tingkat}_{$kelasId}";
 
-        return self::whereDate('tanggal', $tanggal)
-            ->where(function ($query) use ($tingkat, $kelasId) {
-                $query->where(function ($q) {
-                    $q->whereNull('tingkat')->whereNull('kelas_id');
-                });
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 600, function () use ($tanggal, $tingkat, $kelasId) {
+            $tingkatVal = $tingkat === 'none' ? null : $tingkat;
+            $kelasIdVal = $kelasId === 0 ? null : $kelasId;
 
-                if ($tingkat) {
-                    $query->orWhere(function ($q) use ($tingkat) {
-                        $q->where('tingkat', $tingkat)->whereNull('kelas_id');
+            return self::whereDate('tanggal', $tanggal)
+                ->where(function ($query) use ($tingkatVal, $kelasIdVal) {
+                    $query->where(function ($q) {
+                        $q->whereNull('tingkat')->whereNull('kelas_id');
                     });
-                }
 
-                if ($kelasId) {
-                    $query->orWhere(function ($q) use ($kelasId) {
-                        $q->where('kelas_id', $kelasId);
-                    });
-                }
-            })
-            ->exists();
+                    if ($tingkatVal) {
+                        $query->orWhere(function ($q) use ($tingkatVal) {
+                            $q->where('tingkat', $tingkatVal)->whereNull('kelas_id');
+                        });
+                    }
+
+                    if ($kelasIdVal) {
+                        $query->orWhere(function ($q) use ($kelasIdVal) {
+                            $q->where('kelas_id', $kelasIdVal);
+                        });
+                    }
+                })
+                ->exists();
+        });
     }
 }

@@ -1694,7 +1694,6 @@ async function handleScan(qrCode) {
       if (scanCountEl) scanCountEl.textContent = scanCount;
       showToast('success', '✅', data.siswa, data.message);
       beep('success');
-      refreshLeaderboard();
     } else if (data.already) {
       showToast('warning', '⚠️', data.siswa, data.message);
       beep('error');

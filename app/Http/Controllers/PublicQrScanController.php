@@ -120,7 +120,7 @@ class PublicQrScanController extends Controller
         $tanggal        = now()->toDateString();
 
         // PRD-016: Load jadwal per kelas SEBELUM time check "belum dibuka"
-        $siswaLookup = Siswa::where('qr_code', $qrCode)->first();
+        $siswaLookup = Siswa::with('kelas')->where('qr_code', $qrCode)->first();
         if ($siswaLookup && $siswaLookup->kelas_id) {
             $jadwalKelas = \App\Helpers\JadwalAbsensiHelper::getJadwalForKelas($siswaLookup->kelas_id);
             $jamMulaiAbsensi   = \App\Helpers\JadwalAbsensiHelper::formatTime($jadwalKelas['jam_mulai_absensi']) ?? $jamMulaiAbsensi;
@@ -789,11 +789,14 @@ class PublicQrScanController extends Controller
             $mode = 'otomatis';
         }
 
-        // Cek global holiday SEBELUM proses scan — tolak scan pada hari libur global
-        $todayHoliday = \App\Models\Holiday::whereDate('tanggal', now()->toDateString())
-            ->whereNull('tingkat')
-            ->whereNull('kelas_id')
-            ->first();
+        // Cek global holiday SEBELUM proses scan — tolak scan pada hari libur global (Cached 10 mnt)
+        $todayDateStr = now()->toDateString();
+        $todayHoliday = \Illuminate\Support\Facades\Cache::remember("global_holiday_{$todayDateStr}", 600, function () use ($todayDateStr) {
+            return \App\Models\Holiday::whereDate('tanggal', $todayDateStr)
+                ->whereNull('tingkat')
+                ->whereNull('kelas_id')
+                ->first();
+        });
 
         if ($todayHoliday) {
             return response()->json([
