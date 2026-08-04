@@ -969,22 +969,30 @@
 
         </div>{{-- /opsi-row --}}
 
-        {{-- FILTER KELAS --}}
+        {{-- FILTER KELAS (GAYA LIVE SEARCH & CHIP BADGE) --}}
         <div class="filter-section" id="filterKelasSection">
-          <label class="set-label" for="kelas_id">Pilih Kelas <span class="text-danger">*</span></label>
+          <label class="set-label">Cari & Pilih Kelas <span class="text-danger">*</span></label>
+
+          {{-- Hidden input yang akan terisi ID kelas terpilih --}}
+          <input type="hidden" name="kelas_id" id="kelas_id_hidden" value="{{ old('kelas_id') }}">
+
+          {{-- Search box --}}
           <div class="set-input-group">
-            <span class="set-input-prefix"><i class="ti tabler-door"></i></span>
-            <select class="set-input" name="kelas_id" id="kelas_id">
-              <option value="">-- Pilih Kelas --</option>
-              @foreach ($kelasOptions as $k)
-                <option value="{{ $k->id }}" {{ old('kelas_id') == $k->id ? 'selected' : '' }}>
-                  {{ $k->nama }}
-                </option>
-              @endforeach
-            </select>
+            <span class="set-input-prefix"><i class="ti tabler-search"></i></span>
+            <input type="text" class="set-input" id="searchKelas"
+              placeholder="Ketik nama kelas (misal: X-A, XII IPA)..."
+              autocomplete="off">
           </div>
+
+          {{-- Selected chip display --}}
+          <div class="selected-chip-wrap" id="selectedKelasChipWrap"></div>
+
+          {{-- Search results list --}}
+          <div class="individu-search-results" id="kelasSearchResultsList"></div>
+
           <div class="set-field-hint --info mt-1">
-            <i class="ti tabler-info-circle"></i> Pilih kelas untuk mencetak kartu seluruh siswa di kelas tersebut.
+            <i class="ti tabler-info-circle"></i>
+            <span>Ketik atau pilih nama kelas untuk mencetak kartu seluruh siswa di kelas tersebut.</span>
           </div>
         </div>
 
@@ -1198,6 +1206,68 @@ const TOTAL_STAFF = {{ $jumlahStaff }};
 // STATE
 // ════════════════════════════════════════════════════════════
 let selectedIndividu = null; // { id, name, nip }
+let selectedKelas    = null; // { id, name }
+
+// ════════════════════════════════════════════════════════════
+// SEARCH KELAS
+// ════════════════════════════════════════════════════════════
+function renderKelasSearchResults(term) {
+  const list = document.getElementById('kelasSearchResultsList');
+  if (!list) return;
+
+  const lc = (term || '').toLowerCase().trim();
+  const filtered = (DATA_KELAS || []).filter(k => {
+    return (k.nama || '').toLowerCase().includes(lc);
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="search-empty-msg"><i class="ti tabler-search-off" style="font-size:1.4rem;display:block;margin:0 auto 0.35rem;"></i>Tidak ada kelas cocok dengan "<strong>${escHtml(term)}</strong>"</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(k => {
+    return `<div class="search-result-item" data-id="${k.id}" data-name="${escHtml(k.nama)}" onclick="selectKelas(this)">
+      <div class="avatar-initials-mini" style="background:rgba(115,103,240,0.15);color:#7367f0;"><i class="ti tabler-door"></i></div>
+      <span class="sri-name">${escHtml(k.nama)}</span>
+      <span class="sri-nip">Kelas</span>
+    </div>`;
+  }).join('');
+}
+
+function selectKelas(el) {
+  const id   = el.dataset.id;
+  const name = el.dataset.name;
+
+  selectedKelas = { id, name };
+
+  const hidden = document.getElementById('kelas_id_hidden');
+  if (hidden) hidden.value = id;
+
+  const chipWrap = document.getElementById('selectedKelasChipWrap');
+  if (chipWrap) {
+    chipWrap.innerHTML = `<div class="selected-chip">
+      <div class="avatar-initials-mini" style="background: linear-gradient(135deg, #7367f0, #a78bfa); box-shadow: 0 2px 8px rgba(115, 103, 240, 0.3);"><i class="ti tabler-door text-white" style="font-size:0.75rem;"></i></div>
+      <span>Kelas <strong>${escHtml(name)}</strong></span>
+      <span class="chip-remove" onclick="clearSelectedKelas()" title="Hapus pilihan">✕</span>
+    </div>`;
+  }
+
+  const searchEl = document.getElementById('searchKelas');
+  if (searchEl) searchEl.value = '';
+  const list = document.getElementById('kelasSearchResultsList');
+  if (list) list.innerHTML = '';
+
+  updatePreviewBar();
+}
+
+function clearSelectedKelas() {
+  selectedKelas = null;
+  const hidden = document.getElementById('kelas_id_hidden');
+  if (hidden) hidden.value = '';
+  const chipWrap = document.getElementById('selectedKelasChipWrap');
+  if (chipWrap) chipWrap.innerHTML = '';
+  updatePreviewBar();
+}
 
 // ════════════════════════════════════════════════════════════
 // STEP INDICATOR
@@ -1275,8 +1345,9 @@ function onTipeChange() {
   // Filter template berdasarkan tipe
   filterTemplateOptions(tipe);
 
-  // Reset individu selection
+  // Reset selection
   clearSelectedIndividu();
+  clearSelectedKelas();
 
   // Update search placeholder
   updateSearchPlaceholder(tipe);
@@ -1294,7 +1365,7 @@ function onOpsiChange() {
   const tipe = getCheckedVal('tipe');
   const opsi = getCheckedVal('opsi_cetak');
 
-  if (!opsi || !tipe) return;
+  if (!opsi) return;
 
   const filterKelas    = document.getElementById('filterKelasSection');
   const filterIndividu = document.getElementById('filterIndividuSection');
@@ -1305,6 +1376,11 @@ function onOpsiChange() {
 
   if (opsi === 'kelas' && tipe === 'siswa') {
     openSection(filterKelas);
+    // Trigger search jika sudah ada value
+    const searchKelasEl = document.getElementById('searchKelas');
+    if (searchKelasEl && searchKelasEl.value.trim().length > 0) {
+      renderKelasSearchResults(searchKelasEl.value.trim());
+    }
   } else if (opsi === 'individu') {
     openSection(filterIndividu);
     // Trigger search jika sudah ada value
@@ -1550,9 +1626,22 @@ document.addEventListener('DOMContentLoaded', function() {
     el.addEventListener('change', onOpsiChange);
   });
 
-  // Kelas select
-  const kelasEl = document.getElementById('kelas_id');
-  if (kelasEl) kelasEl.addEventListener('change', updatePreviewBar);
+  // Search kelas
+  const searchKelasEl = document.getElementById('searchKelas');
+  if (searchKelasEl) {
+    searchKelasEl.addEventListener('focus', function() {
+      renderKelasSearchResults(this.value.trim());
+    });
+    searchKelasEl.addEventListener('input', function() {
+      renderKelasSearchResults(this.value.trim());
+    });
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('#filterKelasSection')) {
+        const list = document.getElementById('kelasSearchResultsList');
+        if (list) list.innerHTML = '';
+      }
+    });
+  }
 
   // Template select
   const templateEl = document.getElementById('template_id');
@@ -1571,6 +1660,11 @@ document.addEventListener('DOMContentLoaded', function() {
   // Search individu
   const searchEl = document.getElementById('searchIndividu');
   if (searchEl) {
+    searchEl.addEventListener('focus', function() {
+      if (this.value.trim().length > 0) {
+        renderSearchResults(this.value.trim());
+      }
+    });
     searchEl.addEventListener('input', function() {
       renderSearchResults(this.value.trim());
     });
@@ -1613,14 +1707,14 @@ document.addEventListener('DOMContentLoaded', function() {
       const tipe = getCheckedVal('tipe');
       const opsi = getCheckedVal('opsi_cetak');
       const template = document.getElementById('template_id')?.value;
-      const kelas = document.getElementById('kelas_id')?.value;
+      const kelas = document.getElementById('kelas_id_hidden')?.value;
       const entitas = document.getElementById('entitas_id_hidden')?.value;
 
       const errors = [];
       if (!tipe) errors.push('Pilih tipe entitas terlebih dahulu.');
       if (!opsi) errors.push('Pilih opsi cetak terlebih dahulu.');
       if (!template) errors.push('Pilih template kartu.');
-      if (opsi === 'kelas' && !kelas) errors.push('Pilih kelas terlebih dahulu.');
+      if (opsi === 'kelas' && !kelas) errors.push('Pilih kelas terlebih dahulu (cari dan klik nama kelas).');
       if (opsi === 'individu' && !entitas) errors.push('Pilih individu terlebih dahulu (cari dan klik nama).');
 
       if (errors.length > 0) {
