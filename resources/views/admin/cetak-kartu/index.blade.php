@@ -326,110 +326,76 @@
 }
 
 /* ════════════════════════════════════════════════════════════
-   INDIVIDU SEARCH (Chip + List)
+   INPUT CONTROLS & SEARCH (Individu & Kelas)
    ════════════════════════════════════════════════════════════ */
-#searchIndividu {
+.set-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100% !important;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.set-input-prefix {
+  position: absolute;
+  left: 1.15rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.4);
+  transition: color 0.25s ease;
+  z-index: 5;
+  pointer-events: none;
+  font-size: 1.15rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.set-input-group:focus-within .set-input-prefix {
+  color: #7367f0;
+}
+
+.set-input,
+#searchIndividu,
+#searchKelas,
+#template_id {
   width: 100% !important;
   max-width: 100% !important;
-  background: rgba(255, 255, 255, 0.03) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
   color: #fff !important;
   font-family: inherit;
+  font-size: 0.88rem !important;
   transition: all 0.25s ease-in-out;
   border-radius: 8px !important;
-  padding: 0.75rem 1.25rem 0.75rem 3rem !important; /* Spacing top/bottom, right, left for prefix */
+  padding: 0.75rem 1.25rem 0.75rem 3rem !important;
   margin: 0 !important;
+  box-sizing: border-box !important;
 }
 
-#searchIndividu:focus {
-  background: rgba(255, 255, 255, 0.05) !important;
+.set-input:focus,
+#searchIndividu:focus,
+#searchKelas:focus,
+#template_id:focus {
+  background: rgba(255, 255, 255, 0.07) !important;
   border-color: #7367f0 !important;
-  box-shadow: 0 0 12px rgba(115, 103, 240, 0.3) !important;
+  box-shadow: 0 0 14px rgba(115, 103, 240, 0.35) !important;
   color: #fff !important;
+  outline: none !important;
 }
 
-#kelas_id, #template_id {
-  width: 100% !important;
-  max-width: 100% !important;
-  background: rgba(255, 255, 255, 0.03) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #fff !important;
-  font-family: inherit;
-  transition: all 0.25s ease-in-out;
-  border-radius: 8px !important;
-  padding: 0.75rem 1.25rem 0.75rem 3rem !important; /* Spacing top/bottom, right, left for prefix */
-  margin: 0 !important;
-  appearance: none; /* remove default native dropdown arrow if needed, but styling is fine */
-  -webkit-appearance: none;
-  -moz-appearance: none;
+.set-input::placeholder,
+#searchIndividu::placeholder,
+#searchKelas::placeholder {
+  color: rgba(255, 255, 255, 0.35) !important;
+  font-size: 0.85rem !important;
 }
 
-#kelas_id:focus, #template_id:focus {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border-color: #7367f0 !important;
-  box-shadow: 0 0 12px rgba(115, 103, 240, 0.3) !important;
-  color: #fff !important;
-  outline: none;
-}
-
-#kelas_id option, #template_id option {
+#template_id option {
   background-color: #1e1e2f !important;
   color: #fff !important;
-}
-
-#filterKelasSection .set-input-group,
-#step3Section .set-input-group {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100% !important;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-#filterKelasSection .set-input-prefix,
-#step3Section .set-input-prefix {
-  position: absolute;
-  left: 1.15rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.35);
-  transition: color 0.25s ease;
-  z-index: 5;
-  pointer-events: none;
-  font-size: 1.1rem;
-  line-height: 1;
-}
-
-#filterKelasSection .set-input-group:focus-within .set-input-prefix,
-#step3Section .set-input-group:focus-within .set-input-prefix {
-  color: #7367f0;
-}
-
-#filterIndividuSection .set-input-group {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100% !important;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-#filterIndividuSection .set-input-prefix {
-  position: absolute;
-  left: 1.15rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.35);
-  transition: color 0.25s ease;
-  z-index: 5;
-  pointer-events: none;
-  font-size: 1.1rem;
-  line-height: 1;
-}
-
-#filterIndividuSection .set-input-group:focus-within .set-input-prefix {
-  color: #7367f0;
 }
 
 #filterIndividuSection .set-field-hint {
