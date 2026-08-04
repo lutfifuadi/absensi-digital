@@ -5,19 +5,19 @@
   <title>Rekap Absensi {{ $namaBulan }} {{ $tahun }}</title>
   <style>
     @page {
-      margin: 12mm 15mm 15mm 15mm;
+      margin: 8mm 8mm 10mm 8mm;
     }
     body {
       font-family: 'Helvetica', 'Arial', sans-serif;
-      font-size: 8.5pt;
+      font-size: 8pt;
       color: #1e293b;
-      line-height: 1.3;
+      line-height: 1.2;
     }
 
     /* KOP SURAT RESMI */
     .kop-container {
       width: 100%;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .kop-table {
       width: 100%;
@@ -30,21 +30,21 @@
       vertical-align: middle;
     }
     .kop-logo {
-      width: 65px;
+      width: 55px;
       text-align: center;
     }
     .kop-logo img {
-      max-width: 60px;
-      max-height: 60px;
+      max-width: 50px;
+      max-height: 50px;
       object-fit: contain;
     }
     .kop-text {
       text-align: center;
-      padding-left: 10px;
-      padding-right: 65px;
+      padding-left: 8px;
+      padding-right: 55px;
     }
     .kop-text .nama-lembaga {
-      font-size: 11pt;
+      font-size: 10pt;
       font-weight: bold;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -52,14 +52,14 @@
       margin: 0;
     }
     .kop-text .nama-sekolah {
-      font-size: 14pt;
+      font-size: 13pt;
       font-weight: 900;
       text-transform: uppercase;
       color: #1e293b;
-      margin: 2px 0;
+      margin: 1px 0;
     }
     .kop-text .alamat-sekolah {
-      font-size: 8pt;
+      font-size: 7.5pt;
       color: #475569;
       margin: 0;
     }
@@ -70,17 +70,17 @@
       border-top: 2px solid #0f172a;
       border-bottom: 1px solid #0f172a;
       height: 2px;
-      margin-top: 5px;
-      margin-bottom: 12px;
+      margin-top: 4px;
+      margin-bottom: 8px;
     }
 
     /* META JUDUL LAPORAN */
     .report-title-box {
       text-align: center;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
     .report-title-box h3 {
-      font-size: 11pt;
+      font-size: 10.5pt;
       font-weight: 800;
       text-transform: uppercase;
       margin: 0;
@@ -88,40 +88,48 @@
       letter-spacing: 0.5px;
     }
     .report-title-box p {
-      font-size: 9pt;
+      font-size: 8.5pt;
       font-weight: 600;
       color: #334155;
-      margin: 3px 0 0 0;
+      margin: 2px 0 0 0;
     }
 
-    /* TABEL REKAP */
+    /* TABEL REKAP FIX FIT 100% */
     table.data-table {
       width: 100%;
+      table-layout: fixed;
       border-collapse: collapse;
-      margin-top: 6px;
-      font-size: 8pt;
+      margin-top: 4px;
+      font-size: 7.5pt;
     }
     table.data-table th, 
     table.data-table td {
       border: 1px solid #94a3b8;
-      padding: 3px 2px;
+      padding: 2px 1px;
       text-align: center;
+      overflow: hidden;
+      word-wrap: break-word;
     }
     table.data-table th {
       background-color: #1e293b;
       color: #ffffff;
       font-weight: bold;
-      font-size: 7.5pt;
+      font-size: 7pt;
       text-transform: uppercase;
     }
     table.data-table th.sub-header {
       background-color: #334155;
+      font-size: 6.5pt;
     }
     table.data-table td.nama {
       text-align: left;
-      padding-left: 6px;
+      padding-left: 4px;
+      padding-right: 2px;
       font-weight: 600;
+      font-size: 7pt;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* WEEKEND HIGHLIGHT */
@@ -159,18 +167,18 @@
 
     /* SUMMARY FOOTER */
     .legend-box {
-      margin-top: 10px;
-      font-size: 8pt;
+      margin-top: 8px;
+      font-size: 7.5pt;
       color: #334155;
     }
     .legend-item {
       display: inline-block;
-      margin-right: 12px;
+      margin-right: 10px;
     }
 
     /* BLOK TANDA TANGAN */
     .ttd-box {
-      margin-top: 25px;
+      margin-top: 18px;
       width: 100%;
       page-break-inside: avoid;
     }
@@ -184,7 +192,7 @@
       width: 50%;
       text-align: center;
       vertical-align: top;
-      font-size: 8.5pt;
+      font-size: 8pt;
     }
   </style>
 </head>
@@ -203,13 +211,22 @@
         }
       }
     }
-    $hasLogo = !empty($logoPath) && file_exists($logoPath);
+    $hasLogo       = !empty($logoPath) && file_exists($logoPath);
     $namaLembaga   = setting('nama_lembaga');
     $namaSekolah   = setting('nama_sekolah') ?: $namaSekolah ?? 'SEKOLAH';
     $alamatSekolah = setting('alamat_sekolah') ?: setting('alamat');
     $telpSekolah   = setting('telepon_sekolah') ?: setting('telepon');
     $emailSekolah  = setting('email_sekolah') ?: setting('email');
     $headerContact = array_filter([$telpSekolah ? 'Telp: '.$telpSekolah : null, $emailSekolah ? 'Email: '.$emailSekolah : null]);
+
+    $totalDates = count($dates);
+    // Presisi kalkulasi persen kolom
+    $noWidth = 2.5;
+    $namaWidth = 19.5;
+    $summaryWidth = 2.3; // H, S, I, A, T
+    $persenWidth = 3.2; // %
+    $availableForDates = 100 - ($noWidth + $namaWidth + ($summaryWidth * 5) + $persenWidth);
+    $dateWidth = $totalDates > 0 ? ($availableForDates / $totalDates) : 2.0;
   @endphp
 
   <!-- KOP SURAT RESMI -->
@@ -248,25 +265,38 @@
 
   <!-- TABEL DATA -->
   <table class="data-table">
+    <colgroup>
+      <col style="width: {{ $noWidth }}%;">
+      <col style="width: {{ $namaWidth }}%;">
+      @foreach ($dates as $date)
+        <col style="width: {{ $dateWidth }}%;">
+      @endforeach
+      <col style="width: {{ $summaryWidth }}%;">
+      <col style="width: {{ $summaryWidth }}%;">
+      <col style="width: {{ $summaryWidth }}%;">
+      <col style="width: {{ $summaryWidth }}%;">
+      <col style="width: {{ $summaryWidth }}%;">
+      <col style="width: {{ $persenWidth }}%;">
+    </colgroup>
     <thead>
       <tr>
-        <th rowspan="2" style="width:20px;">#</th>
-        <th rowspan="2" style="min-width:130px; text-align:left; padding-left:6px;">Nama Siswa</th>
+        <th rowspan="2">#</th>
+        <th rowspan="2" style="text-align:left; padding-left:4px;">Nama Siswa</th>
         @foreach ($dates as $date)
           @php
             $dt = \Carbon\Carbon::parse($date);
             $isWeekend = in_array($dt->dayOfWeek, [\Carbon\Carbon::SATURDAY, \Carbon\Carbon::SUNDAY]);
           @endphp
-          <th class="{{ $isWeekend ? 'weekend' : '' }}" style="width:16px;">
+          <th class="{{ $isWeekend ? 'weekend' : '' }}">
             {{ (int) $dt->format('d') }}
           </th>
         @endforeach
-        <th rowspan="2" style="width:22px;">H</th>
-        <th rowspan="2" style="width:22px;">S</th>
-        <th rowspan="2" style="width:22px;">I</th>
-        <th rowspan="2" style="width:22px;">A</th>
-        <th rowspan="2" style="width:22px;">T</th>
-        <th rowspan="2" style="width:30px;">%</th>
+        <th rowspan="2">H</th>
+        <th rowspan="2">S</th>
+        <th rowspan="2">I</th>
+        <th rowspan="2">A</th>
+        <th rowspan="2">T</th>
+        <th rowspan="2">%</th>
       </tr>
       <tr>
         @foreach ($dates as $date)
@@ -295,7 +325,7 @@
         @endphp
         <tr>
           <td>{{ $loop->iteration }}</td>
-          <td class="nama">{{ $siswa->nama_lengkap }}</td>
+          <td class="nama" title="{{ $siswa->nama_lengkap }}">{{ $siswa->nama_lengkap }}</td>
           @foreach ($dates as $date)
             @php 
               $dt = \Carbon\Carbon::parse($date);
@@ -311,7 +341,7 @@
           <td class="izin">{{ $i }}</td>
           <td class="alpha">{{ $a }}</td>
           <td class="terlambat">{{ $t }}</td>
-          <td style="font-weight:bold;">{{ $persen }}%</td>
+          <td style="font-weight:bold; font-size:6.5pt;">{{ $persen }}%</td>
         </tr>
       @endforeach
     </tbody>
