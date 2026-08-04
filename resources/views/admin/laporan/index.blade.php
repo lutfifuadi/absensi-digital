@@ -136,7 +136,7 @@
       </div>
     </div>
     <div class="das-panel__body">
-      <form method="GET" action="{{ route('admin.laporan.index') }}" class="row gy-3 gx-3 align-items-end">
+      <form method="GET" action="{{ route('admin.laporan.index') }}" class="row gy-3 gx-2 align-items-end">
         <div class="col-12 col-sm-6 col-md-3">
           <label class="form-label text-white-50 small fw-bold">KELAS</label>
           <select class="form-select form-select-sm" name="kelas_id" style="background: rgba(15, 23, 42, 0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
@@ -159,25 +159,26 @@
           <label class="form-label text-white-50 small fw-bold">TAHUN</label>
           <input type="number" class="form-control form-control-sm" name="tahun" value="{{ $filters['tahun'] }}" style="background: rgba(15, 23, 42, 0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
         </div>
-        <div class="col-12 col-sm-6 col-md-2">
+        <div class="col-12 col-sm-4 col-md-2">
           <button type="submit" class="das-btn das-btn--info w-100">
             <i class="ti tabler-search"></i> Terapkan
           </button>
         </div>
-        <div class="col-12 col-md-5">
-          <div class="d-flex gap-2 flex-wrap">
-            <a href="{{ route('admin.laporan.exportExcel', request()->query()) }}" class="das-btn das-btn--success" title="Download Excel Multi-Sheet (Sheet 1: Matriks, Sheet 2: Detail Jam)">
+        <div class="col-12 col-sm-8 col-md-3">
+          <label class="form-label text-white-50 small fw-bold d-none d-md-block">EKSPOR</label>
+          <div class="d-flex gap-1 w-100">
+            <a href="{{ route('admin.laporan.exportExcel', request()->query()) }}" class="das-btn das-btn--success flex-grow-1" title="Download Excel Multi-Sheet (Sheet 1: Matriks, Sheet 2: Detail Jam)">
               <i class="ti tabler-file-spreadsheet me-1"></i> EXCEL (2-Sheet)
             </a>
             
-            <div class="btn-group">
-              <a href="{{ route('admin.laporan.exportPdf', array_merge(request()->query(), ['tipe_laporan' => 'matriks'])) }}" class="das-btn das-btn--primary" style="background: #ea5455; border-color: #ea5455;">
-                <i class="ti tabler-file-type-pdf me-1"></i> PDF Matriks
+            <div class="btn-group flex-grow-1">
+              <a href="{{ route('admin.laporan.exportPdf', array_merge(request()->query(), ['tipe_laporan' => 'matriks'])) }}" class="das-btn das-btn--primary w-100" style="background: #ea5455; border-color: #ea5455;">
+                <i class="ti tabler-file-type-pdf me-1"></i> PDF
               </a>
               <button type="button" class="btn btn-sm btn-danger dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false" style="background: #dc2626; border-color: #dc2626;">
                 <span class="visually-hidden">Toggle Dropdown</span>
               </button>
-              <ul class="dropdown-menu dropdown-menu-dark shadow">
+              <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow">
                 <li>
                   <a class="dropdown-item" href="{{ route('admin.laporan.exportPdf', array_merge(request()->query(), ['tipe_laporan' => 'matriks'])) }}">
                     <i class="ti tabler-table-alias me-2 text-danger"></i> PDF Matriks Ringkas (H/S/I/A/T)
