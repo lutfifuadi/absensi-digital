@@ -106,8 +106,16 @@ class WhatsAppPengaduanService
     /**
      * Kirim notifikasi ke grup admin.
      */
-    public function sendToGroupAdmin(string $kodeUnik, string $nama, string $statusPelapor, string $kategori, string $deskripsi, string $kelas = '-'): bool
-    {
+    public function sendToGroupAdmin(
+        string $kodeUnik,
+        string $nama,
+        string $statusPelapor,
+        string $kategori,
+        string $deskripsi,
+        string $kelas = '-',
+        string $nisn = '-',
+        string $nomorKontak = '-'
+    ): bool {
         $statusPelaporLabel = $statusPelapor === 'siswa' ? 'Siswa' : 'Orang Tua';
         $namaKelas = !empty($kelas) && $kelas !== '-' ? $kelas : '-';
         $namaLembaga = setting('nama_lembaga') ?: setting('nama_sekolah') ?: 'Sekolah';
@@ -116,9 +124,11 @@ class WhatsAppPengaduanService
         if (empty($template)) {
             $message = "━━━ *PENGADUAN BARU* ━━━\n\n"
                 . "Kode: *{$kodeUnik}*\n"
-                . "Nama: {$nama}\n"
+                . "Nama Pelapor: {$nama}\n"
+                . "NISN: {$nisn}\n"
                 . "Kelas: {$namaKelas}\n"
                 . "Status: {$statusPelaporLabel}\n"
+                . "No. Kontak: {$nomorKontak}\n"
                 . "Kategori: {$kategori}\n\n"
                 . "Deskripsi:\n{$deskripsi}\n\n"
                 . "Silakan proses pengaduan ini di panel admin.\n"
@@ -127,16 +137,20 @@ class WhatsAppPengaduanService
             $search = [
                 '{kode_unik}', '{kode}', '(kode_unik)', '(kode)',
                 '{nama}', '{nama_lengkap}', '(nama)', '(nama_lengkap)',
+                '{nisn}', '(nisn)',
                 '{kelas}', '{kelas_nama}', '(kelas)', '(kelas_nama)', '{class}', '(class)',
                 '{status}', '{status_pelapor}', '(status)', '(status_pelapor)',
+                '{nomor_kontak}', '{no_kontak}', '{nomor_wa}', '{no_hp}', '(nomor_kontak)', '(no_kontak)', '(nomor_wa)', '(no_hp)',
                 '{kategori}', '(kategori)',
                 '{deskripsi}', '{pesan}', '(deskripsi)', '(pesan)'
             ];
             $replace = [
                 $kodeUnik, $kodeUnik, $kodeUnik, $kodeUnik,
                 $nama, $nama, $nama, $nama,
+                $nisn, $nisn,
                 $namaKelas, $namaKelas, $namaKelas, $namaKelas, $namaKelas, $namaKelas,
                 $statusPelaporLabel, $statusPelaporLabel, $statusPelaporLabel, $statusPelaporLabel,
+                $nomorKontak, $nomorKontak, $nomorKontak, $nomorKontak, $nomorKontak, $nomorKontak, $nomorKontak, $nomorKontak,
                 $kategori, $kategori,
                 $deskripsi, $deskripsi, $deskripsi, $deskripsi
             ];

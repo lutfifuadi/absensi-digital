@@ -154,13 +154,36 @@ class PengaduanController extends Controller
             );
 
             // Dispatch job kirim notifikasi ke grup admin
+            $pengaduan->load(['siswa.kelas', 'kelas']);
+            $nisn = $pengaduan->siswa?->nisn ?? '-';
+            $namaKelas = $pengaduan->kelas?->nama ?? $pengaduan->siswa?->kelas?->nama ?? '-';
+
+            $waPelapor = $pengaduan->nomor_wa;
+            $hpSiswa = $pengaduan->siswa?->no_hp;
+            $hpOrtu = $pengaduan->siswa?->no_hp_ortu;
+
+            $kontakParts = [];
+            if (!empty($waPelapor)) {
+                $kontakParts[] = $waPelapor . ' (WA Pelapor)';
+            }
+            if (!empty($hpSiswa) && \App\Helpers\WhatsAppHelper::formatNumber($hpSiswa) !== \App\Helpers\WhatsAppHelper::formatNumber($waPelapor)) {
+                $kontakParts[] = $hpSiswa . ' (HP Siswa)';
+            }
+            if (!empty($hpOrtu) && \App\Helpers\WhatsAppHelper::formatNumber($hpOrtu) !== \App\Helpers\WhatsAppHelper::formatNumber($waPelapor) && \App\Helpers\WhatsAppHelper::formatNumber($hpOrtu) !== \App\Helpers\WhatsAppHelper::formatNumber($hpSiswa)) {
+                $kontakParts[] = $hpOrtu . ' (HP Ortu)';
+            }
+
+            $nomorKontak = !empty($kontakParts) ? implode(' / ', $kontakParts) : ($waPelapor ?: '-');
+
             SendPengaduanGroupNotifJob::dispatch(
                 $pengaduan->kode_unik,
                 $pengaduan->nama_lengkap,
                 $pengaduan->status_pelapor,
                 $pengaduan->kategori,
                 $pengaduan->deskripsi,
-                $pengaduan->nama_kelas ?? '-'
+                $namaKelas,
+                $nisn,
+                $nomorKontak
             );
 
             return response()->json([

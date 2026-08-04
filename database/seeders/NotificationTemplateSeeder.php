@@ -242,7 +242,10 @@ EOS,
 
 Kode: *{kode_unik}*
 Nama: {nama}
+NISN: {nisn}
+Kelas: {kelas}
 Status: {status}
+No. Kontak: {nomor_kontak}
 Kategori: {kategori}
 
 Deskripsi:
