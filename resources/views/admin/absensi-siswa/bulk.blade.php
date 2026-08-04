@@ -277,8 +277,9 @@
             <div class="text-white-50 opacity-75 d-flex align-items-center gap-1"><i class="ti tabler-help-circle fs-5"></i> <span id="sum-u">0</span> Belum Dipilih</div>
           </div>
           <div class="flex-shrink-0">
-            <span class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill">
-              <i class="ti tabler-cloud-check me-1"></i> Simpan Otomatis Aktif ⚡
+            <span class="badge rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center gap-1.5"
+                  style="background: rgba(40, 199, 111, 0.2) !important; border: 1px solid rgba(40, 199, 111, 0.6) !important; color: #28c76f !important; font-size: 0.825rem;">
+              <i class="ti tabler-cloud-check fs-5"></i> Simpan Otomatis Aktif ⚡
             </span>
           </div>
         </div>
