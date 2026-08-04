@@ -6,6 +6,7 @@ use App\Models\AuthorizedDevice;
 use App\Models\Pengaturan;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckAuthorizedDevice
@@ -34,7 +35,18 @@ class CheckAuthorizedDevice
             return $next($request);
         }
 
-        $device = AuthorizedDevice::where('device_uuid', $deviceUuid)->first();
+        // Fix 1: Cache device lookup — TTL 300s. Null (not found) tidak di-cache.
+        $cacheKey = "authorized_device_{$deviceUuid}";
+        $device = Cache::get($cacheKey);
+
+        if ($device === null) {
+            $device = AuthorizedDevice::where('device_uuid', $deviceUuid)->first();
+
+            // Hanya cache jika device ditemukan di DB
+            if ($device) {
+                Cache::put($cacheKey, $device, 300);
+            }
+        }
 
         // If device is not found, we create a pending one
         if (!$device) {
@@ -50,7 +62,7 @@ class CheckAuthorizedDevice
         }
 
         if (!$device->is_authorized) {
-            // Update last info
+            // Update last info — tidak di-cache karena unauthorized, langsung hit DB
             $device->update([
                 'ip_address' => $request->ip(),
                 'last_active_at' => now(),
@@ -59,8 +71,12 @@ class CheckAuthorizedDevice
             return redirect()->route('public.device-unauthorized');
         }
 
-        // Device is authorized, update activity
-        $device->update(['last_active_at' => now()]);
+        // Fix 2: Throttle UPDATE last_active_at — hanya update jika flag cache belum ada
+        $lastActiveFlagKey = "device_last_active_updated_{$deviceUuid}";
+        if (!Cache::has($lastActiveFlagKey)) {
+            $device->update(['last_active_at' => now()]);
+            Cache::put($lastActiveFlagKey, true, 300);
+        }
 
         return $next($request);
     }

@@ -249,7 +249,9 @@ class PublicQrScanController extends Controller
                         }
                     }
                 }
-                Cache::forget('live_board_leaderboard_data');
+                Cache::forget('live_board_leaderboard_data_otomatis');
+                Cache::forget('live_board_leaderboard_data_masuk');
+                Cache::forget('live_board_leaderboard_data_pulang');
 
                 QrScanLogger::info('QR_SCAN_PULANG_SUCCESS', [
                     'ip'          => $ip,
@@ -319,7 +321,9 @@ class PublicQrScanController extends Controller
                     'guru_id'     => null,
                     'metode'      => 'qr',
                 ]);
-                Cache::forget('live_board_leaderboard_data');
+                Cache::forget('live_board_leaderboard_data_otomatis');
+                Cache::forget('live_board_leaderboard_data_masuk');
+                Cache::forget('live_board_leaderboard_data_pulang');
             } catch (\Illuminate\Database\QueryException $e) {
                 if ($e->errorInfo[1] === 1062) {
                     return response()->json([
@@ -372,7 +376,9 @@ class PublicQrScanController extends Controller
                 }
 
                 $absensi->update(['jam_pulang' => $currentTime]);
-                Cache::forget('live_board_leaderboard_data');
+                Cache::forget('live_board_leaderboard_data_otomatis');
+                Cache::forget('live_board_leaderboard_data_masuk');
+                Cache::forget('live_board_leaderboard_data_pulang');
 
                 return response()->json([
                     'success' => true,
@@ -401,7 +407,9 @@ class PublicQrScanController extends Controller
                     'keterangan' => 'Scan QR publik oleh guru piket',
                     'metode'     => 'qr',
                 ]);
-                Cache::forget('live_board_leaderboard_data');
+                Cache::forget('live_board_leaderboard_data_otomatis');
+                Cache::forget('live_board_leaderboard_data_masuk');
+                Cache::forget('live_board_leaderboard_data_pulang');
             } catch (\Illuminate\Database\QueryException $e) {
                 if ($e->errorInfo[1] === 1062) {
                     return response()->json([
@@ -454,7 +462,9 @@ class PublicQrScanController extends Controller
                 }
 
                 $absensi->update(['jam_pulang' => $currentTime]);
-                Cache::forget('live_board_leaderboard_data');
+                Cache::forget('live_board_leaderboard_data_otomatis');
+                Cache::forget('live_board_leaderboard_data_masuk');
+                Cache::forget('live_board_leaderboard_data_pulang');
 
                 return response()->json([
                     'success' => true,
@@ -483,7 +493,9 @@ class PublicQrScanController extends Controller
                     'keterangan' => 'Scan QR publik oleh guru piket',
                     'metode'     => 'qr',
                 ]);
-                Cache::forget('live_board_leaderboard_data');
+                Cache::forget('live_board_leaderboard_data_otomatis');
+                Cache::forget('live_board_leaderboard_data_masuk');
+                Cache::forget('live_board_leaderboard_data_pulang');
             } catch (\Illuminate\Database\QueryException $e) {
                 if ($e->errorInfo[1] === 1062) {
                     return response()->json([

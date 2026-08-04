@@ -5,8 +5,10 @@ namespace App\Observers;
 use App\Models\AbsensiSiswa;
 use App\Models\Pengaturan;
 use App\Jobs\SendWhatsAppMessage;
+use App\Jobs\HitungPoinGamifikasiJob;
 use App\Notifications\NotifikasiAutoAlpha;
 use App\Services\PengaturanService;
+use Illuminate\Support\Facades\Cache;
 
 class AbsensiSiswaObserver
 {
@@ -38,7 +40,7 @@ class AbsensiSiswaObserver
         $tipe = (empty($absensiSiswa->jam_masuk) && !empty($absensiSiswa->jam_pulang)) ? 'pulang' : 'masuk';
         $this->kirimNotifikasiKeOrtu($absensiSiswa, $tipe);
 
-        $this->hitungPoinGamifikasi($absensiSiswa);
+        HitungPoinGamifikasiJob::dispatch($absensiSiswa);
 
         \App\Jobs\SyncToGoogleSheetJob::dispatch($absensiSiswa, 'created', 'absensi_siswa');
     }
@@ -181,7 +183,9 @@ class AbsensiSiswaObserver
         }
 
         // 4. Dispatch Job WA — dengan validasi nomor & queue 'notifications'
-        $delaySecs = (int)(Pengaturan::where('key', 'jeda_waktu_kirim_notifikasi_detik')->value('value') ?: 1);
+        $delaySecs = (int)(Cache::remember('setting_jeda_notifikasi_wa', 300, function () {
+            return Pengaturan::where('key', 'jeda_waktu_kirim_notifikasi_detik')->value('value') ?: 1;
+        }));
         
         SendWhatsAppMessage::dispatch(
             $nomorTujuan, 
@@ -190,62 +194,6 @@ class AbsensiSiswaObserver
             true,          // validateNumber=true: cek dulu ke API sebelum kirim
             $siswa->id
         )->delay(now()->addSeconds($delaySecs));
-    }
-
-    private function hitungPoinGamifikasi(AbsensiSiswa $absensi): void
-    {
-        $statusLower = strtolower($absensi->status);
-        $poin = 0;
-        $isEarlyBird = false;
-
-        // 1. Poin Dasar
-        match($statusLower) {
-            'hadir'     => $poin = 10,
-            'terlambat' => $poin = 5,
-            'sakit', 'izin' => $poin = 2,
-            'alpha'     => $poin = -10,
-            default     => $poin = 0,
-        };
-
-        // 2. Early Bird: jam masuk >= 04:00 dan <= 06:00
-        if (in_array($statusLower, ['hadir', 'terlambat'])) {
-            $jamMasuk = !empty($absensi->jam_masuk) ? substr($absensi->jam_masuk, 0, 5) : null;
-            if (!empty($jamMasuk) && $jamMasuk >= '04:00' && $jamMasuk <= '06:00') {
-                $poin += 5;
-                $isEarlyBird = true;
-            }
-        }
-
-        // 3. Streak
-        $stat = \App\Models\StudentGamificationStat::firstOrCreate(
-            ['siswa_id' => $absensi->siswa_id],
-            [
-                'current_streak'       => 0,
-                'longest_streak'       => 0,
-                'last_attendance_date' => null,
-            ]
-        );
-
-        if (in_array($statusLower, ['hadir', 'terlambat'])) {
-            $stat->current_streak += 1;
-            if ($stat->current_streak > $stat->longest_streak) {
-                $stat->longest_streak = $stat->current_streak;
-            }
-            if ($stat->current_streak >= 5) {
-                $poin += 5;
-            }
-            $stat->last_attendance_date = now()->toDateString(); // hanya update saat hadir
-        } else {
-            $stat->current_streak = 0;
-        }
-
-        $stat->save();
-
-        // 4. Simpan poin ke absensi secara quiet
-        $absensi->updateQuietly([
-            'points_earned' => $poin,
-            'is_early_bird' => $isEarlyBird,
-        ]);
     }
 
 
