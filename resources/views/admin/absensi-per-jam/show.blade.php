@@ -365,6 +365,9 @@
     $records = $sesiData['records'] ?? collect();
     $sesiTerisi = $sesiData['terisi'] ?? false;
     $jumlahTerisi = $sesiData['jumlah_terisi'] ?? 0;
+
+    $defaultWaTemplate = \App\Models\Pengaturan::get('wa_template_rekap_presensi')
+        ?: "*LAPORAN KONDISI MURID MATA PELAJARAN {mapel}*\nKelas: {kelas}\nHari/Tanggal: {hari_tanggal}\nJam ke: {jam_ke}\n\nJumlah Murid: {jumlah_murid} orang\n* Hadir : {total_hadir} orang\n* Alpa : {total_alpa} Orang\n{daftar_alpa}\n* Izin : {total_izin} Orang\n{daftar_izin}\n* Sakit : {total_sakit} Orang\n{daftar_sakit}\n* Terlambat : {total_terlambat} Orang\n{daftar_terlambat}";
   @endphp
 
   {{-- ═══════════════════════════════════════════════════════
@@ -422,6 +425,9 @@
               <i class="ti tabler-check me-1"></i> Terisi ({{ $jumlahTerisi }})
             </span>
           @endif
+          <button type="button" class="btn btn-sm btn-success fw-bold rounded-pill px-3 shadow-sm" @click="openWAModal()">
+            <i class="ti tabler-brand-whatsapp me-1 fs-5"></i> Rekap & Share WA
+          </button>
         </div>
       </div>
     </div>
@@ -527,7 +533,18 @@
                       </span>
                     </div>
                     <div>
-                      <div class="fw-semibold text-white" style="font-size:.82rem;">{{ $siswa->nama_lengkap ?? '-' }}</div>
+                      <div class="fw-semibold text-white d-flex align-items-center gap-1 flex-wrap" style="font-size:.82rem;">
+                        <span>{{ $siswa->nama_lengkap ?? '-' }}</span>
+                        <template x-if="status !== 'hadir'">
+                          <a :href="getJapriUrl('{{ addslashes($siswa->nama_lengkap ?? 'Siswa') }}', status, '{{ $siswa->no_hp_ortu ?? $siswa->no_hp ?? '' }}')" 
+                             target="_blank" 
+                             class="badge bg-label-success ms-1 px-1.5 py-0.5 text-success border-0 d-inline-flex align-items-center gap-1" 
+                             title="Japri Ortu WA"
+                             style="text-decoration:none; font-size:0.65rem;">
+                            <i class="ti tabler-brand-whatsapp"></i>Japri
+                          </a>
+                        </template>
+                      </div>
                       <div class="text-white-50" style="font-size:.68rem;">{{ $siswa->nis ?? '-' }}</div>
                     </div>
                   </div>
@@ -652,6 +669,9 @@
             <span class="das-chip --secondary"><i class="ti tabler-walk me-1"></i>Bolos: <span x-text="counts.bolos" class="fw-bold">0</span></span>
           </div>
           <div class="d-flex align-items-center gap-2">
+            <button type="button" class="das-btn das-btn--success" @click="openWAModal()">
+              <i class="ti tabler-brand-whatsapp me-1"></i> Rekap & Share WA
+            </button>
             <a href="{{ route('admin.absensi-per-jam.index', ['tanggal' => $tanggal]) }}" class="das-btn das-btn--ghost">
               <i class="ti tabler-x me-1"></i> Batal
             </a>
@@ -707,8 +727,120 @@
             <i class="ti" :class="isOverwrite ? 'tabler-refresh' : 'tabler-device-floppy'"></i>
             <span x-text="isOverwrite ? 'Ya, Timpa Data' : 'Ya, Simpan'">Ya, Simpan</span>
           </button>
+  {{-- ═══════════════════════════════════════════════════════
+       MODAL SHARE REKAP WHATSAPP
+  ═══════════════════════════════════════════════════════ --}}
+  <div class="modal fade" id="modalShareWA" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content shadow-lg" style="background:#1e2640; border: 1px solid rgba(255,255,255,0.15); border-radius:16px;">
+        <div class="modal-header border-bottom border-white border-opacity-10 py-3 px-4 d-flex align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <div class="avatar avatar-sm rounded p-2 d-flex align-items-center justify-content-center" style="background:rgba(37,211,102,0.18); color:#25d366;">
+              <i class="ti tabler-brand-whatsapp fs-4"></i>
+            </div>
+            <div>
+              <h5 class="fw-bold text-white mb-0" style="font-size:1.05rem;">Rekap Presensi & Share WhatsApp</h5>
+              <small class="text-white-50 fs-7">Pratinjau pesan rekapitulasi presensi yang siap dikirim ke WhatsApp</small>
+            </div>
+          </div>
+          <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
 
+        <div class="modal-body p-4">
+          <!-- Stat Pills -->
+          <div class="d-flex flex-wrap gap-2 mb-3 p-3 rounded" style="background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.06);">
+            <span class="das-chip --success"><i class="ti tabler-user-check me-1"></i>Hadir: <span x-text="counts.hadir" class="fw-bold">0</span></span>
+            <span class="das-chip --danger"><i class="ti tabler-user-x me-1"></i>Alpha: <span x-text="counts.alpha" class="fw-bold">0</span></span>
+            <span class="das-chip --warning"><i class="ti tabler-file-description me-1"></i>Izin: <span x-text="counts.izin" class="fw-bold">0</span></span>
+            <span class="das-chip --info"><i class="ti tabler-stethoscope me-1"></i>Sakit: <span x-text="counts.sakit" class="fw-bold">0</span></span>
+            <span class="das-chip --primary"><i class="ti tabler-clock-exclamation me-1"></i>Terlambat: <span x-text="counts.terlambat" class="fw-bold">0</span></span>
+          </div>
+
+          <!-- Generated WA Text Box -->
+          <div class="position-relative mb-3">
+            <label class="form-label text-white-50 small fw-bold mb-2">Pratinjau Redaksi Teks WA:</label>
+            <textarea x-model="generatedWAText" class="form-control font-monospace text-white bg-dark bg-opacity-50 p-3" rows="10" readonly style="font-size:0.85rem; line-height:1.6; border-radius:10px !important; border:1px solid rgba(255,255,255,0.15);"></textarea>
+          </div>
+
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <button type="button" class="btn btn-sm btn-outline-info" @click="openEditorModal()">
+              <i class="ti tabler-edit me-1"></i>Atur Redaksi Teks
+            </button>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-sm btn-outline-success" @click="copyWAText()">
+                <i class="ti tabler-copy me-1"></i>Salin Teks
+              </button>
+              <button type="button" class="btn btn-sm btn-success fw-bold" @click="openWAGroup()">
+                <i class="ti tabler-brand-whatsapp me-1"></i>Buka & Share di WA
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{-- ═══════════════════════════════════════════════════════
+       MODAL EDITOR REDAKSI TEMPLATE WA
+  ═══════════════════════════════════════════════════════ --}}
+  <div class="modal fade" id="modalEditTemplateWA" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content shadow-lg" style="background:#1e2640; border: 1px solid rgba(255,255,255,0.15); border-radius:16px;">
+        <div class="modal-header border-bottom border-white border-opacity-10 py-3 px-4 d-flex align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <div class="avatar avatar-sm rounded p-2 d-flex align-items-center justify-content-center" style="background:rgba(115,103,240,0.18); color:#7367f0;">
+              <i class="ti tabler-settings-automation fs-4"></i>
+            </div>
+            <div>
+              <h5 class="fw-bold text-white mb-0" style="font-size:1.05rem;">Pengaturan Redaksi Template WA</h5>
+              <small class="text-white-50 fs-7">Sesuaikan susunan kata-kata rekap presensi sesuai keinginan Anda</small>
+            </div>
+          </div>
+          <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body p-4">
+          <!-- Variable Chips -->
+          <div class="mb-3">
+            <label class="form-label text-white-50 small fw-bold mb-2">Klik Variabel untuk Menyisipkan ke Editor:</label>
+            <div class="d-flex flex-wrap gap-1">
+              <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{mapel}')">+ Mapel</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{kelas}')">+ Kelas</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{hari_tanggal}')">+ Tanggal</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{jam_ke}')">+ Jam Ke</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{jumlah_murid}')">+ Total Murid</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{total_hadir}')">+ Hadir</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{total_alpa}')">+ Total Alpa</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{daftar_alpa}')">+ Daftar Alpa</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{total_izin}')">+ Total Izin</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{daftar_izin}')">+ Daftar Izin</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{total_sakit}')">+ Total Sakit</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{daftar_sakit}')">+ Daftar Sakit</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{total_terlambat}')">+ Total Terlambat</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{daftar_terlambat}')">+ Daftar Terlambat</button>
+            </div>
+          </div>
+
+          <!-- Textarea Editor -->
+          <div class="mb-3">
+            <label class="form-label text-white-50 small fw-bold mb-2">Editor Template Teks:</label>
+            <textarea id="templateWaTextarea" x-model="editorTemplateWA" class="form-control font-monospace text-white bg-dark p-3" rows="9" style="font-size:0.85rem; line-height:1.5; border-radius:10px !important; border:1px solid rgba(255,255,255,0.2);"></textarea>
+          </div>
+
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <button type="button" class="btn btn-sm btn-outline-warning" @click="resetDefaultTemplate()">
+              <i class="ti tabler-rotate-2 me-1"></i>Reset ke Default Sekolah
+            </button>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">
+                Batal
+              </button>
+              <button type="button" class="btn btn-sm btn-primary fw-bold" @click="saveCustomTemplate()">
+                <i class="ti tabler-device-floppy me-1"></i>Simpan Redaksi
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -773,8 +905,163 @@
         isOverwrite: false,
         confirmModal: null,
 
+        waModal: null,
+        waSettingsModal: null,
+        templateWA: '',
+        editorTemplateWA: '',
+        generatedWAText: '',
+        defaultTemplate: @json($defaultWaTemplate),
+
         init() {
           this.recount();
+          this.initWA();
+        },
+
+        initWA() {
+          const saved = localStorage.getItem('custom_wa_presensi_template');
+          this.templateWA = saved ? saved : this.defaultTemplate;
+          this.editorTemplateWA = this.templateWA;
+        },
+
+        generateWAText() {
+          const mapel = @json($jadwal->mata_pelajaran ?? '-');
+          const kelas = @json($jadwal->kelas->nama ?? '-');
+          const hariTanggal = @json(\Carbon\Carbon::parse($tanggal)->locale('id')->translatedFormat('l, d F Y'));
+          const jamKe = @json($jadwal->jam_ke ?? (substr($jadwal->jam_mulai, 0, 5) . ' - ' . substr($jadwal->jam_selesai, 0, 5)));
+          const namaGuru = @json(auth()->user()->name ?? 'Guru');
+
+          const lists = { alpha: [], sakit: [], izin: [], terlambat: [], bolos: [] };
+          let totalSiswa = 0;
+          let counts = { hadir: 0, alpha: 0, sakit: 0, izin: 0, terlambat: 0, bolos: 0 };
+
+          document.querySelectorAll('tr.siswa-row-hover').forEach(tr => {
+            totalSiswa++;
+            const checkedRadio = tr.querySelector('[data-roster-status]:checked');
+            const namaSpan = tr.querySelector('.fw-semibold.text-white span');
+            const nama = namaSpan ? namaSpan.textContent.trim() : 'Siswa';
+            
+            if (checkedRadio) {
+              const statusVal = checkedRadio.value;
+              if (counts[statusVal] !== undefined) counts[statusVal]++;
+              if (lists[statusVal]) {
+                lists[statusVal].push(nama);
+              }
+            }
+          });
+
+          const formatList = (arr) => {
+            if (!arr || arr.length === 0) return '-';
+            return arr.map((item, idx) => `${idx + 1}. ${item}`).join('\n');
+          };
+
+          let text = this.templateWA;
+          text = text.replace(/\{mapel\}/g, mapel);
+          text = text.replace(/\{kelas\}/g, kelas);
+          text = text.replace(/\{hari_tanggal\}/g, hariTanggal);
+          text = text.replace(/\{jam_ke\}/g, jamKe);
+          text = text.replace(/\{nama_guru\}/g, namaGuru);
+          text = text.replace(/\{jumlah_murid\}/g, totalSiswa);
+
+          text = text.replace(/\{total_hadir\}/g, counts.hadir);
+          text = text.replace(/\{total_alpa\}/g, counts.alpha);
+          text = text.replace(/\{total_izin\}/g, counts.izin);
+          text = text.replace(/\{total_sakit\}/g, counts.sakit);
+          text = text.replace(/\{total_terlambat\}/g, counts.terlambat);
+
+          text = text.replace(/\{daftar_alpa\}/g, formatList(lists.alpha));
+          text = text.replace(/\{daftar_izin\}/g, formatList(lists.izin));
+          text = text.replace(/\{daftar_sakit\}/g, formatList(lists.sakit));
+          text = text.replace(/\{daftar_terlambat\}/g, formatList(lists.terlambat));
+
+          this.generatedWAText = text;
+        },
+
+        openWAModal() {
+          this.initWA();
+          this.generateWAText();
+          const modalEl = document.getElementById('modalShareWA');
+          if (modalEl) {
+            this.waModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            this.waModal.show();
+          }
+        },
+
+        openEditorModal() {
+          if (this.waModal) this.waModal.hide();
+          this.editorTemplateWA = this.templateWA;
+          const modalEditorEl = document.getElementById('modalEditTemplateWA');
+          if (modalEditorEl) {
+            this.waSettingsModal = bootstrap.Modal.getInstance(modalEditorEl) || new bootstrap.Modal(modalEditorEl);
+            this.waSettingsModal.show();
+          }
+        },
+
+        insertTag(tag) {
+          const textarea = document.getElementById('templateWaTextarea');
+          if (!textarea) {
+            this.editorTemplateWA += ' ' + tag;
+            return;
+          }
+          const start = textarea.selectionStart;
+          const end = textarea.selectionEnd;
+          const text = this.editorTemplateWA;
+          this.editorTemplateWA = text.substring(0, start) + tag + text.substring(end);
+          this.$nextTick(() => {
+            textarea.focus();
+            textarea.selectionStart = textarea.selectionEnd = start + tag.length;
+          });
+        },
+
+        saveCustomTemplate() {
+          this.templateWA = this.editorTemplateWA;
+          localStorage.setItem('custom_wa_presensi_template', this.editorTemplateWA);
+          this.generateWAText();
+          if (this.waSettingsModal) this.waSettingsModal.hide();
+          this.openWAModal();
+          this.showToast('success', 'Template Disimpan', 'Redaksi WA berhasil diperbarui.');
+        },
+
+        resetDefaultTemplate() {
+          this.editorTemplateWA = this.defaultTemplate;
+          this.templateWA = this.defaultTemplate;
+          localStorage.removeItem('custom_wa_presensi_template');
+          this.generateWAText();
+          if (this.waSettingsModal) this.waSettingsModal.hide();
+          this.openWAModal();
+          this.showToast('success', 'Reset Default', 'Redaksi WA dikembalikan ke format standar sekolah.');
+        },
+
+        copyWAText() {
+          if (!navigator.clipboard) {
+            const ta = document.createElement('textarea');
+            ta.value = this.generatedWAText;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+          } else {
+            navigator.clipboard.writeText(this.generatedWAText);
+          }
+          this.showToast('success', 'Berhasil Disalin', 'Teks rekap presensi berhasil disalin ke clipboard!');
+        },
+
+        openWAGroup() {
+          const encoded = encodeURIComponent(this.generatedWAText);
+          window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+        },
+
+        getJapriUrl(namaSiswa, statusVal, noHp) {
+          const mapel = @json($jadwal->mata_pelajaran ?? '-');
+          const statusText = statusVal.charAt(0).toUpperCase() + statusVal.slice(1);
+          const msg = `Halo Bapak/Ibu, menginformasikan bahwa ananda ${namaSiswa} hari ini tercatat *${statusText}* pada mata pelajaran ${mapel}. Apabila ada kendala atau konfirmasi, mohon dapat menyampaikan ke Wali Kelas/Guru Mapel. Terima kasih.`;
+          const cleanHp = noHp ? noHp.replace(/[^0-9]/g, '') : '';
+          const encoded = encodeURIComponent(msg);
+          if (cleanHp) {
+            let hpFormatted = cleanHp;
+            if (hpFormatted.startsWith('0')) hpFormatted = '62' + hpFormatted.slice(1);
+            return `https://wa.me/${hpFormatted}?text=${encoded}`;
+          }
+          return `https://api.whatsapp.com/send?text=${encoded}`;
         },
 
         // Hitung ulang counter status dari radio button ter-check (live)

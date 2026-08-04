@@ -540,6 +540,33 @@
         </div>
       </div>
 
+      {{-- ═══════════════════════════════════════
+           TEMPLATE REDAKSI REKAP PRESENSI
+           ═══════════════════════════════════════ --}}
+      <div class="set-panel mb-4">
+        <div class="set-panel__head">
+          <div class="set-panel__title-wrap">
+            <div class="set-panel__icon --primary"><i class="ti tabler-message-text"></i></div>
+            <div>
+              <div class="set-panel__title">Template Redaksi Rekap Presensi Mapel</div>
+              <div class="set-panel__sub">Format teks standar yang akan digunakan saat guru membagikan rekap presensi via WA.</div>
+            </div>
+          </div>
+        </div>
+        <div class="set-panel__body">
+          <div class="set-form-grid">
+            <div class="set-field set-field--full">
+              <label class="set-label">Format Template Rekap WA</label>
+              <textarea class="set-input font-monospace" name="wa_template_rekap_presensi" rows="8" style="font-size:0.85rem; line-height:1.5;">{{ old('wa_template_rekap_presensi', $settings['wa_template_rekap_presensi'] ?? "*LAPORAN KONDISI MURID MATA PELAJARAN {mapel}*\nKelas: {kelas}\nHari/Tanggal: {hari_tanggal}\nJam ke: {jam_ke}\n\nJumlah Murid: {jumlah_murid} orang\n* Hadir : {total_hadir} orang\n* Alpa : {total_alpa} Orang\n{daftar_alpa}\n* Izin : {total_izin} Orang\n{daftar_izin}\n* Sakit : {total_sakit} Orang\n{daftar_sakit}\n* Terlambat : {total_terlambat} Orang\n{daftar_terlambat}") }}</textarea>
+              <div class="set-field-hint --info mt-2">
+                <i class="ti tabler-info-circle"></i>
+                Variabel yang dapat digunakan: <code>{mapel}</code>, <code>{kelas}</code>, <code>{hari_tanggal}</code>, <code>{jam_ke}</code>, <code>{jumlah_murid}</code>, <code>{total_hadir}</code>, <code>{total_alpa}</code>, <code>{daftar_alpa}</code>, <code>{total_izin}</code>, <code>{daftar_izin}</code>, <code>{total_sakit}</code>, <code>{daftar_sakit}</code>, <code>{total_terlambat}</code>, <code>{daftar_terlambat}</code>.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="set-panel mb-4">
         <div class="set-panel__head">
           <div class="set-panel__title-wrap">
