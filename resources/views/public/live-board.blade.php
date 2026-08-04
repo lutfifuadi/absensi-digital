@@ -176,7 +176,7 @@
     /* ─── MAIN GRID ──────────────────────────────────────── */
     .main {
       display: grid;
-      grid-template-columns: 460px 1fr 1fr;
+      grid-template-columns: 440px 1fr 1fr;
       grid-template-rows: 1fr auto;
       gap: 0.75rem;
       padding: 0.75rem;
@@ -184,8 +184,11 @@
       min-height: 0;
       overflow: hidden;
     }
-    /* Scanner selalu di kolom 1 (kiri), span 2 baris */
+    /* Grid placement for Desktop */
+    .main > .panel:nth-of-type(1) { grid-column: 2; grid-row: 1; }
+    .main > .panel:nth-of-type(2) { grid-column: 3; grid-row: 1; }
     .scanner-col { grid-column: 1; grid-row: 1 / span 2; }
+    .bottom-running-bar { grid-column: 2 / -1; grid-row: 2; }
 
 
     /* ─── PANELS ─────────────────────────────────────────── */
@@ -665,18 +668,20 @@
         padding-bottom: 3.5rem !important;
         flex: none !important; min-height: auto !important;
       }
-      .scanner-col { width: 100% !important; }
-      .panel { border-radius: 6px !important; }
-      .panel-body { max-height: 380px !important; }
-      .scanner-area { aspect-ratio: auto !important; height: auto !important; min-height: auto !important; }
-      .scan-frame { width: 180px !important; height: 180px !important; }
-
+      .scanner-col { order: 1 !important; width: 100% !important; }
+      .main > .panel:nth-of-type(1) { order: 2 !important; }
+      .main > .panel:nth-of-type(2) { order: 3 !important; }
       .bottom-running-bar {
+        order: 4 !important;
         grid-column: 1 / -1 !important;
         grid-row: auto !important;
         width: 100% !important;
         margin-top: 0.5rem !important;
       }
+      .panel { border-radius: 6px !important; }
+      .panel-body { max-height: 380px !important; }
+      .scanner-area { aspect-ratio: auto !important; height: auto !important; min-height: auto !important; }
+      .scan-frame { width: 180px !important; height: 180px !important; }
     }
 
     /* ─── TABLET PORTRAIT & SMARTPHONE (600–767) ──────────── */
@@ -951,7 +956,113 @@
 <!-- ══ MAIN GRID ════════════════════════════════════════════════════ -->
 <div class="main">
 
-  <!-- ── PANEL PUSAT KONTROL & COUNTER SCANNER (FIRST ON MOBILE) ── -->
+  <!-- ── PANEL 1: 10 PALING AWAL ─────────────────────────────────── -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        @if($mode === 'pulang')
+          🏆 <span>10 Pulang Paling Awal</span>
+        @else
+          🏆 <span>10 Hadir Paling Awal</span>
+        @endif
+      </div>
+      <div style="font-size:.7rem; color:var(--muted);">{{ \Carbon\Carbon::today()->translatedFormat('d F Y') }}</div>
+    </div>
+
+    <div class="panel-body">
+      <table class="lb-table" id="table-awal">
+        <thead><tr>
+          <th class="rank-cell">#</th>
+          <th class="name-cell">Nama / Identitas</th>
+          <th class="jam-col">Jam</th>
+          <th class="status-col">Status</th>
+        </tr></thead>
+        <tbody id="tbody-awal">
+          @forelse($leaderboardAwal as $i => $abs)
+            @php
+              $jamMasukSetting = \Carbon\Carbon::createFromTimeString($jamMasukCfg ?? '07:00');
+              $jamSiswa   = \Carbon\Carbon::createFromTimeString($abs->jam);
+              $selisih    = (int) $jamMasukSetting->diffInMinutes($jamSiswa, false);
+              $isLate     = $selisih > $toleransi;
+            @endphp
+            <tr class="{{ $i < 3 ? 'top-3' : '' }} {{ ($mode !== 'pulang' && $isLate) ? 'late-row' : '' }}">
+              <td class="rank-cell">{{ $i === 0 ? '🥇' : ($i === 1 ? '🥈' : ($i === 2 ? '🥉' : $i+1)) }}</td>
+              <td class="name-cell">
+                <div class="name">{{ $abs->nama }}</div>
+                <div class="kelas-badge">{{ $abs->kelas }}</div>
+              </td>
+              <td class="jam-col"><span class="jam-cell {{ ($mode !== 'pulang' && $isLate) ? 'jam-late' : 'jam-early' }}">{{ \Carbon\Carbon::parse($abs->jam)->format('H:i:s') }}</span></td>
+              <td class="status-col">
+                @if($mode === 'pulang')
+                  <span class="status-badge badge-hadir">✅ Pulang</span>
+                @elseif($isLate)
+                  <span class="status-badge badge-terlambat">⏰ Terlambat</span>
+                  <span class="late-minutes">+{{ $selisih }} menit</span>
+                @else
+                  <span class="status-badge badge-hadir">✅ Hadir</span>
+                @endif
+              </td>
+            </tr>
+          @empty
+            <tr><td colspan="4"><div class="empty-state"><span class="icon">🌅</span><p>Belum ada data hadir hari ini</p></div></td></tr>
+          @endforelse
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── PANEL 2: RIWAYAT SCAN TERBARU ────────────────────────── -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        🕐 <span>Riwayat Scan Terbaru</span>
+      </div>
+      <div style="font-size:.7rem; color: var(--muted);">Urutan scan dari yang paling baru</div>
+    </div>
+
+    <div class="panel-body">
+      <table class="lb-table">
+        <thead><tr>
+          <th class="rank-cell">#</th>
+          <th class="name-cell">Nama / Identitas</th>
+          <th class="jam-col">Jam</th>
+          <th class="status-col">Status</th>
+        </tr></thead>
+        <tbody id="tbody-akhir">
+          @forelse($leaderboardTerbaru as $i => $abs)
+            @php
+              $jamMasukSetting = \Carbon\Carbon::createFromTimeString($jamMasukCfg ?? '07:00');
+              $jamSiswa   = \Carbon\Carbon::createFromTimeString($abs->jam);
+              $selisih    = (int) $jamMasukSetting->diffInMinutes($jamSiswa, false);
+              $isLate     = $selisih > $toleransi;
+            @endphp
+            <tr class="{{ ($mode !== 'pulang' && $isLate) ? 'late-row' : '' }}">
+              <td class="rank-cell" style="color:var(--muted);">{{ $i+1 }}</td>
+              <td class="name-cell">
+                <div class="name">{{ $abs->nama }}</div>
+                <div class="kelas-badge">{{ $abs->kelas }}</div>
+              </td>
+              <td class="jam-col"><span class="jam-cell {{ ($mode !== 'pulang' && $isLate) ? 'jam-late' : '' }}">{{ \Carbon\Carbon::parse($abs->jam)->format('H:i:s') }}</span></td>
+              <td class="status-col">
+                @if($mode === 'pulang')
+                  <span class="status-badge badge-hadir">✅ Pulang</span>
+                @elseif($isLate)
+                  <span class="status-badge badge-terlambat">⏰ Terlambat</span>
+                  @if($selisih > 0)<span class="late-minutes">+{{ $selisih }} menit</span>@endif
+                @else
+                  <span class="status-badge badge-hadir">✅ Hadir</span>
+                @endif
+              </td>
+            </tr>
+          @empty
+            <tr><td colspan="4"><div class="empty-state"><span class="icon">🌙</span><p>Belum ada data scan terbaru hari ini</p></div></td></tr>
+          @endforelse
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── PANEL 3: PUSAT KONTROL & COUNTER SCANNER ────────────────── -->
   @if(!$isHariLibur)
   <div class="panel scanner-col" style="position:relative; overflow:hidden;">
     <div class="panel-header">
