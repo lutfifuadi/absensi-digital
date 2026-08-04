@@ -169,25 +169,25 @@ class WaGatewayController extends Controller
     {
         try {
             // 1. WA Gateway Notif
-            $waNotifEnabled  = Pengaturan::where('key', 'wa_gateway_enabled')->value('value') ?? 'Ya';
+            $waNotifEnabled  = feature('wa_gateway_enabled');
             $waNotifLink     = Pengaturan::where('key', 'link_server_wa')->value('value') ?: 'https://wa.lutfifuadi.my.id/send-message';
             $waNotifApiKey   = Pengaturan::where('key', 'wa_api_key')->value('value') ?: env('WA_API_KEY', '');
             $waNotifSender   = Pengaturan::where('key', 'wa_nomor_notifikasi')->value('value') ?: '';
 
             // 2. Validator WA
-            $waValEnabled    = Pengaturan::where('key', 'wa_validator_enabled')->value('value') ?? 'Tidak';
+            $waValEnabled    = feature('wa_validator_enabled');
             $waValEndpoint   = Pengaturan::where('key', 'wa_validator_endpoint')->value('value') ?: 'https://wa.lutfifuadi.my.id/check-number';
             $waValApiKey     = Pengaturan::where('key', 'wa_validator_api_key')->value('value') ?: '';
             $waValSender     = Pengaturan::where('key', 'wa_validator_sender')->value('value') ?: '';
 
             // 3. Notif Pengaduan
-            $waPengEnabled   = Pengaturan::where('key', 'wa_pengaduan_enabled')->value('value') ?? 'Tidak';
+            $waPengEnabled   = feature('wa_pengaduan_enabled');
             $waPengEndpoint  = Pengaturan::where('key', 'wa_pengaduan_endpoint')->value('value') ?: 'https://wa.lutfifuadi.my.id';
             $waPengApiKey    = Pengaturan::where('key', 'wa_pengaduan_api_key')->value('value') ?: '';
             $waPengSender    = Pengaturan::where('key', 'wa_pengaduan_sender')->value('value') ?: '';
 
             // 4. WA Autoreply
-            $waAutoEnabled   = Pengaturan::where('key', 'wa_autoreply_enabled')->value('value') ?? 'Tidak';
+            $waAutoEnabled   = feature('wa_autoreply_enabled');
             $waAutoEndpoint  = Pengaturan::where('key', 'wa_autoreply_endpoint')->value('value') ?: 'https://wa.lutfifuadi.my.id';
             $waAutoApiKey    = Pengaturan::where('key', 'wa_autoreply_api_key')->value('value') ?: '';
             $waAutoSender    = Pengaturan::where('key', 'wa_autoreply_sender')->value('value') ?: '';
@@ -200,38 +200,38 @@ class WaGatewayController extends Controller
             $services = [
                 'wa_gateway_notif' => [
                     'name'     => 'WA Gateway Notif',
-                    'enabled'  => $waNotifEnabled === 'Ya',
+                    'enabled'  => $waNotifEnabled,
                     'endpoint' => $waNotifLink,
                     'status'   => $pingNotif['status'],
                     'message'  => $pingNotif['status'] === 'connected'
-                        ? ($waNotifEnabled === 'Ya' ? 'Server Terhubung & Fitur Aktif' : 'Server Terhubung (Fitur Nonaktif)')
+                        ? ($waNotifEnabled ? 'Server Terhubung & Fitur Aktif' : 'Server Terhubung (Fitur Nonaktif)')
                         : $pingNotif['message'],
                 ],
                 'validator_wa' => [
                     'name'     => 'Validator WA',
-                    'enabled'  => $waValEnabled === 'Ya',
+                    'enabled'  => $waValEnabled,
                     'endpoint' => $waValEndpoint,
                     'status'   => $pingVal['status'],
                     'message'  => $pingVal['status'] === 'connected'
-                        ? ($waValEnabled === 'Ya' ? 'Server Terhubung & Fitur Aktif' : 'Server Terhubung (Fitur Nonaktif)')
+                        ? ($waValEnabled ? 'Server Terhubung & Fitur Aktif' : 'Server Terhubung (Fitur Nonaktif)')
                         : $pingVal['message'],
                 ],
                 'notif_pengaduan' => [
                     'name'     => 'Notif Pengaduan WA',
-                    'enabled'  => $waPengEnabled === 'Ya',
+                    'enabled'  => $waPengEnabled,
                     'endpoint' => $waPengEndpoint,
                     'status'   => $pingPeng['status'],
                     'message'  => $pingPeng['status'] === 'connected'
-                        ? ($waPengEnabled === 'Ya' ? 'Server Terhubung & Fitur Aktif' : 'Server Terhubung (Fitur Nonaktif)')
+                        ? ($waPengEnabled ? 'Server Terhubung & Fitur Aktif' : 'Server Terhubung (Fitur Nonaktif)')
                         : $pingPeng['message'],
                 ],
                 'autoreply_wa' => [
                     'name'     => 'Autoreply WA',
-                    'enabled'  => $waAutoEnabled === 'Ya',
+                    'enabled'  => $waAutoEnabled,
                     'endpoint' => $waAutoEndpoint,
                     'status'   => $pingAuto['status'],
                     'message'  => $pingAuto['status'] === 'connected'
-                        ? ($waAutoEnabled === 'Ya' ? 'Server Terhubung & Fitur Aktif' : 'Server Terhubung (Fitur Nonaktif)')
+                        ? ($waAutoEnabled ? 'Server Terhubung & Fitur Aktif' : 'Server Terhubung (Fitur Nonaktif)')
                         : $pingAuto['message'],
                 ],
             ];

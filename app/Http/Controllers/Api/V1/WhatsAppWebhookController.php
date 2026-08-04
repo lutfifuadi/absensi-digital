@@ -31,8 +31,7 @@ class WhatsAppWebhookController extends Controller
             }
 
             // 2. Validasi Global Status
-            $autoreplyEnabled = Pengaturan::where('key', 'wa_autoreply_enabled')->value('value');
-            if ($autoreplyEnabled !== 'Ya') {
+            if (!feature('wa_autoreply_enabled')) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Autoreply dinonaktifkan.'
