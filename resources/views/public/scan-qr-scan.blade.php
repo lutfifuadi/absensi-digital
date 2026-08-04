@@ -1282,7 +1282,7 @@
   // Load server stats on page load
   fetchServerStats();
   // Auto-refresh every 10 seconds
-  setInterval(fetchServerStats, 10000);
+  setInterval(fetchServerStats, 15000);
 
   // ── Input Manual ─────────────────────────────────
   let selectedManualTarget = null;

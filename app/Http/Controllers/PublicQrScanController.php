@@ -536,71 +536,77 @@ class PublicQrScanController extends Controller
     {
         $today = today()->toDateString();
 
-        // 1. Statistik Siswa
-        $siswaStats = AbsensiSiswa::whereDate('tanggal', $today)
-            ->selectRaw("
-                COUNT(*) as total,
-                SUM(CASE WHEN status IN ('hadir','terlambat') THEN 1 ELSE 0 END) as hadir,
-                SUM(CASE WHEN status = 'terlambat' THEN 1 ELSE 0 END) as terlambat
-            ")
-            ->first();
+        // Cache 10 detik — endpoint ini dipanggil tiap 10 detik dari setiap device scanner.
+        // Tanpa cache, setiap device memicu 4 query DB berat secara bersamaan saat jam sibuk.
+        $cached = Cache::remember("scan_stats_{$today}", 10, function () use ($today) {
+            // 1. Statistik Siswa
+            $siswaStats = AbsensiSiswa::whereDate('tanggal', $today)
+                ->selectRaw("
+                    COUNT(*) as total,
+                    SUM(CASE WHEN status IN ('hadir','terlambat') THEN 1 ELSE 0 END) as hadir,
+                    SUM(CASE WHEN status = 'terlambat' THEN 1 ELSE 0 END) as terlambat
+                ")
+                ->first();
 
-        // 2. Statistik Guru
-        $guruStats = AbsensiGuru::whereDate('tanggal', $today)
-            ->selectRaw("
-                COUNT(*) as total,
-                SUM(CASE WHEN status IN ('hadir','terlambat') THEN 1 ELSE 0 END) as hadir,
-                SUM(CASE WHEN status = 'terlambat' THEN 1 ELSE 0 END) as terlambat
-            ")
-            ->first();
+            // 2. Statistik Guru
+            $guruStats = AbsensiGuru::whereDate('tanggal', $today)
+                ->selectRaw("
+                    COUNT(*) as total,
+                    SUM(CASE WHEN status IN ('hadir','terlambat') THEN 1 ELSE 0 END) as hadir,
+                    SUM(CASE WHEN status = 'terlambat' THEN 1 ELSE 0 END) as terlambat
+                ")
+                ->first();
 
-        // 3. Recent logs — Siswa
-        $siswaLogs = AbsensiSiswa::with('siswa.kelas')
-            ->whereDate('tanggal', $today)
-            ->whereNotNull('jam_masuk')
-            ->orderBy('created_at', 'desc')
-            ->take(10)
-            ->get()
-            ->map(fn($a) => [
-                'nama'   => $a->siswa->nama_lengkap ?? '-',
-                'kelas'  => $a->siswa->kelas->nama ?? '-',
-                'jam'    => $a->jam_masuk,
-                'status' => $a->status,
-                'tipe'   => 'siswa',
-            ]);
+            // 3. Recent logs — Siswa
+            $siswaLogs = AbsensiSiswa::with('siswa.kelas')
+                ->whereDate('tanggal', $today)
+                ->whereNotNull('jam_masuk')
+                ->orderBy('created_at', 'desc')
+                ->take(10)
+                ->get()
+                ->map(fn($a) => [
+                    'nama'   => $a->siswa->nama_lengkap ?? '-',
+                    'kelas'  => $a->siswa->kelas->nama ?? '-',
+                    'jam'    => $a->jam_masuk,
+                    'status' => $a->status,
+                    'tipe'   => 'siswa',
+                ]);
 
-        // 4. Recent logs — Guru
-        $guruLogs = AbsensiGuru::with('guru')
-            ->whereDate('tanggal', $today)
-            ->whereNotNull('jam_masuk')
-            ->orderBy('created_at', 'desc')
-            ->take(10)
-            ->get()
-            ->map(fn($a) => [
-                'nama'   => $a->guru->nama_lengkap ?? '-',
-                'kelas'  => 'GURU',
-                'jam'    => $a->jam_masuk,
-                'status' => $a->status,
-                'tipe'   => 'guru',
-            ]);
+            // 4. Recent logs — Guru
+            $guruLogs = AbsensiGuru::with('guru')
+                ->whereDate('tanggal', $today)
+                ->whereNotNull('jam_masuk')
+                ->orderBy('created_at', 'desc')
+                ->take(10)
+                ->get()
+                ->map(fn($a) => [
+                    'nama'   => $a->guru->nama_lengkap ?? '-',
+                    'kelas'  => 'GURU',
+                    'jam'    => $a->jam_masuk,
+                    'status' => $a->status,
+                    'tipe'   => 'guru',
+                ]);
 
-        // 5. Gabung & sort
-        $recentLogs = collect($siswaLogs)->concat($guruLogs)
-            ->sortByDesc('jam')
-            ->take(10)
-            ->values();
+            // 5. Gabung & sort
+            $recentLogs = collect($siswaLogs)->concat($guruLogs)
+                ->sortByDesc('jam')
+                ->take(10)
+                ->values();
 
-        return response()->json([
-            'stats' => [
-                'siswa_hadir'     => (int) ($siswaStats->hadir ?? 0),
-                'siswa_terlambat' => (int) ($siswaStats->terlambat ?? 0),
-                'siswa_total'     => (int) ($siswaStats->total ?? 0),
-                'guru_hadir'      => (int) ($guruStats->hadir ?? 0),
-                'guru_terlambat'  => (int) ($guruStats->terlambat ?? 0),
-                'guru_total'      => (int) ($guruStats->total ?? 0),
-            ],
-            'recent_logs' => $recentLogs,
-        ]);
+            return [
+                'stats' => [
+                    'siswa_hadir'     => (int) ($siswaStats->hadir ?? 0),
+                    'siswa_terlambat' => (int) ($siswaStats->terlambat ?? 0),
+                    'siswa_total'     => (int) ($siswaStats->total ?? 0),
+                    'guru_hadir'      => (int) ($guruStats->hadir ?? 0),
+                    'guru_terlambat'  => (int) ($guruStats->terlambat ?? 0),
+                    'guru_total'      => (int) ($guruStats->total ?? 0),
+                ],
+                'recent_logs' => $recentLogs,
+            ];
+        });
+
+        return response()->json($cached);
     }
 
     /**
@@ -873,12 +879,6 @@ class PublicQrScanController extends Controller
             ]);
         }
 
-        // Helper untuk invalidate leaderboard cache
-        $forgetCache = function() {
-            Cache::forget('live_board_leaderboard_data_otomatis');
-            Cache::forget('live_board_leaderboard_data_masuk');
-            Cache::forget('live_board_leaderboard_data_pulang');
-        };
 
         // === SEMUA READ DI LUAR TRANSACTION ===
 
@@ -1509,7 +1509,7 @@ class PublicQrScanController extends Controller
     /** Helper: ambil data leaderboard + stats hari ini. */
     private function getLeaderboardData(string $mode = 'otomatis'): array
     {
-        return Cache::remember('live_board_leaderboard_data_' . $mode, 20, function () use ($mode) {
+        return Cache::remember('live_board_leaderboard_data_' . $mode, 5, function () use ($mode) {
             $today = today()->toDateString();
 
             // Tentukan field jam berdasarkan mode

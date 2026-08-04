@@ -1289,7 +1289,7 @@ const LEADERBOARD_URL= '{{ route("public.live-board.leaderboard") }}';
 const CSRF           = document.querySelector('meta[name="csrf-token"]').content;
 const JAM_MASUK_CFG  = '{{ $jamMasukCfg }}';
 const TOLERANSI_MENIT= {{ $toleransi }};
-const REFRESH_MS     = 3000; // leaderboard auto-refresh (Real-time speed)
+const REFRESH_MS     = 5000; // leaderboard auto-refresh — selaras dengan TTL cache 5 detik
 const DISMISS_MS     = 800;  // toast auto-hide
 const DEBOUNCE_MS    = 3000;  // anti-duplicate scan
 const CURRENT_MODE   = '{{ $mode }}';
