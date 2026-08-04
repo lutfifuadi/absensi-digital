@@ -668,7 +668,7 @@
       .scanner-col { width: 100% !important; }
       .panel { border-radius: 6px !important; }
       .panel-body { max-height: 380px !important; }
-      .scanner-area { aspect-ratio: 16/9 !important; }
+      .scanner-area { aspect-ratio: auto !important; height: auto !important; min-height: auto !important; }
       .scan-frame { width: 180px !important; height: 180px !important; }
 
       .bottom-running-bar {
@@ -742,7 +742,7 @@
       .status-badge { padding: 2px 6px !important; font-size: 0.6rem !important; border-radius: 4px !important; }
       .late-minutes { font-size: 0.58rem !important; display: block !important; margin-top: 1px !important; }
 
-      .scanner-area { aspect-ratio: 4/3 !important; }
+      .scanner-area { aspect-ratio: auto !important; height: auto !important; min-height: auto !important; padding: 1.2rem 1rem !important; }
       .scan-frame { width: 160px !important; height: 160px !important; }
 
       .scan-info { padding: 0.5rem 0.8rem; }
@@ -788,7 +788,8 @@
       .status-col { width: 80px !important; }
       .status-badge { padding: 1px 5px !important; font-size: 0.56rem !important; }
 
-      .scanner-area { aspect-ratio: 1/1 !important; }
+      .scanner-area { aspect-ratio: auto !important; height: auto !important; min-height: auto !important; padding: 1rem 0.75rem !important; }
+      .analog-case { transform: scale(0.9) !important; margin: 0.2rem 0 !important; }
       .scan-frame { width: 140px !important; height: 140px !important; }
     }
 
