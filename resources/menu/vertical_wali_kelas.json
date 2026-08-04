@@ -23,6 +23,12 @@
       "url": "/wali-kelas/absensi-siswa"
     },
     {
+      "name": "Daftar Belum Absen",
+      "icon": "menu-icon ti tabler-user-x",
+      "slug": "wali-kelas.belum-absen",
+      "url": "/wali-kelas/belum-absen"
+    },
+    {
       "name": "Data Siswa Kelas",
       "icon": "menu-icon ti tabler-users",
       "slug": "wali-kelas.siswa.index",
@@ -33,28 +39,22 @@
       "icon": "menu-icon ti tabler-report-analytics"
     },
     {
-      "name": "Laporan Rekap Harian",
-      "icon": "menu-icon ti tabler-presentation",
-      "slug": "wali-kelas.rekap-harian",
-      "url": "/wali-kelas/rekap-harian"
-    },
-    {
       "name": "Rekap Absensi Bulanan",
       "icon": "menu-icon ti tabler-report-analytics",
       "slug": "admin.laporan.index",
       "url": "/admin/laporan"
     },
     {
+      "name": "Laporan Rekap Harian",
+      "icon": "menu-icon ti tabler-presentation",
+      "slug": "wali-kelas.rekap-harian",
+      "url": "/wali-kelas/rekap-harian"
+    },
+    {
       "name": "Rekap Jam Pelajaran",
       "icon": "menu-icon ti tabler-clock-play",
       "slug": "admin.absensi-per-jam.rekap",
       "url": "/admin/absensi-per-jam/rekap"
-    },
-    {
-      "name": "Daftar Belum Absen",
-      "icon": "menu-icon ti tabler-user-x",
-      "slug": "wali-kelas.belum-absen",
-      "url": "/wali-kelas/belum-absen"
     }
   ]
 }
