@@ -120,7 +120,17 @@ class DashboardController extends Controller
         ];
 
         $view = $viewMap[$role] ?? 'dashboards.super-admin';
-        return view($view, array_merge(['user' => $user, 'pageTitle' => 'Dashboard'], $this->superAdminData()));
+        $roleData = match ($role) {
+            User::ROLE_STAFF_TU   => $this->staffTuData($user),
+            User::ROLE_GURU       => $this->guruData($user),
+            User::ROLE_WALI_KELAS => $this->waliKelasData($user),
+            User::ROLE_SISWA      => $this->siswaData($user),
+            User::ROLE_ORANG_TUA  => $this->orangTuaData($user),
+            User::ROLE_PIKET      => $this->piketData(),
+            default               => $this->superAdminData(),
+        };
+
+        return view($view, array_merge(['user' => $user, 'pageTitle' => 'Dashboard'], $roleData));
     }
 
     /**

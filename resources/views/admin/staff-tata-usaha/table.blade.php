@@ -69,6 +69,16 @@
                     </td>
                     <td class="pe-4 text-end">
                         <div class="d-flex justify-content-end gap-1">
+                            @if ($item->user_id && auth()->user()->hasAnyRole(['super_admin']))
+                                <button type="button"
+                                    class="action-btn text-success btn-impersonate-staff"
+                                    title="Login Sebagai Staff TU"
+                                    data-bs-toggle="tooltip"
+                                    data-url="{{ route('admin.impersonate.login-as', $item->user_id) }}"
+                                    data-nama="{{ $item->nama_lengkap }}">
+                                    <i class="ti tabler-login fs-5"></i>
+                                </button>
+                            @endif
                             <a href="{{ route('admin.staff-tata-usaha.generate-qr', $item) }}" class="action-btn text-info"
                                 title="Unduh QR" data-bs-toggle="tooltip">
                                 <i class="ti tabler-qrcode fs-5"></i>

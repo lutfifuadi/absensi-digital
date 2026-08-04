@@ -3,35 +3,52 @@
     {
       "name": "Dashboard",
       "icon": "menu-icon ti tabler-smart-home",
-      "slug": "dashboard",
-      "url": "/dashboard"
+      "slug": ["tu.dashboard", "dashboard"],
+      "url": "/tu/dashboard"
     },
     {
-      "menuHeader": "Staff",
-      "icon": "menu-icon ti tabler-briefcase"
+      "menuHeader": "Presensi & Kehadiran",
+      "icon": "menu-icon ti tabler-calendar-user"
     },
     {
       "name": "Absensi Saya",
-      "icon": "menu-icon ti tabler-user-check",
-      "slug": "admin.absensi-staff.index",
-      "url": "/admin/absensi-staff"
+      "icon": "menu-icon ti tabler-calendar-check",
+      "slug": ["tu.absensi.index", "staff.absensi.index", "admin.absensi-staff.index"],
+      "url": "/tu/absensi"
     },
     {
       "name": "Izin & Sakit",
       "icon": "menu-icon ti tabler-stethoscope",
-      "slug": "admin.izin-sakit",
+      "slug": [
+        "tu.izin-sakit.index",
+        "tu.izin-sakit.create",
+        "staff.izin-sakit.index",
+        "staff.izin-sakit.create",
+        "admin.izin-sakit.index",
+        "admin.izin-sakit.create"
+      ],
       "submenu": [
         {
           "name": "Riwayat Izin",
-          "slug": "admin.izin-sakit.index",
-          "url": "/admin/izin-sakit"
+          "slug": ["tu.izin-sakit.index", "staff.izin-sakit.index", "admin.izin-sakit.index"],
+          "url": "/tu/izin-sakit"
         },
         {
           "name": "Ajukan Izin",
-          "slug": "admin.izin-sakit.create",
-          "url": "/admin/izin-sakit/create"
+          "slug": ["tu.izin-sakit.create", "staff.izin-sakit.create", "admin.izin-sakit.create"],
+          "url": "/tu/izin-sakit/create"
         }
       ]
+    },
+    {
+      "menuHeader": "Pengaturan Akun",
+      "icon": "menu-icon ti tabler-settings"
+    },
+    {
+      "name": "Profil Saya",
+      "icon": "menu-icon ti tabler-user-cog",
+      "slug": "profile.show",
+      "url": "/user/profile"
     }
   ]
 }

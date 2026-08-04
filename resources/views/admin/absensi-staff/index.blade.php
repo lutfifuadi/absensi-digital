@@ -130,18 +130,28 @@
         <div class="das-hero__meta">
           <div class="das-hero__badge">
             <span class="pulse-dot"></span>
-            <a href="{{ route('admin.master-data') }}" class="text-white text-decoration-none">Master Data</a> / Absensi Staff TU
+            @if ($isStaffTu ?? false)
+              Dashboard / Riwayat Absensi Saya
+            @else
+              <a href="{{ route('admin.master-data') }}" class="text-white text-decoration-none">Master Data</a> / Absensi Staff TU
+            @endif
           </div>
-          <h4 class="das-hero__title text-gradient-gold">Absensi Staff TU</h4>
-          <p class="das-hero__subtitle">Kelola kehadiran staff tata usaha secara terstruktur.</p>
+          <h4 class="das-hero__title text-gradient-gold">
+            {{ ($isStaffTu ?? false) ? 'Riwayat Absensi Saya' : 'Absensi Staff TU' }}
+          </h4>
+          <p class="das-hero__subtitle">
+            {{ ($isStaffTu ?? false) ? 'Daftar dan rekap presensi harian Anda.' : 'Kelola kehadiran staff tata usaha secara terstruktur.' }}
+          </p>
         </div>
       </div>
 
-      <div class="das-hero__actions">
-        <a href="{{ route('admin.absensi-staff.create') }}" class="btn das-btn --primary">
-          <i class="ti tabler-plus me-1"></i> Tambah Absensi
-        </a>
-      </div>
+      @if (!($isStaffTu ?? false))
+        <div class="das-hero__actions">
+          <a href="{{ route('admin.absensi-staff.create') }}" class="btn das-btn --primary">
+            <i class="ti tabler-plus me-1"></i> Tambah Absensi
+          </a>
+        </div>
+      @endif
     </div>
   </div>
 
@@ -158,36 +168,64 @@
   <div class="das-panel mb-4">
     <div class="das-panel__body">
       <form id="filterForm" method="GET" class="row gy-3 gx-3 align-items-end">
-        <div class="col-md-4">
-          <label class="form-label text-white-50 small fw-bold">Cari Staff</label>
-          <input type="text" id="filterSearch" name="search" class="form-control"
-            placeholder="Nama atau NIP…" value="{{ request('search') }}">
-        </div>
-        <div class="col-md-3">
-          <label class="form-label text-white-50 small fw-bold">Status</label>
-          <select id="filterStatus" name="status" class="form-select">
-            <option value="">Semua Status</option>
-            <option value="hadir" @selected(request('status') === 'hadir')>Hadir</option>
-            <option value="sakit" @selected(request('status') === 'sakit')>Sakit</option>
-            <option value="izin" @selected(request('status') === 'izin')>Izin</option>
-            <option value="alpha" @selected(request('status') === 'alpha')>Alpha</option>
-            <option value="terlambat" @selected(request('status') === 'terlambat')>Terlambat</option>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <label class="form-label text-white-50 small fw-bold">Filter Tanggal</label>
-          <input type="date" id="filterTanggal" name="tanggal" class="form-control" value="{{ request('tanggal') }}">
-        </div>
-        <div class="col-md-2">
-          <div class="d-flex gap-2">
-            <button type="submit" class="btn das-btn --info w-100">
-              <i class="ti tabler-search me-1"></i> Cari
-            </button>
-            <button type="button" id="resetFilterBtn" class="btn das-btn --secondary" title="Reset">
-              <i class="ti tabler-refresh"></i>
-            </button>
+        @if (!($isStaffTu ?? false))
+          <div class="col-md-4">
+            <label class="form-label text-white-50 small fw-bold">Cari Staff</label>
+            <input type="text" id="filterSearch" name="search" class="form-control"
+              placeholder="Nama atau NIP…" value="{{ request('search') }}">
           </div>
-        </div>
+          <div class="col-md-3">
+            <label class="form-label text-white-50 small fw-bold">Status</label>
+            <select id="filterStatus" name="status" class="form-select">
+              <option value="">Semua Status</option>
+              <option value="hadir" @selected(request('status') === 'hadir')>Hadir</option>
+              <option value="sakit" @selected(request('status') === 'sakit')>Sakit</option>
+              <option value="izin" @selected(request('status') === 'izin')>Izin</option>
+              <option value="alpha" @selected(request('status') === 'alpha')>Alpha</option>
+              <option value="terlambat" @selected(request('status') === 'terlambat')>Terlambat</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-white-50 small fw-bold">Filter Tanggal</label>
+            <input type="date" id="filterTanggal" name="tanggal" class="form-control" value="{{ request('tanggal') }}">
+          </div>
+          <div class="col-md-2">
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn das-btn --info w-100">
+                <i class="ti tabler-search me-1"></i> Cari
+              </button>
+              <button type="button" id="resetFilterBtn" class="btn das-btn --secondary" title="Reset">
+                <i class="ti tabler-refresh"></i>
+              </button>
+            </div>
+          </div>
+        @else
+          <div class="col-md-5">
+            <label class="form-label text-white-50 small fw-bold">Status Presensi</label>
+            <select id="filterStatus" name="status" class="form-select">
+              <option value="">Semua Status</option>
+              <option value="hadir" @selected(request('status') === 'hadir')>Hadir</option>
+              <option value="sakit" @selected(request('status') === 'sakit')>Sakit</option>
+              <option value="izin" @selected(request('status') === 'izin')>Izin</option>
+              <option value="alpha" @selected(request('status') === 'alpha')>Alpha</option>
+              <option value="terlambat" @selected(request('status') === 'terlambat')>Terlambat</option>
+            </select>
+          </div>
+          <div class="col-md-5">
+            <label class="form-label text-white-50 small fw-bold">Filter Tanggal</label>
+            <input type="date" id="filterTanggal" name="tanggal" class="form-control" value="{{ request('tanggal') }}">
+          </div>
+          <div class="col-md-2">
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn das-btn --info w-100">
+                <i class="ti tabler-search me-1"></i> Cari
+              </button>
+              <button type="button" id="resetFilterBtn" class="btn das-btn --secondary" title="Reset">
+                <i class="ti tabler-refresh"></i>
+              </button>
+            </div>
+          </div>
+        @endif
       </form>
     </div>
   </div>
@@ -234,11 +272,12 @@
       let searchTimeout;
 
       function fetchData(page = 1) {
-        const search = encodeURIComponent(filterSearch.value || '');
-        const perPage = perPageSelect.value || 10;
-        const status = filterStatus.value || '';
-        const tanggal = filterTanggal.value || '';
-        const url = `{{ route('admin.absensi-staff.index') }}?page=${page}&search=${search}&per_page=${perPage}&status=${status}&tanggal=${tanggal}`;
+        const search = encodeURIComponent((filterSearch && filterSearch.value) || '');
+        const perPage = perPageSelect ? perPageSelect.value : 10;
+        const status = filterStatus ? filterStatus.value : '';
+        const tanggal = filterTanggal ? filterTanggal.value : '';
+        const baseUrl = window.location.pathname;
+        const url = `${baseUrl}?page=${page}&search=${search}&per_page=${perPage}&status=${status}&tanggal=${tanggal}`;
 
         container.style.opacity = '0.5';
         container.style.pointerEvents = 'none';

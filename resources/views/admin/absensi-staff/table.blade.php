@@ -4,25 +4,47 @@
       style="background:rgba(255,255,255,0.04);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;opacity:0.7;">
       <tr>
         <th class="ps-4 py-3" style="width:46px;">#</th>
-        <th class="py-3">Staff</th>
+        @if (!($isStaffTu ?? false))
+          <th class="py-3">Staff</th>
+        @endif
         <th class="py-3 text-center">Tanggal</th>
+        <th class="py-3 text-center">Jam Masuk</th>
+        <th class="py-3 text-center">Jam Pulang</th>
         <th class="py-3 text-center">Status</th>
         <th class="py-3 text-center d-none d-md-table-cell">Metode</th>
         <th class="py-3 text-center d-none d-lg-table-cell">Keterangan</th>
-        <th class="py-3 pe-4 text-end">Aksi</th>
+        @if (!($isStaffTu ?? false))
+          <th class="py-3 pe-4 text-end">Aksi</th>
+        @endif
       </tr>
     </thead>
     <tbody>
       @forelse($absensi as $item)
         <tr class="staff-row-hover">
           <td class="ps-4 text-white-50 small">{{ ($absensi->currentPage() - 1) * $absensi->perPage() + $loop->iteration }}</td>
-          <td>
-            <div class="fw-medium">{{ $item->staff->nama_lengkap ?? '-' }}</div>
-            @if(!empty($item->staff->nip))
-              <div class="text-white-50 extra-small" style="font-size:0.7rem;">NIP: {{ $item->staff->nip }}</div>
+          @if (!($isStaffTu ?? false))
+            <td>
+              <div class="fw-medium">{{ $item->staff->nama_lengkap ?? '-' }}</div>
+              @if(!empty($item->staff->nip))
+                <div class="text-white-50 extra-small" style="font-size:0.7rem;">NIP: {{ $item->staff->nip }}</div>
+              @endif
+            </td>
+          @endif
+          <td class="text-center">{{ $item->tanggal->format('d M Y') }}</td>
+          <td class="text-center">
+            @if ($item->jam_masuk)
+              <span class="badge bg-label-success px-2">{{ \Illuminate\Support\Carbon::parse($item->jam_masuk)->format('H:i') }}</span>
+            @else
+              <span class="text-white-50 small">-</span>
             @endif
           </td>
-          <td class="text-center">{{ $item->tanggal->format('d M Y') }}</td>
+          <td class="text-center">
+            @if ($item->jam_pulang)
+              <span class="badge bg-label-info px-2">{{ \Illuminate\Support\Carbon::parse($item->jam_pulang)->format('H:i') }}</span>
+            @else
+              <span class="text-white-50 small">-</span>
+            @endif
+          </td>
           <td class="text-center">
             <span
               class="badge bg-label-{{ match ($item->status) {
@@ -40,29 +62,31 @@
             </span>
           </td>
           <td class="text-center d-none d-lg-table-cell">{{ $item->keterangan ?: '–' }}</td>
-          <td class="pe-4 text-end">
-            <div class="d-flex justify-content-end gap-1">
-              <a href="{{ route('admin.absensi-staff.edit', $item) }}" class="staff-action-btn text-warning"
-                title="Edit" data-bs-toggle="tooltip">
-                <i class="ti tabler-pencil fs-5"></i>
-              </a>
-              <form action="{{ route('admin.absensi-staff.destroy', $item) }}" method="POST" class="d-inline"
-                onsubmit="return confirm('Yakin ingin menghapus absensi staff ini?');">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="staff-action-btn text-danger" title="Hapus" data-bs-toggle="tooltip">
-                  <i class="ti tabler-trash fs-5"></i>
-                </button>
-              </form>
-            </div>
-          </td>
+          @if (!($isStaffTu ?? false))
+            <td class="pe-4 text-end">
+              <div class="d-flex justify-content-end gap-1">
+                <a href="{{ route('admin.absensi-staff.edit', $item) }}" class="staff-action-btn text-warning"
+                  title="Edit" data-bs-toggle="tooltip">
+                  <i class="ti tabler-pencil fs-5"></i>
+                </a>
+                <form action="{{ route('admin.absensi-staff.destroy', $item) }}" method="POST" class="d-inline"
+                  onsubmit="return confirm('Yakin ingin menghapus absensi staff ini?');">
+                  @csrf
+                  @method('DELETE')
+                  <button type="submit" class="staff-action-btn text-danger" title="Hapus" data-bs-toggle="tooltip">
+                    <i class="ti tabler-trash fs-5"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          @endif
         </tr>
       @empty
         <tr>
-          <td colspan="7" class="text-center py-5">
+          <td colspan="{{ ($isStaffTu ?? false) ? 7 : 8 }}" class="text-center py-5">
             <div class="d-flex flex-column align-items-center gap-2 opacity-50">
               <i class="ti tabler-calendar-off" style="font-size:2.5rem;"></i>
-              <span class="small">Belum ada data absensi staff.</span>
+              <span class="small">Belum ada data absensi.</span>
             </div>
           </td>
         </tr>

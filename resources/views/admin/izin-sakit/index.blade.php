@@ -147,6 +147,12 @@
 @endsection
 
 @section('content')
+  @php
+    $user = auth()->user();
+    $activeRole = session('active_role', $user->role);
+    $isStaffTu = request()->routeIs('tu.*') || $activeRole === \App\Models\User::ROLE_STAFF_TU || ($user->isRole(\App\Models\User::ROLE_STAFF_TU) && !$user->hasAnyRole(['super_admin', 'admin_sekolah']));
+  @endphp
+
   {{-- ═══════════════════════════════════════════════════════
        SECTION 1: HERO HEADER
   ═══════════════════════════════════════════════════════ --}}
@@ -167,16 +173,19 @@
         <div class="das-hero__meta">
           <div class="das-hero__badge">
             <span class="pulse-dot"></span>
-            Pusat Pengajuan Dispensasi
+            {{ $isStaffTu ? 'Riwayat Presensi Personal' : 'Pusat Pengajuan Dispensasi' }}
           </div>
-          <h4 class="das-hero__title text-gradient-gold">Izin & Sakit</h4>
-          <p class="das-hero__subtitle">Proses pengajuan dispensasi kehadiran siswa, guru, dan staff.</p>
+          <h4 class="das-hero__title text-gradient-gold">{{ $isStaffTu ? 'Riwayat Izin & Sakit Saya' : 'Izin & Sakit' }}</h4>
+          <p class="das-hero__subtitle">{{ $isStaffTu ? 'Daftar dan rekap pengajuan dispensasi kehadiran Anda.' : 'Proses pengajuan dispensasi kehadiran siswa, guru, dan staff.' }}</p>
         </div>
       </div>
 
       <div class="das-hero__actions">
         @if(!auth()->user()->isRole(\App\Models\User::ROLE_SISWA))
-          <a href="{{ route('admin.izin-sakit.create') }}" class="das-btn das-btn--info">
+          @php
+            $createRoute = request()->routeIs('tu.*') ? route('tu.izin-sakit.create') : route('admin.izin-sakit.create');
+          @endphp
+          <a href="{{ $createRoute }}" class="das-btn das-btn--info">
             <i class="ti tabler-plus me-1"></i> Tambah Pengajuan
           </a>
         @else
@@ -206,15 +215,17 @@
   <div class="das-panel mb-4">
     <div class="das-panel__body py-3">
       <form method="GET" class="row gy-2 gx-2 align-items-end">
-        <div class="col-6 col-md-3">
-          <label class="form-label text-white-50 small mb-1 fw-bold">KATEGORI</label>
-          <select name="tipe" class="form-select form-select-sm" onchange="this.form.submit()" style="background: rgba(15, 23, 42, 0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
-            <option value="">Semua Tipe</option>
-            @foreach (['siswa', 'guru', 'staff'] as $t)
-              <option value="{{ $t }}" @selected(request('tipe') === $t)>{{ ucfirst($t) }}</option>
-            @endforeach
-          </select>
-        </div>
+        @if (!$isStaffTu)
+          <div class="col-6 col-md-3">
+            <label class="form-label text-white-50 small mb-1 fw-bold">KATEGORI</label>
+            <select name="tipe" class="form-select form-select-sm" onchange="this.form.submit()" style="background: rgba(15, 23, 42, 0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
+              <option value="">Semua Tipe</option>
+              @foreach (['siswa', 'guru', 'staff'] as $t)
+                <option value="{{ $t }}" @selected(request('tipe') === $t)>{{ ucfirst($t) }}</option>
+              @endforeach
+            </select>
+          </div>
+        @endif
         <div class="col-6 col-md-3">
           <label class="form-label text-white-50 small mb-1 fw-bold">STATUS</label>
           <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="background: rgba(15, 23, 42, 0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
@@ -246,8 +257,10 @@
             style="background:rgba(255,255,255,0.04);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;opacity:0.7;">
             <tr>
               <th class="ps-4 py-3" style="width:46px;">#</th>
-              <th class="py-3">Tipe</th>
-              <th class="py-3">Nama</th>
+              @if (!$isStaffTu)
+                <th class="py-3">Tipe</th>
+                <th class="py-3">Nama</th>
+              @endif
               <th class="py-3 text-center">Jenis</th>
               <th class="py-3 text-center d-none d-md-table-cell">Periode</th>
               <th class="py-3 text-center">Status</th>
@@ -259,20 +272,22 @@
             @forelse($izinSakit as $item)
               <tr class="izin-sakit-row-hover">
                 <td class="ps-4 text-white-50 small">{{ $izinSakit->firstItem() + $loop->index }}</td>
-                <td><span class="badge bg-label-secondary">{{ ucfirst($item->tipe) }}</span></td>
-                <td>
-                  <div class="fw-medium">
-                    @if ($item->tipe === 'siswa')
-                      {{ $item->siswa->nama_lengkap ?? '-' }}
-                    @elseif($item->tipe === 'guru')
-                      {{ $item->guru->nama_lengkap ?? '-' }}
-                    @else
-                      {{ $item->staff->nama_lengkap ?? '-' }}
-                    @endif
-                  </div>
-                  <small class="text-muted d-md-none">{{ $item->tanggal_mulai->format('d/m') }} –
-                    {{ $item->tanggal_selesai->format('d/m/Y') }}</small>
-                </td>
+                @if (!$isStaffTu)
+                  <td><span class="badge bg-label-secondary">{{ ucfirst($item->tipe) }}</span></td>
+                  <td>
+                    <div class="fw-medium">
+                      @if ($item->tipe === 'siswa')
+                        {{ $item->siswa->nama_lengkap ?? '-' }}
+                      @elseif($item->tipe === 'guru')
+                        {{ $item->guru->nama_lengkap ?? '-' }}
+                      @else
+                        {{ $item->staff->nama_lengkap ?? '-' }}
+                      @endif
+                    </div>
+                    <small class="text-muted d-md-none">{{ $item->tanggal_mulai->format('d/m') }} –
+                      {{ $item->tanggal_selesai->format('d/m/Y') }}</small>
+                  </td>
+                @endif
                 <td class="text-center">
                   <span class="badge bg-label-{{ $item->jenis === 'sakit' ? 'info' : 'warning' }} text-capitalize px-2">
                     {{ ucfirst($item->jenis) }}
@@ -307,10 +322,13 @@
                       'staff' => $item->staff->nama_lengkap ?? 'Staff',
                       default => 'Pengajuan'
                   };
+                  $userCurr = auth()->user();
+                  $currRole = session('active_role', $userCurr->role);
+                  $canApprove = $userCurr->hasAnyRole(['super_admin', 'admin_sekolah', 'operator', 'wali_kelas']) && !request()->routeIs('tu.*') && $currRole !== 'staff_tu';
                 @endphp
                 <td class="pe-4 text-end">
                   <div class="d-flex justify-content-end gap-1 flex-wrap">
-                    @if ($item->status === 'pending' && auth()->user()->role !== 'siswa')
+                    @if ($item->status === 'pending' && $canApprove)
                       <form action="{{ route('admin.izin-sakit.approve', $item) }}" method="POST" class="d-inline">
                         @csrf
                         <input type="hidden" name="action" value="disetujui">

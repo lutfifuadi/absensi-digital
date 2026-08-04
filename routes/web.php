@@ -1622,6 +1622,14 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('guru/monitoring')->middleware('role:guru,super_admin,admin_sekolah')->group(function () {
         Route::get('/', [\App\Http\Controllers\GuruMonitoringController::class, 'index'])->name('guru.monitoring.index');
     });
+
+    // Portal Staff Tata Usaha (Role Permalinks /tu/*)
+    Route::prefix('tu')->middleware('role:staff_tu,super_admin,admin_sekolah')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('tu.dashboard');
+        Route::get('/absensi', [AbsensiStaffController::class, 'index'])->name('tu.absensi.index');
+        Route::get('/izin-sakit', [IzinSakitController::class, 'index'])->name('tu.izin-sakit.index');
+        Route::get('/izin-sakit/create', [IzinSakitController::class, 'create'])->name('tu.izin-sakit.create');
+    });
 });
 // ─────────────────────────────────────────────────────────────────────────────
 

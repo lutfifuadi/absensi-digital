@@ -415,8 +415,8 @@
                     <div>
                       <div class="d-flex align-items-center gap-2 mb-1">
                         <h6 class="mb-0 text-white fw-bold fs-6">{{ $selfName }}</h6>
-                        <span class="badge bg-info text-dark font-mono" style="font-size:0.68rem; font-weight:700;">
-                          {{ strtoupper($selfType) }} YBS
+                        <span class="badge bg-info text-white font-mono" style="font-size:0.68rem; font-weight:700; color:#ffffff !important;">
+                          {{ match($selfType) { 'staff' => 'STAFF TATA USAHA', 'guru' => 'GURU', 'siswa' => 'SISWA', default => strtoupper($selfType) } }}
                         </span>
                       </div>
                       <div class="text-white-50 small d-flex align-items-center gap-3">

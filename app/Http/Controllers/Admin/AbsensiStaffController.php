@@ -9,9 +9,20 @@ use Illuminate\Http\Request;
 
 class AbsensiStaffController extends Controller
 {
-    public function index(Request $request)
+    private function checkRole(): array
     {
         $user = auth()->user();
+        $activeRole = session('active_role', $user->role);
+        $isStaffTu = ($activeRole === \App\Models\User::ROLE_STAFF_TU) || ($user->role === \App\Models\User::ROLE_STAFF_TU && !$user->hasAnyRole(['super_admin', 'admin_sekolah']));
+        $isAdmin = !$isStaffTu && $user->hasAnyRole(['super_admin', 'admin_sekolah', 'operator']);
+
+        return [$user, $isStaffTu, $isAdmin];
+    }
+
+    public function index(Request $request)
+    {
+        [$user, $isStaffTu, $isAdmin] = $this->checkRole();
+
         $search = $request->query('search');
         $status = $request->query('status');
         $tanggal = $request->query('tanggal');
@@ -19,14 +30,16 @@ class AbsensiStaffController extends Controller
 
         $query = AbsensiStaff::with('staff')->orderByDesc('tanggal');
 
-        if ($user->role === \App\Models\User::ROLE_STAFF_TU) {
-            $staff = $user->staff;
-            if (!$staff) abort(404, 'Data staff tidak ditemukan.');
+        if ($isStaffTu) {
+            $staff = $user->staff ?? StaffTataUsaha::where('user_id', $user->id)->first();
+            if (!$staff) {
+                abort(404, 'Data profil staff tata usaha tidak ditemukan untuk akun ini.');
+            }
             $query->where('staff_id', $staff->id);
         }
 
         // Apply search filter (nama staff atau NIP)
-        $query->when($search, function ($q) use ($search) {
+        $query->when($search && !$isStaffTu, function ($q) use ($search) {
             $q->whereHas('staff', function ($qStaff) use ($search) {
                 $qStaff->where('nama_lengkap', 'like', "%{$search}%")
                     ->orWhere('nip', 'like', "%{$search}%");
@@ -46,14 +59,19 @@ class AbsensiStaffController extends Controller
         $absensi = $query->paginate($perPage)->withQueryString();
 
         if ($request->ajax()) {
-            return view('admin.absensi-staff.table', compact('absensi'))->render();
+            return view('admin.absensi-staff.table', compact('absensi', 'isStaffTu', 'isAdmin'))->render();
         }
 
-        return view('admin.absensi-staff.index', compact('absensi'));
+        return view('admin.absensi-staff.index', compact('absensi', 'isStaffTu', 'isAdmin'));
     }
 
     public function create()
     {
+        [$user, $isStaffTu, $isAdmin] = $this->checkRole();
+        if ($isStaffTu) {
+            abort(403, 'Anda tidak memiliki hak akses untuk menambah absensi manual.');
+        }
+
         $staffOptions = StaffTataUsaha::orderBy('nama_lengkap')->get();
 
         return view('admin.absensi-staff.form', compact('staffOptions'));
@@ -61,6 +79,11 @@ class AbsensiStaffController extends Controller
 
     public function store(Request $request)
     {
+        [$user, $isStaffTu, $isAdmin] = $this->checkRole();
+        if ($isStaffTu) {
+            abort(403, 'Anda tidak memiliki hak akses untuk menambah absensi manual.');
+        }
+
         $data = $request->validate([
             'staff_id' => 'required|exists:staff_tata_usaha,id',
             'tanggal' => 'required|date',
@@ -86,6 +109,11 @@ class AbsensiStaffController extends Controller
 
     public function edit(AbsensiStaff $absensiStaff)
     {
+        [$user, $isStaffTu, $isAdmin] = $this->checkRole();
+        if ($isStaffTu) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengubah data absensi.');
+        }
+
         $staffOptions = StaffTataUsaha::orderBy('nama_lengkap')->get();
 
         return view('admin.absensi-staff.form', compact('absensiStaff', 'staffOptions'));
@@ -93,6 +121,11 @@ class AbsensiStaffController extends Controller
 
     public function update(Request $request, AbsensiStaff $absensiStaff)
     {
+        [$user, $isStaffTu, $isAdmin] = $this->checkRole();
+        if ($isStaffTu) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengubah data absensi.');
+        }
+
         $data = $request->validate([
             'staff_id' => 'required|exists:staff_tata_usaha,id',
             'tanggal' => 'required|date',
@@ -110,6 +143,11 @@ class AbsensiStaffController extends Controller
 
     public function destroy(AbsensiStaff $absensiStaff)
     {
+        [$user, $isStaffTu, $isAdmin] = $this->checkRole();
+        if ($isStaffTu) {
+            abort(403, 'Anda tidak memiliki hak akses untuk menghapus data absensi.');
+        }
+
         $absensiStaff->delete();
 
         return redirect()->route('admin.absensi-staff.index')->with('success', 'Absensi staff berhasil dihapus.');

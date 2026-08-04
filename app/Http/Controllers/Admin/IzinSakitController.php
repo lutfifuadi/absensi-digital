@@ -31,10 +31,17 @@ class IzinSakitController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        $activeRole = session('active_role', $user->role);
+        $isStaffTuRoute = $request->routeIs('tu.*') || $activeRole === User::ROLE_STAFF_TU || ($user->isRole(User::ROLE_STAFF_TU) && !$user->hasAnyRole(['super_admin', 'admin_sekolah']));
+
         $query = IzinSakit::with(['approver'])->orderByDesc('tanggal_mulai');
 
         // Scoping per role
-        if ($user->isRole(User::ROLE_SISWA)) {
+        if ($isStaffTuRoute) {
+            $staff = $user->staff ?? \App\Models\StaffTataUsaha::where('user_id', $user->id)->first();
+            if (!$staff) abort(404, 'Data staff tidak ditemukan.');
+            $query->where('tipe', 'staff')->where('reference_id', $staff->id);
+        } elseif ($user->isRole(User::ROLE_SISWA)) {
             $siswa = $user->siswa;
             if (!$siswa) abort(404, 'Data siswa tidak ditemukan.');
             $query->where('tipe', 'siswa')->where('reference_id', $siswa->id);
@@ -42,10 +49,6 @@ class IzinSakitController extends Controller
             $guru = $user->guru;
             if (!$guru) abort(404, 'Data guru tidak ditemukan.');
             $query->where('tipe', 'guru')->where('reference_id', $guru->id);
-        } elseif ($user->isRole(User::ROLE_STAFF_TU)) {
-            $staff = $user->staff;
-            if (!$staff) abort(404, 'Data staff tidak ditemukan.');
-            $query->where('tipe', 'staff')->where('reference_id', $staff->id);
         } elseif ($user->isRole(User::ROLE_WALI_KELAS)) {
             // Wali kelas can see their class students' permits
             $guru = $user->guru;
@@ -76,6 +79,9 @@ class IzinSakitController extends Controller
     public function create()
     {
         $user = Auth::user();
+        $activeRole = session('active_role', $user->role);
+        $isStaffTuRoute = request()->routeIs('tu.*') || $activeRole === User::ROLE_STAFF_TU || ($user->isRole(User::ROLE_STAFF_TU) && !$user->hasAnyRole(['super_admin', 'admin_sekolah']));
+
         $isSelf = false;
         $selfType = null;
         $selfReferenceId = null;
@@ -83,7 +89,19 @@ class IzinSakitController extends Controller
 
         $selfModel = null;
 
-        if ($user->isRole(User::ROLE_SISWA)) {
+        if ($isStaffTuRoute) {
+            $staff = $user->staff ?? \App\Models\StaffTataUsaha::where('user_id', $user->id)->first();
+            if (!$staff) abort(404, 'Data staff tidak ditemukan.');
+            $isSelf = true;
+            $selfType = 'staff';
+            $selfReferenceId = $staff->id;
+            $selfName = $staff->nama_lengkap;
+            $selfModel = $staff;
+
+            $siswaOptions = collect([]);
+            $guruOptions = collect([]);
+            $staffOptions = collect([$staff]);
+        } elseif ($user->isRole(User::ROLE_SISWA)) {
             $siswa = $user->siswa;
             if (!$siswa) abort(404, 'Data siswa tidak ditemukan.');
             $siswa->load('kelas');
@@ -108,18 +126,6 @@ class IzinSakitController extends Controller
             $siswaOptions = collect([]);
             $guruOptions = collect([$guru]);
             $staffOptions = collect([]);
-        } elseif ($user->isRole(User::ROLE_STAFF_TU)) {
-            $staff = $user->staff;
-            if (!$staff) abort(404, 'Data staff tidak ditemukan.');
-            $isSelf = true;
-            $selfType = 'staff';
-            $selfReferenceId = $staff->id;
-            $selfName = $staff->nama_lengkap;
-            $selfModel = $staff;
-
-            $siswaOptions = collect([]);
-            $guruOptions = collect([]);
-            $staffOptions = collect([$staff]);
         } else {
             $siswaOptions = Siswa::with('user:id')->orderBy('nama_lengkap')->get();
             $guruOptions = Guru::with('user:id')->orderBy('nama_lengkap')->get();
@@ -135,8 +141,17 @@ class IzinSakitController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
+        $activeRole = session('active_role', $user->role);
+        $isStaffTuRoute = $request->routeIs('tu.*') || $activeRole === User::ROLE_STAFF_TU || ($user->isRole(User::ROLE_STAFF_TU) && !$user->hasAnyRole(['super_admin', 'admin_sekolah']));
 
-        if ($user->isRole(User::ROLE_SISWA)) {
+        if ($isStaffTuRoute) {
+            $staff = $user->staff ?? \App\Models\StaffTataUsaha::where('user_id', $user->id)->first();
+            if (!$staff) abort(404, 'Data staff tidak ditemukan.');
+            $request->merge([
+                'tipe' => 'staff',
+                'reference_id' => $staff->id,
+            ]);
+        } elseif ($user->isRole(User::ROLE_SISWA)) {
             $siswa = $user->siswa;
             if (!$siswa) abort(404, 'Data siswa tidak ditemukan.');
             $request->merge([
@@ -149,13 +164,6 @@ class IzinSakitController extends Controller
             $request->merge([
                 'tipe' => 'guru',
                 'reference_id' => $guru->id,
-            ]);
-        } elseif ($user->isRole(User::ROLE_STAFF_TU)) {
-            $staff = $user->staff;
-            if (!$staff) abort(404, 'Data staff tidak ditemukan.');
-            $request->merge([
-                'tipe' => 'staff',
-                'reference_id' => $staff->id,
             ]);
         }
 

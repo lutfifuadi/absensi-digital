@@ -61,7 +61,7 @@
               <i class="ti tabler-calendar-check fs-3"></i>
             </span>
           </div>
-          <h5 class="mb-1 text-white fw-bold">{{ $hadir_saya ? 'Hadir' : 'Belum Absen' }}</h5>
+          <h5 class="mb-1 text-white fw-bold">{{ ($hadir_saya ?? null) ? 'Hadir' : 'Belum Absen' }}</h5>
           <small class="text-white-50 opacity-50 text-uppercase fw-bold" style="font-size:0.65rem; letter-spacing:1px;">Presensi Hari Ini</small>
         </div>
       </div>
@@ -74,7 +74,7 @@
               <i class="ti tabler-notebook fs-3"></i>
             </span>
           </div>
-          <h4 class="mb-1 text-white fw-bold">{{ $total_absen_bulan_ini }}</h4>
+          <h4 class="mb-1 text-white fw-bold">{{ $total_absen_bulan_ini ?? 0 }}</h4>
           <small class="text-white-50 opacity-50 text-uppercase fw-bold" style="font-size:0.65rem; letter-spacing:1px;">Hadir Bulan Ini</small>
         </div>
       </div>
@@ -87,7 +87,7 @@
               <i class="ti tabler-clock fs-3"></i>
             </span>
           </div>
-          <h4 class="mb-1 text-white fw-bold">{{ $total_izin_bulan_ini }}</h4>
+          <h4 class="mb-1 text-white fw-bold">{{ $total_izin_bulan_ini ?? 0 }}</h4>
           <small class="text-white-50 opacity-50 text-uppercase fw-bold" style="font-size:0.65rem; letter-spacing:1px;">Izin / Sakit</small>
         </div>
       </div>
@@ -109,7 +109,7 @@
               <h6 class="text-white fw-bold mb-1">Riwayat Absensi</h6>
               <p class="text-white-50 small mb-0">Daftar kehadiran harian Anda.</p>
             </div>
-            <a href="{{ route('admin.absensi-staff.index') }}" class="btn das-btn --success">Riwayat</a>
+            <a href="{{ route('tu.absensi.index') }}" class="btn das-btn --success">Riwayat</a>
           </div>
         </div>
         <div class="col-md-6">
@@ -118,7 +118,7 @@
               <h6 class="text-white fw-bold mb-1">Izin & Sakit</h6>
               <p class="text-white-50 small mb-0">Ajukan izin berhalangan hadir.</p>
             </div>
-            <a href="{{ route('admin.izin-sakit.index') }}" class="btn das-btn --info">Kelola Izin</a>
+            <a href="{{ route('tu.izin-sakit.index') }}" class="btn das-btn --info">Kelola Izin</a>
           </div>
         </div>
       </div>
