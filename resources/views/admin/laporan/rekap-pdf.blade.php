@@ -94,10 +94,9 @@
       margin: 2px 0 0 0;
     }
 
-    /* TABEL REKAP FIX FIT 100% */
+    /* TABEL REKAP */
     table.data-table {
       width: 100%;
-      table-layout: fixed;
       border-collapse: collapse;
       margin-top: 4px;
       font-size: 7.5pt;
@@ -107,7 +106,6 @@
       border: 1px solid #94a3b8;
       padding: 2px 1px;
       text-align: center;
-      overflow: hidden;
     }
     table.data-table th {
       background-color: #1e293b;
@@ -118,17 +116,17 @@
     }
     table.data-table th.sub-header {
       background-color: #334155;
-      font-size: 6.5pt;
+      font-size: 6pt;
     }
     table.data-table td.nama {
       text-align: left;
-      padding-left: 5px;
+      padding-left: 4px;
       padding-right: 2px;
       font-weight: 600;
-      font-size: 7.5pt;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-size: 7pt;
+      line-height: 1.15;
+      word-wrap: break-word;
+      white-space: normal;
     }
 
     /* WEEKEND HIGHLIGHT */
@@ -217,18 +215,6 @@
     $telpSekolah   = setting('telepon_sekolah') ?: setting('telepon');
     $emailSekolah  = setting('email_sekolah') ?: setting('email');
     $headerContact = array_filter([$telpSekolah ? 'Telp: '.$telpSekolah : null, $emailSekolah ? 'Email: '.$emailSekolah : null]);
-
-    $totalDates = count($dates);
-    $noWidth = 2.0;
-    $summaryWidth = 1.8; // H, S, I, A, T
-    $persenWidth = 2.6; // %
-    $dateWidth = $totalDates > 0 ? 1.6 : 2.0;
-    $totalDatesWidth = $totalDates * $dateWidth;
-    // Berikan porsi terbesar untuk Nama Siswa (sekitar 36.9%)
-    $namaWidth = 100.0 - ($noWidth + $totalDatesWidth + ($summaryWidth * 5) + $persenWidth);
-    if ($namaWidth < 25.0) {
-      $namaWidth = 25.0;
-    }
   @endphp
 
   <!-- KOP SURAT RESMI -->
@@ -267,38 +253,25 @@
 
   <!-- TABEL DATA -->
   <table class="data-table">
-    <colgroup>
-      <col style="width: {{ $noWidth }}%;">
-      <col style="width: {{ $namaWidth }}%;">
-      @foreach ($dates as $date)
-        <col style="width: {{ $dateWidth }}%;">
-      @endforeach
-      <col style="width: {{ $summaryWidth }}%;">
-      <col style="width: {{ $summaryWidth }}%;">
-      <col style="width: {{ $summaryWidth }}%;">
-      <col style="width: {{ $summaryWidth }}%;">
-      <col style="width: {{ $summaryWidth }}%;">
-      <col style="width: {{ $persenWidth }}%;">
-    </colgroup>
     <thead>
       <tr>
-        <th rowspan="2">#</th>
-        <th rowspan="2" style="text-align:left; padding-left:5px;">Nama Siswa</th>
+        <th rowspan="2" style="width: 18px;">#</th>
+        <th rowspan="2" style="width: 160px; text-align: left; padding-left: 5px;">Nama Siswa</th>
         @foreach ($dates as $date)
           @php
             $dt = \Carbon\Carbon::parse($date);
             $isWeekend = in_array($dt->dayOfWeek, [\Carbon\Carbon::SATURDAY, \Carbon\Carbon::SUNDAY]);
           @endphp
-          <th class="{{ $isWeekend ? 'weekend' : '' }}">
+          <th class="{{ $isWeekend ? 'weekend' : '' }}" style="width: 14px;">
             {{ (int) $dt->format('d') }}
           </th>
         @endforeach
-        <th rowspan="2">H</th>
-        <th rowspan="2">S</th>
-        <th rowspan="2">I</th>
-        <th rowspan="2">A</th>
-        <th rowspan="2">T</th>
-        <th rowspan="2">%</th>
+        <th rowspan="2" style="width: 16px;">H</th>
+        <th rowspan="2" style="width: 16px;">S</th>
+        <th rowspan="2" style="width: 16px;">I</th>
+        <th rowspan="2" style="width: 16px;">A</th>
+        <th rowspan="2" style="width: 16px;">T</th>
+        <th rowspan="2" style="width: 22px;">%</th>
       </tr>
       <tr>
         @foreach ($dates as $date)
@@ -327,7 +300,7 @@
         @endphp
         <tr>
           <td>{{ $loop->iteration }}</td>
-          <td class="nama" title="{{ $siswa->nama_lengkap }}">{{ $siswa->nama_lengkap }}</td>
+          <td class="nama" style="width: 160px;">{{ $siswa->nama_lengkap }}</td>
           @foreach ($dates as $date)
             @php 
               $dt = \Carbon\Carbon::parse($date);
