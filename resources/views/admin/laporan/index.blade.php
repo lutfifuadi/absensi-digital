@@ -141,7 +141,9 @@
           <label class="form-label text-white-50 small fw-bold mb-1">
             KELAS
             @if(!empty($isWaliKelasLocked))
-              <span class="badge bg-warning text-dark font-weight-bold ms-1" style="font-size:0.68rem; padding: 2px 6px; border-radius:4px;"><i class="ti tabler-lock me-1"></i>Kelas Saya</span>
+              <span class="badge ms-1" style="background: #ff9f43 !important; color: #0f172a !important; font-size: 0.7rem; font-weight: 800 !important; padding: 2px 7px; border-radius: 4px; box-shadow: 0 2px 6px rgba(255,159,67,0.3);">
+                <i class="ti tabler-lock me-1" style="color: #0f172a !important; font-weight: 800 !important;"></i>Kelas Saya
+              </span>
             @endif
           </label>
           <select class="form-select form-select-sm" name="kelas_id" style="background: rgba(15, 23, 42, 0.6) !important; color: #ffffff !important; border: 1px solid {{ !empty($isWaliKelasLocked) ? 'rgba(255,159,67,0.5)' : 'rgba(255,255,255,0.1)' }} !important; opacity: 1 !important;" @if(!empty($isWaliKelasLocked)) disabled @endif>
@@ -149,7 +151,7 @@
               <option value="">Semua Kelas</option>
             @endif
             @foreach ($kelasOptions as $k)
-              <option value="{{ $k->id }}" @selected($filters['kelas_id'] == $k->id)>{{ $k->nama }} @if(!empty($isWaliKelasLocked)) (Wali Kelas) @endif</option>
+              <option value="{{ $k->id }}" @selected($filters['kelas_id'] == $k->id)>{{ $k->nama }}</option>
             @endforeach
           </select>
           @if(!empty($isWaliKelasLocked))
