@@ -203,9 +203,12 @@
         }
       }
     }
-    $alamatSekolah = setting('alamat_sekolah') ?: 'Alamat Sekolah / Madrasah Belum Diatur';
-    $telpSekolah   = setting('telepon_sekolah') ?: '';
-    $emailSekolah  = setting('email_sekolah') ?: '';
+    $hasLogo = !empty($logoPath) && file_exists($logoPath);
+    $namaLembaga   = setting('nama_lembaga');
+    $namaSekolah   = setting('nama_sekolah') ?: $namaSekolah ?? 'SEKOLAH';
+    $alamatSekolah = setting('alamat_sekolah') ?: setting('alamat');
+    $telpSekolah   = setting('telepon_sekolah') ?: setting('telepon');
+    $emailSekolah  = setting('email_sekolah') ?: setting('email');
     $headerContact = array_filter([$telpSekolah ? 'Telp: '.$telpSekolah : null, $emailSekolah ? 'Email: '.$emailSekolah : null]);
   @endphp
 
@@ -213,22 +216,24 @@
   <div class="kop-container">
     <table class="kop-table">
       <tr>
-        <td class="kop-logo">
-          @if(!empty($logoPath) && file_exists($logoPath))
+        @if($hasLogo)
+          <td class="kop-logo">
             <img src="{{ $logoPath }}" alt="Logo">
-          @else
-            <div style="font-weight:bold; font-size:16pt; color:#1e293b;">[LOGO]</div>
+          </td>
+        @endif
+        <td class="kop-text" style="{{ !$hasLogo ? 'padding-left:0; padding-right:0;' : '' }}">
+          @if(!empty($namaLembaga))
+            <div class="nama-lembaga">{{ strtoupper($namaLembaga) }}</div>
           @endif
-        </td>
-        <td class="kop-text">
-          <div class="nama-lembaga">{{ setting('nama_yayasan', 'KEMENTERIAN AGAMA / DINAS PENDIDIKAN') }}</div>
-          <div class="nama-sekolah">{{ $namaSekolah }}</div>
-          <div class="alamat-sekolah">
-            {{ $alamatSekolah }}
-            @if(count($headerContact) > 0)
-              | {{ implode(' | ', $headerContact) }}
-            @endif
-          </div>
+          <div class="nama-sekolah">{{ strtoupper($namaSekolah) }}</div>
+          @if(!empty($alamatSekolah) || count($headerContact) > 0)
+            <div class="alamat-sekolah">
+              @if(!empty($alamatSekolah)) {{ $alamatSekolah }} @endif
+              @if(count($headerContact) > 0)
+                @if(!empty($alamatSekolah)) | @endif {{ implode(' | ', $headerContact) }}
+              @endif
+            </div>
+          @endif
         </td>
       </tr>
     </table>

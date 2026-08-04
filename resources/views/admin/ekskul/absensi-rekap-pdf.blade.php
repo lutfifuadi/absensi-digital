@@ -59,8 +59,10 @@
           }
         }
       }
+      $hasLogo       = !empty($logoPath) && file_exists($logoPath);
+      $namaLembaga   = setting('nama_lembaga');
       $namaSekolah   = setting('nama_sekolah', 'Madrasah Aliyah');
-      $alamatSekolah = setting('alamat_sekolah') ?: 'Alamat Sekolah Belum Diatur';
+      $alamatSekolah = setting('alamat_sekolah') ?: setting('alamat');
       $kepalaSekolah = setting('kepala_sekolah') ?: '-';
       $nipKepala     = setting('nip_kepala_sekolah') ?: '';
     @endphp
@@ -69,17 +71,19 @@
     <div class="kop-container">
       <table class="kop-table">
         <tr>
-          <td class="kop-logo">
-            @if(!empty($logoPath) && file_exists($logoPath))
+          @if($hasLogo)
+            <td class="kop-logo">
               <img src="{{ $logoPath }}" alt="Logo">
-            @else
-              <div style="font-weight:bold; font-size:16pt; color:#1e293b;">[LOGO]</div>
+            </td>
+          @endif
+          <td class="kop-text" style="{{ !$hasLogo ? 'padding-left:0; padding-right:0;' : '' }}">
+            @if(!empty($namaLembaga))
+              <div class="nama-lembaga">{{ strtoupper($namaLembaga) }}</div>
             @endif
-          </td>
-          <td class="kop-text">
-            <div class="nama-lembaga">{{ setting('nama_yayasan', 'KEMENTERIAN AGAMA / DINAS PENDIDIKAN') }}</div>
-            <div class="nama-sekolah">{{ $namaSekolah }}</div>
-            <div class="alamat-sekolah">{{ $alamatSekolah }}</div>
+            <div class="nama-sekolah">{{ strtoupper($namaSekolah) }}</div>
+            @if(!empty($alamatSekolah))
+              <div class="alamat-sekolah">{{ $alamatSekolah }}</div>
+            @endif
           </td>
         </tr>
       </table>
