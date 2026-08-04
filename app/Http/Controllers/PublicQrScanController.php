@@ -824,7 +824,11 @@ class PublicQrScanController extends Controller
 
         if ($clientTimestamp) {
             try {
-                $clientTime = \Carbon\Carbon::parse($clientTimestamp);
+                // Parse ISO 8601 UTC (dari new Date().toISOString() browser) lalu konversi
+                // ke timezone lokal aplikasi. Tanpa setTimezone(), Carbon::parse() pada
+                // string berformat "...Z" (UTC) akan format('H:i:s') dalam UTC — bukan WIB.
+                $clientTime = \Carbon\Carbon::parse($clientTimestamp)
+                    ->setTimezone(config('app.timezone', 'Asia/Jakarta'));
                 // Validasi: tanggal harus sama dengan server (anti backdate/advance)
                 if ($clientTime->toDateString() === $serverNow->toDateString()) {
                     $currentTime = $clientTime->format('H:i:s');
