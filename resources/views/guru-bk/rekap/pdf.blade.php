@@ -5,169 +5,134 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>Rekap Pelanggaran Siswa — BK</title>
   <style>
+    @page { margin: 12mm 15mm 15mm 15mm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 8.5pt; color: #1e293b; line-height: 1.3; }
 
-    body {
-      font-family: 'DejaVu Sans', Arial, sans-serif;
-      font-size: 9px;
-      color: #1a1a2e;
-      background: #fff;
-    }
+    /* KOP SURAT RESMI */
+    .kop-container { width: 100%; margin-bottom: 8px; }
+    .kop-table { width: 100%; border-collapse: collapse; border: none; }
+    .kop-table td { border: none; padding: 0; vertical-align: middle; }
+    .kop-logo { width: 65px; text-align: center; }
+    .kop-logo img { max-width: 60px; max-height: 60px; object-fit: contain; }
+    .kop-text { text-align: center; padding-left: 10px; padding-right: 65px; }
+    .kop-text .nama-lembaga { font-size: 11pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a; margin: 0; }
+    .kop-text .nama-sekolah { font-size: 14pt; font-weight: 900; text-transform: uppercase; color: #1e293b; margin: 2px 0; }
+    .kop-text .alamat-sekolah { font-size: 8pt; color: #475569; margin: 0; }
 
-    /* ── HEADER ── */
-    .header {
-      text-align: center;
-      border-bottom: 2.5px solid #e63946;
-      padding-bottom: 8px;
-      margin-bottom: 12px;
-    }
-    .header__title {
-      font-size: 14px;
-      font-weight: bold;
-      color: #1a1a2e;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-    .header__subtitle {
-      font-size: 8.5px;
-      color: #555;
-      margin-top: 2px;
-    }
-    .header__badge {
-      display: inline-block;
-      background: #e63946;
-      color: #fff;
-      padding: 2px 10px;
-      border-radius: 3px;
-      font-size: 7.5px;
-      font-weight: bold;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      margin-top: 4px;
-    }
+    .kop-divider { border: 0; border-top: 2px solid #0f172a; border-bottom: 1px solid #0f172a; height: 2px; margin-top: 5px; margin-bottom: 12px; }
 
-    /* ── META INFO ── */
+    .header { text-align: center; margin-bottom: 12px; }
+    .header__title { font-size: 12pt; font-weight: bold; color: #0f172a; text-transform: uppercase; }
+    .header__subtitle { font-size: 8.5pt; color: #475569; margin-top: 2px; }
+
     .meta-grid { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
-    .meta-grid td { font-size: 8.5px; color: #333; padding: 1px 4px; vertical-align: top; }
-    .meta-grid td strong { color: #1a1a2e; }
+    .meta-grid td { font-size: 8.5pt; color: #334155; padding: 2px 4px; vertical-align: top; }
+    .meta-grid td strong { color: #0f172a; }
 
-    /* ── SECTION TITLE ── */
-    .section-title {
-      font-size: 9.5px;
-      font-weight: bold;
-      color: #1a1a2e;
-      border-left: 3px solid #e63946;
-      padding-left: 6px;
-      margin-bottom: 5px;
-      margin-top: 10px;
-    }
+    .section-title { font-size: 9pt; font-weight: bold; color: #0f172a; border-left: 3px solid #e63946; padding-left: 6px; margin-bottom: 6px; margin-top: 10px; }
 
-    /* ── REKAP PER KELAS ── */
     .rekap-kelas-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-    .rekap-kelas-table th {
-      background: #1a1a2e; color: #fff;
-      font-size: 8px; padding: 4px 6px;
-      text-align: left; font-weight: bold;
-    }
-    .rekap-kelas-table td {
-      padding: 3px 6px; font-size: 8.5px;
-      border-bottom: 1px solid #e8e8e8;
-    }
-    .rekap-kelas-table tr:nth-child(even) td { background: #f5f5f5; }
+    .rekap-kelas-table th { background: #1e293b; color: #fff; font-size: 8pt; padding: 5px 6px; text-align: left; font-weight: bold; }
+    .rekap-kelas-table td { padding: 4px 6px; font-size: 8.5pt; border-bottom: 1px solid #cbd5e1; }
+    .rekap-kelas-table tr:nth-child(even) td { background: #f8fafc; }
 
-    /* ── MAIN TABLE ── */
     .main-table { width: 100%; border-collapse: collapse; }
-    .main-table thead th {
-      background: #1a1a2e; color: #fff;
-      font-size: 7.5px; padding: 5px 4px;
-      font-weight: bold; text-align: left;
-      border: 1px solid #0d1117;
-    }
-    .main-table tbody td {
-      font-size: 8px; padding: 3px 4px;
-      border: 1px solid #ddd; vertical-align: top;
-    }
-    .main-table tbody tr:nth-child(even) td { background: #fafafa; }
+    .main-table thead th { background: #1e293b; color: #fff; font-size: 8pt; padding: 6px 4px; font-weight: bold; text-align: left; border: 1px solid #334155; }
+    .main-table tbody td { font-size: 8pt; padding: 4px; border: 1px solid #cbd5e1; vertical-align: top; }
+    .main-table tbody tr:nth-child(even) td { background: #f8fafc; }
 
-    /* ── TOTAL ROW ── */
-    .total-row td {
-      background: #1a1a2e !important;
-      color: #fff;
-      font-weight: bold;
-      font-size: 8.5px;
-    }
+    .total-row td { background: #1e293b !important; color: #fff; font-weight: bold; font-size: 8.5pt; }
 
-    /* ── BADGES ── */
-    .badge-danger  { background: #e63946; color: #fff; padding: 1px 6px; border-radius: 3px; font-size: 8px; font-weight: bold; }
-    .badge-warning { background: #f4a261; color: #fff; padding: 1px 6px; border-radius: 3px; font-size: 8px; font-weight: bold; }
-
-    /* ── UTILS ── */
+    .badge-danger  { background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 3px; font-size: 8pt; font-weight: bold; }
     .text-center { text-align: center; }
     .text-right  { text-align: right; }
     .fw-bold     { font-weight: bold; }
-    .text-danger { color: #e63946; }
+    .text-danger { color: #dc2626; }
 
-    /* ── FOOTER ── */
-    .footer { margin-top: 14px; border-top: 1px solid #ddd; padding-top: 6px; width: 100%; }
-    .footer-left  { font-size: 7.5px; color: #888; width: 60%; display: table-cell; vertical-align: top; }
-    .footer-sign  { font-size: 8px; text-align: center; width: 40%; display: table-cell; vertical-align: top; }
-    .footer-wrap  { display: table; width: 100%; }
-    .footer-sign .name-line {
-      border-top: 1px solid #333; padding-top: 2px;
-      margin-top: 30px; font-weight: bold; font-size: 8.5px;
-    }
-    .footer-sign .title-line { font-size: 7.5px; color: #555; }
+    /* TTD */
+    .ttd-box { margin-top: 25px; width: 100%; page-break-inside: avoid; }
+    .ttd-table { width: 100%; border-collapse: collapse; border: none; }
+    .ttd-table td { border: none; width: 50%; text-align: center; vertical-align: top; font-size: 8.5pt; }
   </style>
 </head>
 <body>
 
-  {{-- ── HEADER ── --}}
-  <div class="header">
-    <div class="header__title">Rekap Pelanggaran Siswa — Unit Bimbingan Konseling</div>
-    <div class="header__subtitle">
-      {{ $ta ? $ta->nama . ' — ' . ($ta->semester ?? '') : 'Tahun Akademik Aktif' }}
-      &nbsp;|&nbsp;
-      Dicetak: {{ \Carbon\Carbon::now()->locale('id')->translatedFormat('d F Y, H:i') }} WIB
-    </div>
-    <div class="header__badge">Dokumen Resmi BK</div>
+  @php
+    $logoVal = setting('logo_sekolah') ?: setting('logo_url');
+    $logoPath = null;
+    if (!empty($logoVal)) {
+      if (filter_var($logoVal, FILTER_VALIDATE_URL)) {
+        $logoPath = $logoVal;
+      } else {
+        $logoPath = public_path('uploads/logo/' . $logoVal);
+        if (!file_exists($logoPath)) {
+          $logoPath = public_path($logoVal);
+        }
+      }
+    }
+    $namaSekolah   = setting('nama_sekolah', 'Madrasah Aliyah');
+    $alamatSekolah = setting('alamat_sekolah') ?: 'Alamat Sekolah Belum Diatur';
+    $kepalaSekolah = setting('kepala_sekolah') ?: '-';
+    $nipKepala     = setting('nip_kepala_sekolah') ?: '';
+  @endphp
+
+  <!-- KOP SURAT RESMI -->
+  <div class="kop-container">
+    <table class="kop-table">
+      <tr>
+        <td class="kop-logo">
+          @if(!empty($logoPath) && file_exists($logoPath))
+            <img src="{{ $logoPath }}" alt="Logo">
+          @else
+            <div style="font-weight:bold; font-size:16pt; color:#1e293b;">[LOGO]</div>
+          @endif
+        </td>
+        <td class="kop-text">
+          <div class="nama-lembaga">{{ setting('nama_yayasan', 'KEMENTERIAN AGAMA / DINAS PENDIDIKAN') }}</div>
+          <div class="nama-sekolah">{{ $namaSekolah }}</div>
+          <div class="alamat-sekolah">{{ $alamatSekolah }}</div>
+        </td>
+      </tr>
+    </table>
+    <div class="kop-divider"></div>
   </div>
 
-  {{-- ── META INFO ── --}}
+  <div class="header">
+    <div class="header__title">REKAPITULASI PELANGGARAN SISWA — BIMBINGAN KONSELING (BK)</div>
+    <div class="header__subtitle">
+      PERIODE: {{ strtoupper($namaBulan) }} {{ $tahun }} | {{ $ta ? $ta->nama : 'Tahun Akademik Aktif' }}
+    </div>
+  </div>
+
   <table class="meta-grid">
     <tr>
-      <td width="15%">Periode</td>
+      <td width="15%">Kelas Filter</td>
       <td width="1%">:</td>
-      <td width="34%"><strong>{{ $namaBulan }} {{ $tahun }}</strong></td>
-      <td width="15%">Total Kejadian</td>
+      <td width="34%"><strong>{{ $kelas ? $kelas->nama : 'Semua Kelas' }}</strong></td>
+      <td width="15%">Total Kasus</td>
       <td width="1%">:</td>
-      <td width="34%"><strong class="text-danger">{{ $pelanggaranList->count() }} kasus</strong></td>
+      <td width="34%"><strong class="text-danger">{{ $pelanggaranList->count() }} Kejadian</strong></td>
     </tr>
     <tr>
-      <td>Kelas</td>
-      <td>:</td>
-      <td><strong>{{ $kelas ? $kelas->nama : 'Semua Kelas' }}</strong></td>
-      <td>Total Poin</td>
-      <td>:</td>
-      <td><strong class="text-danger">{{ $pelanggaranList->sum('poin_saat_itu') }} poin</strong></td>
-    </tr>
-    <tr>
-      <td>Kategori</td>
+      <td>Kategori Filter</td>
       <td>:</td>
       <td><strong>{{ $kategori ? $kategori->nama : 'Semua Kategori' }}</strong></td>
-      <td></td><td></td><td></td>
+      <td>Total Poin Pelanggaran</td>
+      <td>:</td>
+      <td><strong class="text-danger">{{ $pelanggaranList->sum('poin_saat_itu') }} Poin</strong></td>
     </tr>
   </table>
 
-  {{-- ── REKAP PER KELAS ── --}}
   @if($rekapKelas->isNotEmpty())
-  <div class="section-title">Rangkuman Per Kelas</div>
+  <div class="section-title">Rangkuman Kasus Per Kelas</div>
   <table class="rekap-kelas-table">
     <thead>
       <tr>
-        <th width="4%">No</th>
-        <th width="20%">Kelas</th>
-        <th width="12%">Jumlah Kasus</th>
-        <th width="12%">Total Poin</th>
+        <th width="5%">No</th>
+        <th width="35%">Kelas</th>
+        <th width="30%">Jumlah Kasus</th>
+        <th width="30%">Total Poin Pelanggaran</th>
       </tr>
     </thead>
     <tbody>
@@ -175,7 +140,7 @@
         <tr>
           <td class="text-center">{{ $i + 1 }}</td>
           <td><strong>{{ $rk->nama_kelas }}</strong></td>
-          <td>{{ $rk->total_pelanggaran }} kasus</td>
+          <td>{{ $rk->total_pelanggaran }} Kasus</td>
           <td><span class="badge-danger">{{ $rk->total_poin }} Poin</span></td>
         </tr>
       @endforeach
@@ -183,11 +148,10 @@
   </table>
   @endif
 
-  {{-- ── DETAIL PELANGGARAN ── --}}
-  <div class="section-title">Detail Rincian Pelanggaran</div>
+  <div class="section-title">Detail Rincian Kejadian Pelanggaran</div>
 
   @if($pelanggaranList->isEmpty())
-    <p style="color:#888; font-size:9px; text-align:center; padding:16px 0; border:1px dashed #ddd;">
+    <p style="color:#94a3b8; font-size:9pt; text-align:center; padding:16px 0; border:1px dashed #cbd5e1;">
       Tidak ada data pelanggaran pada periode ini.
     </p>
   @else
@@ -195,15 +159,14 @@
       <thead>
         <tr>
           <th width="3%">No</th>
-          <th width="8%">Tanggal</th>
-          <th width="8%">NIS</th>
+          <th width="9%">Tanggal</th>
+          <th width="9%">NIS</th>
           <th width="18%">Nama Siswa</th>
           <th width="6%">Kelas</th>
-          <th width="10%">Kategori</th>
-          <th width="16%">Jenis Pelanggaran</th>
+          <th width="12%">Kategori</th>
+          <th width="18%">Jenis Pelanggaran</th>
           <th width="5%">Poin</th>
-          <th width="16%">Keterangan</th>
-          <th width="10%">Pencatat</th>
+          <th width="12%">Keterangan</th>
         </tr>
       </thead>
       <tbody>
@@ -218,33 +181,36 @@
             <td>{{ $p->jenisPelanggaran->nama ?? '-' }}</td>
             <td class="text-center fw-bold text-danger">{{ $p->poin_saat_itu }}</td>
             <td>{{ $p->keterangan ?? '-' }}</td>
-            <td>{{ $p->pencatat->name ?? '-' }}</td>
           </tr>
         @endforeach
         <tr class="total-row">
-          <td colspan="7" class="text-right">TOTAL KESELURUHAN</td>
+          <td colspan="7" class="text-right">TOTAL POIN KESELURUHAN</td>
           <td class="text-center">{{ $pelanggaranList->sum('poin_saat_itu') }}</td>
-          <td colspan="2"></td>
+          <td></td>
         </tr>
       </tbody>
     </table>
   @endif
 
-  {{-- ── FOOTER ── --}}
-  <div class="footer">
-    <div class="footer-wrap">
-      <div class="footer-left">
-        <div>* Dokumen ini dihasilkan secara otomatis oleh Sistem Informasi Absensi Digital.</div>
-        <div>* Data bersumber dari rekap pelanggaran siswa tahun akademik yang sedang berjalan.</div>
-      </div>
-      <div class="footer-sign">
-        <div>Mengetahui, Guru Bimbingan Konseling</div>
-        <div class="name-line">{{ auth()->user()->name }}</div>
-        <div class="title-line">Guru BK</div>
-      </div>
-    </div>
+  <!-- BLOK TANDA TANGAN -->
+  <div class="ttd-box">
+    <table class="ttd-table">
+      <tr>
+        <td>
+          Guru Bimbingan Konseling (BK),<br><br><br><br><br>
+          <strong>{{ auth()->user()->name }}</strong>
+        </td>
+        <td>
+          {{ setting('kota_sekolah', 'Kabupaten') }}, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}<br>
+          Kepala Sekolah,<br><br><br><br><br>
+          <strong>{{ $kepalaSekolah ?: '_________________________' }}</strong><br>
+          @if ($nipKepala)
+            NIP. {{ $nipKepala }}
+          @endif
+        </td>
+      </tr>
+    </table>
   </div>
 
 </body>
 </html>
-

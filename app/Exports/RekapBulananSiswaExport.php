@@ -7,9 +7,16 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class RekapBulananSiswaExport implements FromCollection, WithHeadings, WithMapping, WithColumnFormatting
+class RekapBulananSiswaExport extends DefaultValueBinder implements FromCollection, WithHeadings, WithMapping, WithColumnFormatting, WithCustomValueBinder, WithStyles, ShouldAutoSize
 {
     protected int $bulan;
     protected int $tahun;
@@ -20,6 +27,16 @@ class RekapBulananSiswaExport implements FromCollection, WithHeadings, WithMappi
         $this->bulan = $bulan ?? now()->month;
         $this->tahun = $tahun ?? now()->year;
         $this->kelasId = $kelasId;
+    }
+
+    public function bindValue(Cell $cell, $value)
+    {
+        if (is_numeric($value) || (is_string($value) && preg_match('/^[0-9]+$/', $value))) {
+            $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+            return true;
+        }
+
+        return parent::bindValue($cell, $value);
     }
 
     public function collection()
@@ -40,20 +57,17 @@ class RekapBulananSiswaExport implements FromCollection, WithHeadings, WithMappi
         return [
             $item->tanggal->format('Y-m-d'),
             $item->kelas?->nama,
-            (string) $item->siswa?->nis,
+            (string) ($item->siswa?->nis ?? ''),
             $item->siswa?->nama_lengkap,
-            $item->status,
-            $item->jam_masuk,
-            $item->jam_pulang,
-            $item->guru?->nama_lengkap,
-            $item->metode,
-            $item->keterangan,
+            ucfirst($item->status ?? '-'),
+            $item->jam_masuk ?? '-',
+            $item->jam_pulang ?? '-',
+            $item->guru?->nama_lengkap ?? '-',
+            ucfirst($item->metode ?? 'manual'),
+            $item->keterangan ?? '-',
         ];
     }
 
-    /**
-     * Format kolom NIS (C) sebagai TEXT agar Excel tidak auto-format.
-     */
     public function columnFormats(): array
     {
         return [
@@ -74,6 +88,19 @@ class RekapBulananSiswaExport implements FromCollection, WithHeadings, WithMappi
             'Guru',
             'Metode',
             'Keterangan',
+        ];
+    }
+
+    public function styles(Worksheet $sheet)
+    {
+        return [
+            1 => [
+                'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+                'fill' => [
+                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => '1E293B']
+                ]
+            ],
         ];
     }
 }
