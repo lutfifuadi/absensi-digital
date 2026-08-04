@@ -651,154 +651,158 @@
     /* ─── TABLET LANDSCAPE (768–1023) ────────────────────── */
     @media (max-width: 1023px) {
       html, body {
-        overflow-y: auto; height: auto; max-height: none;
-        display: block;
+        overflow-y: auto !important; height: auto !important; min-height: 100vh !important; max-height: none !important;
+        display: block !important;
       }
       .header { padding: 0.6rem 1rem; }
       #live-clock { font-size: 1.5rem; }
 
       .main {
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto auto;
-        flex: none; min-height: auto;
-        gap: 0.6rem; padding: 0.6rem;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+        padding: 0.75rem !important;
+        padding-bottom: 3.5rem !important;
+        flex: none !important; min-height: auto !important;
       }
-      .scanner-col { grid-column: 1 / -1; }
-      .panel { border-radius: 4px; }
-      .panel-body { max-height: 340px; }
-      .scanner-area { aspect-ratio: 16/9; }
-      .scan-frame { width: 180px; height: 180px; }
+      .scanner-col { width: 100% !important; }
+      .panel { border-radius: 6px !important; }
+      .panel-body { max-height: 380px !important; }
+      .scanner-area { aspect-ratio: 16/9 !important; }
+      .scan-frame { width: 180px !important; height: 180px !important; }
+
+      .bottom-running-bar {
+        grid-column: 1 / -1 !important;
+        grid-row: auto !important;
+        width: 100% !important;
+        margin-top: 0.5rem !important;
+      }
     }
 
-    /* ─── TABLET PORTRAIT (600–767) ──────────────────────── */
+    /* ─── TABLET PORTRAIT & SMARTPHONE (600–767) ──────────── */
     @media (max-width: 767px) {
       .header {
-        flex-wrap: wrap; justify-content: center; gap: 0.4rem;
-        padding: 0.6rem 0.8rem; text-align: center;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.5rem !important;
+        padding: 0.6rem 0.8rem !important;
+        text-align: center;
       }
-      .header-brand { order: 1; width: 100%; justify-content: center; }
-      .header-center { order: 2; }
-      .header-right  { order: 3; }
-      .header-brand .logo-icon { width: 36px; height: 36px; font-size: 1.1rem; border-radius: 4px; }
-      .header-brand h1 { font-size: 0.95rem; }
-      .header-brand p  { font-size: 0.62rem; }
-      #live-clock { font-size: 1.3rem; letter-spacing: 1px; }
-      #live-date  { font-size: 0.62rem; }
+      .header-brand { order: 1; width: 100%; justify-content: space-between; }
+      .header-center { order: 2; width: 100%; text-align: center; margin: 0.2rem 0; }
+      .header-right  { order: 3; width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; }
+      .header-brand .logo-icon { width: 34px; height: 34px; font-size: 1rem; border-radius: 4px; }
+      .header-brand h1 { font-size: 0.92rem; }
+      .header-brand p  { font-size: 0.62rem; margin-top: 0; }
+      #live-clock { font-size: 1.3rem !important; letter-spacing: 1px !important; }
+      #live-date  { font-size: 0.62rem !important; }
 
-      .main {
-        grid-template-columns: 1fr;
-        gap: 0.5rem; padding: 0.5rem;
+      #session-status-badge { flex-wrap: wrap !important; justify-content: center !important; }
+      .timeline-badges {
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        gap: 0.25rem !important;
+        font-size: 0.6rem !important;
       }
-      .scanner-col { grid-column: auto; }
-      .panel { border-radius: 4px; }
-      .panel-header { padding: 0.7rem 0.9rem 0.55rem; }
-      .panel-title  { font-size: 0.8rem; }
-      .panel-body   { max-height: 300px; }
+      .tl-chip {
+        padding: 1px 5px !important;
+        font-size: 0.6rem !important;
+        border-radius: 4px !important;
+      }
+
+      .segmented-control button { padding: 4px 8px !important; font-size: 0.68rem !important; }
+      .volume-control { padding: 3px 6px !important; }
+      .volume-slider { width: 50px !important; }
+
+      .panel-header { padding: 0.65rem 0.85rem 0.5rem !important; }
+      .panel-title  { font-size: 0.82rem !important; }
+      .panel-body   { max-height: 360px !important; }
 
       .stat-chips { padding: 0.4rem 0.8rem; gap: 0.3rem; }
       .stat-chip  { font-size: 0.65rem; padding: 2px 8px; }
 
-      .lb-table tbody td { padding: 0.4rem 0.6rem; font-size: 0.78rem; }
-      .lb-table thead th { padding: 0.4rem 0.6rem; font-size: 0.6rem; }
-      .name-cell .name { max-width: 110px; font-size: 0.78rem; }
-      .jam-cell { font-size: 0.78rem; }
-      .rank-cell { width: 28px; font-size: 0.85rem; }
+      /* Table layout optimization for mobile */
+      .lb-table { table-layout: fixed !important; width: 100% !important; }
+      .lb-table tbody td { padding: 0.45rem 0.5rem !important; font-size: 0.78rem !important; }
+      .lb-table thead th { padding: 0.45rem 0.5rem !important; font-size: 0.6rem !important; }
+      .rank-cell { width: 28px !important; font-size: 0.85rem !important; text-align: center !important; }
+      .name-cell { width: auto !important; }
+      .name-cell .name {
+        max-width: 145px !important;
+        font-size: 0.78rem !important;
+        font-weight: 700 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+      .name-cell .kelas-badge { font-size: 0.62rem !important; opacity: 0.75; }
+      .jam-col { width: 72px !important; text-align: center !important; }
+      .jam-cell { font-size: 0.76rem !important; }
+      .status-col { width: 88px !important; }
+      .status-badge { padding: 2px 6px !important; font-size: 0.6rem !important; border-radius: 4px !important; }
+      .late-minutes { font-size: 0.58rem !important; display: block !important; margin-top: 1px !important; }
 
-      .scanner-area { aspect-ratio: 4/3; }
-      .scan-frame { width: 160px; height: 160px; }
+      .scanner-area { aspect-ratio: 4/3 !important; }
+      .scan-frame { width: 160px !important; height: 160px !important; }
 
       .scan-info { padding: 0.5rem 0.8rem; }
       .scan-log-item { padding: 0.45rem 0.8rem; }
       .scan-log-item .log-avatar { width: 26px; height: 26px; font-size: 0.65rem; }
 
-      .announce-bar { padding: 5px 0.8rem; }
-      .announce-bar marquee { font-size: 0.72rem; }
-
-      .live-badge { padding: 3px 10px; font-size: 0.65rem; }
+      .bottom-running-bar {
+        grid-column: 1 / -1 !important;
+        grid-row: auto !important;
+        width: 100% !important;
+        margin-top: 0.4rem !important;
+        padding: 5px 0.8rem !important;
+      }
+      .bottom-running-bar marquee { font-size: 0.72rem !important; }
+      .live-badge { padding: 3px 8px !important; font-size: 0.65rem !important; }
     }
 
-    /* ─── SMARTPHONE (<600px) ────────────────────────────── */
+    /* ─── SMARTPHONE COMPACT (<600px) ─────────────────────── */
     @media (max-width: 599px) {
-      .header {
-        padding: 0.5rem 0.6rem; gap: 0.3rem;
-      }
-      .header-brand .logo-icon { width: 32px; height: 32px; font-size: 1rem; border-radius: 4px; box-shadow: 0 0 10px rgba(115,103,240,.3); }
-      .header-brand h1 { font-size: 0.85rem; }
-      .header-brand p  { display: none; } /* Sembunyikan subtitle di HP */
-      #live-clock { font-size: 1.15rem; letter-spacing: 0.5px; }
-      #live-date  { font-size: 0.58rem; }
-      .header-right > div:last-child { display: none; } /* Sembunyikan teks "Refresh otomatis..." */
+      .header { padding: 0.5rem 0.6rem !important; gap: 0.3rem !important; }
+      .header-brand .logo-icon { width: 32px; height: 32px; font-size: 1rem; border-radius: 4px; }
+      .header-brand h1 { font-size: 0.85rem !important; }
+      .header-brand p  { display: none !important; }
+      #live-clock { font-size: 1.15rem !important; letter-spacing: 0.5px !important; }
+      #live-date  { font-size: 0.58rem !important; }
+      .header-right > div:last-child { display: none !important; }
 
-      .main { gap: 0.4rem; padding: 0.4rem; }
-      .panel { border-radius: 4px; }
-      .panel-header { padding: 0.55rem 0.7rem 0.45rem; }
-      .panel-title  { font-size: 0.75rem; gap: 0.35rem; }
-      .panel-body   { max-height: 260px; }
+      .main { gap: 0.5rem !important; padding: 0.4rem !important; padding-bottom: 3.5rem !important; }
+      .panel-header { padding: 0.5rem 0.7rem 0.4rem !important; }
+      .panel-title  { font-size: 0.78rem !important; gap: 0.35rem !important; }
+      .panel-body   { max-height: 320px !important; }
 
       .stat-chips { padding: 0.35rem 0.7rem; gap: 0.25rem; }
       .stat-chip  { font-size: 0.6rem; padding: 2px 6px; }
-      .stat-chip .dot { width: 5px; height: 5px; }
 
-      .lb-table tbody td { padding: 0.35rem 0.5rem; font-size: 0.72rem; }
-      .lb-table thead th { padding: 0.35rem 0.5rem; font-size: 0.55rem; letter-spacing: 0.5px; }
-      .name-cell .name { max-width: 90px; font-size: 0.72rem; }
-      .name-cell .kelas-badge { font-size: 0.58rem; }
-      .jam-cell { font-size: 0.72rem; }
-      .rank-cell { width: 24px; font-size: 0.8rem; }
-      .status-badge { padding: 1px 6px; font-size: 0.58rem; }
-      .late-minutes { font-size: 0.58rem; }
+      .lb-table tbody td { padding: 0.4rem 0.45rem !important; font-size: 0.74rem !important; }
+      .lb-table thead th { padding: 0.4rem 0.45rem !important; font-size: 0.58rem !important; }
+      .name-cell .name { max-width: 125px !important; font-size: 0.74rem !important; }
+      .name-cell .kelas-badge { font-size: 0.58rem !important; }
+      .jam-col { width: 68px !important; }
+      .jam-cell { font-size: 0.72rem !important; }
+      .rank-cell { width: 24px !important; font-size: 0.8rem !important; }
+      .status-col { width: 80px !important; }
+      .status-badge { padding: 1px 5px !important; font-size: 0.56rem !important; }
 
-      .scanner-area { aspect-ratio: 1/1; } /* Lebih compact: kotak */
-      .scan-frame { width: 140px; height: 140px; }
-      .scan-frame::before, .scan-frame::after,
-      .scan-frame .corner-br, .scan-frame .corner-bl { width: 22px; height: 22px; }
-      .scanner-idle .idle-icon { font-size: 2rem; }
-      .scanner-idle p { font-size: 0.7rem; max-width: 160px; }
-      #start-cam-btn { font-size: 0.78rem; padding: 0.5rem 1.2rem; border-radius: 4px; }
-
-      .result-toast { padding: 0.6rem 0.8rem; }
-      .result-icon { font-size: 1.2rem; }
-      .result-name { font-size: 0.82rem; }
-      .result-sub  { font-size: 0.65rem; }
-      .result-msg  { font-size: 0.65rem; }
-
-      .scan-info { padding: 0.4rem 0.7rem; }
-      .scan-count-wrap { font-size: 0.68rem; }
-      .scan-count-wrap span { font-size: 1rem; }
-      .scan-log-title { padding: 0.4rem 0.7rem; font-size: 0.62rem; }
-      .scan-log-item { padding: 0.35rem 0.7rem; gap: 0.4rem; }
-      .scan-log-item .log-avatar { width: 24px; height: 24px; font-size: 0.6rem; }
-      .scan-log-item .log-name  { font-size: 0.7rem; }
-      .scan-log-item .log-kelas { font-size: 0.58rem; }
-      .scan-log-item .log-jam   { font-size: 0.68rem; }
-
-      .announce-bar { padding: 4px 0.6rem; }
-      .announce-bar marquee { font-size: 0.65rem; }
-
-      .empty-state { padding: 1.5rem; }
-      .empty-state .icon { font-size: 2rem; }
-      .empty-state p { font-size: 0.72rem; }
-
-      /* Scanner status bar compact */
-      #scanner-status-bar { padding: .4rem .7rem; }
-      #scanner-status-bar span[id="hw-status-text"] { font-size: .62rem; }
+      .scanner-area { aspect-ratio: 1/1 !important; }
+      .scan-frame { width: 140px !important; height: 140px !important; }
     }
 
     /* ─── VERY SMALL PHONES (<400px) ─────────────────────── */
     @media (max-width: 399px) {
       .header-brand { gap: 0.5rem; }
       .header-brand .logo-icon { width: 28px; height: 28px; font-size: 0.85rem; border-radius: 4px; }
-      .header-brand h1 { font-size: 0.78rem; }
-      #live-clock { font-size: 1rem; }
-      .live-badge { font-size: 0.58rem; padding: 2px 8px; }
-
-      .panel-title { font-size: 0.7rem; }
-      .stat-chip { font-size: 0.55rem; }
-      .lb-table tbody td { font-size: 0.65rem; padding: 0.3rem 0.4rem; }
-      .lb-table thead th { font-size: 0.5rem; padding: 0.3rem 0.4rem; }
-      .name-cell .name { max-width: 70px; font-size: 0.65rem; }
-      .jam-cell { font-size: 0.65rem; }
-      .rank-cell { width: 20px; font-size: 0.72rem; }
+      .header-brand h1 { font-size: 0.78rem !important; }
+      #live-clock { font-size: 1rem !important; }
+      .name-cell .name { max-width: 105px !important; font-size: 0.72rem !important; }
+      .jam-col { width: 60px !important; }
+      .jam-cell { font-size: 0.68rem !important; }
+      .status-col { width: 72px !important; }
+      .status-badge { padding: 1px 4px !important; font-size: 0.54rem !important; }
     }
 
     /* ─── HOLIDAY BANNER ──────────────────────────────────── */
@@ -1750,7 +1754,7 @@ function renderRows(rows, colClass) {
     return `<tr class="${colClass==='awal'&&rank<=3?'top-3':''} ${isLateRow?'late-row':''}">
       <td class="rank-cell">${medal}</td>
       <td class="name-cell"><div class="name">${r.nama}</div><div class="kelas-badge">${r.kelas}</div></td>
-      <td><span class="jam-cell ${isLateRow?'jam-late':'jam-early'}">${jamVal}</span></td>
+      <td class="jam-col"><span class="jam-cell ${isLateRow?'jam-late':'jam-early'}">${jamVal}</span></td>
       <td class="status-col">${badge}</td>
     </tr>`;
   }).join('') || (colClass === 'awal' 
