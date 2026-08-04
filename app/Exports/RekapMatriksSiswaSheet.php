@@ -68,7 +68,12 @@ class RekapMatriksSiswaSheet extends DefaultValueBinder implements FromView, Wit
             foreach ($siswaList as $s) {
                 $rows = $absensiRows->get($s->id, collect())->keyBy(fn ($r) => $r->tanggal->format('Y-m-d'));
                 foreach ($dates as $date) {
-                    $absensiPivot[$s->id][$date] = $rows->get($date)?->status ?? null;
+                    $rec = $rows->get($date);
+                    $absensiPivot[$s->id][$date] = $rec ? [
+                        'status' => $rec->status,
+                        'jam_masuk' => $rec->jam_masuk,
+                        'jam_pulang' => $rec->jam_pulang,
+                    ] : null;
                 }
             }
         }
