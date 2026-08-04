@@ -321,4 +321,40 @@ class LaporanController extends Controller
             'isWaliKelasLocked', 'assignedClass'
         ));
     }
+
+    public function belumAbsen(Request $request)
+    {
+        $assignedClass = $this->getWaliKelasAssignedClass();
+        $isWaliKelasLocked = $assignedClass !== null;
+
+        $tanggal = $request->input('tanggal', now()->toDateString());
+        $kelasId = $assignedClass ? $assignedClass->id : $request->input('kelas_id');
+        $kelasOptions = $assignedClass ? collect([$assignedClass]) : Kelas::orderBy('nama')->get();
+
+        $kelas = $kelasId ? Kelas::find($kelasId) : null;
+
+        $siswaQuery = Siswa::with(['kelas'])
+            ->whereDoesntHave('absensi', function ($q) use ($tanggal) {
+                $q->whereDate('tanggal', $tanggal);
+            });
+
+        if ($kelasId) {
+            $siswaQuery->where('kelas_id', $kelasId);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $siswaQuery->where(function ($q) use ($search) {
+                $q->where('nama_lengkap', 'like', "%{$search}%")
+                  ->orWhere('nis', 'like', "%{$search}%");
+            });
+        }
+
+        $siswaList = $siswaQuery->orderBy('nama_lengkap')->get();
+
+        return view('admin.laporan.belum-absen', compact(
+            'siswaList', 'kelasOptions', 'tanggal', 'kelasId', 'kelas',
+            'isWaliKelasLocked', 'assignedClass'
+        ));
+    }
 }
