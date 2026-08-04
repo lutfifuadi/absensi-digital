@@ -693,12 +693,10 @@
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
               Tandai Semua Hadir
             </button>
-            <button @click="submitBulk()" :disabled="students.length === 0 || submitting"
-                    class="h-10 px-5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:opacity-40 disabled:pointer-events-none text-white font-bold text-xs rounded-[5px] transition duration-150 flex items-center justify-center gap-2 shadow-md shadow-indigo-600/20">
-              <span x-show="submitting" class="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-[2px]"></span>
-              <svg x-show="!submitting" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-              Submit Absensi
-            </button>
+            <span class="h-10 px-3.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-xs rounded-[5px] flex items-center justify-center gap-1.5">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              Simpan Otomatis ⚡
+            </span>
           </div>
         </div>
 
