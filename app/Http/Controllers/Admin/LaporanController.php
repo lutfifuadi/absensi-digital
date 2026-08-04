@@ -196,6 +196,12 @@ class LaporanController extends Controller
     public function absensiHariIni(Request $request)
     {
         $tanggal = now()->toDateString();
+
+        $assignedClass = $this->getWaliKelasAssignedClass();
+        $isWaliKelasLocked = $assignedClass !== null;
+        $kelasId = $assignedClass ? $assignedClass->id : $request->input('kelas_id');
+        $kelasOptions = $assignedClass ? collect([$assignedClass]) : Kelas::orderBy('nama')->get();
+
         $query = \App\Models\Siswa::with(['kelas', 'absensi' => function($q) use ($tanggal) {
             $q->whereDate('tanggal', $tanggal);
         }])
@@ -205,6 +211,10 @@ class LaporanController extends Controller
         })
         ->select('siswa.*');
 
+        if ($kelasId) {
+            $query->where('siswa.kelas_id', $kelasId);
+        }
+
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function($q) use ($search) {
@@ -213,13 +223,9 @@ class LaporanController extends Controller
             });
         }
 
-        if ($request->filled('kelas_id')) {
-            $query->where('siswa.kelas_id', $request->input('kelas_id'));
-        }
-
         if ($request->filled('status')) {
             $status = $request->input('status');
-            if ($status === 'belum') {
+            if ($status === 'belum' || $status === 'belum_absen') {
                 $query->whereNull('absensi_siswa.id');
             } else {
                 $query->where('absensi_siswa.status', $status);
@@ -229,20 +235,39 @@ class LaporanController extends Controller
         $perPage = (int) $request->input('per_page', 25);
         $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 25;
 
-        $siswaList = $query->orderBy('siswa.nama_lengkap')->paginate($perPage)->withQueryString();
-        $kelasOptions = Kelas::orderBy('nama')->get();
+        $siswa = $query->orderBy('siswa.nama_lengkap')->paginate($perPage)->withQueryString();
+        $siswaList = $siswa;
+
+        $totalSiswa = $kelasId ? Siswa::where('kelas_id', $kelasId)->count() : Siswa::count();
+        $absensiStats = AbsensiSiswa::whereDate('tanggal', $tanggal)
+            ->when($kelasId, fn($q) => $q->where('kelas_id', $kelasId))
+            ->selectRaw("
+                SUM(CASE WHEN status='hadir' THEN 1 ELSE 0 END) as hadir,
+                SUM(CASE WHEN status='terlambat' THEN 1 ELSE 0 END) as terlambat,
+                SUM(CASE WHEN status='izin' THEN 1 ELSE 0 END) as izin,
+                SUM(CASE WHEN status='sakit' THEN 1 ELSE 0 END) as sakit,
+                SUM(CASE WHEN status='alpha' THEN 1 ELSE 0 END) as alpha
+            ")->first();
+
+        $hadir = (int) ($absensiStats->hadir ?? 0);
+        $terlambat = (int) ($absensiStats->terlambat ?? 0);
+        $izin = (int) ($absensiStats->izin ?? 0);
+        $sakit = (int) ($absensiStats->sakit ?? 0);
+        $alpha = (int) ($absensiStats->alpha ?? 0);
+        $belum = max(0, $totalSiswa - ($hadir + $terlambat + $izin + $sakit + $alpha));
 
         $summary = [
-            'total' => \App\Models\Siswa::count(),
-            'hadir' => AbsensiSiswa::whereDate('tanggal', $tanggal)->where('status', 'hadir')->count(),
-            'terlambat' => AbsensiSiswa::whereDate('tanggal', $tanggal)->where('status', 'terlambat')->count(),
-            'izin' => AbsensiSiswa::whereDate('tanggal', $tanggal)->where('status', 'izin')->count(),
-            'sakit' => AbsensiSiswa::whereDate('tanggal', $tanggal)->where('status', 'sakit')->count(),
-            'alpha' => AbsensiSiswa::whereDate('tanggal', $tanggal)->where('status', 'alpha')->count(),
+            'total' => $totalSiswa,
+            'hadir' => $hadir,
+            'terlambat' => $terlambat,
+            'izin' => $izin,
+            'sakit' => $sakit,
+            'alpha' => $alpha,
+            'belum' => $belum,
+            'belum_absen' => $belum,
         ];
-        $summary['belum'] = max(0, $summary['total'] - ($summary['hadir'] + $summary['terlambat'] + $summary['izin'] + $summary['sakit'] + $summary['alpha']));
 
-        return view('admin.laporan.index', compact('kelasOptions', 'filters', 'summary', 'siswaList', 'dates', 'absensiPivot', 'kelas'));
+        return view('admin.laporan.absensi-hari-ini', compact('kelasOptions', 'summary', 'siswa', 'siswaList', 'isWaliKelasLocked', 'assignedClass'));
     }
 
     public function exportExcelGuru(Request $request)
