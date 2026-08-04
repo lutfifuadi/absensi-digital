@@ -343,7 +343,7 @@
                   $cT = collect($pivot)->filter(fn($v) => $v === 'terlambat')->count();
                 @endphp
                 <tr>
-                  <td class="text-center sticky-col start-0 text-white-50" style="z-index:1; border-right: 1px solid rgba(255,255,255,0.08);">{{ ($siswaList->currentPage() - 1) * $siswaList->perPage() + $loop->iteration }}</td>
+                  <td class="text-center sticky-col start-0 text-white-50" style="z-index:1; border-right: 1px solid rgba(255,255,255,0.08);">{{ method_exists($siswaList, 'currentPage') ? ($siswaList->currentPage() - 1) * $siswaList->perPage() + $loop->iteration : $loop->iteration }}</td>
                   <td class="sticky-col fw-semibold text-white" style="left:30px; z-index:1; border-right: 1px solid rgba(255,255,255,0.08);">{{ $siswa->nama_lengkap }}</td>
                   @foreach ($dates as $date)
                     @php $st = $pivot[$date] ?? null; @endphp
