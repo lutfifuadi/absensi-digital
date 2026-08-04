@@ -1,16 +1,33 @@
 @extends('layouts/layoutMaster')
 
-@section('title', 'Rekap Harian Absensi')
+@section('title', 'Laporan Rekap Presensi Harian')
 
 @section('page-style')
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ asset('css/dashboards/super-admin.css') }}?v=4.3">
   <style>
-    .form-control, .form-select, .btn {
-      border-radius: 5px !important;
+    .glass-card {
+      background: rgba(255, 255, 255, 0.04) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
     }
+
+    .form-control,
+    .form-select {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      color: #fff !important;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: var(--bs-info) !important;
+    }
+
+    .st-hadir { background: rgba(40, 199, 111, 0.15) !important; color: #28c76f !important; border: 1px solid rgba(40, 199, 111, 0.3); }
+    .st-sakit { background: rgba(0, 207, 232, 0.15) !important; color: #00cfe8 !important; border: 1px solid rgba(0, 207, 232, 0.3); }
+    .st-izin { background: rgba(255, 159, 67, 0.15) !important; color: #ff9f43 !important; border: 1px solid rgba(255, 159, 67, 0.3); }
+    .st-alpha { background: rgba(234, 84, 85, 0.15) !important; color: #ea5455 !important; border: 1px solid rgba(234, 84, 85, 0.3); }
+    .st-terlambat { background: rgba(168, 85, 247, 0.15) !important; color: #c084fc !important; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .st-belum { background: rgba(148, 163, 184, 0.15) !important; color: #94a3b8 !important; border: 1px solid rgba(148, 163, 184, 0.3); }
   </style>
 @endsection
 
@@ -26,7 +43,7 @@
       <div class="das-hero__identity">
         <div class="das-hero__logo-wrapper">
           <div class="das-hero__logo-placeholder">
-            <i class="ti tabler-calendar-stats text-info"></i>
+            <i class="ti tabler-calendar-time text-info"></i>
           </div>
           <div class="das-hero__logo-glow"></div>
         </div>
@@ -34,257 +51,172 @@
         <div class="das-hero__meta">
           <div class="das-hero__badge">
             <span class="pulse-dot"></span>
-            @if($isWaliKelas)
-              Kelas Saya / Laporan Rekap
-            @else
-              Laporan / Rekap Harian
-            @endif
+            Laporan Harian Kehadiran
           </div>
-          <h4 class="das-hero__title text-gradient-gold">Rekap Harian Kehadiran</h4>
-          <p class="das-hero__subtitle">Audit dan monitoring riwayat absensi harian secara efisien.</p>
-        </div>
-      </div>
-
-      <div class="das-hero__actions">
-        <div class="badge bg-black bg-opacity-25 p-2 px-3 border border-white border-opacity-10 text-white">
-          <i class="ti tabler-calendar me-1"></i>
-          @if($tanggalMulai === $tanggalSelesai)
-            {{ \Carbon\Carbon::parse($tanggalMulai)->locale('id')->translatedFormat('d F Y') }}
-          @else
-            {{ \Carbon\Carbon::parse($tanggalMulai)->locale('id')->translatedFormat('d M Y') }} — {{ \Carbon\Carbon::parse($tanggalSelesai)->locale('id')->translatedFormat('d M Y') }}
-          @endif
+          <h4 class="das-hero__title text-gradient-gold">Rekap Presensi Harian</h4>
+          <p class="das-hero__subtitle">Pemantauan dan rincian jam presensi harian siswa secara real-time.</p>
         </div>
       </div>
     </div>
   </div>
 
-  {{-- Filter Card --}}
-  <div class="das-panel mb-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+  {{-- FILTER PANEL --}}
+  <div class="das-panel mb-4">
+    <div class="das-panel__head">
+      <div class="das-panel__title">
+        <span class="das-panel__icon-dot --primary"></span>
+        Filter Laporan Harian
+      </div>
+    </div>
     <div class="das-panel__body">
-      <form method="GET" class="row gy-3 gx-3 align-items-end">
-        <div class="col-md-3">
-          <label class="form-label text-white-50 small fw-bold">
-            <i class="ti tabler-calendar-event me-1"></i> Tanggal Mulai
+      <form method="GET" action="{{ url()->current() }}" class="row gy-3 gx-2 align-items-end">
+        <div class="col-12 col-sm-6 col-md-3">
+          <label class="form-label text-white-50 small fw-bold mb-1">
+            TANGGAL
           </label>
-          <input type="date" name="tanggal_mulai" class="form-control" value="{{ $tanggalMulai }}">
+          <input type="date" class="form-control form-control-sm" name="tanggal" value="{{ $tanggal }}" style="background: rgba(15, 23, 42, 0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
         </div>
-        <div class="col-md-3">
-          <label class="form-label text-white-50 small fw-bold">
-            <i class="ti tabler-calendar-event me-1"></i> Tanggal Selesai
-          </label>
-          <input type="date" name="tanggal_selesai" class="form-control" value="{{ $tanggalSelesai }}">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label text-white-50 small fw-bold">
-            <i class="ti tabler-door me-1"></i> Filter Kelas
-          </label>
-          <select name="kelas_id" class="form-select">
-            @if($isWaliKelas)
-              <!-- Wali kelas dikunci ke kelasnya -->
-              @foreach ($kelasOptions as $k)
-                <option value="{{ $k->id }}" selected>{{ $k->nama }}</option>
-              @endforeach
-            @else
-              <option value="">Semua Kelas</option>
-              @foreach ($kelasOptions as $k)
-                <option value="{{ $k->id }}" @selected($kelasId == $k->id)>{{ $k->nama }}</option>
-              @endforeach
+
+        <div class="col-12 col-sm-6 col-md-3">
+          <label class="form-label text-white-50 small fw-bold mb-1">
+            KELAS
+            @if(!empty($isWaliKelasLocked))
+              <span class="badge ms-1" style="background: #ff9f43 !important; color: #0f172a !important; font-size: 0.7rem; font-weight: 800 !important; padding: 2px 7px; border-radius: 4px;">
+                <i class="ti tabler-lock me-1" style="color: #0f172a !important;"></i>Kelas Saya
+              </span>
             @endif
+          </label>
+          <select class="form-select form-select-sm" name="kelas_id" style="background: rgba(15, 23, 42, 0.6) !important; color: #ffffff !important; border: 1px solid {{ !empty($isWaliKelasLocked) ? 'rgba(255,159,67,0.5)' : 'rgba(255,255,255,0.1)' }} !important; opacity: 1 !important;" @if(!empty($isWaliKelasLocked)) disabled @endif>
+            @if(empty($isWaliKelasLocked))
+              <option value="">Semua Kelas</option>
+            @endif
+            @foreach ($kelasOptions as $k)
+              <option value="{{ $k->id }}" @selected($kelasId == $k->id)>{{ $k->nama }}</option>
+            @endforeach
           </select>
+          @if(!empty($isWaliKelasLocked))
+            <input type="hidden" name="kelas_id" value="{{ $kelasId }}">
+          @endif
         </div>
-        <div class="col-md-2">
-          <button type="submit" class="btn das-btn --primary w-100">
-            <i class="ti tabler-search me-1"></i> Tampilkan
+
+        <div class="col-12 col-sm-6 col-md-4">
+          <label class="form-label text-white-50 small fw-bold mb-1">CARI SISWA</label>
+          <input type="text" class="form-control form-control-sm" name="search" value="{{ request('search') }}" placeholder="Nama / NIS Siswa..." style="background: rgba(15, 23, 42, 0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-2">
+          <button type="submit" class="das-btn das-btn--info w-100">
+            <i class="ti tabler-search me-1"></i> Terapkan
           </button>
         </div>
       </form>
     </div>
   </div>
 
-  {{-- Summary Row --}}
-  <div class="row gy-3 mb-4">
-    @php
-      $statsToShow = [
-        ['label' => 'Siswa Hadir', 'val' => $summaryHarian['siswa_hadir'], 'color' => 'success', 'icon' => 'tabler-circle-check'],
-        ['label' => 'Siswa Sakit', 'val' => $summaryHarian['siswa_sakit'], 'color' => 'info', 'icon' => 'tabler-stethoscope'],
-        ['label' => 'Siswa Izin', 'val' => $summaryHarian['siswa_izin'], 'color' => 'warning', 'icon' => 'tabler-file-description'],
-        ['label' => 'Siswa Alpha', 'val' => $summaryHarian['siswa_alpha'], 'color' => 'danger', 'icon' => 'tabler-x'],
-        ['label' => 'Siswa Telat', 'val' => $summaryHarian['siswa_terlambat'], 'color' => 'primary', 'icon' => 'tabler-clock'],
-      ];
-      if(!$isWaliKelas) {
-        $statsToShow[] = ['label' => 'Guru Hadir', 'val' => $summaryHarian['guru_hadir'], 'color' => 'primary', 'icon' => 'tabler-chalkboard-teacher'];
-        $statsToShow[] = ['label' => 'Staff Hadir', 'val' => $summaryHarian['staff_hadir'], 'color' => 'gold', 'icon' => 'tabler-briefcase'];
-      }
-    @endphp
-    @foreach ($statsToShow as $stat)
-      <div class="col-6 col-md-4 col-lg">
-        <div class="card card-grad-{{ $stat['color'] }} h-100 text-center">
-          <div class="card-body py-3">
-             <div class="avatar avatar-sm mx-auto mb-2">
-                <span class="avatar-initial rounded bg-label-{{ $stat['color'] }}">
-                   <i class="ti {{ $stat['icon'] }}"></i>
-                </span>
-             </div>
-             <h4 class="mb-0 text-white fw-bold">{{ $stat['val'] }}</h4>
-             <small class="text-white-50 opacity-75" style="font-size:0.7rem;">{{ $stat['label'] }}</small>
-          </div>
-        </div>
-      </div>
-    @endforeach
-  </div>
-
-  {{-- Absensi Siswa --}}
-  <div class="das-panel mb-4">
-    <div class="das-panel__head">
-      <div class="das-panel__title">
-        <i class="ti tabler-users text-info"></i> Absensi Siswa
+  {{-- SUMMARY STATS --}}
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-2">
+      <div class="p-3 rounded text-center glass-card">
+        <small class="text-white-50 d-block mb-1">TOTAL SISWA</small>
+        <span class="h4 text-white fw-bold mb-0">{{ $summary['total'] }}</span>
       </div>
     </div>
-    <div class="das-table-wrap">
-      <table class="das-table align-middle mb-0">
-        <thead>
-          <tr>
-            <th class="ps-4 py-3" width="60">#</th>
-            <th class="py-3">Nama Siswa</th>
-            <th class="py-3">Kelas</th>
-            <th class="py-3 text-center">Tanggal</th>
-            <th class="py-3 text-center">Jam Masuk</th>
-            <th class="py-3 text-center">Jam Pulang</th>
-            <th class="py-3 text-center">Status</th>
-            <th class="py-3 text-end pe-4">Metode</th>
-          </tr>
-        </thead>
-        <tbody>
-          @forelse($absensiSiswa as $row)
+    <div class="col-6 col-md-2">
+      <div class="p-3 rounded text-center glass-card border-success">
+        <small class="text-success d-block mb-1">HADIR</small>
+        <span class="h4 text-success fw-bold mb-0">{{ $summary['hadir'] }}</span>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="p-3 rounded text-center glass-card border-warning">
+        <small class="text-warning d-block mb-1">IZIN</small>
+        <span class="h4 text-warning fw-bold mb-0">{{ $summary['izin'] }}</span>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="p-3 rounded text-center glass-card border-info">
+        <small class="text-info d-block mb-1">SAKIT</small>
+        <span class="h4 text-info fw-bold mb-0">{{ $summary['sakit'] }}</span>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="p-3 rounded text-center glass-card border-danger">
+        <small class="text-danger d-block mb-1">ALPHA</small>
+        <span class="h4 text-danger fw-bold mb-0">{{ $summary['alpha'] }}</span>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="p-3 rounded text-center glass-card">
+        <small class="text-secondary d-block mb-1">TERLAMBAT</small>
+        <span class="h4 text-purple fw-bold mb-0" style="color: #c084fc;">{{ $summary['terlambat'] }}</span>
+      </div>
+    </div>
+  </div>
+
+  {{-- DATA TABLE --}}
+  <div class="card glass-card">
+    <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center" style="background:transparent; border-color: rgba(255,255,255,0.08) !important;">
+      <h6 class="card-title mb-0 text-white">
+        <i class="ti tabler-list text-info me-1"></i> Data Presensi Tanggal {{ \Carbon\Carbon::parse($tanggal)->locale('id')->translatedFormat('d F Y') }}
+        @if($kelas) <span class="badge bg-label-info ms-2">Kelas {{ $kelas->nama }}</span> @endif
+      </h6>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" style="font-size:13px; color:inherit;">
+          <thead style="background:rgba(255,255,255,0.02);">
             <tr>
-              <td class="ps-4 text-white-50 small">{{ $loop->iteration }}</td>
-              <td><span class="fw-bold text-white">{{ $row->siswa->nama_lengkap ?? '-' }}</span></td>
-              <td><span class="badge bg-label-secondary">{{ $row->kelas->nama ?? '-' }}</span></td>
-              <td class="text-center">{{ $row->tanggal->format('d M Y') }}</td>
-              <td class="text-center"><code class="text-info">{{ $row->jam_masuk ? substr($row->jam_masuk, 0, 5) : '-' }}</code></td>
-              <td class="text-center"><code class="text-info">{{ $row->jam_pulang ? substr($row->jam_pulang, 0, 5) : '-' }}</code></td>
-              <td class="text-center">
-                @php
-                  $scolor = match ($row->status) {
-                      'hadir' => 'success',
-                      'sakit' => 'info',
-                      'izin' => 'warning',
-                      'alpha' => 'danger',
-                      'terlambat' => 'primary',
-                      default => 'secondary',
-                  };
-                @endphp
-                <span class="badge bg-label-{{ $scolor }} px-2 py-1 rounded-pill small">{{ ucfirst($row->status) }}</span>
-              </td>
-              <td class="text-end pe-4"><span class="small text-white-50">{{ ucfirst($row->metode) }}</span></td>
+              <th class="text-center" style="width:40px;">#</th>
+              <th>NIS</th>
+              <th>Nama Siswa</th>
+              <th class="text-center">Kelas</th>
+              <th class="text-center">Status</th>
+              <th class="text-center">Jam Masuk</th>
+              <th class="text-center">Jam Pulang</th>
+              <th>Keterangan / Metode</th>
             </tr>
-          @empty
-            <tr>
-              <td colspan="8" class="text-center py-5">
-                 <div class="opacity-50">
-                    <i class="ti tabler-users-minus fs-1 d-block mb-2"></i>
-                    <span class="small">Tidak ada data absensi siswa dalam rentang tanggal ini.</span>
-                 </div>
-              </td>
-            </tr>
-          @endforelse
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  @if(!$isWaliKelas)
-  <div class="row">
-    {{-- Absensi Guru --}}
-    <div class="col-md-6 mb-4">
-      <div class="das-panel h-100">
-        <div class="das-panel__head">
-          <div class="das-panel__title">
-            <i class="ti tabler-chalkboard-teacher text-info"></i> Absensi Guru
-          </div>
-        </div>
-        <div class="das-table-wrap">
-          <table class="das-table align-middle mb-0">
-            <thead>
+          </thead>
+          <tbody>
+            @forelse($siswaList as $siswa)
+              @php
+                $absen = $siswa->absensi->first();
+                $st = $absen ? strtolower($absen->status) : 'belum';
+              @endphp
               <tr>
-                <th class="ps-3 py-3" width="40">#</th>
-                <th class="py-3">Nama Guru</th>
-                <th class="py-3 text-center">Jam</th>
-                <th class="py-3 text-center">Status</th>
+                <td class="text-center text-white-50">{{ $loop->iteration }}</td>
+                <td><code class="text-info">{{ $siswa->nis }}</code></td>
+                <td class="fw-semibold text-white">{{ $siswa->nama_lengkap }}</td>
+                <td class="text-center">{{ $siswa->kelas?->nama ?? '-' }}</td>
+                <td class="text-center">
+                  <span class="badge st-{{ $st }} px-2 py-1">
+                    {{ $absen ? ucfirst($absen->status) : 'Belum Absen' }}
+                  </span>
+                </td>
+                <td class="text-center fw-bold text-success">
+                  {{ $absen && $absen->jam_masuk ? \Carbon\Carbon::parse($absen->jam_masuk)->format('H:i:s') : '-' }}
+                </td>
+                <td class="text-center fw-bold text-info">
+                  {{ $absen && $absen->jam_pulang ? \Carbon\Carbon::parse($absen->jam_pulang)->format('H:i:s') : '-' }}
+                </td>
+                <td class="text-white-50">
+                  @if($absen)
+                    {{ ucfirst($absen->metode ?? 'manual') }} @if($absen->keterangan) ({{ $absen->keterangan }}) @endif
+                  @else
+                    -
+                  @endif
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              @forelse($absensiGuru as $row)
-                <tr>
-                  <td class="ps-3 text-white-50 small">{{ $loop->iteration }}</td>
-                  <td><div class="fw-semibold text-white">{{ $row->guru->nama_lengkap ?? '-' }}</div></td>
-                  <td class="text-center"><code class="text-info">{{ $row->jam_masuk ? substr($row->jam_masuk, 0, 5) : '-' }}</code></td>
-                  <td class="text-center">
-                    <span class="badge bg-label-{{ match ($row->status) {
-                        'hadir' => 'success',
-                        'sakit' => 'info',
-                        'izin' => 'warning',
-                        'alpha' => 'danger',
-                        default => 'secondary',
-                    } }} px-2 py-1 small">{{ ucfirst($row->status) }}</span>
-                  </td>
-                </tr>
-              @empty
-                <tr>
-                  <td colspan="4" class="text-center py-5 text-white-50 opacity-50 small">Tidak ada data.</td>
-                </tr>
-              @endforelse
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    {{-- Absensi Staff --}}
-    <div class="col-md-6 mb-4">
-      <div class="das-panel h-100">
-        <div class="das-panel__head">
-          <div class="das-panel__title">
-            <i class="ti tabler-briefcase text-info"></i> Absensi Staff TU
-          </div>
-        </div>
-        <div class="das-table-wrap">
-          <table class="das-table align-middle mb-0">
-            <thead>
+            @empty
               <tr>
-                <th class="ps-3 py-3" width="40">#</th>
-                <th class="py-3">Nama Staff</th>
-                <th class="py-3 text-center">Jam</th>
-                <th class="py-3 text-center">Status</th>
+                <td colspan="8" class="text-center py-4 text-white-50">
+                  Tidak ada data siswa ditemukan.
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              @forelse($absensiStaff as $row)
-                <tr>
-                  <td class="ps-3 text-white-50 small">{{ $loop->iteration }}</td>
-                  <td><div class="fw-semibold text-white">{{ $row->staff->nama_lengkap ?? '-' }}</div></td>
-                  <td class="text-center"><code class="text-info">{{ $row->jam_masuk ? substr($row->jam_masuk, 0, 5) : '-' }}</code></td>
-                  <td class="text-center">
-                    <span class="badge bg-label-{{ match ($row->status) {
-                        'hadir' => 'success',
-                        'sakit' => 'info',
-                        'izin' => 'warning',
-                        'alpha' => 'danger',
-                        default => 'secondary',
-                    } }} px-2 py-1 small">{{ ucfirst($row->status) }}</span>
-                  </td>
-                </tr>
-              @empty
-                <tr>
-                  <td colspan="4" class="text-center py-5 text-white-50 opacity-50 small">Tidak ada data.</td>
-                </tr>
-              @endforelse
-            </tbody>
-          </table>
-        </div>
+            @endforelse
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
-  @endif
+
 @endsection
-
