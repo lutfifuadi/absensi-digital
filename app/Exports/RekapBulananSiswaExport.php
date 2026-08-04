@@ -3,20 +3,19 @@
 namespace App\Exports;
 
 use App\Models\AbsensiSiswa;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use App\Models\Kelas;
+use App\Models\Pengaturan;
+use App\Models\Siswa;
+use Carbon\Carbon;
+use Illuminate\Contracts\View\View;
+use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
-use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class RekapBulananSiswaExport extends DefaultValueBinder implements FromCollection, WithHeadings, WithMapping, WithColumnFormatting, WithCustomValueBinder, WithStyles, ShouldAutoSize
+class RekapBulananSiswaExport extends DefaultValueBinder implements FromView, WithCustomValueBinder, ShouldAutoSize
 {
     protected int $bulan;
     protected int $tahun;
@@ -39,68 +38,39 @@ class RekapBulananSiswaExport extends DefaultValueBinder implements FromCollecti
         return parent::bindValue($cell, $value);
     }
 
-    public function collection()
+    public function view(): View
     {
-        return AbsensiSiswa::with(['siswa', 'kelas', 'guru'])
-            ->when($this->kelasId, fn ($q) => $q->where('kelas_id', $this->kelasId))
-            ->whereYear('tanggal', $this->tahun)
-            ->whereMonth('tanggal', $this->bulan)
-            ->orderBy('tanggal')
-            ->get();
-    }
+        $kelas = $this->kelasId ? Kelas::find($this->kelasId) : null;
+        $siswaList = $this->kelasId
+            ? Siswa::where('kelas_id', $this->kelasId)->orderBy('nama_lengkap')->get()
+            : Siswa::orderBy('nama_lengkap')->get();
 
-    /**
-     * @param AbsensiSiswa $item
-     */
-    public function map($item): array
-    {
-        return [
-            $item->tanggal->format('Y-m-d'),
-            $item->kelas?->nama,
-            (string) ($item->siswa?->nis ?? ''),
-            $item->siswa?->nama_lengkap,
-            ucfirst($item->status ?? '-'),
-            $item->jam_masuk ?? '-',
-            $item->jam_pulang ?? '-',
-            $item->guru?->nama_lengkap ?? '-',
-            ucfirst($item->metode ?? 'manual'),
-            $item->keterangan ?? '-',
-        ];
-    }
+        $daysInMonth = Carbon::createFromDate($this->tahun, $this->bulan, 1)->daysInMonth;
+        $dates = [];
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $dates[] = Carbon::createFromDate($this->tahun, $this->bulan, $d)->format('Y-m-d');
+        }
 
-    public function columnFormats(): array
-    {
-        return [
-            'C' => NumberFormat::FORMAT_TEXT,
-        ];
-    }
+        $absensiPivot = [];
+        if ($siswaList->isNotEmpty()) {
+            $absensiRows = AbsensiSiswa::whereIn('siswa_id', $siswaList->pluck('id'))
+                ->whereYear('tanggal', $this->tahun)->whereMonth('tanggal', $this->bulan)
+                ->get()->groupBy('siswa_id');
 
-    public function headings(): array
-    {
-        return [
-            'Tanggal',
-            'Kelas',
-            'NIS',
-            'Nama Siswa',
-            'Status',
-            'Jam Masuk',
-            'Jam Pulang',
-            'Guru',
-            'Metode',
-            'Keterangan',
-        ];
-    }
+            foreach ($siswaList as $s) {
+                $rows = $absensiRows->get($s->id, collect())->keyBy(fn ($r) => $r->tanggal->format('Y-m-d'));
+                foreach ($dates as $date) {
+                    $absensiPivot[$s->id][$date] = $rows->get($date)?->status ?? null;
+                }
+            }
+        }
 
-    public function styles(Worksheet $sheet)
-    {
-        return [
-            1 => [
-                'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-                'fill' => [
-                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => '1E293B']
-                ]
-            ],
-        ];
+        $namaBulan   = Carbon::createFromDate($this->tahun, $this->bulan, 1)->translatedFormat('F');
+        $namaSekolah = Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
+
+        return view('exports.rekap-siswa-excel', compact(
+            'siswaList', 'dates', 'absensiPivot', 'kelas',
+            'bulan', 'tahun', 'namaBulan', 'namaSekolah'
+        ));
     }
 }
