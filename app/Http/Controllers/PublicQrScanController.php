@@ -927,7 +927,7 @@ class PublicQrScanController extends Controller
                 }
 
                 // === WRITE: transaction kecil hanya untuk operasi tulis ===
-                DB::transaction(function () use ($siswa, $absensi, $currentTime, $tanggal, $forgetCache) {
+                DB::transaction(function () use ($siswa, $absensi, $currentTime, $tanggal) {
                     if ($absensi) {
                         $absensi->update(['jam_pulang' => $currentTime]);
                     } else {
@@ -956,8 +956,6 @@ class PublicQrScanController extends Controller
                 if ($freshAbsensi && $freshAbsensi->jam_pulang && $absensi && $absensi->jam_pulang) {
                     return response()->json(['success' => false, 'already' => true, 'message' => $siswa->nama_lengkap . ' sudah tercatat pulang hari ini.']);
                 }
-
-                $forgetCache();
 
                 return response()->json([
                     'success' => true,
@@ -1012,8 +1010,6 @@ class PublicQrScanController extends Controller
                     return response()->json(['success' => false, 'already' => true, 'message' => $siswa->nama_lengkap . ' sudah tercatat hadir hari ini.']);
                 }
 
-                $forgetCache();
-
                 return response()->json([
                     'success' => true,
                     'message' => 'Absensi berhasil dicatat!',
@@ -1039,8 +1035,6 @@ class PublicQrScanController extends Controller
                 DB::transaction(function () use ($absensi, $currentTime) {
                     $absensi->update(['jam_pulang' => $currentTime]);
                 });
-                $forgetCache();
-
                 return response()->json([
                     'success' => true,
                     'message' => 'Hati-hati di jalan! Jam pulang ' . $siswa->nama_lengkap . ' berhasil dicatat.',
@@ -1088,8 +1082,6 @@ class PublicQrScanController extends Controller
             if ($duplicate1062) {
                 return response()->json(['success' => false, 'already' => true, 'message' => 'Sudah tercatat hadir.']);
             }
-
-            $forgetCache();
 
             return response()->json([
                 'success' => true,
@@ -1148,8 +1140,6 @@ class PublicQrScanController extends Controller
                     }
                 });
 
-                $forgetCache();
-
                 return response()->json([
                     'success' => true,
                     'message' => 'Selamat beristirahat! Jam pulang Guru ' . $guru->nama_lengkap . ' berhasil dicatat.',
@@ -1202,8 +1192,6 @@ class PublicQrScanController extends Controller
                     return response()->json(['success' => false, 'already' => true, 'message' => 'Guru ' . $guru->nama_lengkap . ' sudah tercatat hadir hari ini.']);
                 }
 
-                $forgetCache();
-
                 return response()->json([
                     'success' => true,
                     'message' => 'Absensi Guru berhasil dicatat!',
@@ -1223,7 +1211,6 @@ class PublicQrScanController extends Controller
                 DB::transaction(function () use ($absensi, $currentTime) {
                     $absensi->update(['jam_pulang' => $currentTime]);
                 });
-                $forgetCache();
                 return response()->json([
                     'success' => true,
                     'message' => 'Selamat beristirahat! Jam pulang Guru ' . $guru->nama_lengkap . ' berhasil dicatat.',
@@ -1284,8 +1271,6 @@ class PublicQrScanController extends Controller
                 'tanggal' => $tanggal,
             ]);
 
-            $forgetCache();
-
             return response()->json([
                 'success' => true,
                 'message' => 'Absensi Guru berhasil dicatat!',
@@ -1343,8 +1328,6 @@ class PublicQrScanController extends Controller
                     }
                 });
 
-                $forgetCache();
-
                 return response()->json([
                     'success' => true,
                     'message' => 'Selamat beristirahat! Jam pulang Staff ' . $staff->nama_lengkap . ' berhasil dicatat.',
@@ -1397,8 +1380,6 @@ class PublicQrScanController extends Controller
                     return response()->json(['success' => false, 'already' => true, 'message' => 'Staff ' . $staff->nama_lengkap . ' sudah tercatat hadir hari ini.']);
                 }
 
-                $forgetCache();
-
                 return response()->json([
                     'success' => true,
                     'message' => 'Absensi Staff berhasil dicatat!',
@@ -1418,7 +1399,6 @@ class PublicQrScanController extends Controller
                 DB::transaction(function () use ($absensi, $currentTime) {
                     $absensi->update(['jam_pulang' => $currentTime]);
                 });
-                $forgetCache();
                 return response()->json([
                     'success' => true,
                     'message' => 'Selamat beristirahat! Jam pulang Staff ' . $staff->nama_lengkap . ' berhasil dicatat.',
@@ -1465,8 +1445,6 @@ class PublicQrScanController extends Controller
                     'message' => 'Staff ' . $staff->nama_lengkap . ' sudah tercatat hadir hari ini.',
                 ]);
             }
-
-            $forgetCache();
 
             return response()->json([
                 'success' => true,
