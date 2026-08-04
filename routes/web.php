@@ -130,7 +130,7 @@ Route::prefix('scan-qr')->name('public.scan-qr.')->group(function () {
     Route::get('/', [PublicQrScanController::class, 'index'])->name('index')->middleware('device.trusted');
     Route::post('/auth', [PublicQrScanController::class, 'auth'])->name('auth')->middleware('throttle:5,15');
     Route::get('/scan', [PublicQrScanController::class, 'scan'])->name('scan')->middleware(['qr.scan.auth', 'device.trusted']);
-    Route::post('/process', [PublicQrScanController::class, 'process'])->name('process')->middleware(['qr.scan.auth', 'device.trusted', 'throttle:120,1']);
+    Route::post('/process', [PublicQrScanController::class, 'process'])->name('process')->middleware(['qr.scan.auth', 'device.trusted', 'throttle:qr-scan']);
     Route::post('/logout', [PublicQrScanController::class, 'logout'])->name('logout');
     Route::get('/stats', [PublicQrScanController::class, 'scanStats'])->name('stats');
     Route::get('/search', [PublicQrScanController::class, 'searchSiswaGuru'])
@@ -206,7 +206,7 @@ Route::prefix('ekskul/scan-qr')->name('public.ekskul.scan.')->group(function () 
 
 // ── Halaman Live Board Publik (tanpa login) ───────────────────────────────────
 Route::get('/live-board', [PublicQrScanController::class, 'liveBoard'])->name('public.live-board')->middleware('device.trusted');
-Route::post('/live-board/scan', [PublicQrScanController::class, 'liveBoardScan'])->name('public.live-board.scan')->middleware(['throttle:120,1', 'device.trusted']);
+Route::post('/live-board/scan', [PublicQrScanController::class, 'liveBoardScan'])->name('public.live-board.scan')->middleware(['throttle:qr-scan', 'device.trusted']);
 Route::get('/live-board/leaderboard', [PublicQrScanController::class, 'liveBoardLeaderboard'])->name('public.live-board.leaderboard');
 Route::get('/live-board-guru', [\App\Http\Controllers\Admin\LiveBoardGuruController::class, 'index'])->name('public.live-board-guru');
 Route::get('/live-board-guru/data', [\App\Http\Controllers\Admin\LiveBoardGuruController::class, 'data'])->name('public.live-board-guru.data');

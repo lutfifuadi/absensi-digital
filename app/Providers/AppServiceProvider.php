@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Vite;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,6 +29,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // ── Custom Rate Limiter: QR Scan ──────────────────────────────────────────
+        // Menggunakan session ID sebagai key, bukan IP address.
+        // Ini menghindari false-positive throttle di sekolah yang menggunakan
+        // jaringan shared (NAT) sehingga semua device keluar dari 1 IP publik.
+        RateLimiter::for('qr-scan', function ($request) {
+            // Gunakan session ID sebagai key per-device, fallback ke IP
+            $key = $request->session()->getId() ?: $request->ip();
+            return Limit::perMinute(300)->by($key);
+        });
+
         // Set Carbon locale to Indonesian globally
         \Carbon\Carbon::setLocale('id');
         setlocale(LC_TIME, 'id_ID');

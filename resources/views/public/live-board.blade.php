@@ -1669,6 +1669,17 @@ async function handleScan(qrCode) {
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
       body: JSON.stringify({ qr_code: qrCode, mode: CURRENT_MODE, client_timestamp: new Date().toISOString() }),
     });
+
+    // ── Handle 429 Too Many Requests ───────────────────────────────────────
+    if (resp.status === 429) {
+      const retryAfter = parseInt(resp.headers.get('Retry-After') || '3', 10);
+      showToast('warning', '⚡', null, `Scanner jeda ${retryAfter}s — terlalu banyak scan. Silakan ulangi.`);
+      beep('error');
+      // Reset lastQR agar QR yang sama bisa discan lagi setelah cooldown
+      setTimeout(() => { lastQR = ''; }, retryAfter * 1000);
+      return;
+    }
+
     const data = await resp.json();
     if (data.success) {
       scanCount++;

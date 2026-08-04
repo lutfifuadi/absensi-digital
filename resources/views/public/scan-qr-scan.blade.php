@@ -1135,6 +1135,22 @@
         return;
       }
 
+      // ── Handle 429 Too Many Requests ──────────────────────────────────────────
+      if (resp.status === 429) {
+        const retryAfter = parseInt(resp.headers.get('Retry-After') || '3', 10);
+        beep('error');
+        incrStat('error');
+        flash('error');
+        showToast('warning', { nama: 'Terlalu Cepat ⚡' }, `Scanner jeda ${retryAfter}s — terlalu banyak scan. Silakan ulangi.`);
+        // Unlock otomatis setelah cooldown agar scanner bisa lanjut
+        setTimeout(() => {
+          isProcessing = false;
+          lastQR = ''; // Reset debounce agar QR yang sama bisa discan ulang
+          if (stream && !animFrame) animFrame = requestAnimationFrame(tick);
+        }, retryAfter * 1000);
+        return;
+      }
+
       const data = await resp.json();
       if (data.success) {
         flash('success');
