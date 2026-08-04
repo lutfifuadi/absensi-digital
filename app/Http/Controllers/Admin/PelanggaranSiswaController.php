@@ -170,13 +170,20 @@ class PelanggaranSiswaController extends Controller
                     'is_diarsipkan' => false,
                 ]);
 
-                // 2. Simpan foto bukti jika ada
+                // 2. Simpan foto bukti jika ada (Google Drive jika aktif, atau storage lokal privat)
                 if ($request->hasFile('foto')) {
                     $file = $request->file('foto');
-                    $filename = uniqid('pelanggaran_') . '.' . $file->getClientOriginalExtension();
-                    
-                    // Simpan di private storage
-                    $path = $file->storeAs('private/pelanggaran-foto', $filename);
+                    $gdrive = app(\App\Services\GoogleDriveService::class);
+                    $path = null;
+
+                    if ($gdrive->isEnabled()) {
+                        $path = $gdrive->uploadPhoto($file);
+                    }
+
+                    if (!$path) {
+                        $filename = uniqid('pelanggaran_') . '.' . $file->getClientOriginalExtension();
+                        $path = $file->storeAs('private/pelanggaran-foto', $filename);
+                    }
 
                     PelanggaranFoto::create([
                         'pelanggaran_id' => $pelanggaran->id,
@@ -398,16 +405,36 @@ class PelanggaranSiswaController extends Controller
         $pelanggaran = PelanggaranSiswa::findOrFail($foto->pelanggaran_id);
         $this->authorize('view', $pelanggaran);
 
-        $path = $foto->path_foto;
+        $path = $foto->path_foto ?? $foto->foto_path;
 
-        if (!Storage::exists($path)) {
-            abort(404, 'File foto bukti tidak ditemukan.');
+        // 1. Coba ambil dari Google Drive jika service aktif & terdaftar
+        $gdrive = app(\App\Services\GoogleDriveService::class);
+        if ($gdrive->isEnabled() && !empty($path)) {
+            $base64 = $gdrive->getPhotoBase64($path);
+            if ($base64) {
+                $data = explode(',', $base64);
+                $mime = 'image/jpeg';
+                if (count($data) > 1 && preg_match('/data:(image\/[a-zA-Z]+);base64/', $data[0], $matches)) {
+                    $mime = $matches[1];
+                    $content = base64_decode($data[1]);
+                } else {
+                    $content = base64_decode($base64);
+                }
+                return response($content, 200)->header('Content-Type', $mime);
+            }
         }
 
-        $file = Storage::get($path);
-        $type = Storage::mimeType($path) ?: 'image/jpeg';
+        // 2. Private Storage lokal
+        if ($path && Storage::exists($path)) {
+            return Storage::response($path);
+        }
 
-        return response($file, 200)->header('Content-Type', $type);
+        // 3. Public Storage lokal
+        if ($path && Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->response($path);
+        }
+
+        abort(404, 'File foto bukti tidak ditemukan.');
     }
 
     /**

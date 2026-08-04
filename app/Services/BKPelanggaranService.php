@@ -44,12 +44,26 @@ class BKPelanggaranService
                 'is_diarsipkan' => false,
             ]);
 
-            // Save optional photo proof
+            // Save optional photo proof (Google Drive if enabled, or private local storage)
             if ($buktiFoto) {
-                $path = $buktiFoto->store('pelanggaran_foto', 'public');
+                $gdrive = app(\App\Services\GoogleDriveService::class);
+                $path = null;
+
+                if ($gdrive->isEnabled()) {
+                    $path = $gdrive->uploadPhoto($buktiFoto);
+                }
+
+                if (!$path) {
+                    $filename = uniqid('pelanggaran_') . '.' . $buktiFoto->getClientOriginalExtension();
+                    $path = $buktiFoto->storeAs('private/pelanggaran-foto', $filename);
+                }
+
                 PelanggaranFoto::create([
                     'pelanggaran_id' => $pelanggaran->id,
-                    'foto_path' => $path,
+                    'path_foto' => $path,
+                    'nama_file_asli' => $buktiFoto->getClientOriginalName(),
+                    'ukuran_byte' => $buktiFoto->getSize(),
+                    'created_at' => now(),
                 ]);
             }
 
