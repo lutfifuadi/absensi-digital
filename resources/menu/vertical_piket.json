@@ -33,12 +33,6 @@
       "url": "/admin/absensi-per-jam"
     },
     {
-      "name": "Rekap Harian Piket",
-      "icon": "menu-icon ti tabler-report",
-      "slug": "piket.rekap",
-      "url": "/piket/rekap"
-    },
-    {
       "name": "Poin Pelanggaran",
       "icon": "menu-icon ti tabler-swords",
       "slug": ["admin.pelanggaran.index", "admin.pelanggaran.create"],
@@ -54,6 +48,28 @@
           "url": "/admin/pelanggaran/create"
         }
       ]
+    },
+    {
+      "menuHeader": "Laporan & Rekapitulasi",
+      "icon": "menu-icon ti tabler-report-analytics"
+    },
+    {
+      "name": "Rekap Harian Piket",
+      "icon": "menu-icon ti tabler-report",
+      "slug": "piket.rekap",
+      "url": "/piket/rekap"
+    },
+    {
+      "name": "Rekap Absensi Siswa",
+      "icon": "menu-icon ti tabler-report-analytics",
+      "slug": "admin.laporan.index",
+      "url": "/admin/laporan"
+    },
+    {
+      "name": "Rekap Monitoring Guru",
+      "icon": "menu-icon ti tabler-presentation-analytics",
+      "slug": "admin.monitoring.index",
+      "url": "/admin/monitoring"
     }
   ]
 }

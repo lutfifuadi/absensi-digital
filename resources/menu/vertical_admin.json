@@ -331,6 +331,39 @@
       ]
     },
     {
+      "menuHeader": "Laporan & Rekapitulasi"
+    },
+    {
+      "name": "Laporan Presensi Siswa",
+      "icon": "menu-icon ti tabler-report-analytics",
+      "slug": "admin.laporan.index",
+      "url": "/admin/laporan"
+    },
+    {
+      "name": "Rekap Jam Pelajaran",
+      "icon": "menu-icon ti tabler-clock-play",
+      "slug": "admin.absensi-per-jam.rekap",
+      "url": "/admin/absensi-per-jam/rekap"
+    },
+    {
+      "name": "Rekap Monitoring Piket",
+      "icon": "menu-icon ti tabler-report",
+      "slug": "admin.monitoring.index",
+      "url": "/admin/monitoring"
+    },
+    {
+      "name": "Rekap Scan Kegiatan",
+      "icon": "menu-icon ti tabler-list-check",
+      "slug": "admin.absensi-kegiatan.rekap",
+      "url": "/admin/absensi-kegiatan/rekap"
+    },
+    {
+      "name": "Rekap Pelanggaran BK",
+      "icon": "menu-icon ti tabler-chart-pie",
+      "slug": "admin.pelanggaran-siswa.rekap",
+      "url": "/admin/pelanggaran-siswa/rekap"
+    },
+    {
       "menuHeader": "Monitoring & Evaluasi"
     },
     {
