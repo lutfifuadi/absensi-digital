@@ -97,9 +97,9 @@ class LaporanController extends Controller
 
         $kelas = $kelasId ? Kelas::find($kelasId) : null;
         $namaBulan   = \Carbon\Carbon::createFromDate($tahun, $bulan, 1)->translatedFormat('F');
-        $namaSekolah = Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
-        $kepalaSekolah = Pengaturan::where('key', 'kepala_sekolah')->value('value') ?? '-';
-        $nipKepala     = Pengaturan::where('key', 'nip_kepala_sekolah')->value('value') ?? '';
+        $namaSekolah   = setting('nama_sekolah') ?: setting('nama_lembaga') ?: 'Madrasah Aliyah';
+        $kepalaSekolah = setting('nama_kepala_lembaga') ?: setting('kepala_sekolah') ?: setting('nama_kepala_sekolah') ?: setting('kepala_lembaga') ?: '';
+        $nipKepala     = setting('nip_kepala_lembaga') ?: setting('nip_kepala_sekolah') ?: setting('nip_kepala') ?: '';
 
         if ($tipeLaporan === 'detail') {
             $absensiLogs = AbsensiSiswa::with(['siswa.kelas', 'guru'])

@@ -215,6 +215,21 @@
     $telpSekolah   = setting('telepon_sekolah') ?: setting('telepon');
     $emailSekolah  = setting('email_sekolah') ?: setting('email');
     $headerContact = array_filter([$telpSekolah ? 'Telp: '.$telpSekolah : null, $emailSekolah ? 'Email: '.$emailSekolah : null]);
+
+    $kepalaSekolah = !empty($kepalaSekolah) && $kepalaSekolah !== '-' ? $kepalaSekolah : (
+        setting('nama_kepala_lembaga')
+        ?: setting('kepala_sekolah')
+        ?: setting('nama_kepala_sekolah')
+        ?: setting('kepala_lembaga')
+        ?: ''
+    );
+
+    $nipKepala     = !empty($nipKepala) ? $nipKepala : (
+        setting('nip_kepala_lembaga')
+        ?: setting('nip_kepala_sekolah')
+        ?: setting('nip_kepala')
+        ?: ''
+    );
   @endphp
 
   <!-- KOP SURAT RESMI -->
