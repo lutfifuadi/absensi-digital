@@ -665,6 +665,7 @@
                     {{-- HADIR --}}
                     <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_hadir"
                       value="hadir" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', $el.value, $el.closest('tr'))" data-roster-status
+                      @checked($status === 'hadir')
                       @if (!$canEdit) disabled @endif>
                     <label class="btn btn-outline-success" for="status_{{ $i }}_hadir">
                       <i class="ti tabler-user-check me-1"></i>Hadir
@@ -673,6 +674,7 @@
                     {{-- TERLAMBAT --}}
                     <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_terlambat"
                       value="terlambat" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', $el.value, $el.closest('tr'))" data-roster-status
+                      @checked($status === 'terlambat')
                       @if (!$canEdit) disabled @endif>
                     <label class="btn btn-outline-primary" for="status_{{ $i }}_terlambat">
                       <i class="ti tabler-clock-exclamation me-1"></i>Terlambat
@@ -681,6 +683,7 @@
                     {{-- ALPHA --}}
                     <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_alpha"
                       value="alpha" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', $el.value, $el.closest('tr'))" data-roster-status
+                      @checked($status === 'alpha')
                       @if (!$canEdit) disabled @endif>
                     <label class="btn btn-outline-danger" for="status_{{ $i }}_alpha">
                       <i class="ti tabler-user-x me-1"></i>Alpha
@@ -689,6 +692,7 @@
                     {{-- IZIN --}}
                     <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_izin"
                       value="izin" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', $el.value, $el.closest('tr'))" data-roster-status
+                      @checked($status === 'izin')
                       @if (!$canEdit) disabled @endif>
                     <label class="btn btn-outline-warning" for="status_{{ $i }}_izin">
                       <i class="ti tabler-file-description me-1"></i>Izin
@@ -697,6 +701,7 @@
                     {{-- SAKIT --}}
                     <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_sakit"
                       value="sakit" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', $el.value, $el.closest('tr'))" data-roster-status
+                      @checked($status === 'sakit')
                       @if (!$canEdit) disabled @endif>
                     <label class="btn btn-outline-info" for="status_{{ $i }}_sakit">
                       <i class="ti tabler-stethoscope me-1"></i>Sakit
@@ -705,6 +710,7 @@
                     {{-- BOLOS --}}
                     <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_bolos"
                       value="bolos" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', $el.value, $el.closest('tr'))" data-roster-status
+                      @checked($status === 'bolos')
                       @if (!$canEdit) disabled @endif>
                     <label class="btn btn-outline-dark" for="status_{{ $i }}_bolos">
                       <i class="ti tabler-walk me-1"></i>Bolos
@@ -1093,7 +1099,9 @@
         defaultTemplate: @json($defaultWaTemplate),
 
         init() {
-          this.recount();
+          this.$nextTick(() => {
+            this.recount();
+          });
           this.initWA();
         },
 
@@ -1132,6 +1140,8 @@
             }
           });
 
+          this.counts = { ...this.counts, ...counts };
+
           const formatList = (arr) => {
             if (!arr || arr.length === 0) return '-';
             return arr.map((item, idx) => `${idx + 1}. ${item}`).join('\n');
@@ -1161,6 +1171,7 @@
 
         openWAModal() {
           this.initWA();
+          this.recount();
           this.generateWAText();
           const modalEl = document.getElementById('modalShareWA');
           if (modalEl) {
@@ -1255,8 +1266,11 @@
         // Hitung ulang counter status dari radio button ter-check (live)
         recount() {
           const c = { hadir: 0, terlambat: 0, sakit: 0, izin: 0, alpha: 0, dispen: 0, bolos: 0 };
-          document.querySelectorAll('[data-roster-status]:checked').forEach(radio => {
-            if (c[radio.value] !== undefined) c[radio.value]++;
+          document.querySelectorAll('tr.siswa-row-hover').forEach(tr => {
+            const checkedRadio = tr.querySelector('[data-roster-status]:checked');
+            if (checkedRadio && c[checkedRadio.value] !== undefined) {
+              c[checkedRadio.value]++;
+            }
           });
           this.counts = c;
         },
