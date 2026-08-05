@@ -470,6 +470,11 @@
   @endphp
 
   {{-- ═══════════════════════════════════════════════════════
+       MAIN ALPINE COMPONENT WRAPPER
+  ═══════════════════════════════════════════════════════ --}}
+  <div x-data="absensiRoster({ sesiTerisi: {{ $sesiTerisi ? 'true' : 'false' }} })" @roster-change="recount">
+
+  {{-- ═══════════════════════════════════════════════════════
        HERO HEADER (Gaya Absensi Cepat)
   ═══════════════════════════════════════════════════════ --}}
   <div class="das-hero mb-4">
@@ -572,7 +577,7 @@
   {{-- ═══════════════════════════════════════════════════════
        FORM ROSTER — GAYA ABSENSI CEPAT
   ═══════════════════════════════════════════════════════ --}}
-  <div x-data="absensiRoster({ sesiTerisi: {{ $sesiTerisi ? 'true' : 'false' }} })" @roster-change="recount">
+  <div>
     <form id="absensiForm" method="POST"
       action="{{ route('admin.absensi-per-jam.store', $jadwal->id) }}"
       @submit.prevent="openConfirm">
