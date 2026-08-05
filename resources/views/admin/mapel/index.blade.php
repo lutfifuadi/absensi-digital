@@ -258,7 +258,12 @@
       cursor: not-allowed;
     }
   </style>
+  @section('vendor-style')
   @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
+@endsection
+
+@section('vendor-script')
+  @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.js'])
 @endsection
 
 @section('content')
@@ -373,45 +378,6 @@
         @include('admin.mapel.table')
       </div>
     </div>
-  {{-- Modal Konfirmasi Hapus --}}
-  <div class="modal fade" id="modalHapusMapel" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
-      <div class="modal-content das-modal border-0 shadow-lg">
-        <div class="das-modal-head px-4 py-3 d-flex align-items-center justify-content-between">
-          <div class="d-flex align-items-center gap-3">
-            <div style="width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(234,84,85,0.2);border:1px solid rgba(234,84,85,0.35);">
-              <i class="ti tabler-alert-triangle text-danger fs-5"></i>
-            </div>
-            <div>
-              <h5 class="das-modal-title text-white fw-bold">Konfirmasi Hapus</h5>
-              <small class="text-white-50">Tindakan ini tidak dapat dibatalkan.</small>
-            </div>
-          </div>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <form id="formHapusMapel" method="POST">
-          @csrf
-          @method('DELETE')
-          <div class="das-modal-body text-center py-4">
-            <p class="mb-1 text-white-50">Yakin ingin menghapus mata pelajaran:</p>
-            <p class="fw-bold text-warning fs-5 mb-1" id="hapusNamaMapel">—</p>
-            <p class="text-white-50 small" id="hapusKodeMapel">—</p>
-            <p class="text-white-50 small mt-3 mb-0">
-              <i class="ti tabler-info-circle me-1"></i>
-              Data mata pelajaran ini akan dihapus secara permanen.
-            </p>
-          </div>
-          <div class="px-4 pb-4 pt-2 d-flex gap-2 justify-content-center">
-            <button type="button" class="btn btn-label-secondary px-4 w-100" data-bs-dismiss="modal" id="btnBatalHapus">
-              <i class="ti tabler-x me-1"></i> Batal
-            </button>
-            <button type="submit" class="btn btn-danger fw-semibold px-4 w-100 shadow-sm" id="btnSubmitHapus">
-              <i class="ti tabler-trash me-1"></i> Hapus
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
   </div>
 
 @endsection
@@ -426,13 +392,6 @@
       const resetFilterBtn = document.getElementById('resetFilterBtn');
       const perPageSelect = document.getElementById('perPageSelect');
       const container = document.getElementById('table-container');
-
-      const modalHapusMapel = new bootstrap.Modal(document.getElementById('modalHapusMapel'));
-      const hapusNamaMapel = document.getElementById('hapusNamaMapel');
-      const hapusKodeMapel = document.getElementById('hapusKodeMapel');
-      const formHapusMapel = document.getElementById('formHapusMapel');
-      const btnSubmitHapus = document.getElementById('btnSubmitHapus');
-      const btnBatalHapus = document.getElementById('btnBatalHapus');
 
       let searchTimeout;
 
@@ -457,21 +416,10 @@
           container.style.opacity = '1';
           container.style.pointerEvents = 'auto';
 
-          // Update total count chip
-          const totalMatch = html.match(/class="das-chip --info.*?>\s*(\d+)\s+Mapel/);
-          // (optional, if we need to update chip outside the table block. But wait, chip is outside table-container!)
-          // Let's reload count if needed, or we can just fetch the count from table or keep it simple.
-          // Wait, let's update the chip count using selector or from data-total if we put it in table.
-          // In table.blade.php we can output a script or custom header, or we can just parse the total.
-          // Actually, let's look at SiswaController or similar. In siswa/index.blade.php:
-          // We can select the chip and update it. Let's see if we can get total from the pagination total if available.
+          const totalInput = document.getElementById('hidden-total-count');
           const totalBadge = document.querySelector('.das-chip.--info');
-          if (totalBadge) {
-            // Find total from page links
-            const totalInput = document.getElementById('hidden-total-count');
-            if (totalInput) {
-              totalBadge.textContent = totalInput.value + ' Mapel';
-            }
+          if (totalBadge && totalInput) {
+            totalBadge.textContent = totalInput.value + ' Mapel';
           }
 
           // Re-initialize tooltips
@@ -532,7 +480,7 @@
         }
       });
 
-      // Handle delete button click
+      // Handle delete button click using SweetAlert2 Premium Dark
       container.addEventListener('click', function (e) {
         const btn = e.target.closest('.btn-delete-mapel');
         if (!btn) return;
@@ -540,51 +488,91 @@
         const url = btn.dataset.url;
         const nama = btn.dataset.nama || 'mata pelajaran ini';
         const tr = btn.closest('tr');
-        const kode = tr ? tr.querySelector('td:nth-child(2)').textContent.trim() : '';
+        const kodeCell = tr ? tr.querySelector('td:nth-child(2)') : null;
+        const kode = kodeCell ? kodeCell.textContent.trim() : '';
 
-        hapusNamaMapel.textContent = nama;
-        hapusKodeMapel.textContent = 'Kode: ' + (kode || '-');
-        formHapusMapel.action = url;
+        Swal.fire({
+          title: 'Konfirmasi Hapus',
+          html: `<p class="mb-1 text-white-50">Yakin ingin menghapus mata pelajaran:</p>
+                 <h5 class="fw-bold text-warning mb-1">${nama}</h5>
+                 <p class="text-white-50 small mb-3">Kode: ${kode || '-'}</p>
+                 <small class="text-white-50"><i class="ti tabler-info-circle me-1"></i>Data mata pelajaran ini akan dihapus secara permanen.</small>`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: '<i class="ti tabler-trash me-1"></i> Ya, Hapus',
+          cancelButtonText: '<i class="ti tabler-x me-1"></i> Batal',
+          customClass: {
+            popup: 'das-swal-popup',
+            title: 'das-swal-title',
+            htmlContainer: 'das-swal-html',
+            confirmButton: 'btn btn-danger das-swal-confirm',
+            cancelButton: 'btn btn-secondary das-swal-cancel',
+            actions: 'das-swal-actions'
+          },
+          buttonsStyling: false,
+          reverseButtons: true,
+          backdrop: `rgba(0,0,10,0.55)`
+        }).then((result) => {
+          if (!result.isConfirmed) return;
 
-        modalHapusMapel.show();
-      });
-
-      // Submit delete form via AJAX
-      formHapusMapel.addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        btnSubmitHapus.disabled = true;
-        btnBatalHapus.disabled = true;
-        btnSubmitHapus.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Menghapus...';
-
-        fetch(formHapusMapel.action, {
-          method: 'DELETE',
-          headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-          }
-        })
-        .then(res => res.json())
-        .then(data => {
-          modalHapusMapel.hide();
-          
-          if (data.success) {
-            // Tampilkan flash alert simple / push notification
-            fetchMapel(1);
-          } else {
-            alert(data.message || 'Gagal menghapus data.');
-          }
-        })
-        .catch(err => {
-          modalHapusMapel.hide();
-          console.error('Delete mapel error:', err);
-          alert('Terjadi kesalahan koneksi.');
-        })
-        .finally(() => {
-          btnSubmitHapus.disabled = false;
-          btnBatalHapus.disabled = false;
-          btnSubmitHapus.innerHTML = '<i class="ti tabler-trash me-1"></i> Hapus';
+          fetch(url, {
+            method: 'DELETE',
+            headers: {
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json',
+            }
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: data.message || 'Mata pelajaran berhasil dihapus.',
+                customClass: {
+                  popup: 'das-swal-popup',
+                  title: 'das-swal-title',
+                  htmlContainer: 'das-swal-html',
+                  confirmButton: 'btn btn-success das-swal-confirm'
+                },
+                timer: 2000,
+                showConfirmButton: false,
+                backdrop: `rgba(0,0,10,0.55)`
+              });
+              fetchMapel(1);
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: data.message || 'Gagal menghapus data.',
+                customClass: {
+                  popup: 'das-swal-popup',
+                  title: 'das-swal-title',
+                  htmlContainer: 'das-swal-html',
+                  confirmButton: 'btn btn-primary das-swal-confirm'
+                },
+                buttonsStyling: false,
+                backdrop: `rgba(0,0,10,0.55)`
+              });
+            }
+          })
+          .catch(err => {
+            console.error('Delete mapel error:', err);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: 'Terjadi kesalahan koneksi.',
+              customClass: {
+                popup: 'das-swal-popup',
+                title: 'das-swal-title',
+                htmlContainer: 'das-swal-html',
+                confirmButton: 'btn btn-primary das-swal-confirm'
+              },
+              buttonsStyling: false,
+              backdrop: `rgba(0,0,10,0.55)`
+            });
+          });
         });
       });
     });
