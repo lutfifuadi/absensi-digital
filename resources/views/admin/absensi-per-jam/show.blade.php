@@ -415,6 +415,32 @@
       0% { background-color: rgba(40, 199, 111, 0.3) !important; }
       100% { background-color: transparent !important; }
     }
+
+    /* SweetAlert2 Toast Ultra-Neat Override (No circular ring, perfectly aligned) */
+    .custom-swal-toast-popup {
+      background: #1e2640 !important;
+      border: 1px solid rgba(40, 199, 111, 0.4) !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(40, 199, 111, 0.2) !important;
+      border-radius: 12px !important;
+      padding: 0.65rem 1rem !important;
+      align-items: center !important;
+    }
+    .custom-swal-toast-title {
+      font-size: 0.84rem !important;
+      font-weight: 600 !important;
+      color: #ffffff !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      line-height: 1.4 !important;
+    }
+    .swal2-toast .swal2-icon {
+      margin: 0 0.65rem 0 0 !important;
+      transform: scale(0.75) !important;
+    }
+    .swal2-toast .swal2-timer-progress-bar-container,
+    .swal2-toast .swal2-timer-progress-bar {
+      display: none !important;
+    }
   </style>
 @endsection
 
@@ -955,10 +981,14 @@
           icon: iconType,
           title: displayTitle,
           showConfirmButton: false,
-          timer: 2200,
-          timerProgressBar: true,
-          background: '#0f172a',
-          color: '#f8fafc'
+          timer: 2000,
+          timerProgressBar: false,
+          background: '#1e2640',
+          color: '#ffffff',
+          customClass: {
+            popup: 'custom-swal-toast-popup',
+            title: 'custom-swal-toast-title'
+          }
         });
         return;
       }
