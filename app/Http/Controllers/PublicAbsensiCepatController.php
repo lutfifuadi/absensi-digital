@@ -117,8 +117,8 @@ class PublicAbsensiCepatController extends Controller
 
         $data = $siswaList->map(function ($siswa) use ($absensiMap, $statusMapFromDb) {
             $abs = $absensiMap->get($siswa->id);
-            $dbStatus = $abs ? $abs->status : 'hadir';
-            $mappedStatus = $statusMapFromDb[$dbStatus] ?? 'H';
+            $dbStatus = $abs ? $abs->status : null;
+            $mappedStatus = $dbStatus ? ($statusMapFromDb[$dbStatus] ?? null) : null;
 
             return [
                 'id' => $siswa->id,
@@ -128,7 +128,7 @@ class PublicAbsensiCepatController extends Controller
                 'nis' => $siswa->nis ?? $siswa->nisn ?? '-',
                 'nama_lengkap' => $siswa->nama_lengkap,
                 'foto' => $siswa->foto ? asset('storage/' . $siswa->foto) : null,
-                'status' => $mappedStatus, // 'H', 'S', 'I', 'A', 'T'
+                'status' => $mappedStatus,
                 'keterangan' => $abs ? $abs->keterangan : '',
             ];
         });
@@ -185,7 +185,8 @@ class PublicAbsensiCepatController extends Controller
 
             foreach ($guruList as $guru) {
                 $abs = $absensiGuruMap->get($guru->id);
-                $dbStatus = $abs ? $abs->status : 'hadir';
+                $dbStatus = $abs ? $abs->status : null;
+                $mappedStatus = $dbStatus ? ($statusMapFromDb[$dbStatus] ?? null) : null;
                 $data->push([
                     'id' => $guru->id,
                     'type' => 'guru',
@@ -193,7 +194,7 @@ class PublicAbsensiCepatController extends Controller
                     'sub_info' => 'Guru • NIP: ' . ($guru->nip ?? '-'),
                     'nis' => $guru->nip ?? '-',
                     'nama_lengkap' => $guru->nama_lengkap,
-                    'status' => $statusMapFromDb[$dbStatus] ?? 'H',
+                    'status' => $mappedStatus,
                     'keterangan' => $abs ? $abs->keterangan : '',
                 ]);
             }
@@ -217,7 +218,8 @@ class PublicAbsensiCepatController extends Controller
 
             foreach ($staffList as $staff) {
                 $abs = $absensiStaffMap->get($staff->id);
-                $dbStatus = $abs ? $abs->status : 'hadir';
+                $dbStatus = $abs ? $abs->status : null;
+                $mappedStatus = $dbStatus ? ($statusMapFromDb[$dbStatus] ?? null) : null;
                 $data->push([
                     'id' => $staff->id,
                     'type' => 'staff',
@@ -225,7 +227,7 @@ class PublicAbsensiCepatController extends Controller
                     'sub_info' => 'Staff TU • NIP: ' . ($staff->nip ?? '-'),
                     'nis' => $staff->nip ?? '-',
                     'nama_lengkap' => $staff->nama_lengkap,
-                    'status' => $statusMapFromDb[$dbStatus] ?? 'H',
+                    'status' => $mappedStatus,
                     'keterangan' => $abs ? $abs->keterangan : '',
                 ]);
             }
@@ -259,7 +261,8 @@ class PublicAbsensiCepatController extends Controller
 
             foreach ($siswaList as $siswa) {
                 $abs = $absensiSiswaMap->get($siswa->id);
-                $dbStatus = $abs ? $abs->status : 'hadir';
+                $dbStatus = $abs ? $abs->status : null;
+                $mappedStatus = $dbStatus ? ($statusMapFromDb[$dbStatus] ?? null) : null;
                 $data->push([
                     'id' => $siswa->id,
                     'type' => 'siswa',
@@ -267,7 +270,7 @@ class PublicAbsensiCepatController extends Controller
                     'sub_info' => ($siswa->kelas ? $siswa->kelas->nama : 'Siswa') . ' • NIS: ' . ($siswa->nis ?? '-'),
                     'nis' => $siswa->nis ?? $siswa->nisn ?? '-',
                     'nama_lengkap' => $siswa->nama_lengkap,
-                    'status' => $statusMapFromDb[$dbStatus] ?? 'H',
+                    'status' => $mappedStatus,
                     'keterangan' => $abs ? $abs->keterangan : '',
                 ]);
             }

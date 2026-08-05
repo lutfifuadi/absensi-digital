@@ -540,7 +540,7 @@
                 });
               },
               autoSaveSingle(student) {
-                if (!student || !student.id) return;
+                if (!student || !student.id || !student.status) return;
                 fetch('{{ route('public.absensi-cepat.store-single') }}', {
                   method: 'POST',
                   headers: {
@@ -584,7 +584,8 @@
                 .catch(err => console.error('Public AutoSave Error:', err));
               },
              submitBulk() {
-               if (this.students.length === 0) return;
+               const validStudents = this.students.filter(s => s.status);
+               if (validStudents.length === 0) return;
                this.submitting = true;
                fetch('{{ route('public.absensi-cepat.bulk') }}', {
                  method: 'POST',
@@ -594,7 +595,7 @@
                  },
                  body: JSON.stringify({
                    kelas_id: this.selectedKelas || null,
-                   absensi: this.students.map(s => ({
+                   absensi: validStudents.map(s => ({
                      id: s.id,
                      type: s.type || 'siswa',
                      status: s.status,
