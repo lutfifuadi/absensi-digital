@@ -728,6 +728,47 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(0, 0, 0, 0.05);
 }
+
+/* ════════════════════════════════════════════════════════════
+   MAX 5PX BORDER RADIUS OVERRIDE FOR ALL UI ELEMENTS
+════════════════════════════════════════════════════════════ */
+.entitas-card,
+.entitas-card__icon,
+.opsi-card,
+.opsi-card__icon,
+.step-num,
+.set-input,
+#searchIndividu,
+#searchKelas,
+#template_id,
+.individu-search-results,
+.search-result-item,
+.search-result-item .sri-nip,
+.search-result-item .avatar-initials-mini,
+.selected-chip,
+.selected-chip .chip-remove,
+.selected-chip .avatar-initials-mini,
+.preview-bar,
+.preview-bar__icon,
+.no-template-msg,
+.btn-download-big,
+.set-panel,
+.set-panel__icon,
+.das-hero,
+.das-hero__logo-wrapper,
+.das-hero__logo-placeholder,
+.das-hero__badge,
+.das-btn,
+.btn,
+.badge,
+.alert,
+.form-control,
+.form-select,
+.modal-content,
+.modal-header,
+.modal-footer {
+  border-radius: 5px !important;
+}
 </style>
 @endsection
 
