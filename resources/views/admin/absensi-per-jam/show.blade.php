@@ -1,5 +1,7 @@
 @extends('layouts/layoutMaster')
 
+@php $isFooter = false; @endphp
+
 @section('title', 'Isi Absensi Siswa per Jam — Absensi Cepat')
 
 @section('vendor-style')
