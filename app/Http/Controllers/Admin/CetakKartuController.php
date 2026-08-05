@@ -40,6 +40,19 @@ class CetakKartuController extends Controller
         return view('admin.cetak-kartu.index', compact('kelasOptions', 'templates', 'guruList', 'staffList'));
     }
 
+    private function parseEntitasIds($rawId): array
+    {
+        if (is_array($rawId)) {
+            $ids = array_map('intval', $rawId);
+        } elseif (is_string($rawId) || is_numeric($rawId)) {
+            $ids = array_map('intval', explode(',', (string)$rawId));
+        } else {
+            $ids = [];
+        }
+
+        return array_values(array_filter($ids));
+    }
+
     /**
      * Proses download PDF kartu identitas.
      */
@@ -48,11 +61,11 @@ class CetakKartuController extends Controller
         @ini_set('memory_limit', '1024M');
 
         $validated = $request->validate([
-            'tipe'       => 'required|in:siswa,guru,staff',
+            'tipe'        => 'required|in:siswa,guru,staff',
             'template_id' => 'required|exists:id_card_templates,id',
-            'opsi_cetak' => 'required|in:semua,kelas,individu',
-            'kelas_id'   => 'required_if:opsi_cetak,kelas|nullable|exists:kelas,id',
-            'entitas_id' => 'required_if:opsi_cetak,individu|nullable|integer',
+            'opsi_cetak'  => 'required|in:semua,kelas,individu',
+            'kelas_id'    => 'required_if:opsi_cetak,kelas|nullable|exists:kelas,id',
+            'entitas_id'  => 'required_if:opsi_cetak,individu|nullable',
         ]);
 
         $tipe       = $validated['tipe'];
@@ -79,34 +92,43 @@ class CetakKartuController extends Controller
                     ->get();
                 $label = 'Kartu_Pelajar_Kelas_' . ($kelas ? str_replace(' ', '_', $kelas->nama) : $kelasId);
             } elseif ($opsiCetak === 'individu') {
-                $entities = Siswa::where('id', $validated['entitas_id'])
+                $ids = $this->parseEntitasIds($validated['entitas_id'] ?? null);
+                $entities = Siswa::whereIn('id', $ids)
                     ->where('status', 'aktif')
                     ->with('kelas', 'tahunAkademik')
                     ->get();
                 $siswa = $entities->first();
-                $label = 'Kartu_Pelajar_' . ($siswa ? str_replace(' ', '_', $siswa->nama_lengkap) : $validated['entitas_id']);
+                $label = ($entities->count() === 1 && $siswa) 
+                    ? 'Kartu_Pelajar_' . str_replace(' ', '_', $siswa->nama_lengkap)
+                    : 'Kartu_Pelajar_' . $entities->count() . '_Siswa';
             }
         } elseif ($tipe === 'guru') {
             if ($opsiCetak === 'semua') {
                 $entities = Guru::where('status', 'aktif')->get();
                 $label = 'Kartu_Guru_Semua_Guru';
             } elseif ($opsiCetak === 'individu') {
-                $entities = Guru::where('id', $validated['entitas_id'])
+                $ids = $this->parseEntitasIds($validated['entitas_id'] ?? null);
+                $entities = Guru::whereIn('id', $ids)
                     ->where('status', 'aktif')
                     ->get();
                 $guru = $entities->first();
-                $label = 'Kartu_Guru_' . ($guru ? str_replace(' ', '_', $guru->nama_lengkap) : $validated['entitas_id']);
+                $label = ($entities->count() === 1 && $guru) 
+                    ? 'Kartu_Guru_' . str_replace(' ', '_', $guru->nama_lengkap)
+                    : 'Kartu_Guru_' . $entities->count() . '_Guru';
             }
         } elseif ($tipe === 'staff') {
             if ($opsiCetak === 'semua') {
                 $entities = StaffTataUsaha::where('status', 'aktif')->get();
                 $label = 'Kartu_Staff_Semua_Staff';
             } elseif ($opsiCetak === 'individu') {
-                $entities = StaffTataUsaha::where('id', $validated['entitas_id'])
+                $ids = $this->parseEntitasIds($validated['entitas_id'] ?? null);
+                $entities = StaffTataUsaha::whereIn('id', $ids)
                     ->where('status', 'aktif')
                     ->get();
                 $staff = $entities->first();
-                $label = 'Kartu_Staff_' . ($staff ? str_replace(' ', '_', $staff->nama_lengkap) : $validated['entitas_id']);
+                $label = ($entities->count() === 1 && $staff) 
+                    ? 'Kartu_Staff_' . str_replace(' ', '_', $staff->nama_lengkap)
+                    : 'Kartu_Staff_' . $entities->count() . '_Staff';
             }
         }
 
@@ -138,11 +160,11 @@ class CetakKartuController extends Controller
         @ini_set('memory_limit', '1024M');
 
         $validated = $request->validate([
-            'tipe'       => 'required|in:siswa,guru,staff',
+            'tipe'        => 'required|in:siswa,guru,staff',
             'template_id' => 'required|exists:id_card_templates,id',
-            'opsi_cetak' => 'required|in:semua,kelas,individu',
-            'kelas_id'   => 'required_if:opsi_cetak,kelas|nullable|exists:kelas,id',
-            'entitas_id' => 'required_if:opsi_cetak,individu|nullable|integer',
+            'opsi_cetak'  => 'required|in:semua,kelas,individu',
+            'kelas_id'    => 'required_if:opsi_cetak,kelas|nullable|exists:kelas,id',
+            'entitas_id'  => 'required_if:opsi_cetak,individu|nullable',
         ]);
 
         $tipe       = $validated['tipe'];
@@ -165,7 +187,8 @@ class CetakKartuController extends Controller
                     ->with('kelas', 'tahunAkademik')
                     ->get();
             } elseif ($opsiCetak === 'individu') {
-                $entities = Siswa::where('id', $validated['entitas_id'])
+                $ids = $this->parseEntitasIds($validated['entitas_id'] ?? null);
+                $entities = Siswa::whereIn('id', $ids)
                     ->where('status', 'aktif')
                     ->with('kelas', 'tahunAkademik')
                     ->get();
@@ -174,7 +197,8 @@ class CetakKartuController extends Controller
             if ($opsiCetak === 'semua') {
                 $entities = Guru::where('status', 'aktif')->get();
             } elseif ($opsiCetak === 'individu') {
-                $entities = Guru::where('id', $validated['entitas_id'])
+                $ids = $this->parseEntitasIds($validated['entitas_id'] ?? null);
+                $entities = Guru::whereIn('id', $ids)
                     ->where('status', 'aktif')
                     ->get();
             }
@@ -182,7 +206,8 @@ class CetakKartuController extends Controller
             if ($opsiCetak === 'semua') {
                 $entities = StaffTataUsaha::where('status', 'aktif')->get();
             } elseif ($opsiCetak === 'individu') {
-                $entities = StaffTataUsaha::where('id', $validated['entitas_id'])
+                $ids = $this->parseEntitasIds($validated['entitas_id'] ?? null);
+                $entities = StaffTataUsaha::whereIn('id', $ids)
                     ->where('status', 'aktif')
                     ->get();
             }

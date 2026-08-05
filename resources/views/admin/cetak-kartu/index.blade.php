@@ -1171,7 +1171,7 @@ const TOTAL_STAFF = {{ $jumlahStaff }};
 // ════════════════════════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════════════════════════
-let selectedIndividu = null; // { id, name, nip }
+let selectedIndividu = []; // Array of { id, name, sub }
 let selectedKelas    = null; // { id, name }
 
 // ════════════════════════════════════════════════════════════
@@ -1400,7 +1400,7 @@ function filterTemplateOptions(tipe) {
 }
 
 // ════════════════════════════════════════════════════════════
-// SEARCH INDIVIDU
+// SEARCH INDIVIDU (MULTI-SELECT SUPPORT)
 // ════════════════════════════════════════════════════════════
 function getActiveDataset() {
   const tipe = getCheckedVal('tipe');
@@ -1439,69 +1439,108 @@ function renderSearchResults(term) {
     return;
   }
 
+  const selectedIds = selectedIndividu.map(i => String(i.id));
+
   list.innerHTML = filtered.map(item => {
     const name = getItemLabel(item);
     const sub  = getItemSub(item);
     const initial = name.charAt(0).toUpperCase();
-    return `<div class="search-result-item" data-id="${item.id}" data-name="${escHtml(name)}" data-sub="${escHtml(sub)}" onclick="selectIndividu(this)">
-      <div class="avatar-initials-mini">${escHtml(initial)}</div>
+    const isSelected = selectedIds.includes(String(item.id));
+
+    return `<div class="search-result-item ${isSelected ? 'is-selected' : ''}" data-id="${item.id}" data-name="${escHtml(name)}" data-sub="${escHtml(sub)}" onclick="selectIndividu(this)" style="${isSelected ? 'background: rgba(40,199,111,0.12); border-left-color: #28c76f;' : ''}">
+      <div class="avatar-initials-mini" style="${isSelected ? 'background: linear-gradient(135deg, #28c76f, #20c997);' : ''}">${isSelected ? '<i class="ti tabler-check" style="font-size:0.75rem;"></i>' : escHtml(initial)}</div>
       <span class="sri-name">${escHtml(name)}</span>
       ${sub ? `<span class="sri-nip">${escHtml(sub)}</span>` : ''}
+      ${isSelected ? `<span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-30 ms-2" style="font-size:0.68rem;"><i class="ti tabler-check me-1"></i>Terpilih</span>` : ''}
     </div>`;
   }).join('');
 }
 
 function selectIndividu(el) {
-  const id   = el.dataset.id;
+  const id   = String(el.dataset.id);
   const name = el.dataset.name;
   const sub  = el.dataset.sub;
 
-  selectedIndividu = { id, name, sub };
-
-  // Set hidden input
-  const hidden = document.getElementById('entitas_id_hidden');
-  if (hidden) hidden.value = id;
-
-  // Render chip
-  const chipWrap = document.getElementById('selectedChipWrap');
-  if (chipWrap) {
-    chipWrap.innerHTML = `<div class="selected-chip">
-      <div class="avatar-initials-mini" style="background: linear-gradient(135deg, #28c76f, #81ebb2); box-shadow: 0 2px 8px rgba(40, 199, 111, 0.3);">${escHtml(name.charAt(0).toUpperCase())}</div>
-      <span>${escHtml(name)}${sub ? ' — ' + escHtml(sub) : ''}</span>
-      <span class="chip-remove" onclick="clearSelectedIndividu()" title="Hapus pilihan">✕</span>
-    </div>`;
+  const existingIdx = selectedIndividu.findIndex(item => String(item.id) === id);
+  if (existingIdx !== -1) {
+    selectedIndividu.splice(existingIdx, 1);
+  } else {
+    selectedIndividu.push({ id, name, sub });
   }
 
-  // Clear search & results
-  const searchEl = document.getElementById('searchIndividu');
-  if (searchEl) searchEl.value = '';
-  const list = document.getElementById('searchResultsList');
-  if (list) list.innerHTML = '';
+  updateSelectedIndividuUI();
 
-  updatePreviewBar();
+  // Refresh search list display
+  const searchEl = document.getElementById('searchIndividu');
+  if (searchEl && searchEl.value.trim().length > 0) {
+    renderSearchResults(searchEl.value.trim());
+  }
+}
+
+function removeSingleIndividu(id) {
+  selectedIndividu = selectedIndividu.filter(item => String(item.id) !== String(id));
+  updateSelectedIndividuUI();
+
+  const searchEl = document.getElementById('searchIndividu');
+  if (searchEl && searchEl.value.trim().length > 0) {
+    renderSearchResults(searchEl.value.trim());
+  }
 }
 
 function clearSelectedIndividu() {
-  selectedIndividu = null;
+  selectedIndividu = [];
+  updateSelectedIndividuUI();
+
+  const list = document.getElementById('searchResultsList');
+  if (list) list.innerHTML = '';
+}
+
+function updateSelectedIndividuUI() {
   const hidden = document.getElementById('entitas_id_hidden');
-  if (hidden) hidden.value = '';
+  if (hidden) {
+    hidden.value = selectedIndividu.map(i => i.id).join(',');
+  }
+
   const chipWrap = document.getElementById('selectedChipWrap');
-  if (chipWrap) chipWrap.innerHTML = '';
+  if (chipWrap) {
+    if (selectedIndividu.length === 0) {
+      chipWrap.innerHTML = '';
+    } else {
+      let html = selectedIndividu.map(item => `
+        <div class="selected-chip">
+          <div class="avatar-initials-mini" style="background: linear-gradient(135deg, #28c76f, #81ebb2); box-shadow: 0 2px 8px rgba(40, 199, 111, 0.3);">${escHtml(item.name.charAt(0).toUpperCase())}</div>
+          <span>${escHtml(item.name)}${item.sub ? ' — ' + escHtml(item.sub) : ''}</span>
+          <span class="chip-remove" onclick="removeSingleIndividu('${item.id}')" title="Hapus pilihan">✕</span>
+        </div>
+      `).join('');
+
+      if (selectedIndividu.length > 1) {
+        html += `
+          <button type="button" class="btn btn-xs btn-outline-danger align-self-center ms-1" onclick="clearSelectedIndividu()" style="border-radius: 8px; font-size:0.75rem; padding: 0.35rem 0.65rem;">
+            <i class="ti tabler-trash me-1"></i>Hapus Semua (${selectedIndividu.length})
+          </button>
+        `;
+      }
+
+      chipWrap.innerHTML = html;
+    }
+  }
+
   updatePreviewBar();
 }
 
 function updateSearchPlaceholder(tipe) {
   const el = document.getElementById('searchIndividu');
   if (!el) return;
-  if (tipe === 'guru')  el.placeholder = 'Ketik nama atau NIP guru...';
-  else if (tipe === 'staff') el.placeholder = 'Ketik nama atau NIP staff TU...';
-  else el.placeholder = 'Ketik nama atau NISN/NIS siswa...';
+  if (tipe === 'guru')  el.placeholder = 'Ketik nama atau NIP guru (bisa pilih lebih dari 1)...';
+  else if (tipe === 'staff') el.placeholder = 'Ketik nama atau NIP staff TU (bisa pilih lebih dari 1)...';
+  else el.placeholder = 'Ketik nama atau NISN/NIS siswa (bisa pilih lebih dari 1)...';
 
   const hint = document.getElementById('individuHintText');
   if (hint) {
-    if (tipe === 'guru')  hint.textContent = 'Ketik nama atau NIP untuk menyaring daftar guru.';
-    else if (tipe === 'staff') hint.textContent = 'Ketik nama atau NIP untuk menyaring daftar staff TU.';
-    else hint.textContent = 'Ketik nama atau NISN/NIS untuk menyaring daftar siswa.';
+    if (tipe === 'guru')  hint.textContent = 'Ketik nama/NIP guru, klik untuk menambah ke daftar pilihan (bisa pilih beberapa guru).';
+    else if (tipe === 'staff') hint.textContent = 'Ketik nama/NIP staff TU, klik untuk menambah ke daftar pilihan (bisa pilih beberapa staff TU).';
+    else hint.textContent = 'Ketik nama/NISN/NIS siswa, klik untuk menambah ke daftar pilihan (bisa pilih beberapa siswa).';
   }
 }
 
@@ -1547,11 +1586,17 @@ function updatePreviewBar() {
       detailStr = `Kelas <em style="opacity:0.5">belum dipilih</em>`;
     }
   } else if (opsi === 'individu') {
-    if (selectedIndividu) {
-      countStr = `<strong>1</strong>`;
-      detailStr = `<strong>${escHtml(selectedIndividu.name)}</strong>`;
+    if (selectedIndividu.length > 0) {
+      countStr = `<strong>${selectedIndividu.length}</strong>`;
+      if (selectedIndividu.length === 1) {
+        detailStr = `<strong>${escHtml(selectedIndividu[0].name)}</strong>`;
+      } else {
+        const names = selectedIndividu.slice(0, 2).map(i => escHtml(i.name)).join(', ');
+        const extra = selectedIndividu.length > 2 ? `, +${selectedIndividu.length - 2} lainnya` : '';
+        detailStr = `<strong>${selectedIndividu.length} Individu Terpilih</strong> (${names}${extra})`;
+      }
     } else {
-      countStr = `<strong>1</strong>`;
+      countStr = `<strong>0</strong>`;
       detailStr = `Individu <em style="opacity:0.5">belum dipilih</em>`;
     }
   }
@@ -1681,7 +1726,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!opsi) errors.push('Pilih opsi cetak terlebih dahulu.');
       if (!template) errors.push('Pilih template kartu.');
       if (opsi === 'kelas' && !kelas) errors.push('Pilih kelas terlebih dahulu (cari dan klik nama kelas).');
-      if (opsi === 'individu' && !entitas) errors.push('Pilih individu terlebih dahulu (cari dan klik nama).');
+      if (opsi === 'individu' && (!entitas || selectedIndividu.length === 0)) errors.push('Pilih minimal 1 individu terlebih dahulu (cari dan klik nama).');
 
       if (errors.length > 0) {
         alert('Mohon lengkapi form:\n• ' + errors.join('\n• '));
