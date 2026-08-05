@@ -103,6 +103,13 @@
       "url": "/admin/absensi-staff"
     },
     {
+      "name": "Portal Absensi Cepat",
+      "icon": "menu-icon ti tabler-bolt",
+      "slug": "public.absensi-cepat.index",
+      "url": "/absensi-cepat",
+      "target": "_blank"
+    },
+    {
       "name": "Kelola Jam Absensi",
       "icon": "menu-icon ti tabler-clock-edit",
       "slug": "admin.jadwal-absensi.index",

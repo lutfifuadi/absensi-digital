@@ -257,6 +257,7 @@
       "slug": [
         "admin.absensi-guru.index",
         "admin.absensi-staff.index",
+        "public.absensi-cepat.index",
         "admin.assignments.index",
         "piket.monitoring.index",
         "admin.monitoring.index"
@@ -273,6 +274,13 @@
           "icon": "menu-icon ti tabler-briefcase",
           "slug": "admin.absensi-staff.index",
           "url": "/admin/absensi-staff"
+        },
+        {
+          "name": "Portal Absensi Cepat",
+          "icon": "menu-icon ti tabler-bolt",
+          "slug": "public.absensi-cepat.index",
+          "url": "/absensi-cepat",
+          "target": "_blank"
         },
         {
           "name": "Penugasan Guru",

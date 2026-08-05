@@ -141,8 +141,9 @@ class PublicAbsensiCepatController extends Controller
 
     public function searchPeople(Request $request)
     {
-        $query = trim($request->input('q', ''));
+        $role = $request->input('role', '');
         $kelasId = $request->input('kelas_id', '');
+        $query = trim($request->input('q', ''));
         $tanggal = now()->toDateString();
 
         $statusMapFromDb = [
@@ -155,14 +156,89 @@ class PublicAbsensiCepatController extends Controller
 
         $data = collect();
 
-        // 1. Filter/Search Siswa
-        if (!empty($kelasId) || !empty($query)) {
+        // Jika belum memilih kategori dan belum mengetikkan pencarian, kembalikan data kosong
+        if (empty($role) && empty($kelasId) && empty($query)) {
+            return response()->json([
+                'success' => true,
+                'data' => [],
+            ]);
+        }
+
+        // Tentukan targetRole utama agar tidak saling menimpa
+        $targetRole = !empty($role) ? $role : $kelasId;
+
+        // 1. Filter khusus Guru
+        if ($targetRole === 'guru' || $targetRole === 'all' || (empty($targetRole) && !empty($query))) {
+            $guruQuery = Guru::query();
+            if (!empty($query)) {
+                $guruQuery->where(function($q) use ($query) {
+                    $q->where('nama_lengkap', 'LIKE', "%{$query}%")
+                      ->orWhere('nip', 'LIKE', "%{$query}%");
+                });
+            }
+            $guruList = $guruQuery->orderBy('nama_lengkap', 'asc')->get();
+
+            $absensiGuruMap = AbsensiGuru::whereIn('guru_id', $guruList->pluck('id'))
+                ->where('tanggal', $tanggal)
+                ->get()
+                ->keyBy('guru_id');
+
+            foreach ($guruList as $guru) {
+                $abs = $absensiGuruMap->get($guru->id);
+                $dbStatus = $abs ? $abs->status : 'hadir';
+                $data->push([
+                    'id' => $guru->id,
+                    'type' => 'guru',
+                    'role_label' => 'Guru',
+                    'sub_info' => 'Guru • NIP: ' . ($guru->nip ?? '-'),
+                    'nis' => $guru->nip ?? '-',
+                    'nama_lengkap' => $guru->nama_lengkap,
+                    'status' => $statusMapFromDb[$dbStatus] ?? 'H',
+                    'keterangan' => $abs ? $abs->keterangan : '',
+                ]);
+            }
+        }
+
+        // 2. Filter khusus Staff TU
+        if ($targetRole === 'staff' || $targetRole === 'all' || (empty($targetRole) && !empty($query))) {
+            $staffQuery = StaffTataUsaha::query();
+            if (!empty($query)) {
+                $staffQuery->where(function($q) use ($query) {
+                    $q->where('nama_lengkap', 'LIKE', "%{$query}%")
+                      ->orWhere('nip', 'LIKE', "%{$query}%");
+                });
+            }
+            $staffList = $staffQuery->orderBy('nama_lengkap', 'asc')->get();
+
+            $absensiStaffMap = AbsensiStaff::whereIn('staff_id', $staffList->pluck('id'))
+                ->where('tanggal', $tanggal)
+                ->get()
+                ->keyBy('staff_id');
+
+            foreach ($staffList as $staff) {
+                $abs = $absensiStaffMap->get($staff->id);
+                $dbStatus = $abs ? $abs->status : 'hadir';
+                $data->push([
+                    'id' => $staff->id,
+                    'type' => 'staff',
+                    'role_label' => 'Staff TU',
+                    'sub_info' => 'Staff TU • NIP: ' . ($staff->nip ?? '-'),
+                    'nis' => $staff->nip ?? '-',
+                    'nama_lengkap' => $staff->nama_lengkap,
+                    'status' => $statusMapFromDb[$dbStatus] ?? 'H',
+                    'keterangan' => $abs ? $abs->keterangan : '',
+                ]);
+            }
+        }
+
+        // 3. Filter Siswa (Hanya jika targetRole === 'siswa' atau kelas_id bertipe angka)
+        if ($targetRole === 'siswa' || (!empty($kelasId) && is_numeric($kelasId))) {
             $siswaQuery = Siswa::with('kelas')
                 ->where(function($q) {
                     $q->where('status', 'aktif')->orWhereNull('status');
                 });
 
-            if (!empty($kelasId)) {
+            if (!empty($kelasId) && is_numeric($kelasId)) {
                 $siswaQuery->where('kelas_id', $kelasId);
             }
 
@@ -191,65 +267,6 @@ class PublicAbsensiCepatController extends Controller
                     'sub_info' => ($siswa->kelas ? $siswa->kelas->nama : 'Siswa') . ' • NIS: ' . ($siswa->nis ?? '-'),
                     'nis' => $siswa->nis ?? $siswa->nisn ?? '-',
                     'nama_lengkap' => $siswa->nama_lengkap,
-                    'status' => $statusMapFromDb[$dbStatus] ?? 'H',
-                    'keterangan' => $abs ? $abs->keterangan : '',
-                ]);
-            }
-        }
-
-        // If searching globally (no class selected or explicit query)
-        if (empty($kelasId) && !empty($query)) {
-            // 2. Search Guru
-            $guruList = Guru::where(function($q) use ($query) {
-                    $q->where('nama_lengkap', 'LIKE', "%{$query}%")
-                      ->orWhere('nip', 'LIKE', "%{$query}%");
-                })
-                ->orderBy('nama_lengkap', 'asc')
-                ->get();
-
-            $absensiGuruMap = AbsensiGuru::whereIn('guru_id', $guruList->pluck('id'))
-                ->where('tanggal', $tanggal)
-                ->get()
-                ->keyBy('guru_id');
-
-            foreach ($guruList as $guru) {
-                $abs = $absensiGuruMap->get($guru->id);
-                $dbStatus = $abs ? $abs->status : 'hadir';
-                $data->push([
-                    'id' => $guru->id,
-                    'type' => 'guru',
-                    'role_label' => 'Guru',
-                    'sub_info' => 'Guru • NIP: ' . ($guru->nip ?? '-'),
-                    'nis' => $guru->nip ?? '-',
-                    'nama_lengkap' => $guru->nama_lengkap,
-                    'status' => $statusMapFromDb[$dbStatus] ?? 'H',
-                    'keterangan' => $abs ? $abs->keterangan : '',
-                ]);
-            }
-
-            // 3. Search Staff TU
-            $staffList = StaffTataUsaha::where(function($q) use ($query) {
-                    $q->where('nama_lengkap', 'LIKE', "%{$query}%")
-                      ->orWhere('nip', 'LIKE', "%{$query}%");
-                })
-                ->orderBy('nama_lengkap', 'asc')
-                ->get();
-
-            $absensiStaffMap = AbsensiStaff::whereIn('staff_tu_id', $staffList->pluck('id'))
-                ->where('tanggal', $tanggal)
-                ->get()
-                ->keyBy('staff_tu_id');
-
-            foreach ($staffList as $staff) {
-                $abs = $absensiStaffMap->get($staff->id);
-                $dbStatus = $abs ? $abs->status : 'hadir';
-                $data->push([
-                    'id' => $staff->id,
-                    'type' => 'staff',
-                    'role_label' => 'Staff TU',
-                    'sub_info' => 'Staff TU • NIP: ' . ($staff->nip ?? '-'),
-                    'nis' => $staff->nip ?? '-',
-                    'nama_lengkap' => $staff->nama_lengkap,
                     'status' => $statusMapFromDb[$dbStatus] ?? 'H',
                     'keterangan' => $abs ? $abs->keterangan : '',
                 ]);
@@ -385,7 +402,7 @@ class PublicAbsensiCepatController extends Controller
             ->first();
 
         if ($staff) {
-            $absensi = AbsensiStaff::where('staff_tu_id', $staff->id)
+            $absensi = AbsensiStaff::where('staff_id', $staff->id)
                 ->where('tanggal', $tanggal)
                 ->first();
 
@@ -403,7 +420,7 @@ class PublicAbsensiCepatController extends Controller
                 ]);
             } else {
                 $absensi = AbsensiStaff::create([
-                    'staff_tu_id' => $staff->id,
+                    'staff_id' => $staff->id,
                     'tanggal' => $tanggal,
                     'jam_masuk' => $currentTime,
                     'status' => $status,
@@ -504,7 +521,7 @@ class PublicAbsensiCepatController extends Controller
                         ]);
                     }
                 } elseif ($type === 'staff') {
-                    $absensi = AbsensiStaff::where('staff_tu_id', $personId)->where('tanggal', $tanggal)->first();
+                    $absensi = AbsensiStaff::where('staff_id', $personId)->where('tanggal', $tanggal)->first();
                     if ($absensi) {
                         $absensi->update([
                             'status' => $dbStatus,
@@ -514,7 +531,7 @@ class PublicAbsensiCepatController extends Controller
                         ]);
                     } else {
                         AbsensiStaff::create([
-                            'staff_tu_id' => $personId,
+                            'staff_id' => $personId,
                             'tanggal' => $tanggal,
                             'jam_masuk' => in_array($dbStatus, ['hadir', 'terlambat']) ? $currentTime : null,
                             'status' => $dbStatus,
@@ -614,7 +631,7 @@ class PublicAbsensiCepatController extends Controller
                     ]);
                 }
             } elseif ($type === 'staff') {
-                $absensi = AbsensiStaff::where('staff_tu_id', $personId)->where('tanggal', $tanggal)->first();
+                $absensi = AbsensiStaff::where('staff_id', $personId)->where('tanggal', $tanggal)->first();
                 if ($absensi) {
                     $absensi->update([
                         'status'     => $dbStatus,
@@ -624,7 +641,7 @@ class PublicAbsensiCepatController extends Controller
                     ]);
                 } else {
                     AbsensiStaff::create([
-                        'staff_tu_id' => $personId,
+                        'staff_id' => $personId,
                         'tanggal'    => $tanggal,
                         'jam_masuk'  => in_array($dbStatus, ['hadir', 'terlambat']) ? $currentTime : null,
                         'status'     => $dbStatus,
