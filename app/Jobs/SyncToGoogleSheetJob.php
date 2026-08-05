@@ -16,6 +16,11 @@ class SyncToGoogleSheetJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /**
+     * Nama queue untuk job ini.
+     */
+    public $queue = 'google_sheets';
+
     public Model $model;
     public string $action;
     public string $type;
