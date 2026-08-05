@@ -16,11 +16,6 @@ class SyncToGoogleSheetJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * Nama queue untuk job ini.
-     */
-    public $queue = 'google_sheets';
-
     public Model $model;
     public string $action;
     public string $type;
@@ -30,6 +25,7 @@ class SyncToGoogleSheetJob implements ShouldQueue
      */
     public function __construct(Model $model, string $action = 'updated', ?string $type = null)
     {
+        $this->onQueue('google_sheets');
         $this->model = $model;
         $this->action = $action;
 

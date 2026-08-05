@@ -15,11 +15,6 @@ class SendWhatsAppMessage implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     * Nama queue untuk job ini.
-     */
-    public $queue = 'notifications';
-
-    /**
      * Jumlah percobaan ulang jika gagal.
      */
     public int $tries = 3;
