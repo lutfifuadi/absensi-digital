@@ -363,13 +363,13 @@
 #template_id {
   width: 100% !important;
   max-width: 100% !important;
-  background: rgba(255, 255, 255, 0.04) !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
   color: #fff !important;
   font-family: inherit;
   font-size: 0.88rem !important;
   transition: all 0.25s ease-in-out;
-  border-radius: 8px !important;
+  border-radius: 5px !important;
   padding: 0.75rem 1.25rem 0.75rem 3rem !important;
   margin: 0 !important;
   box-sizing: border-box !important;
@@ -379,7 +379,7 @@
 #searchIndividu:focus,
 #searchKelas:focus,
 #template_id:focus {
-  background: rgba(255, 255, 255, 0.07) !important;
+  background-color: rgba(255, 255, 255, 0.07) !important;
   border-color: #7367f0 !important;
   box-shadow: 0 0 14px rgba(115, 103, 240, 0.35) !important;
   color: #fff !important;
@@ -408,13 +408,16 @@ select.set-input,
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255, 255, 255, 0.45)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
   background-position: right 1.15rem center !important;
-  background-size: 1rem 1rem !important;
+  background-size: 16px 16px !important;
   cursor: pointer !important;
 }
 
 select.set-input:focus,
 #template_id:focus {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237367f0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 1.15rem center !important;
+  background-size: 16px 16px !important;
 }
 
 #filterIndividuSection .set-field-hint {
