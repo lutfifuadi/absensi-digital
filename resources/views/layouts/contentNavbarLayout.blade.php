@@ -150,6 +150,20 @@
       box-shadow: 0 -4px 20px rgba(239, 68, 68, 0.25);
       font-family: inherit;
   ">
+      <script>
+        (function() {
+          var banner = document.getElementById('impersonation-banner');
+          function applyPadding() {
+            if (banner) {
+              document.body.style.paddingBottom = banner.offsetHeight + 'px';
+            }
+          }
+          document.addEventListener('DOMContentLoaded', applyPadding);
+          window.addEventListener('resize', applyPadding);
+          // Also apply immediately in case DOM is ready
+          if (document.readyState !== 'loading') applyPadding();
+        })();
+      </script>
       <span style="font-size: 13px; color: #991b1b;">
           <i class="ti tabler-user-check" style="color: #dc2626; margin-right: 5px;"></i>
           @if(session('impersonated_by'))
