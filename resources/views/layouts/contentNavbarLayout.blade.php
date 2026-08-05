@@ -241,5 +241,38 @@
   {{-- ── Global Delete Confirmation Modal ───────────────────────────────── --}}
   <x-confirm-delete-modal />
 
+  {{-- Auto-Healthcheck & Auto-Start Queue Worker Script --}}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        fetch('/admin/queue/status?auto_start=1', {
+          headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        .then(function(res) {
+          if (!res.ok) return null;
+          return res.json();
+        })
+        .then(function(data) {
+          if (data && (data.running || data.auto_started || data.status === 'running')) {
+            const badge = document.querySelector('.queue-worker-status-badge');
+            if (badge) {
+              badge.classList.remove('bg-label-danger', 'bg-danger', 'bg-label-warning');
+              badge.classList.add('bg-label-success');
+              badge.textContent = 'Active';
+            }
+          }
+        })
+        .catch(function(err) {
+          // Silent error handling for unauthenticated / network issues
+        });
+      } catch (e) {
+        // Silent catch block
+      }
+    });
+  </script>
+
 @endsection
 

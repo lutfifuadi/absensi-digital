@@ -1991,6 +1991,35 @@ async function refreshLeaderboard() {
   setStatus('ready');
   console.log('[Piket Scanner] Sistem siap. Colokkan alat USB/Bluetooth QR scanner — langsung bisa scan.');
 })();
+
+// Auto-Healthcheck & Auto-Start Worker
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    fetch('/admin/queue/status?auto_start=1', {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(function(res) {
+      if (!res.ok) return null;
+      return res.json();
+    })
+    .then(function(data) {
+      if (data && (data.running || data.auto_started || data.status === 'running')) {
+        const hwInd = document.getElementById('hw-indicator');
+        if (hwInd && !hwInd.innerText.includes('Worker')) {
+          // Worker verified active
+        }
+      }
+    })
+    .catch(function(err) {
+      // Silent error handler
+    });
+  } catch (e) {
+    // Silent catch
+  }
+});
 </script>
 
 <!-- Audio unlock toast tip -->

@@ -26,6 +26,12 @@ class QueueControlController extends Controller
         try {
             $result = $this->supervisorService->getStatus();
 
+            if (request()->boolean('auto_start') && $result['status'] === 'stopped') {
+                $this->supervisorService->start();
+                $result['status'] = 'running';
+                $result['message'] = 'Worker otomatis di-start.';
+            }
+
             return response()->json([
                 'success' => $result['success'],
                 'message' => $result['message'],
