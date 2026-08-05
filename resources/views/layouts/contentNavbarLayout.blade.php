@@ -243,31 +243,54 @@
 
   {{-- Auto-Healthcheck & Auto-Start Queue Worker Script --}}
   <script>
+    window.triggerQueueCheckStart = function(event) {
+      if (event && typeof event.preventDefault === 'function') {
+        event.preventDefault();
+      }
+      const badge = document.querySelector('.queue-worker-status-badge');
+      if (badge) {
+        badge.classList.remove('bg-label-success', 'bg-label-danger', 'bg-danger', 'bg-success');
+        badge.classList.add('bg-label-warning');
+        badge.textContent = '⚙️ Worker: Starting...';
+      }
+
+      fetch('/admin/queue/status?auto_start=1', {
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(function(res) {
+        if (!res.ok) throw new Error('Network error');
+        return res.json();
+      })
+      .then(function(data) {
+        const targetBadge = document.querySelector('.queue-worker-status-badge');
+        if (!targetBadge) return;
+
+        if (data && (data.status === 'running' || data.running === true)) {
+          targetBadge.classList.remove('bg-label-warning', 'bg-label-danger', 'bg-danger', 'bg-warning');
+          targetBadge.classList.add('bg-label-success');
+          targetBadge.textContent = '⚙️ Worker: Active';
+        } else {
+          targetBadge.classList.remove('bg-label-warning', 'bg-label-success', 'bg-success', 'bg-warning');
+          targetBadge.classList.add('bg-label-danger');
+          targetBadge.textContent = '⚙️ Worker: Stopped';
+        }
+      })
+      .catch(function(err) {
+        const targetBadge = document.querySelector('.queue-worker-status-badge');
+        if (targetBadge) {
+          targetBadge.classList.remove('bg-label-warning', 'bg-label-success', 'bg-success', 'bg-warning');
+          targetBadge.classList.add('bg-label-danger');
+          targetBadge.textContent = '⚙️ Worker: Stopped';
+        }
+      });
+    };
+
     document.addEventListener('DOMContentLoaded', function() {
       try {
-        fetch('/admin/queue/status?auto_start=1', {
-          headers: {
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        })
-        .then(function(res) {
-          if (!res.ok) return null;
-          return res.json();
-        })
-        .then(function(data) {
-          if (data && (data.running || data.auto_started || data.status === 'running')) {
-            const badge = document.querySelector('.queue-worker-status-badge');
-            if (badge) {
-              badge.classList.remove('bg-label-danger', 'bg-danger', 'bg-label-warning');
-              badge.classList.add('bg-label-success');
-              badge.textContent = 'Active';
-            }
-          }
-        })
-        .catch(function(err) {
-          // Silent error handling for unauthenticated / network issues
-        });
+        window.triggerQueueCheckStart();
       } catch (e) {
         // Silent catch block
       }

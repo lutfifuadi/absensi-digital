@@ -104,6 +104,13 @@
     @endauth
     <!-- / Academic Year Switcher -->
 
+    <!-- Queue Worker Status Badge -->
+    <li class="nav-item me-3 me-xl-2 d-none d-md-inline-block">
+      <span class="badge bg-label-warning queue-worker-status-badge py-2 px-3 fw-bold" style="cursor: pointer; font-size: 0.75rem;" title="Klik untuk refresh / hidupkan Worker Queue" onclick="triggerQueueCheckStart(event)">
+        ⚙️ Worker: Checking...
+      </span>
+    </li>
+
     <!-- Notification Bell -->
     @auth
       @php
