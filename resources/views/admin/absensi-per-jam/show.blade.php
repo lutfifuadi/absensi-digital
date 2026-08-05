@@ -348,6 +348,65 @@
       font-weight: 700 !important;
       letter-spacing: 0.3px;
     }
+
+    /* Modern Auto-Save Toast Styling (Glassmorphism & Glow) */
+    .toast-autosave {
+      background: rgba(18, 24, 38, 0.94) !important;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(40, 199, 111, 0.4) !important;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55), 0 0 24px rgba(40, 199, 111, 0.2) !important;
+      border-radius: 14px !important;
+      min-width: 320px;
+    }
+    .toast-autosave--error {
+      border: 1px solid rgba(234, 84, 85, 0.4) !important;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55), 0 0 24px rgba(234, 84, 85, 0.2) !important;
+    }
+    .toast-autosave__icon-box {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(40, 199, 111, 0.2);
+      color: #28c76f;
+      box-shadow: 0 0 14px rgba(40, 199, 111, 0.35);
+      animation: toastIconPulse 2s infinite ease-in-out;
+    }
+    .toast-autosave__icon-box--error {
+      background: rgba(234, 84, 85, 0.2);
+      color: #ea5455;
+      box-shadow: 0 0 14px rgba(234, 84, 85, 0.35);
+      animation: none;
+    }
+    @keyframes toastIconPulse {
+      0% { transform: scale(1); box-shadow: 0 0 8px rgba(40, 199, 111, 0.3); }
+      50% { transform: scale(1.08); box-shadow: 0 0 18px rgba(40, 199, 111, 0.6); }
+      100% { transform: scale(1); box-shadow: 0 0 8px rgba(40, 199, 111, 0.3); }
+    }
+    .badge-dot-pulse {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #28c76f;
+      box-shadow: 0 0 8px #28c76f;
+      animation: dotPulse 1.5s infinite ease-in-out;
+    }
+    @keyframes dotPulse {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.7; }
+    }
+    .row-saved-flash {
+      animation: flashGreenRow 1.2s ease-out;
+    }
+    @keyframes flashGreenRow {
+      0% { background-color: rgba(40, 199, 111, 0.3) !important; }
+      100% { background-color: transparent !important; }
+    }
   </style>
 @endsection
 
@@ -485,7 +544,7 @@
     <div class="das-panel">
       {{-- Head panel --}}
       <div class="das-panel__head">
-        <div class="das-panel__title">
+        <div class="das-panel__title d-flex align-items-center flex-wrap gap-1">
           <i class="ti tabler-bolt text-info me-1"></i> Roster Absensi Kelas
           <span class="das-chip --info ms-1">{{ $roster->count() }} Siswa</span>
           @if ($sesiTerisi)
@@ -493,6 +552,9 @@
               <i class="ti tabler-pencil me-1"></i>Diedit
             </span>
           @endif
+          <span class="das-chip --success ms-1 d-inline-flex align-items-center gap-1" title="Perubahan otomatis tersimpan ke Database">
+            <span class="badge-dot-pulse"></span> Auto-Save DB
+          </span>
         </div>
 
         <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -847,19 +909,24 @@
 </div>
 
 {{-- FLOATING TOAST NOTIFICATION CONTAINER (AUTO-SAVE) --}}
-<div id="autoSaveToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
-  <div id="toastNotification" class="toast align-items-center border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" style="border-radius: 5px !important; background: #1e2640; border: 1px solid rgba(255,255,255,0.15) !important;">
-    <div class="d-flex align-items-center p-2 px-3">
-      <div id="toastIconBox" class="me-2 p-1 px-2 rounded-circle" style="background: rgba(40,199,111,0.2); color: #28c76f;">
-        <i id="toastIcon" class="ti tabler-circle-check-filled fs-5"></i>
+<div id="autoSaveToastContainer" class="toast-container position-fixed bottom-0 end-0 p-4" style="z-index: 1090;">
+  <div id="toastNotification" class="toast toast-autosave border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex align-items-center p-3">
+      <div id="toastIconBox" class="toast-autosave__icon-box me-3">
+        <i id="toastIcon" class="ti tabler-cloud-check fs-4"></i>
       </div>
       <div class="toast-body p-0 me-auto">
-        <div id="toastTitle" class="fw-bold text-white small">Otomatis Tersimpan</div>
-        <div id="toastMessage" class="text-white-50 fs-7">Absensi siswa berhasil diperbarui.</div>
+        <div class="d-flex align-items-center gap-1.5 mb-1">
+          <span id="toastBadge" class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-30 px-2 py-0.5" style="font-size: 0.68rem; font-weight: 700;">
+            <i class="ti tabler-database-check me-1"></i>TERSIMPAN DI DATABASE
+          </span>
+        </div>
+        <div id="toastTitle" class="fw-bold text-white small" style="font-size:0.88rem;">Otomatis Tersimpan</div>
+        <div id="toastMessage" class="text-white-50 fs-7" style="font-size:0.78rem;">Status absensi berhasil diperbarui.</div>
       </div>
-      <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="toast" aria-label="Close"></button>
+      <button type="button" class="btn-close btn-close-white ms-3 mb-auto" data-bs-dismiss="toast" aria-label="Close"></button>
     </div>
-    <div class="progress" style="height: 3px; background: rgba(255,255,255,0.1); border-radius: 0 0 5px 5px;">
+    <div class="progress" style="height: 3px; background: rgba(255,255,255,0.08);">
       <div id="toastProgressBar" class="progress-bar bg-success" style="width: 100%;"></div>
     </div>
   </div>
@@ -1149,9 +1216,14 @@
           .then(data => {
             if (data.success) {
               const statusText = statusVal.charAt(0).toUpperCase() + statusVal.slice(1);
-              this.showToast('success', 'Otomatis Tersimpan', `${namaSiswa}: Status diubah menjadi ${statusText}`);
+              if (rowEl) {
+                rowEl.classList.remove('row-saved-flash');
+                void rowEl.offsetWidth;
+                rowEl.classList.add('row-saved-flash');
+              }
+              this.showToast('success', 'Tersimpan ke Database', `${namaSiswa}: Status diubah ke ${statusText}`);
             } else {
-              this.showToast('error', 'Gagal Auto-Save', data.message || 'Gagal menyimpan absensi');
+              this.showToast('error', 'Gagal Auto-Save DB', data.message || 'Gagal menyimpan absensi');
             }
           })
           .catch(err => {
@@ -1167,18 +1239,37 @@
           const icon = document.getElementById('toastIcon');
           const titleEl = document.getElementById('toastTitle');
           const msgEl = document.getElementById('toastMessage');
+          const badgeEl = document.getElementById('toastBadge');
           const bar = document.getElementById('toastProgressBar');
 
           if (titleEl) titleEl.textContent = title;
           if (msgEl) msgEl.textContent = msg;
 
           if (type === 'success') {
-            if (iconBox) { iconBox.style.background = 'rgba(40,199,111,0.2)'; iconBox.style.color = '#28c76f'; }
-            if (icon) icon.className = 'ti tabler-circle-check-filled fs-5';
+            toastEl.className = 'toast toast-autosave border-0';
+            if (iconBox) {
+              iconBox.className = 'toast-autosave__icon-box me-3';
+              iconBox.style.background = 'rgba(40,199,111,0.2)';
+              iconBox.style.color = '#28c76f';
+            }
+            if (icon) icon.className = 'ti tabler-cloud-check fs-4';
+            if (badgeEl) {
+              badgeEl.className = 'badge bg-success bg-opacity-20 text-success border border-success border-opacity-30 px-2 py-0.5';
+              badgeEl.innerHTML = '<i class="ti tabler-database-check me-1"></i>TERSIMPAN DI DATABASE';
+            }
             if (bar) { bar.className = 'progress-bar bg-success'; }
           } else {
-            if (iconBox) { iconBox.style.background = 'rgba(234,84,85,0.2)'; iconBox.style.color = '#ea5455'; }
-            if (icon) icon.className = 'ti tabler-alert-circle-filled fs-5';
+            toastEl.className = 'toast toast-autosave toast-autosave--error border-0';
+            if (iconBox) {
+              iconBox.className = 'toast-autosave__icon-box toast-autosave__icon-box--error me-3';
+              iconBox.style.background = 'rgba(234,84,85,0.2)';
+              iconBox.style.color = '#ea5455';
+            }
+            if (icon) icon.className = 'ti tabler-alert-circle-filled fs-4';
+            if (badgeEl) {
+              badgeEl.className = 'badge bg-danger bg-opacity-20 text-danger border border-danger border-opacity-30 px-2 py-0.5';
+              badgeEl.innerHTML = '<i class="ti tabler-alert-triangle me-1"></i>GAGAL AUTO-SAVE';
+            }
             if (bar) { bar.className = 'progress-bar bg-danger'; }
           }
 
@@ -1186,12 +1277,12 @@
             bar.style.transition = 'none';
             bar.style.width = '100%';
             setTimeout(() => {
-              bar.style.transition = 'width 2.5s linear';
+              bar.style.transition = 'width 2.8s linear';
               bar.style.width = '0%';
             }, 50);
           }
 
-          const bsToast = bootstrap.Toast.getInstance(toastEl) || new bootstrap.Toast(toastEl, { delay: 2500 });
+          const bsToast = bootstrap.Toast.getInstance(toastEl) || new bootstrap.Toast(toastEl, { delay: 2800 });
           bsToast.show();
         }
       };
