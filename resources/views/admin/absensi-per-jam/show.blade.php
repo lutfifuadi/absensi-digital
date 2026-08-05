@@ -366,7 +366,7 @@
     $sesiTerisi = $sesiData['terisi'] ?? false;
     $jumlahTerisi = $sesiData['jumlah_terisi'] ?? 0;
 
-    $defaultWaTemplate = \App\Models\Pengaturan::get('wa_template_rekap_presensi')
+    $defaultWaTemplate = \App\Models\Pengaturan::where('key', 'wa_template_rekap_presensi')->value('value')
         ?: "*LAPORAN KONDISI MURID MATA PELAJARAN {mapel}*\nKelas: {kelas}\nHari/Tanggal: {hari_tanggal}\nJam ke: {jam_ke}\n\nJumlah Murid: {jumlah_murid} orang\n* Hadir : {total_hadir} orang\n* Alpa : {total_alpa} Orang\n{daftar_alpa}\n* Izin : {total_izin} Orang\n{daftar_izin}\n* Sakit : {total_sakit} Orang\n{daftar_sakit}\n* Terlambat : {total_terlambat} Orang\n{daftar_terlambat}";
   @endphp
 
@@ -927,7 +927,10 @@
           const mapel = @json($jadwal->mata_pelajaran ?? '-');
           const kelas = @json($jadwal->kelas->nama ?? '-');
           const hariTanggal = @json(\Carbon\Carbon::parse($tanggal)->locale('id')->translatedFormat('l, d F Y'));
-          const jamKe = @json($jadwal->jam_ke ?? (substr($jadwal->jam_mulai, 0, 5) . ' - ' . substr($jadwal->jam_selesai, 0, 5)));
+          @php
+            $jamKeStr = $jadwal->jam_ke ?? (substr($jadwal->jam_mulai, 0, 5) . ' - ' . substr($jadwal->jam_selesai, 0, 5));
+          @endphp
+          const jamKe = @json($jamKeStr);
           const namaGuru = @json(auth()->user()->name ?? 'Guru');
 
           const lists = { alpha: [], sakit: [], izin: [], terlambat: [], bolos: [] };
