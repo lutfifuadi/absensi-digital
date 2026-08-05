@@ -607,7 +607,7 @@
               <th class="py-3 roster-sticky" style="min-width:200px;">Nama Siswa</th>
               <th class="py-3 text-center" style="min-width:340px;">Pilihan Status (Gaya Absensi Cepat)</th>
               <th class="py-3 text-center" style="min-width:120px;">Terlambat</th>
-              <th class="py-3 pe-4" style="min-width:180px;">Keterangan</th>
+              <th class="py-3 pe-4 text-center" style="width:130px; min-width:120px;">Keterangan</th>
             </tr>
           </thead>
           <tbody>
@@ -725,12 +725,14 @@
                 </td>
 
                 {{-- Input Keterangan --}}
-                <td class="pe-4">
+                <td class="pe-4 text-center" style="width:130px;">
                   <input type="text" name="rows[{{ $i }}][keterangan]" maxlength="500"
                     data-roster-ket
-                    class="form-control form-control-sm @error("rows.{$i}.keterangan") is-invalid @enderror"
+                    class="form-control form-control-sm text-center @error("rows.{$i}.keterangan") is-invalid @enderror"
+                    style="width:125px; margin:0 auto; font-size:0.78rem;"
                     value="{{ $ket }}"
-                    placeholder="Catatan (opsional)"
+                    placeholder="Catatan"
+                    @input="$el.dataset.userEdited = 'true'; autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', status, $el.closest('tr'))"
                     @if (!$canEdit) disabled @endif
                     aria-label="Keterangan {{ $siswa->nama_lengkap }}">
                   @error("rows.{$i}.keterangan")
@@ -1287,6 +1289,26 @@
 
           const lamaInp = rowEl ? rowEl.querySelector('[data-roster-lama]') : null;
           const ketInp = rowEl ? rowEl.querySelector('[data-roster-ket]') : null;
+
+          const defaultKetMap = {
+            sakit: 'Sakit',
+            izin: 'Izin',
+            alpha: 'Alpha',
+            terlambat: 'Terlambat',
+            bolos: 'Bolos',
+            hadir: ''
+          };
+
+          if (ketInp) {
+            const isUserEdited = ketInp.dataset.userEdited === 'true';
+            const curVal = ketInp.value.trim();
+            const defaultValues = Object.values(defaultKetMap);
+
+            if (!isUserEdited || curVal === '' || defaultValues.includes(curVal)) {
+              ketInp.value = defaultKetMap[statusVal] !== undefined ? defaultKetMap[statusVal] : '';
+              ketInp.dataset.userEdited = 'false';
+            }
+          }
 
           const payload = {
             _token: csrfToken,
