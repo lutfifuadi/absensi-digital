@@ -936,6 +936,61 @@
 
 @section('page-script')
   <script>
+    window.showAutoSaveToast = function(type, title, msg) {
+      const toastEl = document.getElementById('toastNotification');
+      if (!toastEl) return;
+
+      const iconBox = document.getElementById('toastIconBox');
+      const icon = document.getElementById('toastIcon');
+      const titleEl = document.getElementById('toastTitle');
+      const msgEl = document.getElementById('toastMessage');
+      const badgeEl = document.getElementById('toastBadge');
+      const bar = document.getElementById('toastProgressBar');
+
+      if (titleEl) titleEl.textContent = title;
+      if (msgEl) msgEl.textContent = msg;
+
+      if (type === 'success') {
+        toastEl.className = 'toast toast-autosave border-0';
+        if (iconBox) {
+          iconBox.className = 'toast-autosave__icon-box me-3';
+          iconBox.style.background = 'rgba(40,199,111,0.2)';
+          iconBox.style.color = '#28c76f';
+        }
+        if (icon) icon.className = 'ti tabler-cloud-check fs-4';
+        if (badgeEl) {
+          badgeEl.className = 'badge bg-success bg-opacity-20 text-success border border-success border-opacity-30 px-2 py-0.5';
+          badgeEl.innerHTML = '<i class="ti tabler-database-check me-1"></i>TERSIMPAN DI DATABASE';
+        }
+        if (bar) { bar.className = 'progress-bar bg-success'; }
+      } else {
+        toastEl.className = 'toast toast-autosave toast-autosave--error border-0';
+        if (iconBox) {
+          iconBox.className = 'toast-autosave__icon-box toast-autosave__icon-box--error me-3';
+          iconBox.style.background = 'rgba(234,84,85,0.2)';
+          iconBox.style.color = '#ea5455';
+        }
+        if (icon) icon.className = 'ti tabler-alert-circle-filled fs-4';
+        if (badgeEl) {
+          badgeEl.className = 'badge bg-danger bg-opacity-20 text-danger border border-danger border-opacity-30 px-2 py-0.5';
+          badgeEl.innerHTML = '<i class="ti tabler-alert-triangle me-1"></i>GAGAL AUTO-SAVE';
+        }
+        if (bar) { bar.className = 'progress-bar bg-danger'; }
+      }
+
+      if (bar) {
+        bar.style.transition = 'none';
+        bar.style.width = '100%';
+        setTimeout(() => {
+          bar.style.transition = 'width 2.8s linear';
+          bar.style.width = '0%';
+        }, 50);
+      }
+
+      const bsToast = bootstrap.Toast.getInstance(toastEl) || new bootstrap.Toast(toastEl, { delay: 2800 });
+      bsToast.show();
+    };
+
     document.addEventListener('DOMContentLoaded', function() {
       // Inisialisasi Perfect Scrollbar pada kontainer tabel Roster
       const container = document.getElementById('rosterTableContainer');
@@ -1221,69 +1276,18 @@
                 void rowEl.offsetWidth;
                 rowEl.classList.add('row-saved-flash');
               }
-              this.showToast('success', 'Tersimpan ke Database', `${namaSiswa}: Status diubah ke ${statusText}`);
+              window.showAutoSaveToast('success', 'Tersimpan ke Database', `${namaSiswa}: Status diubah ke ${statusText}`);
             } else {
-              this.showToast('error', 'Gagal Auto-Save DB', data.message || 'Gagal menyimpan absensi');
+              window.showAutoSaveToast('error', 'Gagal Auto-Save DB', data.message || 'Gagal menyimpan absensi');
             }
           })
           .catch(err => {
-            this.showToast('error', 'Koneksi Bermasalah', 'Gagal terhubung ke server');
+            window.showAutoSaveToast('error', 'Koneksi Bermasalah', 'Gagal terhubung ke server');
           });
         },
 
         showToast(type, title, msg) {
-          const toastEl = document.getElementById('toastNotification');
-          if (!toastEl) return;
-
-          const iconBox = document.getElementById('toastIconBox');
-          const icon = document.getElementById('toastIcon');
-          const titleEl = document.getElementById('toastTitle');
-          const msgEl = document.getElementById('toastMessage');
-          const badgeEl = document.getElementById('toastBadge');
-          const bar = document.getElementById('toastProgressBar');
-
-          if (titleEl) titleEl.textContent = title;
-          if (msgEl) msgEl.textContent = msg;
-
-          if (type === 'success') {
-            toastEl.className = 'toast toast-autosave border-0';
-            if (iconBox) {
-              iconBox.className = 'toast-autosave__icon-box me-3';
-              iconBox.style.background = 'rgba(40,199,111,0.2)';
-              iconBox.style.color = '#28c76f';
-            }
-            if (icon) icon.className = 'ti tabler-cloud-check fs-4';
-            if (badgeEl) {
-              badgeEl.className = 'badge bg-success bg-opacity-20 text-success border border-success border-opacity-30 px-2 py-0.5';
-              badgeEl.innerHTML = '<i class="ti tabler-database-check me-1"></i>TERSIMPAN DI DATABASE';
-            }
-            if (bar) { bar.className = 'progress-bar bg-success'; }
-          } else {
-            toastEl.className = 'toast toast-autosave toast-autosave--error border-0';
-            if (iconBox) {
-              iconBox.className = 'toast-autosave__icon-box toast-autosave__icon-box--error me-3';
-              iconBox.style.background = 'rgba(234,84,85,0.2)';
-              iconBox.style.color = '#ea5455';
-            }
-            if (icon) icon.className = 'ti tabler-alert-circle-filled fs-4';
-            if (badgeEl) {
-              badgeEl.className = 'badge bg-danger bg-opacity-20 text-danger border border-danger border-opacity-30 px-2 py-0.5';
-              badgeEl.innerHTML = '<i class="ti tabler-alert-triangle me-1"></i>GAGAL AUTO-SAVE';
-            }
-            if (bar) { bar.className = 'progress-bar bg-danger'; }
-          }
-
-          if (bar) {
-            bar.style.transition = 'none';
-            bar.style.width = '100%';
-            setTimeout(() => {
-              bar.style.transition = 'width 2.8s linear';
-              bar.style.width = '0%';
-            }, 50);
-          }
-
-          const bsToast = bootstrap.Toast.getInstance(toastEl) || new bootstrap.Toast(toastEl, { delay: 2800 });
-          bsToast.show();
+          window.showAutoSaveToast(type, title, msg);
         }
       };
     }

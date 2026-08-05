@@ -277,13 +277,8 @@ class AbsensiPerJamService
             return false;
         }
 
-        $x = (int) setting('absensi_per_jam_window_buka_menit', 5);
-        $y = (int) setting('absensi_per_jam_window_tutup_menit', 30);
-
-        $buka  = Carbon::parse($jadwal->jam_mulai)->subMinutes(max($x, 0));
-        $tutup = Carbon::parse($jadwal->jam_selesai)->addMinutes(max($y, 0));
-
-        return now()->between($buka, $tutup);
+        // Izinkan pengisian absensi pada tanggal hari ini
+        return true;
     }
 
     /**
