@@ -715,6 +715,7 @@
                       value="{{ $lama }}"
                       placeholder="Menit"
                       :required="status === 'terlambat'"
+                      @input="autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', status, $el.closest('tr'))"
                       @if (!$canEdit) disabled @endif
                       aria-label="Lama keterlambatan {{ $siswa->nama_lengkap }} (menit)">
                     @error("rows.{$i}.lama_terlambat")
@@ -1290,11 +1291,13 @@
           const lamaInp = rowEl ? rowEl.querySelector('[data-roster-lama]') : null;
           const ketInp = rowEl ? rowEl.querySelector('[data-roster-ket]') : null;
 
+          const lamaVal = (lamaInp && lamaInp.value) ? parseInt(lamaInp.value) : 1;
+
           const defaultKetMap = {
             sakit: 'Sakit',
             izin: 'Izin',
             alpha: 'Alpha',
-            terlambat: 'Terlambat',
+            terlambat: `Terlambat ${lamaVal} Menit`,
             bolos: 'Bolos',
             hadir: ''
           };
@@ -1302,9 +1305,11 @@
           if (ketInp) {
             const isUserEdited = ketInp.dataset.userEdited === 'true';
             const curVal = ketInp.value.trim();
-            const defaultValues = Object.values(defaultKetMap);
+            const isDefaultText = curVal === '' ||
+              ['Sakit', 'Izin', 'Alpha', 'Bolos', 'Terlambat'].includes(curVal) ||
+              /^Terlambat(\s+\d+\s+Menit)?$/i.test(curVal);
 
-            if (!isUserEdited || curVal === '' || defaultValues.includes(curVal)) {
+            if (!isUserEdited || isDefaultText) {
               ketInp.value = defaultKetMap[statusVal] !== undefined ? defaultKetMap[statusVal] : '';
               ketInp.dataset.userEdited = 'false';
             }
