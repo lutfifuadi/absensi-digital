@@ -457,40 +457,103 @@ return response()->json([
     public function holidaysStore(Request $request)
     {
         $validated = $request->validate([
-            'tanggal' => 'required|date',
             'nama' => 'required|string|max:255',
             'jenis' => 'required|in:school',
-            'tingkat' => 'nullable|in:X,XI,XII',
-            'kelas_id' => 'nullable|exists:kelas,id',
+            'tipe_tanggal' => 'required|in:single,range',
+            'tanggal' => 'required_if:tipe_tanggal,single|nullable|date',
+            'tanggal_mulai' => 'required_if:tipe_tanggal,range|nullable|date',
+            'tanggal_selesai' => 'required_if:tipe_tanggal,range|nullable|date|after_or_equal:tanggal_mulai',
+            'cakupan' => 'required|in:global,tingkat,kelas',
+            'tingkat' => 'required_if:cakupan,tingkat|nullable',
+            'kelas_ids' => 'required_if:cakupan,kelas|nullable|array',
+            'kelas_ids.*' => 'exists:kelas,id',
+        ], [
+            'tanggal.required_if' => 'Tanggal harus diisi.',
+            'tanggal_mulai.required_if' => 'Tanggal mulai harus diisi.',
+            'tanggal_selesai.required_if' => 'Tanggal selesai harus setelah atau sama dengan tanggal mulai.',
+            'tingkat.required_if' => 'Pilih minimal satu tingkat kelas.',
+            'kelas_ids.required_if' => 'Pilih minimal satu kelas.',
         ]);
 
-        if (!empty($validated['tingkat']) && !empty($validated['kelas_id'])) {
-            $kelasObj = Kelas::find($validated['kelas_id']);
-            if ($kelasObj && $kelasObj->tingkat !== $validated['tingkat']) {
-                return back()->withInput()->withErrors(['tingkat' => 'Tingkat tidak cocok dengan tingkat dari kelas yang dipilih.']);
+        // Generate array of date strings Y-m-d
+        $dates = [];
+        if ($validated['tipe_tanggal'] === 'single') {
+            $dates[] = \Carbon\Carbon::parse($validated['tanggal'])->toDateString();
+        } else {
+            $startDate = \Carbon\Carbon::parse($validated['tanggal_mulai']);
+            $endDate = \Carbon\Carbon::parse($validated['tanggal_selesai']);
+            for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
+                $dates[] = $date->toDateString();
             }
         }
 
-        Holiday::create([
-            'tanggal' => $validated['tanggal'],
-            'nama' => $validated['nama'],
-            'jenis' => $validated['jenis'],
-            'is_national_holiday' => false,
-            'tingkat' => $validated['tingkat'] ?? null,
-            'kelas_id' => $validated['kelas_id'] ?? null,
-        ]);
+        // Generate array of targets: ['tingkat' => ..., 'kelas_id' => ...]
+        $targets = [];
+        if ($validated['cakupan'] === 'global') {
+            $targets[] = ['tingkat' => null, 'kelas_id' => null];
+        } elseif ($validated['cakupan'] === 'tingkat') {
+            $rawTingkat = $request->input('tingkat');
+            $tingkatList = is_array($rawTingkat) ? $rawTingkat : [$rawTingkat];
+            foreach ($tingkatList as $t) {
+                if (in_array($t, ['X', 'XI', 'XII'])) {
+                    $targets[] = ['tingkat' => $t, 'kelas_id' => null];
+                }
+            }
+        } elseif ($validated['cakupan'] === 'kelas') {
+            foreach ($validated['kelas_ids'] as $kId) {
+                $targets[] = ['tingkat' => null, 'kelas_id' => (int) $kId];
+            }
+        }
 
-        return back()->with('success', 'Hari libur sekolah berhasil ditambahkan.');
+        $totalEntries = count($dates) * count($targets);
+        $batchId = $totalEntries > 1 ? (string) \Illuminate\Support\Str::uuid() : null;
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($dates, $targets, $validated, $batchId) {
+            foreach ($dates as $dateStr) {
+                foreach ($targets as $target) {
+                    Holiday::updateOrCreate(
+                        [
+                            'tanggal' => $dateStr,
+                            'tingkat' => $target['tingkat'],
+                            'kelas_id' => $target['kelas_id'],
+                        ],
+                        [
+                            'nama' => $validated['nama'],
+                            'jenis' => 'school',
+                            'is_national_holiday' => false,
+                            'batch_id' => $batchId,
+                        ]
+                    );
+                }
+            }
+        });
+
+        // Flush cache if needed
+        \Illuminate\Support\Facades\Cache::flush();
+
+        $msg = $totalEntries > 1
+            ? "Berhasil menambahkan {$totalEntries} entri hari libur sekolah."
+            : 'Hari libur sekolah berhasil ditambahkan.';
+
+        return back()->with('success', $msg);
     }
 
-    public function holidaysDestroy($id)
+    public function holidaysDestroy(Request $request, $id)
     {
         $holiday = Holiday::findOrFail($id);
-        if ($holiday->jenis === 'school') {
-            $holiday->delete();
-            return back()->with('success', 'Hari libur berhasil dihapus.');
+        if ($holiday->jenis !== 'school') {
+            return back()->with('error', 'Tidak dapat menghapus hari libur nasional.');
         }
-        return back()->with('error', 'Tidak dapat menghapus hari libur nasional.');
+
+        if ($request->input('delete_batch') == '1' && $holiday->batch_id) {
+            $count = Holiday::where('batch_id', $holiday->batch_id)->delete();
+            \Illuminate\Support\Facades\Cache::flush();
+            return back()->with('success', "Seluruh kelompok hari libur ({$count} entri) berhasil dihapus.");
+        }
+
+        $holiday->delete();
+        \Illuminate\Support\Facades\Cache::flush();
+        return back()->with('success', 'Hari libur berhasil dihapus.');
     }
 
     private function superAdminData(): array

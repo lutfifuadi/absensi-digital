@@ -18,6 +18,7 @@ class Holiday extends Model
         'is_national_holiday',
         'tingkat',
         'kelas_id',
+        'batch_id',
     ];
 
     protected $casts = [

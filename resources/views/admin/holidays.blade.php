@@ -2,8 +2,30 @@
 
 @section('title', 'Kelola Hari Libur')
 
+@section('vendor-style')
+  @vite([
+    'resources/assets/vendor/libs/animate-css/animate.scss',
+    'resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'
+  ])
+@endsection
+
+@section('vendor-script')
+  @vite([
+    'resources/assets/vendor/libs/sweetalert2/sweetalert2.js'
+  ])
+@endsection
+
 @section('page-style')
 <style>
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .spinner {
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+  }
+
   :root {
     --das-primary: #7367f0;
     --das-primary-soft: rgba(115, 103, 240, 0.12);
@@ -49,7 +71,7 @@
   .das-panel__body { padding: 1.5rem; }
 
   /* CHIP */
-  .das-chip { display: inline-flex; align-items: center; font-size: .65rem; font-weight: 700; padding: 2px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: .5px; }
+  .das-chip { display: inline-flex; align-items: center; font-size: .65rem; font-weight: 700; padding: 2px 10px; border-radius: 5px; text-transform: uppercase; letter-spacing: .5px; }
   .das-chip--danger  { background: var(--das-danger-soft);  color: var(--das-danger); }
   .das-chip--info    { background: var(--das-info-soft);    color: var(--das-info); }
   .das-chip--primary { background: var(--das-primary-soft); color: var(--das-primary); }
@@ -78,6 +100,53 @@
   .das-select { background: rgba(255,255,255,.04) !important; border: 1px solid var(--das-border) !important; color: #ddd !important; border-radius: var(--das-radius) !important; }
   .das-select:focus { background: rgba(255,255,255,.07) !important; border-color: rgba(115,103,240,.5) !important; box-shadow: none !important; }
   .das-select option { background: #1a1a2e; color: #ccc; }
+
+  /* SEGMENTED SWITCH */
+  .segmented-switch { display: flex; background: rgba(255,255,255,.04); border: 1px solid var(--das-border); border-radius: 5px; padding: 3px; gap: 4px; }
+  .segmented-switch input[type="radio"] { display: none; }
+  .segmented-switch label { flex: 1; text-align: center; font-size: .75rem; font-weight: 600; padding: 6px 10px; border-radius: 4px; cursor: pointer; color: #888; transition: all .2s ease; margin: 0; }
+  .segmented-switch input[type="radio"]:checked + label { background: var(--das-primary); color: #fff; box-shadow: 0 2px 6px rgba(115,103,240,.4); }
+
+  /* CAKUPAN CARD GRID */
+  .cakupan-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .cakupan-card { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 10px 6px; border-radius: 5px; border: 1px solid var(--das-border); background: rgba(255, 255, 255, 0.03); cursor: pointer; transition: all 0.2s ease; text-align: center; margin: 0; }
+  .cakupan-card:hover { border-color: rgba(115, 103, 240, 0.4); background: rgba(115, 103, 240, 0.08); transform: translateY(-2px); }
+  .cakupan-card input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+  .cakupan-card__icon { font-size: 1.25rem; color: #888; transition: all 0.2s ease; }
+  .cakupan-card__title { font-size: 0.72rem; font-weight: 700; color: #ccc; line-height: 1.2; }
+  .cakupan-card:has(input[type="radio"]:checked) { border-color: var(--das-primary); background: rgba(115, 103, 240, 0.18); box-shadow: 0 4px 14px rgba(115, 103, 240, 0.3); transform: translateY(-2px); }
+  .cakupan-card:has(input[type="radio"]:checked) .cakupan-card__icon { color: #a5a2f7; transform: scale(1.1); }
+  /* TINGKAT CHECKBOX GROUP */
+  .tingkat-checkbox-group { display: flex; gap: 8px; }
+  .tingkat-chip { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; padding: 8px 10px; border-radius: 5px; border: 1px solid var(--das-border); background: rgba(255, 255, 255, 0.03); cursor: pointer; transition: all 0.2s ease; margin: 0; text-align: center; }
+  .tingkat-chip input[type="checkbox"] { position: absolute; opacity: 0; width: 0; height: 0; }
+  .tingkat-chip__text { font-size: 0.78rem; font-weight: 700; color: #aaa; transition: all 0.2s ease; }
+  .tingkat-chip:hover { border-color: rgba(115, 103, 240, 0.4); background: rgba(115, 103, 240, 0.08); }
+  .tingkat-chip:has(input[type="checkbox"]:checked) { border-color: var(--das-primary); background: rgba(115, 103, 240, 0.18); box-shadow: 0 2px 8px rgba(115, 103, 240, 0.3); }
+  .tingkat-chip:has(input[type="checkbox"]:checked) .tingkat-chip__text { color: #fff; }
+
+  /* LIVE SEARCH & MULTI CHIPS FOR KELAS */
+  .set-input-group { position: relative; display: flex; align-items: center; width: 100%; margin-top: 0.25rem; }
+  .set-input-prefix { position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%); color: rgba(255, 255, 255, 0.4); z-index: 5; pointer-events: none; font-size: 1rem; }
+  .set-input-group:focus-within .set-input-prefix { color: var(--das-primary); }
+  .set-input-search { width: 100% !important; background: rgba(255, 255, 255, 0.04) !important; border: 1px solid var(--das-border) !important; color: #fff !important; font-size: 0.85rem !important; border-radius: 5px !important; padding: 0.6rem 0.9rem 0.6rem 2.4rem !important; transition: all 0.2s; }
+  .set-input-search:focus { background: rgba(255, 255, 255, 0.07) !important; border-color: rgba(115,103,240,.6) !important; outline: none; }
+  .set-input-search::placeholder { color: rgba(255,255,255,.3) !important; }
+
+  .kelas-search-results { max-height: 200px; overflow-y: auto; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 5px; margin-top: 0.5rem; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
+  .kelas-search-results:empty { display: none; }
+  .kelas-result-item { display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 0.85rem; cursor: pointer; border-bottom: 1px solid rgba(255, 255, 255, 0.04); transition: all 0.15s ease; font-size: 0.8rem; color: #ccc; }
+  .kelas-result-item:hover { background: rgba(115, 103, 240, 0.12); color: #fff; }
+  .kelas-result-item.is-selected { background: rgba(40, 199, 111, 0.12); border-left: 3px solid var(--das-success); color: #fff; }
+
+  .selected-chip-wrap { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.6rem; min-height: 0; }
+  .selected-chip { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.65rem; border-radius: 4px; background: rgba(115, 103, 240, 0.15); border: 1px solid rgba(115, 103, 240, 0.3); color: #c8c4f8; font-size: 0.75rem; font-weight: 600; }
+  .selected-chip .chip-remove { cursor: pointer; opacity: 0.7; font-size: 0.75rem; padding: 1px 4px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); transition: all 0.15s; }
+  .selected-chip .chip-remove:hover { opacity: 1; color: #ff4d4f; background: rgba(255, 77, 79, 0.2); }
+
+  .quick-action-btn-group { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 0.5rem; }
+  .quick-btn { font-size: 0.68rem; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--das-border); background: rgba(255,255,255,0.03); color: #aaa; cursor: pointer; transition: all 0.15s; }
+  .quick-btn:hover { background: rgba(115, 103, 240, 0.15); color: #fff; border-color: rgba(115, 103, 240, 0.3); }
 
   /* MODAL */
   .das-modal { background: #1a1a2e !important; border: 1px solid var(--das-border) !important; border-radius: var(--das-radius) !important; overflow: hidden; }
@@ -113,7 +182,7 @@
             </ol>
           </nav>
           <h4 class="das-hero__title">Kelola Hari Libur</h4>
-          <p class="das-hero__welcome">Konfigurasi hari libur sekolah untuk perhitungan kehadiran yang akurat.</p>
+          <p class="das-hero__welcome">Konfigurasi hari libur sekolah dengan dukungan rentang tanggal &amp; multi-select kelas.</p>
         </div>
       </div>
       <div>
@@ -128,7 +197,7 @@
   @foreach (['success', 'error'] as $msg)
     @if (session($msg))
       <div class="alert alert-{{ $msg === 'success' ? 'success' : 'danger' }} alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 slide-in-up"
-           role="alert" style="border-radius:8px;background:rgba(0,0,0,.3);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.08)!important;">
+           role="alert" style="border-radius:5px;background:rgba(0,0,0,.3);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.08)!important;">
         <i class="ti tabler-{{ $msg === 'success' ? 'circle-check' : 'alert-circle' }} fs-5 text-{{ $msg === 'success' ? 'success' : 'danger' }}"></i>
         <div class="text-white small fw-medium">{{ session($msg) }}</div>
         <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"></button>
@@ -139,7 +208,7 @@
   <div class="row g-4 slide-in-up">
 
     {{-- ── PANEL FORM TAMBAH ────────────────────────── --}}
-    <div class="col-md-4">
+    <div class="col-md-5">
       <div class="das-panel h-100">
         <div class="das-panel__head">
           <div class="das-panel__title">
@@ -148,18 +217,49 @@
           </div>
         </div>
         <div class="das-panel__body">
-          <form action="{{ route('admin.holidays.store') }}" method="POST">
+          <form action="{{ route('admin.holidays.store') }}" method="POST" id="formHoliday">
             @csrf
 
+            {{-- OPSI TIPE TANGGAL (SINGLE vs RANGE) --}}
             <div class="mb-3">
+              <label class="das-form-label">Mode Tanggal <span class="text-danger">*</span></label>
+              <div class="segmented-switch mb-2">
+                <input type="radio" name="tipe_tanggal" id="tipe_single" value="single" @checked(old('tipe_tanggal', 'single') === 'single')>
+                <label for="tipe_single"><i class="ti tabler-calendar-event me-1"></i> 1 Hari</label>
+
+                <input type="radio" name="tipe_tanggal" id="tipe_range" value="range" @checked(old('tipe_tanggal') === 'range')>
+                <label for="tipe_range"><i class="ti tabler-calendar-time me-1"></i> Rentang Tanggal</label>
+              </div>
+            </div>
+
+            {{-- FIELD TANGGAL SINGLE --}}
+            <div class="mb-3" id="div-tanggal-single">
               <label class="das-form-label">Tanggal <span class="text-danger">*</span></label>
-              <input type="date" name="tanggal"
+              <input type="date" name="tanggal" id="tanggal"
                      class="form-control das-form-control @error('tanggal') is-invalid @enderror"
-                     value="{{ old('tanggal') }}" required>
+                     value="{{ old('tanggal') }}">
               @error('tanggal') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
 
-            <div class="mb-4">
+            {{-- FIELD TANGGAL RANGE --}}
+            <div class="row g-2 mb-3" id="div-tanggal-range" style="display: none;">
+              <div class="col-6">
+                <label class="das-form-label">Tanggal Mulai <span class="text-danger">*</span></label>
+                <input type="date" name="tanggal_mulai" id="tanggal_mulai"
+                       class="form-control das-form-control @error('tanggal_mulai') is-invalid @enderror"
+                       value="{{ old('tanggal_mulai') }}">
+                @error('tanggal_mulai') <div class="invalid-feedback">{{ $message }}</div> @enderror
+              </div>
+              <div class="col-6">
+                <label class="das-form-label">Tanggal Selesai <span class="text-danger">*</span></label>
+                <input type="date" name="tanggal_selesai" id="tanggal_selesai"
+                       class="form-control das-form-control @error('tanggal_selesai') is-invalid @enderror"
+                       value="{{ old('tanggal_selesai') }}">
+                @error('tanggal_selesai') <div class="invalid-feedback">{{ $message }}</div> @enderror
+              </div>
+            </div>
+
+            <div class="mb-3">
               <label class="das-form-label">Nama Libur <span class="text-danger">*</span></label>
               <input type="text" name="nama"
                      class="form-control das-form-control @error('nama') is-invalid @enderror"
@@ -170,35 +270,80 @@
             </div>
 
             <div class="mb-3">
-              <label class="das-form-label" for="cakupan">Cakupan Libur <span class="text-danger">*</span></label>
-              <select name="cakupan" id="cakupan" class="form-select das-select @error('cakupan') is-invalid @enderror" required>
-                <option value="global" @selected(old('cakupan', 'global') === 'global')>Semua Siswa & Guru</option>
-                <option value="tingkat" @selected(old('cakupan') === 'tingkat')>Tingkat Tertentu</option>
-                <option value="kelas" @selected(old('cakupan') === 'kelas')>Kelas Tertentu</option>
-              </select>
-              @error('cakupan') <div class="invalid-feedback">{{ $message }}</div> @enderror
+              <label class="das-form-label">Cakupan Libur <span class="text-danger">*</span></label>
+              <div class="cakupan-grid">
+                <label class="cakupan-card" for="cakupan_global" title="Berlaku untuk seluruh Siswa & Guru">
+                  <input type="radio" name="cakupan" id="cakupan_global" value="global" @checked(old('cakupan', 'global') === 'global')>
+                  <div class="cakupan-card__icon"><i class="ti tabler-world"></i></div>
+                  <div class="cakupan-card__title">Semua</div>
+                </label>
+
+                <label class="cakupan-card" for="cakupan_tingkat" title="Berlaku untuk seluruh kelas dalam 1 Tingkat">
+                  <input type="radio" name="cakupan" id="cakupan_tingkat" value="tingkat" @checked(old('cakupan') === 'tingkat')>
+                  <div class="cakupan-card__icon"><i class="ti tabler-school"></i></div>
+                  <div class="cakupan-card__title">Per Tingkat</div>
+                </label>
+
+                <label class="cakupan-card" for="cakupan_kelas" title="Pilih kelas tertentu (Multi-Select)">
+                  <input type="radio" name="cakupan" id="cakupan_kelas" value="kelas" @checked(old('cakupan') === 'kelas')>
+                  <div class="cakupan-card__icon"><i class="ti tabler-door"></i></div>
+                  <div class="cakupan-card__title">Per Kelas</div>
+                </label>
+              </div>
+              @error('cakupan') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
             </div>
 
             <div class="mb-3" id="div-tingkat" style="display: none;">
-              <label class="das-form-label" for="tingkat">Tingkat Kelas <span class="text-danger">*</span></label>
-              <select name="tingkat" id="tingkat" class="form-select das-select @error('tingkat') is-invalid @enderror">
-                <option value="">-- Pilih Tingkat --</option>
-                <option value="X" @selected(old('tingkat') === 'X')>X</option>
-                <option value="XI" @selected(old('tingkat') === 'XI')>XI</option>
-                <option value="XII" @selected(old('tingkat') === 'XII')>XII</option>
-              </select>
-              @error('tingkat') <div class="invalid-feedback">{{ $message }}</div> @enderror
+              <label class="das-form-label">Tingkat Kelas (Multi-Select) <span class="text-danger">*</span></label>
+              <div class="tingkat-checkbox-group">
+                <label class="tingkat-chip" for="tingkat_x">
+                  <input type="checkbox" name="tingkat[]" id="tingkat_x" value="X" @checked(is_array(old('tingkat')) ? in_array('X', old('tingkat')) : old('tingkat') === 'X')>
+                  <span class="tingkat-chip__text">Tingkat X</span>
+                </label>
+
+                <label class="tingkat-chip" for="tingkat_xi">
+                  <input type="checkbox" name="tingkat[]" id="tingkat_xi" value="XI" @checked(is_array(old('tingkat')) ? in_array('XI', old('tingkat')) : old('tingkat') === 'XI')>
+                  <span class="tingkat-chip__text">Tingkat XI</span>
+                </label>
+
+                <label class="tingkat-chip" for="tingkat_xii">
+                  <input type="checkbox" name="tingkat[]" id="tingkat_xii" value="XII" @checked(is_array(old('tingkat')) ? in_array('XII', old('tingkat')) : old('tingkat') === 'XII')>
+                  <span class="tingkat-chip__text">Tingkat XII</span>
+                </label>
+              </div>
+              @error('tingkat') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
             </div>
 
+            {{-- INTERAKTIF MULTI-SELECT KELAS (LIVE SEARCH & CHIPS) --}}
             <div class="mb-4" id="div-kelas" style="display: none;">
-              <label class="das-form-label" for="kelas_id">Kelas <span class="text-danger">*</span></label>
-              <select name="kelas_id" id="kelas_id" class="form-select das-select @error('kelas_id') is-invalid @enderror">
-                <option value="">-- Pilih Kelas --</option>
-                @foreach($kelas as $k)
-                  <option value="{{ $k->id }}" data-tingkat="{{ $k->tingkat }}" @selected(old('kelas_id') == $k->id)>{{ $k->nama }}</option>
-                @endforeach
-              </select>
-              @error('kelas_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+              <label class="das-form-label">Cari &amp; Pilih Kelas <span class="text-danger">*</span></label>
+              
+              {{-- Container untuk hidden inputs kelas_ids[] --}}
+              <div id="hiddenKelasInputsContainer"></div>
+
+              {{-- Input Search --}}
+              <div class="set-input-group">
+                <span class="set-input-prefix"><i class="ti tabler-search"></i></span>
+                <input type="text" class="set-input-search" id="searchKelas"
+                       placeholder="Ketik nama kelas (misal: X-A, XII IPA)..." autocomplete="off">
+              </div>
+
+              {{-- Tombol Cepat (Quick Select) --}}
+              <div class="quick-action-btn-group">
+                <button type="button" class="quick-btn" id="btnSelectAllKelas">+ Semua Kelas</button>
+                <button type="button" class="quick-btn" id="btnSelectTingkatX">+ Tingkat X</button>
+                <button type="button" class="quick-btn" id="btnSelectTingkatXI">+ Tingkat XI</button>
+                <button type="button" class="quick-btn" id="btnSelectTingkatXII">+ Tingkat XII</button>
+                <button type="button" class="quick-btn text-danger ms-auto" id="btnClearKelas">Hapus Semua</button>
+              </div>
+
+              {{-- Display Chip Badges --}}
+              <div class="selected-chip-wrap" id="selectedKelasChipWrap"></div>
+
+              {{-- Dropdown Hasil Pencarian --}}
+              <div class="kelas-search-results" id="kelasSearchResultsList"></div>
+
+              @error('kelas_ids') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
             </div>
 
             <input type="hidden" name="jenis" value="school">
@@ -211,7 +356,7 @@
           <div class="das-info-box mt-4">
             <div class="small text-info d-flex gap-2">
               <i class="ti tabler-info-circle flex-shrink-0 mt-1"></i>
-              <span>Hanya hari libur <strong>sekolah</strong> yang dapat ditambah &amp; dihapus. Libur nasional dikelola otomatis oleh sistem.</span>
+              <span>Gunakan fitur <strong>Rentang Tanggal</strong> &amp; <strong>Multi-Select Kelas</strong> untuk menghemat waktu penginputan libur semester.</span>
             </div>
           </div>
         </div>
@@ -219,7 +364,7 @@
     </div>
 
     {{-- ── PANEL DAFTAR LIBUR ────────────────────────── --}}
-    <div class="col-md-8">
+    <div class="col-md-7">
       <div class="das-panel">
         <div class="das-panel__head">
           <div class="das-panel__title">
@@ -236,7 +381,7 @@
               @csrf
               <input type="hidden" name="year" value="{{ $year }}">
               <button type="submit" class="das-btn das-btn--ghost">
-                <i class="ti tabler-refresh me-1"></i> Sinkronisasi Libur Nasional
+                <i class="ti tabler-refresh me-1"></i> Sync Libur Nasional
               </button>
             </form>
 
@@ -275,13 +420,20 @@
                   </div>
                 </td>
                 <td>
-                  <div class="d-flex align-items-center gap-2">
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
                     <div style="width:6px;height:6px;border-radius:50%;background:{{ $holiday->jenis === 'national' ? 'var(--das-danger)' : 'var(--das-info)' }};flex-shrink:0;"></div>
-                    <span style="font-size:.83rem;">{{ $holiday->nama }}</span>
+                    <span style="font-size:.83rem;" class="fw-medium">{{ $holiday->nama }}</span>
+                    
                     @if($holiday->kelas_id)
                       <span class="badge bg-label-info ms-1" style="font-size: .65rem;">Kelas: {{ $holiday->kelas->nama ?? '-' }}</span>
                     @elseif($holiday->tingkat)
                       <span class="badge bg-label-warning ms-1" style="font-size: .65rem;">Tingkat: {{ $holiday->tingkat }}</span>
+                    @endif
+
+                    @if($holiday->batch_id)
+                      <span class="badge bg-label-secondary border border-secondary border-opacity-25" style="font-size:.6rem;" title="Di-input dalam satu kelompok/batch">
+                        <i class="ti tabler-layers-intersect me-1"></i>Batch
+                      </span>
                     @endif
                   </div>
                 </td>
@@ -302,6 +454,7 @@
                             data-bs-toggle="modal" data-bs-target="#deleteModal"
                             data-id="{{ $holiday->id }}"
                             data-name="{{ $holiday->nama }}"
+                            data-batch="{{ $holiday->batch_id ?? '' }}"
                             data-url="{{ route('admin.holidays.destroy', $holiday->id) }}"
                             title="Hapus Libur">
                       <i class="ti tabler-trash" style="font-size:.9rem;"></i>
@@ -357,7 +510,25 @@
                 <i class="ti tabler-trash-x text-danger fs-1"></i>
               </div>
               <h4 class="text-white mb-2">Hapus "<span id="delName" class="text-danger"></span>"?</h4>
-              <p class="text-muted small">Tindakan ini tidak dapat dibatalkan. Hari libur ini akan dihapus dari sistem.</p>
+              
+              {{-- OPSI BATCH DELETE (Hanya tampil jika ber-batch_id) --}}
+              <div id="batchDeleteOptions" class="text-start mt-3 p-3 rounded d-none" style="background:rgba(255,255,255,0.03);border:1px solid var(--das-border);">
+                <div class="small fw-bold text-white mb-2"><i class="ti tabler-layers-intersect text-warning me-1"></i>Pilihan Penghapusan Group:</div>
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="radio" name="delete_batch" id="del_single_only" value="0" checked>
+                  <label class="form-check-input-label text-white small" for="del_single_only">
+                    Hapus <strong>hanya 1 tanggal/entri ini</strong> saja
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="delete_batch" id="del_batch_all" value="1">
+                  <label class="form-check-input-label text-warning small" for="del_batch_all">
+                    Hapus <strong>seluruh kelompok hari libur</strong> ini sekaligus (Batch)
+                  </label>
+                </div>
+              </div>
+
+              <p class="text-muted small mt-3 mb-0">Tindakan ini tidak dapat dibatalkan. Hari libur ini akan dihapus dari sistem.</p>
             </div>
             <div class="d-flex gap-2 justify-content-center">
               <button type="button" class="das-btn das-btn--ghost" data-bs-dismiss="modal">Batal</button>
@@ -376,50 +547,272 @@
 
 @section('page-script')
 <script>
+const DATA_KELAS = @json($kelas);
+
 document.addEventListener('DOMContentLoaded', function () {
+  // Modal Delete Listener
   const delModal = document.getElementById('deleteModal');
   if (delModal) {
     delModal.addEventListener('show.bs.modal', function (e) {
       const btn = e.relatedTarget;
+      const batchId = btn.getAttribute('data-batch');
       delModal.querySelector('#delName').textContent = btn.getAttribute('data-name');
       delModal.querySelector('#delForm').action      = btn.getAttribute('data-url');
+
+      const batchOptions = delModal.querySelector('#batchDeleteOptions');
+      const delSingleRadio = delModal.querySelector('#del_single_only');
+      if (batchId && batchOptions) {
+        batchOptions.classList.remove('d-none');
+        if (delSingleRadio) delSingleRadio.checked = true;
+      } else if (batchOptions) {
+        batchOptions.classList.add('d-none');
+      }
     });
   }
 
-  // Toggle dropdowns dynamically
-  const cakupanSelect = document.getElementById('cakupan');
-  const divTingkat = document.getElementById('div-tingkat');
-  const divKelas = document.getElementById('div-kelas');
-  const tingkatSelect = document.getElementById('tingkat');
-  const kelasSelect = document.getElementById('kelas_id');
+  // Tipe Tanggal Toggle (Single vs Range)
+  const tipeSingle = document.getElementById('tipe_single');
+  const tipeRange  = document.getElementById('tipe_range');
+  const divSingle  = document.getElementById('div-tanggal-single');
+  const divRange   = document.getElementById('div-tanggal-range');
+  const inputTanggal = document.getElementById('tanggal');
+  const inputMulai   = document.getElementById('tanggal_mulai');
+  const inputSelesai = document.getElementById('tanggal_selesai');
 
-  function toggleDropdowns() {
-    const value = cakupanSelect.value;
-    if (value === 'tingkat') {
-      divTingkat.style.display = 'block';
-      tingkatSelect.setAttribute('required', 'required');
-      
-      divKelas.style.display = 'none';
-      kelasSelect.removeAttribute('required');
-    } else if (value === 'kelas') {
-      divKelas.style.display = 'block';
-      kelasSelect.setAttribute('required', 'required');
-      
-      divTingkat.style.display = 'none';
-      tingkatSelect.removeAttribute('required');
+  function toggleTipeTanggal() {
+    if (tipeRange.checked) {
+      divSingle.style.display = 'none';
+      divRange.style.display  = 'flex';
+      inputTanggal.removeAttribute('required');
+      inputMulai.setAttribute('required', 'required');
+      inputSelesai.setAttribute('required', 'required');
     } else {
-      divTingkat.style.display = 'none';
-      divKelas.style.display = 'none';
-      tingkatSelect.removeAttribute('required');
-      kelasSelect.removeAttribute('required');
+      divSingle.style.display = 'block';
+      divRange.style.display  = 'none';
+      inputTanggal.setAttribute('required', 'required');
+      inputMulai.removeAttribute('required');
+      inputSelesai.removeAttribute('required');
     }
   }
 
-  if (cakupanSelect) {
-    cakupanSelect.addEventListener('change', toggleDropdowns);
-    // Init state on page load
-    toggleDropdowns();
+  document.querySelectorAll('input[name="tipe_tanggal"]').forEach(el => {
+    el.addEventListener('change', toggleTipeTanggal);
+  });
+  toggleTipeTanggal();
+
+  // Cakupan Toggle (Radio Cards)
+  const divTingkat = document.getElementById('div-tingkat');
+  const divKelas   = document.getElementById('div-kelas');
+
+  function toggleCakupan() {
+    const checked = document.querySelector('input[name="cakupan"]:checked');
+    const val = checked ? checked.value : 'global';
+    if (val === 'tingkat') {
+      divTingkat.style.display = 'block';
+      divKelas.style.display   = 'none';
+    } else if (val === 'kelas') {
+      divKelas.style.display   = 'block';
+      divTingkat.style.display = 'none';
+    } else {
+      divTingkat.style.display = 'none';
+      divKelas.style.display   = 'none';
+    }
   }
+
+  document.querySelectorAll('input[name="cakupan"]').forEach(el => {
+    el.addEventListener('change', toggleCakupan);
+  });
+  toggleCakupan();
+
+  // ════════════════════════════════════════════════════════════
+  // MULTI-SELECT KELAS LOGIC (LIVE SEARCH & CHIPS)
+  // ════════════════════════════════════════════════════════════
+  let selectedKelasIds = [];
+
+  const searchInput = document.getElementById('searchKelas');
+  const resultsList = document.getElementById('kelasSearchResultsList');
+  const chipsWrap   = document.getElementById('selectedKelasChipWrap');
+  const hiddenContainer = document.getElementById('hiddenKelasInputsContainer');
+
+  function renderKelasSearchResults(term) {
+    if (!resultsList) return;
+    const lc = (term || '').toLowerCase().trim();
+
+    if (!lc) {
+      resultsList.innerHTML = '';
+      return;
+    }
+
+    const filtered = DATA_KELAS.filter(k => {
+      const nm = (k.nama || '').toLowerCase();
+      const tk = (k.tingkat || '').toLowerCase();
+      return nm.includes(lc) || tk.includes(lc);
+    });
+
+    if (filtered.length === 0) {
+      resultsList.innerHTML = `<div class="p-3 text-center text-muted small"><i class="ti tabler-search-off me-1"></i>Kelas "${escHtml(term)}" tidak ditemukan</div>`;
+      return;
+    }
+
+    resultsList.innerHTML = filtered.map(k => {
+      const isSelected = selectedKelasIds.includes(Number(k.id));
+      return `
+        <div class="kelas-result-item ${isSelected ? 'is-selected' : ''}" data-id="${k.id}" onclick="toggleSelectKelas(${k.id})">
+          <span>
+            <strong class="text-white">${escHtml(k.nama)}</strong>
+            <span class="text-muted ms-1" style="font-size:0.7rem;">(Tingkat ${escHtml(k.tingkat || '-')})</span>
+          </span>
+          <span class="badge ${isSelected ? 'bg-success' : 'bg-label-primary'}" style="font-size:0.65rem;">
+            ${isSelected ? '<i class="ti tabler-check me-1"></i>Terpilih' : '+ Pilih'}
+          </span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.toggleSelectKelas = function(id) {
+    const numId = Number(id);
+    const idx = selectedKelasIds.indexOf(numId);
+    if (idx !== -1) {
+      selectedKelasIds.splice(idx, 1);
+    } else {
+      selectedKelasIds.push(numId);
+    }
+    updateSelectedKelasUI();
+    if (searchInput && searchInput.value.trim().length > 0) {
+      renderKelasSearchResults(searchInput.value.trim());
+    }
+  };
+
+  window.removeKelasChip = function(id) {
+    selectedKelasIds = selectedKelasIds.filter(kId => kId !== Number(id));
+    updateSelectedKelasUI();
+    if (searchInput && searchInput.value.trim().length > 0) {
+      renderKelasSearchResults(searchInput.value.trim());
+    }
+  };
+
+  function updateSelectedKelasUI() {
+    // Render Hidden Inputs
+    if (hiddenContainer) {
+      hiddenContainer.innerHTML = selectedKelasIds.map(id => `
+        <input type="hidden" name="kelas_ids[]" value="${id}">
+      `).join('');
+    }
+
+    // Render Chips
+    if (chipsWrap) {
+      if (selectedKelasIds.length === 0) {
+        chipsWrap.innerHTML = '<span class="text-muted small italic" style="font-size:0.75rem;">Belum ada kelas yang dipilih. Ketik nama kelas di atas.</span>';
+      } else {
+        chipsWrap.innerHTML = selectedKelasIds.map(id => {
+          const kObj = DATA_KELAS.find(k => Number(k.id) === Number(id));
+          const name = kObj ? kObj.nama : `Kelas #${id}`;
+          return `
+            <div class="selected-chip">
+              <span>${escHtml(name)}</span>
+              <span class="chip-remove" onclick="removeKelasChip(${id})" title="Hapus kelas">✕</span>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      renderKelasSearchResults(this.value);
+    });
+  }
+
+  // Quick Action Buttons
+  document.getElementById('btnSelectAllKelas')?.addEventListener('click', function() {
+    selectedKelasIds = DATA_KELAS.map(k => Number(k.id));
+    updateSelectedKelasUI();
+    if (searchInput && searchInput.value.trim().length > 0) renderKelasSearchResults(searchInput.value);
+  });
+
+  document.getElementById('btnSelectTingkatX')?.addEventListener('click', function() {
+    const ids = DATA_KELAS.filter(k => (k.tingkat || '').toUpperCase() === 'X').map(k => Number(k.id));
+    selectedKelasIds = Array.from(new Set([...selectedKelasIds, ...ids]));
+    updateSelectedKelasUI();
+    if (searchInput && searchInput.value.trim().length > 0) renderKelasSearchResults(searchInput.value);
+  });
+
+  document.getElementById('btnSelectTingkatXI')?.addEventListener('click', function() {
+    const ids = DATA_KELAS.filter(k => (k.tingkat || '').toUpperCase() === 'XI').map(k => Number(k.id));
+    selectedKelasIds = Array.from(new Set([...selectedKelasIds, ...ids]));
+    updateSelectedKelasUI();
+    if (searchInput && searchInput.value.trim().length > 0) renderKelasSearchResults(searchInput.value);
+  });
+
+  document.getElementById('btnSelectTingkatXII')?.addEventListener('click', function() {
+    const ids = DATA_KELAS.filter(k => (k.tingkat || '').toUpperCase() === 'XII').map(k => Number(k.id));
+    selectedKelasIds = Array.from(new Set([...selectedKelasIds, ...ids]));
+    updateSelectedKelasUI();
+    if (searchInput && searchInput.value.trim().length > 0) renderKelasSearchResults(searchInput.value);
+  });
+
+  document.getElementById('btnClearKelas')?.addEventListener('click', function() {
+    selectedKelasIds = [];
+    updateSelectedKelasUI();
+    if (searchInput) searchInput.value = '';
+    if (resultsList) resultsList.innerHTML = '';
+  });
+
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  // Form Submission Loading State
+  const formHoliday = document.getElementById('formHoliday');
+  if (formHoliday) {
+    formHoliday.addEventListener('submit', function () {
+      const btn = formHoliday.querySelector('button[type="submit"]');
+      if (btn) {
+        btn.innerHTML = '<i class="ti tabler-loader spinner me-1"></i> Menyimpan data...';
+        btn.style.opacity = '0.85';
+        setTimeout(function() {
+          btn.disabled = true;
+        }, 10);
+      }
+    });
+  }
+
+  // SweetAlert2 Session Flash Triggers
+  @if (session('success'))
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: @json(session('success')),
+        customClass: {
+          confirmButton: 'btn btn-primary'
+        },
+        buttonsStyling: false,
+        timer: 3500,
+        timerProgressBar: true
+      });
+    }
+  @endif
+
+  @if (session('error'))
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal!',
+        text: @json(session('error')),
+        customClass: {
+          confirmButton: 'btn btn-danger'
+        },
+        buttonsStyling: false
+      });
+    }
+  @endif
+
+  // Initialize UI state
+  updateSelectedKelasUI();
 });
 </script>
 @endsection
