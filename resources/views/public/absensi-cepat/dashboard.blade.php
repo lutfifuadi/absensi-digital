@@ -524,8 +524,11 @@
                  .finally(() => this.loading = false);
              },
               markAllHadir() {
+                const now = new Date();
+                const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
                 this.students.forEach(s => {
                   s.status = 'H';
+                  if (!s.jam_masuk) s.jam_masuk = timeStr;
                   this.autoSaveSingle(s);
                 });
                 Swal.fire({
@@ -539,6 +542,13 @@
                   color: '#f8fafc'
                 });
               },
+              onStatusChange(student) {
+                if (!student.jam_masuk && student.status) {
+                  const now = new Date();
+                  student.jam_masuk = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+                }
+                this.autoSaveSingle(student);
+              },
               autoSaveSingle(student) {
                 if (!student || !student.id || !student.status) return;
                 fetch('{{ route('public.absensi-cepat.store-single') }}', {
@@ -551,6 +561,7 @@
                     id: student.id,
                     type: student.type || 'siswa',
                     status: student.status,
+                    jam_masuk: student.jam_masuk || null,
                     keterangan: student.keterangan || '',
                     kelas_id: this.selectedKelas || null
                   })
@@ -562,7 +573,7 @@
                       toast: true,
                       position: 'top-end',
                       icon: 'success',
-                      title: `${student.nama_lengkap}: ${student.status} tersimpan`,
+                      title: `${student.nama_lengkap}: ${student.status} (${student.jam_masuk || ''}) tersimpan`,
                       showConfirmButton: false,
                       timer: 1500,
                       background: '#0f172a',
@@ -599,6 +610,7 @@
                      id: s.id,
                      type: s.type || 'siswa',
                      status: s.status,
+                     jam_masuk: s.jam_masuk || null,
                      keterangan: s.keterangan
                    }))
                  })
@@ -728,6 +740,7 @@
                   <th class="px-4 py-3 w-12 text-center">No</th>
                   <th class="px-4 py-3 w-32">NIS / NIP</th>
                   <th class="px-4 py-3">Nama & Peran</th>
+                  <th class="px-4 py-3 w-28 text-center">Waktu</th>
                   <th class="px-4 py-3 w-72 text-center">Status Absensi</th>
                   <th class="px-4 py-3">Keterangan</th>
                 </tr>
@@ -759,27 +772,31 @@
                         </div>
                       </div>
                     </td>
+                    <td class="px-3 py-2.5 text-center">
+                      <input type="time" x-model="student.jam_masuk" @change="autoSaveSingle(student)" title="Jam Masuk Presensi"
+                             class="w-28 h-8 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-[5px] px-2 text-xs font-semibold text-slate-200 text-center outline-none transition cursor-pointer">
+                    </td>
                     <td class="px-4 py-2.5">
                       <div class="flex items-center justify-center gap-1">
                         <!-- Radio buttons for H, S, I, A, T -->
                         <label class="cursor-pointer">
-                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="H" x-model="student.status" @change="autoSaveSingle(student)" class="sr-only peer">
+                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="H" x-model="student.status" @change="onStatusChange(student)" class="sr-only peer">
                           <span class="w-8 h-7 rounded-[5px] text-xs font-black border border-slate-800 flex items-center justify-center peer-checked:border-emerald-500 peer-checked:bg-emerald-500/10 peer-checked:text-emerald-400 text-slate-400 hover:text-slate-200 transition">H</span>
                         </label>
                         <label class="cursor-pointer">
-                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="S" x-model="student.status" @change="autoSaveSingle(student)" class="sr-only peer">
+                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="S" x-model="student.status" @change="onStatusChange(student)" class="sr-only peer">
                           <span class="w-8 h-7 rounded-[5px] text-xs font-black border border-slate-800 flex items-center justify-center peer-checked:border-blue-500 peer-checked:bg-blue-500/10 peer-checked:text-blue-400 text-slate-400 hover:text-slate-200 transition">S</span>
                         </label>
                         <label class="cursor-pointer">
-                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="I" x-model="student.status" @change="autoSaveSingle(student)" class="sr-only peer">
+                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="I" x-model="student.status" @change="onStatusChange(student)" class="sr-only peer">
                           <span class="w-8 h-7 rounded-[5px] text-xs font-black border border-slate-800 flex items-center justify-center peer-checked:border-yellow-500 peer-checked:bg-yellow-500/10 peer-checked:text-yellow-400 text-slate-400 hover:text-slate-200 transition">I</span>
                         </label>
                         <label class="cursor-pointer">
-                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="A" x-model="student.status" @change="autoSaveSingle(student)" class="sr-only peer">
+                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="A" x-model="student.status" @change="onStatusChange(student)" class="sr-only peer">
                           <span class="w-8 h-7 rounded-[5px] text-xs font-black border border-slate-800 flex items-center justify-center peer-checked:border-rose-500 peer-checked:bg-rose-500/10 peer-checked:text-rose-400 text-slate-400 hover:text-slate-200 transition">A</span>
                         </label>
                         <label class="cursor-pointer">
-                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="T" x-model="student.status" @change="autoSaveSingle(student)" class="sr-only peer">
+                          <input type="radio" :name="'status_' + student.type + '_' + student.id" value="T" x-model="student.status" @change="onStatusChange(student)" class="sr-only peer">
                           <span class="w-8 h-7 rounded-[5px] text-xs font-black border border-slate-800 flex items-center justify-center peer-checked:border-amber-500 peer-checked:bg-amber-500/10 peer-checked:text-amber-400 text-slate-400 hover:text-slate-200 transition">T</span>
                         </label>
                       </div>

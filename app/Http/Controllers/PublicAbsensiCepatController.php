@@ -119,6 +119,7 @@ class PublicAbsensiCepatController extends Controller
             $abs = $absensiMap->get($siswa->id);
             $dbStatus = $abs ? $abs->status : null;
             $mappedStatus = $dbStatus ? ($statusMapFromDb[$dbStatus] ?? null) : null;
+            $jamMasuk = ($abs && $abs->jam_masuk) ? substr($abs->jam_masuk, 0, 5) : null;
 
             return [
                 'id' => $siswa->id,
@@ -129,6 +130,7 @@ class PublicAbsensiCepatController extends Controller
                 'nama_lengkap' => $siswa->nama_lengkap,
                 'foto' => $siswa->foto ? asset('storage/' . $siswa->foto) : null,
                 'status' => $mappedStatus,
+                'jam_masuk' => $jamMasuk,
                 'keterangan' => $abs ? $abs->keterangan : '',
             ];
         });
@@ -187,6 +189,7 @@ class PublicAbsensiCepatController extends Controller
                 $abs = $absensiGuruMap->get($guru->id);
                 $dbStatus = $abs ? $abs->status : null;
                 $mappedStatus = $dbStatus ? ($statusMapFromDb[$dbStatus] ?? null) : null;
+                $jamMasuk = ($abs && $abs->jam_masuk) ? substr($abs->jam_masuk, 0, 5) : null;
                 $data->push([
                     'id' => $guru->id,
                     'type' => 'guru',
@@ -195,6 +198,7 @@ class PublicAbsensiCepatController extends Controller
                     'nis' => $guru->nip ?? '-',
                     'nama_lengkap' => $guru->nama_lengkap,
                     'status' => $mappedStatus,
+                    'jam_masuk' => $jamMasuk,
                     'keterangan' => $abs ? $abs->keterangan : '',
                 ]);
             }
@@ -220,6 +224,7 @@ class PublicAbsensiCepatController extends Controller
                 $abs = $absensiStaffMap->get($staff->id);
                 $dbStatus = $abs ? $abs->status : null;
                 $mappedStatus = $dbStatus ? ($statusMapFromDb[$dbStatus] ?? null) : null;
+                $jamMasuk = ($abs && $abs->jam_masuk) ? substr($abs->jam_masuk, 0, 5) : null;
                 $data->push([
                     'id' => $staff->id,
                     'type' => 'staff',
@@ -228,6 +233,7 @@ class PublicAbsensiCepatController extends Controller
                     'nis' => $staff->nip ?? '-',
                     'nama_lengkap' => $staff->nama_lengkap,
                     'status' => $mappedStatus,
+                    'jam_masuk' => $jamMasuk,
                     'keterangan' => $abs ? $abs->keterangan : '',
                 ]);
             }
@@ -263,6 +269,7 @@ class PublicAbsensiCepatController extends Controller
                 $abs = $absensiSiswaMap->get($siswa->id);
                 $dbStatus = $abs ? $abs->status : null;
                 $mappedStatus = $dbStatus ? ($statusMapFromDb[$dbStatus] ?? null) : null;
+                $jamMasuk = ($abs && $abs->jam_masuk) ? substr($abs->jam_masuk, 0, 5) : null;
                 $data->push([
                     'id' => $siswa->id,
                     'type' => 'siswa',
@@ -271,6 +278,7 @@ class PublicAbsensiCepatController extends Controller
                     'nis' => $siswa->nis ?? $siswa->nisn ?? '-',
                     'nama_lengkap' => $siswa->nama_lengkap,
                     'status' => $mappedStatus,
+                    'jam_masuk' => $jamMasuk,
                     'keterangan' => $abs ? $abs->keterangan : '',
                 ]);
             }
@@ -461,6 +469,7 @@ class PublicAbsensiCepatController extends Controller
             'absensi.*.id' => 'required',
             'absensi.*.type' => 'nullable|string',
             'absensi.*.status' => 'required|string|in:H,S,I,A,T',
+            'absensi.*.jam_masuk' => 'nullable|string',
             'absensi.*.keterangan' => 'nullable|string|max:255',
         ]);
 
@@ -492,6 +501,11 @@ class PublicAbsensiCepatController extends Controller
                 $personId = $item['id'];
                 $type = $item['type'] ?? 'siswa';
 
+                $jamMasukInput = !empty($item['jam_masuk']) ? trim($item['jam_masuk']) : null;
+                if ($jamMasukInput && strlen($jamMasukInput) === 5) {
+                    $jamMasukInput .= ':00';
+                }
+
                 if ($type === 'siswa' && in_array($jenjang, ['sd/mi', 'smp/mts']) && $dbStatus === 'terlambat') {
                     $dbStatus = 'hadir';
                 }
@@ -506,18 +520,19 @@ class PublicAbsensiCepatController extends Controller
 
                 if ($type === 'guru') {
                     $absensi = AbsensiGuru::where('guru_id', $personId)->where('tanggal', $tanggal)->first();
+                    $targetJamMasuk = $jamMasukInput ?: (in_array($dbStatus, ['hadir', 'terlambat']) ? ($absensi->jam_masuk ?? $currentTime) : ($absensi->jam_masuk ?? null));
                     if ($absensi) {
                         $absensi->update([
                             'status' => $dbStatus,
                             'keterangan' => $keterangan,
-                            'jam_masuk' => in_array($dbStatus, ['hadir', 'terlambat']) ? ($absensi->jam_masuk ?? $currentTime) : null,
+                            'jam_masuk' => $targetJamMasuk,
                             'metode' => 'manual',
                         ]);
                     } else {
                         AbsensiGuru::create([
                             'guru_id' => $personId,
                             'tanggal' => $tanggal,
-                            'jam_masuk' => in_array($dbStatus, ['hadir', 'terlambat']) ? $currentTime : null,
+                            'jam_masuk' => $targetJamMasuk,
                             'status' => $dbStatus,
                             'keterangan' => $keterangan,
                             'metode' => 'manual',
@@ -525,18 +540,19 @@ class PublicAbsensiCepatController extends Controller
                     }
                 } elseif ($type === 'staff') {
                     $absensi = AbsensiStaff::where('staff_id', $personId)->where('tanggal', $tanggal)->first();
+                    $targetJamMasuk = $jamMasukInput ?: (in_array($dbStatus, ['hadir', 'terlambat']) ? ($absensi->jam_masuk ?? $currentTime) : ($absensi->jam_masuk ?? null));
                     if ($absensi) {
                         $absensi->update([
                             'status' => $dbStatus,
                             'keterangan' => $keterangan,
-                            'jam_masuk' => in_array($dbStatus, ['hadir', 'terlambat']) ? ($absensi->jam_masuk ?? $currentTime) : null,
+                            'jam_masuk' => $targetJamMasuk,
                             'metode' => 'manual',
                         ]);
                     } else {
                         AbsensiStaff::create([
                             'staff_id' => $personId,
                             'tanggal' => $tanggal,
-                            'jam_masuk' => in_array($dbStatus, ['hadir', 'terlambat']) ? $currentTime : null,
+                            'jam_masuk' => $targetJamMasuk,
                             'status' => $dbStatus,
                             'keterangan' => $keterangan,
                             'metode' => 'manual',
@@ -547,11 +563,12 @@ class PublicAbsensiCepatController extends Controller
                     $siswa = Siswa::find($personId);
                     $targetKelasId = $siswa ? $siswa->kelas_id : $kelasId;
                     $absensi = AbsensiSiswa::where('siswa_id', $personId)->where('tanggal', $tanggal)->first();
+                    $targetJamMasuk = $jamMasukInput ?: (in_array($dbStatus, ['hadir', 'terlambat']) ? ($absensi->jam_masuk ?? $currentTime) : ($absensi->jam_masuk ?? null));
                     if ($absensi) {
                         $absensi->update([
                             'status' => $dbStatus,
                             'keterangan' => $keterangan,
-                            'jam_masuk' => in_array($dbStatus, ['hadir', 'terlambat']) ? ($absensi->jam_masuk ?? $currentTime) : null,
+                            'jam_masuk' => $targetJamMasuk,
                             'metode' => 'manual',
                         ]);
                     } else {
@@ -559,7 +576,7 @@ class PublicAbsensiCepatController extends Controller
                             'siswa_id' => $personId,
                             'kelas_id' => $targetKelasId,
                             'tanggal' => $tanggal,
-                            'jam_masuk' => in_array($dbStatus, ['hadir', 'terlambat']) ? $currentTime : null,
+                            'jam_masuk' => $targetJamMasuk,
                             'status' => $dbStatus,
                             'keterangan' => $keterangan,
                             'metode' => 'manual',
@@ -590,6 +607,7 @@ class PublicAbsensiCepatController extends Controller
                 'id'         => 'required|integer',
                 'type'       => 'nullable|string|in:siswa,guru,staff',
                 'status'     => 'required|string|in:H,S,I,A,T,hadir,sakit,izin,alpha,terlambat',
+                'jam_masuk'  => 'nullable|string',
                 'keterangan' => 'nullable|string',
                 'kelas_id'   => 'nullable|integer',
             ]);
@@ -612,22 +630,28 @@ class PublicAbsensiCepatController extends Controller
             $dbStatus = $statusMap[$validated['status']] ?? 'hadir';
             $keterangan = $validated['keterangan'] ?? null;
             $tanggal = now()->toDateString();
-            $currentTime = now()->format('H:i');
+            $currentTime = now()->format('H:i:s');
+
+            $jamMasukInput = !empty($validated['jam_masuk']) ? trim($validated['jam_masuk']) : null;
+            if ($jamMasukInput && strlen($jamMasukInput) === 5) {
+                $jamMasukInput .= ':00';
+            }
 
             if ($type === 'guru') {
                 $absensi = AbsensiGuru::where('guru_id', $personId)->where('tanggal', $tanggal)->first();
+                $targetJamMasuk = $jamMasukInput ?: (in_array($dbStatus, ['hadir', 'terlambat']) ? ($absensi->jam_masuk ?? $currentTime) : ($absensi->jam_masuk ?? null));
                 if ($absensi) {
                     $absensi->update([
                         'status'     => $dbStatus,
                         'keterangan' => $keterangan,
-                        'jam_masuk'  => in_array($dbStatus, ['hadir', 'terlambat']) ? ($absensi->jam_masuk ?? $currentTime) : null,
+                        'jam_masuk'  => $targetJamMasuk,
                         'metode'     => 'manual',
                     ]);
                 } else {
                     AbsensiGuru::create([
                         'guru_id'    => $personId,
                         'tanggal'    => $tanggal,
-                        'jam_masuk'  => in_array($dbStatus, ['hadir', 'terlambat']) ? $currentTime : null,
+                        'jam_masuk'  => $targetJamMasuk,
                         'status'     => $dbStatus,
                         'keterangan' => $keterangan,
                         'metode'     => 'manual',
@@ -635,18 +659,19 @@ class PublicAbsensiCepatController extends Controller
                 }
             } elseif ($type === 'staff') {
                 $absensi = AbsensiStaff::where('staff_id', $personId)->where('tanggal', $tanggal)->first();
+                $targetJamMasuk = $jamMasukInput ?: (in_array($dbStatus, ['hadir', 'terlambat']) ? ($absensi->jam_masuk ?? $currentTime) : ($absensi->jam_masuk ?? null));
                 if ($absensi) {
                     $absensi->update([
                         'status'     => $dbStatus,
                         'keterangan' => $keterangan,
-                        'jam_masuk'  => in_array($dbStatus, ['hadir', 'terlambat']) ? ($absensi->jam_masuk ?? $currentTime) : null,
+                        'jam_masuk'  => $targetJamMasuk,
                         'metode'     => 'manual',
                     ]);
                 } else {
                     AbsensiStaff::create([
                         'staff_id' => $personId,
                         'tanggal'    => $tanggal,
-                        'jam_masuk'  => in_array($dbStatus, ['hadir', 'terlambat']) ? $currentTime : null,
+                        'jam_masuk'  => $targetJamMasuk,
                         'status'     => $dbStatus,
                         'keterangan' => $keterangan,
                         'metode'     => 'manual',
@@ -656,11 +681,12 @@ class PublicAbsensiCepatController extends Controller
                 $siswa = Siswa::find($personId);
                 $targetKelasId = $siswa ? $siswa->kelas_id : ($validated['kelas_id'] ?? null);
                 $absensi = AbsensiSiswa::where('siswa_id', $personId)->where('tanggal', $tanggal)->first();
+                $targetJamMasuk = $jamMasukInput ?: (in_array($dbStatus, ['hadir', 'terlambat']) ? ($absensi->jam_masuk ?? $currentTime) : ($absensi->jam_masuk ?? null));
                 if ($absensi) {
                     $absensi->update([
                         'status'     => $dbStatus,
                         'keterangan' => $keterangan,
-                        'jam_masuk'  => in_array($dbStatus, ['hadir', 'terlambat']) ? ($absensi->jam_masuk ?? $currentTime) : null,
+                        'jam_masuk'  => $targetJamMasuk,
                         'metode'     => 'manual',
                     ]);
                 } else {
@@ -668,7 +694,7 @@ class PublicAbsensiCepatController extends Controller
                         'siswa_id'   => $personId,
                         'kelas_id'   => $targetKelasId,
                         'tanggal'    => $tanggal,
-                        'jam_masuk'  => in_array($dbStatus, ['hadir', 'terlambat']) ? $currentTime : null,
+                        'jam_masuk'  => $targetJamMasuk,
                         'status'     => $dbStatus,
                         'keterangan' => $keterangan,
                         'metode'     => 'manual',
