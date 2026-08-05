@@ -677,6 +677,7 @@ class AbsensiSiswaController extends Controller
             'absensi'  => 'required|array',
             'absensi.*.siswa_id'   => 'required|exists:siswa,id',
             'absensi.*.status'     => 'nullable|in:hadir,sakit,izin,alpha,terlambat',
+            'absensi.*.jam_masuk'  => 'nullable|string',
             'absensi.*.keterangan' => 'nullable|string',
         ]);
 
@@ -696,6 +697,8 @@ class AbsensiSiswaController extends Controller
                 $status = 'hadir';
             }
 
+            $jamMasuk = !empty($item['jam_masuk']) ? $item['jam_masuk'] : (($status === 'hadir' || $status === 'terlambat') ? now()->format('H:i') : null);
+
             AbsensiSiswa::updateOrCreate(
                 [
                     'siswa_id' => $item['siswa_id'],
@@ -706,7 +709,7 @@ class AbsensiSiswaController extends Controller
                     'status'     => $status,
                     'keterangan' => $item['keterangan'] ?? null,
                     'metode'     => 'manual',
-                    'jam_masuk'  => ($status === 'hadir' || $status === 'terlambat') ? now()->format('H:i') : null,
+                    'jam_masuk'  => $jamMasuk,
                 ]
             );
             $count++;
@@ -781,6 +784,7 @@ class AbsensiSiswaController extends Controller
                 'siswa_id'   => 'required|exists:siswa,id',
                 'tanggal'    => 'required|date',
                 'status'     => 'required|in:hadir,sakit,izin,alpha,terlambat',
+                'jam_masuk'  => 'nullable|string',
                 'keterangan' => 'nullable|string',
             ]);
 
@@ -789,6 +793,8 @@ class AbsensiSiswaController extends Controller
             if (in_array($activeJenjang, ['SD/MI', 'SMP/MTs']) && $status === 'terlambat') {
                 $status = 'hadir';
             }
+
+            $jamMasuk = !empty($validated['jam_masuk']) ? $validated['jam_masuk'] : (($status === 'hadir' || $status === 'terlambat') ? now()->format('H:i') : null);
 
             $absensi = AbsensiSiswa::updateOrCreate(
                 [
@@ -800,7 +806,7 @@ class AbsensiSiswaController extends Controller
                     'status'     => $status,
                     'keterangan' => $validated['keterangan'] ?? null,
                     'metode'     => 'manual',
-                    'jam_masuk'  => ($status === 'hadir' || $status === 'terlambat') ? now()->format('H:i') : null,
+                    'jam_masuk'  => $jamMasuk,
                 ]
             );
 

@@ -142,7 +142,7 @@
     <div class="das-panel__body">
       <form action="{{ $urlBulkForm }}" method="GET" id="form-filter">
         <div class="row align-items-end g-3">
-          <div class="col-md-5">
+          <div class="col-md-3">
             <label class="form-label text-white-50 small fw-bold" for="kelas_id">Pilih Kelas</label>
             @if(isset($isWaliKelas) && $isWaliKelas)
               <select id="kelas_id_disabled" class="form-select" disabled>
@@ -162,9 +162,26 @@
               </select>
             @endif
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <label class="form-label text-white-50 small fw-bold" for="tanggal">Tanggal Absensi</label>
             <input type="date" name="tanggal" id="tanggal_filter" class="form-control" value="{{ request('tanggal', now()->toDateString()) }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-white-50 small fw-bold" for="filter_status_select">Filter Status Absensi</label>
+            <select name="status_filter" id="filter_status_select" class="form-select" onchange="filterStudents()">
+              <option value="all" {{ request('status_filter') == 'all' ? 'selected' : '' }}>🔍 Semua Status Absensi</option>
+              <option value="unselected" {{ request('status_filter') == 'unselected' ? 'selected' : '' }}>❓ Belum Dipilih / Belum Absen</option>
+              <option value="hadir" {{ request('status_filter') == 'hadir' ? 'selected' : '' }}>🟢 Hadir</option>
+              <option value="sakit" {{ request('status_filter') == 'sakit' ? 'selected' : '' }}>🔵 Sakit</option>
+              <option value="izin" {{ request('status_filter') == 'izin' ? 'selected' : '' }}>🟡 Izin</option>
+              <option value="alpha" {{ request('status_filter') == 'alpha' ? 'selected' : '' }}>🔴 Alpha</option>
+              @php
+                $activeJenjang = \App\Helpers\JenjangHelper::getActiveJenjang();
+              @endphp
+              @if(!in_array($activeJenjang, ['SD/MI', 'SMP/MTs']))
+                <option value="terlambat" {{ request('status_filter') == 'terlambat' ? 'selected' : '' }}>🟣 Terlambat</option>
+              @endif
+            </select>
           </div>
           <div class="col-md-3">
             <button type="submit" class="btn das-btn --info w-100">
@@ -182,6 +199,45 @@
       <input type="hidden" name="kelas_id" value="{{ $selectedKelasId }}">
       <input type="hidden" name="tanggal" id="tanggal_submit" value="{{ request('tanggal', now()->toDateString()) }}">
 
+      <!-- Floating Bulk Action Bar -->
+      <div id="bulk-action-bar" class="das-panel mb-3 p-3 border border-info border-opacity-30 rounded-3 shadow-lg"
+           style="display: none; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); position: sticky; top: 75px; z-index: 1020;">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-info p-2 px-3 fw-bold rounded-pill text-white" id="selected-count-badge">0 Terpilih</span>
+            <button type="button" class="btn btn-link text-white-50 p-0 ms-2 small text-decoration-underline" onclick="uncheckAllRows()">Batal Pilih</button>
+          </div>
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="text-white-50 small fw-bold me-1">Set Status Terpilih:</span>
+            <button type="button" class="btn btn-sm das-btn --success" onclick="applyBulkStatusSelected('hadir')">
+              <i class="ti tabler-check me-1"></i> Hadir (H)
+            </button>
+            <button type="button" class="btn btn-sm das-btn --info" onclick="applyBulkStatusSelected('sakit')">
+              <i class="ti tabler-stethoscope me-1"></i> Sakit (S)
+            </button>
+            <button type="button" class="btn btn-sm das-btn --warning" onclick="applyBulkStatusSelected('izin')">
+              <i class="ti tabler-file-description me-1"></i> Izin (I)
+            </button>
+            <button type="button" class="btn btn-sm das-btn --danger" onclick="applyBulkStatusSelected('alpha')">
+              <i class="ti tabler-x me-1"></i> Alpha (A)
+            </button>
+            @if(!in_array($activeJenjang, ['SD/MI', 'SMP/MTs']))
+              <button type="button" class="btn btn-sm das-btn --primary" onclick="applyBulkStatusSelected('terlambat')">
+                <i class="ti tabler-clock me-1"></i> Terlambat (T)
+              </button>
+            @endif
+          </div>
+          <!-- Jam Masuk Massal -->
+          <div class="d-flex align-items-center gap-1.5 bg-black bg-opacity-25 p-1 px-2 border border-white border-opacity-10 rounded-3 ms-md-2">
+            <span class="text-white-50 small fw-bold me-1">Jam Masuk:</span>
+            <input type="time" id="bulk_jam_masuk_input" class="form-control form-control-sm text-center" style="width: 110px;" value="{{ now()->format('H:i') }}">
+            <button type="button" class="btn btn-sm das-btn --info ms-1" onclick="applyBulkJamMasukSelected()">
+              Terapkan Jam
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="das-panel overflow-hidden mb-4">
         <div class="das-panel__head">
           <div class="das-panel__title">
@@ -197,12 +253,31 @@
             </button>
           </div>
         </div>
+
+        <!-- Toolbar Cari Siswa -->
+        <div class="p-3 border-bottom d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3"
+             style="border-color: rgba(255,255,255,0.08) !important; background: rgba(255,255,255,0.02);">
+          <div class="d-flex align-items-center gap-2 flex-grow-1 w-100">
+            <div class="position-relative flex-grow-1 w-100">
+              <i class="ti tabler-search position-absolute top-50 start-0 translate-middle-y ms-3 text-white-50" style="pointer-events: none; z-index: 5; font-size: 1.1rem;"></i>
+              <input type="text" id="search_siswa_input" class="form-control form-control-sm w-100" style="padding-left: 2.5rem !important;" placeholder="Cari nama atau NIS..." onkeyup="filterStudents()">
+            </div>
+          </div>
+          <div class="text-white-50 small fw-medium text-nowrap" id="filtered-count-info">
+            Menampilkan <span id="visible-count">{{ count($siswa) }}</span> dari {{ count($siswa) }} siswa
+          </div>
+        </div>
+
         <div class="table-responsive">
           <table class="das-table align-middle mb-0">
             <thead>
               <tr>
-                <th width="50" class="text-center ps-4">#</th>
+                <th width="40" class="text-center ps-4">
+                  <input type="checkbox" id="select_all_checkbox" onchange="toggleSelectAllRows(this.checked)" title="Pilih Semua" class="form-check-input cursor-pointer">
+                </th>
+                <th width="40" class="text-center">#</th>
                 <th>Nama Siswa</th>
+                <th width="120" class="text-center">Waktu</th>
                 <th class="text-center">Status Presensi</th>
                 <th class="text-end pe-4" style="width: 220px;">Keterangan</th>
               </tr>
@@ -213,13 +288,20 @@
                   $existingAbsensi = $s->absensi->first();
                   $existingStatus  = $existingAbsensi?->status;
                   $existingKet     = $existingAbsensi?->keterangan;
+                  $existingJamMasuk = $existingAbsensi?->jam_masuk ? substr($existingAbsensi->jam_masuk, 0, 5) : '';
                 @endphp
-                <tr class="student-row">
-                  <td class="text-center text-white-50 ps-4 small">{{ $index + 1 }}</td>
+                <tr class="student-row" data-name="{{ strtolower($s->nama_lengkap) }}" data-nis="{{ strtolower($s->nis ?? '') }}" data-nisn="{{ strtolower($s->nisn ?? '') }}">
+                  <td class="text-center ps-4">
+                    <input type="checkbox" class="form-check-input row-checkbox cursor-pointer" onchange="updateBulkActionBar()">
+                  </td>
+                  <td class="text-center text-white-50 small">{{ $index + 1 }}</td>
                   <td>
                     <div class="fw-bold text-white">{{ $s->nama_lengkap }}</div>
                     <div class="small text-white-50 opacity-75">{{ $s->nis }} / {{ $s->nisn }}</div>
                     <input type="hidden" name="absensi[{{ $index }}][siswa_id]" value="{{ $s->id }}">
+                  </td>
+                  <td class="text-center">
+                    <input type="time" name="absensi[{{ $index }}][jam_masuk]" class="form-control form-control-sm text-center mx-auto jam-masuk-input" style="max-width:110px;" value="{{ $existingJamMasuk }}" onchange="autoSaveSingle('{{ $s->id }}', '{{ addslashes($s->nama_lengkap) }}', null, this.closest('tr'))" title="Jam Masuk Presensi">
                   </td>
                   <td>
                     <div class="d-flex justify-content-center gap-2 absensi-radios">
@@ -321,6 +403,160 @@
   const urlStoreSingle = "{{ $urlStoreSingle }}";
   const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "{{ csrf_token() }}";
 
+  // Filter & Search Functions
+  window.filterStudents = function() {
+    const query = (document.getElementById('search_siswa_input')?.value || '').toLowerCase().trim();
+    const statusFilter = document.getElementById('filter_status_select')?.value || 'all';
+    const rows = document.querySelectorAll('tr.student-row');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const name = row.getAttribute('data-name') || '';
+      const nis = row.getAttribute('data-nis') || '';
+      const nisn = row.getAttribute('data-nisn') || '';
+
+      const matchesSearch = !query || name.includes(query) || nis.includes(query) || nisn.includes(query);
+
+      const checkedRadio = row.querySelector('input[type="radio"]:checked');
+      const currentStatus = checkedRadio ? checkedRadio.value : 'unselected';
+
+      let matchesStatus = true;
+      if (statusFilter !== 'all') {
+        if (statusFilter === 'unselected') {
+          matchesStatus = !checkedRadio;
+        } else {
+          matchesStatus = currentStatus === statusFilter;
+        }
+      }
+
+      if (matchesSearch && matchesStatus) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+        const rowCb = row.querySelector('.row-checkbox');
+        if (rowCb) rowCb.checked = false;
+      }
+    });
+
+    const visibleEl = document.getElementById('visible-count');
+    if (visibleEl) visibleEl.innerText = visibleCount;
+
+    window.updateBulkActionBar();
+  };
+
+  // Bulk Selection Controls
+  window.toggleSelectAllRows = function(isChecked) {
+    const visibleRows = document.querySelectorAll('tr.student-row:not([style*="display: none"])');
+    visibleRows.forEach(row => {
+      const cb = row.querySelector('.row-checkbox');
+      if (cb) cb.checked = isChecked;
+    });
+    window.updateBulkActionBar();
+  };
+
+  window.uncheckAllRows = function() {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+    const selectAllCb = document.getElementById('select_all_checkbox');
+    if (selectAllCb) selectAllCb.checked = false;
+    window.updateBulkActionBar();
+  };
+
+  window.updateBulkActionBar = function() {
+    const checkedCbs = document.querySelectorAll('tr.student-row:not([style*="display: none"]) .row-checkbox:checked');
+    const totalVisibleCbs = document.querySelectorAll('tr.student-row:not([style*="display: none"]) .row-checkbox');
+    const selectAllCb = document.getElementById('select_all_checkbox');
+    
+    if (selectAllCb) {
+      selectAllCb.checked = totalVisibleCbs.length > 0 && checkedCbs.length === totalVisibleCbs.length;
+    }
+
+    const actionBar = document.getElementById('bulk-action-bar');
+    const countBadge = document.getElementById('selected-count-badge');
+
+    if (checkedCbs.length > 0) {
+      if (actionBar) actionBar.style.display = 'block';
+      if (countBadge) countBadge.innerText = `${checkedCbs.length} Terpilih`;
+    } else {
+      if (actionBar) actionBar.style.display = 'none';
+    }
+  };
+
+  window.applyBulkJamMasukSelected = function() {
+    const bulkJam = document.getElementById('bulk_jam_masuk_input')?.value;
+    if (!bulkJam) {
+      window.showToast('danger', 'Pilih jam masuk terlebih dahulu');
+      return;
+    }
+    const checkedRows = document.querySelectorAll('tr.student-row:not([style*="display: none"]) .row-checkbox:checked');
+    if (checkedRows.length === 0) return;
+
+    let count = 0;
+    checkedRows.forEach(cb => {
+      const row = cb.closest('tr');
+      if (!row) return;
+
+      const jamInp = row.querySelector('input[name*="[jam_masuk]"]');
+      if (jamInp) jamInp.value = bulkJam;
+
+      const checkedRadio = row.querySelector('input[type="radio"]:checked');
+      let statusVal = checkedRadio ? checkedRadio.value : 'hadir';
+      if (!checkedRadio) {
+        const hRadio = row.querySelector('input[value="hadir"]');
+        if (hRadio) hRadio.checked = true;
+      }
+
+      const siswaIdInp = row.querySelector('input[name*="[siswa_id]"]');
+      const siswaId = siswaIdInp ? siswaIdInp.value : null;
+      const namaEl = row.querySelector('.fw-bold.text-white');
+      const nama = namaEl ? namaEl.innerText : '';
+      if (siswaId) {
+        window.autoSaveSingle(siswaId, nama, statusVal, row);
+        count++;
+      }
+    });
+
+    window.updateSummary();
+    window.uncheckAllRows();
+    window.showToast('success', `Jam Masuk ${bulkJam} diterapkan ke ${count} siswa terpilih`);
+  };
+
+  window.applyBulkStatusSelected = function(statusVal) {
+    const checkedRows = document.querySelectorAll('tr.student-row:not([style*="display: none"]) .row-checkbox:checked');
+    if (checkedRows.length === 0) return;
+
+    const now = new Date();
+    const currentTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+    let count = 0;
+    checkedRows.forEach(cb => {
+      const row = cb.closest('tr');
+      if (!row) return;
+
+      const jamInp = row.querySelector('input[name*="[jam_masuk]"]');
+      if (jamInp && !jamInp.value) {
+        jamInp.value = currentTime;
+      }
+
+      const radio = row.querySelector(`input[value="${statusVal}"]`);
+      if (radio) {
+        radio.checked = true;
+        const siswaIdInp = row.querySelector('input[name*="[siswa_id]"]');
+        const siswaId = siswaIdInp ? siswaIdInp.value : null;
+        const namaEl = row.querySelector('.fw-bold.text-white');
+        const nama = namaEl ? namaEl.innerText : '';
+        if (siswaId) {
+          window.autoSaveSingle(siswaId, nama, statusVal, row);
+          count++;
+        }
+      }
+    });
+
+    window.updateSummary();
+    window.uncheckAllRows();
+    window.showToast('success', `Status ${statusVal.toUpperCase()} diterapkan ke ${count} siswa terpilih`);
+  };
+
   window.autoSaveSingle = function(siswaId, namaSiswa, statusVal, rowEl) {
     if (!rowEl) return;
     const kelasId = document.querySelector('input[name="kelas_id"]')?.value || "{{ $selectedKelasId }}";
@@ -331,6 +567,9 @@
       if (!checkedRadio) return;
       statusVal = checkedRadio.value;
     }
+
+    const jamInp = rowEl.querySelector('input[name*="[jam_masuk]"]');
+    const jamMasukVal = jamInp ? jamInp.value : '';
 
     const ketInp = rowEl.querySelector('input[name*="[keterangan]"]');
     const keterangan = ketInp ? ketInp.value : '';
@@ -347,13 +586,15 @@
         siswa_id: siswaId,
         tanggal: tanggal,
         status: statusVal,
+        jam_masuk: jamMasukVal,
         keterangan: keterangan
       })
     })
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        window.showToast('success', `${namaSiswa}: Status ${statusVal.toUpperCase()} tersimpan`);
+        const jamInfo = jamMasukVal ? ` (${jamMasukVal})` : '';
+        window.showToast('success', `${namaSiswa}: Status ${statusVal.toUpperCase()}${jamInfo} tersimpan`);
       } else {
         window.showToast('danger', data.message || 'Gagal menyimpan absensi');
       }
@@ -429,6 +670,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     window.updateSummary();
+    window.filterStudents();
 
     // Sync tanggal filter ke tanggal submit
     const tFilter = document.getElementById('tanggal_filter');

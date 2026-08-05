@@ -14,12 +14,46 @@
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
     html, body {
+      color-scheme: dark !important;
       font-family: 'Product Sans', 'Inter', sans-serif;
       overflow-x: hidden !important;
       max-width: 100vw !important;
       width: 100% !important;
       margin: 0 !important;
       padding: 0 !important;
+    }
+    
+    /* Custom Dark Theme Checkbox */
+    input[type="checkbox"] {
+      appearance: none !important;
+      -webkit-appearance: none !important;
+      width: 1.125rem !important;
+      height: 1.125rem !important;
+      background-color: #020617 !important;
+      border: 1.5px solid #334155 !important;
+      border-radius: 4px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      cursor: pointer !important;
+      transition: all 0.15s ease-in-out !important;
+      vertical-align: middle !important;
+    }
+    input[type="checkbox"]:hover {
+      border-color: #6366f1 !important;
+      background-color: #0f172a !important;
+    }
+    input[type="checkbox"]:checked {
+      background-color: #4f46e5 !important;
+      border-color: #6366f1 !important;
+      background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e") !important;
+      background-position: center !important;
+      background-repeat: no-repeat !important;
+      background-size: 100% 100% !important;
+    }
+    input[type="checkbox"]:focus {
+      outline: 2px solid rgba(99, 102, 241, 0.5) !important;
+      outline-offset: 1px !important;
     }
     #qr-reader { width: 100% !important; border: none !important; }
     #qr-reader video { width: 100% !important; height: 100% !important; object-fit: cover !important; border-radius: 5px !important; }
@@ -462,13 +496,91 @@
       <!-- Tab 2: ABSENSI BULK / PENCARIAN -->
       <div x-show="activeTab === 'bulk'" class="flex-1 flex flex-col"
            x-data="{
-             selectedRole: '',
-             selectedKelas: '',
-             searchQuery: '',
-             students: [],
-             loading: false,
-             submitting: false,
-             getInitials(name) {
+              selectedRole: '',
+              selectedKelas: '',
+              searchQuery: '',
+              students: [],
+              selectedIds: [],
+              selectAll: false,
+              bulkJamMasuk: '',
+              loading: false,
+              submitting: false,
+              toggleSelectAll() {
+                if (this.selectAll) {
+                  this.selectedIds = this.students.map(s => s.type + '_' + s.id);
+                } else {
+                  this.selectedIds = [];
+                }
+              },
+              updateSelectAllState() {
+                this.selectAll = (this.students.length > 0 && this.selectedIds.length === this.students.length);
+              },
+              clearSelection() {
+                this.selectedIds = [];
+                this.selectAll = false;
+              },
+              applyBulkStatus(targetStatus) {
+                if (this.selectedIds.length === 0) return;
+                const now = new Date();
+                const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+                let count = 0;
+                this.students.forEach(s => {
+                  const key = s.type + '_' + s.id;
+                  if (this.selectedIds.includes(key)) {
+                    s.status = targetStatus;
+                    if (!s.jam_masuk) s.jam_masuk = timeStr;
+                    this.autoSaveSingle(s);
+                    count++;
+                  }
+                });
+                Swal.fire({
+                  toast: true,
+                  position: 'top-end',
+                  icon: 'success',
+                  title: `Status ${targetStatus} dipasang ke ${count} data terpilih`,
+                  showConfirmButton: false,
+                  timer: 1500,
+                  background: '#0f172a',
+                  color: '#f8fafc'
+                });
+              },
+              applyBulkJamMasuk() {
+                if (this.selectedIds.length === 0) return;
+                if (!this.bulkJamMasuk) {
+                  Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'warning',
+                    title: 'Pilih jam masuk terlebih dahulu',
+                    showConfirmButton: false,
+                    timer: 1500,
+                    background: '#0f172a',
+                    color: '#f8fafc'
+                  });
+                  return;
+                }
+                let count = 0;
+                this.students.forEach(s => {
+                  const key = s.type + '_' + s.id;
+                  if (this.selectedIds.includes(key)) {
+                    s.jam_masuk = this.bulkJamMasuk;
+                    if (!s.status) s.status = 'H';
+                    this.autoSaveSingle(s);
+                    count++;
+                  }
+                });
+                Swal.fire({
+                  toast: true,
+                  position: 'top-end',
+                  icon: 'success',
+                  title: `Jam Masuk ${this.bulkJamMasuk} diterapkan ke ${count} data terpilih`,
+                  showConfirmButton: false,
+                  timer: 1500,
+                  background: '#0f172a',
+                  color: '#f8fafc'
+                });
+              },
+              getInitials(name) {
                if (!name) return '??';
                const parts = name.trim().split(/\s+/);
                if (parts.length >= 2) {
@@ -507,6 +619,7 @@
              },
              loadData() {
                this.loading = true;
+               this.clearSelection();
                const params = new URLSearchParams();
                if (this.selectedRole) params.append('role', this.selectedRole);
                if (this.searchQuery) params.append('q', this.searchQuery);
@@ -714,6 +827,41 @@
           </div>
         </div>
 
+        <!-- Floating Bulk Action Bar -->
+        <div x-show="selectedIds.length > 0" x-transition
+             class="bg-indigo-950/90 border border-indigo-500/40 rounded-[5px] p-3 mb-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-xl backdrop-blur-md relative z-30">
+          <div class="flex items-center gap-3">
+            <span class="px-2.5 py-1 bg-indigo-600 text-white font-extrabold text-xs rounded-[5px] flex items-center gap-1.5 shadow-sm">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span x-text="selectedIds.length"></span> Terpilih
+            </span>
+            <button @click="clearSelection()" class="text-xs text-slate-400 hover:text-slate-200 font-semibold underline">
+              Batal Pilih
+            </button>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+            <!-- Set Status Massal -->
+            <div class="flex items-center gap-1 bg-slate-900/90 p-1 border border-slate-800 rounded-[5px]">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2">Set Status:</span>
+              <button @click="applyBulkStatus('H')" class="px-2.5 py-1 text-xs font-black bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/30 text-emerald-400 rounded-[5px] transition" title="Set Hadir">H</button>
+              <button @click="applyBulkStatus('S')" class="px-2.5 py-1 text-xs font-black bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/30 text-blue-400 rounded-[5px] transition" title="Set Sakit">S</button>
+              <button @click="applyBulkStatus('I')" class="px-2.5 py-1 text-xs font-black bg-yellow-500/10 border border-yellow-500/30 hover:bg-yellow-500/30 text-yellow-400 rounded-[5px] transition" title="Set Izin">I</button>
+              <button @click="applyBulkStatus('A')" class="px-2.5 py-1 text-xs font-black bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/30 text-rose-400 rounded-[5px] transition" title="Set Alpha">A</button>
+              <button @click="applyBulkStatus('T')" class="px-2.5 py-1 text-xs font-black bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/30 text-amber-400 rounded-[5px] transition" title="Set Terlambat">T</button>
+            </div>
+
+            <!-- Jam Masuk Massal -->
+            <div class="flex items-center gap-1.5 bg-slate-900/90 p-1 border border-slate-800 rounded-[5px]">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1.5">Jam Masuk:</span>
+              <input type="time" x-model="bulkJamMasuk" class="w-24 h-7 bg-slate-950 border border-slate-700 rounded-[4px] px-1.5 text-xs text-slate-100 font-semibold text-center outline-none">
+              <button @click="applyBulkJamMasuk()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-[5px] transition shadow-sm">
+                Terapkan Jam
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Student & Person List Container -->
         <div class="bg-slate-900/90 border border-slate-800 rounded-[5px] overflow-hidden flex-1 flex flex-col shadow-lg relative z-10">
           
@@ -737,6 +885,9 @@
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="bg-slate-950 border-b border-slate-800 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                  <th class="px-3 py-3 w-10 text-center">
+                    <input type="checkbox" x-model="selectAll" @change="toggleSelectAll()" title="Pilih semua data" class="w-4 h-4 rounded border-slate-700 bg-slate-950 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-900 cursor-pointer">
+                  </th>
                   <th class="px-4 py-3 w-12 text-center">No</th>
                   <th class="px-4 py-3 w-32">NIS / NIP</th>
                   <th class="px-4 py-3">Nama & Peran</th>
@@ -747,7 +898,10 @@
               </thead>
               <tbody class="divide-y divide-slate-800/60">
                 <template x-for="(student, index) in students" :key="student.type + '_' + student.id">
-                  <tr class="hover:bg-slate-850/40 transition">
+                  <tr class="hover:bg-slate-850/40 transition" :class="selectedIds.includes(student.type + '_' + student.id) ? 'bg-indigo-950/30' : ''">
+                    <td class="px-3 py-2.5 text-center">
+                      <input type="checkbox" :value="student.type + '_' + student.id" x-model="selectedIds" @change="updateSelectAllState()" class="w-4 h-4 rounded border-slate-700 bg-slate-950 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-900 cursor-pointer">
+                    </td>
                     <td class="px-4 py-2.5 text-xs text-slate-400 font-medium text-center" x-text="index + 1"></td>
                     <td class="px-4 py-2.5 text-xs text-slate-300 font-bold" x-text="student.nis"></td>
                     <td class="px-4 py-2.5">
