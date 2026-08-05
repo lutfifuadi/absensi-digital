@@ -789,64 +789,13 @@
               <i class="ti tabler-brand-whatsapp me-1"></i> Rekap & Share WA
             </button>
             <a href="{{ route('admin.absensi-per-jam.index', ['tanggal' => $tanggal]) }}" class="das-btn das-btn--ghost">
-              <i class="ti tabler-x me-1"></i> Batal
+              <i class="ti tabler-arrow-left me-1"></i> Selesai & Kembali
             </a>
-            <button type="submit" class="das-btn das-btn--primary" @if (!$canEdit) disabled @endif>
-              <i class="ti tabler-device-floppy me-1"></i> Simpan Absensi
-            </button>
           </div>
         </div>
       @endif
     </div>
   </form>
-
-  {{-- ═══════════════════════════════════════════════════════
-       MODAL KONFIRMASI SIMPAN / TIMPA
-  ═══════════════════════════════════════════════════════ --}}
-  <div class="modal fade" id="modalSimpanAbsensi" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:500px;">
-      <div class="modal-content shadow-lg">
-
-        {{-- Header --}}
-        <div class="modal-header-custom" :class="isOverwrite ? '--warning' : '--info'">
-          <div class="modal-icon-badge" :class="isOverwrite ? '--warning' : '--info'">
-            <i class="ti" :class="isOverwrite ? 'tabler-alert-triangle' : 'tabler-device-floppy'"></i>
-          </div>
-          <div>
-            <h5 class="fw-bold text-white mb-0" style="font-size:1.05rem;" x-text="isOverwrite ? 'Timpa Absensi' : 'Simpan Absensi'">Simpan Absensi</h5>
-            <small class="text-white-50 fs-7" x-text="isOverwrite ? 'Sesi sudah pernah diisi' : 'Konfirmasi sebelum menyimpan'">Konfirmasi sebelum menyimpan</small>
-          </div>
-          <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-
-        {{-- Body --}}
-        <div class="modal-body-custom">
-          <div class="modal-center-icon-wrapper" :class="isOverwrite ? '--warning' : '--info'">
-            <i class="ti" :class="isOverwrite ? 'tabler-alert-triangle-filled' : 'tabler-device-floppy'"></i>
-          </div>
-          <h6 class="fw-bold text-white fs-6 mb-2" x-text="isOverwrite ? 'Konfirmasi Timpa Data Absensi' : 'Konfirmasi Simpan Absensi'">Konfirmasi Simpan Absensi</h6>
-          <p class="text-white-50 small mb-3 px-2 lh-base" x-text="confirmMsg">Simpan absensi untuk seluruh siswa di kelas ini?</p>
-          @if ($sesiTerisi)
-            <div class="d-inline-flex align-items-center gap-1 p-2 px-3 rounded-pill bg-black bg-opacity-30 border border-warning border-opacity-20 text-warning small">
-              <i class="ti tabler-history fs-6 me-1"></i>
-              <span>Perubahan akan tercatat sebagai edit pada sesi ini.</span>
-            </div>
-          @endif
-        </div>
-
-        {{-- Footer --}}
-        <div class="modal-footer-custom">
-          <button type="button" class="modal-btn-cancel" data-bs-dismiss="modal">
-            <i class="ti tabler-x fs-6 me-1"></i> Batal
-          </button>
-          <button type="button" :class="isOverwrite ? 'modal-btn-confirm-warning' : 'modal-btn-confirm-info'" @click="submitForm">
-            <i class="ti" :class="isOverwrite ? 'tabler-refresh' : 'tabler-device-floppy'"></i>
-            <span x-text="isOverwrite ? 'Ya, Timpa Data' : 'Ya, Simpan'">Ya, Simpan</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
   {{-- ═══════════════════════════════════════════════════════
        MODAL SHARE REKAP WHATSAPP
   ═══════════════════════════════════════════════════════ --}}
