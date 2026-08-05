@@ -557,10 +557,10 @@
           <div class="set-form-grid">
             <div class="set-field set-field--full">
               <label class="set-label">Format Template Rekap WA</label>
-              <textarea class="set-input font-monospace" name="wa_template_rekap_presensi" rows="8" style="font-size:0.85rem; line-height:1.5;">{{ old('wa_template_rekap_presensi', $settings['wa_template_rekap_presensi'] ?? "*LAPORAN KONDISI MURID MATA PELAJARAN {mapel}*\nKelas: {kelas}\nHari/Tanggal: {hari_tanggal}\nJam ke: {jam_ke}\n\nJumlah Murid: {jumlah_murid} orang\n* Hadir : {total_hadir} orang\n* Alpa : {total_alpa} Orang\n{daftar_alpa}\n* Izin : {total_izin} Orang\n{daftar_izin}\n* Sakit : {total_sakit} Orang\n{daftar_sakit}\n* Terlambat : {total_terlambat} Orang\n{daftar_terlambat}") }}</textarea>
+              <textarea class="set-input font-monospace" name="wa_template_rekap_presensi" rows="8" style="font-size:0.85rem; line-height:1.5;">{{ old('wa_template_rekap_presensi', $settings['wa_template_rekap_presensi'] ?? "*LAPORAN KONDISI MURID MATA PELAJARAN {mapel}*\nKelas: {kelas}\nHari/Tanggal: {hari_tanggal}\nJam ke: {jam_ke}\n\nJumlah Murid: {jumlah_murid} orang\n* Hadir : {total_hadir} orang\n* Alpa : {total_alpa} Orang\n{daftar_alpa}\n* Izin : {total_izin} Orang\n{daftar_izin}\n* Sakit : {total_sakit} Orang\n{daftar_sakit}\n* Terlambat : {total_terlambat} Orang\n{daftar_terlambat}\n* Bolos : {total_bolos} Orang\n{daftar_bolos}") }}</textarea>
               <div class="set-field-hint --info mt-2">
                 <i class="ti tabler-info-circle"></i>
-                Variabel yang dapat digunakan: <code>{mapel}</code>, <code>{kelas}</code>, <code>{hari_tanggal}</code>, <code>{jam_ke}</code>, <code>{jumlah_murid}</code>, <code>{total_hadir}</code>, <code>{total_alpa}</code>, <code>{daftar_alpa}</code>, <code>{total_izin}</code>, <code>{daftar_izin}</code>, <code>{total_sakit}</code>, <code>{daftar_sakit}</code>, <code>{total_terlambat}</code>, <code>{daftar_terlambat}</code>.
+                Variabel yang dapat digunakan: <code>{mapel}</code>, <code>{kelas}</code>, <code>{hari_tanggal}</code>, <code>{jam_ke}</code>, <code>{jumlah_murid}</code>, <code>{total_hadir}</code>, <code>{total_alpa}</code>, <code>{daftar_alpa}</code>, <code>{total_izin}</code>, <code>{daftar_izin}</code>, <code>{total_sakit}</code>, <code>{daftar_sakit}</code>, <code>{total_terlambat}</code>, <code>{daftar_terlambat}</code>, <code>{total_bolos}</code>, <code>{daftar_bolos}</code>.
               </div>
             </div>
           </div>

@@ -867,7 +867,7 @@ class PengaturanDefaults
             'live_board_counter_font_family' => ['default' => 'Courier New', 'type' => 'string', 'group' => 'umum', 'label' => 'Font Counter Live Board', 'description' => 'Font angka live board', 'icon' => 'tabler-numbers', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
             'live_board_counter_color' => ['default' => '#7367f0', 'type' => 'string', 'group' => 'umum', 'label' => 'Warna Counter Live Board', 'description' => 'Hex color', 'icon' => 'tabler-color-picker', 'is_toggle' => false, 'tenant_scoped' => false, 'permission' => 'admin_sekolah'],
             'wa_template_rekap_presensi' => [
-                'default'       => "*LAPORAN KONDISI MURID MATA PELAJARAN {mapel}*\nKelas: {kelas}\nHari/Tanggal: {hari_tanggal}\nJam ke: {jam_ke}\n\nJumlah Murid: {jumlah_murid} orang\n* Hadir : {total_hadir} orang\n* Alpa : {total_alpa} Orang\n{daftar_alpa}\n* Izin : {total_izin} Orang\n{daftar_izin}\n* Sakit : {total_sakit} Orang\n{daftar_sakit}\n* Terlambat : {total_terlambat} Orang\n{daftar_terlambat}",
+                'default'       => "*LAPORAN KONDISI MURID MATA PELAJARAN {mapel}*\nKelas: {kelas}\nHari/Tanggal: {hari_tanggal}\nJam ke: {jam_ke}\n\nJumlah Murid: {jumlah_murid} orang\n* Hadir : {total_hadir} orang\n* Alpa : {total_alpa} Orang\n{daftar_alpa}\n* Izin : {total_izin} Orang\n{daftar_izin}\n* Sakit : {total_sakit} Orang\n{daftar_sakit}\n* Terlambat : {total_terlambat} Orang\n{daftar_terlambat}\n* Bolos : {total_bolos} Orang\n{daftar_bolos}",
                 'type'          => 'text',
                 'group'         => 'wa',
                 'label'         => 'Template Redaksi Rekap WA Presensi',

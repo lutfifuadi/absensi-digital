@@ -466,7 +466,7 @@
     }
 
     $defaultWaTemplate = \App\Models\Pengaturan::where('key', 'wa_template_rekap_presensi')->value('value')
-        ?: "*LAPORAN KONDISI MURID MATA PELAJARAN {mapel}*\nKelas: {kelas}\nHari/Tanggal: {hari_tanggal}\nJam ke: {jam_ke}\n\nJumlah Murid: {jumlah_murid} orang\n* Hadir : {total_hadir} orang\n* Alpa : {total_alpa} Orang\n{daftar_alpa}\n* Izin : {total_izin} Orang\n{daftar_izin}\n* Sakit : {total_sakit} Orang\n{daftar_sakit}\n* Terlambat : {total_terlambat} Orang\n{daftar_terlambat}";
+        ?: "*LAPORAN KONDISI MURID MATA PELAJARAN {mapel}*\nKelas: {kelas}\nHari/Tanggal: {hari_tanggal}\nJam ke: {jam_ke}\n\nJumlah Murid: {jumlah_murid} orang\n* Hadir : {total_hadir} orang\n* Alpa : {total_alpa} Orang\n{daftar_alpa}\n* Izin : {total_izin} Orang\n{daftar_izin}\n* Sakit : {total_sakit} Orang\n{daftar_sakit}\n* Terlambat : {total_terlambat} Orang\n{daftar_terlambat}\n* Bolos : {total_bolos} Orang\n{daftar_bolos}";
   @endphp
 
   {{-- ═══════════════════════════════════════════════════════
@@ -874,6 +874,7 @@
             <span class="das-chip --warning"><i class="ti tabler-file-description me-1"></i>Izin: <span x-text="counts.izin" class="fw-bold">0</span></span>
             <span class="das-chip --info"><i class="ti tabler-stethoscope me-1"></i>Sakit: <span x-text="counts.sakit" class="fw-bold">0</span></span>
             <span class="das-chip --primary"><i class="ti tabler-clock-exclamation me-1"></i>Terlambat: <span x-text="counts.terlambat" class="fw-bold">0</span></span>
+            <span class="das-chip --dark"><i class="ti tabler-walk me-1"></i>Bolos: <span x-text="counts.bolos" class="fw-bold">0</span></span>
           </div>
 
           <!-- Generated WA Text Box -->
@@ -938,6 +939,8 @@
               <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{daftar_sakit}')">+ Daftar Sakit</button>
               <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{total_terlambat}')">+ Total Terlambat</button>
               <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{daftar_terlambat}')">+ Daftar Terlambat</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{total_bolos}')">+ Total Bolos</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary" @click="insertTag('{daftar_bolos}')">+ Daftar Bolos</button>
             </div>
           </div>
 
@@ -1160,11 +1163,13 @@
           text = text.replace(/\{total_izin\}/g, counts.izin);
           text = text.replace(/\{total_sakit\}/g, counts.sakit);
           text = text.replace(/\{total_terlambat\}/g, counts.terlambat);
+          text = text.replace(/\{total_bolos\}/g, counts.bolos);
 
           text = text.replace(/\{daftar_alpa\}/g, formatList(lists.alpha));
           text = text.replace(/\{daftar_izin\}/g, formatList(lists.izin));
           text = text.replace(/\{daftar_sakit\}/g, formatList(lists.sakit));
           text = text.replace(/\{daftar_terlambat\}/g, formatList(lists.terlambat));
+          text = text.replace(/\{daftar_bolos\}/g, formatList(lists.bolos));
 
           this.generatedWAText = text;
         },
