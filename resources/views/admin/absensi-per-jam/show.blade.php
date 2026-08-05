@@ -459,6 +459,12 @@
     $sesiTerisi = $sesiData['terisi'] ?? false;
     $jumlahTerisi = $sesiData['jumlah_terisi'] ?? 0;
 
+    $waNomorAdminRaw = \App\Models\Pengaturan::where('key', 'wa_nomor_admin')->value('value') ?? '';
+    $cleanWaAdmin = preg_replace('/[^0-9]/', '', $waNomorAdminRaw);
+    if (str_starts_with($cleanWaAdmin, '0')) {
+        $cleanWaAdmin = '62' . substr($cleanWaAdmin, 1);
+    }
+
     $defaultWaTemplate = \App\Models\Pengaturan::where('key', 'wa_template_rekap_presensi')->value('value')
         ?: "*LAPORAN KONDISI MURID MATA PELAJARAN {mapel}*\nKelas: {kelas}\nHari/Tanggal: {hari_tanggal}\nJam ke: {jam_ke}\n\nJumlah Murid: {jumlah_murid} orang\n* Hadir : {total_hadir} orang\n* Alpa : {total_alpa} Orang\n{daftar_alpa}\n* Izin : {total_izin} Orang\n{daftar_izin}\n* Sakit : {total_sakit} Orang\n{daftar_sakit}\n* Terlambat : {total_terlambat} Orang\n{daftar_terlambat}";
   @endphp
@@ -869,8 +875,8 @@
               <button type="button" class="btn btn-sm btn-outline-success" @click="copyWAText()">
                 <i class="ti tabler-copy me-1"></i>Salin Teks
               </button>
-              <button type="button" class="btn btn-sm btn-success fw-bold" @click="openWAGroup()">
-                <i class="ti tabler-brand-whatsapp me-1"></i>Buka & Share di WA
+              <button type="button" class="btn btn-sm btn-success fw-bold" @click="openWAGroup()" title="Kirim rekap presensi ke Nomor Admin ({{ $cleanWaAdmin ?? 'Admin' }})">
+                <i class="ti tabler-brand-whatsapp me-1"></i>Kirim Rekap ke WA Admin
               </button>
             </div>
           </div>
@@ -1215,7 +1221,12 @@
 
         openWAGroup() {
           const encoded = encodeURIComponent(this.generatedWAText);
-          window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+          const nomorAdmin = @json($cleanWaAdmin ?? '');
+          if (nomorAdmin && nomorAdmin.length > 5) {
+            window.open(`https://wa.me/${nomorAdmin}?text=${encoded}`, '_blank');
+          } else {
+            window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+          }
         },
 
         getJapriUrl(namaSiswa, statusVal, noHp) {
