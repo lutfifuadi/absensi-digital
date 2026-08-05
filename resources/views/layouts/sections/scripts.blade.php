@@ -127,3 +127,24 @@
   });
 </script>
 @endif
+
+{{-- Auto-attach PerfectScrollbar to Select2 dropdowns --}}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof $ !== 'undefined') {
+      $(document).on('select2:open', function () {
+        setTimeout(function () {
+          var container = document.querySelector('.select2-results__options');
+          if (container && typeof PerfectScrollbar !== 'undefined' && !container._ps) {
+            container._ps = new PerfectScrollbar(container, {
+              wheelPropagation: false
+            });
+          } else if (container && container._ps) {
+            container._ps.update();
+          }
+        }, 50);
+      });
+    }
+  });
+</script>
+

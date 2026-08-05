@@ -15,7 +15,7 @@
         <th class="py-3 text-center text-nowrap">No. WhatsApp</th>
         <th class="py-3">Mata Pelajaran</th>
         <th class="py-3 d-none d-lg-table-cell sortable cursor-pointer" data-sort-by="jabatan" style="user-select: none;">
-          Jabatan
+          Tugas Tambahan
           @if(($sortBy ?? '') === 'jabatan')
             <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
           @endif
@@ -33,7 +33,6 @@
       @forelse($guruUsers as $item)
         @php
           $displayName = $item->nama_lengkap;
-          $displayJabatan = $item->jabatan ?? 'Guru';
           $displayMapel = $item->mata_pelajaran ?: 'Belum diisi';
           $statusColor = $item->status === 'aktif' ? 'success' : 'danger';
           $tipeKepegawaian = $item->tipe_kepegawaian ?? 'full_time';
@@ -97,7 +96,22 @@
             @endif
           </td>
           <td class="d-none d-lg-table-cell text-white-50 small">
-            {{ $displayJabatan }}
+            @if($item->jabatan)
+              @php
+                $tugasList = array_filter(array_map('trim', explode(',', $item->jabatan)), fn($v) => $v !== '' && $v !== '-');
+              @endphp
+              @if(!empty($tugasList))
+                <div class="d-flex flex-wrap gap-1">
+                  @foreach($tugasList as $tugas)
+                    <span class="badge bg-label-secondary" style="font-size:0.7rem;">{{ $tugas }}</span>
+                  @endforeach
+                </div>
+              @else
+                <span class="text-white-50 small">-</span>
+              @endif
+            @else
+              <span class="text-white-50 small">-</span>
+            @endif
           </td>
           <td class="text-center">
             <span class="badge bg-label-{{ $statusColor }} text-capitalize px-2">{{ $item->status }}</span>

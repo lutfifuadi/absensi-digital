@@ -56,7 +56,7 @@ class GuruController extends Controller
 
         $guruUsers = $guruQuery->paginate($perPage)->withQueryString();
 
-        $jabatanOptions = Guru::distinct()->whereNotNull('jabatan')->pluck('jabatan')->sort();
+        $jabatanOptions = $this->getTugasTambahanOptions();
 
         if ($request->ajax()) {
             return view('admin.guru.table', compact('guruUsers', 'sortBy', 'sortDir'))->render();
@@ -89,9 +89,10 @@ class GuruController extends Controller
             User::ROLE_GURU,
             User::ROLE_GURU_BK,
             User::ROLE_WALI_KELAS,
-            User::ROLE_STAFF_TU,
             User::ROLE_PIKET,
         ];
+
+        $tugasTambahanOptions = $this->getTugasTambahanOptions();
 
         $kelasOptions = Kelas::whereNull('wali_kelas_id')->orderBy('nama')->get();
 
@@ -107,7 +108,7 @@ class GuruController extends Controller
 
         $kelasSaatIni = null;
 
-        return view('admin.guru.form', compact('guru', 'user', 'mapelOptions', 'roleOptions', 'kelasOptions', 'userRoles', 'kelasSaatIni'));
+        return view('admin.guru.form', compact('guru', 'user', 'mapelOptions', 'roleOptions', 'tugasTambahanOptions', 'kelasOptions', 'userRoles', 'kelasSaatIni'));
     }
 
     public function store(Request $request)
@@ -118,7 +119,7 @@ class GuruController extends Controller
             'jenis_kelamin' => 'required|in:L,P',
             'mapel_ids' => 'required|array|min:1',
             'mapel_ids.*' => 'required|string',
-            'jabatan' => 'nullable|string|max:255',
+            'jabatan' => 'nullable',
             'no_hp' => 'nullable|string|max:50',
             'status' => 'required|in:aktif,nonaktif',
             'user_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
@@ -172,6 +173,7 @@ class GuruController extends Controller
 
             $mapelNames = Mapel::whereIn('id', $finalMapelIds)->pluck('nama_mapel')->toArray();
             $mataPelajaranStr = implode(', ', $mapelNames);
+            $jabatanStr = $this->formatJabatanInput($data['jabatan'] ?? null);
 
             $guru = Guru::create([
                 'user_id' => $user->id,
@@ -179,7 +181,7 @@ class GuruController extends Controller
                 'nama_lengkap' => $data['nama_lengkap'],
                 'jenis_kelamin' => $data['jenis_kelamin'],
                 'mata_pelajaran' => $mataPelajaranStr,
-                'jabatan' => $data['jabatan'] ?? null,
+                'jabatan' => $jabatanStr,
                 'no_hp' => $data['no_hp'] ?? null,
                 'status' => $data['status'],
                 'qr_code' => QrCodeGenerator::generate('GURU'),
@@ -201,9 +203,10 @@ class GuruController extends Controller
             User::ROLE_GURU,
             User::ROLE_GURU_BK,
             User::ROLE_WALI_KELAS,
-            User::ROLE_STAFF_TU,
             User::ROLE_PIKET,
         ];
+
+        $tugasTambahanOptions = $this->getTugasTambahanOptions();
 
         $kelasOptions = Kelas::whereNull('wali_kelas_id')
             ->orWhere('wali_kelas_id', $guru->id)
@@ -223,6 +226,7 @@ class GuruController extends Controller
             'guru',
             'mapelOptions',
             'roleOptions',
+            'tugasTambahanOptions',
             'kelasOptions',
             'userRoles',
             'kelasSaatIni'
@@ -237,13 +241,13 @@ class GuruController extends Controller
             'jenis_kelamin' => 'required|in:L,P',
             'mapel_ids' => 'required|array|min:1',
             'mapel_ids.*' => 'required|string',
-            'jabatan' => 'nullable|string|max:255',
+            'jabatan' => 'nullable',
             'no_hp' => 'nullable|string|max:50',
             'status' => 'required|in:aktif,nonaktif',
             'email' => 'nullable|email|unique:users,email,' . $guru->user_id,
             'password' => 'nullable|string|min:8|confirmed',
             'roles' => 'nullable|array',
-            'roles.*' => 'string|in:guru,guru_bk,wali_kelas,staff_tu,piket',
+            'roles.*' => 'string|in:guru,guru_bk,wali_kelas,piket',
             'kelas_id' => 'nullable|integer|exists:kelas,id',
             'tipe_kepegawaian' => ['nullable', Rule::in(['full_time', 'part_time'])],
         ]);
@@ -271,13 +275,14 @@ class GuruController extends Controller
 
             $mapelNames = Mapel::whereIn('id', $finalMapelIds)->pluck('nama_mapel')->toArray();
             $mataPelajaranStr = implode(', ', $mapelNames);
+            $jabatanStr = $this->formatJabatanInput($data['jabatan'] ?? null);
 
             $guru->update([
                 'nama_lengkap' => $data['nama_lengkap'],
                 'nip' => $data['nip'],
                 'jenis_kelamin' => $data['jenis_kelamin'],
                 'mata_pelajaran' => $mataPelajaranStr,
-                'jabatan' => $data['jabatan'] ?? null,
+                'jabatan' => $jabatanStr,
                 'no_hp' => $data['no_hp'] ?? null,
                 'status' => $data['status'],
                 'qr_code' => $guru->qr_code ?? QrCodeGenerator::generate('GURU'),
@@ -773,5 +778,48 @@ class GuruController extends Controller
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
+    }
+
+    private function getTugasTambahanOptions()
+    {
+        $presetTugasTambahan = [
+            'WAKA Kurikulum',
+            'WAKA Kesiswaan',
+            'WAKA Humas',
+            'WAKA Sarana Prasarana',
+            'Kepala Perpustakaan',
+            'Kepala Laboratorium',
+            'Koordinator Pembina Ekskul',
+        ];
+
+        $existingDbJabatan = Guru::whereNotNull('jabatan')
+            ->where('jabatan', '!=', '')
+            ->pluck('jabatan')
+            ->flatMap(function ($item) {
+                return array_map('trim', explode(',', $item));
+            })
+            ->filter(fn($item) => $item !== '' && $item !== '-')
+            ->unique()
+            ->values()
+            ->toArray();
+
+        return collect(array_merge($presetTugasTambahan, $existingDbJabatan))
+            ->filter(fn($item) => trim($item) !== '' && trim($item) !== '-')
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
+    }
+
+    private function formatJabatanInput($jabatanInput)
+    {
+        if (is_array($jabatanInput)) {
+            $cleaned = array_filter(array_map('trim', $jabatanInput), fn($val) => $val !== '' && $val !== '-');
+            return !empty($cleaned) ? implode(', ', $cleaned) : null;
+        } elseif (is_string($jabatanInput)) {
+            $trimmed = trim($jabatanInput);
+            return ($trimmed !== '' && $trimmed !== '-') ? $trimmed : null;
+        }
+        return null;
     }
 }

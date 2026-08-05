@@ -7,6 +7,29 @@
         'resources/assets/vendor/libs/select2/select2.scss'
     ])
     <style>
+        /* ── Enforce Max 5px Border Radius ── */
+        .card,
+        .card-header,
+        .card-body,
+        .rounded-3,
+        .rounded-2,
+        .rounded,
+        .form-control,
+        .form-select,
+        .role-checkbox-card,
+        .role-checkbox-icon,
+        .btn,
+        .alert,
+        .select2-container--default .select2-selection--single,
+        .select2-container--default .select2-selection--multiple,
+        .select2-container--default .select2-selection--multiple .select2-selection__choice,
+        .select2-dropdown,
+        .select2-search--dropdown .select2-search__field,
+        .select2-results__option,
+        .kelas-selected-chip {
+            border-radius: 5px !important;
+        }
+
         /* ── Custom Role Checkbox ── */
         .role-checkbox-card {
             display: flex;
@@ -15,7 +38,7 @@
             padding: 12px 16px;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 10px;
+            border-radius: 5px !important;
             transition: all 0.25s ease;
             cursor: pointer;
             user-select: none;
@@ -53,7 +76,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 8px;
+            border-radius: 5px !important;
             background: rgba(255, 255, 255, 0.05);
             flex-shrink: 0;
             transition: all 0.25s ease;
@@ -290,17 +313,41 @@
                     </select>
                   </div>
 
-                    <div class="row">
-                    <div class="col-sm-6 mb-3 mb-sm-0">
-                      <label class="form-label fw-semibold small" for="jabatan">
-                        <i class="ti tabler-stairs-up me-1 text-info"></i> Jabatan
-                      </label>
-                      <input id="jabatan" name="jabatan" type="text"
-                        class="form-control @error('jabatan') is-invalid @enderror" placeholder="Contoh: Guru Tetap"
-                        value="{{ old('jabatan', $guru->jabatan) }}">
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold small" for="jabatan">
+                      <i class="ti tabler-stairs-up me-1 text-info"></i> Tugas Tambahan <span class="text-white-50 fw-normal">(Opsional)</span>
+                    </label>
+                    @php
+                      $selectedJabatan = old('jabatan');
+                      if ($selectedJabatan === null) {
+                          $selectedJabatan = isset($guru->jabatan) && $guru->jabatan ? array_map('trim', explode(',', $guru->jabatan)) : [];
+                      } elseif (is_string($selectedJabatan)) {
+                          $selectedJabatan = array_map('trim', explode(',', $selectedJabatan));
+                      }
+                      $allOptions = $tugasTambahanOptions ?? [];
+                    @endphp
+                    <select id="jabatan" name="jabatan[]"
+                      class="select2 form-select @error('jabatan') is-invalid @enderror"
+                      multiple data-placeholder="Pilih atau ketik tugas tambahan baru...">
+                      @foreach ($allOptions as $option)
+                        <option value="{{ $option }}" @selected(in_array($option, $selectedJabatan, true))>
+                          {{ $option }}
+                        </option>
+                      @endforeach
+                      @foreach ($selectedJabatan as $selectedItem)
+                        @if (!in_array($selectedItem, $allOptions, true) && trim($selectedItem) !== '' && trim($selectedItem) !== '-')
+                          <option value="{{ $selectedItem }}" selected>{{ $selectedItem }}</option>
+                        @endif
+                      @endforeach
+                    </select>
+                    <div class="form-text text-white-50 small mt-1">
+                      <i class="ti tabler-info-circle me-1"></i>
+                      Bisa pilih lebih dari satu. Jika tidak ada di pilihan, ketik tugas tambahan baru lalu tekan Enter.
                     </div>
+                  </div>
 
-                    <div class="col-sm-6">
+                  <div class="row">
+                    <div class="col-sm-6 mb-3 mb-sm-0">
                       <label class="form-label fw-semibold small" for="status">
                         <i class="ti tabler-circle-check me-1 text-info"></i> Status Aktif <span class="text-danger">*</span>
                       </label>
@@ -310,24 +357,17 @@
                         <option value="nonaktif" {{ old('status', $guru->status) === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
                       </select>
                     </div>
-                  </div>
 
-                  <div class="mb-3">
-                    <label class="form-label fw-semibold small" for="tipe_kepegawaian">
-                      <i class="ti tabler-briefcase me-1 text-info"></i> Status Kepegawaian <span class="text-danger">*</span>
-                    </label>
-                    <select id="tipe_kepegawaian" name="tipe_kepegawaian"
-                      class="form-select @error('tipe_kepegawaian') is-invalid @enderror" required>
-                      <option value="full_time" {{ old('tipe_kepegawaian', $guru->tipe_kepegawaian ?? 'full_time') === 'full_time' ? 'selected' : '' }}>Full Time</option>
-                      <option value="part_time" {{ old('tipe_kepegawaian', $guru->tipe_kepegawaian ?? 'full_time') === 'part_time' ? 'selected' : '' }}>Part Time</option>
-                    </select>
-                    <div class="form-text text-white-50 small mt-1">
-                      <i class="ti tabler-info-circle me-1"></i>
-                      Full Time dinilai dari absensi harian (masuk–pulang); Part Time dinilai dari slot jam mengajar.
+                    <div class="col-sm-6">
+                      <label class="form-label fw-semibold small" for="tipe_kepegawaian">
+                        <i class="ti tabler-briefcase me-1 text-info"></i> Status Kepegawaian <span class="text-danger">*</span>
+                      </label>
+                      <select id="tipe_kepegawaian" name="tipe_kepegawaian"
+                        class="form-select @error('tipe_kepegawaian') is-invalid @enderror" required>
+                        <option value="full_time" {{ old('tipe_kepegawaian', $guru->tipe_kepegawaian ?? 'full_time') === 'full_time' ? 'selected' : '' }}>Full Time</option>
+                        <option value="part_time" {{ old('tipe_kepegawaian', $guru->tipe_kepegawaian ?? 'full_time') === 'part_time' ? 'selected' : '' }}>Part Time</option>
+                      </select>
                     </div>
-                    @error('tipe_kepegawaian')
-                      <div class="invalid-feedback d-block">{{ $message }}</div>
-                    @enderror
                   </div>
                 </div>
               </div>
@@ -408,7 +448,6 @@
                                     'guru'      => 'tabler-user',
                                     'guru_bk'   => 'tabler-user-heart',
                                     'wali_kelas'=> 'tabler-users',
-                                    'staff_tu'  => 'tabler-building-arch',
                                     'piket'     => 'tabler-clock',
                                 ];
                             @endphp
@@ -642,6 +681,18 @@
         $mapelSelect.wrap('<div class="position-relative"></div>').select2({
           placeholder: 'Ketik untuk mencari atau memilih mata pelajaran...',
           dropdownParent: $mapelSelect.parent(),
+          width: '100%',
+          tags: true,
+          tokenSeparators: [',']
+        });
+      }
+
+      // 1b. Select2 for Tugas Tambahan (with tag support)
+      const $jabatanSelect = $('#jabatan');
+      if ($jabatanSelect.length) {
+        $jabatanSelect.wrap('<div class="position-relative"></div>').select2({
+          placeholder: 'Pilih atau ketik tugas tambahan baru...',
+          dropdownParent: $jabatanSelect.parent(),
           width: '100%',
           tags: true,
           tokenSeparators: [',']
