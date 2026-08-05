@@ -908,8 +908,8 @@
   </div>
 </div>
 
-{{-- FLOATING TOAST NOTIFICATION CONTAINER (AUTO-SAVE) --}}
-<div id="autoSaveToastContainer" class="toast-container position-fixed bottom-0 end-0 p-4" style="z-index: 1090;">
+{{-- FLOATING TOAST NOTIFICATION CONTAINER (AUTO-SAVE TOP-RIGHT) --}}
+<div id="autoSaveToastContainer" class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 9999;">
   <div id="toastNotification" class="toast toast-autosave border-0" role="alert" aria-live="assertive" aria-atomic="true">
     <div class="d-flex align-items-center p-3">
       <div id="toastIconBox" class="toast-autosave__icon-box me-3">
