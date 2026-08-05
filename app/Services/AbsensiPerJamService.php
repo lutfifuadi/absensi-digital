@@ -222,11 +222,32 @@ class AbsensiPerJamService
         }
 
         // ── BR-02: Bulk upsert dalam 1 transaksi DB ───────────────────────────
-        DB::transaction(function () use ($payload) {
+        DB::transaction(function () use ($payload, $jadwal, $tanggal, $dicatatOleh) {
             AbsensiSiswaPerJadwal::upsert(
                 $payload,
                 ['jadwal_pelajaran_id', 'siswa_id', 'tanggal'], // UNIQUE BR-01
                 ['status', 'lama_terlambat', 'keterangan', 'metode', 'dicatat_oleh', 'updated_at']
+            );
+
+            // Update atau buat header sesi ringkasan (AbsensiPerJamSesi - PRD-006 F-9)
+            $allRecords = AbsensiSiswaPerJadwal::where('jadwal_pelajaran_id', $jadwal->id)
+                ->where('tanggal', $tanggal)
+                ->get();
+
+            AbsensiPerJamSesi::updateOrCreate(
+                [
+                    'jadwal_pelajaran_id' => $jadwal->id,
+                    'tanggal'             => $tanggal,
+                ],
+                [
+                    'kelas_id'     => $jadwal->kelas_id,
+                    'guru_id'      => $jadwal->guru_id,
+                    'dicatat_oleh' => $dicatatOleh,
+                    'jumlah_siswa' => $allRecords->count(),
+                    'jumlah_hadir' => $allRecords->where('status', 'hadir')->count(),
+                    'jumlah_alpha' => $allRecords->where('status', 'alpha')->count(),
+                    'updated_at'   => now(),
+                ]
             );
         });
 

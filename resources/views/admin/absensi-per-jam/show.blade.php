@@ -557,7 +557,7 @@
 
                     {{-- HADIR --}}
                     <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_hadir"
-                      value="hadir" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', status, $el.closest('tr'))" data-roster-status
+                      value="hadir" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', $el.value, $el.closest('tr'))" data-roster-status
                       @if (!$canEdit) disabled @endif>
                     <label class="btn btn-outline-success" for="status_{{ $i }}_hadir">
                       <i class="ti tabler-user-check me-1"></i>Hadir
@@ -565,7 +565,7 @@
 
                     {{-- TERLAMBAT --}}
                     <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_terlambat"
-                      value="terlambat" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', status, $el.closest('tr'))" data-roster-status
+                      value="terlambat" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', $el.value, $el.closest('tr'))" data-roster-status
                       @if (!$canEdit) disabled @endif>
                     <label class="btn btn-outline-primary" for="status_{{ $i }}_terlambat">
                       <i class="ti tabler-clock-exclamation me-1"></i>Terlambat
@@ -573,7 +573,7 @@
 
                     {{-- ALPHA --}}
                     <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_alpha"
-                      value="alpha" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', status, $el.closest('tr'))" data-roster-status
+                      value="alpha" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', $el.value, $el.closest('tr'))" data-roster-status
                       @if (!$canEdit) disabled @endif>
                     <label class="btn btn-outline-danger" for="status_{{ $i }}_alpha">
                       <i class="ti tabler-user-x me-1"></i>Alpha
@@ -581,7 +581,7 @@
 
                     {{-- IZIN --}}
                     <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_izin"
-                      value="izin" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', status, $el.closest('tr'))" data-roster-status
+                      value="izin" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', $el.value, $el.closest('tr'))" data-roster-status
                       @if (!$canEdit) disabled @endif>
                     <label class="btn btn-outline-warning" for="status_{{ $i }}_izin">
                       <i class="ti tabler-file-description me-1"></i>Izin
@@ -589,7 +589,7 @@
 
                     {{-- SAKIT --}}
                     <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_sakit"
-                      value="sakit" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', status, $el.closest('tr'))" data-roster-status
+                      value="sakit" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', $el.value, $el.closest('tr'))" data-roster-status
                       @if (!$canEdit) disabled @endif>
                     <label class="btn btn-outline-info" for="status_{{ $i }}_sakit">
                       <i class="ti tabler-stethoscope me-1"></i>Sakit
@@ -597,7 +597,7 @@
 
                     {{-- BOLOS --}}
                     <input type="radio" class="btn-check" name="rows[{{ $i }}][status]" id="status_{{ $i }}_bolos"
-                      value="bolos" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', status, $el.closest('tr'))" data-roster-status
+                      value="bolos" x-model="status" @change="$dispatch('roster-change'); autoSaveSingle({{ $siswa->id }}, '{{ addslashes($siswa->nama_lengkap) }}', $el.value, $el.closest('tr'))" data-roster-status
                       @if (!$canEdit) disabled @endif>
                     <label class="btn btn-outline-dark" for="status_{{ $i }}_bolos">
                       <i class="ti tabler-walk me-1"></i>Bolos
