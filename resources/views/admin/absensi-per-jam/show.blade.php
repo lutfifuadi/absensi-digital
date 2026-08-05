@@ -837,6 +837,10 @@
             <i class="ti" :class="isOverwrite ? 'tabler-refresh' : 'tabler-device-floppy'"></i>
             <span x-text="isOverwrite ? 'Ya, Timpa Data' : 'Ya, Simpan'">Ya, Simpan</span>
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
   {{-- ═══════════════════════════════════════════════════════
        MODAL SHARE REKAP WHATSAPP
   ═══════════════════════════════════════════════════════ --}}
