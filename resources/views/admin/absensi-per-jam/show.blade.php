@@ -2,6 +2,14 @@
 
 @section('title', 'Isi Absensi Siswa per Jam — Absensi Cepat')
 
+@section('vendor-style')
+  @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
+@endsection
+
+@section('vendor-script')
+  @vite(['resources/assets/vendor/libs/sweetalert2/sweetalert2.js'])
+@endsection
+
 @section('page-style')
   <style>
     /* Override form control dark — pola absensi cepat */
@@ -937,17 +945,17 @@
 @section('page-script')
   <script>
     window.showAutoSaveToast = function(type, title, msg) {
-      if (typeof Swal !== 'undefined') {
-        const iconType = type === 'success' ? 'success' : 'error';
-        const displayTitle = msg ? `${msg}` : title;
+      const displayTitle = msg ? `${msg}` : title;
+      const iconType = type === 'success' ? 'success' : 'error';
 
+      if (typeof Swal !== 'undefined') {
         Swal.fire({
           toast: true,
           position: 'top-end',
           icon: iconType,
           title: displayTitle,
           showConfirmButton: false,
-          timer: 2000,
+          timer: 2200,
           timerProgressBar: true,
           background: '#0f172a',
           color: '#f8fafc'
@@ -955,58 +963,42 @@
         return;
       }
 
-      const toastEl = document.getElementById('toastNotification');
-      if (!toastEl) return;
-
-      const iconBox = document.getElementById('toastIconBox');
-      const icon = document.getElementById('toastIcon');
-      const titleEl = document.getElementById('toastTitle');
-      const msgEl = document.getElementById('toastMessage');
-      const badgeEl = document.getElementById('toastBadge');
-      const bar = document.getElementById('toastProgressBar');
-
-      if (titleEl) titleEl.textContent = title;
-      if (msgEl) msgEl.textContent = msg;
-
-      if (type === 'success') {
-        toastEl.className = 'toast toast-autosave border-0';
-        if (iconBox) {
-          iconBox.className = 'toast-autosave__icon-box me-3';
-          iconBox.style.background = 'rgba(40,199,111,0.2)';
-          iconBox.style.color = '#28c76f';
-        }
-        if (icon) icon.className = 'ti tabler-cloud-check fs-4';
-        if (badgeEl) {
-          badgeEl.className = 'badge bg-success bg-opacity-20 text-success border border-success border-opacity-30 px-2 py-0.5';
-          badgeEl.innerHTML = '<i class="ti tabler-database-check me-1"></i>TERSIMPAN DI DATABASE';
-        }
-        if (bar) { bar.className = 'progress-bar bg-success'; }
-      } else {
-        toastEl.className = 'toast toast-autosave toast-autosave--error border-0';
-        if (iconBox) {
-          iconBox.className = 'toast-autosave__icon-box toast-autosave__icon-box--error me-3';
-          iconBox.style.background = 'rgba(234,84,85,0.2)';
-          iconBox.style.color = '#ea5455';
-        }
-        if (icon) icon.className = 'ti tabler-alert-circle-filled fs-4';
-        if (badgeEl) {
-          badgeEl.className = 'badge bg-danger bg-opacity-20 text-danger border border-danger border-opacity-30 px-2 py-0.5';
-          badgeEl.innerHTML = '<i class="ti tabler-alert-triangle me-1"></i>GAGAL AUTO-SAVE';
-        }
-        if (bar) { bar.className = 'progress-bar bg-danger'; }
+      // Safe Pure JS Toast Fallback (no bootstrap JS dependency needed)
+      let container = document.getElementById('autoSaveToastContainer');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'autoSaveToastContainer';
+        container.className = 'toast-container position-fixed top-0 end-0 p-4';
+        container.style.zIndex = '99999';
+        document.body.appendChild(container);
       }
 
-      if (bar) {
-        bar.style.transition = 'none';
-        bar.style.width = '100%';
-        setTimeout(() => {
-          bar.style.transition = 'width 2.8s linear';
-          bar.style.width = '0%';
-        }, 50);
-      }
+      const toastNode = document.createElement('div');
+      toastNode.className = `toast toast-autosave ${type === 'error' ? 'toast-autosave--error' : ''} show border-0`;
+      toastNode.setAttribute('role', 'alert');
+      toastNode.innerHTML = `
+        <div class="d-flex align-items-center p-3">
+          <div class="toast-autosave__icon-box ${type === 'error' ? 'toast-autosave__icon-box--error' : ''} me-3">
+            <i class="ti ${type === 'success' ? 'tabler-cloud-check' : 'tabler-alert-circle-filled'} fs-4"></i>
+          </div>
+          <div class="toast-body p-0 me-auto">
+            <div class="d-flex align-items-center gap-1.5 mb-1">
+              <span class="badge ${type === 'success' ? 'bg-success' : 'bg-danger'} bg-opacity-20 ${type === 'success' ? 'text-success border-success' : 'text-danger border-danger'} border border-opacity-30 px-2 py-0.5" style="font-size: 0.68rem; font-weight: 700;">
+                <i class="ti ${type === 'success' ? 'tabler-database-check' : 'tabler-alert-triangle'} me-1"></i>${type === 'success' ? 'TERSIMPAN DI DATABASE' : 'GAGAL AUTO-SAVE'}
+              </span>
+            </div>
+            <div class="fw-bold text-white small" style="font-size:0.88rem;">${title}</div>
+            <div class="text-white-50 fs-7" style="font-size:0.78rem;">${msg}</div>
+          </div>
+          <button type="button" class="btn-close btn-close-white ms-3 mb-auto" onclick="this.closest('.toast').remove()"></button>
+        </div>
+      `;
 
-      const bsToast = bootstrap.Toast.getInstance(toastEl) || new bootstrap.Toast(toastEl, { delay: 2800 });
-      bsToast.show();
+      container.appendChild(toastNode);
+      setTimeout(() => {
+        toastNode.classList.remove('show');
+        setTimeout(() => toastNode.remove(), 350);
+      }, 2500);
     };
 
     document.addEventListener('DOMContentLoaded', function() {
