@@ -370,179 +370,147 @@
       100% { transform: scale(1.4); opacity: 0; }
     }
 
-    /* ─── CYBER ANALOG CLOCK INSTRUMENT ───────────────────── */
-    .analog-clock-wrapper {
+    /* ─── CHRONOS LUXURY SPORT WATCH (sama dengan Live Board Siswa) ─── */
+    .chronos-watch-container {
       position: relative;
-      margin: 0.75rem 0 1.25rem;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
       z-index: 2;
+      transform: scale(0.78);
+      margin: -18px 0;
+      filter: drop-shadow(0 22px 48px rgba(0,0,0,0.95));
     }
-    .analog-case {
-      width: 155px;
-      height: 155px;
-      border-radius: 12px;
-      padding: 6px;
-      background: conic-gradient(from 210deg, #1e1b4b 0deg, #7367f0 55deg, #00cfe8 120deg, #7367f0 190deg, #1e1b4b 260deg, #00cfe8 330deg, #1e1b4b 360deg);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.2), 0 0 20px rgba(115,103,240,0.3);
-      position: relative;
-    }
-    .analog-case .rivet {
-      position: absolute;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 30%, #00cfe8, #7367f0 75%);
-      box-shadow: 0 0 4px rgba(0,207,232,0.8);
-    }
-    .analog-case .rivet.n { top: 6px; left: 6px; }
-    .analog-case .rivet.s { bottom: 6px; right: 6px; }
-    .analog-case .rivet.e { top: 6px; right: 6px; }
-    .analog-case .rivet.w { bottom: 6px; left: 6px; }
-
-    .analog-face {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      border-radius: 8px;
-      overflow: hidden;
-      background: radial-gradient(circle at 50% 40%, #152238 0%, #0e1726 80%);
-      box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
-    }
-    .analog-face::before {
-      content: "";
-      position: absolute; inset: 0;
-      background: repeating-conic-gradient(from 0deg, rgba(255,255,255,0.03) 0deg 0.6deg, transparent 0.6deg 5deg);
-      mix-blend-mode: screen;
-    }
-    .analog-face::after {
-      content: "";
-      position: absolute;
-      top: -25%; left: -35%;
-      width: 85%; height: 65%;
-      background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0) 65%);
-      transform: rotate(-18deg);
-      pointer-events: none;
-    }
-
-    .analog-face .tick {
-      position: absolute;
-      left: 50%; top: 3%;
-      width: 2px; height: 7px;
-      background: rgba(255,255,255,0.3);
-      transform-origin: 50% 65px;
-      border-radius: 1px;
-    }
-    .analog-face .tick.major {
-      width: 3px; height: 10px;
-      background: #00cfe8;
-      transform-origin: 50% 65px;
-      box-shadow: 0 0 6px rgba(0,207,232,0.6);
-    }
-
-    .analog-face .dial-label {
-      position: absolute;
-      top: 32%; left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      color: var(--muted);
-      pointer-events: none;
-    }
-    .analog-face .dial-label .city {
-      font-size: 9px;
-      font-weight: 800;
-      color: #7367f0;
-      letter-spacing: 2px;
-    }
-    .analog-face .dial-label .zone {
-      font-size: 7px;
-      color: var(--muted);
-      letter-spacing: 1px;
-    }
-
-    .analog-face .hand {
-      position: absolute;
-      left: 50%; top: 50%;
-      transform-origin: 50% 100%;
-      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.9));
-      transition: transform 0.25s cubic-bezier(0.4, 1.4, 0.4, 1);
-    }
-    .analog-face .hour-hand {
-      width: 8px; height: 36px;
-      margin-left: -4px; margin-top: -36px;
-      background: linear-gradient(180deg, #ffd700 0%, #ff9f43 100%);
-      box-shadow: 0 0 10px rgba(255, 184, 0, 0.85);
-      clip-path: polygon(50% 0%, 75% 18%, 60% 100%, 40% 100%, 25% 18%);
+    .chronos-strap-lug {
+      width: 80px; height: 16px;
+      background: linear-gradient(180deg, #252832 0%, #181a24 50%, #252832 100%);
       border-radius: 4px;
-      z-index: 3;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: inset 0 1px 2px rgba(255,255,255,0.12), 0 2px 6px rgba(0,0,0,0.8);
+      position: relative; z-index: 0;
     }
-    .analog-face .minute-hand {
-      width: 5px; height: 50px;
-      margin-left: -2.5px; margin-top: -50px;
-      background: linear-gradient(180deg, #ffd700 0%, #ff9f43 100%);
-      box-shadow: 0 0 10px rgba(255, 184, 0, 0.85);
-      clip-path: polygon(50% 0%, 70% 12%, 58% 100%, 42% 100%, 30% 12%);
-      border-radius: 3px;
-      z-index: 4;
+    .chronos-strap-lug.top-lug { border-radius: 4px 4px 0 0; }
+    .chronos-strap-lug.bot-lug { border-radius: 0 0 4px 4px; }
+    .chronos-body { position: relative; display: flex; align-items: center; z-index: 1; }
+    .chronos-side-buttons {
+      position: absolute; right: -18px; top: 50%;
+      transform: translateY(-50%);
+      display: flex; flex-direction: column; align-items: flex-start; gap: 6px; z-index: 10;
     }
-    .analog-face .second-hand {
-      width: 2px; height: 56px;
-      margin-left: -1px; margin-top: -56px;
-      background: #ea5455;
-      box-shadow: 0 0 10px #ea5455;
-      border-radius: 2px;
-      z-index: 5;
+    .side-btn { display: flex; align-items: center; }
+    .side-btn .btn-grip {
+      height: 18px; border-radius: 0 4px 4px 0;
+      background: repeating-linear-gradient(180deg, #4a4f62 0px, #4a4f62 2px, #14161f 2px, #14161f 4px);
+      border: 1px solid rgba(255,255,255,0.2);
+      box-shadow: inset 0 1px 2px rgba(255,255,255,0.4), 3px 0 8px rgba(0,0,0,0.85);
     }
-    .analog-face .second-hand::after {
-      content: "";
-      position: absolute;
-      left: 50%; bottom: -12px;
-      width: 6px; height: 12px;
-      background: #ea5455;
-      transform: translateX(-50%);
-      border-radius: 2px;
+    .side-btn.top-btn { transform: rotate(-15deg) translateX(2px); }
+    .side-btn.top-btn .btn-grip { width: 12px; }
+    .side-btn.mid-crown .btn-grip { width: 16px; height: 24px; background: repeating-linear-gradient(180deg, #64697d 0px, #64697d 2px, #10121a 2px, #10121a 4px); box-shadow: inset 0 2px 3px rgba(255,255,255,0.45), 4px 0 10px rgba(0,0,0,0.9); }
+    .side-btn.bot-btn { transform: rotate(15deg) translateX(2px); }
+    .side-btn.bot-btn .btn-grip { width: 12px; }
+    .chronos-bezel-outer {
+      position: relative; width: 224px; height: 224px;
+      clip-path: polygon(10% 0%, 90% 0%, 100% 10%, 100% 90%, 90% 100%, 10% 100%, 0% 90%, 0% 10%);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.08) 25%, transparent 45%),
+        linear-gradient(145deg, #6c738c 0%, #2a2e3d 25%, #11131c 55%, #3d4257 85%, #7a829c 100%);
+      display: flex; align-items: center; justify-content: center;
+      filter: drop-shadow(0 14px 32px rgba(0,0,0,0.95));
     }
-
-    .analog-cap {
-      position: absolute;
-      left: 50%; top: 50%;
-      width: 12px; height: 12px;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 30%, #00cfe8, #7367f0 100%);
-      box-shadow: 0 0 0 2px rgba(0,0,0,0.6), 0 0 8px rgba(0,207,232,0.8);
-      z-index: 6;
+    .chronos-bezel-outer::before {
+      content: ""; position: absolute; inset: 4px;
+      clip-path: polygon(10% 0%, 90% 0%, 100% 10%, 100% 90%, 90% 100%, 10% 100%, 0% 90%, 0% 10%);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 40%),
+        linear-gradient(145deg, #181b26 0%, #3a3f52 35%, #12141d 65%, #2a2e3e 100%);
+      pointer-events: none; z-index: 1;
     }
-
-    .analog-plaque {
-      display: flex;
-      align-items: center;
-      margin-top: 8px;
-      border-radius: 6px;
-      overflow: hidden;
-      border: 1px solid rgba(115,103,240,0.4);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      background: #090e17;
+    .chronos-bezel-outer::after {
+      content: ""; position: absolute; inset: 10px;
+      clip-path: polygon(10% 0%, 90% 0%, 100% 10%, 100% 90%, 90% 100%, 10% 100%, 0% 90%, 0% 10%);
+      background: linear-gradient(135deg, #07090e 0%, #1a1d29 50%, #050609 100%);
+      box-shadow: inset 0 3px 8px rgba(0,0,0,0.98), inset 0 -1px 2px rgba(255,255,255,0.25);
+      pointer-events: none; z-index: 2;
     }
-    .analog-plaque .plaque-time {
-      color: #00cfe8;
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 700;
-      font-size: 0.85rem;
-      letter-spacing: 1px;
-      padding: 3px 10px;
-      text-shadow: 0 0 8px rgba(0,207,232,0.4);
+    .outer-screw {
+      position: absolute; width: 9px; height: 9px; border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ffffff 0%, #d1d5db 40%, #374151 100%);
+      box-shadow: inset 0 0 2px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,0.8); z-index: 5;
     }
-    .analog-plaque .plaque-chip {
-      background: linear-gradient(135deg, #7367f0, #a78bfa);
-      color: #fff;
-      font-size: 0.65rem;
-      font-weight: 800;
-      padding: 4px 8px;
-      letter-spacing: 1px;
+    .outer-screw::after { content: ""; position: absolute; top: 50%; left: 50%; width: 4px; height: 1.2px; background: #111827; transform: translate(-50%, -50%); }
+    .outer-screw.sc-1 { top: 14px; left: 50%; transform: translateX(-50%); }
+    .outer-screw.sc-2 { top: 22px; right: 22px; }
+    .outer-screw.sc-3 { right: 14px; top: 50%; transform: translateY(-50%); }
+    .outer-screw.sc-4 { bottom: 22px; right: 22px; }
+    .outer-screw.sc-5 { bottom: 14px; left: 50%; transform: translateX(-50%); }
+    .outer-screw.sc-6 { bottom: 22px; left: 22px; }
+    .outer-screw.sc-7 { left: 14px; top: 50%; transform: translateY(-50%); }
+    .outer-screw.sc-8 { top: 22px; left: 22px; }
+    .chronos-bezel-ring {
+      position: relative; width: 192px; height: 192px; border-radius: 50%; z-index: 3;
+      background:
+        radial-gradient(circle at 28% 28%, rgba(255,255,255,0.18) 0%, transparent 55%),
+        conic-gradient(from 45deg, #151722 0deg, #404455 60deg, #0f1118 120deg, #404455 180deg, #151722 240deg, #404455 300deg, #151722 360deg);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 0 3px #080b14, 0 12px 30px rgba(0,0,0,0.95), inset 0 2px 4px rgba(255,255,255,0.35), inset 0 -2px 6px rgba(0,0,0,0.95);
     }
+    .chronos-dial-face {
+      position: relative; width: 168px; height: 168px; border-radius: 50%; overflow: hidden;
+      background-color: #070a0f;
+      background-image:
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.055) 0px, rgba(255,255,255,0.055) 1px, transparent 1px, transparent 8px),
+        repeating-linear-gradient(-45deg, rgba(255,255,255,0.055) 0px, rgba(255,255,255,0.055) 1px, transparent 1px, transparent 8px),
+        radial-gradient(circle at 50% 50%, rgba(20, 30, 50, 0.4) 0%, rgba(2, 4, 8, 1) 100%);
+      background-size: 8px 8px, 8px 8px, 100% 100%;
+      box-shadow: inset 0 0 25px rgba(0,0,0,0.99);
+    }
+    .dial-inner-ring { position: absolute; inset: 6px; border-radius: 50%; border: 1.5px solid rgba(0,255,160,0.3); pointer-events: none; z-index: 2; }
+    .lumi-tick { position: absolute; left: 50%; top: 10px; width: 2.5px; height: 8px; margin-left: -1.25px; background: #00ffaa; border-radius: 1px; box-shadow: 0 0 6px #00ffaa, 0 0 12px rgba(0,255,170,0.6); transform-origin: 50% 74px; z-index: 3; pointer-events: none; }
+    .lumi-tick.major { width: 3.5px; height: 12px; margin-left: -1.75px; top: 8px; box-shadow: 0 0 10px #00ffaa, 0 0 20px rgba(0,255,170,0.7); }
+    .chronos-logo-area { position: absolute; top: 32%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; z-index: 4; }
+    .brand-emblem { font-size: 12px; font-weight: 900; color: #00f2fe; text-shadow: 0 0 8px #00f2fe; line-height: 1; margin-bottom: 1px; }
+    .brand-name { font-size: 8.5px; font-weight: 900; color: #ffffff; letter-spacing: 2px; text-shadow: 0 1px 3px rgba(0,0,0,0.9); line-height: 1; }
+    .brand-auto { font-size: 5px; color: rgba(255,255,255,0.6); letter-spacing: 0.8px; margin-top: 2px; font-weight: 700; }
+    .chronos-sub {
+      position: absolute; border-radius: 50%;
+      background: radial-gradient(circle, #0a0c14 0%, #030508 100%);
+      z-index: 5; display: flex; align-items: center; justify-content: center; overflow: visible;
+    }
+    .chronos-sub.sub-left { width: 46px; height: 46px; top: 50%; left: 12px; transform: translateY(-50%); border: 1.8px solid #ff7e29; box-shadow: inset 0 0 8px rgba(0,0,0,0.98), 0 0 12px rgba(255,126,41,0.5); }
+    .chronos-sub.sub-right { width: 46px; height: 46px; top: 50%; right: 12px; transform: translateY(-50%); border: 1.8px solid #00b4fc; box-shadow: inset 0 0 8px rgba(0,0,0,0.98), 0 0 12px rgba(0,180,252,0.5); }
+    .sub-tick { position: absolute; left: 50%; top: 3px; width: 1px; height: 4px; margin-left: -0.5px; background: rgba(255,255,255,0.5); transform-origin: 50% 20px; }
+    .sub-tick.major { width: 1.5px; height: 6px; top: 2px; transform-origin: 50% 21px; }
+    .chronos-sub.sub-left .sub-tick { background: rgba(255,126,41,0.7); }
+    .chronos-sub.sub-left .sub-tick.major { background: #ff7e29; box-shadow: 0 0 4px rgba(255,126,41,0.8); }
+    .chronos-sub.sub-right .sub-tick { background: rgba(0,180,252,0.7); }
+    .chronos-sub.sub-right .sub-tick.major { background: #00b4fc; box-shadow: 0 0 4px rgba(0,180,252,0.8); }
+    .sub-hand { position: absolute; left: 50%; top: 50%; width: 1.5px; height: 16px; margin-left: -0.75px; margin-top: -16px; transform-origin: 50% 100%; border-radius: 1px; z-index: 6; }
+    .chronos-sub.sub-left .sub-hand { background: #ff7e29; box-shadow: 0 0 6px #ff7e29; }
+    .chronos-sub.sub-right .sub-hand { background: #00b4fc; box-shadow: 0 0 6px #00b4fc; }
+    .sub-center-dot { position: absolute; width: 4px; height: 4px; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 7; }
+    .chronos-sub.sub-left .sub-center-dot { background: #ff7e29; box-shadow: 0 0 4px #ff7e29; }
+    .chronos-sub.sub-right .sub-center-dot { background: #00b4fc; box-shadow: 0 0 4px #00b4fc; }
+    .chronos-lcd {
+      position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+      width: 112px; background: #00050a;
+      border: 1.5px solid rgba(0,200,255,0.65); border-radius: 5px;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.98), inset 0 -1px 3px rgba(0,200,255,0.15), 0 0 14px rgba(0,180,255,0.4), 0 2px 8px rgba(0,0,0,0.9);
+      z-index: 5; overflow: hidden;
+    }
+    .chronos-lcd::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,200,255,0.06) 0%, transparent 60%); pointer-events: none; }
+    .lcd-inner { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 4px 6px; font-family: 'Courier New', monospace; font-weight: 900; }
+    .lcd-day, .lcd-time { font-size: 9px; color: #00e8ff; text-shadow: 0 0 8px rgba(0,232,255,0.95), 0 0 16px rgba(0,232,255,0.5); letter-spacing: 0.5px; }
+    .lcd-sep { font-size: 9px; color: rgba(0,200,255,0.5); }
+    .chronos-dial-face .hand { position: absolute; left: 50%; top: 50%; transform-origin: 50% 100%; filter: drop-shadow(2px 5px 8px rgba(0,0,0,0.92)); transition: transform 0.3s cubic-bezier(0.4, 1.4, 0.4, 1); }
+    .chronos-dial-face .hour-hand { width: 7px; height: 42px; margin-left: -3.5px; margin-top: -42px; border-radius: 3px 3px 2px 2px; z-index: 6; background: linear-gradient(180deg, #00e8ff 0%, #0090b8 60%, #00c8e0 100%); box-shadow: 0 0 12px rgba(0,232,255,0.95), 0 0 25px rgba(0,180,255,0.6), inset 0 1px 2px rgba(255,255,255,0.6); clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%); }
+    .chronos-dial-face .minute-hand { width: 5px; height: 60px; margin-left: -2.5px; margin-top: -60px; border-radius: 2px 2px 1px 1px; z-index: 7; background: linear-gradient(180deg, #ff9520 0%, #e86000 60%, #ff8200 100%); box-shadow: 0 0 12px rgba(255,140,0,0.95), 0 0 25px rgba(255,100,0,0.6), inset 0 1px 2px rgba(255,255,255,0.5); clip-path: polygon(25% 0%, 75% 0%, 100% 100%, 0% 100%); }
+    .chronos-dial-face .second-hand { width: 1.8px; height: 70px; margin-left: -0.9px; margin-top: -56px; transform-origin: 50% 56px; z-index: 8; background: linear-gradient(180deg, #ff3300 0%, #ff6600 50%, rgba(255,100,0,0.4) 100%); box-shadow: 0 0 8px rgba(255,60,0,0.95); border-radius: 1px; transition: none !important; }
+    .chronos-dial-face .second-hand::after { content: ""; position: absolute; bottom: 0; left: -2px; width: 6px; height: 14px; background: #ff3300; box-shadow: 0 0 8px rgba(255,50,0,0.8); border-radius: 0 0 3px 3px; }
+    .chronos-cap { position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffffff 0%, #c0c8d8 30%, #475569 70%, #0f172a 100%); box-shadow: 0 0 0 2.5px rgba(0,0,0,0.95), 0 0 10px rgba(0,232,255,0.85); z-index: 9; }
+    .glass-glare { position: absolute; inset: 0; border-radius: 50%; background: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.06) 30%, transparent 55%, rgba(0,180,255,0.06) 100%); pointer-events: none; z-index: 11; }
+    .bezel-tick { position: absolute; left: 50%; top: 5px; width: 2px; height: 7px; margin-left: -1px; background: rgba(255,255,255,0.35); border-radius: 1px; transform-origin: 50% 91px; pointer-events: none; }
+    .bezel-tick.major { width: 3px; height: 12px; background: rgba(255,255,255,0.65); }
 
     /* ─── RESULT TOAST ────────────────────────────────────── */
     .result-toast {
@@ -911,36 +879,83 @@
         @endif
       </div>
 
-      <!-- Cyber Analog Clock Instrument -->
-      <div class="analog-clock-wrapper">
-        <div class="rfid-glow-ring" style="width: 175px; height: 175px;"></div>
-        <div class="rfid-glow-ring" style="width: 175px; height: 175px; animation-delay: 1.25s;"></div>
+      <!-- INDONESIA Luxury Sport Watch (sama dengan Live Board Siswa) -->
+      <div class="chronos-watch-container">
 
-        <div class="analog-case">
-          <div class="rivet n"></div>
-          <div class="rivet s"></div>
-          <div class="rivet e"></div>
-          <div class="rivet w"></div>
+        <!-- TOP STRAP LUG -->
+        <div class="chronos-strap-lug top-lug"></div>
 
-          <div class="analog-face" id="analogFace">
-            <div id="analogTicks"></div>
+        <!-- MAIN WATCH BODY -->
+        <div class="chronos-body">
 
-            <div class="dial-label">
-              <div class="city">INDONESIA</div>
-              <div class="zone">{{ $zoneAbbr ?? 'WIB' }} · {{ $utcOffset ?? 'UTC+7' }}</div>
+          <!-- SIDE CROWN & PUSHERS -->
+          <div class="chronos-side-buttons">
+            <div class="side-btn top-btn"><div class="btn-grip"></div></div>
+            <div class="side-btn mid-crown"><div class="btn-grip"></div></div>
+            <div class="side-btn bot-btn"><div class="btn-grip"></div></div>
+          </div>
+
+          <!-- OCTAGONAL BEZEL WITH CORNER SCREWS -->
+          <div class="chronos-bezel-outer">
+            <div class="outer-screw sc-1"></div>
+            <div class="outer-screw sc-2"></div>
+            <div class="outer-screw sc-3"></div>
+            <div class="outer-screw sc-4"></div>
+            <div class="outer-screw sc-5"></div>
+            <div class="outer-screw sc-6"></div>
+            <div class="outer-screw sc-7"></div>
+            <div class="outer-screw sc-8"></div>
+
+            <!-- CIRCULAR BEZEL RING -->
+            <div class="chronos-bezel-ring">
+              <div id="gbBezelTicks"></div>
+
+              <!-- CARBON FIBER DIAL FACE -->
+              <div class="chronos-dial-face" id="gbDial">
+                <div class="dial-inner-ring"></div>
+                <div id="gbLumiBars"></div>
+
+                <div class="chronos-logo-area">
+                  <div class="brand-emblem">◈</div>
+                  <div class="brand-name">INDONESIA</div>
+                  <div class="brand-auto">{{ $zoneAbbr ?? 'WIB' }} · {{ $utcOffset ?? 'UTC+7' }}</div>
+                </div>
+
+                <!-- LEFT SUB-DIAL (9 o'clock — Orange) -->
+                <div class="chronos-sub sub-left">
+                  <div id="gbSubLeftTicks"></div>
+                  <div class="sub-hand" id="gbSubLeftHand"></div>
+                  <div class="sub-center-dot"></div>
+                </div>
+
+                <!-- RIGHT SUB-DIAL (3 o'clock — Blue) -->
+                <div class="chronos-sub sub-right">
+                  <div id="gbSubRightTicks"></div>
+                  <div class="sub-hand" id="gbSubRightHand"></div>
+                  <div class="sub-center-dot"></div>
+                </div>
+
+                <!-- BOTTOM LCD DISPLAY -->
+                <div class="chronos-lcd">
+                  <div class="lcd-inner">
+                    <span class="lcd-day" id="gbLcdDay">SEN 01</span>
+                    <span class="lcd-sep">|</span>
+                    <span class="lcd-time" id="gbLcdTime">00:00:00</span>
+                  </div>
+                </div>
+
+                <div class="hand hour-hand" id="gbHourHand"></div>
+                <div class="hand minute-hand" id="gbMinuteHand"></div>
+                <div class="hand second-hand" id="gbSecondHand"></div>
+                <div class="chronos-cap"></div>
+                <div class="glass-glare"></div>
+              </div>
             </div>
-
-            <div class="hand hour-hand" id="analogHourHand"></div>
-            <div class="hand minute-hand" id="analogMinuteHand"></div>
-            <div class="hand second-hand" id="analogSecondHand"></div>
-            <div class="analog-cap"></div>
           </div>
         </div>
 
-        <div class="analog-plaque">
-          <div class="plaque-time" id="analogDigitalPlaque">--:--:--</div>
-          <div class="plaque-chip">{{ $zoneAbbr ?? 'WIB' }}</div>
-        </div>
+        <!-- BOTTOM STRAP LUG -->
+        <div class="chronos-strap-lug bot-lug"></div>
       </div>
 
       <div style="text-align:center; color: var(--muted); font-size: 0.85rem; max-width: 280px; line-height: 1.4; position: relative; z-index: 2; margin-top: 1.25rem;">
@@ -1087,67 +1102,115 @@ function updateSessionCountdown() {
 updateSessionCountdown();
 setInterval(updateSessionCountdown, 1000);
 
-// ─── CYBER ANALOG CLOCK LOGIC ──────────────────────────────────────────────
-(function initAnalogClock() {
-    const ticksEl = document.getElementById('analogTicks');
-    if(ticksEl && ticksEl.children.length === 0){
-      for(let i=0; i<60; i++){
-        const t = document.createElement('div');
-        t.className = 'tick' + (i % 5 === 0 ? ' major' : '');
-        t.style.transform = `rotate(${i*6}deg)`;
-        ticksEl.appendChild(t);
-      }
+// ─── INDONESIA LUXURY SPORT WATCH — Live Board Guru ────────────────────────
+const _gbTz = (typeof APP_TIMEZONE !== 'undefined' && APP_TIMEZONE) ? APP_TIMEZONE : 'Asia/Jakarta';
+const _gbTzFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: _gbTz,
+  hour: 'numeric', minute: 'numeric', second: 'numeric',
+  hour12: false
+});
+const _gbDayFormatter = new Intl.DateTimeFormat('id-ID', {
+  timeZone: _gbTz,
+  weekday: 'short', day: '2-digit'
+});
+
+// Elemen jarum & LCD (diisi setelah DOM siap)
+let _gbHourHand, _gbMinuteHand, _gbSecondHand, _gbSubLeftHand, _gbSubRightHand, _gbLcdDay, _gbLcdTime;
+const _gbPrevDeg = { hour: null, minute: null };
+
+function _gbSetRot(el, deg, key) {
+  if (!el) return;
+  const prev = _gbPrevDeg[key];
+  if (prev !== null && deg < prev - 180) {
+    el.style.transition = 'none';
+    el.style.transform = `rotate(${deg}deg)`;
+    void el.offsetWidth;
+    el.style.transition = '';
+  } else {
+    el.style.transform = `rotate(${deg}deg)`;
+  }
+  _gbPrevDeg[key] = deg;
+}
+
+function updateGbWatch() {
+  const now = new Date();
+  const timeParts = _gbTzFormatter.formatToParts(now);
+  const h = +timeParts.find(p => p.type === 'hour').value;
+  const m = +timeParts.find(p => p.type === 'minute').value;
+  const s = +timeParts.find(p => p.type === 'second').value;
+
+  _gbSetRot(_gbHourHand,   (h % 12) * 30 + m * 0.5, 'hour');
+  _gbSetRot(_gbMinuteHand, m * 6 + s * 0.1,          'minute');
+
+  // Jarum detik: snap langsung (tanpa transisi) agar berdetak
+  if (_gbSecondHand) {
+    _gbSecondHand.style.transition = 'none';
+    _gbSecondHand.style.transformOrigin = '50% 56px';
+    _gbSecondHand.style.transform = `rotate(${s * 6}deg)`;
+  }
+
+  if (_gbSubLeftHand)  _gbSubLeftHand.style.transform  = `rotate(${(m / 60) * 360}deg)`;
+  if (_gbSubRightHand) _gbSubRightHand.style.transform = `rotate(${(h / 12) * 360}deg)`;
+
+  if (_gbLcdDay) {
+    const dayParts = _gbDayFormatter.formatToParts(now);
+    const weekday = dayParts.find(p => p.type === 'weekday').value.toUpperCase();
+    const day     = dayParts.find(p => p.type === 'day').value;
+    _gbLcdDay.textContent = `${weekday} ${day}`;
+  }
+  if (_gbLcdTime) {
+    _gbLcdTime.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+}
+
+(function initGbWatch() {
+  // 1. LumiBrite tick marks (60 with 12 major)
+  const lumiEl = document.getElementById('gbLumiBars');
+  if (lumiEl && lumiEl.children.length === 0) {
+    for (let i = 0; i < 60; i++) {
+      const tick = document.createElement('div');
+      tick.className = 'lumi-tick' + (i % 5 === 0 ? ' major' : '');
+      tick.style.transform = `rotate(${i * 6}deg)`;
+      lumiEl.appendChild(tick);
     }
+  }
 
-    const hourHand = document.getElementById('analogHourHand');
-    const minuteHand = document.getElementById('analogMinuteHand');
-    const secondHand = document.getElementById('analogSecondHand');
-    const analogDigital = document.getElementById('analogDigitalPlaque');
-    const prevDeg = { hour: null, minute: null, second: null };
-
-    function setHandRotation(el, deg, key){
-      if(!el) return;
-      const prev = prevDeg[key];
-      if(prev !== null && deg < prev - 180){
-        el.style.transition = 'none';
-        el.style.transform = `rotate(${deg}deg)`;
-        void el.offsetWidth;
-        el.style.transition = '';
-      } else {
-        el.style.transform = `rotate(${deg}deg)`;
-      }
-      prevDeg[key] = deg;
+  // 2. Bezel ticks (60)
+  const bezelEl = document.getElementById('gbBezelTicks');
+  if (bezelEl && bezelEl.children.length === 0) {
+    for (let i = 0; i < 60; i++) {
+      const tick = document.createElement('div');
+      tick.className = 'bezel-tick' + (i % 5 === 0 ? ' major' : '');
+      tick.style.transform = `rotate(${i * 6}deg)`;
+      bezelEl.appendChild(tick);
     }
+  }
 
-    function updateAnalogClock(){
-      const targetTz = (typeof APP_TIMEZONE !== 'undefined' && APP_TIMEZONE) ? APP_TIMEZONE : 'Asia/Jakarta';
-      const now = new Date(
-        new Date().toLocaleString('en-US', { timeZone: targetTz })
-      );
-      const h = now.getHours();
-      const m = now.getMinutes();
-      const s = now.getSeconds();
-
-      const hourDeg = (h % 12) * 30 + m * 0.5;
-      const minuteDeg = m * 6 + s * 0.1;
-      const secDeg = s * 6;
-
-      setHandRotation(hourHand, hourDeg, 'hour');
-      setHandRotation(minuteHand, minuteDeg, 'minute');
-      setHandRotation(secondHand, secDeg, 'second');
-
-      if(analogDigital) {
-        analogDigital.textContent =
-          String(h).padStart(2,'0') + ':' +
-          String(m).padStart(2,'0') + ':' +
-          String(s).padStart(2,'0');
-      }
-
-      playTickSound();
+  // 3. Sub-dial ticks
+  function buildSubTicks(id, count) {
+    const el = document.getElementById(id);
+    if (!el || el.children.length > 0) return;
+    for (let i = 0; i < count; i++) {
+      const tick = document.createElement('div');
+      tick.className = 'sub-tick' + (i % (count / 4) === 0 ? ' major' : '');
+      tick.style.transform = `rotate(${(i / count) * 360}deg)`;
+      el.appendChild(tick);
     }
+  }
+  buildSubTicks('gbSubLeftTicks', 20);
+  buildSubTicks('gbSubRightTicks', 20);
 
-    updateAnalogClock();
-    setInterval(updateAnalogClock, 1000);
+  // 4. Simpan referensi elemen ke variabel luar
+  _gbHourHand    = document.getElementById('gbHourHand');
+  _gbMinuteHand  = document.getElementById('gbMinuteHand');
+  _gbSecondHand  = document.getElementById('gbSecondHand');
+  _gbSubLeftHand  = document.getElementById('gbSubLeftHand');
+  _gbSubRightHand = document.getElementById('gbSubRightHand');
+  _gbLcdDay  = document.getElementById('gbLcdDay');
+  _gbLcdTime = document.getElementById('gbLcdTime');
+
+  // 5. Jalankan pertama kali
+  updateGbWatch();
 })();
 
 // ─── SOUND & TTS ──────────────────────────────────────────────────────────
@@ -1184,6 +1247,12 @@ function playTickSound() {
     osc.stop(now + 0.015);
   } catch (_) {}
 }
+
+// ─── Jalankan jam setiap detik (setelah playTickSound sudah didefinisikan) ───
+setInterval(function() {
+  updateGbWatch();
+  playTickSound();
+}, 1000);
 
 function speak(text) {
   if (!soundEnabled || !('speechSynthesis' in window)) return;
