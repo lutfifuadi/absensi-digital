@@ -937,6 +937,24 @@
 @section('page-script')
   <script>
     window.showAutoSaveToast = function(type, title, msg) {
+      if (typeof Swal !== 'undefined') {
+        const iconType = type === 'success' ? 'success' : 'error';
+        const displayTitle = msg ? `${msg}` : title;
+
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: iconType,
+          title: displayTitle,
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+          background: '#0f172a',
+          color: '#f8fafc'
+        });
+        return;
+      }
+
       const toastEl = document.getElementById('toastNotification');
       if (!toastEl) return;
 
