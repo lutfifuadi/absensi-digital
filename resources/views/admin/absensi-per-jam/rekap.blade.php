@@ -169,55 +169,57 @@
   {{-- ═══════════════════════════════════════════════════════
        PANEL FILTER
   ═══════════════════════════════════════════════════════ --}}
-  <div class="das-panel mb-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+  <div class="das-panel mb-4">
     <div class="das-panel__body">
       <form method="GET" action="{{ route('admin.absensi-per-jam.rekap') }}" class="row gy-3 gx-3 align-items-end">
-        <div class="col-md-3 col-6">
-          <label class="form-label fw-semibold small text-white-50">
-            <i class="ti tabler-calendar-event me-1"></i> Tanggal Mulai
+        <div class="col-xl-2 col-lg-3 col-sm-6">
+          <label class="form-label fw-bold text-white-50 small mb-2">
+            <i class="ti tabler-calendar-event me-1 text-info"></i> Tanggal Mulai
           </label>
-          <input type="date" name="dari" class="form-control" value="{{ $filters['dari'] }}" style="color-scheme:dark;">
+          <input type="date" name="dari" class="form-control" value="{{ $filters['dari'] }}" style="color-scheme:dark; height:38px; border-radius:5px !important;">
         </div>
-        <div class="col-md-3 col-6">
-          <label class="form-label fw-semibold small text-white-50">
-            <i class="ti tabler-calendar-event me-1"></i> Tanggal Selesai
+        <div class="col-xl-2 col-lg-3 col-sm-6">
+          <label class="form-label fw-bold text-white-50 small mb-2">
+            <i class="ti tabler-calendar-event me-1 text-info"></i> Tanggal Selesai
           </label>
-          <input type="date" name="sampai" class="form-control" value="{{ $filters['sampai'] }}" style="color-scheme:dark;">
+          <input type="date" name="sampai" class="form-control" value="{{ $filters['sampai'] }}" style="color-scheme:dark; height:38px; border-radius:5px !important;">
         </div>
-        <div class="col-md-3 col-6">
-          <label class="form-label fw-semibold small text-white-50">
-            <i class="ti tabler-door me-1"></i> Kelas <span class="text-danger">*</span>
+        <div class="col-xl-2 col-lg-3 col-sm-6">
+          <label class="form-label fw-bold text-white-50 small mb-2">
+            <i class="ti tabler-door me-1 text-info"></i> Kelas <span class="text-danger">*</span>
           </label>
-          <select name="kelas_id" class="form-select" required>
+          <select name="kelas_id" class="form-select" required style="height:38px; border-radius:5px !important;">
             <option value="">-- Pilih Kelas --</option>
             @foreach ($kelasOptions as $k)
               <option value="{{ $k->id }}" @selected($filters['kelas_id'] == $k->id)>{{ $k->nama }}</option>
             @endforeach
           </select>
         </div>
-        <div class="col-md-3 col-6">
-          <label class="form-label fw-semibold small text-white-50">
-            <i class="ti tabler-book me-1"></i> Mata Pelajaran <span class="text-white-50 opacity-50">(opsional)</span>
+        <div class="col-xl-3 col-lg-3 col-sm-6">
+          <label class="form-label fw-bold text-white-50 small mb-2">
+            <i class="ti tabler-book me-1 text-info"></i> Mata Pelajaran <span class="text-white-50 opacity-50 font-normal">(opsional)</span>
           </label>
-          <select name="mapel_id" class="form-select">
+          <select name="mapel_id" class="form-select" style="height:38px; border-radius:5px !important;">
             <option value="">-- Semua Mapel --</option>
             @foreach ($mapelOptions as $m)
               <option value="{{ $m->id }}" @selected($filters['mapel_id'] == $m->id)>{{ $m->nama_mapel }}</option>
             @endforeach
           </select>
         </div>
-        <div class="col-12 d-flex flex-wrap gap-2 mt-1">
-          <button type="submit" class="das-btn das-btn--primary">
-            <i class="ti tabler-search me-1"></i> Tampilkan
-          </button>
-          <a href="{{ route('admin.absensi-per-jam.rekap') }}" class="das-btn das-btn--ghost">
-            <i class="ti tabler-refresh me-1"></i> Reset
-          </a>
-          <a href="{{ route('admin.absensi-per-jam.rekap.export', $exportParams) }}"
-            class="das-btn das-btn--success {{ $hasFilter ? '' : 'disabled' }}"
-            @if (!$hasFilter) aria-disabled="true" @endif>
-            <i class="ti tabler-file-spreadsheet me-1"></i> Export Excel
-          </a>
+        <div class="col-xl-3 col-lg-12">
+          <div class="d-flex align-items-center gap-2">
+            <button type="submit" class="btn das-btn --primary flex-grow-1" style="height:38px; border-radius:5px !important;">
+              <i class="ti tabler-search me-1"></i> Tampilkan
+            </button>
+            <a href="{{ route('admin.absensi-per-jam.rekap') }}" class="btn das-btn --secondary" style="height:38px; border-radius:5px !important;" title="Reset Filter">
+              <i class="ti tabler-refresh"></i>
+            </a>
+            <a href="{{ route('admin.absensi-per-jam.rekap.export', $exportParams) }}"
+              class="btn das-btn --success {{ $hasFilter ? '' : 'disabled' }}" style="height:38px; border-radius:5px !important;"
+              @if (!$hasFilter) aria-disabled="true" @endif title="Export Excel">
+              <i class="ti tabler-file-spreadsheet me-1"></i> Export
+            </a>
+          </div>
         </div>
       </form>
     </div>

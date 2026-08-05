@@ -188,7 +188,47 @@ class AbsensiPerJamController extends Controller
             $kelasOptions = $kelasQuery->orderBy('nama')->get();
         }
 
-        $mapelOptions = Mapel::orderBy('nama_mapel')->get();
+        $mapelQuery = Mapel::orderBy('nama_mapel');
+        $isAdmin = $user->isSuperAdmin()
+            || $user->isRole(User::ROLE_ADMIN_SEKOLAH)
+            || $user->isRole(User::ROLE_OPERATOR);
+
+        if (! $isAdmin && $user->guru) {
+            $guru = $user->guru;
+            
+            // 1. Ambil ID mapel dari pivot table guru_mapel
+            $mapelIdsFromPivot = $guru->mapels()->pluck('mapels.id')->toArray();
+            
+            // 2. Ambil ID mapel dari string mata_pelajaran di profil guru (abaikan '-')
+            $guruMapelNames = array_filter(array_map('trim', explode(',', $guru->mata_pelajaran ?? '')));
+            $guruMapelNames = array_diff($guruMapelNames, ['-']);
+            
+            $mapelIdsFromGuruString = !empty($guruMapelNames)
+                ? Mapel::whereIn('nama_mapel', $guruMapelNames)->pluck('id')->toArray()
+                : [];
+
+            $guruMapelIds = array_unique(array_filter(array_merge($mapelIdsFromPivot, $mapelIdsFromGuruString)));
+
+            // 3. Jika belum ada pengampuan di profil/pivot, baru fallback ke jadwal mengajar
+            if (empty($guruMapelIds)) {
+                $jadwalMapelNames = JadwalPelajaran::where('guru_id', $guru->id)->pluck('mata_pelajaran')->filter()->toArray();
+                $guruMapelIds = !empty($jadwalMapelNames)
+                    ? Mapel::whereIn('nama_mapel', $jadwalMapelNames)->pluck('id')->toArray()
+                    : [];
+            }
+
+            if (! empty($guruMapelIds)) {
+                $mapelOptions = Mapel::whereIn('id', $guruMapelIds)->orderBy('nama_mapel')->get();
+            } else {
+                $mapelOptions = $mapelQuery->get();
+            }
+
+            if (! $request->filled('mapel_id') && $mapelOptions->count() === 1) {
+                $filters['mapel_id'] = (string) $mapelOptions->first()->id;
+            }
+        } else {
+            $mapelOptions = $mapelQuery->get();
+        }
 
         $rekap = null;
         if ($filters['kelas_id'] && $filters['dari'] && $filters['sampai']) {
