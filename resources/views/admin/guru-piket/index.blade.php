@@ -142,52 +142,113 @@
       color: #94a3b8 !important;
     }
 
-    /* SWEETALERT2 CUSTOM PREMIUM */
+    /* SWEETALERT2 PREMIUM OVERRIDES */
     .das-swal-popup {
-      background: rgba(26, 26, 46, 0.95) !important;
-      backdrop-filter: blur(16px) saturate(180%) !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
-      border-radius: 5px !important;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+      background: #1e293b !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      border-radius: 16px !important;
+      padding: 1.75rem 1.5rem !important;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
     }
 
     .das-swal-title {
-      color: #fff !important;
+      color: #ffffff !important;
       font-weight: 700 !important;
-      font-size: 1.5rem !important;
+      font-size: 1.3rem !important;
       text-align: center !important;
-      width: 100% !important;
-      max-width: none !important;
-      max-inline-size: none !important;
+      margin-top: 0.75rem !important;
+      margin-bottom: 0.5rem !important;
     }
 
     .das-swal-html {
-      color: rgba(255, 255, 255, 0.7) !important;
-      font-size: 0.95rem !important;
+      color: rgba(255, 255, 255, 0.75) !important;
+      font-size: 0.9rem !important;
+      margin-top: 0.5rem !important;
     }
 
-    .das-swal-confirm {
-      padding: 10px 24px !important;
+    .swal2-icon {
+      margin: 0.5rem auto 0 auto !important;
+      border-width: 3px !important;
+    }
+
+    .swal2-icon.swal2-question {
+      border-color: #00bad1 !important;
+      color: #00bad1 !important;
+      background: rgba(0, 186, 209, 0.1) !important;
+      box-shadow: 0 0 25px rgba(0, 186, 209, 0.25) !important;
+    }
+
+    .swal2-icon.swal2-warning {
+      border-color: #ff9f43 !important;
+      color: #ff9f43 !important;
+      background: rgba(255, 159, 67, 0.1) !important;
+      box-shadow: 0 0 25px rgba(255, 159, 67, 0.25) !important;
+    }
+
+    .swal2-icon.swal2-success {
+      border-color: #28c76f !important;
+      color: #28c76f !important;
+      background: rgba(40, 199, 111, 0.1) !important;
+      box-shadow: 0 0 25px rgba(40, 199, 111, 0.25) !important;
+    }
+
+    .swal2-icon.swal2-error {
+      border-color: #ea5455 !important;
+      color: #ea5455 !important;
+      background: rgba(234, 84, 85, 0.1) !important;
+      box-shadow: 0 0 25px rgba(234, 84, 85, 0.25) !important;
+    }
+
+    .swal2-actions {
+      gap: 0.75rem !important;
+      margin-top: 1.25rem !important;
+    }
+
+    .das-swal-confirm-info {
+      background: linear-gradient(135deg, #00bad1, #0284c7) !important;
+      color: #ffffff !important;
       font-weight: 600 !important;
-      border-radius: 5px !important;
+      padding: 0.6rem 1.5rem !important;
+      border-radius: 8px !important;
+      border: none !important;
       font-size: 0.875rem !important;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      box-shadow: 0 4px 12px rgba(234, 84, 85, 0.3) !important;
+      box-shadow: 0 4px 14px rgba(0, 186, 209, 0.35) !important;
+      transition: all 0.2s ease !important;
+    }
+    .das-swal-confirm-info:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(0, 186, 209, 0.45) !important;
+    }
+
+    .das-swal-confirm-danger {
+      background: linear-gradient(135deg, #ea5455, #dc2626) !important;
+      color: #ffffff !important;
+      font-weight: 600 !important;
+      padding: 0.6rem 1.5rem !important;
+      border-radius: 8px !important;
+      border: none !important;
+      font-size: 0.875rem !important;
+      box-shadow: 0 4px 14px rgba(234, 84, 85, 0.35) !important;
+      transition: all 0.2s ease !important;
+    }
+    .das-swal-confirm-danger:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(234, 84, 85, 0.45) !important;
     }
 
     .das-swal-cancel {
-      padding: 10px 24px !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: rgba(255, 255, 255, 0.8) !important;
       font-weight: 600 !important;
-      border-radius: 5px !important;
+      padding: 0.6rem 1.5rem !important;
+      border-radius: 8px !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
       font-size: 0.875rem !important;
-      background: rgba(255, 255, 255, 0.05) !important;
-      color: #fff !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      transition: all 0.2s ease !important;
     }
-
-    .das-swal-icon {
-      border-color: rgba(255, 255, 255, 0.1) !important;
+    .das-swal-cancel:hover {
+      background: rgba(255, 255, 255, 0.12) !important;
+      color: #ffffff !important;
     }
   </style>
   @vite(['resources/assets/vendor/libs/select2/select2.scss', 'resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
@@ -439,16 +500,26 @@
 
             Swal.fire({
               title: 'Cabut Status Guru Piket?',
-              html: `Apakah Anda yakin ingin mencabut status Guru Piket dari <strong>${nama}</strong>?`,
+              html: `
+                <div class="d-flex flex-column align-items-center text-center">
+                  <div class="mb-3 px-3 py-2 rounded-3 w-100" style="background: rgba(234, 84, 85, 0.1); border: 1px solid rgba(234, 84, 85, 0.2);">
+                    <span class="text-white-50 small">Guru Terpilih:</span>
+                    <div class="fw-bold text-danger fs-6 mt-1">${nama}</div>
+                  </div>
+                  <p class="text-white-50 small mb-0">
+                    Status peran <strong>Guru Piket</strong> akan dihapus dari akun pengguna ini.
+                  </p>
+                </div>
+              `,
               icon: 'warning',
               showCancelButton: true,
-              confirmButtonText: 'Ya, Cabut Status',
-              cancelButtonText: 'Batal',
+              confirmButtonText: '<i class="ti tabler-user-minus me-1"></i> Ya, Cabut Status',
+              cancelButtonText: '<i class="ti tabler-x me-1"></i> Batal',
               customClass: {
                 popup: 'das-swal-popup',
                 title: 'das-swal-title',
-                html: 'das-swal-html',
-                confirmButton: 'das-swal-confirm btn btn-danger',
+                htmlContainer: 'das-swal-html',
+                confirmButton: 'das-swal-confirm-danger',
                 cancelButton: 'das-swal-cancel'
               },
               buttonsStyling: false
@@ -472,9 +543,10 @@
                       customClass: {
                         popup: 'das-swal-popup',
                         title: 'das-swal-title',
-                        html: 'das-swal-html',
-                        confirmButton: 'btn btn-primary'
-                      }
+                        htmlContainer: 'das-swal-html',
+                        confirmButton: 'das-swal-confirm-info'
+                      },
+                      buttonsStyling: false
                     }).then(() => window.location.reload());
                   } else {
                     Swal.fire('Gagal!', data.message || 'Terjadi kesalahan.', 'error');
@@ -496,16 +568,27 @@
 
             Swal.fire({
               title: 'Login Sebagai Guru Piket?',
-              html: `Anda akan masuk sebagai <strong>${nama}</strong>.`,
+              html: `
+                <div class="d-flex flex-column align-items-center text-center">
+                  <div class="mb-3 px-3 py-2 rounded-3 w-100" style="background: rgba(0, 186, 209, 0.1); border: 1px solid rgba(0, 186, 209, 0.2);">
+                    <span class="text-white-50 small">Akun Target:</span>
+                    <div class="fw-bold text-info fs-6 mt-1">${nama}</div>
+                  </div>
+                  <p class="text-white-50 small mb-0">
+                    <i class="ti tabler-shield-check text-success me-1"></i>
+                    Anda akan masuk ke akun Guru Piket ini. Tindakan ini akan dicatat dalam log sistem.
+                  </p>
+                </div>
+              `,
               icon: 'question',
               showCancelButton: true,
-              confirmButtonText: 'Ya, Login',
-              cancelButtonText: 'Batal',
+              confirmButtonText: '<i class="ti tabler-login me-1"></i> Ya, Login Sekarang',
+              cancelButtonText: '<i class="ti tabler-x me-1"></i> Batal',
               customClass: {
                 popup: 'das-swal-popup',
                 title: 'das-swal-title',
-                html: 'das-swal-html',
-                confirmButton: 'das-swal-confirm btn btn-success',
+                htmlContainer: 'das-swal-html',
+                confirmButton: 'das-swal-confirm-info',
                 cancelButton: 'das-swal-cancel'
               },
               buttonsStyling: false
