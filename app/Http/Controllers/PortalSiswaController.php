@@ -646,7 +646,7 @@ class PortalSiswaController extends Controller
                 $user->update(['name' => $request->nama_lengkap]);
             }
 
-            $formattedDate = \Carbon\Carbon::parse($request->tanggal_lahir)->locale('id')->translatedFormat('d MMMM Y');
+            $formattedDate = \Carbon\Carbon::parse($request->tanggal_lahir)->locale('id')->translatedFormat('d F Y');
             $ttlFormatted = ($siswa->tempat_lahir ?: '-') . ', ' . $formattedDate;
 
             return response()->json([

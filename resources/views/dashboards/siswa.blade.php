@@ -76,7 +76,7 @@
     }
 
     $tanggalLahirFormatted = ($siswaRecord && $siswaRecord->tanggal_lahir)
-        ? \Carbon\Carbon::parse($siswaRecord->tanggal_lahir)->locale('id')->translatedFormat('d MMMM Y')
+        ? \Carbon\Carbon::parse($siswaRecord->tanggal_lahir)->locale('id')->translatedFormat('d F Y')
         : 'Belum diisi';
     $tanggalLahirRaw = ($siswaRecord && $siswaRecord->tanggal_lahir)
         ? \Carbon\Carbon::parse($siswaRecord->tanggal_lahir)->format('Y-m-d')
@@ -108,12 +108,14 @@
           </div>
           <h3 class="das-hero__school text-gradient-gold mb-1" style="font-size: 1.35rem; line-height: 1.3;">{{ $namaSekolah }}</h3>
           <p class="das-hero__welcome mb-1">Selamat datang kembali, <strong>{{ $user->name }}</strong> 👋</p>
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-20 d-inline-flex align-items-center gap-1" style="font-size: 0.75rem; backdrop-filter: blur(4px);">
-              <i class="ti tabler-calendar-heart fs-6 text-warning"></i> Tgl Lahir: <span id="display-tanggal-lahir" class="fw-semibold text-warning ms-1">{{ $tanggalLahirFormatted }}</span>
-            </span>
-            <button type="button" class="btn btn-xs btn-outline-warning d-inline-flex align-items-center gap-1 py-0 px-2" style="font-size: 0.7rem; border-radius: 12px;" data-bs-toggle="modal" data-bs-target="#modalUpdateTanggalLahir" title="Ubah Tanggal Lahir Mandiri">
-              <i class="ti tabler-edit fs-6"></i> Edit Tgl Lahir
+          <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
+            <div class="px-2 py-1 rounded-pill d-inline-flex align-items-center gap-1 shadow-xs" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(6px);">
+              <i class="ti tabler-calendar-heart text-warning" style="font-size: 0.85rem;"></i>
+              <span class="text-white-50" style="font-size: 0.75rem;">Tgl Lahir:</span>
+              <span id="display-tanggal-lahir" class="fw-bold text-warning" style="font-size: 0.75rem;">{{ $tanggalLahirFormatted }}</span>
+            </div>
+            <button type="button" class="btn btn-xs btn-warning fw-bold d-inline-flex align-items-center gap-1 px-3 py-1 shadow-sm" style="border-radius: 20px; font-size: 0.75rem; transition: all 0.2s ease;" data-bs-toggle="modal" data-bs-target="#modalUpdateTanggalLahir" title="Perbarui Data & Biodata Mandiri">
+              <i class="ti tabler-edit" style="font-size: 0.85rem;"></i> Edit Biodata
             </button>
           </div>
         </div>
