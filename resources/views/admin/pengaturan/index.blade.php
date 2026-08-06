@@ -1740,16 +1740,33 @@ select.set-input option {
             </div>
 
             {{-- Scanner Password --}}
+            <input type="hidden" name="has_scan_qr_settings" value="1">
             <div class="set-section-label mt-4">Password Scanner Publik</div>
             <div class="set-info-banner set-info-banner--info mb-3">
               <i class="ti tabler-info-circle"></i>
               <div>
-                <strong>Pengamanan Layar Guru Piket</strong><br>
-                <span>Gunakan password di bawah untuk memproteksi laman <code>/scan-qr</code>.</span>
+                <strong>Pengamanan Layar Guru Piket & Scanner Publik</strong><br>
+                <span>Atur metode autentikasi dan password pengunci untuk laman <code>/scan-qr</code>.</span>
               </div>
             </div>
+
+            <div class="set-field mb-4 p-3 rounded border border-secondary border-opacity-20" style="background: rgba(255,255,255,0.02);">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <label class="set-label mb-1 fw-bold text-white">Fitur Password Master Publik</label>
+                  <div class="text-body-secondary small">
+                    <strong>ON:</strong> Password Master Publik dapat digunakan selain password akun Guru Piket.<br>
+                    <strong>OFF:</strong> Password Master Publik dinonaktifkan. Pengaksesan WAJIB menggunakan password akun Guru Piket aktif.
+                  </div>
+                </div>
+                <div class="form-check form-switch ms-3">
+                  <input class="form-check-input" type="checkbox" name="enable_password_master_scan_qr" value="1" id="switchEnableMasterQr" style="width: 2.8em; height: 1.5em; cursor: pointer;" {{ setting('enable_password_master_scan_qr', '1') == '1' ? 'checked' : '' }}>
+                </div>
+              </div>
+            </div>
+
             <div class="set-field mb-4">
-              <label class="set-label">Password Login Scanner Publik</label>
+              <label class="set-label">Password Login Scanner Publik (Master Password)</label>
               <div class="set-input-group set-password-toggle">
                 <span class="set-input-prefix"><i class="ti tabler-lock"></i></span>
                 <input type="password" class="set-input" name="password_unlock_scan_qr"
@@ -1759,9 +1776,9 @@ select.set-input option {
                 </button>
               </div>
               @if (!empty($settings['scan_qr_password_set']))
-                <div class="set-field-hint --success"><i class="ti tabler-check"></i> Proteksi Scanner: AKTIF</div>
+                <div class="set-field-hint --success"><i class="ti tabler-check"></i> Password Master: TERPASANG</div>
               @else
-                <div class="set-field-hint --warning"><i class="ti tabler-alert-triangle"></i> Proteksi Scanner: BELUM AKTIF</div>
+                <div class="set-field-hint --warning"><i class="ti tabler-alert-triangle"></i> Password Master: BELUM DIISI</div>
               @endif
             </div>
 

@@ -46,7 +46,7 @@ class PublicQrScanController extends Controller
     }
 
     /**
-     * Proses verifikasi password scan QR (Strict Individual Guru Piket Password).
+     * Proses verifikasi password scan QR (Master Password + Guru Piket Toggle).
      */
     public function auth(Request $request)
     {
@@ -56,7 +56,39 @@ class PublicQrScanController extends Controller
 
         $ip = $request->ip();
 
-        // Cari user aktif yang memiliki role piket
+        // 1. Cek Toggle Password Master Publik
+        $enableMaster = setting('enable_password_master_scan_qr', '1');
+        $isMasterAuth = false;
+
+        if ($enableMaster == '1' || $enableMaster === true || $enableMaster === '1') {
+            $masterHash = setting('password_unlock_scan_qr');
+            if (!empty($masterHash)) {
+                $isMatch = (strlen($masterHash) === 60 && str_starts_with($masterHash, '$2y$'))
+                    ? Hash::check($request->password, $masterHash)
+                    : ($request->password === $masterHash);
+
+                if ($isMatch) {
+                    $isMasterAuth = true;
+                }
+            }
+        }
+
+        if ($isMasterAuth) {
+            QrScanLogger::info('LOGIN_SUCCESS_MASTER', [
+                'ip'  => $ip,
+                'ket' => 'Sesi scan QR publik berhasil dibuka menggunakan Password Master Publik',
+            ]);
+
+            session([
+                'qr_scan_authenticated' => true,
+                'piket_user_id'         => null,
+                'piket_user_name'       => 'Master Public Scanner',
+            ]);
+
+            return redirect()->route('public.scan-qr.scan')->with('success', 'Selamat bertugas! Sesi Scanner Publik berhasil dibuka.');
+        }
+
+        // 2. Cek Akun Guru Piket Aktif
         $piketUsers = \App\Models\User::query()
             ->withRole(\App\Models\User::ROLE_PIKET)
             ->get();
@@ -71,12 +103,16 @@ class PublicQrScanController extends Controller
         }
 
         if (! $matchedUser) {
-            QrScanLogger::error('LOGIN_FAILED_NO_PIKET_MATCH', [
+            QrScanLogger::error('LOGIN_FAILED_NO_MATCH', [
                 'ip'  => $ip,
-                'ket' => 'Password tidak cocok dengan akun Guru Piket aktif mana pun',
+                'ket' => 'Password tidak cocok. (Master Pass: ' . ($enableMaster == '1' ? 'Aktif' : 'Nonaktif') . ')',
             ]);
 
-            return back()->withErrors(['password' => 'Password salah atau akun Anda tidak terdaftar sebagai Guru Piket aktif.']);
+            $errMsg = ($enableMaster == '1')
+                ? 'Password salah. Silakan masukkan Password Master Publik atau Password Akun Guru Piket aktif Anda.'
+                : 'Password Master Publik NONAKTIF. Pengaksesan WAJIB menggunakan Password Akun Guru Piket aktif.';
+
+            return back()->withErrors(['password' => $errMsg]);
         }
 
         QrScanLogger::info('LOGIN_SUCCESS_PIKET', [

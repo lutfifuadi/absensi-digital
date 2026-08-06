@@ -673,6 +673,17 @@ class PengaturanDefaults
                 'tenant_scoped' => false,
                 'permission'    => 'admin_sekolah',
             ],
+            'enable_password_master_scan_qr' => [
+                'default'       => '1',
+                'type'          => 'bool',
+                'group'         => 'keamanan',
+                'label'         => 'Gunakan Password Master Publik Scan QR',
+                'description'   => 'Jika Aktif, Password Master Publik dapat digunakan untuk unlock scanner selain password Guru Piket. Jika Nonaktif, HANYA password Guru Piket yang diizinkan.',
+                'icon'          => 'tabler-toggle-right',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
             'password_unlock_scan_qr' => [
                 'default'       => '',
                 'type'          => 'string',

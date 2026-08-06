@@ -386,7 +386,16 @@
         <button type="submit" class="btn-signin">🚀 Buka Halaman Scan</button>
       </form>
 
-      <p class="footer-note">Password diatur oleh admin sekolah.</p>
+      @php
+        $isMasterOn = setting('enable_password_master_scan_qr', '1') == '1';
+      @endphp
+      <p class="footer-note">
+        @if($isMasterOn)
+          🔒 Masukkan Password Master Publik atau Password Akun Guru Piket.
+        @else
+          🔐 Mode Strict: WAJIB menggunakan Password Akun Guru Piket aktif.
+        @endif
+      </p>
     </div>
   </div>
 

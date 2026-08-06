@@ -26,6 +26,7 @@ class PengaturanController extends Controller
         'no_telp_lembaga' => '0226027957',
         'kecamatan' => 'Bandung',
         'minimal_hadir_persen' => '90',
+        'enable_password_master_scan_qr' => '1',
         'password_unlock_scan_qr' => '',
         'tampilkan_beranda' => 'Ya',
         'aktifkan_ai_chat' => 'Ya',
@@ -260,6 +261,11 @@ class PengaturanController extends Controller
 
         // Clean up oauth credentials space to avoid storing unexpected values
         // Note: they are simple text fields, so they are part of $data and will be saved automatically by the loop.
+
+        // Toggle password master scan QR
+        if ($request->has('has_scan_qr_settings')) {
+            $data['enable_password_master_scan_qr'] = $request->has('enable_password_master_scan_qr') ? '1' : '0';
+        }
 
         // Hash password scan QR jika diisi, atau hapus dari $data jika kosong
         if (!empty($data['password_unlock_scan_qr'])) {
