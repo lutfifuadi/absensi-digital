@@ -25,13 +25,13 @@
     .piket-filter-card {
       background: #111827 !important;
       border: 1px solid rgba(255, 255, 255, 0.1) !important;
-      border-radius: 10px !important;
+      border-radius: 5px !important;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
     }
 
     .piket-input-group {
       border: 1px solid rgba(255, 255, 255, 0.18) !important;
-      border-radius: 8px !important;
+      border-radius: 5px !important;
       overflow: hidden;
       background: #0b0f19 !important;
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -57,6 +57,7 @@
       font-size: 0.9rem !important;
       padding: 0.65rem 1rem !important;
       box-shadow: none !important;
+      border-radius: 5px !important;
     }
 
     .piket-input-control::placeholder {
@@ -67,7 +68,7 @@
       background-color: #0b0f19 !important;
       color: #ffffff !important;
       border: 1px solid rgba(255, 255, 255, 0.18) !important;
-      border-radius: 8px !important;
+      border-radius: 5px !important;
       font-size: 0.9rem !important;
       padding: 0.65rem 1rem !important;
       box-shadow: none !important;
@@ -93,7 +94,7 @@
       border: none !important;
       font-weight: 600 !important;
       padding: 0.65rem 1.25rem !important;
-      border-radius: 8px !important;
+      border-radius: 5px !important;
       box-shadow: 0 4px 14px rgba(0, 186, 209, 0.35) !important;
       transition: all 0.2s ease !important;
     }
@@ -109,7 +110,7 @@
       background: rgba(255, 255, 255, 0.08) !important;
       color: #e2e8f0 !important;
       border: 1px solid rgba(255, 255, 255, 0.18) !important;
-      border-radius: 8px !important;
+      border-radius: 5px !important;
       padding: 0.65rem 1rem !important;
       transition: all 0.2s ease !important;
     }
@@ -127,7 +128,7 @@
       justify-content: center !important;
       width: 36px !important;
       height: 36px !important;
-      border-radius: 8px !important;
+      border-radius: 5px !important;
       border: 1px solid rgba(255, 255, 255, 0.1) !important;
       background: rgba(255, 255, 255, 0.05) !important;
       transition: all 0.2s ease !important;
@@ -181,7 +182,7 @@
     .das-modal {
       background: #1e293b !important;
       border: 1px solid rgba(255, 255, 255, 0.15) !important;
-      border-radius: 12px !important;
+      border-radius: 5px !important;
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7) !important;
       overflow: hidden;
     }
@@ -245,7 +246,7 @@
     .select2-container--default .select2-selection--single {
       background-color: #0b0f19 !important;
       border: 1px solid rgba(255, 255, 255, 0.18) !important;
-      border-radius: 8px !important;
+      border-radius: 5px !important;
       height: 42px !important;
       display: flex !important;
       align-items: center !important;
@@ -264,7 +265,7 @@
     .select2-dropdown {
       background-color: #1e293b !important;
       border: 1px solid rgba(255, 255, 255, 0.18) !important;
-      border-radius: 8px !important;
+      border-radius: 5px !important;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6) !important;
       z-index: 1060 !important;
     }
@@ -273,7 +274,7 @@
       background-color: #0b0f19 !important;
       color: #ffffff !important;
       border: 1px solid rgba(255, 255, 255, 0.18) !important;
-      border-radius: 6px !important;
+      border-radius: 5px !important;
     }
 
     .select2-results__option {
@@ -307,7 +308,7 @@
       background: rgba(255, 255, 255, 0.05);
       color: rgba(255, 255, 255, 0.7);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
+      border-radius: 5px !important;
       transition: all 0.2s ease;
     }
 
@@ -322,7 +323,7 @@
     .das-swal-popup {
       background: #1e293b !important;
       border: 1px solid rgba(255, 255, 255, 0.12) !important;
-      border-radius: 16px !important;
+      border-radius: 5px !important;
       box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7) !important;
       color: #ffffff !important;
       padding: 1.5rem !important;
@@ -380,7 +381,7 @@
       color: #ffffff !important;
       font-weight: 600 !important;
       padding: 0.65rem 1.5rem !important;
-      border-radius: 8px !important;
+      border-radius: 5px !important;
       border: none !important;
       font-size: 0.875rem !important;
       box-shadow: 0 4px 14px rgba(0, 186, 209, 0.35) !important;
@@ -397,7 +398,7 @@
       color: #ffffff !important;
       font-weight: 600 !important;
       padding: 0.65rem 1.5rem !important;
-      border-radius: 8px !important;
+      border-radius: 5px !important;
       border: none !important;
       font-size: 0.875rem !important;
       box-shadow: 0 4px 14px rgba(234, 84, 85, 0.35) !important;
@@ -414,7 +415,7 @@
       color: rgba(255, 255, 255, 0.8) !important;
       font-weight: 600 !important;
       padding: 0.65rem 1.5rem !important;
-      border-radius: 8px !important;
+      border-radius: 5px !important;
       border: 1px solid rgba(255, 255, 255, 0.12) !important;
       font-size: 0.875rem !important;
       transition: all 0.2s ease !important;
