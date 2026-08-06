@@ -1,6 +1,6 @@
 @extends('layouts/layoutMaster')
 
-@section('title', 'Piket Dashboard')
+@section('title', 'Portal Guru Piket')
 
 @section('page-style')
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -9,7 +9,31 @@
   <link rel="stylesheet" href="{{ asset('css/dashboards/super-admin.css') }}?v=4.3">
   <style>
     .form-control, .form-select, .btn {
-      border-radius: 5px !important;
+      border-radius: 6px !important;
+    }
+    .health-progress-bar {
+      height: 6px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.12);
+      overflow: hidden;
+    }
+    .health-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+      border-radius: 10px;
+      transition: width 0.6s ease;
+    }
+    .late-student-table th {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgba(255, 255, 255, 0.5);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .late-student-table td {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 0.75rem 0.5rem;
+      vertical-align: middle;
     }
   </style>
 @endsection
@@ -36,7 +60,20 @@
             Sistem Administrasi / Guru Piket
           </div>
           <h1 class="das-hero__school text-gradient-gold">Pusat Portal Guru Piket</h1>
-          <p class="das-hero__welcome">Selamat datang, <strong>{{ $user->name }}</strong>. Berikut adalah ringkasan absensi sekolah hari ini.</p>
+          <p class="das-hero__welcome mb-2">Selamat datang, <strong>{{ $user->name }}</strong>. Monitoring presensi harian seluruh sekolah.</p>
+
+          {{-- Health Meter Kehadiran --}}
+          <div class="d-flex align-items-center gap-3 mt-2" style="max-width: 320px;">
+            <div class="flex-grow-1">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <small class="text-white-50" style="font-size: 0.75rem;">Kehadiran Sekolah Hari Ini</small>
+                <span class="fw-bold text-success" style="font-size: 0.8rem;">{{ $tingkatKehadiran }}%</span>
+              </div>
+              <div class="health-progress-bar">
+                <div class="health-progress-fill" style="width: {{ min(100, $tingkatKehadiran) }}%;"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -134,61 +171,142 @@
     </div>
   </div>
 
-  {{-- QUICK ACTIONS & LOG --}}
-  <div class="row">
-    <div class="col-md-6 mb-4">
-      <h6 class="text-white-50 small fw-bold text-uppercase mb-3" style="letter-spacing: 1px;">Aksi Cepat Piket</h6>
-      <div class="row gy-3">
-        <div class="col-md-4 col-6">
-          <div class="card card-grad-primary h-100">
-            <div class="card-body text-center p-3">
+  {{-- AKSI CEPAT PIKET (ACTION HUB - 4 CARDS) --}}
+  <div class="mb-4">
+    <h6 class="text-white-50 small fw-bold text-uppercase mb-3" style="letter-spacing: 1px;">Aksi Utama Guru Piket</h6>
+    <div class="row g-3">
+      {{-- Card 1: Scanner Gerbang --}}
+      <div class="col-6 col-md-3">
+        <div class="card card-grad-primary h-100">
+          <div class="card-body text-center p-3 d-flex flex-column justify-content-between">
+            <div>
               <div class="avatar avatar-md bg-label-primary mx-auto mb-2">
                 <span class="avatar-initial rounded"><i class="ti tabler-qrcode fs-3"></i></span>
               </div>
-              <h5 class="fw-bold text-white mb-1" style="font-size: 0.9rem;">Scan QR Absensi</h5>
-              <p class="small text-white-50 mb-2" style="font-size: 0.72rem;">Mulai scan QR siswa.</p>
-              <a href="{{ route('public.scan-qr.index') }}" target="_blank" class="btn das-btn --primary w-100">Buka Scanner</a>
+              <h5 class="fw-bold text-white mb-1" style="font-size: 0.9rem;">Scan QR Gerbang</h5>
+              <p class="small text-white-50 mb-3" style="font-size: 0.72rem;">Mulai rekam kehadiran gerbang.</p>
             </div>
+            <a href="{{ route('public.scan-qr.index') }}" target="_blank" class="das-btn das-btn--primary w-100">Buka Scanner</a>
           </div>
         </div>
-        <div class="col-md-4 col-6">
-          <div class="card card-grad-info h-100">
-            <div class="card-body text-center p-3">
+      </div>
+
+      {{-- Card 2: Absensi Cepat --}}
+      <div class="col-6 col-md-3">
+        <div class="card card-grad-info h-100">
+          <div class="card-body text-center p-3 d-flex flex-column justify-content-between">
+            <div>
               <div class="avatar avatar-md bg-label-info mx-auto mb-2">
-                <span class="avatar-initial rounded"><i class="ti tabler-clipboard-list fs-3"></i></span>
+                <span class="avatar-initial rounded"><i class="ti tabler-bolt fs-3"></i></span>
               </div>
               <h5 class="fw-bold text-white mb-1" style="font-size: 0.9rem;">Absensi Cepat</h5>
-              <p class="small text-white-50 mb-2" style="font-size: 0.72rem;">Absensi manual per kelas.</p>
-              <a href="{{ route('piket.absensi-cepat') }}" class="btn das-btn --info w-100">Input Absen</a>
+              <p class="small text-white-50 mb-3" style="font-size: 0.72rem;">Input manual per kelas.</p>
             </div>
+            <a href="{{ route('piket.absensi-cepat') }}" class="das-btn das-btn--info w-100">Input Absen</a>
           </div>
         </div>
-        <div class="col-md-4 col-12">
-          <div class="card card-grad-danger h-100">
-            <div class="card-body text-center p-3">
+      </div>
+
+      {{-- Card 3: Rekap Pelanggaran --}}
+      <div class="col-6 col-md-3">
+        <div class="card card-grad-danger h-100">
+          <div class="card-body text-center p-3 d-flex flex-column justify-content-between">
+            <div>
               <div class="avatar avatar-md bg-label-danger mx-auto mb-2">
                 <span class="avatar-initial rounded"><i class="ti tabler-alert-triangle fs-3"></i></span>
               </div>
               <h5 class="fw-bold text-white mb-1" style="font-size: 0.9rem;">Rekap Pelanggaran</h5>
-              <p class="small text-white-50 mb-2" style="font-size: 0.72rem;">Laporan harian semua kelas.</p>
-              <a href="{{ route('piket.rekap-pelanggaran') }}" class="btn das-btn --danger w-100">Cek Rekap</a>
+              <p class="small text-white-50 mb-3" style="font-size: 0.72rem;">Laporan harian semua kelas.</p>
             </div>
+            <a href="{{ route('piket.rekap-pelanggaran') }}" class="das-btn das-btn--danger w-100">Cek Pelanggaran</a>
+          </div>
+        </div>
+      </div>
+
+      {{-- Card 4: Rekap Absensi Siswa --}}
+      <div class="col-6 col-md-3">
+        <div class="card card-grad-warning h-100">
+          <div class="card-body text-center p-3 d-flex flex-column justify-content-between">
+            <div>
+              <div class="avatar avatar-md bg-label-warning mx-auto mb-2">
+                <span class="avatar-initial rounded"><i class="ti tabler-report-analytics fs-3"></i></span>
+              </div>
+              <h5 class="fw-bold text-white mb-1" style="font-size: 0.9rem;">Rekap Absensi</h5>
+              <p class="small text-white-50 mb-3" style="font-size: 0.72rem;">Rekapitulasi presensi harian.</p>
+            </div>
+            <a href="{{ route('piket.laporan.index') }}" class="das-btn das-btn--warning w-100">Buka Rekap</a>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="col-md-6 mb-4">
-      <h6 class="text-white-50 small fw-bold text-uppercase mb-3" style="letter-spacing: 1px;">Aktivitas Terakhir</h6>
+  {{-- DUAL COLUMN REAL-TIME WIDGETS --}}
+  <div class="row">
+    {{-- Widget 1: Tabel Siswa Terlambat Hari Ini --}}
+    <div class="col-lg-7 mb-4">
+      <div class="das-panel h-100">
+        <div class="das-panel__head d-flex justify-content-between align-items-center">
+          <div class="das-panel__title">
+            <i class="ti tabler-clock-exclamation text-warning fs-4 me-1"></i> Siswa Terlambat Hari Ini
+          </div>
+          <span class="badge bg-label-warning px-2 py-1" style="font-size: 0.75rem;">{{ count($siswaTerlambatHariIni) }} Terdaftar</span>
+        </div>
+        <div class="das-panel__body p-0">
+          @if($siswaTerlambatHariIni->isEmpty())
+            <div class="text-center py-5 text-white-50">
+              <i class="ti tabler-circle-check fs-1 text-success mb-2 d-block opacity-75"></i>
+              <span class="fw-medium">Tidak ada siswa yang terlambat hari ini!</span>
+            </div>
+          @else
+            <div class="table-responsive">
+              <table class="table table-borderless late-student-table mb-0 align-middle">
+                <thead>
+                  <tr>
+                    <th class="ps-4">Siswa</th>
+                    <th>Kelas</th>
+                    <th>Jam Kedatangan</th>
+                    <th class="pe-4 text-end">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach($siswaTerlambatHariIni as $absen)
+                    <tr>
+                      <td class="ps-4 fw-semibold text-white">
+                        {{ $absen->siswa->nama_lengkap ?? '-' }}
+                      </td>
+                      <td>
+                        <span class="badge bg-label-secondary" style="font-size: 0.7rem;">
+                          {{ $absen->siswa->kelas->nama ?? '-' }}
+                        </span>
+                      </td>
+                      <td class="font-monospace text-warning fw-medium">
+                        {{ $absen->jam_masuk ? \Carbon\Carbon::parse($absen->jam_masuk)->format('H:i') : '-' }} WIB
+                      </td>
+                      <td class="pe-4 text-end">
+                        <span class="badge bg-label-warning">Terlambat</span>
+                      </td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+          @endif
+        </div>
+      </div>
+    </div>
+
+    {{-- Widget 2: Log Aktivitas Terbaru --}}
+    <div class="col-lg-5 mb-4">
       <div class="das-panel h-100">
         <div class="das-panel__head">
           <div class="das-panel__title">
-            <i class="ti tabler-activity text-info fs-4"></i> Log Aktivitas Terbaru
+            <i class="ti tabler-activity text-info fs-4 me-1"></i> Log Aktivitas Scan Terbaru
           </div>
         </div>
         <div class="das-panel__body">
           @if($recentLogs->isEmpty())
-            <div class="text-center py-4 text-white-50">
+            <div class="text-center py-5 text-white-50">
               <i class="ti tabler-info-circle fs-2 mb-2 d-block text-muted"></i>
               Belum ada aktivitas scan hari ini.
             </div>
@@ -199,8 +317,8 @@
                   <span class="timeline-point timeline-point-primary"></span>
                   <div class="timeline-event">
                     <div class="timeline-header mb-1">
-                      <h6 class="mb-0 fw-bold text-white">{{ $log->description }}</h6>
-                      <small class="text-white-50">{{ $log->created_at->diffForHumans() }}</small>
+                      <h6 class="mb-0 fw-bold text-white" style="font-size: 0.85rem;">{{ $log->description }}</h6>
+                      <small class="text-white-50" style="font-size: 0.72rem;">{{ $log->created_at->diffForHumans() }}</small>
                     </div>
                   </div>
                 </li>

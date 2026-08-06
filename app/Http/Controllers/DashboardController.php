@@ -1432,10 +1432,24 @@ return response()->json([
         $alphaCount = $statusHariIni['alpha'] ?? 0;
         $terlambatCount = $statusHariIni['terlambat'] ?? 0;
         
+        $totalTercatatHariIni = $hadirCount + $terlambatCount + $sakitCount + $izinCount + $alphaCount;
+        $belumAbsenCount = max(0, $totalSiswa - $totalTercatatHariIni);
+        
+        $totalHadir = $hadirCount + $terlambatCount;
+        $tingkatKehadiran = $totalSiswa > 0 ? round(($totalHadir / $totalSiswa) * 100, 1) : 0;
+
+        // Data siswa terlambat hari ini
+        $siswaTerlambatHariIni = AbsensiSiswa::with(['siswa.kelas'])
+            ->whereDate('tanggal', $today)
+            ->where('status', 'terlambat')
+            ->orderBy('jam_masuk', 'desc')
+            ->limit(10)
+            ->get();
+
         // Log aktivitas piket terakhir
         $recentLogs = ActivityLog::where('action', 'scan')
             ->orderBy('id', 'desc')
-            ->limit(5)
+            ->limit(7)
             ->get();
 
         return compact(
@@ -1447,6 +1461,9 @@ return response()->json([
             'izinCount',
             'alphaCount',
             'terlambatCount',
+            'belumAbsenCount',
+            'tingkatKehadiran',
+            'siswaTerlambatHariIni',
             'recentLogs'
         );
     }
