@@ -21,36 +21,111 @@
       color: #fff !important;
     }
 
+    /* Custom Filter Controls for High Contrast & Modern Dark Glassmorphism */
+    .piket-filter-card {
+      background: #111827 !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-radius: 10px !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+    }
+
+    .piket-input-group {
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
+      border-radius: 8px !important;
+      overflow: hidden;
+      background: #0b0f19 !important;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .piket-input-group:focus-within {
+      border-color: #00bad1 !important;
+      box-shadow: 0 0 14px rgba(0, 186, 209, 0.35) !important;
+    }
+
+    .piket-input-group .input-group-text {
+      background: #0b0f19 !important;
+      border: none !important;
+      color: #00bad1 !important;
+      padding-left: 1rem;
+      padding-right: 0.5rem;
+    }
+
+    .piket-input-control {
+      background: #0b0f19 !important;
+      color: #ffffff !important;
+      border: none !important;
+      font-size: 0.9rem !important;
+      padding: 0.65rem 1rem !important;
+      box-shadow: none !important;
+    }
+
+    .piket-input-control::placeholder {
+      color: rgba(255, 255, 255, 0.55) !important;
+    }
+
+    .piket-select-control {
+      background-color: #0b0f19 !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
+      border-radius: 8px !important;
+      font-size: 0.9rem !important;
+      padding: 0.65rem 1rem !important;
+      box-shadow: none !important;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .piket-select-control:focus {
+      border-color: #00bad1 !important;
+      box-shadow: 0 0 14px rgba(0, 186, 209, 0.35) !important;
+      background-color: #0b0f19 !important;
+      color: #ffffff !important;
+    }
+
+    .piket-select-control option {
+      background-color: #1e293b !important;
+      color: #ffffff !important;
+    }
+
+    /* Filter Action Buttons */
     .das-btn.--info {
-      background: linear-gradient(135deg, #00bad1, #0284c7);
-      color: #fff;
-      border: none;
-      box-shadow: 0 4px 12px rgba(0, 186, 209, 0.25);
+      background: linear-gradient(135deg, #00bad1, #0284c7) !important;
+      color: #ffffff !important;
+      border: none !important;
+      font-weight: 600 !important;
+      padding: 0.65rem 1.25rem !important;
+      border-radius: 8px !important;
+      box-shadow: 0 4px 14px rgba(0, 186, 209, 0.35) !important;
+      transition: all 0.2s ease !important;
     }
 
     .das-btn.--info:hover {
-      background: linear-gradient(135deg, #00a5ba, #0270a9);
-      color: #fff;
-      box-shadow: 0 6px 16px rgba(0, 186, 209, 0.35);
+      background: linear-gradient(135deg, #00a5ba, #0270a9) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(0, 186, 209, 0.45) !important;
+      color: #ffffff !important;
     }
 
     .das-btn.--secondary {
-      background: rgba(255, 255, 255, 0.08);
-      color: #cbd5e1;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: #e2e8f0 !important;
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
+      border-radius: 8px !important;
+      padding: 0.65rem 1rem !important;
+      transition: all 0.2s ease !important;
     }
 
     .das-btn.--secondary:hover {
-      background: rgba(255, 255, 255, 0.14);
-      color: #fff;
+      background: rgba(255, 255, 255, 0.16) !important;
+      color: #ffffff !important;
+      border-color: rgba(255, 255, 255, 0.3) !important;
     }
 
     /* Modal Redesign for Guru Piket */
     .das-modal {
       background: #1e293b !important;
-      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
       border-radius: 12px !important;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7) !important;
       overflow: hidden;
     }
 
@@ -84,14 +159,14 @@
       gap: 0.75rem;
       padding: 1rem 1.5rem;
       border-top: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(0, 0, 0, 0.15);
+      background: rgba(0, 0, 0, 0.2);
     }
 
     .modal-desc {
       font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.65);
+      color: rgba(255, 255, 255, 0.75);
       margin-bottom: 1.25rem;
-      line-height: 1.4;
+      line-height: 1.5;
     }
 
     .form-label-custom {
@@ -99,7 +174,7 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: rgba(255, 255, 255, 0.75);
+      color: rgba(255, 255, 255, 0.85);
       margin-bottom: 0.4rem;
       display: block;
     }
@@ -111,8 +186,8 @@
 
     /* Select2 Dark Theme Customization */
     .select2-container--default .select2-selection--single {
-      background-color: #0f172a !important;
-      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      background-color: #0b0f19 !important;
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
       border-radius: 8px !important;
       height: 42px !important;
       display: flex !important;
@@ -120,7 +195,7 @@
     }
 
     .select2-container--default .select2-selection--single .select2-selection__rendered {
-      color: #f8fafc !important;
+      color: #ffffff !important;
       padding-left: 12px !important;
       font-size: 0.9rem !important;
     }
@@ -131,16 +206,16 @@
 
     .select2-dropdown {
       background-color: #1e293b !important;
-      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
       border-radius: 8px !important;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6) !important;
       z-index: 1060 !important;
     }
 
     .select2-search__field {
-      background-color: #0f172a !important;
+      background-color: #0b0f19 !important;
       color: #ffffff !important;
-      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
       border-radius: 6px !important;
     }
 
@@ -183,7 +258,7 @@
       background: linear-gradient(135deg, #00bad1, #0284c7) !important;
       color: #ffffff !important;
       border-color: #00bad1 !important;
-      box-shadow: 0 4px 12px rgba(0, 186, 209, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 186, 209, 0.35);
     }
 
     /* SweetAlert2 Glassmorphism Dark Styling */
@@ -318,7 +393,7 @@
             Data Civitas / Guru Piket
           </div>
           <h4 class="das-hero__title text-gradient-gold">Data Guru Piket</h4>
-          <p class="das-hero__subtitle">Kelola penetapan dan penugasan Guru Piket harian sekolah.</p>
+          <p class="das-hero__subtitle" style="color: rgba(255,255,255,0.85) !important; text-shadow: 0 1px 4px rgba(0,0,0,0.5);">Kelola penetapan dan penugasan Guru Piket harian sekolah.</p>
         </div>
       </div>
 
@@ -331,34 +406,34 @@
   </div>
 
   {{-- FILTER & SEARCH PANEL --}}
-  <div class="das-panel mb-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-    <div class="das-panel__head">
-      <h5 class="das-panel__title mb-0 fw-bold">
-        <i class="ti tabler-filter text-info me-2"></i>Filter & Pencarian Guru Piket
+  <div class="das-panel piket-filter-card mb-4">
+    <div class="das-panel__head border-bottom border-white border-opacity-10 py-3 px-4">
+      <h5 class="das-panel__title mb-0 fw-bold d-flex align-items-center gap-2 text-white">
+        <i class="ti tabler-filter text-info fs-5"></i> Filter & Pencarian Guru Piket
       </h5>
     </div>
-    <div class="das-panel__body py-3">
-      <form id="filterForm" action="{{ route('admin.guru-piket.index') }}" method="GET" class="row g-3">
-        <div class="col-md-5">
-          <div class="input-group">
-            <span class="input-group-text bg-dark border-secondary text-white-50"><i class="ti tabler-search"></i></span>
-            <input type="text" name="search" id="filterSearch" value="{{ request('search') }}" class="form-control bg-dark text-white border-secondary" placeholder="Cari Nama, NIP, atau Email Guru Piket...">
+    <div class="das-panel__body p-4">
+      <form id="filterForm" action="{{ route('admin.guru-piket.index') }}" method="GET" class="row g-3 align-items-center">
+        <div class="col-12 col-md-5">
+          <div class="input-group piket-input-group">
+            <span class="input-group-text"><i class="ti tabler-search fs-5"></i></span>
+            <input type="text" name="search" id="filterSearch" value="{{ request('search') }}" class="form-control piket-input-control" placeholder="Cari Nama, NIP, atau Email Guru Piket...">
           </div>
         </div>
-        <div class="col-md-3">
-          <select name="status" id="filterStatus" class="form-select bg-dark text-white border-secondary">
-            <option value="">-- Semua Status --</option>
+        <div class="col-12 col-md-3">
+          <select name="status" id="filterStatus" class="form-select piket-select-control">
+            <option value="">— Semua Status —</option>
             <option value="aktif" {{ request('status') === 'aktif' ? 'selected' : '' }}>Aktif</option>
             <option value="nonaktif" {{ request('status') === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
             <option value="belum lengkap" {{ request('status') === 'belum lengkap' ? 'selected' : '' }}>Belum Memiliki Akun</option>
           </select>
         </div>
-        <div class="col-md-4 d-flex gap-2">
-          <button type="submit" class="btn das-btn --info flex-grow-1">
-            <i class="ti tabler-search me-1"></i> Filter
+        <div class="col-12 col-md-4 d-flex gap-2">
+          <button type="submit" class="btn das-btn --info flex-grow-1 d-flex align-items-center justify-content-center gap-1">
+            <i class="ti tabler-search fs-5"></i> <span>Filter</span>
           </button>
-          <a href="{{ route('admin.guru-piket.index') }}" class="btn das-btn --secondary" title="Reset Filter">
-            <i class="ti tabler-refresh"></i>
+          <a href="{{ route('admin.guru-piket.index') }}" class="btn das-btn --secondary d-flex align-items-center justify-content-center" title="Reset Filter">
+            <i class="ti tabler-refresh fs-5"></i>
           </a>
         </div>
       </form>
@@ -453,28 +528,28 @@
                 <div class="row g-3">
                   <div class="col-12 col-md-6">
                     <label class="form-label-custom required">Nama Lengkap & Gelar</label>
-                    <input type="text" name="nama" class="form-control bg-dark text-white border-secondary" placeholder="contoh: Bpk. Ahmad Fauzi, S.Pd." required>
+                    <input type="text" name="nama" class="form-control piket-select-control" placeholder="contoh: Bpk. Ahmad Fauzi, S.Pd." required>
                   </div>
                   <div class="col-12 col-md-6">
                     <label class="form-label-custom">NIP / Username</label>
-                    <input type="text" name="nip" class="form-control bg-dark text-white border-secondary" placeholder="contoh: 19850101... (Opsional)">
+                    <input type="text" name="nip" class="form-control piket-select-control" placeholder="contoh: 19850101... (Opsional)">
                   </div>
                   <div class="col-12 col-md-6">
                     <label class="form-label-custom required">Email Resmi / Akun</label>
-                    <input type="email" name="email" class="form-control bg-dark text-white border-secondary" placeholder="contoh: ahmad@sekolah.sch.id" required>
+                    <input type="email" name="email" class="form-control piket-select-control" placeholder="contoh: ahmad@sekolah.sch.id" required>
                   </div>
                   <div class="col-12 col-md-6">
                     <label class="form-label-custom required">Password Akun Piket</label>
-                    <div class="input-group">
-                      <input type="password" id="manual_password" name="password" class="form-control bg-dark text-white border-secondary" placeholder="Minimal 6 karakter..." required>
-                      <button class="btn btn-outline-secondary" type="button" id="btnToggleManualPass">
-                        <i class="ti tabler-eye text-white-50" id="iconManualPass"></i>
+                    <div class="input-group piket-input-group">
+                      <input type="password" id="manual_password" name="password" class="form-control piket-input-control" placeholder="Minimal 6 karakter..." required>
+                      <button class="btn btn-outline-secondary border-0 text-white-50" type="button" id="btnToggleManualPass">
+                        <i class="ti tabler-eye" id="iconManualPass"></i>
                       </button>
                     </div>
                   </div>
                   <div class="col-12">
                     <label class="form-label-custom">Nomor HP / WhatsApp</label>
-                    <input type="text" name="no_hp" class="form-control bg-dark text-white border-secondary" placeholder="contoh: 081234567890 (Opsional)">
+                    <input type="text" name="no_hp" class="form-control piket-select-control" placeholder="contoh: 081234567890 (Opsional)">
                   </div>
                 </div>
               </div>
