@@ -54,9 +54,15 @@
       <a href="{{ route('admin.siswa.generate-qr', $siswa->id) }}" class="btn btn-info btn-sm d-flex align-items-center gap-1 shadow-sm">
         <i class="ti tabler-qrcode"></i> Cetak Kartu
       </a>
-      <a href="{{ route('admin.siswa.edit', $siswa->id) }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1 shadow-sm">
-        <i class="ti tabler-edit"></i> Edit Profil
-      </a>
+      @if(auth()->user()?->role === 'siswa')
+        <a href="{{ route('siswa.dashboard') }}" class="btn btn-warning btn-sm d-flex align-items-center gap-1 shadow-sm" title="Edit tanggal lahir & pas foto di Dashboard Siswa">
+          <i class="ti tabler-edit"></i> Update Biodata
+        </a>
+      @else
+        <a href="{{ route('admin.siswa.edit', $siswa->id) }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1 shadow-sm">
+          <i class="ti tabler-edit"></i> Edit Profil
+        </a>
+      @endif
     </div>
   </div>
 </div>{{-- /das-hero --}}
