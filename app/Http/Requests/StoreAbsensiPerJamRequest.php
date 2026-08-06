@@ -22,7 +22,9 @@ class StoreAbsensiPerJamRequest extends FormRequest
     {
         return [
             'jadwal_pelajaran_id' => ['required', 'exists:jadwal_pelajaran,id'],
-            'tanggal'             => ['required', 'date', 'after_or_equal:today'],
+            'tanggal'             => ['required', 'date'],
+            'materi'              => ['nullable', 'string', 'max:5000'],
+            'catatan'             => ['nullable', 'string', 'max:5000'],
             'rows'                => ['required', 'array', 'min:1'],
             'rows.*.siswa_id'     => ['required', 'exists:siswa,id'],
             'rows.*.status'       => ['required', Rule::in(['hadir', 'terlambat', 'sakit', 'izin', 'alpha', 'dispen', 'bolos'])],

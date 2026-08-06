@@ -949,12 +949,15 @@ return response()->json([
             $dayNameIndo = match (now()->dayOfWeekIso) {
                 1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu',
                 4 => 'Kamis', 5 => 'Jumat', 6 => 'Sabtu',
-                default => 'Minggu',
+                default => 'Ahad',
             };
 
-            $selfJadwalHariIni = \App\Models\JadwalPelajaran::with(['kelas'])
+            $selfJadwalHariIni = \App\Models\JadwalPelajaran::with([
+                    'kelas',
+                    'sesiAbsensi' => fn($q) => $q->whereDate('tanggal', $today)
+                ])
                 ->where('guru_id', $guruSelf->id)
-                ->where('hari', $dayNameIndo)
+                ->where('hari', str_replace('Minggu', 'Ahad', $dayNameIndo))
                 ->orderBy('jam_mulai', 'asc')
                 ->get();
         }

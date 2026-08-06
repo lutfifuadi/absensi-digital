@@ -611,6 +611,34 @@
         </div>
       </div>
 
+      {{-- Panel Jurnal Mengajar Guru (Materi & Catatan KBM) --}}
+      <div class="p-3 border-bottom border-white border-opacity-10" style="background: rgba(255,255,255,0.03);">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label text-white fw-bold d-flex align-items-center gap-1 mb-1" style="font-size: 0.85rem;">
+              <i class="ti tabler-book text-info fs-5"></i> Materi Pembelajaran Hari Ini
+            </label>
+            <input type="text" 
+                   name="materi" 
+                   class="form-control bg-dark text-white border-white-10" 
+                   placeholder="Contoh: Bab 3 Persamaan Kuadrat — Metode Faktorisasi"
+                   value="{{ old('materi', $sesiData->materi ?? '') }}"
+                   @if (!$canEdit) disabled @endif>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-white fw-bold d-flex align-items-center gap-1 mb-1" style="font-size: 0.85rem;">
+              <i class="ti tabler-notes text-warning fs-5"></i> Catatan KBM &amp; Evaluasi Kelas
+            </label>
+            <input type="text" 
+                   name="catatan" 
+                   class="form-control bg-dark text-white border-white-10" 
+                   placeholder="Contoh: Kelas kondusif, PR hal. 45 dikumpulkan minggu depan"
+                   value="{{ old('catatan', $sesiData->catatan ?? '') }}"
+                   @if (!$canEdit) disabled @endif>
+          </div>
+        </div>
+      </div>
+
       {{-- Tabel roster dengan PerfectScrollbar --}}
       <div id="rosterTableContainer" class="table-responsive position-relative" style="max-height:65vh;">
         <table class="das-table roster-table align-middle mb-0">

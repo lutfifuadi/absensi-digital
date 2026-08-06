@@ -196,6 +196,9 @@
               </thead>
               <tbody>
                 @foreach($selfJadwalHariIni as $j)
+                  @php
+                    $sesiHariIni = $j->sesiAbsensi ? $j->sesiAbsensi->first() : null;
+                  @endphp
                   <tr class="border-bottom border-secondary border-opacity-10">
                     <td class="ps-4">
                       <span class="badge bg-secondary bg-opacity-20 text-warning border border-warning border-opacity-30">
@@ -206,11 +209,20 @@
                       <strong class="text-white">{{ $j->kelas ? $j->kelas->nama : '-' }}</strong>
                     </td>
                     <td>
-                      <span class="text-white-50">{{ $j->mata_pelajaran ?? '-' }}</span>
+                      <div class="fw-semibold text-white">{{ $j->mata_pelajaran ?? '-' }}</div>
+                      @if($sesiHariIni && $sesiHariIni->materi)
+                        <small class="text-success d-block fw-semibold" style="font-size:0.75rem;">
+                          <i class="ti tabler-book me-1"></i> {{ \Illuminate\Support\Str::limit($sesiHariIni->materi, 35) }}
+                        </small>
+                      @else
+                        <small class="text-white-50 d-block" style="font-size:0.75rem;">Belum diisi materi</small>
+                      @endif
                     </td>
                     <td class="text-end pe-4">
-                      <a href="{{ route('guru.absensi-per-jam') }}" class="btn btn-xs btn-primary d-inline-flex align-items-center gap-1 shadow-xs">
-                        <i class="ti tabler-edit fs-tiny"></i> Absen Kelas
+                      <a href="{{ route('admin.absensi-per-jam.show', ['jadwal' => $j->id, 'tanggal' => now()->toDateString()]) }}" 
+                         class="btn btn-xs {{ $sesiHariIni && $sesiHariIni->materi ? 'btn-label-success' : 'btn-primary' }} d-inline-flex align-items-center gap-1 shadow-xs">
+                        <i class="ti {{ $sesiHariIni && $sesiHariIni->materi ? 'tabler-check' : 'tabler-edit' }} fs-tiny"></i> 
+                        {{ $sesiHariIni && $sesiHariIni->materi ? 'Edit Jurnal' : 'Isi Jurnal & Presensi' }}
                       </a>
                     </td>
                   </tr>

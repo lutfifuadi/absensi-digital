@@ -99,7 +99,9 @@ class AbsensiPerJamController extends Controller
                 $tanggal,
                 $request->input('rows', []),
                 auth()->id(),
-                $request->input('metode', 'manual')
+                $request->input('metode', 'manual'),
+                $request->input('materi'),
+                $request->input('catatan')
             );
 
             $msg = "Absensi berhasil disimpan: {$result['berhasil']} siswa.";

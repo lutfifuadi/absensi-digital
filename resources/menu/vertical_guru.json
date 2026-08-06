@@ -17,8 +17,8 @@
       "url": "/guru/absensi/scan"
     },
     {
-      "name": "Absensi Kelas & Mapel",
-      "icon": "menu-icon ti tabler-clipboard-check",
+      "name": "Jurnal & Absensi Kelas",
+      "icon": "menu-icon ti tabler-notebook",
       "slug": "guru.absensi-per-jam",
       "url": "/guru/absensi-per-jam"
     },

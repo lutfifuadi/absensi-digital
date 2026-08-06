@@ -158,7 +158,7 @@ class AbsensiPerJamService
      *
      * @throws \Exception Bila validasi kritis gagal (libur, tanggal masa depan, window, tanpa baris valid).
      */
-    public function simpanAbsensi(int $jadwalId, string $tanggal, array $rows, int $dicatatOleh, string $metode = 'manual'): array
+    public function simpanAbsensi(int $jadwalId, string $tanggal, array $rows, int $dicatatOleh, string $metode = 'manual', ?string $materi = null, ?string $catatan = null): array
     {
         $jadwal = JadwalPelajaran::with('kelas')->findOrFail($jadwalId);
         $user = User::find($dicatatOleh);
@@ -234,20 +234,29 @@ class AbsensiPerJamService
                 ->where('tanggal', $tanggal)
                 ->get();
 
+            $sessionPayload = [
+                'kelas_id'     => $jadwal->kelas_id,
+                'guru_id'      => $jadwal->guru_id,
+                'dicatat_oleh' => $dicatatOleh,
+                'jumlah_siswa' => $allRecords->count(),
+                'jumlah_hadir' => $allRecords->where('status', 'hadir')->count(),
+                'jumlah_alpha' => $allRecords->where('status', 'alpha')->count(),
+                'updated_at'   => now(),
+            ];
+
+            if ($materi !== null) {
+                $sessionPayload['materi'] = $materi;
+            }
+            if ($catatan !== null) {
+                $sessionPayload['catatan'] = $catatan;
+            }
+
             AbsensiPerJamSesi::updateOrCreate(
                 [
                     'jadwal_pelajaran_id' => $jadwal->id,
                     'tanggal'             => $tanggal,
                 ],
-                [
-                    'kelas_id'     => $jadwal->kelas_id,
-                    'guru_id'      => $jadwal->guru_id,
-                    'dicatat_oleh' => $dicatatOleh,
-                    'jumlah_siswa' => $allRecords->count(),
-                    'jumlah_hadir' => $allRecords->where('status', 'hadir')->count(),
-                    'jumlah_alpha' => $allRecords->where('status', 'alpha')->count(),
-                    'updated_at'   => now(),
-                ]
+                $sessionPayload
             );
         });
 

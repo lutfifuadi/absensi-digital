@@ -28,6 +28,7 @@ class AbsensiPerJamSesi extends Model
         'jumlah_siswa',
         'jumlah_hadir',
         'jumlah_alpha',
+        'materi',
         'catatan',
     ];
 
