@@ -11,7 +11,7 @@
       "icon": "menu-icon ti tabler-door"
     },
     {
-      "name": "Absensi Harian Kelas",
+      "name": "Jurnal Presensi Kelas",
       "icon": "menu-icon ti tabler-calendar-stats",
       "slug": "wali-kelas.absensi-siswa.index",
       "url": "/wali-kelas/absensi-siswa"
@@ -39,22 +39,16 @@
       "url": "/wali-kelas/rekap-bulanan"
     },
     {
-      "name": "Laporan Rekap Harian",
-      "icon": "menu-icon ti tabler-presentation",
-      "slug": "wali-kelas.rekap-harian",
-      "url": "/wali-kelas/rekap-harian"
+      "name": "Rekap Pelanggaran Kelas",
+      "icon": "menu-icon ti tabler-alert-triangle",
+      "slug": "wali-kelas.rekap-pelanggaran",
+      "url": "/wali-kelas/rekap-pelanggaran"
     },
     {
       "name": "Grafik & Analitik Siswa",
       "icon": "menu-icon ti tabler-chart-dots",
       "slug": "admin.analitik-siswa.index",
       "url": "/admin/analitik-siswa"
-    },
-    {
-      "name": "Rekap Jam Pelajaran",
-      "icon": "menu-icon ti tabler-clock-play",
-      "slug": "admin.absensi-per-jam.rekap",
-      "url": "/admin/absensi-per-jam/rekap"
     }
   ]
 }

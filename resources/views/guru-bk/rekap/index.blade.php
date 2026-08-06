@@ -34,10 +34,14 @@
         <div class="das-hero__meta">
           <div class="das-hero__badge">
             <span class="pulse-dot"></span>
-            Bimbingan &amp; Konseling (BK)
+            {{ ($isWaliKelasView ?? false) ? 'Portal Wali Kelas' : 'Bimbingan & Konseling (BK)' }}
           </div>
-          <h4 class="das-hero__title text-gradient-gold">Rekapitulasi Pelanggaran Siswa</h4>
-          <p class="das-hero__subtitle">Analisis dan pelaporan pelanggaran siswa untuk evaluasi Bimbingan Konseling.</p>
+          <h4 class="das-hero__title text-gradient-gold">
+            {{ ($isWaliKelasView ?? false) ? 'Rekapitulasi Pelanggaran Kelas ' . ($assignedClass->nama ?? '') : 'Rekapitulasi Pelanggaran Siswa' }}
+          </h4>
+          <p class="das-hero__subtitle">
+            {{ ($isWaliKelasView ?? false) ? 'Pemantauan rekapitulasi poin dan catatan pelanggaran siswa kelas ' . ($assignedClass->nama ?? '') : 'Analisis dan pelaporan pelanggaran siswa untuk evaluasi Bimbingan Konseling.' }}
+          </p>
         </div>
       </div>
 
@@ -57,7 +61,7 @@
   {{-- FILTER PANEL --}}
   <div class="das-panel mb-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
     <div class="das-panel__body p-4">
-      <form method="GET" action="{{ route('bk.rekap.index') }}" class="row g-3 align-items-end">
+      <form method="GET" action="{{ ($isWaliKelasView ?? false) ? route('wali-kelas.rekap-pelanggaran') : route('bk.rekap.index') }}" class="row g-3 align-items-end">
         <div class="col-md-3">
           <label class="form-label fw-semibold small text-body-secondary" for="bulan">Bulan</label>
           <select id="bulan" name="bulan" class="form-select">
@@ -78,20 +82,25 @@
         </div>
         <div class="col-md-3">
           <label class="form-label fw-semibold small text-body-secondary" for="kelas_id">Filter Kelas</label>
-          <select id="kelas_id" name="kelas_id" class="form-select">
-            <option value="">-- Semua Kelas --</option>
+          <select id="kelas_id" name="kelas_id" class="form-select" {{ ($isWaliKelasView ?? false) ? 'disabled' : '' }}>
+            @if(!($isWaliKelasView ?? false))
+              <option value="">-- Semua Kelas --</option>
+            @endif
             @foreach($kelases as $kelas)
               <option value="{{ $kelas->id }}" {{ ($filters['kelas_id'] ?? '') == $kelas->id ? 'selected' : '' }}>
                 {{ $kelas->nama ?? $kelas->nama_kelas }}
               </option>
             @endforeach
           </select>
+          @if($isWaliKelasView ?? false)
+            <input type="hidden" name="kelas_id" value="{{ $assignedClass->id ?? '' }}">
+          @endif
         </div>
         <div class="col-md-3 d-flex gap-2">
           <button type="submit" class="das-btn das-btn--primary flex-grow-1">
             <i class="ti tabler-filter me-1"></i> Filter
           </button>
-          <a href="{{ route('bk.rekap.index') }}" class="das-btn das-btn--secondary">
+          <a href="{{ ($isWaliKelasView ?? false) ? route('wali-kelas.rekap-pelanggaran') : route('bk.rekap.index') }}" class="das-btn das-btn--secondary">
             <i class="ti tabler-refresh"></i>
           </a>
         </div>

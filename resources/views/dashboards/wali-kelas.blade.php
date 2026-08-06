@@ -152,65 +152,86 @@
          QUICK MENU — Tugas & Piket ala Super Admin
     ═══════════════════════════════════════════════════════ --}}
     <div class="row g-6">
-      {{-- Card 1: Scanner Piket --}}
-      <div class="col-md-4">
-        <div class="card card-grad-primary h-100">
-          <div class="card-body d-flex flex-column p-4">
-            <div class="d-flex align-items-center gap-3 mb-3">
-              <div class="avatar">
-                <span class="avatar-initial rounded bg-label-primary">
-                  <i class="ti tabler-qrcode fs-4"></i>
-                </span>
-              </div>
-              <div>
-                <h6 class="mb-0">Scanner Piket</h6>
-                <small class="text-body-secondary">Rekam kehadiran siswa</small>
-              </div>
-            </div>
-            <p class="text-body-secondary small flex-grow-1">Buka scanner untuk merekam kehadiran siswa di gerbang.</p>
-            <a href="{{ route('public.scan-qr.index') }}" target="_blank" class="btn btn-primary">Buka Scanner</a>
-          </div>
-        </div>
-      </div>
-
-      {{-- Card 2: Kegiatan Khusus --}}
-      <div class="col-md-4">
-        <div class="card card-grad-info h-100">
-          <div class="card-body d-flex flex-column p-4">
-            <div class="d-flex align-items-center gap-3 mb-3">
-              <div class="avatar">
-                <span class="avatar-initial rounded bg-label-info">
-                  <i class="ti tabler-calendar-event fs-4"></i>
-                </span>
-              </div>
-              <div>
-                <h6 class="mb-0">Kegiatan Khusus</h6>
-                <small class="text-body-secondary">Ekskul & ujian</small>
-              </div>
-            </div>
-            <p class="text-body-secondary small flex-grow-1">Scan kehadiran untuk kegiatan ekskul/ujian.</p>
-            <a href="{{ route('admin.absensi-kegiatan.scan') }}" class="btn btn-info">Mulai Scan</a>
-          </div>
-        </div>
-      </div>
-
-      {{-- Card 3: Monitoring Kelas --}}
-      <div class="col-md-4">
+      {{-- Card 1: Jurnal Presensi Kelas --}}
+      <div class="col-md-3">
         <div class="card card-grad-success h-100">
           <div class="card-body d-flex flex-column p-4">
             <div class="d-flex align-items-center gap-3 mb-3">
               <div class="avatar">
                 <span class="avatar-initial rounded bg-label-success">
+                  <i class="ti tabler-calendar-stats fs-4"></i>
+                </span>
+              </div>
+              <div>
+                <h6 class="mb-0">Jurnal Presensi</h6>
+                <small class="text-body-secondary">Absensi harian kelas</small>
+              </div>
+            </div>
+            <p class="text-body-secondary small flex-grow-1">Kelola dan lihat jurnal presensi harian siswa kelas Anda.</p>
+            <a href="{{ route('wali-kelas.absensi-siswa.index') }}" class="btn btn-success">Buka Jurnal</a>
+          </div>
+        </div>
+      </div>
+
+      {{-- Card 2: Belum Absen Hari Ini --}}
+      <div class="col-md-3">
+        <div class="card card-grad-warning h-100">
+          <div class="card-body d-flex flex-column p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="avatar">
+                <span class="avatar-initial rounded bg-label-warning">
+                  <i class="ti tabler-user-x fs-4"></i>
+                </span>
+              </div>
+              <div>
+                <h6 class="mb-0">Belum Absen</h6>
+                <small class="text-body-secondary">Monitoring harian</small>
+              </div>
+            </div>
+            <p class="text-body-secondary small flex-grow-1">Pantau siswa kelas yang belum mencatatkan kehadiran hari ini.</p>
+            <a href="{{ route('wali-kelas.belum-absen') }}" class="btn btn-warning">Cek Belum Absen</a>
+          </div>
+        </div>
+      </div>
+
+      {{-- Card 3: Rekap Pelanggaran Kelas --}}
+      <div class="col-md-3">
+        <div class="card card-grad-danger h-100">
+          <div class="card-body d-flex flex-column p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="avatar">
+                <span class="avatar-initial rounded bg-label-danger">
+                  <i class="ti tabler-alert-triangle fs-4"></i>
+                </span>
+              </div>
+              <div>
+                <h6 class="mb-0">Rekap Pelanggaran</h6>
+                <small class="text-body-secondary">Poin & catatan BK</small>
+              </div>
+            </div>
+            <p class="text-body-secondary small flex-grow-1">Pantau rekapitulasi poin & catatan pelanggaran siswa kelas Anda.</p>
+            <a href="{{ route('wali-kelas.rekap-pelanggaran') }}" class="btn btn-danger">Lihat Pelanggaran</a>
+          </div>
+        </div>
+      </div>
+
+      {{-- Card 4: Data Siswa Kelas --}}
+      <div class="col-md-3">
+        <div class="card card-grad-primary h-100">
+          <div class="card-body d-flex flex-column p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="avatar">
+                <span class="avatar-initial rounded bg-label-primary">
                   <i class="ti tabler-users fs-4"></i>
                 </span>
               </div>
               <div>
-                <h6 class="mb-0">Monitoring Kelas</h6>
-                <small class="text-body-secondary">Data absensi & rekap</small>
+                <h6 class="mb-0">Data Siswa Kelas</h6>
+                <small class="text-body-secondary">Profil & kontak ortu</small>
               </div>
             </div>
-            <p class="text-body-secondary small flex-grow-1">Lihat detail absensi dan rekap siswa kelas Anda.</p>
-            <a href="{{ route('wali-kelas.absensi-siswa.index') }}" class="btn btn-success">Buka Data Kelas</a>
+            <p class="text-body-secondary small flex-grow-1">Lihat daftar profil siswa dan informasi kontak orang tua.</p>
+            <a href="{{ route('wali-kelas.siswa.index') }}" class="btn btn-primary">Lihat Data Siswa</a>
           </div>
         </div>
       </div>

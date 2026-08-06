@@ -344,6 +344,7 @@ Route::middleware([
         Route::get('/absensi-siswa/export', [AbsensiSiswaController::class, 'export'])->name('wali-kelas.absensi-siswa.export');
         Route::get('/rekap-harian', [LaporanController::class, 'rekapHarian'])->name('wali-kelas.rekap-harian');
         Route::get('/rekap-bulanan', [LaporanController::class, 'index'])->name('wali-kelas.rekap-bulanan');
+        Route::get('/rekap-pelanggaran', [\App\Http\Controllers\GuruBk\BKRekapController::class, 'rekapWaliKelas'])->name('wali-kelas.rekap-pelanggaran');
         Route::get('/belum-absen', [LaporanController::class, 'belumAbsen'])->name('wali-kelas.belum-absen');
     });
 

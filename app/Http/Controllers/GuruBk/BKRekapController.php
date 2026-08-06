@@ -180,4 +180,75 @@ class BKRekapController extends Controller
 
         return $pdf->download($filename);
     }
+
+    /**
+     * Display summary/recap of student violations for Wali Kelas.
+     */
+    public function rekapWaliKelas(Request $request)
+    {
+        $user = auth()->user();
+        $guru = $user->guru;
+
+        $assignedClass = null;
+        if ($guru) {
+            $assignedClass = Kelas::where('wali_kelas_id', $guru->id)->first();
+        }
+
+        if (!$assignedClass) {
+            return redirect()->route('wali-kelas.dashboard')->with('error', 'Anda belum terdaftar sebagai wali kelas untuk kelas manapun.');
+        }
+
+        $ta = TahunAkademik::where('is_aktif', true)->first() ?? TahunAkademik::latest()->first();
+        $taId = $ta ? $ta->id : null;
+
+        $filters = [
+            'kelas_id' => $assignedClass->id,
+            'kategori_id' => $request->get('kategori_id'),
+            'bulan' => $request->get('bulan', date('m')),
+            'tahun' => $request->get('tahun', date('Y')),
+        ];
+
+        $query = PelanggaranSiswa::with(['siswa.kelas', 'jenisPelanggaran.kategori'])
+            ->when($taId, function ($q) use ($taId) {
+                $q->where('tahun_akademik_id', $taId);
+            })
+            ->whereHas('siswa', function ($q) use ($assignedClass) {
+                $q->where('kelas_id', $assignedClass->id);
+            });
+
+        if ($filters['kategori_id']) {
+            $query->whereHas('jenisPelanggaran', function ($q) use ($filters) {
+                $q->where('kategori_id', $filters['kategori_id']);
+            });
+        }
+
+        if ($filters['bulan']) {
+            $query->whereMonth('tanggal_kejadian', $filters['bulan']);
+        }
+
+        if ($filters['tahun']) {
+            $query->whereYear('tanggal_kejadian', $filters['tahun']);
+        }
+
+        $pelanggaranList = $query->latest('tanggal_kejadian')->paginate(20)->withQueryString();
+
+        // Rekap khusus kelas wali kelas
+        $rekapKelas = DB::table('siswa as s')
+            ->join('kelas as k', 's.kelas_id', '=', 'k.id')
+            ->join('pelanggaran_siswa as ps', 's.id', '=', 'ps.siswa_id')
+            ->where('k.id', $assignedClass->id)
+            ->when($taId, fn($q) => $q->where('ps.tahun_akademik_id', $taId))
+            ->when($filters['bulan'], fn($q) => $q->whereMonth('ps.tanggal_kejadian', $filters['bulan']))
+            ->when($filters['tahun'], fn($q) => $q->whereYear('ps.tanggal_kejadian', $filters['tahun']))
+            ->select('k.nama as nama_kelas', DB::raw('COUNT(ps.id) as total_pelanggaran'), DB::raw('COALESCE(SUM(ps.poin_saat_itu), 0) as total_poin'))
+            ->groupBy('k.id', 'k.nama')
+            ->orderByDesc('total_poin')
+            ->get();
+
+        $kelases = collect([$assignedClass]);
+        $kategories = KategoriPelanggaran::orderBy('nama')->get();
+        $isWaliKelasView = true;
+
+        return view('guru-bk.rekap.index', compact('pelanggaranList', 'rekapKelas', 'kelases', 'kategories', 'filters', 'ta', 'assignedClass', 'isWaliKelasView'));
+    }
 }
