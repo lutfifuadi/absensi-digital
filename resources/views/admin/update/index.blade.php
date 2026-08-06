@@ -511,7 +511,7 @@
         <div style="height: 1px; background: rgba(255,255,255,0.07); margin: 0 1.5rem;"></div>
 
         {{-- Actions --}}
-        <div class="d-flex align-items-center gap-2.5 p-4 pt-3">
+        <div class="d-flex align-items-center gap-3 p-4 pt-3">
           <button type="button" id="custom-alert-cancel"
             style="display:none; flex:1; height: 42px; padding: 0 1.25rem; align-items: center; justify-content: center; border-radius: 4px !important; font-weight: 600; font-size: 0.875rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; transition: all 0.2s ease;"
             onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.color='#ffffff';"

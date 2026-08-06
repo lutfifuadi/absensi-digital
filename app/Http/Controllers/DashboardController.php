@@ -930,6 +930,53 @@ return response()->json([
         // Agregat Total Guru
         $totalGuru = Guru::count();
 
+        // ── Data Personal Guru YBS (Private Personal Dashboard) ──
+        $guruSelf = $user->guru ?: Guru::where('user_id', $user->id)->first();
+        $selfAbsensiHariIni = null;
+        $selfAbsensiBulanIni = collect();
+        $selfJadwalHariIni = collect();
+
+        if ($guruSelf) {
+            $selfAbsensiHariIni = AbsensiGuru::where('guru_id', $guruSelf->id)
+                ->whereDate('tanggal', $today)
+                ->first();
+
+            $selfAbsensiBulanIni = AbsensiGuru::where('guru_id', $guruSelf->id)
+                ->whereYear('tanggal', $year)
+                ->whereMonth('tanggal', $month)
+                ->get();
+
+            $dayNameIndo = match (now()->dayOfWeekIso) {
+                1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu',
+                4 => 'Kamis', 5 => 'Jumat', 6 => 'Sabtu',
+                default => 'Minggu',
+            };
+
+            $selfJadwalHariIni = \App\Models\JadwalPelajaran::with(['kelas'])
+                ->where('guru_id', $guruSelf->id)
+                ->where('hari', $dayNameIndo)
+                ->orderBy('jam_mulai', 'asc')
+                ->get();
+        }
+
+        $selfCountHadir     = $selfAbsensiBulanIni->where('status', 'hadir')->count();
+        $selfCountTerlambat = $selfAbsensiBulanIni->where('status', 'terlambat')->count();
+        $selfCountIzinSakit = $selfAbsensiBulanIni->whereIn('status', ['izin', 'sakit'])->count();
+        $selfCountAlpha     = $selfAbsensiBulanIni->where('status', 'alpha')->count();
+        $selfTotalPresensi  = $selfAbsensiBulanIni->count();
+        $selfPersentaseKehadiran = $selfTotalPresensi > 0
+            ? round((($selfCountHadir + $selfCountTerlambat) / $selfTotalPresensi) * 100, 1)
+            : 0;
+
+        $selfStats = [
+            'count_hadir'          => $selfCountHadir,
+            'count_terlambat'      => $selfCountTerlambat,
+            'count_izin_sakit'     => $selfCountIzinSakit,
+            'count_alpha'          => $selfCountAlpha,
+            'total_presensi'       => $selfTotalPresensi,
+            'persentase_kehadiran' => $selfPersentaseKehadiran,
+        ];
+
         // ── PRD-007: pisahkan full time & part time ─────────────────────────
         // Bila feature toggle OFF → seluruh guru diperlakukan full time (perilaku lama).
         $pakaiStatusKepegawaian = feature('fitur_status_kepegawaian');
@@ -1193,6 +1240,12 @@ return response()->json([
             'guruBelumMonitorPartTimeToday' => $partTimeBelumMonitorToday,
             'partTimeStatusMap'         => $partTimeStatusMap,
             'rekapBulananGuruPartTime'  => $rekapBulananGuruPartTime,
+            // ── Data Privat Guru YBS ──
+            'guruSelf'                  => $guruSelf,
+            'selfAbsensiHariIni'        => $selfAbsensiHariIni,
+            'selfAbsensiBulanIni'       => $selfAbsensiBulanIni,
+            'selfJadwalHariIni'         => $selfJadwalHariIni,
+            'selfStats'                 => $selfStats,
         ];
     }
 
