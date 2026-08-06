@@ -76,6 +76,7 @@
         "admin.upload-massal.index",
         "admin.guru.index",
         "admin.guru-bk.index",
+        "admin.guru-piket.index",
         "admin.wali-kelas.index",
         "admin.orang-tua.index",
         "admin.staff-tata-usaha.index",
@@ -111,6 +112,12 @@
           "icon": "menu-icon ti tabler-user-heart",
           "slug": "admin.guru-bk.index",
           "url": "/admin/guru-bk"
+        },
+        {
+          "name": "Data Guru Piket",
+          "icon": "menu-icon ti tabler-user-shield",
+          "slug": "admin.guru-piket.index",
+          "url": "/admin/guru-piket"
         },
         {
           "name": "Data Wali Kelas",

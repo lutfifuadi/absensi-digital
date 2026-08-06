@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\GuruBkController;
+use App\Http\Controllers\Admin\GuruPiketController;
 use App\Http\Controllers\GuruBk\BKDashboardController;
 use App\Http\Controllers\GuruBk\BKPelanggaranController;
 use App\Http\Controllers\GuruBk\BKSPController;
@@ -783,6 +784,16 @@ Route::middleware([
             ->middleware('role:super_admin,admin_sekolah,operator');
         Route::delete('guru-bk/{guru}', [GuruBkController::class, 'destroy'])
             ->name('admin.guru-bk.destroy')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+
+        Route::get('guru-piket', [GuruPiketController::class, 'index'])
+            ->name('admin.guru-piket.index')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+        Route::post('guru-piket', [GuruPiketController::class, 'store'])
+            ->name('admin.guru-piket.store')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+        Route::delete('guru-piket/{guru}', [GuruPiketController::class, 'destroy'])
+            ->name('admin.guru-piket.destroy')
             ->middleware('role:super_admin,admin_sekolah,operator');
 
         Route::resource('mapel', MapelController::class)
