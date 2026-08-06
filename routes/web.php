@@ -342,10 +342,6 @@ Route::middleware([
         Route::get('/siswa/{siswa}/profil', [SiswaController::class, 'profil'])->name('wali-kelas.siswa.profil');
         Route::get('/absensi-siswa', [AbsensiSiswaController::class, 'index'])->name('wali-kelas.absensi-siswa.index');
         Route::get('/absensi-siswa/export', [AbsensiSiswaController::class, 'export'])->name('wali-kelas.absensi-siswa.export');
-        Route::get('/absensi-cepat', [AbsensiSiswaController::class, 'bulkForm'])->name('wali-kelas.absensi-cepat');
-        Route::get('/absensi-cepat/search', [AbsensiSiswaController::class, 'searchStudent'])->name('wali-kelas.absensi-cepat.search');
-        Route::post('/absensi-cepat', [AbsensiSiswaController::class, 'bulkStore'])->name('wali-kelas.absensi-cepat.store');
-        Route::post('/absensi-cepat/store-single', [AbsensiSiswaController::class, 'storeSingle'])->name('wali-kelas.absensi-cepat.store-single');
         Route::get('/rekap-harian', [LaporanController::class, 'rekapHarian'])->name('wali-kelas.rekap-harian');
         Route::get('/rekap-bulanan', [LaporanController::class, 'index'])->name('wali-kelas.rekap-bulanan');
         Route::get('/belum-absen', [LaporanController::class, 'belumAbsen'])->name('wali-kelas.belum-absen');

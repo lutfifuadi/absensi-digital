@@ -11,12 +11,6 @@
       "icon": "menu-icon ti tabler-door"
     },
     {
-      "name": "Input Absensi Kelas",
-      "icon": "menu-icon ti tabler-bolt",
-      "slug": "wali-kelas.absensi-cepat",
-      "url": "/wali-kelas/absensi-cepat"
-    },
-    {
       "name": "Absensi Harian Kelas",
       "icon": "menu-icon ti tabler-calendar-stats",
       "slug": "wali-kelas.absensi-siswa.index",

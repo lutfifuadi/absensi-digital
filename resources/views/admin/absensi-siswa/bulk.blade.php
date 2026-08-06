@@ -4,11 +4,9 @@
 
 @php
   $isPiketRoute = request()->is('piket/*');
-  $isGuruRoute = request()->is('guru/*');
-  $isWaliKelasRoute = request()->is('wali-kelas/*') || request()->routeIs('wali-kelas.*');
-  $urlBulkForm = $isWaliKelasRoute ? route('wali-kelas.absensi-cepat') : ($isPiketRoute ? route('piket.absensi-cepat') : ($isGuruRoute ? route('guru.absensi-cepat') : route('admin.absensi-cepat')));
-  $urlBulkStore = $isWaliKelasRoute ? route('wali-kelas.absensi-cepat.store') : ($isPiketRoute ? route('piket.absensi-cepat.store') : ($isGuruRoute ? route('guru.absensi-cepat.store') : route('admin.absensi-cepat.store')));
-  $urlStoreSingle = $isWaliKelasRoute ? route('wali-kelas.absensi-cepat.store-single') : ($isPiketRoute ? route('piket.absensi-cepat.store-single') : ($isGuruRoute ? route('guru.absensi-cepat.store-single') : route('admin.absensi-cepat.store-single')));
+  $urlBulkForm = $isPiketRoute ? route('piket.absensi-cepat') : route('admin.absensi-cepat');
+  $urlBulkStore = $isPiketRoute ? route('piket.absensi-cepat.store') : route('admin.absensi-cepat.store');
+  $urlStoreSingle = $isPiketRoute ? route('piket.absensi-cepat.store-single') : route('admin.absensi-cepat.store-single');
 @endphp
 
 @section('page-style')
