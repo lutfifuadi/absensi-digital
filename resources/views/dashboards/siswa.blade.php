@@ -74,6 +74,13 @@
             $fotoSiswaUrl = asset('storage/' . $siswaRecord->foto);
         }
     }
+
+    $tanggalLahirFormatted = ($siswaRecord && $siswaRecord->tanggal_lahir)
+        ? \Carbon\Carbon::parse($siswaRecord->tanggal_lahir)->locale('id')->translatedFormat('d MMMM Y')
+        : 'Belum diisi';
+    $tanggalLahirRaw = ($siswaRecord && $siswaRecord->tanggal_lahir)
+        ? \Carbon\Carbon::parse($siswaRecord->tanggal_lahir)->format('Y-m-d')
+        : '';
   @endphp
 
   {{-- ═══════════════════════════════════════════════════════
@@ -100,7 +107,15 @@
             Portal Siswa Aktif
           </div>
           <h3 class="das-hero__school text-gradient-gold mb-1" style="font-size: 1.35rem; line-height: 1.3;">{{ $namaSekolah }}</h3>
-          <p class="das-hero__welcome mb-0">Selamat datang kembali, <strong>{{ $user->name }}</strong> 👋</p>
+          <p class="das-hero__welcome mb-1">Selamat datang kembali, <strong>{{ $user->name }}</strong> 👋</p>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-20 d-inline-flex align-items-center gap-1" style="font-size: 0.75rem; backdrop-filter: blur(4px);">
+              <i class="ti tabler-calendar-heart fs-6 text-warning"></i> Tgl Lahir: <span id="display-tanggal-lahir" class="fw-semibold text-warning ms-1">{{ $tanggalLahirFormatted }}</span>
+            </span>
+            <button type="button" class="btn btn-xs btn-outline-warning d-inline-flex align-items-center gap-1 py-0 px-2" style="font-size: 0.7rem; border-radius: 12px;" data-bs-toggle="modal" data-bs-target="#modalUpdateTanggalLahir" title="Ubah Tanggal Lahir Mandiri">
+              <i class="ti tabler-edit fs-6"></i> Edit Tgl Lahir
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1374,6 +1389,47 @@ if ('requestIdleCallback' in window) {
   </div>
 </div>
 
+{{-- MODAL UPDATE TANGGAL LAHIR SISWA --}}
+<div class="modal fade" id="modalUpdateTanggalLahir" tabindex="-1" aria-labelledby="modalUpdateTanggalLahirLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-primary text-white py-3">
+        <h5 class="modal-title text-white d-flex align-items-center gap-2" id="modalUpdateTanggalLahirLabel">
+          <i class="ti tabler-calendar-heart fs-4"></i> Perbarui Tanggal Lahir
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="formUpdateTanggalLahir">
+        @csrf
+        <div class="modal-body p-4">
+          <div class="alert alert-primary d-flex align-items-start gap-3 mb-4 rounded-3 border-0 shadow-sm" style="background-color: #eef2ff; color: #3730a3;">
+            <i class="ti tabler-info-circle fs-3 flex-shrink-0 text-primary mt-1"></i>
+            <div class="small">
+              Silakan perbarui tanggal lahir Anda sesuai dokumen resmi (Akta / KK / Ijazah). Data ini akan diperbarui secara mandiri di sistem.
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="inputTanggalLahirSiswa" class="form-label fw-semibold">Tanggal Lahir <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="ti tabler-calendar"></i></span>
+              <input type="date" id="inputTanggalLahirSiswa" name="tanggal_lahir" class="form-control" value="{{ $tanggalLahirRaw }}" max="{{ date('Y-m-d') }}" required>
+            </div>
+            <div class="form-text">Pilih tanggal, bulan, dan tahun lahir Anda.</div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light px-4 py-3">
+          <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-2" id="btnSimpanTanggalLahir">
+            <span class="spinner-border spinner-border-sm d-none" id="spinnerTanggalLahir" role="status" aria-hidden="true"></span>
+            <i class="ti tabler-check fs-5" id="iconCheckTanggalLahir"></i> Simpan Tanggal Lahir
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 <script>
@@ -1586,6 +1642,92 @@ document.addEventListener('DOMContentLoaded', function() {
             confirmButton: 'btn btn-danger px-4 py-2 rounded-pill shadow-sm fw-semibold'
           },
           buttonsStyling: false
+        });
+      });
+    });
+  }
+
+  // Handle Update Tanggal Lahir Siswa
+  const formUpdateTgl = document.getElementById('formUpdateTanggalLahir');
+  if (formUpdateTgl) {
+    formUpdateTgl.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const btnSimpan = document.getElementById('btnSimpanTanggalLahir');
+      const spinner = document.getElementById('spinnerTanggalLahir');
+      const iconCheck = document.getElementById('iconCheckTanggalLahir');
+      const inputTgl = document.getElementById('inputTanggalLahirSiswa');
+
+      if (!inputTgl.value) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Perhatian',
+          text: 'Harap masukkan tanggal lahir yang valid.'
+        });
+        return;
+      }
+
+      btnSimpan.disabled = true;
+      spinner.classList.remove('d-none');
+      iconCheck.classList.add('d-none');
+
+      const formData = new FormData();
+      formData.append('_token', '{{ csrf_token() }}');
+      formData.append('tanggal_lahir', inputTgl.value);
+
+      fetch('{{ route("siswa.update-tanggal-lahir") }}', {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+      })
+      .then(response => response.json().then(data => ({ status: response.status, body: data })))
+      .then(({ status, body }) => {
+        btnSimpan.disabled = false;
+        spinner.classList.add('d-none');
+        iconCheck.classList.remove('d-none');
+
+        if (status === 200 && body.success) {
+          const modalEl = document.getElementById('modalUpdateTanggalLahir');
+          const modalInstance = bootstrap.Modal.getInstance(modalEl);
+          if (modalInstance) {
+            modalInstance.hide();
+          }
+
+          const displaySpan = document.getElementById('display-tanggal-lahir');
+          if (displaySpan && body.formatted_tanggal_lahir) {
+            displaySpan.textContent = body.formatted_tanggal_lahir;
+          }
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: body.message || 'Tanggal lahir berhasil diperbarui.',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        } else {
+          let errorMsg = body.message || 'Gagal memperbarui tanggal lahir.';
+          if (body.errors && body.errors.tanggal_lahir) {
+            errorMsg = body.errors.tanggal_lahir.join(' ');
+          }
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: errorMsg
+          });
+        }
+      })
+      .catch(err => {
+        btnSimpan.disabled = false;
+        spinner.classList.add('d-none');
+        iconCheck.classList.remove('d-none');
+        console.error(err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Kesalahan Sistem',
+          text: 'Terjadi masalah saat memperbarui tanggal lahir.'
         });
       });
     });

@@ -600,4 +600,51 @@ class PortalSiswaController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Update tanggal lahir siswa secara mandiri.
+     */
+    public function updateTanggalLahir(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if ($user->role !== 'siswa') {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $siswa = Siswa::where('user_id', $user->id)->first();
+        if (!$siswa) {
+            return response()->json(['success' => false, 'message' => 'Data siswa tidak ditemukan.'], 404);
+        }
+
+        $request->validate([
+            'tanggal_lahir' => 'required|date|before_or_equal:today|after:1980-01-01',
+        ], [
+            'tanggal_lahir.required' => 'Tanggal lahir wajib diisi.',
+            'tanggal_lahir.date' => 'Format tanggal lahir tidak valid.',
+            'tanggal_lahir.before_or_equal' => 'Tanggal lahir tidak boleh di masa mendatang.',
+            'tanggal_lahir.after' => 'Tanggal lahir tidak valid.',
+        ]);
+
+        try {
+            $siswa->update([
+                'tanggal_lahir' => $request->tanggal_lahir,
+            ]);
+
+            $formattedDate = \Carbon\Carbon::parse($request->tanggal_lahir)->locale('id')->translatedFormat('d MMMM Y');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tanggal lahir berhasil diperbarui!',
+                'tanggal_lahir' => $request->tanggal_lahir,
+                'formatted_tanggal_lahir' => $formattedDate,
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('PortalSiswaController updateTanggalLahir error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memperbarui tanggal lahir: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
