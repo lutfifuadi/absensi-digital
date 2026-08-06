@@ -431,7 +431,7 @@
 
 @endsection
 
-@push('page-script')
+@section('page-script')
 <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.54.0/dist/apexcharts.min.js"></script>
 <script>
 (function () {
@@ -731,4 +731,4 @@
   });
 })();
 </script>
-@endpush
+@endsection
