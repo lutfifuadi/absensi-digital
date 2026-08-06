@@ -31,6 +31,7 @@ class IzinSakitController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        $activeRole = session('active_role', $user->role);
         $isStaffTuRoute = $request->routeIs('tu.*') || $activeRole === User::ROLE_STAFF_TU || ($user->isRole(User::ROLE_STAFF_TU) && !$user->hasAnyRole(['super_admin', 'admin_sekolah']));
         $isGuruRoute = $request->routeIs('guru.*') || $activeRole === User::ROLE_GURU || ($user->isRole(User::ROLE_GURU) && !$user->hasAnyRole(['super_admin', 'admin_sekolah']));
 
