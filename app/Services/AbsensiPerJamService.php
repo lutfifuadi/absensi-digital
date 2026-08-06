@@ -222,7 +222,7 @@ class AbsensiPerJamService
         }
 
         // ── BR-02: Bulk upsert dalam 1 transaksi DB ───────────────────────────
-        DB::transaction(function () use ($payload, $jadwal, $tanggal, $dicatatOleh) {
+        DB::transaction(function () use ($payload, $jadwal, $tanggal, $dicatatOleh, $materi, $catatan) {
             AbsensiSiswaPerJadwal::upsert(
                 $payload,
                 ['jadwal_pelajaran_id', 'siswa_id', 'tanggal'], // UNIQUE BR-01

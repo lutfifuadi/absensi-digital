@@ -144,7 +144,9 @@ class AbsensiPerJamController extends Controller
                     'keterangan'     => $validated['keterangan'] ?? null,
                 ]],
                 auth()->id(),
-                'manual'
+                'manual',
+                $request->input('materi'),
+                $request->input('catatan')
             );
 
             return response()->json([

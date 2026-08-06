@@ -1333,13 +1333,18 @@
             }
           }
 
+          const materiInp = document.querySelector('input[name="materi"]');
+          const catatanInp = document.querySelector('input[name="catatan"]');
+
           const payload = {
             _token: csrfToken,
             tanggal: tanggal,
             siswa_id: siswaId,
             status: statusVal,
             lama_terlambat: statusVal === 'terlambat' ? (lamaInp && lamaInp.value ? parseInt(lamaInp.value) : 1) : null,
-            keterangan: ketInp ? ketInp.value : ''
+            keterangan: ketInp ? ketInp.value : '',
+            materi: materiInp ? materiInp.value : null,
+            catatan: catatanInp ? catatanInp.value : null
           };
 
           fetch(singleUrl, {
