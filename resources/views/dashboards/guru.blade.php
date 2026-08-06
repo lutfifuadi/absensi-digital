@@ -102,7 +102,7 @@
         @endif
       </div>
       
-      <a href="{{ route('public.scan-qr') }}" class="btn btn-sm btn-warning fw-bold px-3 py-2 shadow-sm d-flex align-items-center gap-1" style="border-radius: 8px;">
+      <a href="{{ route('public.scan-qr.index') }}" class="btn btn-sm btn-warning fw-bold px-3 py-2 shadow-sm d-flex align-items-center gap-1" style="border-radius: 8px;">
         <i class="ti tabler-qr fs-5"></i> Scan QR
       </a>
     </div>
