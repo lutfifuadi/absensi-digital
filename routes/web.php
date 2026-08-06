@@ -1656,6 +1656,15 @@ Route::middleware(['auth'])->group(function () {
 });
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Keep-Alive Endpoint (Auto Session & CSRF Token Refresh)
+Route::get('/keep-alive', function () {
+    return response()->json([
+        'status' => 'active',
+        'csrf_token' => csrf_token(),
+    ]);
+})->name('keep-alive');
+
+
 
 
 

@@ -36,5 +36,18 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {
+            if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sesi Anda telah kedaluwarsa. Halaman akan diperbarui secara otomatis.',
+                    'reload'  => true,
+                    'csrf_token' => csrf_token(),
+                ], 419);
+            }
+
+            return redirect()->back()
+                ->withInput($request->except('_token', 'password', 'password_confirmation'))
+                ->with('error', 'Sesi atau halaman Anda telah kedaluwarsa. Silakan kirim ulang formulir.');
+        });
     })->create();

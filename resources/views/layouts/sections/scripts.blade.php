@@ -148,3 +148,54 @@
   });
 </script>
 
+{{-- Global Keep-Alive & CSRF Session Protection --}}
+<script>
+  (function() {
+    'use strict';
+
+    // 1. Keep-Alive ping every 10 minutes to prevent session expiration on active tabs
+    setInterval(function() {
+      fetch('{{ route("keep-alive") }}', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data && data.csrf_token) {
+          document.querySelectorAll('input[name="_token"]').forEach(function(el) {
+            el.value = data.csrf_token;
+          });
+          var metaCsrf = document.querySelector('meta[name="csrf-token"]');
+          if (metaCsrf) {
+            metaCsrf.setAttribute('content', data.csrf_token);
+          }
+        }
+      })
+      .catch(function() {});
+    }, 10 * 60 * 1000);
+
+    // 2. Intercept 419 Page Expired errors globally for fetch API
+    var originalFetch = window.fetch;
+    window.fetch = function() {
+      return originalFetch.apply(this, arguments).then(function(response) {
+        if (response.status === 419) {
+          if (window.Swal) {
+            Swal.fire({
+              icon: 'info',
+              title: 'Sesi Halaman Kedaluwarsa',
+              text: 'Sesi Anda telah berakhir. Halaman akan diperbarui otomatis untuk menyegarkan data.',
+              timer: 2000,
+              showConfirmButton: false
+            }).then(function() {
+              window.location.reload();
+            });
+          } else {
+            alert('Sesi Anda telah berakhir. Halaman akan diperbarui otomatis.');
+            window.location.reload();
+          }
+        }
+        return response;
+      });
+    };
+  })();
+</script>
+
