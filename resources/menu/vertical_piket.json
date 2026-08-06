@@ -27,12 +27,6 @@
       "url": "/piket/absensi-cepat"
     },
     {
-      "name": "Absensi Kelas & Mapel",
-      "icon": "menu-icon ti tabler-clipboard-check",
-      "slug": "admin.absensi-per-jam.index",
-      "url": "/admin/absensi-per-jam"
-    },
-    {
       "name": "Poin Pelanggaran",
       "icon": "menu-icon ti tabler-swords",
       "slug": ["admin.pelanggaran.index", "admin.pelanggaran.create"],
