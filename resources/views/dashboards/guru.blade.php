@@ -251,18 +251,6 @@
           </div>
         </a>
 
-        <a href="{{ route('guru.absensi-cepat') }}" class="quick-action-btn">
-          <div class="avatar">
-            <span class="avatar-initial rounded bg-label-warning">
-              <i class="ti tabler-bolt fs-3"></i>
-            </span>
-          </div>
-          <div>
-            <div class="fw-bold text-white fs-6">Absensi Cepat Siswa</div>
-            <div class="text-white-50 fs-tiny">Mode cepat pencatatan absensi massal</div>
-          </div>
-        </a>
-
         <a href="{{ route('guru.rekap-absensi-saya') }}" class="quick-action-btn">
           <div class="avatar">
             <span class="avatar-initial rounded bg-label-success">

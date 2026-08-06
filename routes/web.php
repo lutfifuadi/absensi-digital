@@ -297,16 +297,6 @@ Route::middleware([
         Route::get('/absensi', [AbsensiGuruController::class, 'index'])->name('guru.absensi.index');
         Route::get('/absensi/scan', [AbsensiGuruController::class, 'scan'])->name('guru.absensi.scan')->middleware('feature:fitur_scan_absensi_guru');
 
-        // Absensi Cepat Siswa (Portal Guru)
-        Route::get('/absensi-cepat', [AbsensiSiswaController::class, 'bulkForm'])
-            ->name('guru.absensi-cepat');
-        Route::get('/absensi-cepat/search', [AbsensiSiswaController::class, 'searchStudent'])
-            ->name('guru.absensi-cepat.search');
-        Route::post('/absensi-cepat', [AbsensiSiswaController::class, 'bulkStore'])
-            ->name('guru.absensi-cepat.store');
-        Route::post('/absensi-cepat/store-single', [AbsensiSiswaController::class, 'storeSingle'])
-            ->name('guru.absensi-cepat.store-single');
-
         // Izin & Sakit (Scoped to self in Controller)
         Route::get('/izin-sakit', [IzinSakitController::class, 'index'])->name('guru.izin-sakit.index');
         Route::get('/izin-sakit/create', [IzinSakitController::class, 'create'])->name('guru.izin-sakit.create');

@@ -23,12 +23,6 @@
       "url": "/guru/absensi-per-jam"
     },
     {
-      "name": "Absensi Cepat Siswa",
-      "icon": "menu-icon ti tabler-bolt",
-      "slug": "guru.absensi-cepat",
-      "url": "/guru/absensi-cepat"
-    },
-    {
       "name": "Pengajuan Izin",
       "icon": "menu-icon ti tabler-stethoscope",
       "slug": "guru.izin-sakit.index",
