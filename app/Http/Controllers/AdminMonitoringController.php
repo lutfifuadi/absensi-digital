@@ -38,8 +38,8 @@ class AdminMonitoringController extends Controller
         // ── PRD-007 (F-3): ringkasan slot per guru dalam rentang tanggal ──
         $rekapSlot = $this->kehadiranGuruService->getRekapSlotPerGuru($filters);
 
-        $kelases = Kelas::orderBy('nama_kelas')->get();
-        $gurus = Guru::orderBy('nama')->get();
+        $kelases = Kelas::orderBy('nama')->get();
+        $gurus = Guru::orderBy('nama_lengkap')->get();
         $tipeOptions = [
             'full_time' => 'Full Time',
             'part_time' => 'Part Time',
