@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\AbsensiGuruController;
 use App\Http\Controllers\Admin\AbsensiKegiatanController;
 use App\Http\Controllers\Admin\AbsensiPerJamController;
 use App\Http\Controllers\Admin\AbsensiSiswaController;
+use App\Http\Controllers\Admin\AnalitikSiswaController;
 use App\Http\Controllers\Admin\AbsensiStaffController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\AiChatController;
@@ -477,6 +478,13 @@ Route::middleware([
     // ────────────────────────────────────────────────────────────────────────────
 
     Route::prefix('admin')->group(function () {
+        Route::get('/analitik-siswa', [AnalitikSiswaController::class, 'index'])
+            ->middleware('role:super_admin,admin_sekolah,operator,wali_kelas,guru,piket')
+            ->name('admin.analitik-siswa.index');
+        Route::get('/analitik-siswa/data', [AnalitikSiswaController::class, 'getData'])
+            ->middleware('role:super_admin,admin_sekolah,operator,wali_kelas,guru,piket')
+            ->name('admin.analitik-siswa.data');
+
         Route::get('/dashboard/siswa-belum-absen', [DashboardController::class, 'siswaBelumAbsen'])
             ->middleware('role:super_admin,admin_sekolah,operator')
             ->name('admin.dashboard.siswa-belum-absen');

@@ -51,6 +51,12 @@
       "url": "/wali-kelas/rekap-harian"
     },
     {
+      "name": "Grafik & Analitik Siswa",
+      "icon": "menu-icon ti tabler-chart-dots",
+      "slug": "admin.analitik-siswa.index",
+      "url": "/admin/analitik-siswa"
+    },
+    {
       "name": "Rekap Jam Pelajaran",
       "icon": "menu-icon ti tabler-clock-play",
       "slug": "admin.absensi-per-jam.rekap",

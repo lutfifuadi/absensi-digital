@@ -57,6 +57,12 @@
       "url": "/admin/absensi-per-jam/rekap"
     },
     {
+      "name": "Grafik & Analitik Siswa",
+      "icon": "menu-icon ti tabler-chart-dots",
+      "slug": "admin.analitik-siswa.index",
+      "url": "/admin/analitik-siswa"
+    },
+    {
       "name": "Rekap Absensi Siswa",
       "icon": "menu-icon ti tabler-report-analytics",
       "slug": "guru.laporan.index",
