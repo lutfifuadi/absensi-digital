@@ -1389,13 +1389,13 @@ if ('requestIdleCallback' in window) {
   </div>
 </div>
 
-{{-- MODAL UPDATE TANGGAL LAHIR SISWA --}}
+{{-- MODAL UPDATE BIODATA / TANGGAL LAHIR SISWA --}}
 <div class="modal fade" id="modalUpdateTanggalLahir" tabindex="-1" aria-labelledby="modalUpdateTanggalLahirLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content border-0 shadow-lg">
       <div class="modal-header bg-primary text-white py-3">
         <h5 class="modal-title text-white d-flex align-items-center gap-2" id="modalUpdateTanggalLahirLabel">
-          <i class="ti tabler-calendar-heart fs-4"></i> Perbarui Tanggal Lahir
+          <i class="ti tabler-user-edit fs-4"></i> Perbarui Biodata Mandiri Siswa
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -1405,24 +1405,54 @@ if ('requestIdleCallback' in window) {
           <div class="alert alert-primary d-flex align-items-start gap-3 mb-4 rounded-3 border-0 shadow-sm" style="background-color: #eef2ff; color: #3730a3;">
             <i class="ti tabler-info-circle fs-3 flex-shrink-0 text-primary mt-1"></i>
             <div class="small">
-              Silakan perbarui tanggal lahir Anda sesuai dokumen resmi (Akta / KK / Ijazah). Data ini akan diperbarui secara mandiri di sistem.
+              Silakan perbarui data tanggal lahir, tempat lahir, nomor kontak, dan alamat Anda secara mandiri di sistem.
             </div>
           </div>
 
-          <div class="mb-3">
-            <label for="inputTanggalLahirSiswa" class="form-label fw-semibold">Tanggal Lahir <span class="text-danger">*</span></label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="ti tabler-calendar"></i></span>
-              <input type="date" id="inputTanggalLahirSiswa" name="tanggal_lahir" class="form-control" value="{{ $tanggalLahirRaw }}" max="{{ date('Y-m-d') }}" required>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="inputTanggalLahirSiswa" class="form-label fw-semibold">Tanggal Lahir <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="ti tabler-calendar"></i></span>
+                <input type="date" id="inputTanggalLahirSiswa" name="tanggal_lahir" class="form-control" value="{{ $tanggalLahirRaw }}" max="{{ date('Y-m-d') }}" required>
+              </div>
             </div>
-            <div class="form-text">Pilih tanggal, bulan, dan tahun lahir Anda.</div>
+
+            <div class="col-md-6">
+              <label for="inputTempatLahirSiswa" class="form-label fw-semibold">Tempat Lahir</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="ti tabler-map-pin"></i></span>
+                <input type="text" id="inputTempatLahirSiswa" name="tempat_lahir" class="form-control" value="{{ $siswaRecord ? $siswaRecord->tempat_lahir : '' }}" placeholder="Kota / Kabupaten Kelahiran">
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="inputNoHpSiswa" class="form-label fw-semibold">No. HP Siswa</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="ti tabler-phone"></i></span>
+                <input type="text" id="inputNoHpSiswa" name="no_hp" class="form-control" value="{{ $siswaRecord ? $siswaRecord->no_hp : '' }}" placeholder="08xxxxxxxxxx">
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="inputNoHpOrtu" class="form-label fw-semibold">No. HP Orang Tua / Wali</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="ti tabler-phone-call"></i></span>
+                <input type="text" id="inputNoHpOrtu" name="no_hp_ortu" class="form-control" value="{{ $siswaRecord ? $siswaRecord->no_hp_ortu : '' }}" placeholder="08xxxxxxxxxx">
+              </div>
+            </div>
+
+            <div class="col-12">
+              <label for="inputAlamatSiswa" class="form-label fw-semibold">Alamat Tempat Tinggal</label>
+              <textarea id="inputAlamatSiswa" name="alamat" class="form-control" rows="3" placeholder="Alamat lengkap tempat tinggal">{{ $siswaRecord ? $siswaRecord->alamat : '' }}</textarea>
+            </div>
           </div>
         </div>
         <div class="modal-footer bg-light px-4 py-3">
           <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Batal</button>
           <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-2" id="btnSimpanTanggalLahir">
             <span class="spinner-border spinner-border-sm d-none" id="spinnerTanggalLahir" role="status" aria-hidden="true"></span>
-            <i class="ti tabler-check fs-5" id="iconCheckTanggalLahir"></i> Simpan Tanggal Lahir
+            <i class="ti tabler-check fs-5" id="iconCheckTanggalLahir"></i> Simpan Perubahan Biodata
           </button>
         </div>
       </form>
@@ -1671,11 +1701,9 @@ document.addEventListener('DOMContentLoaded', function() {
       spinner.classList.remove('d-none');
       iconCheck.classList.add('d-none');
 
-      const formData = new FormData();
-      formData.append('_token', '{{ csrf_token() }}');
-      formData.append('tanggal_lahir', inputTgl.value);
+      const formData = new FormData(this);
 
-      fetch('{{ route("siswa.update-tanggal-lahir") }}', {
+      fetch('{{ route("siswa.update-biodata") }}', {
         method: 'POST',
         headers: {
           'X-Requested-With': 'XMLHttpRequest'
@@ -1703,14 +1731,15 @@ document.addEventListener('DOMContentLoaded', function() {
           Swal.fire({
             icon: 'success',
             title: 'Berhasil!',
-            text: body.message || 'Tanggal lahir berhasil diperbarui.',
+            text: body.message || 'Biodata Anda berhasil diperbarui.',
             timer: 2000,
             showConfirmButton: false
           });
         } else {
-          let errorMsg = body.message || 'Gagal memperbarui tanggal lahir.';
-          if (body.errors && body.errors.tanggal_lahir) {
-            errorMsg = body.errors.tanggal_lahir.join(' ');
+          let errorMsg = body.message || 'Gagal memperbarui biodata.';
+          if (body.errors) {
+            const errList = Object.values(body.errors).flat();
+            errorMsg = errList.join(' ');
           }
           Swal.fire({
             icon: 'error',
@@ -1727,7 +1756,7 @@ document.addEventListener('DOMContentLoaded', function() {
         Swal.fire({
           icon: 'error',
           title: 'Kesalahan Sistem',
-          text: 'Terjadi masalah saat memperbarui tanggal lahir.'
+          text: 'Terjadi masalah saat memperbarui biodata.'
         });
       });
     });

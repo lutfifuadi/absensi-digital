@@ -55,9 +55,9 @@
         <i class="ti tabler-qrcode"></i> Cetak Kartu
       </a>
       @if(auth()->user()?->role === 'siswa')
-        <a href="{{ route('siswa.dashboard') }}" class="btn btn-warning btn-sm d-flex align-items-center gap-1 shadow-sm" title="Edit tanggal lahir & pas foto di Dashboard Siswa">
-          <i class="ti tabler-edit"></i> Update Biodata
-        </a>
+        <button type="button" class="btn btn-warning btn-sm d-flex align-items-center gap-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalUpdateBiodataSiswaProfil" title="Edit tanggal lahir & biodata mandiri">
+          <i class="ti tabler-edit"></i> Edit Biodata Saya
+        </button>
       @else
         <a href="{{ route('admin.siswa.edit', $siswa->id) }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1 shadow-sm">
           <i class="ti tabler-edit"></i> Edit Profil
@@ -66,6 +66,79 @@
     </div>
   </div>
 </div>{{-- /das-hero --}}
+
+@if(auth()->user()?->role === 'siswa')
+{{-- MODAL EDIT BIODATA MANDIRI SISWA --}}
+<div class="modal fade" id="modalUpdateBiodataSiswaProfil" tabindex="-1" aria-labelledby="modalUpdateBiodataSiswaProfilLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-primary text-white py-3">
+        <h5 class="modal-title text-white d-flex align-items-center gap-2" id="modalUpdateBiodataSiswaProfilLabel">
+          <i class="ti tabler-user-edit fs-4"></i> Perbarui Biodata Mandiri Siswa
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="formUpdateBiodataSiswaProfil">
+        @csrf
+        <div class="modal-body p-4">
+          <div class="alert alert-primary d-flex align-items-start gap-3 mb-4 rounded-3 border-0 shadow-sm" style="background-color: #eef2ff; color: #3730a3;">
+            <i class="ti tabler-info-circle fs-3 flex-shrink-0 text-primary mt-1"></i>
+            <div class="small">
+              Silakan perbarui tanggal lahir, tempat lahir, alamat, dan nomor kontak Anda sesuai dokumen resmi. Data akan diperbarui secara mandiri di sistem.
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="inputTanggalLahirProfil" class="form-label fw-semibold">Tanggal Lahir <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="ti tabler-calendar"></i></span>
+                <input type="date" id="inputTanggalLahirProfil" name="tanggal_lahir" class="form-control" value="{{ $siswa->tanggal_lahir ? \Carbon\Carbon::parse($siswa->tanggal_lahir)->format('Y-m-d') : '' }}" max="{{ date('Y-m-d') }}" required>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="inputTempatLahirProfil" class="form-label fw-semibold">Tempat Lahir</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="ti tabler-map-pin"></i></span>
+                <input type="text" id="inputTempatLahirProfil" name="tempat_lahir" class="form-control" value="{{ $siswa->tempat_lahir }}" placeholder="Kota / Kabupaten Kelahiran">
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="inputNoHpProfil" class="form-label fw-semibold">No. HP Siswa</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="ti tabler-phone"></i></span>
+                <input type="text" id="inputNoHpProfil" name="no_hp" class="form-control" value="{{ $siswa->no_hp }}" placeholder="08xxxxxxxxxx">
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="inputNoHpOrtuProfil" class="form-label fw-semibold">No. HP Orang Tua / Wali</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="ti tabler-phone-call"></i></span>
+                <input type="text" id="inputNoHpOrtuProfil" name="no_hp_ortu" class="form-control" value="{{ $siswa->no_hp_ortu }}" placeholder="08xxxxxxxxxx">
+              </div>
+            </div>
+
+            <div class="col-12">
+              <label for="inputAlamatProfil" class="form-label fw-semibold">Alamat Tempat Tinggal</label>
+              <textarea id="inputAlamatProfil" name="alamat" class="form-control" rows="3" placeholder="Alamat lengkap tempat tinggal">{{ $siswa->alamat }}</textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light px-4 py-3">
+          <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-2" id="btnSimpanBiodataProfil">
+            <span class="spinner-border spinner-border-sm d-none" id="spinnerBiodataProfil" role="status" aria-hidden="true"></span>
+            <i class="ti tabler-check fs-5" id="iconCheckBiodataProfil"></i> Simpan Perubahan Biodata
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+@endif
 
 
 {{-- ═══════════════════════════════════════════════════════
@@ -468,10 +541,75 @@
               selectKelas.appendChild(opt);
             });
             selectKelas.disabled = false;
+    // 4. Update Biodata Mandiri Siswa
+    const formUpdateBioProfil = document.getElementById('formUpdateBiodataSiswaProfil');
+    if (formUpdateBioProfil) {
+      formUpdateBioProfil.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const btnSimpan = document.getElementById('btnSimpanBiodataProfil');
+        const spinner = document.getElementById('spinnerBiodataProfil');
+        const iconCheck = document.getElementById('iconCheckBiodataProfil');
+
+        btnSimpan.disabled = true;
+        spinner.classList.remove('d-none');
+        iconCheck.classList.add('d-none');
+
+        const formData = new FormData(this);
+
+        fetch('{{ route("siswa.update-biodata") }}', {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: formData
+        })
+        .then(response => response.json().then(data => ({ status: response.status, body: data })))
+        .then(({ status, body }) => {
+          btnSimpan.disabled = false;
+          spinner.classList.add('d-none');
+          iconCheck.classList.remove('d-none');
+
+          if (status === 200 && body.success) {
+            const modalEl = document.getElementById('modalUpdateBiodataSiswaProfil');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) {
+              modalInstance.hide();
+            }
+
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil!',
+              text: body.message || 'Biodata Anda berhasil diperbarui.',
+              timer: 1800,
+              showConfirmButton: false
+            }).then(() => {
+              window.location.reload();
+            });
           } else {
-            selectKelas.disabled = true;
+            let errorMsg = body.message || 'Gagal memperbarui biodata.';
+            if (body.errors) {
+              const errList = Object.values(body.errors).flat();
+              errorMsg = errList.join(' ');
+            }
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: errorMsg
+            });
           }
-        }
+        })
+        .catch(err => {
+          btnSimpan.disabled = false;
+          spinner.classList.add('d-none');
+          iconCheck.classList.remove('d-none');
+          console.error(err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Kesalahan Sistem',
+            text: 'Terjadi masalah saat memperbarui biodata.'
+          });
+        });
       });
     }
   });

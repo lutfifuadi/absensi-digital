@@ -602,9 +602,9 @@ class PortalSiswaController extends Controller
     }
 
     /**
-     * Update tanggal lahir siswa secara mandiri.
+     * Update biodata siswa secara mandiri (Tanggal Lahir, Tempat Lahir, Alamat, No. HP, No. HP Ortu).
      */
-    public function updateTanggalLahir(Request $request)
+    public function updateBiodata(Request $request)
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -619,6 +619,10 @@ class PortalSiswaController extends Controller
 
         $request->validate([
             'tanggal_lahir' => 'required|date|before_or_equal:today|after:1980-01-01',
+            'tempat_lahir'  => 'nullable|string|max:255',
+            'alamat'        => 'nullable|string|max:1000',
+            'no_hp'         => 'nullable|string|max:50',
+            'no_hp_ortu'    => 'nullable|string|max:50',
         ], [
             'tanggal_lahir.required' => 'Tanggal lahir wajib diisi.',
             'tanggal_lahir.date' => 'Format tanggal lahir tidak valid.',
@@ -629,22 +633,37 @@ class PortalSiswaController extends Controller
         try {
             $siswa->update([
                 'tanggal_lahir' => $request->tanggal_lahir,
+                'tempat_lahir'  => $request->has('tempat_lahir') ? $request->tempat_lahir : $siswa->tempat_lahir,
+                'alamat'        => $request->has('alamat') ? $request->alamat : $siswa->alamat,
+                'no_hp'         => $request->has('no_hp') ? $request->no_hp : $siswa->no_hp,
+                'no_hp_ortu'    => $request->has('no_hp_ortu') ? $request->no_hp_ortu : $siswa->no_hp_ortu,
             ]);
 
             $formattedDate = \Carbon\Carbon::parse($request->tanggal_lahir)->locale('id')->translatedFormat('d MMMM Y');
+            $ttlFormatted = ($siswa->tempat_lahir ?: '-') . ', ' . $formattedDate;
 
             return response()->json([
                 'success' => true,
-                'message' => 'Tanggal lahir berhasil diperbarui!',
+                'message' => 'Biodata Anda berhasil diperbarui!',
                 'tanggal_lahir' => $request->tanggal_lahir,
                 'formatted_tanggal_lahir' => $formattedDate,
+                'tempat_lahir' => $siswa->tempat_lahir,
+                'ttl_formatted' => $ttlFormatted,
+                'alamat' => $siswa->alamat,
+                'no_hp' => $siswa->no_hp,
+                'no_hp_ortu' => $siswa->no_hp_ortu,
             ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('PortalSiswaController updateTanggalLahir error: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('PortalSiswaController updateBiodata error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat memperbarui tanggal lahir: ' . $e->getMessage()
+                'message' => 'Terjadi kesalahan saat memperbarui biodata: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function updateTanggalLahir(Request $request)
+    {
+        return $this->updateBiodata($request);
     }
 }
