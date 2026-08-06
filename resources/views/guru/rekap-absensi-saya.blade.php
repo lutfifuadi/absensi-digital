@@ -78,7 +78,7 @@
     <div class="das-hero__identity d-flex align-items-center gap-3">
       <div class="das-hero__logo-wrapper flex-shrink-0">
         <div class="das-hero__logo-placeholder bg-warning text-dark fw-bold">
-          <i class="ti tabler-user-check fs-4"></i>
+          <i class="ti ti-user-check tabler-user-check fs-4"></i>
         </div>
       </div>
       <div class="das-hero__meta">
@@ -95,7 +95,7 @@
     
     <div class="d-flex gap-2">
       <button onclick="window.print()" class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1 shadow-xs">
-        <i class="ti tabler-printer fs-6"></i> Cetak Rekap
+        <i class="ti ti-printer tabler-printer fs-6"></i> Cetak Rekap
       </button>
     </div>
   </div>
@@ -127,13 +127,13 @@
 
       <div class="col-12 col-md-3 col-lg-2">
         <button type="submit" class="btn btn-sm btn-primary w-100 py-2 d-flex align-items-center justify-content-center gap-1 shadow-sm">
-          <i class="ti tabler-filter fs-6"></i> Tampilkan
+          <i class="ti ti-filter tabler-filter fs-6"></i> Tampilkan
         </button>
       </div>
 
       <div class="col-12 col-md-3 col-lg-6 text-md-end">
         <span class="text-white-50 small">
-          <i class="ti tabler-calendar-heart me-1 text-warning"></i> Periode: <strong class="text-white">{{ \Carbon\Carbon::create($tahun, $bulan, 1)->locale('id')->translatedFormat('F Y') }}</strong>
+          <i class="ti ti-calendar-heart tabler-calendar-heart me-1 text-warning"></i> Periode: <strong class="text-white">{{ \Carbon\Carbon::create($tahun, $bulan, 1)->locale('id')->translatedFormat('F Y') }}</strong>
         </span>
       </div>
     </form>
@@ -148,7 +148,7 @@
       <div class="d-flex align-items-center justify-content-between mb-2">
         <div class="kpi-label">Hadir Tepat Waktu</div>
         <div class="kpi-icon" style="background:rgba(40,199,111,.15);color:#28c76f;">
-          <i class="ti tabler-circle-check"></i>
+          <i class="ti ti-circle-check tabler-circle-check"></i>
         </div>
       </div>
       <div class="kpi-value text-success">{{ number_format($stats['count_hadir']) }}</div>
@@ -162,7 +162,7 @@
       <div class="d-flex align-items-center justify-content-between mb-2">
         <div class="kpi-label">Terlambat</div>
         <div class="kpi-icon" style="background:rgba(255,159,67,.15);color:#ff9f43;">
-          <i class="ti tabler-clock-check"></i>
+          <i class="ti ti-clock tabler-clock"></i>
         </div>
       </div>
       <div class="kpi-value text-warning">{{ number_format($stats['count_terlambat']) }}</div>
@@ -176,7 +176,7 @@
       <div class="d-flex align-items-center justify-content-between mb-2">
         <div class="kpi-label">Izin & Sakit</div>
         <div class="kpi-icon" style="background:rgba(0,207,232,.15);color:#00cfe8;">
-          <i class="ti tabler-file-text"></i>
+          <i class="ti ti-file-text tabler-file-text"></i>
         </div>
       </div>
       <div class="kpi-value text-info">{{ number_format($stats['count_izin_sakit']) }}</div>
@@ -190,7 +190,7 @@
       <div class="d-flex align-items-center justify-content-between mb-2">
         <div class="kpi-label">Alpha / Tanpa Ket.</div>
         <div class="kpi-icon" style="background:rgba(234,84,85,.15);color:#ea5455;">
-          <i class="ti tabler-alert-circle"></i>
+          <i class="ti ti-alert-circle tabler-alert-circle"></i>
         </div>
       </div>
       <div class="kpi-value text-danger">{{ number_format($stats['count_alpha']) }}</div>
@@ -203,7 +203,7 @@
 <div class="card bg-dark border border-secondary border-opacity-20 shadow-sm">
   <div class="card-header bg-transparent border-bottom border-secondary border-opacity-20 py-3 d-flex align-items-center justify-content-between">
     <h5 class="card-title text-white mb-0 d-flex align-items-center gap-2" style="font-size:1rem;">
-      <i class="ti tabler-history text-warning"></i> Riwayat Presensi Masuk & Pulang Harian
+      <i class="ti ti-history tabler-history text-warning"></i> Riwayat Presensi Masuk & Pulang Harian
     </h5>
     <span class="badge bg-secondary bg-opacity-20 text-white-50">{{ $absensiList->count() }} Data Record</span>
   </div>
@@ -238,7 +238,7 @@
             <td class="text-center">
               @if($row->jam_masuk)
                 <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20 px-2 py-1">
-                  <i class="ti tabler-login me-1 fs-tiny"></i> {{ substr($row->jam_masuk, 0, 5) }}
+                  <i class="ti ti-login tabler-login me-1 fs-tiny"></i> {{ substr($row->jam_masuk, 0, 5) }}
                 </span>
               @else
                 <span class="text-white-50 small">-</span>
@@ -249,7 +249,7 @@
             <td class="text-center">
               @if($row->jam_pulang)
                 <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-20 px-2 py-1">
-                  <i class="ti tabler-logout me-1 fs-tiny"></i> {{ substr($row->jam_pulang, 0, 5) }}
+                  <i class="ti ti-logout tabler-logout me-1 fs-tiny"></i> {{ substr($row->jam_pulang, 0, 5) }}
                 </span>
               @else
                 <span class="text-white-50 small">-</span>
@@ -288,7 +288,7 @@
         @empty
           <tr>
             <td colspan="7" class="text-center py-5 text-white-50">
-              <div class="mb-2"><i class="ti tabler-calendar-off fs-1 opacity-25"></i></div>
+              <div class="mb-2"><i class="ti ti-calendar-off tabler-calendar-off fs-1 opacity-25"></i></div>
               <h6>Belum ada data presensi pada bulan ini.</h6>
               <p class="small text-white-50 mb-0">Silakan pilih bulan atau tahun lain pada filter di atas.</p>
             </td>

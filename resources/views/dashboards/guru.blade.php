@@ -71,7 +71,7 @@
       </div>
       <div>
         <div class="badge bg-primary bg-opacity-20 text-primary border border-primary border-opacity-30 mb-1" style="font-size:0.7rem;">
-          <i class="ti tabler-badge-check me-1 fs-tiny"></i> PORTAL GURU PRIVAT
+          <i class="ti ti-badge-check tabler-badge-check me-1 fs-tiny"></i> PORTAL GURU PRIVAT
         </div>
         <h3 class="text-white fw-bold mb-1" style="font-size:1.35rem;">Selamat datang kembali, {{ $guruSelf ? $guruSelf->nama_lengkap : $user->name }} 👋</h3>
         <p class="text-white-50 small mb-0">
@@ -87,23 +87,23 @@
         <div class="text-white-50 fs-tiny uppercase fw-semibold">Status Presensi Saya Hari Ini</div>
         @if($selfAbsensiHariIni)
           @if($selfAbsensiHariIni->status === 'hadir')
-            <div class="fw-bold text-success fs-6"><i class="ti tabler-circle-check me-1"></i> HADIR ({{ substr($selfAbsensiHariIni->jam_masuk, 0, 5) }})</div>
+            <div class="fw-bold text-success fs-6"><i class="ti ti-circle-check tabler-circle-check me-1"></i> HADIR ({{ substr($selfAbsensiHariIni->jam_masuk, 0, 5) }})</div>
           @elseif($selfAbsensiHariIni->status === 'terlambat')
-            <div class="fw-bold text-warning fs-6"><i class="ti tabler-clock-check me-1"></i> TERLAMBAT ({{ substr($selfAbsensiHariIni->jam_masuk, 0, 5) }})</div>
+            <div class="fw-bold text-warning fs-6"><i class="ti ti-clock tabler-clock me-1"></i> TERLAMBAT ({{ substr($selfAbsensiHariIni->jam_masuk, 0, 5) }})</div>
           @elseif($selfAbsensiHariIni->status === 'izin')
-            <div class="fw-bold text-info fs-6"><i class="ti tabler-file-text me-1"></i> IZIN</div>
+            <div class="fw-bold text-info fs-6"><i class="ti ti-file-text tabler-file-text me-1"></i> IZIN</div>
           @elseif($selfAbsensiHariIni->status === 'sakit')
-            <div class="fw-bold text-secondary fs-6"><i class="ti tabler-stethoscope me-1"></i> SAKIT</div>
+            <div class="fw-bold text-secondary fs-6"><i class="ti ti-stethoscope tabler-stethoscope me-1"></i> SAKIT</div>
           @else
-            <div class="fw-bold text-danger fs-6"><i class="ti tabler-alert-triangle me-1"></i> ALPHA</div>
+            <div class="fw-bold text-danger fs-6"><i class="ti ti-alert-triangle tabler-alert-triangle me-1"></i> ALPHA</div>
           @endif
         @else
-          <div class="fw-bold text-warning fs-6"><i class="ti tabler-alert-circle me-1"></i> Belum Presensi Masuk</div>
+          <div class="fw-bold text-warning fs-6"><i class="ti ti-alert-circle tabler-alert-circle me-1"></i> Belum Presensi Masuk</div>
         @endif
       </div>
       
       <a href="{{ route('public.scan-qr.index') }}" class="btn btn-sm btn-warning fw-bold px-3 py-2 shadow-sm d-flex align-items-center gap-1" style="border-radius: 8px;">
-        <i class="ti tabler-qr fs-5"></i> Scan QR
+        <i class="ti ti-qrcode tabler-qrcode fs-5"></i> Scan QR
       </a>
     </div>
   </div>
@@ -120,7 +120,7 @@
         <div class="text-white-50 uppercase fw-bold fs-tiny">Hadir Tepat Waktu</div>
         <div class="avatar avatar-sm">
           <span class="avatar-initial rounded bg-success bg-opacity-15 text-success">
-            <i class="ti tabler-circle-check"></i>
+            <i class="ti ti-circle-check tabler-circle-check"></i>
           </span>
         </div>
       </div>
@@ -136,7 +136,7 @@
         <div class="text-white-50 uppercase fw-bold fs-tiny">Terlambat</div>
         <div class="avatar avatar-sm">
           <span class="avatar-initial rounded bg-warning bg-opacity-15 text-warning">
-            <i class="ti tabler-clock-check"></i>
+            <i class="ti ti-clock tabler-clock"></i>
           </span>
         </div>
       </div>
@@ -152,7 +152,7 @@
         <div class="text-white-50 uppercase fw-bold fs-tiny">Izin & Sakit</div>
         <div class="avatar avatar-sm">
           <span class="avatar-initial rounded bg-info bg-opacity-15 text-info">
-            <i class="ti tabler-stethoscope"></i>
+            <i class="ti ti-stethoscope tabler-stethoscope"></i>
           </span>
         </div>
       </div>
@@ -168,7 +168,7 @@
         <div class="text-white-50 uppercase fw-bold fs-tiny">Tanpa Keterangan</div>
         <div class="avatar avatar-sm">
           <span class="avatar-initial rounded bg-danger bg-opacity-15 text-danger">
-            <i class="ti tabler-alert-triangle"></i>
+            <i class="ti ti-alert-triangle tabler-alert-triangle"></i>
           </span>
         </div>
       </div>
@@ -187,7 +187,7 @@
     <div class="card bg-dark border border-secondary border-opacity-20 shadow-sm h-100">
       <div class="card-header bg-transparent border-bottom border-secondary border-opacity-20 py-3 d-flex align-items-center justify-content-between">
         <h5 class="card-title text-white mb-0 d-flex align-items-center gap-2" style="font-size:0.95rem;">
-          <i class="ti tabler-calendar-event text-warning"></i> Jadwal Mengajar Saya Hari Ini ({{ now()->locale('id')->isoFormat('dddd, D MMMM Y') }})
+          <i class="ti ti-calendar-event tabler-calendar-event text-warning"></i> Jadwal Mengajar Saya Hari Ini ({{ now()->locale('id')->isoFormat('dddd, D MMMM Y') }})
         </h5>
         <span class="badge bg-primary bg-opacity-20 text-primary fs-tiny">{{ $selfJadwalHariIni->count() }} Kelas</span>
       </div>
@@ -209,7 +209,7 @@
                   <tr class="border-bottom border-secondary border-opacity-10">
                     <td class="ps-4">
                       <span class="badge bg-secondary bg-opacity-20 text-warning border border-warning border-opacity-30">
-                        <i class="ti tabler-clock me-1"></i> {{ substr($j->jam_mulai, 0, 5) }} - {{ substr($j->jam_selesai, 0, 5) }}
+                        <i class="ti ti-clock tabler-clock me-1"></i> {{ substr($j->jam_mulai, 0, 5) }} - {{ substr($j->jam_selesai, 0, 5) }}
                       </span>
                     </td>
                     <td>
@@ -220,7 +220,7 @@
                     </td>
                     <td class="text-end pe-4">
                       <a href="{{ route('guru.absensi-per-jam') }}" class="btn btn-xs btn-primary d-inline-flex align-items-center gap-1 shadow-xs">
-                        <i class="ti tabler-edit fs-tiny"></i> Absen Kelas
+                        <i class="ti ti-edit tabler-edit fs-tiny"></i> Absen Kelas
                       </a>
                     </td>
                   </tr>
@@ -230,7 +230,7 @@
           </div>
         @else
           <div class="text-center py-5 text-white-50">
-            <div class="mb-2"><i class="ti tabler-calendar-off fs-1 opacity-25"></i></div>
+            <div class="mb-2"><i class="ti ti-calendar-off tabler-calendar-off fs-1 opacity-25"></i></div>
             <h6>Tidak ada jadwal mengajar pada hari {{ now()->locale('id')->isoFormat('dddd') }}.</h6>
             <p class="small text-white-50 mb-0">Nikmati waktu Anda atau periksa rekap presensi harian Anda.</p>
           </div>
@@ -244,14 +244,14 @@
     <div class="card bg-dark border border-secondary border-opacity-20 shadow-sm h-100">
       <div class="card-header bg-transparent border-bottom border-secondary border-opacity-20 py-3">
         <h5 class="card-title text-white mb-0 d-flex align-items-center gap-2" style="font-size:0.95rem;">
-          <i class="ti tabler-bolt text-warning"></i> Aksi Cepat Portal Guru
+          <i class="ti ti-bolt tabler-bolt text-warning"></i> Aksi Cepat Portal Guru
         </h5>
       </div>
       
       <div class="card-body d-flex flex-column gap-2 p-3 justify-content-center">
         <a href="{{ route('guru.absensi-per-jam') }}" class="quick-action-btn">
           <div class="quick-action-icon bg-primary bg-opacity-20 text-primary border border-primary border-opacity-30">
-            <i class="ti tabler-clipboard-check"></i>
+            <i class="ti ti-clipboard-check tabler-clipboard-check"></i>
           </div>
           <div>
             <div class="fw-bold text-white fs-6">Absensi Kelas & Mapel</div>
@@ -261,7 +261,7 @@
 
         <a href="{{ route('guru.absensi-cepat') }}" class="quick-action-btn">
           <div class="quick-action-icon bg-warning bg-opacity-20 text-warning border border-warning border-opacity-30">
-            <i class="ti tabler-bolt"></i>
+            <i class="ti ti-bolt tabler-bolt"></i>
           </div>
           <div>
             <div class="fw-bold text-white fs-6">Absensi Cepat Siswa</div>
@@ -271,7 +271,7 @@
 
         <a href="{{ route('guru.rekap-absensi-saya') }}" class="quick-action-btn">
           <div class="quick-action-icon bg-success bg-opacity-20 text-success border border-success border-opacity-30">
-            <i class="ti tabler-user-check"></i>
+            <i class="ti ti-user-check tabler-user-check"></i>
           </div>
           <div>
             <div class="fw-bold text-white fs-6">Rekap Absensi Saya</div>
@@ -281,7 +281,7 @@
 
         <a href="{{ route('guru.izin-sakit.index') }}" class="quick-action-btn">
           <div class="quick-action-icon bg-info bg-opacity-20 text-info border border-info border-opacity-30">
-            <i class="ti tabler-stethoscope"></i>
+            <i class="ti ti-stethoscope tabler-stethoscope"></i>
           </div>
           <div>
             <div class="fw-bold text-white fs-6">Pengajuan Izin / Sakit</div>
