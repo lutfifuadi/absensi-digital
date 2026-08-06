@@ -160,9 +160,9 @@
     </div>
   </div>
   <div class="das-panel__body">
-    <form id="analitik-filter-form" class="row g-3 align-items-end">
+    <form id="analitik-filter-form" class="row g-2 g-xl-3 align-items-end">
 
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3" id="preset-wrap">
+      <div class="col-12 col-sm-6 col-md-3 col-lg-2 col-xl-2" id="preset-wrap">
         <div class="analitik-filter-label">Rentang Waktu</div>
         <select id="filter-preset" class="form-select form-select-sm filter-input-custom">
           <option value="30_days" selected>30 Hari Terakhir</option>
@@ -175,18 +175,18 @@
       <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3 d-none" id="custom-date-wrap">
         <div class="analitik-filter-label">Dari → Sampai</div>
         <div class="input-group input-group-sm">
-          <input type="date" id="filter-start" class="form-control filter-input-custom"
+          <input type="date" id="filter-start" class="form-control filter-input-custom px-1 px-sm-2"
             value="{{ \Carbon\Carbon::now()->subDays(29)->format('Y-m-d') }}">
-          <span class="input-group-text filter-addon-custom">–</span>
-          <input type="date" id="filter-end" class="form-control filter-input-custom"
+          <span class="input-group-text filter-addon-custom px-1">–</span>
+          <input type="date" id="filter-end" class="form-control filter-input-custom px-1 px-sm-2"
             value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
         </div>
       </div>
 
-      <div class="col-6 col-sm-4 col-md-2 col-lg-2 col-xl-2">
+      <div class="col-6 col-sm-4 col-md-2 col-lg-1 col-xl-1">
         <div class="analitik-filter-label">Tingkat</div>
-        <select id="filter-tingkat" class="form-select form-select-sm filter-input-custom">
-          <option value="all">Semua Tingkat</option>
+        <select id="filter-tingkat" class="form-select form-select-sm filter-input-custom px-1">
+          <option value="all">Semua</option>
           <option value="10">Kelas X</option>
           <option value="11">Kelas XI</option>
           <option value="12">Kelas XII</option>
@@ -213,9 +213,9 @@
         </select>
       </div>
 
-      <div class="col-12 col-sm-12 col-md-2 col-lg-3 col-xl-3 ms-auto">
+      <div class="col-12 col-sm-12 col-md-3 col-lg-2 col-xl-2 ms-auto">
         <button type="submit" class="das-btn das-btn--info w-100 py-2 d-flex align-items-center justify-content-center gap-1 shadow-sm" style="border-radius: 6px;">
-          <i class="ti tabler-filter fs-5"></i> Terapkan Filter
+          <i class="ti tabler-filter fs-5"></i> Terapkan
         </button>
       </div>
     </form>
