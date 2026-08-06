@@ -69,11 +69,17 @@ class RekapMatriksSiswaSheet extends DefaultValueBinder implements FromView, Wit
                 $rows = $absensiRows->get($s->id, collect())->keyBy(fn ($r) => $r->tanggal->format('Y-m-d'));
                 foreach ($dates as $date) {
                     $rec = $rows->get($date);
-                    $absensiPivot[$s->id][$date] = $rec ? [
-                        'status' => $rec->status,
-                        'jam_masuk' => $rec->jam_masuk,
-                        'jam_pulang' => $rec->jam_pulang,
-                    ] : null;
+                    $st = $rec?->status;
+                    if (\App\Helpers\JadwalAbsensiHelper::isHariLiburSiswa($s, $date)) {
+                        if ($st === 'alpha' || $st === null) {
+                            $st = 'libur';
+                        }
+                    }
+                    $absensiPivot[$s->id][$date] = [
+                        'status' => $st,
+                        'jam_masuk' => $rec?->jam_masuk,
+                        'jam_pulang' => $rec?->jam_pulang,
+                    ];
                 }
             }
         }

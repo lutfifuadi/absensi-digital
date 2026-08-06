@@ -359,10 +359,15 @@
                   <td class="text-center sticky-col start-0 text-white-50" style="z-index:1; border-right: 1px solid rgba(255,255,255,0.08);">{{ method_exists($siswaList, 'currentPage') ? ($siswaList->currentPage() - 1) * $siswaList->perPage() + $loop->iteration : $loop->iteration }}</td>
                   <td class="sticky-col fw-semibold text-white" style="left:30px; z-index:1; border-right: 1px solid rgba(255,255,255,0.08);">{{ $siswa->nama_lengkap }}</td>
                   @foreach ($dates as $date)
-                    @php $st = $pivot[$date] ?? null; @endphp
-                    <td class="text-center px-0 {{ $st ? 'st-'.$st : '' }}"
-                      title="{{ ucfirst($st ?? '') }}" style="border-right: 1px solid rgba(255,255,255,0.05);">
-                      {{ $st ? strtoupper(substr($st, 0, 1)) : '' }}
+                    @php 
+                      $st = $pivot[$date] ?? null; 
+                      $isLibur = ($st === 'libur');
+                      $displayChar = $st ? ($isLibur ? 'L' : strtoupper(substr($st, 0, 1))) : '';
+                      $bgStyle = $isLibur ? 'background: rgba(148, 163, 184, 0.15); color: #94a3b8;' : '';
+                    @endphp
+                    <td class="text-center px-0 {{ $st && !$isLibur ? 'st-'.$st : '' }}"
+                      title="{{ $isLibur ? 'Hari Libur' : ucfirst($st ?? '') }}" style="border-right: 1px solid rgba(255,255,255,0.05); {{ $bgStyle }}">
+                      {{ $displayChar }}
                     </td>
                   @endforeach
                   <td class="text-center fw-bold text-success">{{ $cH }}</td>

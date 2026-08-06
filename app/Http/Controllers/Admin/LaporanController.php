@@ -94,23 +94,40 @@ class LaporanController extends Controller
                 foreach ($siswaList as $s) {
                     $rows = $absensiRows->get($s->id, collect())->keyBy(fn ($r) => $r->tanggal->format('Y-m-d'));
                     foreach ($dates as $date) {
-                        $absensiPivot[$s->id][$date] = $rows->get($date)?->status ?? null;
+                        $st = $rows->get($date)?->status ?? null;
+                        // Cek jika tanggal libur bagi siswa (Holidays + Jadwal Kelas + Weekend)
+                        if (\App\Helpers\JadwalAbsensiHelper::isHariLiburSiswa($s, $date)) {
+                            if ($st === 'alpha' || $st === null) {
+                                $st = 'libur';
+                            }
+                        }
+                        $absensiPivot[$s->id][$date] = $st;
                     }
                 }
             }
         }
 
         $dates = $dates ?? [];
-        $summary = $filters['kelas_id'] ? AbsensiSiswa::where('kelas_id', $filters['kelas_id'])
-            ->whereYear('tanggal', $filters['tahun'])
-            ->whereMonth('tanggal', $filters['bulan'])
-            ->selectRaw("COUNT(*) as total,
-                SUM(CASE WHEN status='hadir' THEN 1 ELSE 0 END) as hadir,
-                SUM(CASE WHEN status='izin' THEN 1 ELSE 0 END) as izin,
-                SUM(CASE WHEN status='sakit' THEN 1 ELSE 0 END) as sakit,
-                SUM(CASE WHEN status='alpha' THEN 1 ELSE 0 END) as alpha,
-                SUM(CASE WHEN status='terlambat' THEN 1 ELSE 0 END) as terlambat")
-            ->first() : null;
+        
+        // Hitung Summary Stats dari $absensiPivot agar mengabaikan Hari Libur
+        $summary = (object) [
+            'total'     => 0,
+            'hadir'     => 0,
+            'izin'      => 0,
+            'sakit'     => 0,
+            'alpha'     => 0,
+            'terlambat' => 0,
+        ];
+
+        foreach ($absensiPivot as $sId => $datesMap) {
+            foreach ($datesMap as $dStr => $st) {
+                if ($st === 'hadir') { $summary->hadir++; $summary->total++; }
+                elseif ($st === 'izin') { $summary->izin++; $summary->total++; }
+                elseif ($st === 'sakit') { $summary->sakit++; $summary->total++; }
+                elseif ($st === 'alpha') { $summary->alpha++; $summary->total++; }
+                elseif ($st === 'terlambat') { $summary->terlambat++; $summary->total++; }
+            }
+        }
 
         return view('admin.laporan.index', compact(
             'kelasOptions', 'filters', 'summary', 'siswaList', 'dates', 'absensiPivot', 'kelas',
@@ -180,7 +197,13 @@ class LaporanController extends Controller
             foreach ($siswaList as $s) {
                 $rows = $absensiRows->get($s->id, collect())->keyBy(fn ($r) => $r->tanggal->format('Y-m-d'));
                 foreach ($dates as $date) {
-                    $absensiPivot[$s->id][$date] = $rows->get($date)?->status ?? null;
+                    $st = $rows->get($date)?->status ?? null;
+                    if (\App\Helpers\JadwalAbsensiHelper::isHariLiburSiswa($s, $date)) {
+                        if ($st === 'alpha' || $st === null) {
+                            $st = 'libur';
+                        }
+                    }
+                    $absensiPivot[$s->id][$date] = $st;
                 }
             }
         }

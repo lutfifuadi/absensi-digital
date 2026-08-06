@@ -309,8 +309,9 @@
           $i = collect($pivot)->filter(fn($v) => $v === 'izin')->count();
           $a = collect($pivot)->filter(fn($v) => $v === 'alpha')->count();
           $t = collect($pivot)->filter(fn($v) => $v === 'terlambat')->count();
+          $l = collect($pivot)->filter(fn($v) => $v === 'libur')->count();
           
-          $effectiveDays = count($dates);
+          $effectiveDays = max(0, count($dates) - $l);
           $persen = $effectiveDays > 0 ? round((($h + $t) / $effectiveDays) * 100) : 0;
         @endphp
         <tr>
@@ -319,11 +320,12 @@
           @foreach ($dates as $date)
             @php 
               $dt = \Carbon\Carbon::parse($date);
-              $isWeekend = in_array($dt->dayOfWeek, [\Carbon\Carbon::SATURDAY, \Carbon\Carbon::SUNDAY]);
               $st = $pivot[$date] ?? null; 
+              $isLibur = ($st === 'libur');
+              $isWeekend = in_array($dt->dayOfWeek, [\Carbon\Carbon::SATURDAY, \Carbon\Carbon::SUNDAY]);
             @endphp
-            <td class="{{ $st ? $st : ($isWeekend ? 'weekend' : '') }}">
-              {{ $st ? strtoupper(substr($st, 0, 1)) : ($isWeekend ? '-' : '') }}
+            <td class="{{ $isLibur ? 'weekend' : ($st ? $st : ($isWeekend ? 'weekend' : '')) }}">
+              {{ $st ? ($isLibur ? 'L' : strtoupper(substr($st, 0, 1))) : ($isWeekend ? '-' : '') }}
             </td>
           @endforeach
           <td class="hadir">{{ $h }}</td>

@@ -76,13 +76,14 @@
     @foreach ($siswaList as $siswa)
       @php
         $pivot = $absensiPivot[$siswa->id] ?? [];
-        $h = collect($pivot)->filter(fn($v) => isset($v['status']) ? $v['status'] === 'hadir' : $v === 'hadir')->count();
-        $s = collect($pivot)->filter(fn($v) => isset($v['status']) ? $v['status'] === 'sakit' : $v === 'sakit')->count();
-        $i = collect($pivot)->filter(fn($v) => isset($v['status']) ? $v['status'] === 'izin' : $v === 'izin')->count();
-        $a = collect($pivot)->filter(fn($v) => isset($v['status']) ? $v['status'] === 'alpha' : $v === 'alpha')->count();
-        $t = collect($pivot)->filter(fn($v) => isset($v['status']) ? $v['status'] === 'terlambat' : $v === 'terlambat')->count();
+        $h = collect($pivot)->filter(fn($v) => (is_array($v) ? ($v['status'] ?? null) : $v) === 'hadir')->count();
+        $s = collect($pivot)->filter(fn($v) => (is_array($v) ? ($v['status'] ?? null) : $v) === 'sakit')->count();
+        $i = collect($pivot)->filter(fn($v) => (is_array($v) ? ($v['status'] ?? null) : $v) === 'izin')->count();
+        $a = collect($pivot)->filter(fn($v) => (is_array($v) ? ($v['status'] ?? null) : $v) === 'alpha')->count();
+        $t = collect($pivot)->filter(fn($v) => (is_array($v) ? ($v['status'] ?? null) : $v) === 'terlambat')->count();
+        $l = collect($pivot)->filter(fn($v) => (is_array($v) ? ($v['status'] ?? null) : $v) === 'libur')->count();
         
-        $effectiveDays = count($dates);
+        $effectiveDays = max(0, count($dates) - $l);
         $persen = $effectiveDays > 0 ? round((($h + $t) / $effectiveDays) * 100) : 0;
       @endphp
       
@@ -97,6 +98,7 @@
             $isWeekend = in_array($dt->dayOfWeek, [\Carbon\Carbon::SATURDAY, \Carbon\Carbon::SUNDAY]);
             $rec = $pivot[$date] ?? null; 
             $st = is_array($rec) ? ($rec['status'] ?? null) : $rec;
+            $isLibur = ($st === 'libur');
 
             $bg = '#FFFFFF';
             $fg = '#000000';
@@ -105,10 +107,10 @@
             elseif ($st === 'izin') { $bg = '#FEF3C7'; $fg = '#92400E'; }
             elseif ($st === 'alpha') { $bg = '#FEE2E2'; $fg = '#991B1B'; }
             elseif ($st === 'terlambat') { $bg = '#F3E8FF'; $fg = '#6B21A8'; }
-            elseif ($isWeekend) { $bg = '#F1F5F9'; $fg = '#94A3B8'; }
+            elseif ($isLibur || $isWeekend) { $bg = '#F1F5F9'; $fg = '#94A3B8'; }
           @endphp
           <td style="background-color:{{ $bg }}; color:{{ $fg }}; text-align:center; font-weight:bold; border:1px solid #CBD5E1;">
-            {{ $st ? strtoupper(substr($st, 0, 1)) : ($isWeekend ? '-' : '') }}
+            {{ $st ? ($st === 'libur' ? 'L' : strtoupper(substr($st, 0, 1))) : ($isWeekend ? '-' : '') }}
           </td>
         @endforeach
         <td rowspan="2" style="background-color:#D1FAE5; color:#065F46; text-align:center; vertical-align:middle; font-weight:bold; border:1px solid #CBD5E1;">{{ $h }}</td>
