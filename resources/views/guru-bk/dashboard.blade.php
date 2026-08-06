@@ -41,14 +41,14 @@
           </p>
           {{-- Quick Action Buttons --}}
           <div class="d-flex flex-wrap gap-2 mt-3">
-            <a href="{{ route('bk.pelanggaran.create') }}" class="btn btn-danger btn-sm d-inline-flex align-items-center gap-1">
+            <a href="{{ route('bk.pelanggaran.create') }}" class="das-btn das-btn--danger d-inline-flex align-items-center gap-1">
               <i class="ti tabler-plus"></i> Input Pelanggaran
             </a>
-            <a href="{{ route('bk.sp.create') }}" class="btn btn-warning btn-sm d-inline-flex align-items-center gap-1">
+            <a href="{{ route('bk.sp.create') }}" class="das-btn das-btn--warning d-inline-flex align-items-center gap-1">
               <i class="ti tabler-file-certificate"></i> Terbitkan SP
             </a>
-            <a href="{{ route('bk.rekap.index') }}" class="btn btn-label-secondary btn-sm d-inline-flex align-items-center gap-1">
-              <i class="ti tabler-chart-bar"></i> Lihat Rekap
+            <a href="{{ route('bk.rekap.index') }}" class="das-btn das-btn--info d-inline-flex align-items-center gap-1">
+              <i class="ti tabler-report-analytics"></i> Rekap Pelanggaran Harian (Semua Kelas)
             </a>
           </div>
         </div>

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\GuruBk;
 use App\Http\Controllers\Controller;
 use App\Services\BKDashboardService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class BKDashboardController extends Controller
 {
@@ -20,9 +22,26 @@ class BKDashboardController extends Controller
      */
     public function index(Request $request)
     {
-        $taId = $request->get('tahun_akademik_id');
-        $dashboardData = $this->dashboardService->getDashboardData($taId);
-
-        return view('guru-bk.dashboard', $dashboardData);
+        try {
+            $taId = $request->get('tahun_akademik_id');
+            $dashboardData = $this->dashboardService->getDashboardData($taId);
+            return view('guru-bk.dashboard', $dashboardData);
+        } catch (Throwable $e) {
+            Log::error('Error loading BK Dashboard: ' . $e->getMessage(), ['exception' => $e]);
+            $fallbackData = [
+                'tahunAkademik' => null,
+                'topViolators' => collect(),
+                'rekapKategori' => collect(),
+                'spAktif' => collect(),
+                'chartMonths' => [],
+                'chartData' => [],
+                'summary' => [
+                    'totalPelanggaranBulanIni' => 0,
+                    'totalSiswaBermasalah' => 0,
+                    'totalSpDiterbitkan' => 0,
+                ],
+            ];
+            return view('guru-bk.dashboard', $fallbackData);
+        }
     }
 }

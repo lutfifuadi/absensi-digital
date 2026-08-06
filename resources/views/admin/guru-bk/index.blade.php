@@ -111,10 +111,10 @@
       </div>
 
       <div class="das-hero__actions d-flex gap-2">
-        <button type="button" class="btn das-btn --warning" data-bs-toggle="modal" data-bs-target="#modalAssignGuruBk">
+        <button type="button" class="das-btn das-btn--warning" data-bs-toggle="modal" data-bs-target="#modalAssignGuruBk">
           <i class="ti tabler-user-plus me-1"></i> Tetapkan Guru BK
         </button>
-        <a href="{{ route('bk.dashboard') }}" class="btn das-btn --info">
+        <a href="{{ route('bk.dashboard') }}" class="das-btn das-btn--info">
           <i class="ti tabler-dashboard me-1"></i> Dashboard BK
         </a>
       </div>
@@ -159,10 +159,10 @@
         </div>
         <div class="col-md-3">
           <div class="d-flex gap-2">
-            <button type="submit" class="btn das-btn --info w-100">
+            <button type="submit" class="das-btn das-btn--info w-100">
               <i class="ti tabler-search me-1"></i> Cari
             </button>
-            <button type="button" id="resetFilterBtn" class="btn das-btn --secondary" title="Reset">
+            <button type="button" id="resetFilterBtn" class="das-btn das-btn--secondary" title="Reset">
               <i class="ti tabler-refresh"></i>
             </button>
           </div>
