@@ -1611,20 +1611,21 @@ document.addEventListener('DOMContentLoaded', function() {
         method: 'POST',
         headers: {
           'X-CSRF-TOKEN': '{{ csrf_token() }}',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
         },
         body: formData
       })
-      .then(response => response.json())
-      .then(data => {
+      .then(response => response.json().then(data => ({ status: response.status, body: data })))
+      .then(({ status, body }) => {
         btnSimpanFotoSiswa.disabled = false;
         spinnerUpload.classList.add('d-none');
         iconCheckFoto.classList.remove('d-none');
 
-        if (data.success) {
+        if (status === 200 && body.success) {
           const avatarImg = document.getElementById('das-student-avatar-img');
-          if (avatarImg && data.photo_url) {
-            avatarImg.src = data.photo_url;
+          if (avatarImg && body.photo_url) {
+            avatarImg.src = body.photo_url;
           }
 
           const modalEl = document.getElementById('modalUploadFotoSiswa');
@@ -1637,12 +1638,6 @@ document.addEventListener('DOMContentLoaded', function() {
             html: `
               <div class="py-2 text-center">
                 <div class="mb-3 position-relative d-inline-block">
-                  <img src="${data.photo_url}" class="rounded-circle border border-4 border-success shadow" style="width: 110px; height: 110px; object-fit: cover;">
-                  <span class="badge bg-success rounded-circle position-absolute bottom-0 end-0 p-2 border border-2 border-white shadow-sm" style="transform: translate(15%, 15%);">
-                    <i class="ti tabler-check fs-6 text-white"></i>
-                  </span>
-                </div>
-                <p class="mb-1 text-dark fw-bold" style="font-size: 0.95rem;">File: ${data.filename || 'pas_foto'}</p>
                 <p class="text-muted small mb-0">Pas foto telah berhasil diperbarui & disinkronkan ke Kartu Pelajar Digital.</p>
               </div>
             `,
@@ -1716,6 +1711,8 @@ document.addEventListener('DOMContentLoaded', function() {
       fetch('{{ route("siswa.update-biodata") }}', {
         method: 'POST',
         headers: {
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest'
         },
         body: formData

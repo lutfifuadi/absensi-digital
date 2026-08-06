@@ -568,6 +568,8 @@
         fetch('{{ route("siswa.update-biodata") }}', {
           method: 'POST',
           headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
             'X-Requested-With': 'XMLHttpRequest'
           },
           body: formData

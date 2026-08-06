@@ -287,8 +287,10 @@ Route::middleware([
 
         Route::post('/absensi-mandiri', [AbsensiMandiriController::class, 'store'])->name('siswa.absensi-mandiri.store');
         Route::post('/upload-foto', [PortalSiswaController::class, 'uploadFoto'])->name('siswa.upload-foto');
+        Route::get('/upload-foto', fn () => redirect()->route('siswa.dashboard'));
         Route::post('/update-tanggal-lahir', [PortalSiswaController::class, 'updateTanggalLahir'])->name('siswa.update-tanggal-lahir');
         Route::post('/update-biodata', [PortalSiswaController::class, 'updateBiodata'])->name('siswa.update-biodata');
+        Route::get('/update-biodata', fn () => redirect()->route('siswa.dashboard'));
     });
 
     // ── PORTAL GURU ───────────────────────────────────────────────────────────
