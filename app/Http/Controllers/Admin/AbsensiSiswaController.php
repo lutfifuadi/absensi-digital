@@ -705,11 +705,12 @@ class AbsensiSiswaController extends Controller
                     'tanggal'  => $tanggal,
                 ],
                 [
-                    'kelas_id'   => $kelasId,
-                    'status'     => $status,
-                    'keterangan' => $item['keterangan'] ?? null,
-                    'metode'     => 'manual',
-                    'jam_masuk'  => $jamMasuk,
+                    'kelas_id'     => $kelasId,
+                    'status'       => $status,
+                    'keterangan'   => $item['keterangan'] ?? null,
+                    'metode'       => 'manual',
+                    'jam_masuk'    => $jamMasuk,
+                    'dicatat_oleh' => auth()->id() ?? session('piket_user_id'),
                 ]
             );
             $count++;
@@ -802,11 +803,12 @@ class AbsensiSiswaController extends Controller
                     'tanggal'  => $validated['tanggal'],
                 ],
                 [
-                    'kelas_id'   => $validated['kelas_id'],
-                    'status'     => $status,
-                    'keterangan' => $validated['keterangan'] ?? null,
-                    'metode'     => 'manual',
-                    'jam_masuk'  => $jamMasuk,
+                    'kelas_id'     => $validated['kelas_id'],
+                    'status'       => $status,
+                    'keterangan'   => $validated['keterangan'] ?? null,
+                    'metode'       => 'manual',
+                    'jam_masuk'    => $jamMasuk,
+                    'dicatat_oleh' => auth()->id() ?? session('piket_user_id'),
                 ]
             );
 

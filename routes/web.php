@@ -432,6 +432,8 @@ Route::middleware([
         Route::get('/scanner/stats', [PiketScannerController::class, 'stats'])->name('piket.scanner.stats');
         Route::get('/rekap', [PiketScannerController::class, 'rekap'])->name('piket.rekap');
         Route::post('/rekap/update', [PiketScannerController::class, 'updateRekap'])->name('piket.rekap.update');
+        Route::get('/rekap-saya', [PiketScannerController::class, 'rekapSaya'])->name('piket.rekap-saya');
+        Route::get('/rekap-saya/pdf', [PiketScannerController::class, 'rekapSayaPdf'])->name('piket.rekap-saya.pdf');
 
         // Absensi Cepat Siswa (Portal Piket)
         Route::get('/absensi-cepat', [AbsensiSiswaController::class, 'bulkForm'])

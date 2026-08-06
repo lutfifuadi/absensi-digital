@@ -562,7 +562,14 @@
     <div class="brand-icon"><i class="ti tabler-camera"></i></div>
     <div>
       <h1>Scan QR Absensi</h1>
-      <p>Pintu Gerbang & Guru Piket</p>
+      <p>
+        Pintu Gerbang
+        @if(session('piket_user_name'))
+          — Petugas Piket: <strong class="text-info" style="color:#00cfe8 !important;">{{ session('piket_user_name') }}</strong>
+        @else
+          & Guru Piket
+        @endif
+      </p>
     </div>
   </div>
   <div class="nav-right" style="display:flex; align-items:center; gap:0.5rem;">

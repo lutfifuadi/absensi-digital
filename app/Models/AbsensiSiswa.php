@@ -28,6 +28,7 @@ class AbsensiSiswa extends Model
         'points_earned',
         'is_pulang_cepat',
         'izin_pulang_cepat_id',
+        'dicatat_oleh',
     ];
 
     protected $casts = [
@@ -47,6 +48,11 @@ class AbsensiSiswa extends Model
     public function guru()
     {
         return $this->belongsTo(Guru::class);
+    }
+
+    public function pencatat()
+    {
+        return $this->belongsTo(User::class, 'dicatat_oleh');
     }
 
     public function izinPulangCepat()

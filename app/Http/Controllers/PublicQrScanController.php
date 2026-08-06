@@ -46,7 +46,7 @@ class PublicQrScanController extends Controller
     }
 
     /**
-     * Proses verifikasi password scan QR.
+     * Proses verifikasi password scan QR (Strict Individual Guru Piket Password).
      */
     public function auth(Request $request)
     {
@@ -56,34 +56,43 @@ class PublicQrScanController extends Controller
 
         $ip = $request->ip();
 
-        $storedHash = setting('password_unlock_scan_qr');
+        // Cari user aktif yang memiliki role piket
+        $piketUsers = \App\Models\User::query()
+            ->withRole(\App\Models\User::ROLE_PIKET)
+            ->get();
 
-        if (! $storedHash) {
-            QrScanLogger::warning('LOGIN_NO_PASSWORD', [
-                'ip'  => $ip,
-                'ket' => 'Password scan QR belum diatur oleh admin',
-            ]);
+        $matchedUser = null;
 
-            return back()->withErrors(['password' => 'Password scan QR belum diatur oleh admin. Hubungi admin sekolah.']);
+        foreach ($piketUsers as $piketUser) {
+            if (Hash::check($request->password, $piketUser->password)) {
+                $matchedUser = $piketUser;
+                break;
+            }
         }
 
-        if (! Hash::check($request->password, $storedHash)) {
-            QrScanLogger::error('LOGIN_FAILED', [
+        if (! $matchedUser) {
+            QrScanLogger::error('LOGIN_FAILED_NO_PIKET_MATCH', [
                 'ip'  => $ip,
-                'ket' => 'Password salah',
+                'ket' => 'Password tidak cocok dengan akun Guru Piket aktif mana pun',
             ]);
 
-            return back()->withErrors(['password' => 'Password salah. Coba lagi.']);
+            return back()->withErrors(['password' => 'Password salah atau akun Anda tidak terdaftar sebagai Guru Piket aktif.']);
         }
 
-        QrScanLogger::info('LOGIN_SUCCESS', [
-            'ip'  => $ip,
-            'ket' => 'Sesi scan QR publik berhasil dibuka',
+        QrScanLogger::info('LOGIN_SUCCESS_PIKET', [
+            'ip'            => $ip,
+            'piket_user_id' => $matchedUser->id,
+            'piket_name'    => $matchedUser->name,
+            'ket'           => 'Sesi scan QR publik berhasil dibuka oleh Guru Piket: ' . $matchedUser->name,
         ]);
 
-        session(['qr_scan_authenticated' => true]);
+        session([
+            'qr_scan_authenticated' => true,
+            'piket_user_id'         => $matchedUser->id,
+            'piket_user_name'       => $matchedUser->name,
+        ]);
 
-        return redirect()->route('public.scan-qr.scan');
+        return redirect()->route('public.scan-qr.scan')->with('success', "Selamat bertugas, {$matchedUser->name}!");
     }
 
     /**
@@ -229,19 +238,23 @@ class PublicQrScanController extends Controller
 
                 if (!$absensi) {
                     $absensi = AbsensiSiswa::create([
-                        'siswa_id'   => $siswa->id,
-                        'kelas_id'   => $siswa->kelas_id,
-                        'tanggal'    => $tanggal,
-                        'jam_masuk'  => null,
-                        'jam_pulang' => $currentTime,
-                        'status'     => 'hadir',
-                        'keterangan' => 'Scan QR pulang (Tanpa presensi masuk pagi)',
-                        'guru_id'    => null,
-                        'metode'     => 'qr',
+                        'siswa_id'     => $siswa->id,
+                        'kelas_id'     => $siswa->kelas_id,
+                        'tanggal'      => $tanggal,
+                        'jam_masuk'    => null,
+                        'jam_pulang'   => $currentTime,
+                        'status'       => 'hadir',
+                        'keterangan'   => 'Scan QR pulang (Tanpa presensi masuk pagi)',
+                        'guru_id'      => null,
+                        'metode'       => 'qr',
+                        'dicatat_oleh' => session('piket_user_id') ?? auth()->id(),
                     ]);
                     $isTanpaMasuk = true;
                 } else {
-                    $absensi->update(['jam_pulang' => $currentTime]);
+                    $absensi->update([
+                        'jam_pulang'   => $currentTime,
+                        'dicatat_oleh' => session('piket_user_id') ?? auth()->id(),
+                    ]);
                     if (empty($absensi->jam_masuk)) {
                         $isTanpaMasuk = true;
                         if (empty($absensi->keterangan)) {
@@ -312,14 +325,15 @@ class PublicQrScanController extends Controller
 
             try {
                 AbsensiSiswa::create([
-                    'siswa_id'    => $siswa->id,
-                    'kelas_id'    => $siswa->kelas_id,
-                    'tanggal'     => $tanggal,
-                    'jam_masuk'   => $currentTime,
-                    'status'      => $status,
-                    'keterangan'  => 'Scan QR publik oleh guru piket',
-                    'guru_id'     => null,
-                    'metode'      => 'qr',
+                    'siswa_id'     => $siswa->id,
+                    'kelas_id'     => $siswa->kelas_id,
+                    'tanggal'      => $tanggal,
+                    'jam_masuk'    => $currentTime,
+                    'status'       => $status,
+                    'keterangan'   => 'Scan QR publik oleh guru piket',
+                    'guru_id'      => null,
+                    'metode'       => 'qr',
+                    'dicatat_oleh' => session('piket_user_id') ?? auth()->id(),
                 ]);
                 Cache::forget('live_board_leaderboard_data_otomatis');
                 Cache::forget('live_board_leaderboard_data_masuk');

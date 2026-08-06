@@ -31,6 +31,12 @@
       "icon": "menu-icon ti tabler-report-analytics"
     },
     {
+      "name": "Rekap Piket Saya",
+      "icon": "menu-icon ti tabler-user-check",
+      "slug": "piket.rekap-saya",
+      "url": "/piket/rekap-saya"
+    },
+    {
       "name": "Rekap Harian Piket",
       "icon": "menu-icon ti tabler-report",
       "slug": "piket.rekap",

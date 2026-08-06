@@ -118,19 +118,23 @@ class PiketScannerController extends Controller
 
                 if (!$absensi) {
                     $absensi = AbsensiSiswa::create([
-                        'siswa_id'   => $siswa->id,
-                        'kelas_id'   => $siswa->kelas_id,
-                        'tanggal'    => $tanggal,
-                        'jam_masuk'  => null,
-                        'jam_pulang' => $currentTime,
-                        'status'     => 'hadir',
-                        'keterangan' => 'Scan QR pulang piket (Tanpa presensi masuk pagi)',
-                        'guru_id'    => null,
-                        'metode'     => 'qr',
+                        'siswa_id'     => $siswa->id,
+                        'kelas_id'     => $siswa->kelas_id,
+                        'tanggal'      => $tanggal,
+                        'jam_masuk'    => null,
+                        'jam_pulang'   => $currentTime,
+                        'status'       => 'hadir',
+                        'keterangan'   => 'Scan QR pulang piket (Tanpa presensi masuk pagi)',
+                        'guru_id'      => null,
+                        'metode'       => 'qr',
+                        'dicatat_oleh' => auth()->id() ?? session('piket_user_id'),
                     ]);
                     $isTanpaMasuk = true;
                 } else {
-                    $absensi->update(['jam_pulang' => $currentTime]);
+                    $absensi->update([
+                        'jam_pulang'   => $currentTime,
+                        'dicatat_oleh' => auth()->id() ?? session('piket_user_id'),
+                    ]);
                     if (empty($absensi->jam_masuk)) {
                         $isTanpaMasuk = true;
                         if (empty($absensi->keterangan)) {
@@ -199,13 +203,14 @@ class PiketScannerController extends Controller
 
             try {
                 AbsensiSiswa::create([
-                    'siswa_id'    => $siswa->id,
-                    'kelas_id'    => $siswa->kelas_id,
-                    'tanggal'     => $tanggal,
-                    'jam_masuk'   => $currentTime,
-                    'status'      => $status,
-                    'keterangan'  => 'Scan QR internal oleh Guru Piket (User: ' . $username . ')',
-                    'metode'      => 'qr',
+                    'siswa_id'     => $siswa->id,
+                    'kelas_id'     => $siswa->kelas_id,
+                    'tanggal'      => $tanggal,
+                    'jam_masuk'    => $currentTime,
+                    'status'       => $status,
+                    'keterangan'   => 'Scan QR internal oleh Guru Piket (User: ' . $username . ')',
+                    'metode'       => 'qr',
+                    'dicatat_oleh' => auth()->id() ?? session('piket_user_id'),
                 ]);
             } catch (\Illuminate\Database\QueryException $e) {
                 if ($e->errorInfo[1] === 1062) {
@@ -496,18 +501,20 @@ class PiketScannerController extends Controller
 
         if ($absensi) {
             $absensi->update([
-                'status'     => $status,
-                'keterangan' => $keterangan ?: 'Diupdate oleh piket (' . $username . ')',
+                'status'       => $status,
+                'keterangan'   => $keterangan ?: 'Diupdate oleh piket (' . $username . ')',
+                'dicatat_oleh' => auth()->id() ?? session('piket_user_id'),
             ]);
         } else {
             AbsensiSiswa::create([
-                'siswa_id'    => $siswaId,
-                'kelas_id'    => $siswa->kelas_id,
-                'tanggal'     => $tanggal,
-                'jam_masuk'   => $currentTime,
-                'status'      => $status,
-                'keterangan'  => $keterangan ?: 'Dicatat manual oleh piket (' . $username . ')',
-                'metode'      => 'manual',
+                'siswa_id'     => $siswaId,
+                'kelas_id'     => $siswa->kelas_id,
+                'tanggal'      => $tanggal,
+                'jam_masuk'    => $currentTime,
+                'status'       => $status,
+                'keterangan'   => $keterangan ?: 'Dicatat manual oleh piket (' . $username . ')',
+                'metode'       => 'manual',
+                'dicatat_oleh' => auth()->id() ?? session('piket_user_id'),
             ]);
         }
 
@@ -515,5 +522,108 @@ class PiketScannerController extends Controller
             'success' => true,
             'message' => 'Status kehadiran ' . $siswa->nama_lengkap . ' berhasil diperbarui.',
         ]);
+    }
+
+    /**
+     * Halaman Laporan "Rekap Piket Saya" khusus Guru Piket YBS.
+     */
+    public function rekapSaya(Request $request)
+    {
+        $user = $request->user();
+        $piketUserId = $user ? $user->id : session('piket_user_id');
+
+        $tanggal = $request->get('tanggal', now()->toDateString());
+        $status  = $request->get('status');
+        $search  = $request->get('search');
+        $kelasId = $request->get('kelas_id');
+
+        $kelasOptions = Kelas::orderBy('nama', 'asc')->get();
+
+        $query = AbsensiSiswa::with(['siswa.kelas', 'pencatat'])
+            ->whereDate('tanggal', $tanggal);
+
+        if ($piketUserId) {
+            $query->where('dicatat_oleh', $piketUserId);
+        }
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        if ($kelasId) {
+            $query->where('kelas_id', $kelasId);
+        }
+
+        if ($search) {
+            $query->whereHas('siswa', function ($q) use ($search) {
+                $q->where('nama_lengkap', 'like', "%{$search}%")
+                  ->orWhere('nisn', 'like', "%{$search}%");
+            });
+        }
+
+        // Summary Stats Shift Saya
+        $summaryQuery = AbsensiSiswa::whereDate('tanggal', $tanggal);
+        if ($piketUserId) {
+            $summaryQuery->where('dicatat_oleh', $piketUserId);
+        }
+
+        $totalScanSaya   = (clone $summaryQuery)->count();
+        $hadirSaya       = (clone $summaryQuery)->where('status', 'hadir')->count();
+        $terlambatSaya   = (clone $summaryQuery)->where('status', 'terlambat')->count();
+        $pulangCepatSaya = (clone $summaryQuery)->where(function ($q) {
+            $q->where('is_pulang_cepat', true)
+              ->orWhereNotNull('jam_pulang');
+        })->count();
+
+        $logs = $query->orderBy('updated_at', 'desc')->paginate(15)->withQueryString();
+
+        return view('piket.rekap-saya', compact(
+            'logs',
+            'kelasOptions',
+            'tanggal',
+            'status',
+            'search',
+            'kelasId',
+            'totalScanSaya',
+            'hadirSaya',
+            'terlambatSaya',
+            'pulangCepatSaya'
+        ));
+    }
+
+    /**
+     * Cetak Rekap Piket Saya ke PDF.
+     */
+    public function rekapSayaPdf(Request $request)
+    {
+        $user = $request->user();
+        $piketUserId = $user ? $user->id : session('piket_user_id');
+
+        $tanggal = $request->get('tanggal', now()->toDateString());
+        $status  = $request->get('status');
+        $kelasId = $request->get('kelas_id');
+
+        $query = AbsensiSiswa::with(['siswa.kelas', 'pencatat'])
+            ->whereDate('tanggal', $tanggal);
+
+        if ($piketUserId) {
+            $query->where('dicatat_oleh', $piketUserId);
+        }
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        if ($kelasId) {
+            $query->where('kelas_id', $kelasId);
+        }
+
+        $logs = $query->orderBy('updated_at', 'desc')->get();
+        $namaSekolah = Pengaturan::where('key', 'nama_sekolah')->value('value') ?? 'Madrasah Aliyah';
+
+        return \Barryvdh\DomPDF\Facade\Pdf::loadView(
+            'piket.rekap-saya-pdf',
+            compact('logs', 'tanggal', 'user', 'namaSekolah')
+        )->setPaper('a4', 'portrait')->download("laporan-shift-piket-{$tanggal}.pdf");
     }
 }
