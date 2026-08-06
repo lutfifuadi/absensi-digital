@@ -60,13 +60,13 @@
             <span class="badge bg-label-info text-uppercase"><i class="ti tabler-user-shield me-1"></i> Guru Piket Operasional</span>
           </td>
           <td class="pe-4 text-end">
-            <div class="d-flex justify-content-end gap-1">
-              <a href="{{ route('piket.dashboard') }}" class="action-btn text-info" title="Lihat Portal Piket" data-bs-toggle="tooltip">
+            <div class="d-flex justify-content-end gap-2">
+              <a href="{{ route('piket.dashboard') }}" class="action-btn --info" title="Lihat Portal Piket" data-bs-toggle="tooltip">
                 <i class="ti tabler-dashboard fs-5"></i>
               </a>
               @if ($item->id)
                 <button type="button"
-                  class="action-btn text-success btn-impersonate-piket"
+                  class="action-btn --success btn-impersonate-piket"
                   title="Login Sebagai Guru Piket"
                   data-bs-toggle="tooltip"
                   data-url="{{ route('admin.impersonate.login-as', $item->id) }}"
@@ -76,7 +76,7 @@
               @endif
               @if ($profile)
                 <button type="button"
-                  class="action-btn text-danger btn-delete-guru-piket"
+                  class="action-btn --danger btn-delete-guru-piket"
                   title="Cabut Status Guru Piket"
                   data-bs-toggle="tooltip"
                   data-id="{{ $profile->id }}"

@@ -120,6 +120,63 @@
       border-color: rgba(255, 255, 255, 0.3) !important;
     }
 
+    /* Custom Stylings for Action Buttons in Table */
+    .action-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 36px !important;
+      height: 36px !important;
+      border-radius: 8px !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+      transition: all 0.2s ease !important;
+      cursor: pointer !important;
+      text-decoration: none !important;
+      outline: none !important;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .action-btn.--info {
+      color: #00cfe8 !important;
+      border-color: rgba(0, 207, 232, 0.3) !important;
+      background: rgba(0, 207, 232, 0.12) !important;
+    }
+
+    .action-btn.--info:hover {
+      background: #00cfe8 !important;
+      color: #0f172a !important;
+      box-shadow: 0 4px 14px rgba(0, 207, 232, 0.4) !important;
+    }
+
+    .action-btn.--success {
+      color: #28c76f !important;
+      border-color: rgba(40, 199, 111, 0.3) !important;
+      background: rgba(40, 199, 111, 0.12) !important;
+    }
+
+    .action-btn.--success:hover {
+      background: #28c76f !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 14px rgba(40, 199, 111, 0.4) !important;
+    }
+
+    .action-btn.--danger {
+      color: #ea5455 !important;
+      border-color: rgba(234, 84, 85, 0.3) !important;
+      background: rgba(234, 84, 85, 0.12) !important;
+    }
+
+    .action-btn.--danger:hover {
+      background: #ea5455 !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 14px rgba(234, 84, 85, 0.4) !important;
+    }
+
     /* Modal Redesign for Guru Piket */
     .das-modal {
       background: #1e293b !important;
