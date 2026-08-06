@@ -27,23 +27,6 @@
       "url": "/piket/absensi-cepat"
     },
     {
-      "name": "Poin Pelanggaran",
-      "icon": "menu-icon ti tabler-swords",
-      "slug": ["admin.pelanggaran.index", "admin.pelanggaran.create"],
-      "submenu": [
-        {
-          "name": "Daftar Pelanggaran",
-          "slug": "admin.pelanggaran.index",
-          "url": "/admin/pelanggaran"
-        },
-        {
-          "name": "Tambah Pelanggaran",
-          "slug": "admin.pelanggaran.create",
-          "url": "/admin/pelanggaran/create"
-        }
-      ]
-    },
-    {
       "menuHeader": "Laporan & Rekapitulasi",
       "icon": "menu-icon ti tabler-report-analytics"
     },
