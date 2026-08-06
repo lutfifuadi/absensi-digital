@@ -571,7 +571,7 @@
           });
         });
 
-        // Handle Impersonate
+        // Handle Impersonate — harus menggunakan POST + CSRF (bukan GET)
         document.querySelectorAll('.btn-impersonate-piket').forEach(btn => {
           btn.addEventListener('click', function () {
             const url  = this.dataset.url;
@@ -606,7 +606,19 @@
               buttonsStyling: false
             }).then(result => {
               if (result.isConfirmed) {
-                window.location.href = url;
+                // Kirim via POST form agar CSRF terpenuhi dan masuk ke loginAs()
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = url;
+
+                const csrfInput = document.createElement('input');
+                csrfInput.type  = 'hidden';
+                csrfInput.name  = '_token';
+                csrfInput.value = '{{ csrf_token() }}';
+                form.appendChild(csrfInput);
+
+                document.body.appendChild(form);
+                form.submit();
               }
             });
           });
