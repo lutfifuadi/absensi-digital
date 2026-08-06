@@ -148,9 +148,10 @@
 
 @section('content')
   @php
-    $user = auth()->user();
-    $activeRole = session('active_role', $user->role);
-    $isStaffTu = request()->routeIs('tu.*') || $activeRole === \App\Models\User::ROLE_STAFF_TU || ($user->isRole(\App\Models\User::ROLE_STAFF_TU) && !$user->hasAnyRole(['super_admin', 'admin_sekolah']));
+    $isGuruPortal = request()->routeIs('guru.*') || (isset($isGuruRoute) && $isGuruRoute);
+    $isStaffTuPortal = request()->routeIs('tu.*') || (isset($isStaffTuRoute) && $isStaffTuRoute);
+    $isSiswaPortal = request()->routeIs('siswa.*') || auth()->user()->isRole(\App\Models\User::ROLE_SISWA);
+    $isPersonalPortal = $isGuruPortal || $isStaffTuPortal || $isSiswaPortal;
   @endphp
 
   {{-- ═══════════════════════════════════════════════════════
@@ -161,11 +162,11 @@
     <div class="das-hero__glass"></div>
     <div class="das-hero__grid-lines"></div>
 
-    <div class="das-hero__inner">
-      <div class="das-hero__identity">
-        <div class="das-hero__logo-wrapper">
+    <div class="das-hero__inner d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div class="das-hero__identity d-flex align-items-center gap-3">
+        <div class="das-hero__logo-wrapper flex-shrink-0">
           <div class="das-hero__logo-placeholder">
-            <i class="ti tabler-medical-cross"></i>
+            <i class="ti tabler-stethoscope fs-3"></i>
           </div>
           <div class="das-hero__logo-glow"></div>
         </div>
@@ -173,17 +174,22 @@
         <div class="das-hero__meta">
           <div class="das-hero__badge">
             <span class="pulse-dot"></span>
-            {{ $isStaffTu ? 'Riwayat Presensi Personal' : 'Pusat Pengajuan Dispensasi' }}
+            {{ $isPersonalPortal ? 'Riwayat Presensi Personal' : 'Pusat Pengajuan Dispensasi' }}
           </div>
-          <h4 class="das-hero__title text-gradient-gold">{{ $isStaffTu ? 'Riwayat Izin & Sakit Saya' : 'Izin & Sakit' }}</h4>
-          <p class="das-hero__subtitle">{{ $isStaffTu ? 'Daftar dan rekap pengajuan dispensasi kehadiran Anda.' : 'Proses pengajuan dispensasi kehadiran siswa, guru, dan staff.' }}</p>
+          <h4 class="das-hero__title text-gradient-gold">{{ $isPersonalPortal ? 'Riwayat Izin & Sakit Saya' : 'Izin & Sakit' }}</h4>
+          <p class="das-hero__subtitle">{{ $isPersonalPortal ? 'Daftar dan rekap pengajuan dispensasi kehadiran Anda.' : 'Proses pengajuan dispensasi kehadiran siswa, guru, dan staff.' }}</p>
         </div>
       </div>
 
       <div class="das-hero__actions">
         @if(!auth()->user()->isRole(\App\Models\User::ROLE_SISWA))
           @php
-            $createRoute = request()->routeIs('tu.*') ? route('tu.izin-sakit.create') : route('admin.izin-sakit.create');
+            $createRoute = route('admin.izin-sakit.create');
+            if ($isGuruPortal) {
+                $createRoute = route('guru.izin-sakit.create');
+            } elseif ($isStaffTuPortal) {
+                $createRoute = route('tu.izin-sakit.create');
+            }
           @endphp
           <a href="{{ $createRoute }}" class="das-btn das-btn--info">
             <i class="ti tabler-plus me-1"></i> Tambah Pengajuan
@@ -215,7 +221,7 @@
   <div class="das-panel mb-4">
     <div class="das-panel__body py-3">
       <form method="GET" class="row gy-2 gx-2 align-items-end">
-        @if (!$isStaffTu)
+        @if (!$isPersonalPortal)
           <div class="col-6 col-md-3">
             <label class="form-label text-white-50 small mb-1 fw-bold">KATEGORI</label>
             <select name="tipe" class="form-select form-select-sm" onchange="this.form.submit()" style="background: rgba(15, 23, 42, 0.4); color: white; border: 1px solid rgba(255,255,255,0.1);">
@@ -257,8 +263,10 @@
             style="background:rgba(255,255,255,0.04);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.8px;opacity:0.7;">
             <tr>
               <th class="ps-4 py-3" style="width:46px;">#</th>
-              @if (!$isStaffTu)
+              @if (!$isPersonalPortal)
                 <th class="py-3">Tipe</th>
+                <th class="py-3">Nama</th>
+              @else
                 <th class="py-3">Nama</th>
               @endif
               <th class="py-3 text-center">Jenis</th>
@@ -272,8 +280,22 @@
             @forelse($izinSakit as $item)
               <tr class="izin-sakit-row-hover">
                 <td class="ps-4 text-white-50 small">{{ $izinSakit->firstItem() + $loop->index }}</td>
-                @if (!$isStaffTu)
+                @if (!$isPersonalPortal)
                   <td><span class="badge bg-label-secondary">{{ ucfirst($item->tipe) }}</span></td>
+                  <td>
+                    <div class="fw-medium">
+                      @if ($item->tipe === 'siswa')
+                        {{ $item->siswa->nama_lengkap ?? '-' }}
+                      @elseif($item->tipe === 'guru')
+                        {{ $item->guru->nama_lengkap ?? '-' }}
+                      @else
+                        {{ $item->staff->nama_lengkap ?? '-' }}
+                      @endif
+                    </div>
+                    <small class="text-muted d-md-none">{{ $item->tanggal_mulai->format('d/m') }} –
+                      {{ $item->tanggal_selesai->format('d/m/Y') }}</small>
+                  </td>
+                @else
                   <td>
                     <div class="fw-medium">
                       @if ($item->tipe === 'siswa')

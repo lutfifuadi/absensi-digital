@@ -74,7 +74,7 @@ class IzinSakitController extends Controller
 
         $izinSakit = $query->paginate(20)->withQueryString();
 
-        return view('admin.izin-sakit.index', compact('izinSakit'));
+        return view('admin.izin-sakit.index', compact('izinSakit', 'isGuruRoute', 'isStaffTuRoute'));
     }
 
     public function create()
