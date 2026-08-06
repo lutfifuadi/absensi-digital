@@ -8,7 +8,7 @@
   .analitik-kpi {
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 0.75rem;
+    border-radius: 5px;
     padding: 1.25rem 1.5rem;
     transition: transform .2s, box-shadow .2s;
     height: 100%;
@@ -20,15 +20,15 @@
   .analitik-kpi__label   { font-size: .75rem; font-weight: 700; letter-spacing: .08em; color: rgba(255,255,255,.45); text-transform: uppercase; margin-bottom: .45rem; }
   .analitik-kpi__value   { font-size: 2rem; font-weight: 800; line-height: 1; color: #fff; }
   .analitik-kpi__sub     { font-size: .78rem; color: rgba(255,255,255,.45); margin-top: .35rem; }
-  .analitik-kpi__icon    { width: 42px; height: 42px; border-radius: 10px; display:flex; align-items:center; justify-content:center; font-size:1.35rem; }
-  .analitik-kpi__prog    { height: 5px; border-radius: 99px; background: rgba(255,255,255,.08); margin-top: .75rem; overflow:hidden; }
-  .analitik-kpi__prog-bar{ height:100%; border-radius:99px; transition: width .6s ease; }
+  .analitik-kpi__icon    { width: 42px; height: 42px; border-radius: 5px; display:flex; align-items:center; justify-content:center; font-size:1.35rem; }
+  .analitik-kpi__prog    { height: 5px; border-radius: 5px; background: rgba(255,255,255,.08); margin-top: .75rem; overflow:hidden; }
+  .analitik-kpi__prog-bar{ height:100%; border-radius:5px; transition: width .6s ease; }
 
   /* ── Chart Cards ── */
   .analitik-chart-card {
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 0.75rem;
+    border-radius: 5px;
     overflow: hidden;
     height: 100%;
   }
@@ -79,7 +79,7 @@
     backdrop-filter: blur(3px);
     z-index: 10;
     display: flex; align-items: center; justify-content: center;
-    border-radius: .75rem;
+    border-radius: 5px;
   }
 
   /* ── Filter panel ── */
@@ -550,7 +550,7 @@
       theme  : baseTheme,
       series : [{ name: 'Jumlah Scan', data: [] }],
       colors : [C.hadir, C.hadir, C.purple, C.terlambat, C.alpha],
-      plotOptions: { bar: { distributed: true, borderRadius: 5, columnWidth: '50%' } },
+      plotOptions: { bar: { distributed: true, borderRadius: 4, columnWidth: '50%' } },
       dataLabels: { enabled: true, style: { colors: ['#fff'], fontSize: '11px' } },
       xaxis  : { categories: [], labels: { style: { colors: C.text }, rotate: -20 }, axisBorder: { show: false } },
       yaxis  : { labels: { style: { colors: C.text } } },
