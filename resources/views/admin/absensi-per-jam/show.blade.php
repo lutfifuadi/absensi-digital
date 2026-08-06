@@ -656,7 +656,7 @@
               @php
                 $i = $loop->index;
                 $existing = $records->get($siswa->id);
-                $status = old("rows.{$i}.status", $existing->status ?? 'hadir');
+                $status = old("rows.{$i}.status", $existing ? $existing->status : '');
                 $lama = old("rows.{$i}.lama_terlambat", $existing->lama_terlambat ?? '');
                 $ket = old("rows.{$i}.keterangan", $existing->keterangan ?? '');
               @endphp
