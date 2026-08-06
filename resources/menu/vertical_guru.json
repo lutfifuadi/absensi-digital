@@ -57,10 +57,10 @@
       "url": "/admin/absensi-per-jam/rekap"
     },
     {
-      "name": "Rekap Absensi Siswa",
-      "icon": "menu-icon ti tabler-report-analytics",
-      "slug": "guru.laporan.index",
-      "url": "/guru/rekap-absensi"
+      "name": "Rekap Absensi Saya",
+      "icon": "menu-icon ti tabler-user-check",
+      "slug": "guru.rekap-absensi-saya",
+      "url": "/guru/rekap-absensi-saya"
     }
   ]
 }

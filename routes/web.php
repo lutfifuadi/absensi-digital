@@ -327,6 +327,10 @@ Route::middleware([
         Route::get('/absensi-per-jam', [AbsensiPerJamController::class, 'index'])
             ->name('guru.absensi-per-jam');
 
+        // Rekap Absensi Saya (Guru YBS)
+        Route::get('/rekap-absensi-saya', [\App\Http\Controllers\GuruAbsensiSelfController::class, 'index'])
+            ->name('guru.rekap-absensi-saya');
+
         Route::get('/rekap-absensi', [LaporanController::class, 'index'])
             ->name('guru.laporan.index');
     });
