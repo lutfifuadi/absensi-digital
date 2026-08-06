@@ -55,10 +55,10 @@
       "url": "/piket/rekap-absensi"
     },
     {
-      "name": "Rekap Monitoring Guru",
-      "icon": "menu-icon ti tabler-presentation-analytics",
-      "slug": "admin.monitoring.index",
-      "url": "/admin/monitoring"
+      "name": "Rekap Pelanggaran Siswa",
+      "icon": "menu-icon ti tabler-alert-triangle",
+      "slug": "piket.rekap-pelanggaran",
+      "url": "/piket/rekap-pelanggaran"
     }
   ]
 }

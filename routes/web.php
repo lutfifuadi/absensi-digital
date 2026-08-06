@@ -440,6 +440,8 @@ Route::middleware([
             ->name('piket.absensi-cepat.store-single');
         Route::get('/rekap-absensi', [LaporanController::class, 'index'])
             ->name('piket.laporan.index');
+        Route::get('/rekap-pelanggaran', [\App\Http\Controllers\GuruBk\BKRekapController::class, 'rekapPiket'])
+            ->name('piket.rekap-pelanggaran');
     });
 
     // ── Impersonation routes ────────────────────────────────────────────────────

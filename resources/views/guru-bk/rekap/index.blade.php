@@ -34,13 +34,13 @@
         <div class="das-hero__meta">
           <div class="das-hero__badge">
             <span class="pulse-dot"></span>
-            {{ ($isWaliKelasView ?? false) ? 'Portal Wali Kelas' : 'Bimbingan & Konseling (BK)' }}
+            {{ ($isWaliKelasView ?? false) ? 'Portal Wali Kelas' : (($isPiketView ?? false) ? 'Portal Guru Piket' : 'Bimbingan & Konseling (BK)') }}
           </div>
           <h4 class="das-hero__title text-gradient-gold">
             {{ ($isWaliKelasView ?? false) ? 'Rekapitulasi Pelanggaran Kelas ' . ($assignedClass->nama ?? '') : 'Rekapitulasi Pelanggaran Siswa' }}
           </h4>
           <p class="das-hero__subtitle">
-            {{ ($isWaliKelasView ?? false) ? 'Pemantauan rekapitulasi poin dan catatan pelanggaran siswa kelas ' . ($assignedClass->nama ?? '') : 'Analisis dan pelaporan pelanggaran siswa untuk evaluasi Bimbingan Konseling.' }}
+            {{ ($isWaliKelasView ?? false) ? 'Pemantauan rekapitulasi poin dan catatan pelanggaran siswa kelas ' . ($assignedClass->nama ?? '') : (($isPiketView ?? false) ? 'Pemantauan rekapitulasi poin dan catatan pelanggaran harian seluruh kelas.' : 'Analisis dan pelaporan pelanggaran siswa untuk evaluasi Bimbingan Konseling.') }}
           </p>
         </div>
       </div>
@@ -61,7 +61,7 @@
   {{-- FILTER PANEL --}}
   <div class="das-panel mb-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
     <div class="das-panel__body p-4">
-      <form method="GET" action="{{ ($isWaliKelasView ?? false) ? route('wali-kelas.rekap-pelanggaran') : route('bk.rekap.index') }}" class="row g-3 align-items-end">
+      <form method="GET" action="{{ ($isWaliKelasView ?? false) ? route('wali-kelas.rekap-pelanggaran') : (($isPiketView ?? false) ? route('piket.rekap-pelanggaran') : route('bk.rekap.index')) }}" class="row g-3 align-items-end">
         <div class="col-md-3">
           <label class="form-label fw-semibold small text-body-secondary" for="bulan">Bulan</label>
           <select id="bulan" name="bulan" class="form-select">
@@ -100,7 +100,7 @@
           <button type="submit" class="das-btn das-btn--primary flex-grow-1">
             <i class="ti tabler-filter me-1"></i> Filter
           </button>
-          <a href="{{ ($isWaliKelasView ?? false) ? route('wali-kelas.rekap-pelanggaran') : route('bk.rekap.index') }}" class="das-btn das-btn--secondary">
+          <a href="{{ ($isWaliKelasView ?? false) ? route('wali-kelas.rekap-pelanggaran') : (($isPiketView ?? false) ? route('piket.rekap-pelanggaran') : route('bk.rekap.index')) }}" class="das-btn das-btn--secondary">
             <i class="ti tabler-refresh"></i>
           </a>
         </div>

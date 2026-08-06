@@ -139,27 +139,39 @@
     <div class="col-md-6 mb-4">
       <h6 class="text-white-50 small fw-bold text-uppercase mb-3" style="letter-spacing: 1px;">Aksi Cepat Piket</h6>
       <div class="row gy-3">
-        <div class="col-6">
+        <div class="col-md-4 col-6">
           <div class="card card-grad-primary h-100">
-            <div class="card-body text-center">
+            <div class="card-body text-center p-3">
               <div class="avatar avatar-md bg-label-primary mx-auto mb-2">
                 <span class="avatar-initial rounded"><i class="ti tabler-qrcode fs-3"></i></span>
               </div>
-              <h5 class="fw-bold text-white mb-1" style="font-size: 0.95rem;">Scan QR Absensi</h5>
-              <p class="small text-white-50 mb-2" style="font-size: 0.75rem;">Mulai scan QR siswa.</p>
+              <h5 class="fw-bold text-white mb-1" style="font-size: 0.9rem;">Scan QR Absensi</h5>
+              <p class="small text-white-50 mb-2" style="font-size: 0.72rem;">Mulai scan QR siswa.</p>
               <a href="{{ route('public.scan-qr.index') }}" target="_blank" class="btn das-btn --primary w-100">Buka Scanner</a>
             </div>
           </div>
         </div>
-        <div class="col-6">
+        <div class="col-md-4 col-6">
           <div class="card card-grad-info h-100">
-            <div class="card-body text-center">
+            <div class="card-body text-center p-3">
               <div class="avatar avatar-md bg-label-info mx-auto mb-2">
                 <span class="avatar-initial rounded"><i class="ti tabler-clipboard-list fs-3"></i></span>
               </div>
-              <h5 class="fw-bold text-white mb-1" style="font-size: 0.95rem;">Absensi Cepat</h5>
-              <p class="small text-white-50 mb-2" style="font-size: 0.75rem;">Absensi manual per kelas.</p>
+              <h5 class="fw-bold text-white mb-1" style="font-size: 0.9rem;">Absensi Cepat</h5>
+              <p class="small text-white-50 mb-2" style="font-size: 0.72rem;">Absensi manual per kelas.</p>
               <a href="{{ route('piket.absensi-cepat') }}" class="btn das-btn --info w-100">Input Absen</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 col-12">
+          <div class="card card-grad-danger h-100">
+            <div class="card-body text-center p-3">
+              <div class="avatar avatar-md bg-label-danger mx-auto mb-2">
+                <span class="avatar-initial rounded"><i class="ti tabler-alert-triangle fs-3"></i></span>
+              </div>
+              <h5 class="fw-bold text-white mb-1" style="font-size: 0.9rem;">Rekap Pelanggaran</h5>
+              <p class="small text-white-50 mb-2" style="font-size: 0.72rem;">Laporan harian semua kelas.</p>
+              <a href="{{ route('piket.rekap-pelanggaran') }}" class="btn das-btn --danger w-100">Cek Rekap</a>
             </div>
           </div>
         </div>
