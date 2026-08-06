@@ -24,13 +24,29 @@ class AnalitikSiswaController extends Controller
      */
     public function index(Request $request)
     {
+        $user = $request->user();
+        $assignedClass = null;
+        $isWaliKelasLocked = false;
+
+        if ($user && $user->isRole(\App\Models\User::ROLE_WALI_KELAS) && !$user->hasAnyRole(['super_admin', 'admin_sekolah', 'operator'])) {
+            $guru = \App\Models\Guru::where('user_id', $user->id)->first();
+            if ($guru) {
+                $assignedClass = Kelas::where('wali_kelas_id', $guru->id)->first();
+                if ($assignedClass) {
+                    $isWaliKelasLocked = true;
+                }
+            }
+        }
+
         $kelases = Kelas::orderBy('nama', 'asc')->get();
         $jurusans = Jurusan::orderBy('nama', 'asc')->get();
 
         return view('admin.analitik-siswa.index', [
-            'pageTitle' => 'Grafik & Analitik Kehadiran Siswa',
-            'kelases'   => $kelases,
-            'jurusans'  => $jurusans,
+            'pageTitle'         => 'Grafik & Analitik Kehadiran Siswa',
+            'kelases'           => $kelases,
+            'jurusans'          => $jurusans,
+            'assignedClass'     => $assignedClass,
+            'isWaliKelasLocked' => $isWaliKelasLocked,
         ]);
     }
 
@@ -51,6 +67,20 @@ class AnalitikSiswaController extends Controller
         $kelasId   = $request->input('kelas_id');
         $tingkat   = $request->input('tingkat');
         $jurusanId = $request->input('jurusan_id');
+
+        // Scoping khusus untuk Wali Kelas
+        $user = $request->user();
+        if ($user && $user->isRole(\App\Models\User::ROLE_WALI_KELAS) && !$user->hasAnyRole(['super_admin', 'admin_sekolah', 'operator'])) {
+            $guru = \App\Models\Guru::where('user_id', $user->id)->first();
+            if ($guru) {
+                $assignedClass = Kelas::where('wali_kelas_id', $guru->id)->first();
+                if ($assignedClass) {
+                    $kelasId = (string) $assignedClass->id;
+                    $tingkat = 'all';
+                    $jurusanId = 'all';
+                }
+            }
+        }
 
         // Query dasar
         $baseQuery = AbsensiSiswa::query()

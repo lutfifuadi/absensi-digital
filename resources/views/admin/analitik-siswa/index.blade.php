@@ -135,7 +135,7 @@
           Analitik & Visualisasi Data
         </div>
         <h4 class="das-hero__title text-gradient-gold">Grafik Kehadiran Siswa</h4>
-        <p class="das-hero__subtitle">Visualisasi komprehensif tren kehadiran, keterlambatan, dan pola kedisiplinan siswa.</p>
+        <p class="das-hero__subtitle">Visualisasi komprehensif tren kehadiran, keterlambatan, dan pola kedisiplinan siswa @if(!empty($isWaliKelasLocked) && $assignedClass) <strong>Kelas {{ $assignedClass->nama }}</strong> @else sekolah @endif.</p>
       </div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
@@ -185,7 +185,7 @@
 
       <div class="col-6 col-sm-4 col-md-2 col-lg-1 col-xl-1">
         <div class="analitik-filter-label">Tingkat</div>
-        <select id="filter-tingkat" class="form-select form-select-sm filter-input-custom px-1">
+        <select id="filter-tingkat" class="form-select form-select-sm filter-input-custom px-1" @if(!empty($isWaliKelasLocked)) disabled @endif>
           <option value="all">Semua</option>
           <option value="10">Kelas X</option>
           <option value="11">Kelas XI</option>
@@ -195,17 +195,23 @@
 
       <div class="col-6 col-sm-4 col-md-3 col-lg-2 col-xl-2">
         <div class="analitik-filter-label">Kelas</div>
-        <select id="filter-kelas" class="form-select form-select-sm filter-input-custom">
-          <option value="all">Semua Kelas</option>
-          @foreach($kelases as $kls)
-            <option value="{{ $kls->id }}">{{ $kls->nama }}</option>
-          @endforeach
-        </select>
+        @if(!empty($isWaliKelasLocked) && $assignedClass)
+          <select id="filter-kelas" class="form-select form-select-sm filter-input-custom" disabled style="background: rgba(40,199,111,0.15) !important; border-color: rgba(40,199,111,0.4) !important; color: #28c76f !important; font-weight:700;">
+            <option value="{{ $assignedClass->id }}" selected>🔒 {{ $assignedClass->nama }} (Binaan)</option>
+          </select>
+        @else
+          <select id="filter-kelas" class="form-select form-select-sm filter-input-custom">
+            <option value="all">Semua Kelas</option>
+            @foreach($kelases as $kls)
+              <option value="{{ $kls->id }}">{{ $kls->nama }}</option>
+            @endforeach
+          </select>
+        @endif
       </div>
 
       <div class="col-12 col-sm-4 col-md-3 col-lg-2 col-xl-2">
         <div class="analitik-filter-label">Jurusan</div>
-        <select id="filter-jurusan" class="form-select form-select-sm filter-input-custom">
+        <select id="filter-jurusan" class="form-select form-select-sm filter-input-custom" @if(!empty($isWaliKelasLocked)) disabled @endif>
           <option value="all">Semua Jurusan</option>
           @foreach($jurusans as $jrs)
             <option value="{{ $jrs->id }}">{{ $jrs->nama }}</option>
@@ -601,7 +607,7 @@
       start_date  : dates.start,
       end_date    : dates.end,
       tingkat     : document.getElementById('filter-tingkat').value,
-      kelas_id    : document.getElementById('filter-kelas').value,
+      kelas_id    : @if(!empty($isWaliKelasLocked) && $assignedClass) '{{ $assignedClass->id }}' @else document.getElementById('filter-kelas').value @endif,
       jurusan_id  : document.getElementById('filter-jurusan').value,
     });
 
