@@ -1410,6 +1410,14 @@ if ('requestIdleCallback' in window) {
           </div>
 
           <div class="row g-3">
+            <div class="col-12">
+              <label for="inputNamaLengkapSiswa" class="form-label fw-semibold">Nama Lengkap <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="ti tabler-user"></i></span>
+                <input type="text" id="inputNamaLengkapSiswa" name="nama_lengkap" class="form-control" value="{{ $siswaRecord ? $siswaRecord->nama_lengkap : $user->name }}" placeholder="Masukkan Nama Lengkap Anda" required>
+              </div>
+            </div>
+
             <div class="col-md-6">
               <label for="inputTanggalLahirSiswa" class="form-label fw-semibold">Tanggal Lahir <span class="text-danger">*</span></label>
               <div class="input-group">

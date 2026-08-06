@@ -89,6 +89,14 @@
           </div>
 
           <div class="row g-3">
+            <div class="col-12">
+              <label for="inputNamaLengkapProfil" class="form-label fw-semibold">Nama Lengkap <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="ti tabler-user"></i></span>
+                <input type="text" id="inputNamaLengkapProfil" name="nama_lengkap" class="form-control" value="{{ $siswa->nama_lengkap }}" placeholder="Masukkan Nama Lengkap Anda" required>
+              </div>
+            </div>
+
             <div class="col-md-6">
               <label for="inputTanggalLahirProfil" class="form-label fw-semibold">Tanggal Lahir <span class="text-danger">*</span></label>
               <div class="input-group">

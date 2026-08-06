@@ -618,12 +618,14 @@ class PortalSiswaController extends Controller
         }
 
         $request->validate([
+            'nama_lengkap'  => 'required|string|max:255',
             'tanggal_lahir' => 'required|date|before_or_equal:today|after:1980-01-01',
             'tempat_lahir'  => 'nullable|string|max:255',
             'alamat'        => 'nullable|string|max:1000',
             'no_hp'         => 'nullable|string|max:50',
             'no_hp_ortu'    => 'nullable|string|max:50',
         ], [
+            'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
             'tanggal_lahir.required' => 'Tanggal lahir wajib diisi.',
             'tanggal_lahir.date' => 'Format tanggal lahir tidak valid.',
             'tanggal_lahir.before_or_equal' => 'Tanggal lahir tidak boleh di masa mendatang.',
@@ -632,6 +634,7 @@ class PortalSiswaController extends Controller
 
         try {
             $siswa->update([
+                'nama_lengkap'  => $request->nama_lengkap,
                 'tanggal_lahir' => $request->tanggal_lahir,
                 'tempat_lahir'  => $request->has('tempat_lahir') ? $request->tempat_lahir : $siswa->tempat_lahir,
                 'alamat'        => $request->has('alamat') ? $request->alamat : $siswa->alamat,
@@ -639,12 +642,17 @@ class PortalSiswaController extends Controller
                 'no_hp_ortu'    => $request->has('no_hp_ortu') ? $request->no_hp_ortu : $siswa->no_hp_ortu,
             ]);
 
+            if ($user && $request->filled('nama_lengkap')) {
+                $user->update(['name' => $request->nama_lengkap]);
+            }
+
             $formattedDate = \Carbon\Carbon::parse($request->tanggal_lahir)->locale('id')->translatedFormat('d MMMM Y');
             $ttlFormatted = ($siswa->tempat_lahir ?: '-') . ', ' . $formattedDate;
 
             return response()->json([
                 'success' => true,
                 'message' => 'Biodata Anda berhasil diperbarui!',
+                'nama_lengkap' => $siswa->nama_lengkap,
                 'tanggal_lahir' => $request->tanggal_lahir,
                 'formatted_tanggal_lahir' => $formattedDate,
                 'tempat_lahir' => $siswa->tempat_lahir,
