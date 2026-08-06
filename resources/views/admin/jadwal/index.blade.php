@@ -167,7 +167,25 @@
     <div class="alert alert-success alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm"
       role="alert" style="border-radius:8px;">
       <i class="ti tabler-circle-check fs-5"></i>
-      <span>{{ session('success') }}</span>
+      <span>{!! session('success') !!}</span>
+      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+  @endif
+
+  @if (session('warning'))
+    <div class="alert alert-warning alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm"
+      role="alert" style="border-radius:8px;">
+      <i class="ti tabler-alert-triangle fs-5"></i>
+      <span>{!! session('warning') !!}</span>
+      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+  @endif
+
+  @if (session('error'))
+    <div class="alert alert-danger alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm"
+      role="alert" style="border-radius:8px;">
+      <i class="ti tabler-alert-circle fs-5"></i>
+      <span>{!! session('error') !!}</span>
       <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
     </div>
   @endif
