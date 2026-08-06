@@ -30,6 +30,73 @@
       background: rgba(255, 255, 255, 0.1);
     }
 
+    /* MODAL PREMIUM CUSTOM STYLING */
+    .das-modal {
+      background: #1e293b !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-radius: 12px !important;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6) !important;
+      overflow: hidden;
+    }
+
+    .das-modal-head {
+      padding: 1.25rem 1.5rem;
+      background: rgba(0, 186, 209, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .das-modal-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .das-modal-body {
+      padding: 1.5rem 1.5rem 1.75rem 1.5rem;
+    }
+
+    .das-modal-foot {
+      padding: 1rem 1.5rem;
+      background: rgba(15, 23, 42, 0.6);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    .das-modal .btn-close {
+      opacity: 0.7;
+      transition: opacity 0.2s ease;
+      filter: invert(1) grayscale(100%) brightness(200%);
+    }
+
+    .das-modal .btn-close:hover {
+      opacity: 1;
+    }
+
+    .form-label-custom {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 0.5rem;
+      display: inline-block;
+    }
+
+    .modal-desc {
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.65);
+      line-height: 1.5;
+      margin-bottom: 1.25rem;
+    }
+
     /* SELECT2 DARK THEME OVERRIDE FOR MODAL */
     .select2-container {
       width: 100% !important;
@@ -224,22 +291,22 @@
   {{-- MODAL TETAPKAN GURU PIKET --}}
   <div class="modal fade" id="modalAssignGuruPiket" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content das-panel border-0">
-        <div class="modal-header border-bottom border-white-10">
-          <h5 class="modal-title text-white font-weight-bold">
-            <i class="ti tabler-user-plus text-info me-2"></i>Tetapkan Guru Piket
+      <div class="modal-content das-modal">
+        <div class="das-modal-head">
+          <h5 class="das-modal-title">
+            <i class="ti tabler-user-plus text-info fs-4"></i> Tetapkan Guru Piket
           </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <form id="formAssignGuruPiket" action="{{ route('admin.guru-piket.store') }}" method="POST">
           @csrf
-          <div class="modal-body">
-            <p class="text-white-50 small mb-3">
-              Cari dan pilih guru aktif di bawah ini untuk ditetapkan menjadi <strong>Guru Piket</strong>.
-            </p>
+          <div class="das-modal-body">
+            <div class="modal-desc">
+              Cari dan pilih guru aktif di bawah ini untuk ditugaskan sebagai <strong>Guru Piket</strong> harian sekolah.
+            </div>
 
-            <div class="mb-3">
-              <label class="form-label text-white-50 small fw-bold required">Pilih Guru</label>
+            <div class="mb-2">
+              <label class="form-label-custom required">Pilih Guru Aktif</label>
               <select id="guruSelect2" name="guru_id" class="form-select select2" required>
                 <option value="">-- Cari Nama / NIP Guru --</option>
                 @foreach ($availableGurus as $g)
@@ -249,15 +316,17 @@
                 @endforeach
               </select>
               @if ($availableGurus->isEmpty())
-                <div class="form-text text-warning mt-1">
-                  <i class="ti tabler-alert-triangle me-1"></i> Semua guru aktif sudah ditugaskan sebagai Guru Piket atau belum memiliki akun pengguna.
+                <div class="form-text text-warning mt-2 d-flex align-items-center gap-1">
+                  <i class="ti tabler-alert-triangle fs-6"></i> Semua guru aktif telah ditugaskan sebagai Guru Piket atau belum memiliki akun pengguna.
                 </div>
               @endif
             </div>
           </div>
-          <div class="modal-footer border-top border-white-10">
-            <button type="button" class="btn das-btn --secondary" data-bs-dismiss="modal">Batal</button>
-            <button type="submit" class="btn das-btn --info" {{ $availableGurus->isEmpty() ? 'disabled' : '' }}>
+          <div class="das-modal-foot">
+            <button type="button" class="btn btn-label-secondary px-4 py-2 fw-medium" data-bs-dismiss="modal">
+              <i class="ti tabler-x me-1"></i> Batal
+            </button>
+            <button type="submit" class="btn btn-info px-4 py-2 fw-semibold shadow-sm" {{ $availableGurus->isEmpty() ? 'disabled' : '' }}>
               <i class="ti tabler-check me-1"></i> Simpan Penugasan
             </button>
           </div>
