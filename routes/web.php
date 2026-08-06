@@ -1466,6 +1466,16 @@ Route::middleware([
             ->middleware('role:super_admin,admin_sekolah');
 
         // Jadwal Pelajaran
+        Route::get('jadwal/template', [JadwalPelajaranController::class, 'downloadTemplate'])
+            ->name('admin.jadwal.template')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+        Route::post('jadwal/import', [JadwalPelajaranController::class, 'import'])
+            ->name('admin.jadwal.import')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+        Route::post('jadwal/duplicate', [JadwalPelajaranController::class, 'duplicate'])
+            ->name('admin.jadwal.duplicate')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+
         Route::resource('jadwal', JadwalPelajaranController::class)
             ->names('admin.jadwal')
             ->except(['show'])

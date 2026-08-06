@@ -145,9 +145,18 @@
         </div>
       </div>
 
-      <div class="das-hero__actions">
-        <button type="button" class="btn das-btn --primary" onclick="openTambahJadwal()">
-          <i class="ti tabler-plus me-1"></i> Tambah Jadwal
+      <div class="das-hero__actions d-flex flex-wrap gap-2">
+        <a href="{{ route('admin.jadwal.template') }}" class="das-btn das-btn--success" title="Download Template Excel Berisi Dropdown Referensi Sistem">
+          <i class="ti tabler-file-download me-1"></i> Template Excel
+        </a>
+        <button type="button" class="das-btn das-btn--info" data-bs-toggle="modal" data-bs-target="#modalImportJadwal">
+          <i class="ti tabler-file-upload me-1"></i> Import Excel
+        </button>
+        <button type="button" class="das-btn das-btn--warning" data-bs-toggle="modal" data-bs-target="#modalSalinJadwal">
+          <i class="ti tabler-copy me-1"></i> Salin Jadwal Kelas
+        </button>
+        <button type="button" class="das-btn das-btn--primary" onclick="openTambahJadwal()">
+          <i class="ti tabler-plus me-1"></i> Tambah Manual
         </button>
       </div>
     </div>
@@ -453,6 +462,84 @@
             </button>
           </form>
         </div>
+      </div>
+    </div>
+  {{-- ══════════════════════════════════════════════ --}}
+  {{-- MODAL IMPORT JADWAL EXCEL --}}
+  {{-- ══════════════════════════════════════════════ --}}
+  <div class="modal fade" id="modalImportJadwal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:500px;">
+      <div class="modal-content das-modal">
+        <div class="das-modal__head das-modal__head--info">
+          <h5 class="das-modal__title"><i class="ti tabler-file-upload me-2 text-info"></i> Import Jadwal Pelajaran (Excel)</h5>
+        </div>
+        <form action="{{ route('admin.jadwal.import') }}" method="POST" enctype="multipart/form-data">
+          @csrf
+          <div class="das-modal__body p-4">
+            <p class="text-white-50 small mb-3">
+              Unggah file Excel (.xlsx / .xls) yang berisi daftar jadwal pelajaran. Gunakan <strong>Template Excel Resmi</strong> agar data terisi secara presisi via dropdown.
+            </p>
+            <div class="mb-3">
+              <label class="form-label text-white-50 small fw-bold">Pilih File Excel (.xlsx)</label>
+              <input type="file" name="file_excel" class="form-control bg-dark text-white border-white-10" accept=".xlsx,.xls,.csv" required>
+            </div>
+            <div class="p-3 rounded border border-white-10 bg-black bg-opacity-20">
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <span class="text-white-50 small">Belum punya template?</span>
+                <a href="{{ route('admin.jadwal.template') }}" class="btn btn-sm btn-label-success">
+                  <i class="ti tabler-download me-1"></i> Download Template (.xlsx)
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="das-modal__foot d-flex justify-content-end gap-2 p-3 border-top border-white-10">
+            <button type="button" class="das-btn das-btn--ghost" data-bs-dismiss="modal"><i class="ti tabler-x"></i> Batal</button>
+            <button type="submit" class="das-btn das-btn--info"><i class="ti tabler-upload me-1"></i> Upload &amp; Import</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {{-- ══════════════════════════════════════════════ --}}
+  {{-- MODAL SALIN / DUPLIKASI JADWAL --}}
+  {{-- ══════════════════════════════════════════════ --}}
+  <div class="modal fade" id="modalSalinJadwal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:500px;">
+      <div class="modal-content das-modal">
+        <div class="das-modal__head das-modal__head--warning">
+          <h5 class="das-modal__title"><i class="ti tabler-copy me-2 text-warning"></i> Salin Jadwal Antar Kelas</h5>
+        </div>
+        <form action="{{ route('admin.jadwal.duplicate') }}" method="POST">
+          @csrf
+          <div class="das-modal__body p-4">
+            <p class="text-white-50 small mb-3">
+              Duplikat seluruh struktur jam pelajaran dan alokasi mapel dari kelas sumber ke kelas tujuan secara instan.
+            </p>
+            <div class="mb-3">
+              <label class="form-label text-white-50 small fw-bold">Kelas Asal (Sumber Data)</label>
+              <select name="kelas_asal_id" class="form-select bg-dark text-white border-white-10" required>
+                <option value="">-- Pilih Kelas Asal --</option>
+                @foreach ($kelasOptions as $k)
+                  <option value="{{ $k->id }}">{{ $k->nama }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-white-50 small fw-bold">Kelas Tujuan (Target Salinan)</label>
+              <select name="kelas_tujuan_id" class="form-select bg-dark text-white border-white-10" required>
+                <option value="">-- Pilih Kelas Tujuan --</option>
+                @foreach ($kelasOptions as $k)
+                  <option value="{{ $k->id }}">{{ $k->nama }}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+          <div class="das-modal__foot d-flex justify-content-end gap-2 p-3 border-top border-white-10">
+            <button type="button" class="das-btn das-btn--ghost" data-bs-dismiss="modal"><i class="ti tabler-x"></i> Batal</button>
+            <button type="submit" class="das-btn das-btn--warning"><i class="ti tabler-copy me-1"></i> Ya, Salin Jadwal</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
