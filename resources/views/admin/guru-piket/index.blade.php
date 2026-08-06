@@ -12,40 +12,55 @@
       background: rgba(255, 255, 255, 0.04) !important;
     }
 
-    .action-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      transition: all 0.2s ease;
+    .sortable {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .sortable:hover {
+      color: #fff !important;
+    }
+
+    .das-btn.--info {
+      background: linear-gradient(135deg, #00bad1, #0284c7);
+      color: #fff;
       border: none;
-      background: rgba(255, 255, 255, 0.05);
-      color: inherit;
+      box-shadow: 0 4px 12px rgba(0, 186, 209, 0.25);
     }
 
-    .action-btn:hover {
-      transform: translateY(-2px);
-      background: rgba(255, 255, 255, 0.1);
+    .das-btn.--info:hover {
+      background: linear-gradient(135deg, #00a5ba, #0270a9);
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(0, 186, 209, 0.35);
     }
 
-    /* MODAL PREMIUM CUSTOM STYLING */
+    .das-btn.--secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #cbd5e1;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .das-btn.--secondary:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+    }
+
+    /* Modal Redesign for Guru Piket */
     .das-modal {
       background: #1e293b !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
       border-radius: 12px !important;
-      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6) !important;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
       overflow: hidden;
     }
 
     .das-modal-head {
-      padding: 1.25rem 1.5rem;
-      background: rgba(0, 186, 209, 0.08);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       display: flex;
       align-items: center;
       justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.02);
     }
 
     .das-modal-title {
@@ -59,124 +74,138 @@
     }
 
     .das-modal-body {
-      padding: 1.5rem 1.5rem 1.75rem 1.5rem;
+      padding: 1.5rem;
     }
 
     .das-modal-foot {
-      padding: 1rem 1.5rem;
-      background: rgba(15, 23, 42, 0.6);
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
       display: flex;
       align-items: center;
       justify-content: flex-end;
       gap: 0.75rem;
-    }
-
-    .das-modal .btn-close {
-      opacity: 0.7;
-      transition: opacity 0.2s ease;
-      filter: invert(1) grayscale(100%) brightness(200%);
-    }
-
-    .das-modal .btn-close:hover {
-      opacity: 1;
-    }
-
-    .form-label-custom {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.85);
-      margin-bottom: 0.5rem;
-      display: inline-block;
+      padding: 1rem 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(0, 0, 0, 0.15);
     }
 
     .modal-desc {
-      font-size: 0.875rem;
+      font-size: 0.85rem;
       color: rgba(255, 255, 255, 0.65);
-      line-height: 1.5;
       margin-bottom: 1.25rem;
+      line-height: 1.4;
     }
 
-    /* SELECT2 DARK THEME OVERRIDE FOR MODAL */
-    .select2-container {
-      width: 100% !important;
-      max-width: 100% !important;
+    .form-label-custom {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgba(255, 255, 255, 0.75);
+      margin-bottom: 0.4rem;
+      display: block;
     }
+
+    .form-label-custom.required::after {
+      content: ' *';
+      color: #ea5455;
+    }
+
+    /* Select2 Dark Theme Customization */
     .select2-container--default .select2-selection--single {
       background-color: #0f172a !important;
-      border: 1px solid rgba(255, 255, 255, 0.12) !important;
-      color: #ffffff !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border-radius: 8px !important;
       height: 42px !important;
-      border-radius: 6px !important;
+      display: flex !important;
+      align-items: center !important;
     }
+
     .select2-container--default .select2-selection--single .select2-selection__rendered {
-      color: #ffffff !important;
-      line-height: 40px !important;
+      color: #f8fafc !important;
       padding-left: 12px !important;
+      font-size: 0.9rem !important;
     }
+
     .select2-container--default .select2-selection--single .select2-selection__arrow {
       height: 40px !important;
     }
+
     .select2-dropdown {
       background-color: #1e293b !important;
-      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border-radius: 8px !important;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+      z-index: 1060 !important;
+    }
+
+    .select2-search__field {
+      background-color: #0f172a !important;
       color: #ffffff !important;
-      z-index: 1065 !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
       border-radius: 6px !important;
     }
-    .select2-container--default .select2-results__option[aria-selected=true] {
-      background-color: rgba(255, 255, 255, 0.06) !important;
-      color: #ffffff !important;
+
+    .select2-results__option {
+      color: #cbd5e1 !important;
+      padding: 8px 12px !important;
+      font-size: 0.875rem !important;
     }
+
     .select2-container--default .select2-results__option--highlighted[aria-selected] {
       background-color: #00bad1 !important;
       color: #ffffff !important;
     }
-    .select2-container--default .select2-search--dropdown .select2-search__field {
-      background-color: #0f172a !important;
-      border: 1px solid rgba(255, 255, 255, 0.12) !important;
-      color: #ffffff !important;
-      border-radius: 4px !important;
-    }
-    .select2-container--default .select2-selection--single .select2-selection__placeholder {
-      color: #94a3b8 !important;
+
+    .select2-container--default .select2-results__option[aria-selected=true] {
+      background-color: rgba(0, 186, 209, 0.2) !important;
+      color: #00bad1 !important;
     }
 
-    /* SWEETALERT2 PREMIUM OVERRIDES */
+    .btn-close {
+      filter: invert(1) grayscale(100%) brightness(200%);
+      opacity: 0.7;
+      transition: opacity 0.2s ease;
+    }
+
+    .btn-close:hover {
+      opacity: 1;
+    }
+
+    /* Modal Nav Pills Styling */
+    .piket-nav-pills .nav-link {
+      background: rgba(255, 255, 255, 0.05);
+      color: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .piket-nav-pills .nav-link.active {
+      background: linear-gradient(135deg, #00bad1, #0284c7) !important;
+      color: #ffffff !important;
+      border-color: #00bad1 !important;
+      box-shadow: 0 4px 12px rgba(0, 186, 209, 0.3);
+    }
+
+    /* SweetAlert2 Glassmorphism Dark Styling */
     .das-swal-popup {
       background: #1e293b !important;
       border: 1px solid rgba(255, 255, 255, 0.12) !important;
       border-radius: 16px !important;
-      padding: 1.75rem 1.5rem !important;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7) !important;
+      color: #ffffff !important;
+      padding: 1.5rem !important;
     }
 
-    .das-swal-title, .swal2-title {
+    .das-swal-title {
       color: #ffffff !important;
+      font-size: 1.25rem !important;
       font-weight: 700 !important;
-      font-size: 1.3rem !important;
-      text-align: center !important;
-      width: 100% !important;
-      max-width: 100% !important;
-      margin-top: 0.75rem !important;
       margin-bottom: 0.5rem !important;
-      margin-left: auto !important;
-      margin-right: auto !important;
-      display: flex !important;
-      justify-content: center !important;
-      align-items: center !important;
     }
 
     .das-swal-html {
-      color: rgba(255, 255, 255, 0.75) !important;
+      color: rgba(255, 255, 255, 0.8) !important;
       font-size: 0.9rem !important;
-      margin-top: 0.5rem !important;
-      text-align: center !important;
-    }
-
-    .swal2-icon {
-      margin: 0.5rem auto 0 auto !important;
-      border-width: 3px !important;
     }
 
     .swal2-icon.swal2-question {
@@ -225,6 +254,7 @@
       box-shadow: 0 4px 14px rgba(0, 186, 209, 0.35) !important;
       transition: all 0.2s ease !important;
     }
+
     .das-swal-confirm-info:hover {
       transform: translateY(-1px);
       box-shadow: 0 6px 18px rgba(0, 186, 209, 0.45) !important;
@@ -241,6 +271,7 @@
       box-shadow: 0 4px 14px rgba(234, 84, 85, 0.35) !important;
       transition: all 0.2s ease !important;
     }
+
     .das-swal-confirm-danger:hover {
       transform: translateY(-1px);
       box-shadow: 0 6px 18px rgba(234, 84, 85, 0.45) !important;
@@ -256,6 +287,7 @@
       font-size: 0.875rem !important;
       transition: all 0.2s ease !important;
     }
+
     .das-swal-cancel:hover {
       background: rgba(255, 255, 255, 0.12) !important;
       color: #ffffff !important;
@@ -283,59 +315,42 @@
 
         <div class="das-hero__meta">
           <div class="das-hero__badge">
-            <span class="pulse-dot"></span>
-            <a href="{{ route('admin.master-data') }}" class="text-white text-decoration-none">Data Civitas</a> / Guru Piket
+            Data Civitas / Guru Piket
           </div>
-          <h4 class="das-hero__title text-gradient-info">Data Guru Piket</h4>
-          <p class="das-hero__subtitle">Kelola daftar guru piket harian, pemantauan absensi gerbang, dan rekapitulasi operasional.</p>
+          <h4 class="das-hero__title text-gradient-gold">Data Guru Piket</h4>
+          <p class="das-hero__subtitle">Kelola penetapan dan penugasan Guru Piket harian sekolah.</p>
         </div>
       </div>
 
-      <div class="das-hero__actions d-flex gap-2">
+      <div class="das-hero__actions">
         <button type="button" class="btn das-btn --info" data-bs-toggle="modal" data-bs-target="#modalAssignGuruPiket">
-          <i class="ti tabler-user-plus me-1"></i> Tetapkan Guru Piket
+          <i class="ti tabler-user-plus me-1"></i> Tambah / Tetapkan Guru Piket
         </button>
-        <a href="{{ route('piket.dashboard') }}" class="btn das-btn --secondary">
-          <i class="ti tabler-dashboard me-1"></i> Portal Piket
-        </a>
       </div>
     </div>
   </div>
 
-  {{-- FLASH MESSAGE --}}
-  @if (session('success'))
-    <div class="alert alert-success alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm"
-      role="alert" style="border-radius:8px;">
-      <i class="ti tabler-circle-check fs-5"></i>
-      <span>{{ session('success') }}</span>
-      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+  {{-- FILTER & SEARCH PANEL --}}
+  <div class="das-panel mb-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+    <div class="das-panel__head">
+      <h5 class="das-panel__title mb-0 fw-bold">
+        <i class="ti tabler-filter text-info me-2"></i>Filter & Pencarian Guru Piket
+      </h5>
     </div>
-  @endif
-
-  @if (session('error'))
-    <div class="alert alert-danger alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm"
-      role="alert" style="border-radius:8px;">
-      <i class="ti tabler-alert-circle fs-5"></i>
-      <span>{{ session('error') }}</span>
-      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
-    </div>
-  @endif
-
-  {{-- FILTER PANEL --}}
-  <div class="das-panel mb-4">
-    <div class="das-panel__body">
-      <form id="filterForm" method="GET" class="row gy-3 gx-3 align-items-end">
+    <div class="das-panel__body py-3">
+      <form id="filterForm" action="{{ route('admin.guru-piket.index') }}" method="GET" class="row g-3">
         <div class="col-md-5">
-          <label class="form-label text-white-50 small fw-bold">Cari Guru Piket</label>
-          <input type="text" id="filterSearch" name="search" class="form-control"
-            placeholder="Nama, NIP, Email…" value="{{ request('search') }}">
+          <div class="input-group">
+            <span class="input-group-text bg-dark border-secondary text-white-50"><i class="ti tabler-search"></i></span>
+            <input type="text" name="search" id="filterSearch" value="{{ request('search') }}" class="form-control bg-dark text-white border-secondary" placeholder="Cari Nama, NIP, atau Email Guru Piket...">
+          </div>
         </div>
         <div class="col-md-3">
-          <label class="form-label text-white-50 small fw-bold">Status</label>
-          <select id="filterStatus" name="status" class="form-select">
-            <option value="">Semua Status</option>
+          <select name="status" id="filterStatus" class="form-select bg-dark text-white border-secondary">
+            <option value="">-- Semua Status --</option>
             <option value="aktif" {{ request('status') === 'aktif' ? 'selected' : '' }}>Aktif</option>
             <option value="nonaktif" {{ request('status') === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
+            <option value="belum lengkap" {{ request('status') === 'belum lengkap' ? 'selected' : '' }}>Belum Memiliki Akun</option>
           </select>
         </div>
         <div class="col-md-4 d-flex gap-2">
@@ -359,49 +374,122 @@
     </div>
   </div>
 
-  {{-- MODAL TETAPKAN GURU PIKET --}}
+  {{-- MODAL TAMBAH / TETAPKAN GURU PIKET --}}
   <div class="modal fade" id="modalAssignGuruPiket" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content das-modal">
         <div class="das-modal-head">
           <h5 class="das-modal-title">
-            <i class="ti tabler-user-plus text-info fs-4"></i> Tetapkan Guru Piket
+            <i class="ti tabler-user-plus text-info fs-4"></i> Tambah / Tetapkan Guru Piket
           </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <form id="formAssignGuruPiket" action="{{ route('admin.guru-piket.store') }}" method="POST">
-          @csrf
-          <div class="das-modal-body">
-            <div class="modal-desc">
-              Cari dan pilih guru aktif di bawah ini untuk ditugaskan sebagai <strong>Guru Piket</strong> harian sekolah.
-            </div>
 
-            <div class="mb-2">
-              <label class="form-label-custom required">Pilih Guru Aktif</label>
-              <select id="guruSelect2" name="guru_id" class="form-select select2" required>
-                <option value="">-- Cari Nama / NIP Guru --</option>
-                @foreach ($availableGurus as $g)
-                  <option value="{{ $g->id }}">
-                    {{ $g->nama_lengkap }} (NIP: {{ $g->nip ?? '-' }})
-                  </option>
-                @endforeach
-              </select>
-              @if ($availableGurus->isEmpty())
-                <div class="form-text text-warning mt-2 d-flex align-items-center gap-1">
-                  <i class="ti tabler-alert-triangle fs-6"></i> Semua guru aktif telah ditugaskan sebagai Guru Piket atau belum memiliki akun pengguna.
+        {{-- Nav Tabs --}}
+        <div class="px-4 pt-3 pb-0 border-bottom border-white border-opacity-10">
+          <ul class="nav nav-pills piket-nav-pills nav-justified gap-2" id="piketModalTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active fw-bold small py-2" id="tab-assign-tab" data-bs-toggle="pill" data-bs-target="#tab-assign" type="button" role="tab">
+                <i class="ti tabler-user-check me-1"></i> 1. Pilih Guru Terdaftar
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link fw-bold small py-2" id="tab-create-tab" data-bs-toggle="pill" data-bs-target="#tab-create" type="button" role="tab">
+                <i class="ti tabler-user-plus me-1"></i> 2. Buat Petugas Piket Baru (Manual)
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <div class="tab-content" id="piketModalTabContent">
+          {{-- TAB 1: ASSIGN GURU EXISTING --}}
+          <div class="tab-pane fade show active" id="tab-assign" role="tabpanel">
+            <form id="formAssignGuruPiket" action="{{ route('admin.guru-piket.store') }}" method="POST">
+              @csrf
+              <input type="hidden" name="mode" value="assign">
+              <div class="das-modal-body">
+                <div class="modal-desc">
+                  Cari dan pilih guru aktif yang sudah terdaftar di bawah ini untuk ditugaskan sebagai <strong>Guru Piket</strong> harian sekolah.
                 </div>
-              @endif
-            </div>
+
+                <div class="mb-3">
+                  <label class="form-label-custom required">Pilih Guru Aktif</label>
+                  <select id="guruSelect2" name="guru_id" class="form-select select2" required>
+                    <option value="">-- Cari Nama / NIP Guru --</option>
+                    @foreach ($availableGurus as $g)
+                      <option value="{{ $g->id }}">
+                        {{ $g->nama_lengkap }} (NIP: {{ $g->nip ?? '-' }})
+                      </option>
+                    @endforeach
+                  </select>
+                  @if ($availableGurus->isEmpty())
+                    <div class="form-text text-warning mt-2 d-flex align-items-center gap-1">
+                      <i class="ti tabler-alert-triangle fs-6"></i> Semua guru aktif telah ditugaskan sebagai Guru Piket atau belum memiliki akun pengguna.
+                    </div>
+                  @endif
+                </div>
+              </div>
+              <div class="das-modal-foot">
+                <button type="button" class="btn btn-label-secondary px-4 py-2 fw-medium" data-bs-dismiss="modal">
+                  <i class="ti tabler-x me-1"></i> Batal
+                </button>
+                <button type="submit" class="btn btn-info px-4 py-2 fw-semibold shadow-sm" {{ $availableGurus->isEmpty() ? 'disabled' : '' }}>
+                  <i class="ti tabler-check me-1"></i> Simpan Penugasan
+                </button>
+              </div>
+            </form>
           </div>
-          <div class="das-modal-foot">
-            <button type="button" class="btn btn-label-secondary px-4 py-2 fw-medium" data-bs-dismiss="modal">
-              <i class="ti tabler-x me-1"></i> Batal
-            </button>
-            <button type="submit" class="btn btn-info px-4 py-2 fw-semibold shadow-sm" {{ $availableGurus->isEmpty() ? 'disabled' : '' }}>
-              <i class="ti tabler-check me-1"></i> Simpan Penugasan
-            </button>
+
+          {{-- TAB 2: CREATE PETUGAS PIKET BARU secara MANUAL --}}
+          <div class="tab-pane fade" id="tab-create" role="tabpanel">
+            <form id="formCreateGuruPiket" action="{{ route('admin.guru-piket.store') }}" method="POST">
+              @csrf
+              <input type="hidden" name="mode" value="create">
+              <div class="das-modal-body">
+                <div class="modal-desc">
+                  Isikan formulir berikut untuk mendaftarkan <strong>Petugas Piket Baru</strong> secara manual ke dalam sistem. Akun pengguna akan dibuatkan secara otomatis.
+                </div>
+
+                <div class="row g-3">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label-custom required">Nama Lengkap & Gelar</label>
+                    <input type="text" name="nama" class="form-control bg-dark text-white border-secondary" placeholder="contoh: Bpk. Ahmad Fauzi, S.Pd." required>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label-custom">NIP / Username</label>
+                    <input type="text" name="nip" class="form-control bg-dark text-white border-secondary" placeholder="contoh: 19850101... (Opsional)">
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label-custom required">Email Resmi / Akun</label>
+                    <input type="email" name="email" class="form-control bg-dark text-white border-secondary" placeholder="contoh: ahmad@sekolah.sch.id" required>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label-custom required">Password Akun Piket</label>
+                    <div class="input-group">
+                      <input type="password" id="manual_password" name="password" class="form-control bg-dark text-white border-secondary" placeholder="Minimal 6 karakter..." required>
+                      <button class="btn btn-outline-secondary" type="button" id="btnToggleManualPass">
+                        <i class="ti tabler-eye text-white-50" id="iconManualPass"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label-custom">Nomor HP / WhatsApp</label>
+                    <input type="text" name="no_hp" class="form-control bg-dark text-white border-secondary" placeholder="contoh: 081234567890 (Opsional)">
+                  </div>
+                </div>
+              </div>
+              <div class="das-modal-foot">
+                <button type="button" class="btn btn-label-secondary px-4 py-2 fw-medium" data-bs-dismiss="modal">
+                  <i class="ti tabler-x me-1"></i> Batal
+                </button>
+                <button type="submit" class="btn btn-success px-4 py-2 fw-semibold shadow-sm">
+                  <i class="ti tabler-user-plus me-1"></i> Buat & Simpan Petugas Piket
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
+
       </div>
     </div>
   </div>
@@ -418,6 +506,23 @@
 
       let currentSortBy  = '{{ $sortBy ?? "nama_lengkap" }}';
       let currentSortDir = '{{ $sortDir ?? "asc" }}';
+
+      // Toggle Show/Hide Password di Form Manual
+      const btnToggleManualPass = document.getElementById('btnToggleManualPass');
+      const manualPasswordInput = document.getElementById('manual_password');
+      const iconManualPass = document.getElementById('iconManualPass');
+
+      if (btnToggleManualPass && manualPasswordInput && iconManualPass) {
+        btnToggleManualPass.addEventListener('click', function () {
+          const type = manualPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+          manualPasswordInput.setAttribute('type', type);
+          if (type === 'password') {
+            iconManualPass.className = 'ti tabler-eye text-white-50';
+          } else {
+            iconManualPass.className = 'ti tabler-eye-off text-warning';
+          }
+        });
+      }
 
       // Inisialisasi Select2 untuk Modal Tetapkan Guru Piket
       function initSelect2() {
@@ -478,6 +583,101 @@
       document.getElementById('filterStatus').addEventListener('change', function () {
         fetchTable();
       });
+
+      // Submit Form Assign Guru Existing
+      const formAssignGuruPiket = document.getElementById('formAssignGuruPiket');
+      if (formAssignGuruPiket) {
+        formAssignGuruPiket.addEventListener('submit', function (e) {
+          e.preventDefault();
+          const formData = new FormData(this);
+
+          fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json'
+            }
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              Swal.fire({
+                title: 'Berhasil!',
+                text: data.message,
+                icon: 'success',
+                customClass: {
+                  popup: 'das-swal-popup',
+                  title: 'das-swal-title',
+                  htmlContainer: 'das-swal-html',
+                  confirmButton: 'das-swal-confirm-info'
+                },
+                buttonsStyling: false
+              }).then(() => window.location.reload());
+            } else {
+              Swal.fire('Gagal!', data.message || 'Terjadi kesalahan.', 'error');
+            }
+          })
+          .catch(err => {
+            Swal.fire('Error!', 'Gagal menghubungi server.', 'error');
+          });
+        });
+      }
+
+      // Submit Form Create Petugas Piket Manual
+      const formCreateGuruPiket = document.getElementById('formCreateGuruPiket');
+      if (formCreateGuruPiket) {
+        formCreateGuruPiket.addEventListener('submit', function (e) {
+          e.preventDefault();
+          const formData = new FormData(this);
+
+          fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json'
+            }
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              Swal.fire({
+                title: 'Berhasil!',
+                text: data.message,
+                icon: 'success',
+                customClass: {
+                  popup: 'das-swal-popup',
+                  title: 'das-swal-title',
+                  htmlContainer: 'das-swal-html',
+                  confirmButton: 'das-swal-confirm-info'
+                },
+                buttonsStyling: false
+              }).then(() => window.location.reload());
+            } else {
+              let errMsg = data.message || 'Terjadi kesalahan.';
+              if (data.errors) {
+                errMsg = Object.values(data.errors).flat().join('<br>');
+              }
+              Swal.fire({
+                title: 'Gagal Simpan!',
+                html: errMsg,
+                icon: 'error',
+                customClass: {
+                  popup: 'das-swal-popup',
+                  title: 'das-swal-title',
+                  htmlContainer: 'das-swal-html',
+                  confirmButton: 'das-swal-confirm-danger'
+                },
+                buttonsStyling: false
+              });
+            }
+          })
+          .catch(err => {
+            Swal.fire('Error!', 'Gagal menghubungi server.', 'error');
+          });
+        });
+      }
 
       function attachTableEvents() {
         // Handle sorting click
@@ -606,7 +806,6 @@
               buttonsStyling: false
             }).then(result => {
               if (result.isConfirmed) {
-                // Kirim via POST form agar CSRF terpenuhi dan masuk ke loginAs()
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = url;

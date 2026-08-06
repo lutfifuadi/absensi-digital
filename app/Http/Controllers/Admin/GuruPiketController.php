@@ -7,6 +7,8 @@ use App\Models\Guru;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class GuruPiketController extends Controller
 {
@@ -88,10 +90,52 @@ class GuruPiketController extends Controller
     }
 
     /**
-     * Assign a teacher as Guru Piket.
+     * Assign existing teacher OR Create new manual Guru Piket officer.
      */
     public function store(Request $request)
     {
+        $mode = $request->input('mode', 'assign');
+
+        if ($mode === 'create') {
+            $validated = $request->validate([
+                'nama'     => 'required|string|max:255',
+                'nip'      => 'nullable|string|max:50|unique:guru,nip',
+                'email'    => 'required|email|max:255|unique:users,email',
+                'password' => 'required|string|min:6',
+                'no_hp'    => 'nullable|string|max:20',
+            ]);
+
+            return DB::transaction(function () use ($validated, $request) {
+                $username = !empty($validated['nip']) ? $validated['nip'] : Str::slug($validated['nama']) . rand(100, 999);
+
+                $user = User::create([
+                    'name'     => $validated['nama'],
+                    'username' => $username,
+                    'email'    => $validated['email'],
+                    'password' => Hash::make($validated['password']),
+                    'role'     => User::ROLE_PIKET,
+                    'roles'    => [User::ROLE_PIKET, User::ROLE_GURU],
+                    'status'   => 'aktif',
+                ]);
+
+                Guru::create([
+                    'user_id'      => $user->id,
+                    'nama_lengkap' => $validated['nama'],
+                    'nip'          => $validated['nip'] ?? null,
+                    'email'        => $validated['email'],
+                    'no_hp'        => $validated['no_hp'] ?? null,
+                    'status'       => 'aktif',
+                ]);
+
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => true, 'message' => 'Petugas Piket baru berhasil dibuat & ditambahkan!']);
+                }
+
+                return redirect()->route('admin.guru-piket.index')->with('success', 'Petugas Piket baru berhasil dibuat & ditambahkan!');
+            });
+        }
+
+        // Mode Assign (Guru Existing)
         $request->validate([
             'guru_id' => 'required|exists:guru,id',
         ]);
@@ -107,13 +151,18 @@ class GuruPiketController extends Controller
                 $user->save();
             }
         } else {
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Guru ini belum memiliki akun pengguna.',
-                ], 422);
-            }
-            return redirect()->back()->with('error', 'Guru ini belum memiliki akun pengguna.');
+            $username = !empty($guru->nip) ? $guru->nip : Str::slug($guru->nama_lengkap) . rand(100, 999);
+            $user = User::create([
+                'name'     => $guru->nama_lengkap,
+                'username' => $username,
+                'email'    => $guru->email ?: $username . '@sekolah.sch.id',
+                'password' => Hash::make('password123'),
+                'role'     => User::ROLE_PIKET,
+                'roles'    => [User::ROLE_PIKET, User::ROLE_GURU],
+                'status'   => 'aktif',
+            ]);
+            $guru->user_id = $user->id;
+            $guru->save();
         }
 
         if ($request->ajax() || $request->wantsJson()) {
