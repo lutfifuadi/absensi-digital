@@ -481,10 +481,10 @@ Route::middleware([
 
     Route::prefix('admin')->group(function () {
         Route::get('/analitik-siswa', [AnalitikSiswaController::class, 'index'])
-            ->middleware('role:super_admin,admin_sekolah,operator,wali_kelas,guru,piket')
+            ->middleware('role:super_admin,admin_sekolah,operator,wali_kelas,piket')
             ->name('admin.analitik-siswa.index');
         Route::get('/analitik-siswa/data', [AnalitikSiswaController::class, 'getData'])
-            ->middleware('role:super_admin,admin_sekolah,operator,wali_kelas,guru,piket')
+            ->middleware('role:super_admin,admin_sekolah,operator,wali_kelas,piket')
             ->name('admin.analitik-siswa.data');
 
         Route::get('/dashboard/siswa-belum-absen', [DashboardController::class, 'siswaBelumAbsen'])
