@@ -1532,7 +1532,12 @@ class PublicQrScanController extends Controller
             $mode = 'otomatis';
         }
 
-        [$awal, $terbaru, $stats] = $this->getLeaderboardData($mode);
+        $role = $request->input('role');
+        if (!in_array($role, ['siswa', 'guru', 'staff'])) {
+            $role = null;
+        }
+
+        [$awal, $terbaru, $stats] = $this->getLeaderboardData($mode, $role);
 
         $mapRow = fn($obj, $rank) => [
             'rank'  => $rank,
@@ -1540,6 +1545,7 @@ class PublicQrScanController extends Controller
             'kelas' => $obj->kelas,
             'jam'   => $obj->jam,
             'status'=> $obj->status,
+            'type'  => $obj->type ?? 'siswa',
         ];
 
         return response()->json([
@@ -1550,9 +1556,10 @@ class PublicQrScanController extends Controller
     }
 
     /** Helper: ambil data leaderboard + stats hari ini. */
-    private function getLeaderboardData(string $mode = 'otomatis'): array
+    private function getLeaderboardData(string $mode = 'otomatis', ?string $roleFilter = null): array
     {
-        return Cache::remember('live_board_leaderboard_data_' . $mode, 5, function () use ($mode) {
+        $cacheKey = 'live_board_lb_' . $mode . '_' . ($roleFilter ?? 'all');
+        return Cache::remember($cacheKey, 5, function () use ($mode, $roleFilter) {
             $today = today()->toDateString();
 
             // Tentukan field jam berdasarkan mode
@@ -1580,40 +1587,46 @@ class PublicQrScanController extends Controller
             // 3. Gabungkan dan Map ke struktur seragam
             $all = collect();
 
-            foreach ($absensiSiswa as $as) {
-                $jamVal = $mode === 'pulang' ? $as->jam_pulang : $as->jam_masuk;
-                $all->push((object)[
-                    'nama'   => $as->siswa->nama_lengkap ?? '-',
-                    'kelas'  => $as->siswa->kelas->nama  ?? '-',
-                    'jam'    => $jamVal,
-                    'status' => $as->status,
-                    'type'   => 'siswa',
-                    'original' => $as
-                ]);
+            if (empty($roleFilter) || $roleFilter === 'siswa') {
+                foreach ($absensiSiswa as $as) {
+                    $jamVal = $mode === 'pulang' ? $as->jam_pulang : $as->jam_masuk;
+                    $all->push((object)[
+                        'nama'   => $as->siswa->nama_lengkap ?? '-',
+                        'kelas'  => $as->siswa->kelas->nama  ?? '-',
+                        'jam'    => $jamVal,
+                        'status' => $as->status,
+                        'type'   => 'siswa',
+                        'original' => $as
+                    ]);
+                }
             }
 
-            foreach ($absensiGuru as $ag) {
-                $jamVal = $mode === 'pulang' ? $ag->jam_pulang : $ag->jam_masuk;
-                $all->push((object)[
-                    'nama'   => $ag->guru->nama_lengkap ?? '-',
-                    'kelas'  => 'GURU',
-                    'jam'    => $jamVal,
-                    'status' => $ag->status,
-                    'type'   => 'guru',
-                    'original' => $ag
-                ]);
+            if (empty($roleFilter) || $roleFilter === 'guru') {
+                foreach ($absensiGuru as $ag) {
+                    $jamVal = $mode === 'pulang' ? $ag->jam_pulang : $ag->jam_masuk;
+                    $all->push((object)[
+                        'nama'   => $ag->guru->nama_lengkap ?? '-',
+                        'kelas'  => 'GURU',
+                        'jam'    => $jamVal,
+                        'status' => $ag->status,
+                        'type'   => 'guru',
+                        'original' => $ag
+                    ]);
+                }
             }
 
-            foreach ($absensiStaff as $ast) {
-                $jamVal = $mode === 'pulang' ? $ast->jam_pulang : $ast->jam_masuk;
-                $all->push((object)[
-                    'nama'   => $ast->staff->nama_lengkap ?? '-',
-                    'kelas'  => 'STAFF TU',
-                    'jam'    => $jamVal,
-                    'status' => $ast->status,
-                    'type'   => 'staff',
-                    'original' => $ast
-                ]);
+            if (empty($roleFilter) || $roleFilter === 'staff') {
+                foreach ($absensiStaff as $ast) {
+                    $jamVal = $mode === 'pulang' ? $ast->jam_pulang : $ast->jam_masuk;
+                    $all->push((object)[
+                        'nama'   => $ast->staff->nama_lengkap ?? '-',
+                        'kelas'  => 'STAFF TU',
+                        'jam'    => $jamVal,
+                        'status' => $ast->status,
+                        'type'   => 'staff',
+                        'original' => $ast
+                    ]);
+                }
             }
 
             // 4. Sortir berdasarkan Jam ASC untuk awal, DESC untuk terbaru

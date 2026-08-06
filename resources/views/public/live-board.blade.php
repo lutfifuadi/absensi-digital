@@ -961,12 +961,12 @@
     <div class="panel-header">
       <div class="panel-title">
         @if($mode === 'pulang')
-          🏆 <span>10 Pulang Paling Awal</span>
+          🏆 <span id="lb-title-awal">10 Pulang Paling Awal</span>
         @else
-          🏆 <span>10 Hadir Paling Awal</span>
+          🏆 <span id="lb-title-awal">10 Hadir Paling Awal</span>
         @endif
       </div>
-      <div style="font-size:.7rem; color:var(--muted);">{{ \Carbon\Carbon::today()->translatedFormat('d F Y') }}</div>
+      <div style="font-size:.7rem; color:var(--muted);" id="lb-sub-awal">{{ \Carbon\Carbon::today()->translatedFormat('d F Y') }}</div>
     </div>
 
     <div class="panel-body">
@@ -1015,7 +1015,7 @@
   <div class="panel">
     <div class="panel-header">
       <div class="panel-title">
-        🕐 <span>Riwayat Scan Terbaru</span>
+        🕐 <span id="lb-title-terbaru">Riwayat Scan Terbaru</span>
       </div>
       <div style="font-size:.7rem; color: var(--muted);">Urutan scan dari yang paling baru</div>
     </div>
@@ -1098,22 +1098,23 @@
         </div>
       </div>
 
-      <!-- Separate Breakdown per Role (Siswa, Guru, Staff TU) -->
+      <!-- Separate Breakdown per Role (Siswa, Guru, Staff TU) — Interactive Filter -->
       <div class="role-stat-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; width: 100%; margin-bottom: 0.75rem; padding: 0 0.25rem; position: relative; z-index: 2;">
-        <div class="role-stat-card" style="background: rgba(115, 103, 240, 0.08); border: 1px solid rgba(115, 103, 240, 0.25); border-radius: 8px; padding: 0.5rem 0.4rem; text-align: center; backdrop-filter: blur(4px);">
+        <div id="card-filter-siswa" onclick="toggleRoleFilter('siswa')" title="Klik untuk memfilter data khusus Siswa" class="role-stat-card" style="background: rgba(115, 103, 240, 0.08); border: 1px solid rgba(115, 103, 240, 0.25); border-radius: 8px; padding: 0.5rem 0.4rem; text-align: center; backdrop-filter: blur(4px); cursor: pointer; transition: all 0.25s ease;">
           <div style="font-size: 0.68rem; color: #a78bfa; font-weight: 800; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">🎓 Siswa</div>
           <div style="font-size: 1.1rem; font-weight: 900; color: #fff; font-family: 'Courier New', monospace; letter-spacing: -0.5px;">
             <span id="s-siswa-hadir" style="color: #7367f0;">{{ $stats['siswa_hadir'] ?? 0 }}</span><span style="font-size: 0.75rem; color: var(--muted); opacity: 0.8;">/</span><span id="s-siswa-total" style="font-size: 0.8rem; color: var(--muted);">{{ $stats['siswa_total'] ?? 0 }}</span>
           </div>
         </div>
 
-        <div class="role-stat-card" style="background: rgba(40, 199, 111, 0.08); border: 1px solid rgba(40, 199, 111, 0.25); border-radius: 8px; padding: 0.5rem 0.4rem; text-align: center; backdrop-filter: blur(4px);">
+        <div id="card-filter-guru" onclick="toggleRoleFilter('guru')" title="Klik untuk memfilter data khusus Guru" class="role-stat-card" style="background: rgba(40, 199, 111, 0.08); border: 1px solid rgba(40, 199, 111, 0.25); border-radius: 8px; padding: 0.5rem 0.4rem; text-align: center; backdrop-filter: blur(4px); cursor: pointer; transition: all 0.25s ease;">
           <div style="font-size: 0.68rem; color: #28c76f; font-weight: 800; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">👨‍🏫 Guru</div>
           <div style="font-size: 1.1rem; font-weight: 900; color: #fff; font-family: 'Courier New', monospace; letter-spacing: -0.5px;">
             <span id="s-guru-hadir" style="color: #28c76f;">{{ $stats['guru_hadir'] ?? 0 }}</span><span style="font-size: 0.75rem; color: var(--muted); opacity: 0.8;">/</span><span id="s-guru-total" style="font-size: 0.8rem; color: var(--muted);">{{ $stats['guru_total'] ?? 0 }}</span>
           </div>
         </div>
-        <div class="role-stat-card" style="background: rgba(0, 207, 232, 0.08); border: 1px solid rgba(0, 207, 232, 0.25); border-radius: 8px; padding: 0.5rem 0.4rem; text-align: center; backdrop-filter: blur(4px);">
+
+        <div id="card-filter-staff" onclick="toggleRoleFilter('staff')" title="Klik untuk memfilter data khusus Staff TU" class="role-stat-card" style="background: rgba(0, 207, 232, 0.08); border: 1px solid rgba(0, 207, 232, 0.25); border-radius: 8px; padding: 0.5rem 0.4rem; text-align: center; backdrop-filter: blur(4px); cursor: pointer; transition: all 0.25s ease;">
           <div style="font-size: 0.68rem; color: #00cfe8; font-weight: 800; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">💼 Staff TU</div>
           <div style="font-size: 1.1rem; font-weight: 900; color: #fff; font-family: 'Courier New', monospace; letter-spacing: -0.5px;">
             <span id="s-staff-hadir" style="color: #00cfe8;">{{ $stats['staff_hadir'] ?? 0 }}</span><span style="font-size: 0.75rem; color: var(--muted); opacity: 0.8;">/</span><span id="s-staff-total" style="font-size: 0.8rem; color: var(--muted);">{{ $stats['staff_total'] ?? 0 }}</span>
@@ -1766,10 +1767,60 @@ function renderRows(rows, colClass) {
 
 let oldAwalStr = '';
 let oldTerbaruStr = '';
+let currentRoleFilter = null;
+
+function toggleRoleFilter(role) {
+  if (currentRoleFilter === role) {
+    currentRoleFilter = null;
+  } else {
+    currentRoleFilter = role;
+  }
+  updateRoleFilterUI();
+  oldAwalStr = '';
+  oldTerbaruStr = '';
+  refreshLeaderboard();
+}
+
+function updateRoleFilterUI() {
+  const configs = {
+    siswa: { el: document.getElementById('card-filter-siswa'), border: '#7367f0', bg: 'rgba(115, 103, 240, 0.25)', glow: '0 0 15px rgba(115, 103, 240, 0.4)' },
+    guru:  { el: document.getElementById('card-filter-guru'),  border: '#28c76f', bg: 'rgba(40, 199, 111, 0.25)',  glow: '0 0 15px rgba(40, 199, 111, 0.4)' },
+    staff: { el: document.getElementById('card-filter-staff'), border: '#00cfe8', bg: 'rgba(0, 207, 232, 0.25)',  glow: '0 0 15px rgba(0, 207, 232, 0.4)' }
+  };
+
+  for (const [r, cfg] of Object.entries(configs)) {
+    if (!cfg.el) continue;
+    if (currentRoleFilter === r) {
+      cfg.el.style.border = '2px solid ' + cfg.border;
+      cfg.el.style.background = cfg.bg;
+      cfg.el.style.boxShadow = cfg.glow;
+      cfg.el.style.transform = 'scale(1.05)';
+    } else {
+      cfg.el.style.border = r === 'siswa' ? '1px solid rgba(115, 103, 240, 0.25)' : (r === 'guru' ? '1px solid rgba(40, 199, 111, 0.25)' : '1px solid rgba(0, 207, 232, 0.25)');
+      cfg.el.style.background = r === 'siswa' ? 'rgba(115, 103, 240, 0.08)' : (r === 'guru' ? 'rgba(40, 199, 111, 0.08)' : 'rgba(0, 207, 232, 0.08)');
+      cfg.el.style.boxShadow = 'none';
+      cfg.el.style.transform = 'scale(1)';
+    }
+  }
+
+  const roleLabels = { siswa: '🎓 Siswa', guru: '👨‍🏫 Guru', staff: '💼 Staff TU' };
+  const titleAwal = document.getElementById('lb-title-awal');
+  const titleTerbaru = document.getElementById('lb-title-terbaru');
+
+  const baseAwal = CURRENT_MODE === 'pulang' ? '10 Pulang Paling Awal' : '10 Hadir Paling Awal';
+  const baseTerbaru = 'Riwayat Scan Terbaru';
+
+  if (titleAwal) {
+    titleAwal.textContent = currentRoleFilter ? `${baseAwal} (${roleLabels[currentRoleFilter]})` : baseAwal;
+  }
+  if (titleTerbaru) {
+    titleTerbaru.textContent = currentRoleFilter ? `${baseTerbaru} (${roleLabels[currentRoleFilter]})` : baseTerbaru;
+  }
+}
 
 async function refreshLeaderboard() {
   try {
-    const url = LEADERBOARD_URL + '?mode=' + CURRENT_MODE;
+    const url = LEADERBOARD_URL + '?mode=' + CURRENT_MODE + (currentRoleFilter ? '&role=' + currentRoleFilter : '');
     const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
     const data = await resp.json();
     
