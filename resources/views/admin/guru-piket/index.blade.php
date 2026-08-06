@@ -151,19 +151,27 @@
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
     }
 
-    .das-swal-title {
+    .das-swal-title, .swal2-title {
       color: #ffffff !important;
       font-weight: 700 !important;
       font-size: 1.3rem !important;
       text-align: center !important;
+      width: 100% !important;
+      max-width: 100% !important;
       margin-top: 0.75rem !important;
       margin-bottom: 0.5rem !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
     }
 
     .das-swal-html {
       color: rgba(255, 255, 255, 0.75) !important;
       font-size: 0.9rem !important;
       margin-top: 0.5rem !important;
+      text-align: center !important;
     }
 
     .swal2-icon {
@@ -202,13 +210,15 @@
     .swal2-actions {
       gap: 0.75rem !important;
       margin-top: 1.25rem !important;
+      justify-content: center !important;
+      width: 100% !important;
     }
 
     .das-swal-confirm-info {
       background: linear-gradient(135deg, #00bad1, #0284c7) !important;
       color: #ffffff !important;
       font-weight: 600 !important;
-      padding: 0.6rem 1.5rem !important;
+      padding: 0.65rem 1.5rem !important;
       border-radius: 8px !important;
       border: none !important;
       font-size: 0.875rem !important;
@@ -224,7 +234,7 @@
       background: linear-gradient(135deg, #ea5455, #dc2626) !important;
       color: #ffffff !important;
       font-weight: 600 !important;
-      padding: 0.6rem 1.5rem !important;
+      padding: 0.65rem 1.5rem !important;
       border-radius: 8px !important;
       border: none !important;
       font-size: 0.875rem !important;
@@ -240,7 +250,7 @@
       background: rgba(255, 255, 255, 0.08) !important;
       color: rgba(255, 255, 255, 0.8) !important;
       font-weight: 600 !important;
-      padding: 0.6rem 1.5rem !important;
+      padding: 0.65rem 1.5rem !important;
       border-radius: 8px !important;
       border: 1px solid rgba(255, 255, 255, 0.12) !important;
       font-size: 0.875rem !important;
@@ -515,6 +525,7 @@
               showCancelButton: true,
               confirmButtonText: '<i class="ti tabler-user-minus me-1"></i> Ya, Cabut Status',
               cancelButtonText: '<i class="ti tabler-x me-1"></i> Batal',
+              reverseButtons: true,
               customClass: {
                 popup: 'das-swal-popup',
                 title: 'das-swal-title',
@@ -584,6 +595,7 @@
               showCancelButton: true,
               confirmButtonText: '<i class="ti tabler-login me-1"></i> Ya, Login Sekarang',
               cancelButtonText: '<i class="ti tabler-x me-1"></i> Batal',
+              reverseButtons: true,
               customClass: {
                 popup: 'das-swal-popup',
                 title: 'das-swal-title',
