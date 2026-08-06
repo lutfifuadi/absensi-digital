@@ -39,6 +39,7 @@ class AnalitikSiswaController extends Controller
      */
     public function getData(Request $request)
     {
+        try {
         $startDate = $request->filled('start_date')
             ? Carbon::parse($request->input('start_date'))->startOfDay()
             : Carbon::now()->subDays(29)->startOfDay();
@@ -212,7 +213,8 @@ class AnalitikSiswaController extends Controller
         }
 
         // ── 7. Ranking Siswa Perlu Perhatian (Top 5) ──────────────────────────
-        $rankingSiswa = (clone $baseQuery)
+        // Pisahkan eager load dari aggregate query untuk menghindari konflik SELECT
+        $rankingRows = (clone $baseQuery)
             ->whereIn('status', ['terlambat', 'alpha'])
             ->select(
                 'siswa_id',
@@ -222,21 +224,27 @@ class AnalitikSiswaController extends Controller
             )
             ->groupBy('siswa_id')
             ->orderByDesc('total_masalah')
-            ->with(['siswa:id,nama,nis,kelas_id', 'siswa.kelas:id,nama'])
-            ->take(5)
-            ->get()
-            ->map(fn($item) => [
-                'nama'      => $item->siswa->nama ?? 'Siswa #' . $item->siswa_id,
-                'nis'       => $item->siswa->nis ?? '-',
-                'kelas'     => $item->siswa?->kelas?->nama ?? '-',
+            ->limit(5)
+            ->get();
+
+        // Ambil siswa & kelas secara terpisah
+        $siswaIds    = $rankingRows->pluck('siswa_id')->unique()->all();
+        $siswaLookup = \App\Models\Siswa::with('kelas:id,nama')
+            ->whereIn('id', $siswaIds)
+            ->get(['id', 'nama_lengkap', 'nis', 'kelas_id'])
+            ->keyBy('id');
+
+        $rankingSiswa = $rankingRows->map(function ($item) use ($siswaLookup) {
+            $s = $siswaLookup->get($item->siswa_id);
+            return [
+                'nama'      => $s ? $s->nama_lengkap : 'Siswa #' . $item->siswa_id,
+                'nis'       => $s ? ($s->nis ?? '-') : '-',
+                'kelas'     => $s?->kelas?->nama ?? '-',
                 'terlambat' => (int) $item->count_terlambat,
                 'alpha'     => (int) $item->count_alpha,
                 'total'     => (int) $item->total_masalah,
-            ]);
-
-        // Bersihkan file temp jika ada
-        @unlink(base_path('check_db_temp.php'));
-
+            ];
+        });
         return response()->json([
             'success' => true,
             'periode' => [
@@ -279,5 +287,14 @@ class AnalitikSiswaController extends Controller
             ],
             'ranking_siswa' => $rankingSiswa,
         ]);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'line'    => $e->getLine(),
+                'file'    => $e->getFile(),
+            ], 500);
+        }
     }
 }

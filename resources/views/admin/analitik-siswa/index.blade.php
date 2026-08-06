@@ -598,11 +598,20 @@
       headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
     })
     .then(r => {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
+      if (!r.ok) return r.json().then(j => { throw new Error(j.message || 'HTTP ' + r.status); });
       return r.json();
     })
     .then(res => {
-      if (!res.success) throw new Error('Data gagal dimuat');
+      if (!res.success) {
+        const msg = res.message || 'Data gagal dimuat';
+        console.error('[Analitik Siswa] Server error:', msg, res);
+        document.getElementById('ranking-body').innerHTML =
+          `<tr><td colspan="5" class="text-center py-4" style="color:#ea5455;">
+            <i class="ti tabler-alert-triangle me-1"></i> Error: ${msg}
+          </td></tr>`;
+        hideLoaders();
+        return;
+      }
 
       // ── Periode Badge ──
       document.getElementById('periode-badge').innerHTML =
@@ -683,7 +692,11 @@
     })
     .catch(err => {
       hideLoaders();
-      console.error('[Analitik Siswa] Error:', err);
+      console.error('[Analitik Siswa] Fetch Error:', err);
+      document.getElementById('ranking-body').innerHTML =
+        `<tr><td colspan="5" class="text-center py-4" style="color:#ea5455;">
+          <i class="ti tabler-alert-triangle me-1"></i> Gagal memuat data: ${err.message}
+        </td></tr>`;
     });
   }
 
