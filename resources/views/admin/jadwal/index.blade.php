@@ -149,10 +149,10 @@
         <a href="{{ route('admin.jadwal.template') }}" class="das-btn das-btn--success" title="Download Template Excel Berisi Dropdown Referensi Sistem">
           <i class="ti tabler-file-download me-1"></i> Template Excel
         </a>
-        <button type="button" class="das-btn das-btn--info" data-bs-toggle="modal" data-bs-target="#modalImportJadwal">
+        <button type="button" class="das-btn das-btn--info" onclick="openImportJadwal()">
           <i class="ti tabler-file-upload me-1"></i> Import Excel
         </button>
-        <button type="button" class="das-btn das-btn--warning" data-bs-toggle="modal" data-bs-target="#modalSalinJadwal">
+        <button type="button" class="das-btn das-btn--warning" onclick="openSalinJadwal()">
           <i class="ti tabler-copy me-1"></i> Salin Jadwal Kelas
         </button>
         <button type="button" class="das-btn das-btn--primary" onclick="openTambahJadwal()">
@@ -601,7 +601,7 @@
       document.getElementById('jadwalSubmitText').textContent = 'Simpan';
       document.getElementById('jadwalSubmitIcon').className = 'ti tabler-device-floppy me-1';
 
-      new bootstrap.Modal(document.getElementById('modalJadwal')).show();
+      openModalSafely('modalJadwal');
     }
 
     function openEditJadwal(data) {
@@ -622,13 +622,35 @@
       document.getElementById('jadwalSubmitText').textContent = 'Perbarui';
       document.getElementById('jadwalSubmitIcon').className = 'ti tabler-refresh me-1';
 
-      new bootstrap.Modal(document.getElementById('modalJadwal')).show();
+      openModalSafely('modalJadwal');
     }
 
     function openHapusJadwal(id, nama) {
       document.getElementById('hapusJadwalNama').textContent = nama;
       document.getElementById('formHapusJadwal').action = jadwalBaseUrl + '/' + id;
-      new bootstrap.Modal(document.getElementById('modalHapusJadwal')).show();
+      openModalSafely('modalHapusJadwal');
+    }
+
+    function openImportJadwal() {
+      openModalSafely('modalImportJadwal');
+    }
+
+    function openSalinJadwal() {
+      openModalSafely('modalSalinJadwal');
+    }
+
+    function openModalSafely(modalId) {
+      const el = document.getElementById(modalId);
+      if (!el) return;
+      if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        let modal = bootstrap.Modal.getInstance(el);
+        if (!modal) {
+          modal = new bootstrap.Modal(el);
+        }
+        modal.show();
+      } else if (typeof $ !== 'undefined' && $.fn.modal) {
+        $(el).modal('show');
+      }
     }
 
     @if ($errors->any())
