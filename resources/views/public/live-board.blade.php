@@ -219,6 +219,87 @@
     }
     .stat-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
 
+    /* ─── CUSTOM ULTRA-PREMIUM TOOLTIP FOR ROLE STAT CARDS ─── */
+    .role-stat-card {
+      position: relative !important;
+      overflow: visible !important;
+    }
+    .role-stat-grid {
+      overflow: visible !important;
+    }
+    .das-custom-tooltip {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%) translateY(6px) scale(0.92);
+      background: rgba(22, 22, 37, 0.95);
+      backdrop-filter: blur(16px) saturate(180%);
+      border-radius: 8px;
+      padding: 6px 10px;
+      min-width: 145px;
+      max-width: 180px;
+      text-align: center;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 100;
+    }
+    .das-custom-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 5px;
+      border-style: solid;
+    }
+    .tt-siswa {
+      border: 1px solid rgba(115, 103, 240, 0.5);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 15px rgba(115, 103, 240, 0.35);
+    }
+    .tt-siswa::after {
+      border-color: rgba(115, 103, 240, 0.8) transparent transparent transparent;
+    }
+    .tt-siswa .tt-badge { color: #a78bfa; }
+
+    .tt-guru {
+      border: 1px solid rgba(40, 199, 111, 0.5);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 15px rgba(40, 199, 111, 0.35);
+    }
+    .tt-guru::after {
+      border-color: rgba(40, 199, 111, 0.8) transparent transparent transparent;
+    }
+    .tt-guru .tt-badge { color: #28c76f; }
+
+    .tt-staff {
+      border: 1px solid rgba(0, 207, 232, 0.5);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 15px rgba(0, 207, 232, 0.35);
+    }
+    .tt-staff::after {
+      border-color: rgba(0, 207, 232, 0.8) transparent transparent transparent;
+    }
+    .tt-staff .tt-badge { color: #00cfe8; }
+
+    .tt-badge {
+      font-size: 0.62rem;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .tt-desc {
+      font-size: 0.68rem;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.25;
+    }
+    .role-stat-card:hover .das-custom-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+
     /* ─── LEADERBOARD TABLE ──────────────────────────────── */
     .lb-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .lb-table thead th {
@@ -1100,21 +1181,33 @@
 
       <!-- Separate Breakdown per Role (Siswa, Guru, Staff TU) — Interactive Filter -->
       <div class="role-stat-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; width: 100%; margin-bottom: 0.75rem; padding: 0 0.25rem; position: relative; z-index: 2;">
-        <div id="card-filter-siswa" onclick="toggleRoleFilter('siswa')" title="Klik untuk memfilter data khusus Siswa" class="role-stat-card" style="background: rgba(115, 103, 240, 0.08); border: 1px solid rgba(115, 103, 240, 0.25); border-radius: 8px; padding: 0.5rem 0.4rem; text-align: center; backdrop-filter: blur(4px); cursor: pointer; transition: all 0.25s ease;">
+        <div id="card-filter-siswa" onclick="toggleRoleFilter('siswa')" class="role-stat-card" style="background: rgba(115, 103, 240, 0.08); border: 1px solid rgba(115, 103, 240, 0.25); border-radius: 8px; padding: 0.5rem 0.4rem; text-align: center; backdrop-filter: blur(4px); cursor: pointer; transition: all 0.25s ease;">
+          <div class="das-custom-tooltip tt-siswa">
+            <div class="tt-badge">🎓 FILTER SISWA</div>
+            <div class="tt-desc">Klik untuk menyaring data scan khusus <strong>Siswa</strong></div>
+          </div>
           <div style="font-size: 0.68rem; color: #a78bfa; font-weight: 800; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">🎓 Siswa</div>
           <div style="font-size: 1.1rem; font-weight: 900; color: #fff; font-family: 'Courier New', monospace; letter-spacing: -0.5px;">
             <span id="s-siswa-hadir" style="color: #7367f0;">{{ $stats['siswa_hadir'] ?? 0 }}</span><span style="font-size: 0.75rem; color: var(--muted); opacity: 0.8;">/</span><span id="s-siswa-total" style="font-size: 0.8rem; color: var(--muted);">{{ $stats['siswa_total'] ?? 0 }}</span>
           </div>
         </div>
 
-        <div id="card-filter-guru" onclick="toggleRoleFilter('guru')" title="Klik untuk memfilter data khusus Guru" class="role-stat-card" style="background: rgba(40, 199, 111, 0.08); border: 1px solid rgba(40, 199, 111, 0.25); border-radius: 8px; padding: 0.5rem 0.4rem; text-align: center; backdrop-filter: blur(4px); cursor: pointer; transition: all 0.25s ease;">
+        <div id="card-filter-guru" onclick="toggleRoleFilter('guru')" class="role-stat-card" style="background: rgba(40, 199, 111, 0.08); border: 1px solid rgba(40, 199, 111, 0.25); border-radius: 8px; padding: 0.5rem 0.4rem; text-align: center; backdrop-filter: blur(4px); cursor: pointer; transition: all 0.25s ease;">
+          <div class="das-custom-tooltip tt-guru">
+            <div class="tt-badge">👨‍🏫 FILTER GURU</div>
+            <div class="tt-desc">Klik untuk menyaring data scan khusus <strong>Guru</strong></div>
+          </div>
           <div style="font-size: 0.68rem; color: #28c76f; font-weight: 800; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">👨‍🏫 Guru</div>
           <div style="font-size: 1.1rem; font-weight: 900; color: #fff; font-family: 'Courier New', monospace; letter-spacing: -0.5px;">
             <span id="s-guru-hadir" style="color: #28c76f;">{{ $stats['guru_hadir'] ?? 0 }}</span><span style="font-size: 0.75rem; color: var(--muted); opacity: 0.8;">/</span><span id="s-guru-total" style="font-size: 0.8rem; color: var(--muted);">{{ $stats['guru_total'] ?? 0 }}</span>
           </div>
         </div>
 
-        <div id="card-filter-staff" onclick="toggleRoleFilter('staff')" title="Klik untuk memfilter data khusus Staff TU" class="role-stat-card" style="background: rgba(0, 207, 232, 0.08); border: 1px solid rgba(0, 207, 232, 0.25); border-radius: 8px; padding: 0.5rem 0.4rem; text-align: center; backdrop-filter: blur(4px); cursor: pointer; transition: all 0.25s ease;">
+        <div id="card-filter-staff" onclick="toggleRoleFilter('staff')" class="role-stat-card" style="background: rgba(0, 207, 232, 0.08); border: 1px solid rgba(0, 207, 232, 0.25); border-radius: 8px; padding: 0.5rem 0.4rem; text-align: center; backdrop-filter: blur(4px); cursor: pointer; transition: all 0.25s ease;">
+          <div class="das-custom-tooltip tt-staff">
+            <div class="tt-badge">💼 FILTER STAFF TU</div>
+            <div class="tt-desc">Klik untuk menyaring data scan khusus <strong>Staff TU</strong></div>
+          </div>
           <div style="font-size: 0.68rem; color: #00cfe8; font-weight: 800; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px;">💼 Staff TU</div>
           <div style="font-size: 1.1rem; font-weight: 900; color: #fff; font-family: 'Courier New', monospace; letter-spacing: -0.5px;">
             <span id="s-staff-hadir" style="color: #00cfe8;">{{ $stats['staff_hadir'] ?? 0 }}</span><span style="font-size: 0.75rem; color: var(--muted); opacity: 0.8;">/</span><span id="s-staff-total" style="font-size: 0.8rem; color: var(--muted);">{{ $stats['staff_total'] ?? 0 }}</span>
