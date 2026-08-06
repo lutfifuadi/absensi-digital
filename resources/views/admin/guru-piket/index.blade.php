@@ -304,19 +304,42 @@
     }
 
     /* Modal Nav Pills Styling */
-    .piket-nav-pills .nav-link {
-      background: rgba(255, 255, 255, 0.05);
-      color: rgba(255, 255, 255, 0.7);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+    .modal-tab-wrapper {
+      padding: 1.25rem 1.5rem !important;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .piket-nav-pills {
+      background: #0b0f19 !important;
+      padding: 5px !important;
       border-radius: 5px !important;
-      transition: all 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    }
+
+    .piket-nav-pills .nav-link {
+      background: transparent !important;
+      color: rgba(255, 255, 255, 0.7) !important;
+      border: none !important;
+      border-radius: 5px !important;
+      transition: all 0.2s ease !important;
+      padding: 0.65rem 1rem !important;
+      font-size: 0.85rem !important;
+      font-weight: 600 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    .piket-nav-pills .nav-link:hover {
+      color: #ffffff !important;
+      background: rgba(255, 255, 255, 0.08) !important;
     }
 
     .piket-nav-pills .nav-link.active {
       background: linear-gradient(135deg, #00bad1, #0284c7) !important;
       color: #ffffff !important;
       border-color: #00bad1 !important;
-      box-shadow: 0 4px 12px rgba(0, 186, 209, 0.35);
+      box-shadow: 0 4px 12px rgba(0, 186, 209, 0.35) !important;
     }
 
     /* SweetAlert2 Glassmorphism Dark Styling */
@@ -519,16 +542,16 @@
         </div>
 
         {{-- Nav Tabs --}}
-        <div class="px-4 pt-3 pb-0 border-bottom border-white border-opacity-10">
-          <ul class="nav nav-pills piket-nav-pills nav-justified gap-2" id="piketModalTabs" role="tablist">
+        <div class="modal-tab-wrapper border-bottom border-white border-opacity-10">
+          <ul class="nav nav-pills piket-nav-pills nav-justified gap-1" id="piketModalTabs" role="tablist">
             <li class="nav-item" role="presentation">
-              <button class="nav-link active fw-bold small py-2" id="tab-assign-tab" data-bs-toggle="pill" data-bs-target="#tab-assign" type="button" role="tab">
-                <i class="ti tabler-user-check me-1"></i> 1. Pilih Guru Terdaftar
+              <button class="nav-link active" id="tab-assign-tab" data-bs-toggle="pill" data-bs-target="#tab-assign" type="button" role="tab">
+                <i class="ti tabler-user-check me-2 fs-5"></i> 1. Pilih Guru Terdaftar
               </button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link fw-bold small py-2" id="tab-create-tab" data-bs-toggle="pill" data-bs-target="#tab-create" type="button" role="tab">
-                <i class="ti tabler-user-plus me-1"></i> 2. Buat Petugas Piket Baru (Manual)
+              <button class="nav-link" id="tab-create-tab" data-bs-toggle="pill" data-bs-target="#tab-create" type="button" role="tab">
+                <i class="ti tabler-user-plus me-2 fs-5"></i> 2. Buat Petugas Piket Baru (Manual)
               </button>
             </li>
           </ul>
