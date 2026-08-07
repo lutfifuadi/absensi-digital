@@ -245,6 +245,9 @@
     </div>
   </div>
 
+  {{-- WIDGET PENGUMUMAN TARGET --}}
+  <x-pengumuman-widget />
+
   @if($anakList->isEmpty())
     <div class="row">
       <div class="col-12">

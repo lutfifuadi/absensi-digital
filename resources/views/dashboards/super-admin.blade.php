@@ -118,6 +118,9 @@
     </div>
   </div>{{-- /das-hero --}}
 
+  {{-- WIDGET PENGUMUMAN TARGET --}}
+  <x-pengumuman-widget />
+
 
   {{-- ═══════════════════════════════════════════════════════
        SECTION 1B: STATS ROW — 4 Card Statistik Dinamis & Interaktif

@@ -562,13 +562,20 @@
       ]
     },
     {
-      "name": "Notifikasi & WA",
+      "name": "Pengumuman & Notifikasi",
       "icon": "menu-icon ti tabler-bell",
       "slug": [
+        "admin.pengumuman.index",
         "admin.wa-gateway.index",
         "admin.notification-templates.index"
       ],
       "submenu": [
+        {
+          "name": "Pengumuman Target",
+          "icon": "menu-icon ti tabler-speakerphone",
+          "slug": "admin.pengumuman.index",
+          "url": "/admin/pengumuman"
+        },
         {
           "name": "WA Gateway",
           "icon": "menu-icon ti tabler-brand-whatsapp",

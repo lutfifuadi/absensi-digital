@@ -133,6 +133,9 @@
     </div>
   </div>{{-- /das-hero --}}
 
+  {{-- WIDGET PENGUMUMAN TARGET --}}
+  <x-pengumuman-widget />
+
   {{-- ═══════════════════════════════════════════════════════
        CONTEXTUAL ALERT: BELUM ABSEN MASUK HARI INI
   ═══════════════════════════════════════════════════════ --}}

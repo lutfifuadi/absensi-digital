@@ -833,6 +833,14 @@ Route::middleware([
         Route::get('pelanggaran-konfigurasi', [\App\Http\Controllers\Admin\KonfigurasiPelanggaranController::class, 'index'])
             ->name('admin.pelanggaran-konfigurasi.index')
             ->middleware('role:super_admin,admin_sekolah');
+
+        // ── MANAGEMENT PENGUMUMAN BERDASARKAN TARGET ──────
+        Route::patch('pengumuman/{id}/toggle-pin', [\App\Http\Controllers\Admin\PengumumanController::class, 'togglePin'])
+            ->name('admin.pengumuman.toggle-pin')
+            ->middleware('role:super_admin,admin_sekolah,operator');
+        Route::resource('pengumuman', \App\Http\Controllers\Admin\PengumumanController::class)
+            ->names('admin.pengumuman')
+            ->middleware('role:super_admin,admin_sekolah,operator');
         Route::post('pelanggaran-konfigurasi', [\App\Http\Controllers\Admin\KonfigurasiPelanggaranController::class, 'save'])
             ->name('admin.pelanggaran-konfigurasi.save')
             ->middleware('role:super_admin,admin_sekolah');
