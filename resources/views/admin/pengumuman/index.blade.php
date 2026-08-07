@@ -18,9 +18,9 @@
     }
 
     .badge-glass {
-      padding: 5px 11px;
-      border-radius: 20px;
-      font-size: 0.72rem;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.7rem;
       font-weight: 700;
       letter-spacing: 0.4px;
       display: inline-flex;
@@ -59,8 +59,8 @@
     }
 
     .badge-target {
-      padding: 5px 12px;
-      border-radius: 8px;
+      padding: 4px 10px;
+      border-radius: 4px;
       font-size: 0.75rem;
       font-weight: 600;
       display: inline-flex;
@@ -105,8 +105,8 @@
     }
 
     .badge-status {
-      padding: 5px 12px;
-      border-radius: 20px;
+      padding: 4px 10px;
+      border-radius: 4px;
       font-size: 0.75rem;
       font-weight: 600;
       display: inline-flex;
@@ -132,7 +132,7 @@
       justify-content: center;
       width: 32px;
       height: 32px;
-      border-radius: 8px;
+      border-radius: 4px;
       transition: all 0.2s ease;
       border: none;
       background: rgba(255, 255, 255, 0.05);

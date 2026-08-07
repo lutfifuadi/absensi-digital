@@ -18,7 +18,7 @@
           <td>
             <div class="d-flex align-items-center gap-2 py-1">
               @if($item->is_pinned)
-                <span class="badge bg-warning text-dark p-1" title="Disematkan di paling atas" style="border-radius: 6px;">
+                <span class="badge bg-warning text-dark p-1" title="Disematkan di paling atas" style="border-radius: 4px;">
                   <i class="ti tabler-pin-filled fs-6"></i>
                 </span>
               @endif
