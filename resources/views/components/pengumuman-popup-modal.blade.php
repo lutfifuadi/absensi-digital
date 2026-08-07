@@ -5,14 +5,14 @@
 
 @if($unreadPopup)
   @php
-    $kategoriBadges = [
-      'informasi' => ['class' => 'bg-info', 'glow' => 'rgba(0, 207, 234, 0.2)'],
-      'penting'   => ['class' => 'bg-warning text-dark', 'glow' => 'rgba(255, 159, 67, 0.2)'],
-      'kegiatan'  => ['class' => 'bg-primary', 'glow' => 'rgba(115, 103, 240, 0.2)'],
-      'mendesak'  => ['class' => 'bg-danger', 'glow' => 'rgba(234, 84, 85, 0.25)'],
-      'libur'     => ['class' => 'bg-success', 'glow' => 'rgba(40, 199, 111, 0.2)'],
+    $glowColors = [
+      'informasi' => 'rgba(0, 207, 234, 0.25)',
+      'penting'   => 'rgba(255, 159, 67, 0.25)',
+      'kegiatan'  => 'rgba(115, 103, 240, 0.25)',
+      'mendesak'  => 'rgba(234, 84, 85, 0.3)',
+      'libur'     => 'rgba(40, 199, 111, 0.25)',
     ];
-    $badgeConfig = $kategoriBadges[$unreadPopup->kategori] ?? ['class' => 'bg-secondary', 'glow' => 'rgba(255, 255, 255, 0.1)'];
+    $glow = $glowColors[$unreadPopup->kategori] ?? 'rgba(255, 255, 255, 0.15)';
   @endphp
 
   <div class="modal fade" 
@@ -21,12 +21,12 @@
        aria-hidden="true"
        @if($unreadPopup->force_read) data-bs-backdrop="static" data-bs-keyboard="false" @endif>
     <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content das-modal border-0 shadow-lg" style="box-shadow: 0 0 40px {{ $badgeConfig['glow'] }} !important;">
+      <div class="modal-content das-modal border-0 shadow-lg" style="box-shadow: 0 0 35px {{ $glow }} !important;">
         
         {{-- Modal Header --}}
         <div class="das-modal-head d-flex align-items-center justify-content-between py-3 px-4">
           <div class="d-flex align-items-center gap-2">
-            <span class="badge {{ $badgeConfig['class'] }} text-uppercase" style="border-radius: 4px; font-size: 0.72rem;">
+            <span class="badge-glass --{{ $unreadPopup->kategori }}">
               {{ $unreadPopup->kategori }}
             </span>
             <span class="text-white-50 extra-small ms-1">
@@ -41,7 +41,7 @@
 
         {{-- Modal Body --}}
         <div class="das-modal-body text-white p-4">
-          <h4 class="text-white fw-bold mb-3" style="line-height: 1.3;">
+          <h4 class="text-white fw-bold mb-3" style="line-height: 1.35;">
             {{ $unreadPopup->judul }}
           </h4>
 
@@ -50,17 +50,18 @@
             <span><i class="ti tabler-user me-1 text-warning"></i> Oleh: {{ $unreadPopup->creator ? $unreadPopup->creator->name : 'Sistem' }}</span>
           </div>
 
-          <div class="p-3 rounded bg-white bg-opacity-10 text-white mb-3" style="white-space: pre-line; line-height: 1.6; max-height: 350px; overflow-y: auto;">
+          {{-- Konten Box Dark Glass High Contrast --}}
+          <div class="p-3 text-white mb-3" style="background: rgba(255, 255, 255, 0.05) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 6px; white-space: pre-line; line-height: 1.65; max-height: 350px; overflow-y: auto; color: #ffffff !important;">
             {{ $unreadPopup->konten }}
           </div>
 
           @if($unreadPopup->lampiran)
-            <div class="d-flex align-items-center justify-content-between p-3 rounded mb-2" style="background: rgba(0, 207, 234, 0.1); border: 1px solid rgba(0, 207, 234, 0.25);">
+            <div class="d-flex align-items-center justify-content-between p-3 mb-2" style="background: rgba(0, 207, 234, 0.1) !important; border: 1px solid rgba(0, 207, 234, 0.25) !important; border-radius: 4px;">
               <div class="d-flex align-items-center gap-2">
                 <i class="ti tabler-paperclip fs-5 text-info"></i>
                 <span class="small text-white font-monospace">{{ basename($unreadPopup->lampiran) }}</span>
               </div>
-              <a href="{{ asset('storage/' . $unreadPopup->lampiran) }}" target="_blank" class="btn btn-sm btn-info text-white">
+              <a href="{{ asset('storage/' . $unreadPopup->lampiran) }}" target="_blank" class="btn btn-sm btn-info text-white" style="border-radius: 4px;">
                 <i class="ti tabler-download me-1"></i> Unduh Lampiran
               </a>
             </div>
