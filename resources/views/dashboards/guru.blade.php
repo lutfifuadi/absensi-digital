@@ -99,6 +99,9 @@
   </div>
 </div>
 
+{{-- WIDGET PENGUMUMAN TARGET --}}
+<x-pengumuman-widget />
+
 {{-- ═══════════════════════════════════════════════════════
      SECTION 2: 4 KPI CARDS — Statistik Kehadiran Saya Bulan Ini
 ═══════════════════════════════════════════════════════ --}}

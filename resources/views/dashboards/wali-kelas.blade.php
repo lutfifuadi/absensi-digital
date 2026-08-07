@@ -50,6 +50,9 @@
     </div>
   </div>{{-- /das-hero --}}
 
+  {{-- WIDGET PENGUMUMAN TARGET --}}
+  <x-pengumuman-widget />
+
   @if ($has_class)
     {{-- ═══════════════════════════════════════════════════════
          STATS ROW — 4 Card Statistik Dinamis
