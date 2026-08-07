@@ -6,6 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\KategoriPelanggaran;
 use App\Http\Requests\StoreKategoriRequest;
 use App\Http\Requests\UpdateKategoriRequest;
+use App\Exports\KategoriPelanggaranExport;
+use App\Exports\KategoriPelanggaranTemplateExport;
+use App\Imports\KategoriPelanggaranImport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 
 class KategoriPelanggaranController extends Controller
@@ -108,5 +112,65 @@ class KategoriPelanggaranController extends Controller
 
         return redirect()->route('admin.pelanggaran-kategori.index')
             ->with('success', 'Kategori pelanggaran berhasil dihapus.');
+    }
+
+    public function export(Request $request)
+    {
+        $search = $request->input('search');
+        $isAktif = $request->input('is_aktif');
+        $fileName = 'kategori_pelanggaran_' . date('Y-m-d_H-i-s') . '.xlsx';
+
+        return Excel::download(new KategoriPelanggaranExport($search, $isAktif), $fileName);
+    }
+
+    public function downloadTemplate()
+    {
+        $fileName = 'template_import_kategori_pelanggaran.xlsx';
+        return Excel::download(new KategoriPelanggaranTemplateExport(), $fileName);
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'import_file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
+        ], [
+            'import_file.required' => 'File Excel wajib dipilih.',
+            'import_file.mimes' => 'File harus berformat xlsx, xls, atau csv.',
+            'import_file.max' => 'Ukuran file maksimal 10 MB.',
+        ]);
+
+        try {
+            $import = new KategoriPelanggaranImport();
+            Excel::import($import, $request->file('import_file'));
+            $res = $import->getImportResult();
+
+            $msg = "Berhasil mengimpor {$res['imported']} kategori baru";
+            if ($res['updated'] > 0) {
+                $msg .= " dan memperbarui {$res['updated']} kategori existing.";
+            } else {
+                $msg .= ".";
+            }
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $msg,
+                    'data' => $res
+                ]);
+            }
+
+            return redirect()->route('admin.pelanggaran-kategori.index')->with('success', $msg);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Import Kategori Pelanggaran Gagal: ' . $e->getMessage());
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mengimpor file: ' . $e->getMessage()
+                ], 422);
+            }
+
+            return redirect()->route('admin.pelanggaran-kategori.index')->with('error', 'Gagal mengimpor file: ' . $e->getMessage());
+        }
     }
 }

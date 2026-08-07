@@ -182,6 +182,28 @@
       color: #ffffff;
       box-shadow: 0 0 12px rgba(255, 159, 67, 0.2);
     }
+
+    .das-btn.--success {
+      background: rgba(40, 199, 111, 0.15);
+      border-color: rgba(40, 199, 111, 0.35);
+      color: #28c76f;
+    }
+    .das-btn.--success:hover {
+      background: rgba(40, 199, 111, 0.3);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(40, 199, 111, 0.2);
+    }
+
+    .das-btn.--info {
+      background: rgba(0, 207, 234, 0.15);
+      border-color: rgba(0, 207, 234, 0.35);
+      color: #00cfe8;
+    }
+    .das-btn.--info:hover {
+      background: rgba(0, 207, 234, 0.3);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(0, 207, 234, 0.2);
+    }
   </style>
 @endsection
 
@@ -211,7 +233,13 @@
         </div>
       </div>
 
-      <div class="das-hero__actions">
+      <div class="das-hero__actions d-flex flex-wrap gap-2">
+        <a href="{{ route('admin.pelanggaran-kategori.export', request()->query()) }}" class="btn das-btn --success" title="Ekspor Data ke Excel">
+          <i class="ti tabler-file-spreadsheet me-1"></i> Export Excel
+        </a>
+        <button type="button" class="btn das-btn --info" onclick="openImportModal()" title="Impor Data dari Excel">
+          <i class="ti tabler-file-import me-1"></i> Import Excel
+        </button>
         <button type="button" class="btn das-btn --warning" onclick="openCreateModal()">
           <i class="ti tabler-plus me-1"></i> Tambah Kategori
         </button>
@@ -335,6 +363,47 @@
       </div>
     </div>
   </div>
+
+  {{-- MODAL IMPORT EXCEL --}}
+  <div class="modal fade" id="modalImport" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content das-modal">
+        <div class="das-modal-head d-flex align-items-center justify-content-between">
+          <h5 class="das-modal-title"><i class="ti tabler-file-import text-info me-2"></i>Import Data Kategori Pelanggaran</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="formImport" method="POST" action="{{ route('admin.pelanggaran-kategori.import') }}" enctype="multipart/form-data">
+          @csrf
+          <div class="das-modal-body text-white">
+            <div class="alert alert-info border-0 shadow-sm d-flex align-items-start gap-2 mb-3" style="background: rgba(0, 207, 234, 0.15); border-radius: 8px;">
+              <i class="ti tabler-info-circle fs-5 text-info mt-1"></i>
+              <div class="small text-white-50">
+                Gunakan template Excel resmi agar format data sesuai. Sistem akan otomatis menambahkan kategori baru atau memperbarui jika nama kategori sudah ada.
+              </div>
+            </div>
+
+            <div class="mb-3 text-end">
+              <a href="{{ route('admin.pelanggaran-kategori.template') }}" class="btn btn-sm btn-outline-info">
+                <i class="ti tabler-download me-1"></i> Download Template Excel
+              </a>
+            </div>
+
+            <div class="mb-3">
+              <label for="inputImportFile" class="form-label text-white">Pilih File Excel (.xlsx / .xls / .csv) <span class="text-danger">*</span></label>
+              <input type="file" class="form-control" id="inputImportFile" name="import_file" accept=".xlsx,.xls,.csv" required>
+              <div class="form-text text-white-50 extra-small">Ukuran maksimum file 10 MB.</div>
+            </div>
+          </div>
+          <div class="modal-footer border-top border-secondary p-3">
+            <button type="button" class="btn btn-outline-secondary text-white" data-bs-dismiss="modal">Batal</button>
+            <button type="submit" class="btn btn-info text-white" id="btnSubmitImport">
+              <i class="ti tabler-upload me-1"></i> Unggah & Proses
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 @endsection
 
 @section('page-script')
@@ -342,6 +411,7 @@
     // Lazy-init: Bootstrap & DOM elements are resolved only when modal is actually opened.
     // This avoids "bootstrap is not defined" because the Vite asset pipeline loads Bootstrap as a deferred module.
     var _modalInstance = null;
+    var _modalImportInstance = null;
 
     function _getModalRefs() {
       if (!_modalInstance) {
@@ -354,6 +424,14 @@
         method:   document.getElementById('formMethod'),
         btn:      document.getElementById('btnSubmit')
       };
+    }
+
+    function openImportModal() {
+      if (!_modalImportInstance) {
+        _modalImportInstance = new bootstrap.Modal(document.getElementById('modalImport'));
+      }
+      document.getElementById('formImport').reset();
+      _modalImportInstance.show();
     }
 
     function openCreateModal() {
@@ -463,6 +541,86 @@
               icon: 'error',
               title: 'Error!',
               text: 'Terjadi kesalahan sistem saat menyimpan data.',
+              customClass: {
+                popup: 'das-swal-popup',
+                title: 'das-swal-title',
+                htmlContainer: 'das-swal-html',
+                confirmButton: 'btn btn-primary das-swal-confirm'
+              },
+              buttonsStyling: false
+            });
+          });
+        });
+      }
+
+      // AJAX Form Import Submission
+      const formImport = document.getElementById('formImport');
+      if (formImport) {
+        formImport.addEventListener('submit', function (e) {
+          e.preventDefault();
+          const btnSubmitImport = document.getElementById('btnSubmitImport');
+          const originalBtnHtml = btnSubmitImport.innerHTML;
+
+          btnSubmitImport.disabled = true;
+          btnSubmitImport.innerHTML = '<i class="ti tabler-loader spinner me-1"></i> Memproses...';
+
+          const formData = new FormData(formImport);
+
+          fetch(formImport.action, {
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json'
+            },
+            body: formData
+          })
+          .then(async function (res) {
+            const data = await res.json().catch(() => ({}));
+            btnSubmitImport.disabled = false;
+            btnSubmitImport.innerHTML = originalBtnHtml;
+
+            if (res.ok && data.success) {
+              if (_modalImportInstance) _modalImportInstance.hide();
+              Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: data.message || 'Data kategori berhasil diimpor.',
+                timer: 2000,
+                showConfirmButton: false,
+                customClass: {
+                  popup: 'das-swal-popup',
+                  title: 'das-swal-title',
+                  htmlContainer: 'das-swal-html'
+                }
+              });
+              loadTable(window.location.href);
+            } else {
+              let errorMsg = data.message || 'Gagal mengimpor data kategori.';
+              if (data.errors) {
+                errorMsg = Object.values(data.errors).flat().join('<br>');
+              }
+              Swal.fire({
+                icon: 'error',
+                title: 'Gagal Impor!',
+                html: errorMsg,
+                customClass: {
+                  popup: 'das-swal-popup',
+                  title: 'das-swal-title',
+                  htmlContainer: 'das-swal-html',
+                  confirmButton: 'btn btn-primary das-swal-confirm'
+                },
+                buttonsStyling: false
+              });
+            }
+          })
+          .catch(function (err) {
+            btnSubmitImport.disabled = false;
+            btnSubmitImport.innerHTML = originalBtnHtml;
+            console.error('Import submit error:', err);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: 'Terjadi kesalahan sistem saat memproses impor file.',
               customClass: {
                 popup: 'das-swal-popup',
                 title: 'das-swal-title',

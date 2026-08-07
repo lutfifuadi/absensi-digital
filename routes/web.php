@@ -812,6 +812,16 @@ Route::middleware([
             ->middleware('role:super_admin,admin_sekolah,operator');
 
         // ── MASTER DATA & KONFIGURASI POINT PELANGGARAN SISWA (PRD-008) ──────
+        Route::get('pelanggaran-kategori/export', [\App\Http\Controllers\Admin\KategoriPelanggaranController::class, 'export'])
+            ->name('admin.pelanggaran-kategori.export')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::get('pelanggaran-kategori/template', [\App\Http\Controllers\Admin\KategoriPelanggaranController::class, 'downloadTemplate'])
+            ->name('admin.pelanggaran-kategori.template')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pelanggaran-kategori/import', [\App\Http\Controllers\Admin\KategoriPelanggaranController::class, 'import'])
+            ->name('admin.pelanggaran-kategori.import')
+            ->middleware('role:super_admin,admin_sekolah');
+
         Route::resource('pelanggaran-kategori', \App\Http\Controllers\Admin\KategoriPelanggaranController::class)
             ->names('admin.pelanggaran-kategori')
             ->middleware('role:super_admin,admin_sekolah');
