@@ -456,8 +456,7 @@
             <span class="text-white-50 small ms-auto" id="detailTanggal"></span>
           </div>
 
-          <div class="p-3 bg-white bg-opacity-10 rounded mb-3 text-white" id="detailKonten" style="white-space: pre-line; line-height: 1.6;">
-          </div>
+          <div class="p-3 mb-3 text-white" id="detailKonten" style="background: rgba(255, 255, 255, 0.05) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 4px !important; white-space: pre-line; line-height: 1.6; color: #ffffff !important;"></div>
 
           <div id="detailLampiranWrapper" class="d-none">
             <h6 class="text-white-50 small mb-2"><i class="ti tabler-paperclip me-1"></i> File Lampiran:</h6>

@@ -50,10 +50,7 @@
             <span><i class="ti tabler-user me-1 text-warning"></i> Oleh: {{ $unreadPopup->creator ? $unreadPopup->creator->name : 'Sistem' }}</span>
           </div>
 
-          {{-- Konten Box Dark Glass High Contrast (Radius Max 5px) --}}
-          <div class="p-3 text-white mb-3" style="background: rgba(255, 255, 255, 0.05) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 4px !important; white-space: pre-line; line-height: 1.65; max-height: 350px; overflow-y: auto; color: #ffffff !important;">
-            {{ $unreadPopup->konten }}
-          </div>
+          <div class="p-3 text-white mb-3" style="background: rgba(255, 255, 255, 0.05) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 4px !important; white-space: pre-line; line-height: 1.65; max-height: 350px; overflow-y: auto; color: #ffffff !important;">{{ trim($unreadPopup->konten) }}</div>
 
           @if($unreadPopup->lampiran)
             <div class="d-flex align-items-center justify-content-between p-3 mb-2" style="background: rgba(0, 207, 234, 0.1) !important; border: 1px solid rgba(0, 207, 234, 0.25) !important; border-radius: 4px !important;">
