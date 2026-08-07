@@ -42,7 +42,7 @@
             </div>
 
             <p class="text-white-50 small mb-2" style="line-height: 1.5; white-space: pre-line;">
-              {{ Str::limit($item->konten, 150) }}
+              {{ \Illuminate\Support\Str::limit($item->konten, 150) }}
             </p>
 
             <div class="d-flex align-items-center justify-content-between text-white-50" style="font-size: 0.75rem;">

@@ -24,7 +24,7 @@
               @endif
               <div>
                 <a href="{{ route('admin.pengumuman.show', $item->id) }}" class="text-white fw-semibold text-decoration-none btn-detail-pengumuman" data-id="{{ $item->id }}">
-                  {{ Str::limit($item->judul, 45) }}
+                  {{ \Illuminate\Support\Str::limit($item->judul, 45) }}
                 </a>
                 <div class="mt-1 d-flex align-items-center gap-2">
                   @php
