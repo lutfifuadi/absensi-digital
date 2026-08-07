@@ -1749,6 +1749,12 @@ select.set-input option {
               </div>
             </div>
 
+            {{-- ══ ZONA WAKTU ══ --}}
+            <div class="set-section-label mt-5 mb-2">
+              <i class="ti tabler-world" style="font-size: 1.1rem; color: var(--das-primary);"></i>
+              <span>Zona Waktu</span>
+            </div>
+            <div class="set-form-grid">
               <div class="set-field">
                 <label class="set-label">Zona Waktu Sistem</label>
                 <div class="select2-wrapper" style="position: relative;">
