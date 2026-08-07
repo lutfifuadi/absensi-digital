@@ -75,25 +75,26 @@ class Pengumuman extends Model
             return $query->where('target', 'semua');
         }
 
-        // Super Admin & Admin Sekolah melihat semua
-        if ($user->hasRole(['super_admin', 'admin_sekolah', 'operator'])) {
+        // Super Admin & Admin Sekolah & Operator melihat semua
+        if ($user->hasAnyRole(['super_admin', 'admin_sekolah', 'operator'])) {
             return $query;
         }
 
-        $roles = $user->roles->pluck('name')->toArray();
-        if (empty($roles) && isset($user->role)) {
-            $roles = [$user->role];
+        $userRoles = is_array($user->roles) ? $user->roles : [];
+        if (!empty($user->role)) {
+            $userRoles[] = $user->role;
         }
+        $userRoles = array_unique(array_filter($userRoles));
 
-        return $query->where(function ($q) use ($user, $roles) {
+        return $query->where(function ($q) use ($user, $userRoles) {
             // Target 'semua' berlaku untuk semua user
             $q->where('target', 'semua');
 
-            if (in_array('guru', $roles)) {
+            if (array_intersect($userRoles, ['guru', 'wali_kelas', 'guru_bk', 'piket', 'waka_kurikulum'])) {
                 $q->orWhere('target', 'guru');
             }
 
-            if (in_array('siswa', $roles)) {
+            if (in_array('siswa', $userRoles, true)) {
                 $q->orWhere('target', 'siswa');
 
                 // Jika user siswa, cek kelasnya
@@ -106,11 +107,11 @@ class Pengumuman extends Model
                 }
             }
 
-            if (in_array('orang_tua', $roles) || in_array('wali', $roles)) {
+            if (array_intersect($userRoles, ['orang_tua', 'wali'])) {
                 $q->orWhere('target', 'orang_tua');
             }
 
-            if (in_array('staff', $roles) || in_array('tata_usaha', $roles)) {
+            if (array_intersect($userRoles, ['staff', 'staff_tu', 'tata_usaha'])) {
                 $q->orWhere('target', 'staff');
             }
         });
