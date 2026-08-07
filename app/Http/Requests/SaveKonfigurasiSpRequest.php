@@ -18,6 +18,7 @@ class SaveKonfigurasiSpRequest extends FormRequest
             'batas_sp1' => 'required|integer|min:1',
             'batas_sp2' => 'required|integer|gt:batas_sp1',
             'batas_sp3' => 'required|integer|gt:batas_sp2',
+            'poin_maksimal' => 'required|integer|gt:batas_sp3',
             'notif_wa_aktif' => 'nullable|boolean',
         ];
     }
@@ -27,6 +28,7 @@ class SaveKonfigurasiSpRequest extends FormRequest
         return [
             'batas_sp2.gt' => 'Batas SP2 harus lebih besar dari Batas SP1.',
             'batas_sp3.gt' => 'Batas SP3 harus lebih besar dari Batas SP2.',
+            'poin_maksimal.gt' => 'Bobot Poin Maksimal harus lebih besar dari Batas SP3.',
         ];
     }
 }

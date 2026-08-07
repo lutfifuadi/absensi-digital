@@ -16,6 +16,7 @@ class KonfigurasiPelanggaran extends Model
         'batas_sp1',
         'batas_sp2',
         'batas_sp3',
+        'poin_maksimal',
         'notif_wa_aktif',
         'created_by',
     ];
@@ -25,6 +26,7 @@ class KonfigurasiPelanggaran extends Model
         'batas_sp1' => 'integer',
         'batas_sp2' => 'integer',
         'batas_sp3' => 'integer',
+        'poin_maksimal' => 'integer',
         'notif_wa_aktif' => 'boolean',
         'created_by' => 'integer',
     ];

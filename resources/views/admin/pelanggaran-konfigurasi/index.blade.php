@@ -123,26 +123,33 @@
             @csrf
             <input type="hidden" name="tahun_akademik_id" value="{{ $tahunAkademikId }}">
 
-            <div class="row mb-4">
-              <div class="col-md-4">
+            <div class="row mb-4 g-3">
+              <div class="col-md-3">
                 <div class="card bg-label-primary border-0 p-3 text-center">
-                  <div class="h5 text-primary mb-1">Batas SP 1</div>
-                  <input type="number" name="batas_sp1" class="form-control text-center fs-5 fw-bold bg-dark border-secondary text-white" min="1" max="100" value="{{ old('batas_sp1', $konfigurasi?->batas_sp1 ?? 25) }}" required>
-                  <span class="text-white-50 extra-small mt-2">Akumulasi Poin Minimum</span>
+                  <div class="h6 text-primary mb-1 fw-bold">Batas SP 1</div>
+                  <input type="number" name="batas_sp1" class="form-control text-center fs-5 fw-bold bg-dark border-secondary text-white" min="1" max="9999" value="{{ old('batas_sp1', $konfigurasi?->batas_sp1 ?? 25) }}" required>
+                  <span class="text-white-50 extra-small mt-2">Poin SP 1</span>
                 </div>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <div class="card bg-label-warning border-0 p-3 text-center">
-                  <div class="h5 text-warning mb-1">Batas SP 2</div>
-                  <input type="number" name="batas_sp2" class="form-control text-center fs-5 fw-bold bg-dark border-secondary text-white" min="1" max="100" value="{{ old('batas_sp2', $konfigurasi?->batas_sp2 ?? 50) }}" required>
+                  <div class="h6 text-warning mb-1 fw-bold">Batas SP 2</div>
+                  <input type="number" name="batas_sp2" class="form-control text-center fs-5 fw-bold bg-dark border-secondary text-white" min="1" max="9999" value="{{ old('batas_sp2', $konfigurasi?->batas_sp2 ?? 50) }}" required>
                   <span class="text-white-50 extra-small mt-2">Batas SP 2 > SP 1</span>
                 </div>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <div class="card bg-label-danger border-0 p-3 text-center">
-                  <div class="h5 text-danger mb-1">Batas SP 3</div>
-                  <input type="number" name="batas_sp3" class="form-control text-center fs-5 fw-bold bg-dark border-secondary text-white" min="1" max="100" value="{{ old('batas_sp3', $konfigurasi?->batas_sp3 ?? 75) }}" required>
+                  <div class="h6 text-danger mb-1 fw-bold">Batas SP 3</div>
+                  <input type="number" name="batas_sp3" class="form-control text-center fs-5 fw-bold bg-dark border-secondary text-white" min="1" max="9999" value="{{ old('batas_sp3', $konfigurasi?->batas_sp3 ?? 75) }}" required>
                   <span class="text-white-50 extra-small mt-2">Batas SP 3 > SP 2</span>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="card bg-label-info border-0 p-3 text-center">
+                  <div class="h6 text-info mb-1 fw-bold">Poin Maksimal</div>
+                  <input type="number" name="poin_maksimal" class="form-control text-center fs-5 fw-bold bg-dark border-secondary text-white" min="1" max="9999" value="{{ old('poin_maksimal', $konfigurasi?->poin_maksimal ?? 100) }}" required>
+                  <span class="text-white-50 extra-small mt-2">Batas Sanksi Berat</span>
                 </div>
               </div>
             </div>
