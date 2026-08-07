@@ -291,8 +291,8 @@
       </div>
 
       <div class="das-hero__actions">
-        <button type="button" class="btn das-btn --purple" onclick="openCreateModal()">
-          <i class="ti tabler-plus me-1"></i> Tambah Pengumuman
+        <button type="button" class="btn btn-primary fw-bold px-3 py-2 d-inline-flex align-items-center gap-2" style="border-radius: 4px !important; background: linear-gradient(135deg, #7367f0 0%, #9e95f5 100%) !important; border: none !important; box-shadow: 0 4px 15px rgba(115, 103, 240, 0.4) !important;" onclick="openCreateModal()">
+          <i class="ti tabler-plus fs-5"></i> Tambah Pengumuman
         </button>
       </div>
     </div>
@@ -300,7 +300,7 @@
 
   {{-- FLASH MESSAGES --}}
   @if (session('success'))
-    <div class="alert alert-success alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm" role="alert" style="border-radius:8px;">
+    <div class="alert alert-success alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm" role="alert" style="border-radius: 4px !important;">
       <i class="ti tabler-circle-check fs-5"></i>
       <span>{{ session('success') }}</span>
       <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
@@ -346,8 +346,8 @@
           </select>
         </div>
         <div class="col-6 col-md-2 d-flex gap-2">
-          <button type="submit" class="btn btn-primary w-100"><i class="ti tabler-filter me-1"></i> Filter</button>
-          <a href="{{ route('admin.pengumuman.index') }}" class="btn btn-secondary" title="Reset Filter"><i class="ti tabler-refresh"></i></a>
+          <button type="submit" class="btn btn-primary w-100" style="border-radius: 4px !important;"><i class="ti tabler-filter me-1"></i> Filter</button>
+          <a href="{{ route('admin.pengumuman.index') }}" class="btn btn-secondary" style="border-radius: 4px !important;" title="Reset Filter"><i class="ti tabler-refresh"></i></a>
         </div>
       </form>
     </div>
