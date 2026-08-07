@@ -194,7 +194,7 @@
                 <div>
                   <h6 class="mb-1 text-warning fw-bold d-flex align-items-center gap-2">
                     <span>Pengingat Presensi Pagi</span>
-                    <span class="badge bg-warning bg-opacity-20 text-warning font-monospace" style="font-size: 0.65rem;">Sebelum 07:15 WIB</span>
+                    <span class="badge font-monospace" style="font-size: 0.65rem; background: rgba(255, 159, 67, 0.15); color: #ff9f43; border: 1px solid rgba(255, 159, 67, 0.3); border-radius: 4px;">Sebelum 07:15 WIB</span>
                   </h6>
                   <p class="text-body-secondary mb-0 small">Anda belum melakukan absensi masuk hari ini ({{ now()->locale('id')->translatedFormat('l, d F Y') }}). Silakan lakukan Absen Mandiri atau scan di sekolah.</p>
                 </div>
@@ -216,7 +216,7 @@
                 <div>
                   <h6 class="mb-1 text-danger fw-bold d-flex align-items-center gap-2">
                     <span>Belum Absen Masuk Hari Ini</span>
-                    <span class="badge bg-danger bg-opacity-20 text-danger" style="font-size: 0.65rem;">Belum Hadir</span>
+                    <span class="badge" style="font-size: 0.65rem; background: rgba(234, 84, 85, 0.15); color: #ea5455; border: 1px solid rgba(234, 84, 85, 0.3); border-radius: 4px;">Belum Hadir</span>
                   </h6>
                   <p class="text-body-secondary mb-0 small">Sistem belum mencatat kehadiran masuk Anda untuk hari ini. Jika Anda berhalangan hadir (sakit/izin), segera ajukan Surat Izin.</p>
                 </div>
