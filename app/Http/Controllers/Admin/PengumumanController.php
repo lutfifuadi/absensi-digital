@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pengumuman;
+use App\Models\PengumumanRead;
 use App\Models\Kelas;
 use App\Http\Requests\StorePengumumanRequest;
 use App\Http\Requests\UpdatePengumumanRequest;
@@ -15,7 +16,7 @@ class PengumumanController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Pengumuman::with(['targetKelas', 'creator']);
+        $query = Pengumuman::with(['targetKelas', 'creator'])->withCount('reads');
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -61,10 +62,12 @@ class PengumumanController extends Controller
     {
         $data = $request->validated();
 
-        $data['is_pinned'] = $request->has('is_pinned');
-        $data['is_aktif']  = $request->has('is_aktif');
+        $data['is_pinned']  = $request->has('is_pinned');
+        $data['is_popup']   = $request->has('is_popup');
+        $data['force_read'] = $request->has('force_read');
+        $data['is_aktif']   = $request->has('is_aktif');
         $data['created_by'] = auth()->id();
-        $data['slug']      = Str::slug($data['judul']) . '-' . Str::random(5);
+        $data['slug']       = Str::slug($data['judul']) . '-' . Str::random(5);
 
         if ($request->hasFile('lampiran')) {
             $file = $request->file('lampiran');
@@ -88,7 +91,7 @@ class PengumumanController extends Controller
 
     public function show($id)
     {
-        $item = Pengumuman::with(['targetKelas', 'creator'])->findOrFail($id);
+        $item = Pengumuman::with(['targetKelas', 'creator'])->withCount('reads')->findOrFail($id);
 
         if (request()->ajax() || request()->wantsJson()) {
             return response()->json([
@@ -105,11 +108,12 @@ class PengumumanController extends Controller
         $item = Pengumuman::findOrFail($id);
         $data = $request->validated();
 
-        $data['is_pinned'] = $request->has('is_pinned');
-        $data['is_aktif']  = $request->has('is_aktif');
+        $data['is_pinned']  = $request->has('is_pinned');
+        $data['is_popup']   = $request->has('is_popup');
+        $data['force_read'] = $request->has('force_read');
+        $data['is_aktif']   = $request->has('is_aktif');
 
         if ($request->hasFile('lampiran')) {
-            // Hapus file lama jika ada
             if ($item->lampiran && Storage::disk('public')->exists($item->lampiran)) {
                 Storage::disk('public')->delete($item->lampiran);
             }
@@ -175,5 +179,27 @@ class PengumumanController extends Controller
         }
 
         return back()->with('success', $msg);
+    }
+
+    public function markAsRead($id, Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $item = Pengumuman::findOrFail($id);
+
+        PengumumanRead::firstOrCreate([
+            'pengumuman_id' => $item->id,
+            'user_id'       => $user->id,
+        ], [
+            'read_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pengumuman berhasil ditandai sebagai dibaca.',
+        ]);
     }
 }

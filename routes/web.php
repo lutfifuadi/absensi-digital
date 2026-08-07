@@ -835,6 +835,8 @@ Route::middleware([
             ->middleware('role:super_admin,admin_sekolah');
 
         // ── MANAGEMENT PENGUMUMAN BERDASARKAN TARGET ──────
+        Route::post('pengumuman/{id}/mark-as-read', [\App\Http\Controllers\Admin\PengumumanController::class, 'markAsRead'])
+            ->name('pengumuman.mark-as-read');
         Route::patch('pengumuman/{id}/toggle-pin', [\App\Http\Controllers\Admin\PengumumanController::class, 'togglePin'])
             ->name('admin.pengumuman.toggle-pin')
             ->middleware('role:super_admin,admin_sekolah,operator');

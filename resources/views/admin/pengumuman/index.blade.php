@@ -405,14 +405,30 @@
               <div class="form-text text-white-50 extra-small" id="lampiranInfo">Maksimal file 10 MB.</div>
             </div>
 
-            <div class="d-flex gap-4">
-              <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="inputIsPinned" name="is_pinned" value="1">
-                <label class="form-check-label text-white" for="inputIsPinned">Sematkan di Atas (Pin)</label>
+            <div class="row g-3 mb-3">
+              <div class="col-6 col-md-3">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="inputIsPinned" name="is_pinned" value="1">
+                  <label class="form-check-label text-white" for="inputIsPinned">Sematkan (Pin)</label>
+                </div>
               </div>
-              <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="inputIsAktif" name="is_aktif" value="1" checked>
-                <label class="form-check-label text-white" for="inputIsAktif">Status Aktif</label>
+              <div class="col-6 col-md-3">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="inputIsPopup" name="is_popup" value="1">
+                  <label class="form-check-label text-warning fw-bold" for="inputIsPopup">Popup Modal</label>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="inputForceRead" name="force_read" value="1">
+                  <label class="form-check-label text-info" for="inputForceRead">Wajib Baca</label>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="inputIsAktif" name="is_aktif" value="1" checked>
+                  <label class="form-check-label text-white" for="inputIsAktif">Status Aktif</label>
+                </div>
               </div>
             </div>
           </div>
@@ -508,6 +524,8 @@
       document.getElementById('inputTanggalSelesai').value = "";
       document.getElementById('inputLampiran').value = "";
       document.getElementById('inputIsPinned').checked = false;
+      document.getElementById('inputIsPopup').checked = false;
+      document.getElementById('inputForceRead').checked = false;
       document.getElementById('inputIsAktif').checked = true;
       document.getElementById('lampiranInfo').innerText = "Maksimal file 10 MB.";
 
@@ -532,6 +550,8 @@
       
       document.getElementById('inputLampiran').value = "";
       document.getElementById('inputIsPinned').checked = data.is_pinned;
+      document.getElementById('inputIsPopup').checked = data.is_popup || false;
+      document.getElementById('inputForceRead').checked = data.force_read || false;
       document.getElementById('inputIsAktif').checked = data.is_aktif;
       
       if (data.lampiran) {

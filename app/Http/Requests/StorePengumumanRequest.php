@@ -21,6 +21,8 @@ class StorePengumumanRequest extends FormRequest
             'target_kelas_id' => 'nullable|required_if:target,kelas|exists:kelas,id',
             'lampiran'        => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx|max:10240',
             'is_pinned'       => 'nullable|boolean',
+            'is_popup'        => 'nullable|boolean',
+            'force_read'      => 'nullable|boolean',
             'is_aktif'        => 'nullable|boolean',
             'tanggal_mulai'   => 'nullable|date',
             'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_mulai',

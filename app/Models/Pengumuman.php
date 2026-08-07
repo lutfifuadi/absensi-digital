@@ -21,6 +21,8 @@ class Pengumuman extends Model
         'target_kelas_id',
         'lampiran',
         'is_pinned',
+        'is_popup',
+        'force_read',
         'is_aktif',
         'tanggal_mulai',
         'tanggal_selesai',
@@ -29,6 +31,8 @@ class Pengumuman extends Model
 
     protected $casts = [
         'is_pinned' => 'boolean',
+        'is_popup' => 'boolean',
+        'force_read' => 'boolean',
         'is_aktif' => 'boolean',
         'tanggal_mulai' => 'datetime',
         'tanggal_selesai' => 'datetime',
@@ -55,6 +59,17 @@ class Pengumuman extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function reads()
+    {
+        return $this->hasMany(PengumumanRead::class, 'pengumuman_id');
+    }
+
+    public function isReadBy($user): bool
+    {
+        if (!$user) return false;
+        return $this->reads()->where('user_id', $user->id)->exists();
+    }
+
     public function scopeAktif($query)
     {
         $now = now();
@@ -66,6 +81,20 @@ class Pengumuman extends Model
             ->where(function ($q) use ($now) {
                 $q->whereNull('tanggal_selesai')
                   ->orWhere('tanggal_selesai', '>=', $now);
+            });
+    }
+
+    public function scopeUnreadPopupForUser($query, $user)
+    {
+        if (!$user) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->aktif()
+            ->where('is_popup', true)
+            ->targetForUser($user)
+            ->whereDoesntHave('reads', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
             });
     }
 

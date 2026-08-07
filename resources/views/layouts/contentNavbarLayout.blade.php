@@ -109,6 +109,9 @@
 
           @yield('content')
 
+          {{-- AUTO POPUP PENGUMUMAN UNTUK USER LOGGED IN --}}
+          <x-pengumuman-popup-modal />
+
         </div>
         <!-- / Content -->
 
