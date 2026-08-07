@@ -165,8 +165,9 @@
       <div class="col-12 col-sm-6 col-md-3 col-lg-2 col-xl-2" id="preset-wrap">
         <div class="analitik-filter-label">Rentang Waktu</div>
         <select id="filter-preset" class="form-select form-select-sm filter-input-custom">
-          <option value="30_days" selected>30 Hari Terakhir</option>
+          <option value="today">Hari Ini</option>
           <option value="7_days">7 Hari Terakhir</option>
+          <option value="30_days" selected>30 Hari Terakhir</option>
           <option value="this_month">Bulan Ini</option>
           <option value="custom">Custom Tanggal</option>
         </select>
@@ -529,8 +530,16 @@
   function getDates() {
     const preset = document.getElementById('filter-preset').value;
     const today  = new Date();
-    const pad    = d => d.toISOString().split('T')[0];
+    const pad    = d => {
+      const year  = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day   = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
 
+    if (preset === 'today') {
+      return { start: pad(today), end: pad(today) };
+    }
     if (preset === '7_days') {
       const s = new Date(); s.setDate(today.getDate() - 6);
       return { start: pad(s), end: pad(today) };
