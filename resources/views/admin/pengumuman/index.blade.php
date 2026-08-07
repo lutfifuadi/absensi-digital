@@ -139,6 +139,21 @@
       border: 1px solid rgba(168, 170, 174, 0.35) !important;
     }
 
+    .badge-popup {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: rgba(255, 159, 67, 0.15) !important;
+      color: #ff9f43 !important;
+      border: 1px solid rgba(255, 159, 67, 0.4) !important;
+      text-transform: uppercase;
+    }
+
     .action-btn {
       display: inline-flex;
       align-items: center;

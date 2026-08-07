@@ -29,8 +29,8 @@
                 <div class="mt-1 d-flex align-items-center gap-2">
                   <span class="badge-glass --{{ $item->kategori }}">{{ $item->kategori }}</span>
                   @if($item->is_popup)
-                    <span class="badge bg-warning bg-opacity-20 text-warning border border-warning border-opacity-30 extra-small" title="Pengumuman ini tampil sebagai Popup Modal" style="border-radius: 4px;">
-                      <i class="ti tabler-window-maximize me-1"></i> POPUP
+                    <span class="badge-popup" title="Pengumuman ini tampil sebagai Popup Modal">
+                      <i class="ti tabler-window-maximize"></i> POPUP
                     </span>
                   @endif
                   @if($item->reads_count > 0)
