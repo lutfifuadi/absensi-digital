@@ -322,6 +322,72 @@ class AnalitikSiswaController extends Controller
                 'total'     => (int) $item->total_masalah,
             ];
         });
+
+        // ── 8. Siswa Belum Absensi (Hari Ini) ─────────────────────────────────
+        $todayStr = Carbon::now()->toDateString();
+        $siswaQuery = \App\Models\Siswa::query()->where('status', 'aktif');
+
+        if ($kelasId && $kelasId !== 'all') {
+            $siswaQuery->where('kelas_id', (int) $kelasId);
+        }
+        if ($tingkat && $tingkat !== 'all') {
+            $tingkatMap = [
+                '10' => 'X', '11' => 'XI', '12' => 'XII',
+                'X'  => '10', 'XI' => '11', 'XII' => '12',
+                '7'  => 'VII', '8'  => 'VIII', '9'  => 'IX',
+                'VII' => '7', 'VIII' => '8', 'IX' => '9',
+                '1'  => 'I', '2'  => 'II', '3'  => 'III', '4' => 'IV', '5' => 'V', '6' => 'VI',
+                'I'  => '1', 'II' => '2', 'III' => '3', 'IV' => '4', 'V' => '5', 'VI' => '6',
+            ];
+            $tingkatValues = array_unique([$tingkat, $tingkatMap[$tingkat] ?? $tingkat]);
+            $siswaQuery->whereHas('kelas', function ($q) use ($tingkatValues) {
+                $q->whereIn('tingkat', $tingkatValues);
+            });
+        }
+        if ($jurusanId && $jurusanId !== 'all') {
+            $siswaQuery->whereHas('kelas', function ($q) use ($jurusanId) {
+                $q->where('jurusan_id', (int) $jurusanId);
+            });
+        }
+
+        $totalSiswaScope = (clone $siswaQuery)->count();
+
+        $belumAbsenQuery = (clone $siswaQuery)
+            ->whereDoesntHave('absensi', function ($q) use ($todayStr) {
+                $q->whereDate('tanggal', $todayStr);
+            })
+            ->with(['kelas:id,nama', 'ortuUser:id,no_hp']);
+
+        $countBelumAbsenToday = (clone $belumAbsenQuery)->count();
+
+        $listBelumAbsen = $belumAbsenQuery->limit(10)->get()->map(function ($s) {
+            $noHp = $s->no_hp_ortu ?: ($s->ortuUser?->no_hp ?: $s->no_hp);
+            $formattedPhone = '';
+            if (!empty($noHp)) {
+                $clean = preg_replace('/[^0-9]/', '', $noHp);
+                if (str_starts_with($clean, '08')) {
+                    $formattedPhone = '62' . substr($clean, 1);
+                } elseif (str_starts_with($clean, '62')) {
+                    $formattedPhone = $clean;
+                } else {
+                    $formattedPhone = $clean;
+                }
+            }
+            $pesan = "Halo Bapak/Ibu, menginfokan bahwa putra/putri Anda {$s->nama_lengkap} belum melakukan absensi masuk sekolah hari ini. Terima kasih.";
+            $waUrl = !empty($formattedPhone)
+                ? 'https://wa.me/' . $formattedPhone . '?text=' . rawurlencode($pesan)
+                : null;
+
+            return [
+                'id'           => $s->id,
+                'nama'         => $s->nama_lengkap,
+                'nis'          => $s->nis ?? '-',
+                'kelas'        => $s->kelas?->nama ?? '-',
+                'no_hp'        => $noHp ?: '-',
+                'wa_url'       => $waUrl,
+            ];
+        });
+
         return response()->json([
             'success' => true,
             'periode' => [
@@ -329,15 +395,18 @@ class AnalitikSiswaController extends Controller
                 'end'   => $endDate->format('d M Y'),
             ],
             'kpi' => [
-                'total_presensi'       => $totalRecords,
-                'count_hadir'          => $countHadir,
-                'count_terlambat'      => $countTerlambat,
-                'count_izin_sakit'     => $countIzin + $countSakit,
-                'count_alpha'          => $countAlpha,
-                'persentase_kehadiran' => $persentaseKehadiran,
+                'total_presensi'         => $totalRecords,
+                'count_hadir'            => $countHadir,
+                'count_terlambat'        => $countTerlambat,
+                'count_izin_sakit'       => $countIzin + $countSakit,
+                'count_alpha'            => $countAlpha,
+                'count_belum_absen'      => $countBelumAbsenToday,
+                'total_siswa_scope'      => $totalSiswaScope,
+                'persentase_kehadiran'   => $persentaseKehadiran,
                 'persentase_tepat_waktu' => $persentaseTepatWaktu,
-                'peak_hour'            => $peakHourKey,
+                'peak_hour'              => $peakHourKey,
             ],
+            'list_belum_absen' => $listBelumAbsen,
             'chart_trend' => [
                 'labels'    => $trendLabels,
                 'hadir'     => $trendHadir,

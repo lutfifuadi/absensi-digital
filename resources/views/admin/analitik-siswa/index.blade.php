@@ -243,7 +243,7 @@
 {{-- ═══════════════════════════════════════════════ --}}
 <div class="row g-3 mb-4">
   {{-- Tingkat Kehadiran --}}
-  <div class="col-6 col-lg-3">
+  <div class="col-6 col-md-4 col-xl">
     <div class="analitik-kpi">
       <div class="d-flex align-items-center justify-content-between mb-2">
         <div class="analitik-kpi__label">Tingkat Kehadiran</div>
@@ -258,7 +258,7 @@
   </div>
 
   {{-- Ketepatan Waktu --}}
-  <div class="col-6 col-lg-3">
+  <div class="col-6 col-md-4 col-xl">
     <div class="analitik-kpi">
       <div class="d-flex align-items-center justify-content-between mb-2">
         <div class="analitik-kpi__label">Tepat Waktu</div>
@@ -273,7 +273,7 @@
   </div>
 
   {{-- Izin & Sakit --}}
-  <div class="col-6 col-lg-3">
+  <div class="col-6 col-md-4 col-xl">
     <div class="analitik-kpi">
       <div class="d-flex align-items-center justify-content-between mb-2">
         <div class="analitik-kpi__label">Izin & Sakit</div>
@@ -287,7 +287,7 @@
   </div>
 
   {{-- Alpha --}}
-  <div class="col-6 col-lg-3">
+  <div class="col-6 col-md-4 col-xl">
     <div class="analitik-kpi">
       <div class="d-flex align-items-center justify-content-between mb-2">
         <div class="analitik-kpi__label">Alpha / Tanpa Ket.</div>
@@ -297,6 +297,20 @@
       </div>
       <div class="analitik-kpi__value text-danger" id="kpi-count-alpha">—</div>
       <div class="analitik-kpi__sub">Peak scan: <strong class="text-white" id="kpi-peak">-</strong></div>
+    </div>
+  </div>
+
+  {{-- Belum Absensi Hari Ini --}}
+  <div class="col-6 col-md-4 col-xl">
+    <div class="analitik-kpi">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="analitik-kpi__label">Belum Absensi (Hari Ini)</div>
+        <div class="analitik-kpi__icon" style="background:rgba(115,103,240,.15);color:#7367f0;">
+          <i class="ti tabler-user-x"></i>
+        </div>
+      </div>
+      <div class="analitik-kpi__value text-warning" id="kpi-count-belum">—</div>
+      <div class="analitik-kpi__sub">Dari <span id="kpi-total-siswa" class="text-white fw-bold">0</span> total siswa aktif</div>
     </div>
   </div>
 </div>
@@ -405,37 +419,72 @@
     </div>
   </div>
 
-  {{-- Tabel Ranking Siswa Bermasalah --}}
+  {{-- Tabel Tabbed: Siswa Belum Absensi & Ranking Bermasalah --}}
   <div class="col-12 col-xl-7">
     <div class="analitik-chart-card position-relative">
       <div class="analitik-loader d-none" id="loader-ranking"></div>
-      <div class="analitik-chart-card__head">
-        <div>
-          <div class="analitik-chart-card__title" style="color:#ea5455;">
-            <i class="ti tabler-user-exclamation"></i> Siswa Perlu Perhatian BK / Wali Kelas
-          </div>
-          <div class="analitik-chart-card__sub">Top 5 siswa dengan akumulasi alpha & terlambat tertinggi</div>
-        </div>
+      <div class="analitik-chart-card__head d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <ul class="nav nav-pills card-header-pills" id="analitik-table-tabs" role="tablist">
+          <li class="nav-item">
+            <button class="nav-link active py-1 px-3 fs-7" id="tab-belum-absen" data-bs-toggle="pill" data-bs-target="#panel-belum-absen" type="button" role="tab">
+              <i class="ti tabler-user-x me-1 text-warning"></i> Belum Absensi Hari Ini
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link py-1 px-3 fs-7" id="tab-ranking" data-bs-toggle="pill" data-bs-target="#panel-ranking" type="button" role="tab">
+              <i class="ti tabler-user-exclamation me-1 text-danger"></i> Siswa Indisipliner
+            </button>
+          </li>
+        </ul>
       </div>
-      <div class="table-responsive">
-        <table class="table analitik-table mb-0">
-          <thead>
-            <tr>
-              <th>Siswa</th>
-              <th>Kelas</th>
-              <th class="text-center">Terlambat</th>
-              <th class="text-center">Alpha</th>
-              <th class="text-center">Total</th>
-            </tr>
-          </thead>
-          <tbody id="ranking-body">
-            <tr>
-              <td colspan="5" class="text-center py-4 text-white-50">
-                <div class="spinner-border spinner-border-sm me-2"></div> Memuat data…
-              </td>
-            </tr>
-          </tbody>
-        </table>
+
+      <div class="tab-content p-0">
+        {{-- Panel 1: Belum Absensi Hari Ini --}}
+        <div class="tab-pane fade show active" id="panel-belum-absen" role="tabpanel">
+          <div class="table-responsive">
+            <table class="table analitik-table mb-0">
+              <thead>
+                <tr>
+                  <th>Siswa</th>
+                  <th>Kelas</th>
+                  <th>No. HP Ortu</th>
+                  <th class="text-center">Aksi (Hubungi Ortu)</th>
+                </tr>
+              </thead>
+              <tbody id="belum-absen-body">
+                <tr>
+                  <td colspan="4" class="text-center py-4 text-white-50">
+                    <div class="spinner-border spinner-border-sm me-2"></div> Memuat data…
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {{-- Panel 2: Ranking Siswa Bermasalah --}}
+        <div class="tab-pane fade" id="panel-ranking" role="tabpanel">
+          <div class="table-responsive">
+            <table class="table analitik-table mb-0">
+              <thead>
+                <tr>
+                  <th>Siswa</th>
+                  <th>Kelas</th>
+                  <th class="text-center">Terlambat</th>
+                  <th class="text-center">Alpha</th>
+                  <th class="text-center">Total</th>
+                </tr>
+              </thead>
+              <tbody id="ranking-body">
+                <tr>
+                  <td colspan="5" class="text-center py-4 text-white-50">
+                    <div class="spinner-border spinner-border-sm me-2"></div> Memuat data…
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -653,7 +702,35 @@
 
       document.getElementById('kpi-count-izin-sakit').textContent = fmt(k.count_izin_sakit);
       document.getElementById('kpi-count-alpha').textContent      = fmt(k.count_alpha);
+      document.getElementById('kpi-count-belum').textContent      = fmt(k.count_belum_absen || 0);
+      document.getElementById('kpi-total-siswa').textContent      = fmt(k.total_siswa_scope || 0);
       document.getElementById('kpi-peak').textContent             = k.peak_hour || '-';
+
+      // ── Tabel Siswa Belum Absensi Hari Ini ──
+      const tbodyBelum = document.getElementById('belum-absen-body');
+      if (!res.list_belum_absen || res.list_belum_absen.length === 0) {
+        tbodyBelum.innerHTML = `<tr><td colspan="4" class="text-center py-4" style="color:rgba(255,255,255,.4);">
+          <i class="ti tabler-circle-check me-1 text-success"></i> Semua siswa pada scope ini sudah melakukan presensi hari ini.
+        </td></tr>`;
+      } else {
+        tbodyBelum.innerHTML = res.list_belum_absen.map(r => `
+          <tr>
+            <td>
+              <div class="fw-semibold text-white">${r.nama}</div>
+              <div style="font-size:.72rem;color:rgba(255,255,255,.4);">${r.nis}</div>
+            </td>
+            <td><span class="badge" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);font-size:.72rem;">${r.kelas}</span></td>
+            <td class="small text-white-50">${r.no_hp}</td>
+            <td class="text-center">
+              ${r.wa_url ? `
+                <a href="${r.wa_url}" target="_blank" class="btn btn-xs btn-success py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size:.75rem; border-radius:4px;">
+                  <i class="ti tabler-brand-whatsapp"></i> WA Ortu
+                </a>
+              ` : '<span class="text-white-50 small">-</span>'}
+            </td>
+          </tr>
+        `).join('');
+      }
 
       // ── Chart 1: Tren ──
       const t = res.chart_trend;
