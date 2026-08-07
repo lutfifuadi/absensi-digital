@@ -562,7 +562,7 @@
       ]
     },
     {
-      "name": "Pengumuman & Notifikasi",
+      "name": "Info & Notifikasi",
       "icon": "menu-icon ti tabler-bell",
       "slug": [
         "admin.pengumuman.index",
