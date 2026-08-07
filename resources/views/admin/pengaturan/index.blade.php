@@ -1569,12 +1569,12 @@ select.set-input option {
               </div>
             </div>
 
-            {{-- ══ JAM ABSENSI GURU & STAFF ══ --}}
+            {{-- ══ JAM ABSENSI GURU PENGAJAR ══ --}}
             <div class="set-section-label mt-5 mb-2">
-              <i class="ti tabler-users" style="font-size: 1.1rem; color: var(--das-primary);"></i>
-              <span>Jam Absensi Guru & Staff</span>
+              <i class="ti tabler-school" style="font-size: 1.1rem; color: var(--das-warning);"></i>
+              <span>Jam Absensi Guru Pengajar</span>
             </div>
-            <div class="set-field-hint --info mb-3"><i class="ti tabler-info-circle"></i> Pengaturan jam khusus untuk guru dan staf tata usaha</div>
+            <div class="set-field-hint --warning mb-3"><i class="ti tabler-info-circle"></i> Pengaturan jadwal jam masuk dan pulang khusus Pendidik / Guru Pengajar</div>
 
             {{-- Row 1: Sesi Masuk Guru --}}
             <div class="set-time-cards mb-3">
@@ -1612,7 +1612,7 @@ select.set-input option {
             </div>
 
             {{-- Row 2: Sesi Pulang Guru --}}
-            <div class="set-time-cards mb-4">
+            <div class="set-time-cards mb-3">
               <div class="set-time-card set-time-card--pulang" style="border-style: dashed; opacity: 0.85;">
                 <div class="set-time-card__icon"><i class="ti tabler-clock-play"></i></div>
                 <div class="set-time-card__label">Mulai Boleh Scan Pulang</div>
@@ -1630,7 +1630,7 @@ select.set-input option {
                 <div class="set-time-card__label">Jam Pulang</div>
                 <input type="time" name="jam_pulang_guru" class="set-time-input"
                   value="{{ old('jam_pulang_guru', $settings['jam_pulang_guru'] ?? '15:00') }}">
-                <div class="set-time-card__hint">Jam kerja berakhir</div>
+                <div class="set-time-card__hint">Jam kerja guru berakhir</div>
               </div>
               <div class="set-time-card__divider">
                 <div class="set-time-card__divider-line"></div>
@@ -1642,11 +1642,11 @@ select.set-input option {
                 <div class="set-time-card__label">Batas Absensi Pulang</div>
                 <input type="time" name="jam_akhir_pulang_guru" class="set-time-input"
                   value="{{ old('jam_akhir_pulang_guru', $settings['jam_akhir_pulang_guru'] ?? '17:00') }}">
-                <div class="set-time-card__hint">Sesi scan pulang ditutup</div>
+                <div class="set-time-card__hint">Sesi scan pulang guru ditutup</div>
               </div>
             </div>
 
-            <div class="set-form-grid mt-3">
+            <div class="set-form-grid mb-4">
               <div class="set-field">
                 <label class="set-label">Toleransi Keterlambatan Guru (Menit)</label>
                 <div class="set-input-group">
@@ -1657,6 +1657,97 @@ select.set-input option {
                 </div>
                 <div class="set-field-hint --warning"><i class="ti tabler-info-circle"></i> Setelah Jam Masuk Guru</div>
               </div>
+            </div>
+
+            {{-- ══ JAM ABSENSI STAFF TATA USAHA ══ --}}
+            <div class="set-section-label mt-5 mb-2">
+              <i class="ti tabler-id" style="font-size: 1.1rem; color: var(--das-info);"></i>
+              <span>Jam Absensi Staff Tata Usaha / Tendik</span>
+            </div>
+            <div class="set-field-hint --info mb-3"><i class="ti tabler-info-circle"></i> Pengaturan jadwal jam masuk dan pulang khusus Staff Tata Usaha / Tenaga Kependidikan</div>
+
+            {{-- Row 1: Sesi Masuk Staff --}}
+            <div class="set-time-cards mb-3">
+              <div class="set-time-card set-time-card--masuk" style="border-style: dashed; opacity: 0.85;">
+                <div class="set-time-card__icon"><i class="ti tabler-clock-play"></i></div>
+                <div class="set-time-card__label">Jam Mulai Absensi</div>
+                <input type="time" name="jam_mulai_absensi_staff" class="set-time-input"
+                  value="{{ old('jam_mulai_absensi_staff', $settings['jam_mulai_absensi_staff'] ?? '06:00') }}">
+                <div class="set-time-card__hint">Mulai buka absensi staff</div>
+              </div>
+              <div class="set-time-card__divider">
+                <div class="set-time-card__divider-line"></div>
+                <div class="set-time-card__divider-icon"><i class="ti tabler-arrow-right"></i></div>
+                <div class="set-time-card__divider-line"></div>
+              </div>
+              <div class="set-time-card set-time-card--masuk">
+                <div class="set-time-card__icon"><i class="ti tabler-sun"></i></div>
+                <div class="set-time-card__label">Jam Masuk</div>
+                <input type="time" name="jam_masuk_staff" class="set-time-input"
+                  value="{{ old('jam_masuk_staff', $settings['jam_masuk_staff'] ?? '07:30') }}">
+                <div class="set-time-card__hint">Target masuk staff</div>
+              </div>
+              <div class="set-time-card__divider">
+                <div class="set-time-card__divider-line"></div>
+                <div class="set-time-card__divider-icon"><i class="ti tabler-arrow-right"></i></div>
+                <div class="set-time-card__divider-line"></div>
+              </div>
+              <div class="set-time-card set-time-card--masuk" style="border-style: dashed; opacity: 0.85;">
+                <div class="set-time-card__icon"><i class="ti tabler-hourglass-high"></i></div>
+                <div class="set-time-card__label">Batas Jam Terlambat</div>
+                <input type="time" name="jam_batas_masuk_staff" class="set-time-input"
+                  value="{{ old('jam_batas_masuk_staff', $settings['jam_batas_masuk_staff'] ?? '08:30') }}">
+                <div class="set-time-card__hint">Mulai dianggap terlambat</div>
+              </div>
+            </div>
+
+            {{-- Row 2: Sesi Pulang Staff --}}
+            <div class="set-time-cards mb-3">
+              <div class="set-time-card set-time-card--pulang" style="border-style: dashed; opacity: 0.85;">
+                <div class="set-time-card__icon"><i class="ti tabler-clock-play"></i></div>
+                <div class="set-time-card__label">Mulai Boleh Scan Pulang</div>
+                <input type="time" name="jam_mulai_pulang_staff" class="set-time-input"
+                  value="{{ old('jam_mulai_pulang_staff', $settings['jam_mulai_pulang_staff'] ?? '15:00') }}">
+                <div class="set-time-card__hint">Awal buka scan pulang staff</div>
+              </div>
+              <div class="set-time-card__divider">
+                <div class="set-time-card__divider-line"></div>
+                <div class="set-time-card__divider-icon"><i class="ti tabler-arrow-right"></i></div>
+                <div class="set-time-card__divider-line"></div>
+              </div>
+              <div class="set-time-card set-time-card--pulang">
+                <div class="set-time-card__icon"><i class="ti tabler-moon"></i></div>
+                <div class="set-time-card__label">Jam Pulang</div>
+                <input type="time" name="jam_pulang_staff" class="set-time-input"
+                  value="{{ old('jam_pulang_staff', $settings['jam_pulang_staff'] ?? '16:00') }}">
+                <div class="set-time-card__hint">Jam kerja staff berakhir</div>
+              </div>
+              <div class="set-time-card__divider">
+                <div class="set-time-card__divider-line"></div>
+                <div class="set-time-card__divider-icon"><i class="ti tabler-arrow-right"></i></div>
+                <div class="set-time-card__divider-line"></div>
+              </div>
+              <div class="set-time-card set-time-card--pulang" style="border-style: dashed; opacity: 0.85;">
+                <div class="set-time-card__icon"><i class="ti tabler-door-exit"></i></div>
+                <div class="set-time-card__label">Batas Absensi Pulang</div>
+                <input type="time" name="jam_akhir_pulang_staff" class="set-time-input"
+                  value="{{ old('jam_akhir_pulang_staff', $settings['jam_akhir_pulang_staff'] ?? '18:00') }}">
+                <div class="set-time-card__hint">Sesi scan pulang staff ditutup</div>
+              </div>
+            </div>
+
+            <div class="set-form-grid mb-4">
+              <div class="set-field">
+                <label class="set-label">Toleransi Keterlambatan Staff (Menit)</label>
+                <div class="set-input-group">
+                  <span class="set-input-prefix"><i class="ti tabler-hourglass-low"></i></span>
+                  <input type="number" class="set-input" name="toleransi_staff"
+                    value="{{ old('toleransi_staff', $settings['toleransi_staff'] ?? '15') }}">
+                  <span class="set-input-suffix">Menit</span>
+                </div>
+                <div class="set-field-hint --info"><i class="ti tabler-info-circle"></i> Setelah Jam Masuk Staff</div>
+              </div>
+            </div>
 
               <div class="set-field">
                 <label class="set-label">Zona Waktu Sistem</label>
