@@ -802,6 +802,9 @@ Route::middleware([
         Route::delete('guru-piket/{guru}', [GuruPiketController::class, 'destroy'])
             ->name('admin.guru-piket.destroy')
             ->middleware('role:super_admin,admin_sekolah,operator');
+        Route::post('guru-piket/{user}/jadwal', [GuruPiketController::class, 'updateJadwal'])
+            ->name('admin.guru-piket.update-jadwal')
+            ->middleware('role:super_admin,admin_sekolah,operator');
 
         Route::resource('mapel', MapelController::class)
             ->names('admin.mapel')

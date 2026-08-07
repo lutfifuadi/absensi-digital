@@ -650,6 +650,65 @@
     </div>
   </div>
 
+  <!-- Modal Atur Jadwal Piket Harian -->
+  <div class="modal fade" id="modalJadwalPiket" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content das-modal-content">
+        <div class="das-modal-head">
+          <div class="d-flex align-items-center gap-2">
+            <div class="avatar avatar-sm bg-warning rounded-circle d-flex align-items-center justify-content-center">
+              <i class="ti tabler-calendar-event text-white fs-5"></i>
+            </div>
+            <div>
+              <h5 class="das-modal-title mb-0">Atur Jadwal Piket Harian</h5>
+              <div class="small text-white-50" id="jadwalGuruName">Pilih hari tugas piket...</div>
+            </div>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <form id="formJadwalPiket" method="POST" action="">
+          @csrf
+          <div class="das-modal-body">
+            <div class="modal-desc mb-3">
+              Pilih hari-hari bertugas untuk guru piket ini. Pada hari yang dicentang, guru ini dapat membuka & melakukan scan presensi.
+            </div>
+
+            <div class="row g-2">
+              @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'] as $hari)
+                <div class="col-6 col-sm-4">
+                  <div class="p-3 rounded border border-white-10 text-white d-flex align-items-center gap-2" style="background: rgba(255,255,255,0.03);">
+                    <input class="form-check-input checkbox-hari" type="checkbox" name="hari[]" value="{{ $hari }}" id="check_hari_{{ $hari }}">
+                    <label class="form-check-label fw-semibold cursor-pointer mb-0" for="check_hari_{{ $hari }}">
+                      {{ $hari }}
+                    </label>
+                  </div>
+                </div>
+              @endforeach
+            </div>
+            
+            <div class="mt-3 p-3 rounded-3" style="background: rgba(0, 186, 209, 0.08); border: 1px solid rgba(0, 186, 209, 0.2);">
+              <div class="d-flex align-items-start gap-2">
+                <i class="ti tabler-info-circle text-info fs-5 mt-1"></i>
+                <div class="small text-white-50">
+                  <strong class="text-info">Catatan:</strong> Jika tidak ada hari yang dicentang, guru piket ini dapat melakukan scan pada <strong>semua hari</strong> (Bypass mode).
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="das-modal-foot">
+            <button type="button" class="btn btn-label-secondary px-4 py-2 fw-medium" data-bs-dismiss="modal">
+              <i class="ti tabler-x me-1"></i> Batal
+            </button>
+            <button type="submit" class="btn btn-warning px-4 py-2 fw-semibold shadow-sm">
+              <i class="ti tabler-check me-1"></i> Simpan Jadwal Piket
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
 @endsection
 
 @section('page-script')
@@ -737,6 +796,7 @@
       });
 
       document.getElementById('filterStatus').addEventListener('change', function () {
+        fetchTable();
         fetchTable();
       });
 
@@ -835,6 +895,50 @@
         });
       }
 
+      // Submit Form Jadwal Piket Harian
+      const formJadwalPiket = document.getElementById('formJadwalPiket');
+      if (formJadwalPiket) {
+        formJadwalPiket.addEventListener('submit', function (e) {
+          e.preventDefault();
+          const formData = new FormData(this);
+
+          fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json'
+            }
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              const modalEl = document.getElementById('modalJadwalPiket');
+              const modal = bootstrap.Modal.getInstance(modalEl);
+              if (modal) modal.hide();
+
+              Swal.fire({
+                title: 'Berhasil!',
+                text: data.message,
+                icon: 'success',
+                customClass: {
+                  popup: 'das-swal-popup',
+                  title: 'das-swal-title',
+                  htmlContainer: 'das-swal-html',
+                  confirmButton: 'das-swal-confirm-info'
+                },
+                buttonsStyling: false
+              }).then(() => fetchTable());
+            } else {
+              Swal.fire('Gagal!', data.message || 'Terjadi kesalahan.', 'error');
+            }
+          })
+          .catch(err => {
+            Swal.fire('Error!', 'Gagal menghubungi server.', 'error');
+          });
+        });
+      }
+
       function attachTableEvents() {
         // Handle sorting click
         document.querySelectorAll('#tableContainer .sortable').forEach(th => {
@@ -855,6 +959,27 @@
           link.addEventListener('click', function (e) {
             e.preventDefault();
             fetchTable(this.getAttribute('href'));
+          });
+        });
+
+        // Handle Edit Jadwal Piket Modal
+        document.querySelectorAll('.btn-edit-jadwal-piket').forEach(btn => {
+          btn.addEventListener('click', function () {
+            const userId = this.dataset.userId;
+            const nama   = this.dataset.nama;
+            const jadwal = JSON.parse(this.dataset.jadwal || '[]');
+
+            document.getElementById('jadwalGuruName').textContent = nama;
+            const form = document.getElementById('formJadwalPiket');
+            form.action = `{{ url('/admin/guru-piket') }}/${userId}/jadwal`;
+
+            // Reset checkboxes
+            document.querySelectorAll('.checkbox-hari').forEach(chk => {
+              chk.checked = jadwal.includes(chk.value);
+            });
+
+            const modal = new bootstrap.Modal(document.getElementById('modalJadwalPiket'));
+            modal.show();
           });
         });
 

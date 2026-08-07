@@ -9,6 +9,7 @@ use App\Models\Siswa;
 use App\Models\Guru;
 use App\Models\Kelas;
 use App\Support\QrScanLogger;
+use App\Helpers\JadwalPiketHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -30,7 +31,12 @@ class PiketScannerController extends Controller
      */
     public function index()
     {
-        return view('piket.scanner');
+        $user = auth()->user();
+        $isScheduledToday = JadwalPiketHelper::isUserScheduledToday($user);
+        $userJadwalDays   = $user ? JadwalPiketHelper::getUserScheduleDays($user->id) : [];
+        $todayHari        = JadwalPiketHelper::getHariIndonesian();
+
+        return view('piket.scanner', compact('isScheduledToday', 'userJadwalDays', 'todayHari'));
     }
 
     /**
@@ -46,7 +52,20 @@ class PiketScannerController extends Controller
         $qrCode         = $data['qr_code'];
         $user           = $request->user();
         $username       = $user ? $user->username : 'piket';
-        
+        $piketNama      = JadwalPiketHelper::getPiketName($user);
+
+        // Validasi Jadwal Piket Harian
+        if (!JadwalPiketHelper::isUserScheduledToday($user)) {
+            $todayHari = JadwalPiketHelper::getHariIndonesian();
+            $userDays  = $user ? implode(', ', JadwalPiketHelper::getUserScheduleDays($user->id)) : '';
+            $ketJadwal = !empty($userDays) ? " (Jadwal Piket Anda: {$userDays})" : "";
+
+            return response()->json([
+                'success' => false,
+                'message' => "Akses Ditolak: Anda tidak terdaftar bertugas piket hari ini ({$todayHari}){$ketJadwal}.",
+            ], 403);
+        }
+
         $settings       = $this->getCachedSettings();
 
         $jamMasuk       = $settings['jam_masuk']       ?? '07:00';
@@ -208,7 +227,7 @@ class PiketScannerController extends Controller
                     'tanggal'      => $tanggal,
                     'jam_masuk'    => $currentTime,
                     'status'       => $status,
-                    'keterangan'   => 'Scan QR internal oleh Guru Piket (User: ' . $username . ')',
+                    'keterangan'   => 'Scan QR internal oleh Guru Piket: ' . $piketNama,
                     'metode'       => 'qr',
                     'dicatat_oleh' => auth()->id() ?? session('piket_user_id'),
                 ]);
@@ -290,7 +309,7 @@ class PiketScannerController extends Controller
                     'tanggal'    => $tanggal,
                     'jam_masuk'  => $currentTime,
                     'status'     => $status,
-                    'keterangan' => 'Scan QR internal oleh Guru Piket (User: ' . $username . ')',
+                    'keterangan' => 'Scan QR internal oleh Guru Piket: ' . $piketNama,
                     'metode'     => 'qr',
                 ]);
             } catch (\Illuminate\Database\QueryException $e) {
@@ -478,6 +497,15 @@ class PiketScannerController extends Controller
             ], 403);
         }
 
+        // Validasi Jadwal Piket Harian
+        if (!JadwalPiketHelper::isUserScheduledToday(request()->user())) {
+            $todayHari = JadwalPiketHelper::getHariIndonesian();
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak diperbolehkan mengubah presensi karena tidak bertugas piket hari ini (' . $todayHari . ').',
+            ], 403);
+        }
+
         $siswa = Siswa::findOrFail($siswaId);
 
         if ($status === 'belum_presensi') {
@@ -497,12 +525,12 @@ class PiketScannerController extends Controller
             ->first();
 
         $currentTime = now()->format('H:i:s');
-        $username    = request()->user() ? request()->user()->username : 'piket';
+        $piketNama   = JadwalPiketHelper::getPiketName(request()->user());
 
         if ($absensi) {
             $absensi->update([
                 'status'       => $status,
-                'keterangan'   => $keterangan ?: 'Diupdate oleh piket (' . $username . ')',
+                'keterangan'   => $keterangan ?: 'Diupdate oleh piket: ' . $piketNama,
                 'dicatat_oleh' => auth()->id() ?? session('piket_user_id'),
             ]);
         } else {
@@ -512,7 +540,7 @@ class PiketScannerController extends Controller
                 'tanggal'      => $tanggal,
                 'jam_masuk'    => $currentTime,
                 'status'       => $status,
-                'keterangan'   => $keterangan ?: 'Dicatat manual oleh piket (' . $username . ')',
+                'keterangan'   => $keterangan ?: 'Dicatat manual oleh piket: ' . $piketNama,
                 'metode'       => 'manual',
                 'dicatat_oleh' => auth()->id() ?? session('piket_user_id'),
             ]);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Guru;
 use App\Models\User;
+use App\Models\JadwalPiket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -31,7 +32,7 @@ class GuruPiketController extends Controller
         $query = User::query()
             ->select('users.*')
             ->leftJoin('guru', 'users.id', '=', 'guru.user_id')
-            ->with('guru')
+            ->with(['guru', 'jadwalPiket'])
             ->where(function ($q) {
                 $q->withRole(User::ROLE_PIKET);
             });
@@ -192,5 +193,43 @@ class GuruPiketController extends Controller
         }
 
         return redirect()->route('admin.guru-piket.index')->with('success', 'Status Guru Piket berhasil dihapus.');
+    }
+
+    /**
+     * Update Jadwal Piket Harian (Senin - Minggu) untuk Guru Piket tertentu.
+     */
+    public function updateJadwal(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'hari'   => 'nullable|array',
+            'hari.*' => 'in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu,Minggu',
+        ]);
+
+        $selectedHari = $validated['hari'] ?? [];
+
+        DB::transaction(function () use ($user, $selectedHari) {
+            // Hapus jadwal piket lama
+            JadwalPiket::where('user_id', $user->id)->delete();
+
+            // Masukkan jadwal piket baru
+            foreach ($selectedHari as $hari) {
+                JadwalPiket::create([
+                    'user_id'   => $user->id,
+                    'guru_id'   => $user->guru?->id,
+                    'hari'      => $hari,
+                    'shift'     => 'penuh',
+                    'is_active' => true,
+                ]);
+            }
+        });
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Jadwal Piket harian berhasil diperbarui.',
+            ]);
+        }
+
+        return redirect()->route('admin.guru-piket.index')->with('success', 'Jadwal Piket harian berhasil diperbarui.');
     }
 }

@@ -178,6 +178,11 @@ class User extends Authenticatable
         return $this->hasMany(ActivityLog::class);
     }
 
+    public function jadwalPiket()
+    {
+        return $this->hasMany(JadwalPiket::class, 'user_id');
+    }
+
     public function staff()
     {
         return $this->hasOne(StaffTataUsaha::class);

@@ -233,6 +233,23 @@
 @endsection
 
 @section('content')
+  @if(isset($isScheduledToday) && !$isScheduledToday)
+    <div class="alert alert-warning d-flex align-items-center mb-3 p-3 rounded-3" role="alert" style="background: rgba(255, 159, 67, 0.15); border: 1px solid rgba(255, 159, 67, 0.3); color: #ff9f43;">
+      <i class="ti tabler-alert-triangle fs-2 me-3"></i>
+      <div>
+        <h6 class="alert-heading mb-1 text-warning fw-bold"><i class="ti tabler-calendar-off me-1"></i> Perhatian: Hari Ini Bukan Jadwal Piket Anda</h6>
+        <div class="small">
+          Anda tidak terdaftar sebagai Petugas Piket pada hari <strong>{{ $todayHari ?? 'ini' }}</strong>.
+          @if(!empty($userJadwalDays))
+            Jadwal bertugas Anda: <strong>{{ implode(', ', $userJadwalDays) }}</strong>.
+          @else
+            Silakan hubungi Admin jika terdapat penyesuaian jadwal piket harian.
+          @endif
+        </div>
+      </div>
+    </div>
+  @endif
+
   <div class="row mb-3">
     <div class="col-12 d-flex justify-content-between align-items-center">
       <h4 class="py-3 mb-0 fw-bold"><span class="text-muted fw-light">Piket /</span> Scanner QR Absensi</h4>

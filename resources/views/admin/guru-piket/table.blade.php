@@ -15,13 +15,14 @@
             <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
           @endif
         </th>
+        <th class="py-3 d-none d-lg-table-cell text-nowrap">Jadwal Bertugas</th>
         <th class="py-3 text-center sortable cursor-pointer text-nowrap" data-sort-by="status" style="user-select: none;">
           Status
           @if(($sortBy ?? '') === 'status')
             <i class="ti tabler-chevron-{{ ($sortDir ?? 'asc') === 'asc' ? 'up' : 'down' }} ms-1"></i>
           @endif
         </th>
-        <th class="py-3 d-none d-lg-table-cell text-nowrap">Hak Akses</th>
+        <th class="py-3 d-none d-xl-table-cell text-nowrap">Hak Akses</th>
         <th class="py-3 pe-4 text-end text-nowrap">Aksi</th>
       </tr>
     </thead>
@@ -34,6 +35,7 @@
           $displayNip     = $profile->nip ?? '-';
           $displayStatus  = $profile->status ?? 'aktif';
           $statusClass    = $displayStatus === 'aktif' ? 'success' : 'secondary';
+          $jadwalHari     = $item->jadwalPiket->pluck('hari')->toArray();
         @endphp
         <tr class="bk-row-hover">
           <td class="ps-4 text-white-50 small">{{ $guruPiketUsers->firstItem() + $loop->index }}</td>
@@ -53,14 +55,36 @@
           <td class="d-none d-md-table-cell text-white-50 small">
             {{ $displayNip }}
           </td>
+          <td class="d-none d-lg-table-cell text-nowrap">
+            @if(count($jadwalHari) > 0)
+              <div class="d-flex flex-wrap gap-1">
+                @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'] as $h)
+                  @if(in_array($h, $jadwalHari))
+                    <span class="badge bg-label-info px-2 py-1" style="font-size:0.7rem; font-weight:600;">{{ $h }}</span>
+                  @endif
+                @endforeach
+              </div>
+            @else
+              <span class="badge bg-label-secondary text-white-50 small" style="font-size:0.75rem;"><i class="ti tabler-calendar-off me-1"></i>Belum Diatur (Bypass Hari)</span>
+            @endif
+          </td>
           <td class="text-center">
             <span class="badge bg-label-{{ $statusClass }} text-capitalize px-2">{{ $displayStatus }}</span>
           </td>
-          <td class="d-none d-lg-table-cell text-capitalize small text-white-50">
-            <span class="badge bg-label-info text-uppercase"><i class="ti tabler-user-shield me-1"></i> Guru Piket Operasional</span>
+          <td class="d-none d-xl-table-cell text-capitalize small text-white-50">
+            <span class="badge bg-label-info text-uppercase"><i class="ti tabler-user-shield me-1"></i> Guru Piket</span>
           </td>
           <td class="pe-4 text-end">
             <div class="d-flex justify-content-end gap-2">
+              <button type="button"
+                class="action-btn --warning btn-edit-jadwal-piket"
+                title="Atur Jadwal Piket Harian"
+                data-bs-toggle="tooltip"
+                data-user-id="{{ $item->id }}"
+                data-nama="{{ $displayName }}"
+                data-jadwal="{{ json_encode($jadwalHari) }}">
+                <i class="ti tabler-calendar-event fs-5"></i>
+              </button>
               <a href="{{ route('piket.dashboard') }}" class="action-btn --info" title="Lihat Portal Piket" data-bs-toggle="tooltip">
                 <i class="ti tabler-dashboard fs-5"></i>
               </a>
@@ -89,7 +113,7 @@
         </tr>
       @empty
         <tr>
-          <td colspan="6" class="text-center py-5 text-white-50">
+          <td colspan="7" class="text-center py-5 text-white-50">
             <i class="ti tabler-user-search fs-1 d-block mb-2 opacity-50"></i>
             Tidak ada data Guru Piket yang ditemukan.
           </td>

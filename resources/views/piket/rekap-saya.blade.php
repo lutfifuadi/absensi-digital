@@ -248,7 +248,7 @@
                 <td>
                   <small class="text-info fw-bold">
                     <i class="ti tabler-user-check me-1"></i>
-                    {{ $row->pencatat->name ?? auth()->user()->name }}
+                    {{ $row->pencatat?->guru?->nama_lengkap ?? $row->pencatat?->name ?? auth()->user()->name }}
                   </small>
                 </td>
               </tr>
