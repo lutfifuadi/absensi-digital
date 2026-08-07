@@ -727,6 +727,9 @@ Route::middleware([
         Route::post('jadwal-absensi/save-guru-settings', [\App\Http\Controllers\Admin\JadwalAbsensiController::class, 'saveGuruSettings'])
             ->name('admin.jadwal-absensi.save-guru-settings')
             ->middleware('role:super_admin,admin_sekolah');
+        Route::post('jadwal-absensi/save-staff-settings', [\App\Http\Controllers\Admin\JadwalAbsensiController::class, 'saveStaffSettings'])
+            ->name('admin.jadwal-absensi.save-staff-settings')
+            ->middleware('role:super_admin,admin_sekolah');
         // ─────────────────────────────────────────────────────────────────────────
 
         Route::get('guru/cetak-qr', [GuruController::class, 'cetakQr'])

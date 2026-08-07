@@ -75,14 +75,21 @@ class JadwalAbsensiController extends Controller
 
         $globalJadwal = \App\Helpers\JadwalAbsensiHelper::getJadwalForKelas(0);
 
-        // Load guru/staff attendance hour settings
+        // Load guru attendance hour settings
         $guruKeys = ['jam_mulai_absensi_guru', 'jam_masuk_guru', 'jam_batas_masuk_guru', 'jam_pulang_guru', 'jam_akhir_pulang_guru', 'jam_mulai_pulang_guru', 'toleransi_guru'];
         $guruSettings = [];
         foreach ($guruKeys as $key) {
             $guruSettings[$key] = \App\Models\Pengaturan::where('key', $key)->value('value') ?? (\App\Support\PengaturanDefaults::definitions()[$key]['default'] ?? '');
         }
 
-        return view('admin.jadwal-absensi.index', compact('kelas', 'tingkat', 'tingkatOptions', 'allKelas', 'globalJadwal', 'guruSettings'));
+        // Load staff attendance hour settings
+        $staffKeys = ['jam_mulai_absensi_staff', 'jam_masuk_staff', 'jam_batas_masuk_staff', 'jam_pulang_staff', 'jam_akhir_pulang_staff', 'jam_mulai_pulang_staff', 'toleransi_staff'];
+        $staffSettings = [];
+        foreach ($staffKeys as $key) {
+            $staffSettings[$key] = \App\Models\Pengaturan::where('key', $key)->value('value') ?? (\App\Support\PengaturanDefaults::definitions()[$key]['default'] ?? '');
+        }
+
+        return view('admin.jadwal-absensi.index', compact('kelas', 'tingkat', 'tingkatOptions', 'allKelas', 'globalJadwal', 'guruSettings', 'staffSettings'));
     }
 
     /**
@@ -427,6 +434,46 @@ class JadwalAbsensiController extends Controller
 
         \Illuminate\Support\Facades\Cache::forget('pengaturan_all');
 
-        return response()->json(['success' => true, 'message' => 'Jam absensi guru & staff berhasil disimpan.']);
+        return response()->json(['success' => true, 'message' => 'Jam absensi guru pengajar berhasil disimpan.']);
+    }
+
+    /**
+     * Simpan pengaturan jam absensi staff tata usaha (AJAX).
+     */
+    public function saveStaffSettings(Request $request)
+    {
+        $data = $request->validate([
+            'jam_mulai_absensi_staff' => 'required|date_format:H:i',
+            'jam_masuk_staff'         => 'required|date_format:H:i',
+            'jam_batas_masuk_staff'   => 'required|date_format:H:i',
+            'toleransi_staff'         => 'required|integer|min:0|max:60',
+            'jam_mulai_pulang_staff'  => 'required|date_format:H:i',
+            'jam_pulang_staff'        => 'required|date_format:H:i',
+            'jam_akhir_pulang_staff'  => 'required|date_format:H:i',
+        ]);
+
+        if (strtotime($data['jam_mulai_absensi_staff']) >= strtotime($data['jam_masuk_staff'])) {
+            return response()->json(['success' => false, 'message' => 'Jam Mulai Absensi Staff harus lebih awal dari Jam Masuk.'], 422);
+        }
+        if (strtotime($data['jam_masuk_staff']) > strtotime($data['jam_batas_masuk_staff'])) {
+            return response()->json(['success' => false, 'message' => 'Jam Masuk Staff harus lebih awal atau sama dengan Batas Jam Masuk.'], 422);
+        }
+        if (strtotime($data['jam_mulai_pulang_staff']) >= strtotime($data['jam_pulang_staff'])) {
+            return response()->json(['success' => false, 'message' => 'Jam Mulai Pulang Staff harus lebih awal dari Jam Pulang.'], 422);
+        }
+        if (strtotime($data['jam_pulang_staff']) > strtotime($data['jam_akhir_pulang_staff'])) {
+            return response()->json(['success' => false, 'message' => 'Jam Pulang Staff harus lebih awal atau sama dengan Batas Akhir Pulang.'], 422);
+        }
+
+        foreach ($data as $key => $value) {
+            \App\Models\Pengaturan::updateOrCreate(
+                ['key' => $key],
+                ['value' => $value]
+            );
+        }
+
+        \Illuminate\Support\Facades\Cache::forget('pengaturan_all');
+
+        return response()->json(['success' => true, 'message' => 'Jam absensi staff tata usaha berhasil disimpan.']);
     }
 }

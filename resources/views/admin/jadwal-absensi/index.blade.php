@@ -510,59 +510,125 @@
   @endif
 
   {{-- ═══════════════════════════════════════════════════════════════
-       JAM ABSENSI GURU & STAFF
+       JAM ABSENSI GURU PENGAJAR & STAFF TATA USAHA (SEPARATE)
   ═══════════════════════════════════════════════════════════════ --}}
-  <div class="das-panel mb-4">
-    <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center gap-2"
-      style="border-color:rgba(255,255,255,0.08) !important;">
-      <i class="ti tabler-users text-primary"></i>
-      <h6 class="das-panel__title mb-0">Jam Absensi Guru & Staff</h6>
-      <span class="badge bg-primary-subtle text-primary ms-2" style="font-size: 0.65rem;">Global Setting</span>
+  <div class="row g-4 mb-4">
+    {{-- PANEL 1: GURU PENGAJAR --}}
+    <div class="col-12 col-xl-6">
+      <div class="das-panel h-100 mb-0">
+        <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between"
+          style="border-color:rgba(255,255,255,0.08) !important;">
+          <div class="d-flex align-items-center gap-2">
+            <i class="ti tabler-school text-warning fs-5"></i>
+            <h6 class="das-panel__title mb-0 fw-bold">Jam Absensi Guru Pengajar</h6>
+          </div>
+          <span class="badge bg-warning-subtle text-warning" style="font-size: 0.65rem;">Khusus Guru</span>
+        </div>
+        <div class="das-panel__body py-3 px-4">
+          <form id="formJamGuru" class="row g-3 align-items-end">
+            @csrf
+            <div class="col-6 col-md-3">
+              <label class="form-label text-white-50 small fw-bold">Jam Mulai Scan</label>
+              <input type="time" class="form-control" name="jam_mulai_absensi_guru"
+                value="{{ $guruSettings['jam_mulai_absensi_guru'] ?? '06:00' }}">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label text-white-50 small fw-bold">Jam Masuk</label>
+              <input type="time" class="form-control" name="jam_masuk_guru"
+                value="{{ $guruSettings['jam_masuk_guru'] ?? '07:00' }}">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label text-white-50 small fw-bold">Batas Jam Masuk</label>
+              <input type="time" class="form-control" name="jam_batas_masuk_guru"
+                value="{{ $guruSettings['jam_batas_masuk_guru'] ?? '08:00' }}">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label text-white-50 small fw-bold">Toleransi (Menit)</label>
+              <input type="number" class="form-control" name="toleransi_guru"
+                value="{{ $guruSettings['toleransi_guru'] ?? '15' }}" min="0" max="60">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label text-white-50 small fw-bold">Jam Mulai Pulang</label>
+              <input type="time" class="form-control" name="jam_mulai_pulang_guru"
+                value="{{ $guruSettings['jam_mulai_pulang_guru'] ?? '14:00' }}">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label text-white-50 small fw-bold">Jam Pulang</label>
+              <input type="time" class="form-control" name="jam_pulang_guru"
+                value="{{ $guruSettings['jam_pulang_guru'] ?? '15:00' }}">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label text-white-50 small fw-bold">Batas Akhir Pulang</label>
+              <input type="time" class="form-control" name="jam_akhir_pulang_guru"
+                value="{{ $guruSettings['jam_akhir_pulang_guru'] ?? '17:00' }}">
+            </div>
+            <div class="col-6 col-md-3">
+              <button type="submit" class="btn das-btn --warning w-100" style="border-radius: 4px;">
+                <i class="ti tabler-device-floppy me-1"></i> Simpan Guru
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-    <div class="das-panel__body py-3 px-4">
-      <form id="formJamGuru" class="row g-3 align-items-end">
-        @csrf
-        <div class="col-md-3">
-          <label class="form-label text-white-50 small fw-bold">Jam Mulai Absensi</label>
-          <input type="time" class="form-control" name="jam_mulai_absensi_guru"
-            value="{{ $guruSettings['jam_mulai_absensi_guru'] ?? '06:00' }}">
+
+    {{-- PANEL 2: STAFF TATA USAHA --}}
+    <div class="col-12 col-xl-6">
+      <div class="das-panel h-100 mb-0">
+        <div class="das-panel__header border-bottom py-3 px-4 d-flex align-items-center justify-content-between"
+          style="border-color:rgba(255,255,255,0.08) !important;">
+          <div class="d-flex align-items-center gap-2">
+            <i class="ti tabler-id text-info fs-5"></i>
+            <h6 class="das-panel__title mb-0 fw-bold">Jam Absensi Staff Tata Usaha / Tendik</h6>
+          </div>
+          <span class="badge bg-info-subtle text-info" style="font-size: 0.65rem;">Khusus Staff</span>
         </div>
-        <div class="col-md-3">
-          <label class="form-label text-white-50 small fw-bold">Jam Masuk</label>
-          <input type="time" class="form-control" name="jam_masuk_guru"
-            value="{{ $guruSettings['jam_masuk_guru'] ?? '07:00' }}">
+        <div class="das-panel__body py-3 px-4">
+          <form id="formJamStaff" class="row g-3 align-items-end">
+            @csrf
+            <div class="col-6 col-md-3">
+              <label class="form-label text-white-50 small fw-bold">Jam Mulai Scan</label>
+              <input type="time" class="form-control" name="jam_mulai_absensi_staff"
+                value="{{ $staffSettings['jam_mulai_absensi_staff'] ?? '06:00' }}">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label text-white-50 small fw-bold">Jam Masuk</label>
+              <input type="time" class="form-control" name="jam_masuk_staff"
+                value="{{ $staffSettings['jam_masuk_staff'] ?? '07:30' }}">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label text-white-50 small fw-bold">Batas Jam Masuk</label>
+              <input type="time" class="form-control" name="jam_batas_masuk_staff"
+                value="{{ $staffSettings['jam_batas_masuk_staff'] ?? '08:30' }}">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label text-white-50 small fw-bold">Toleransi (Menit)</label>
+              <input type="number" class="form-control" name="toleransi_staff"
+                value="{{ $staffSettings['toleransi_staff'] ?? '15' }}" min="0" max="60">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label text-white-50 small fw-bold">Jam Mulai Pulang</label>
+              <input type="time" class="form-control" name="jam_mulai_pulang_staff"
+                value="{{ $staffSettings['jam_mulai_pulang_staff'] ?? '15:00' }}">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label text-white-50 small fw-bold">Jam Pulang</label>
+              <input type="time" class="form-control" name="jam_pulang_staff"
+                value="{{ $staffSettings['jam_pulang_staff'] ?? '16:00' }}">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label text-white-50 small fw-bold">Batas Akhir Pulang</label>
+              <input type="time" class="form-control" name="jam_akhir_pulang_staff"
+                value="{{ $staffSettings['jam_akhir_pulang_staff'] ?? '18:00' }}">
+            </div>
+            <div class="col-6 col-md-3">
+              <button type="submit" class="btn das-btn --info w-100" style="border-radius: 4px;">
+                <i class="ti tabler-device-floppy me-1"></i> Simpan Staff
+              </button>
+            </div>
+          </form>
         </div>
-        <div class="col-md-3">
-          <label class="form-label text-white-50 small fw-bold">Batas Jam Masuk</label>
-          <input type="time" class="form-control" name="jam_batas_masuk_guru"
-            value="{{ $guruSettings['jam_batas_masuk_guru'] ?? '08:00' }}">
-        </div>
-        <div class="col-md-3">
-          <label class="form-label text-white-50 small fw-bold">Toleransi (Menit)</label>
-          <input type="number" class="form-control" name="toleransi_guru"
-            value="{{ $guruSettings['toleransi_guru'] ?? '15' }}" min="0" max="60">
-        </div>
-        <div class="col-md-3">
-          <label class="form-label text-white-50 small fw-bold">Jam Mulai Scan Pulang</label>
-          <input type="time" class="form-control" name="jam_mulai_pulang_guru"
-            value="{{ $guruSettings['jam_mulai_pulang_guru'] ?? '14:00' }}">
-        </div>
-        <div class="col-md-3">
-          <label class="form-label text-white-50 small fw-bold">Jam Pulang</label>
-          <input type="time" class="form-control" name="jam_pulang_guru"
-            value="{{ $guruSettings['jam_pulang_guru'] ?? '15:00' }}">
-        </div>
-        <div class="col-md-3">
-          <label class="form-label text-white-50 small fw-bold">Batas Absen Pulang</label>
-          <input type="time" class="form-control" name="jam_akhir_pulang_guru"
-            value="{{ $guruSettings['jam_akhir_pulang_guru'] ?? '17:00' }}">
-        </div>
-        <div class="col-md-3">
-          <button type="submit" class="btn das-btn --primary w-100">
-            <i class="ti tabler-device-floppy me-1"></i> Simpan
-          </button>
-        </div>
-      </form>
+      </div>
     </div>
   </div>
 
@@ -1308,6 +1374,42 @@
       try {
         const fd = new FormData(form);
         const res = await fetch('{{ route("admin.jadwal-absensi.save-guru-settings") }}', {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': fd.get('_token'),
+            'Accept': 'application/json',
+          },
+          body: fd,
+        });
+        const json = await res.json();
+        if (json.success) {
+          showToast(json.message, 'success');
+        } else {
+          showToast(json.message || 'Gagal menyimpan.', 'error');
+        }
+      } catch (err) {
+        showToast('Terjadi kesalahan jaringan.', 'error');
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
+    });
+
+    // ═══════════════════════════════════════════════════════════════
+    // FORM JAM STAFF: AJAX SUBMIT
+    // ═══════════════════════════════════════════════════════════════
+    document.getElementById('formJamStaff').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const form = this;
+      const btn = form.querySelector('button[type="submit"]');
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ti tabler-loader me-1"></i> Menyimpan...';
+
+      try {
+        const fd = new FormData(form);
+        const res = await fetch('{{ route("admin.jadwal-absensi.save-staff-settings") }}', {
           method: 'POST',
           headers: {
             'X-CSRF-TOKEN': fd.get('_token'),
