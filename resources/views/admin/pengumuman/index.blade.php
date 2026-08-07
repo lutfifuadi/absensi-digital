@@ -2,6 +2,19 @@
 
 @section('title', 'Manajemen Pengumuman')
 
+@section('vendor-style')
+    @vite([
+        'resources/assets/vendor/libs/animate-css/animate.scss',
+        'resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'
+    ])
+@endsection
+
+@section('vendor-script')
+    @vite([
+        'resources/assets/vendor/libs/sweetalert2/sweetalert2.js'
+    ])
+@endsection
+
 @section('page-style')
   <style>
     .pengumuman-row-hover {
@@ -732,38 +745,52 @@
           const deleteUrl = btnDelete.dataset.url;
           const judul = btnDelete.dataset.judul || 'pengumuman ini';
 
-          Swal.fire({
-            title: 'Hapus Pengumuman?',
-            html: 'Pengumuman <b>' + judul + '</b> akan dihapus secara permanen.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ea5455',
-            cancelButtonColor: '#82868b',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal',
-            reverseButtons: true,
-            customClass: {
-              popup: 'das-swal-popup',
-              title: 'das-swal-title',
-              htmlContainer: 'das-swal-html',
-              confirmButton: 'btn btn-danger das-swal-confirm me-2',
-              cancelButton: 'btn btn-secondary das-swal-cancel'
+          const doDelete = function () {
+            if (typeof Swal !== 'undefined') {
+              Swal.fire({
+                title: 'Hapus Pengumuman?',
+                html: 'Pengumuman <b>' + judul + '</b> akan dihapus secara permanen.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ea5455',
+                cancelButtonColor: '#82868b',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                customClass: {
+                  popup: 'das-swal-popup',
+                  title: 'das-swal-title',
+                  htmlContainer: 'das-swal-html',
+                  confirmButton: 'btn btn-danger das-swal-confirm me-2',
+                  cancelButton: 'btn btn-secondary das-swal-cancel'
+                }
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  execDelete(deleteUrl);
+                }
+              });
+            } else {
+              if (confirm('Apakah Anda yakin ingin menghapus pengumuman "' + judul + '"?')) {
+                execDelete(deleteUrl);
+              }
             }
-          }).then((result) => {
-            if (result.isConfirmed) {
-              fetch(deleteUrl, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/x-www-form-urlencoded',
-                  'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                  'X-Requested-With': 'XMLHttpRequest',
-                  'Accept': 'application/json'
-                },
-                body: '_token=' + encodeURIComponent('{{ csrf_token() }}') + '&_method=DELETE'
-              })
-              .then(res => res.json())
-              .then(response => {
-                if (response.success) {
+          };
+
+          const execDelete = function (url) {
+            fetch(url, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+              },
+              body: '_token=' + encodeURIComponent('{{ csrf_token() }}') + '&_method=DELETE'
+            })
+            .then(res => res.json())
+            .then(response => {
+              if (response.success) {
+                if (typeof Swal !== 'undefined') {
                   Swal.fire({
                     icon: 'success',
                     title: 'Berhasil!',
@@ -776,11 +803,47 @@
                       htmlContainer: 'das-swal-html'
                     }
                   });
-                  loadTable(window.location.href);
+                } else {
+                  alert(response.message || 'Pengumuman berhasil dihapus.');
                 }
-              });
-            }
-          });
+                loadTable(window.location.href);
+              } else {
+                if (typeof Swal !== 'undefined') {
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: response.message || 'Gagal menghapus pengumuman.',
+                    customClass: {
+                      popup: 'das-swal-popup',
+                      title: 'das-swal-title',
+                      htmlContainer: 'das-swal-html'
+                    }
+                  });
+                } else {
+                  alert(response.message || 'Gagal menghapus pengumuman.');
+                }
+              }
+            })
+            .catch(err => {
+              console.error('Delete error:', err);
+              if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error!',
+                  text: 'Terjadi kesalahan sistem saat menghapus.',
+                  customClass: {
+                    popup: 'das-swal-popup',
+                    title: 'das-swal-title',
+                    htmlContainer: 'das-swal-html'
+                  }
+                });
+              } else {
+                alert('Terjadi kesalahan sistem saat menghapus.');
+              }
+            });
+          };
+
+          doDelete();
           return;
         }
 
