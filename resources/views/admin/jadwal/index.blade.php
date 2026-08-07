@@ -482,24 +482,35 @@
         </div>
       </div>
     </div>
+  </div>
+
   {{-- ══════════════════════════════════════════════ --}}
   {{-- MODAL IMPORT JADWAL EXCEL --}}
   {{-- ══════════════════════════════════════════════ --}}
   <div class="modal fade" id="modalImportJadwal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:500px;">
-      <div class="modal-content das-modal">
-        <div class="das-modal__head das-modal__head--info">
-          <h5 class="das-modal__title"><i class="ti tabler-file-upload me-2 text-info"></i> Import Jadwal Pelajaran (Excel)</h5>
+      <div class="modal-content shadow-lg" style="border: 1px solid rgba(255, 255, 255, 0.1); background: #1e1e2d; border-radius: 12px; overflow: hidden;">
+        <div class="modal-header" style="background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%); border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding: 1.25rem 1.5rem;">
+          <div class="d-flex align-items-center gap-3">
+            <div class="modal-icon-header" style="background:rgba(0,207,232,0.2);border:1px solid rgba(0,207,232,0.35);">
+              <i class="ti tabler-file-upload text-info fs-5"></i>
+            </div>
+            <div>
+              <h5 class="modal-title mb-0 text-white fw-bold">Import Jadwal (Excel)</h5>
+              <small class="text-white-50">Unggah file Excel untuk import data jadwal.</small>
+            </div>
+          </div>
+          <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
         </div>
         <form action="{{ route('admin.jadwal.import') }}" method="POST" enctype="multipart/form-data">
           @csrf
-          <div class="das-modal__body p-4">
+          <div class="modal-body p-4">
             <p class="text-white-50 small mb-3">
               Unggah file Excel (.xlsx / .xls) yang berisi daftar jadwal pelajaran. Gunakan <strong>Template Excel Resmi</strong> agar data terisi secara presisi via dropdown.
             </p>
             <div class="mb-3">
               <label class="form-label text-white-50 small fw-bold">Pilih File Excel (.xlsx)</label>
-              <input type="file" name="file_excel" class="form-control bg-dark text-white border-white-10" accept=".xlsx,.xls,.csv" required>
+              <input type="file" name="file_excel" class="form-control" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: inherit; border-radius: 8px;" accept=".xlsx,.xls,.csv" required>
             </div>
             <div class="p-3 rounded border border-white-10 bg-black bg-opacity-20">
               <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
@@ -510,9 +521,9 @@
               </div>
             </div>
           </div>
-          <div class="das-modal__foot d-flex justify-content-end gap-2 p-3 border-top border-white-10">
-            <button type="button" class="das-btn das-btn--ghost" data-bs-dismiss="modal"><i class="ti tabler-x"></i> Batal</button>
-            <button type="submit" class="das-btn das-btn--info"><i class="ti tabler-upload me-1"></i> Upload &amp; Import</button>
+          <div class="modal-footer d-flex justify-content-end gap-2 p-3" style="border-top: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.02);">
+            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal"><i class="ti tabler-x me-1"></i> Batal</button>
+            <button type="submit" class="btn btn-info fw-semibold px-4 shadow-sm"><i class="ti tabler-upload me-1"></i> Upload &amp; Import</button>
           </div>
         </form>
       </div>
@@ -524,38 +535,47 @@
   {{-- ══════════════════════════════════════════════ --}}
   <div class="modal fade" id="modalSalinJadwal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:500px;">
-      <div class="modal-content das-modal">
-        <div class="das-modal__head das-modal__head--warning">
-          <h5 class="das-modal__title"><i class="ti tabler-copy me-2 text-warning"></i> Salin Jadwal Antar Kelas</h5>
+      <div class="modal-content shadow-lg" style="border: 1px solid rgba(255, 255, 255, 0.1); background: #1e1e2d; border-radius: 12px; overflow: hidden;">
+        <div class="modal-header" style="background: linear-gradient(135deg, #2d261a 0%, #60490f 100%); border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding: 1.25rem 1.5rem;">
+          <div class="d-flex align-items-center gap-3">
+            <div class="modal-icon-header" style="background:rgba(255,171,0,0.2);border:1px solid rgba(255,171,0,0.35);">
+              <i class="ti tabler-copy text-warning fs-5"></i>
+            </div>
+            <div>
+              <h5 class="modal-title mb-0 text-white fw-bold">Salin Jadwal Antar Kelas</h5>
+              <small class="text-white-50">Duplikat jadwal dari kelas sumber ke kelas tujuan.</small>
+            </div>
+          </div>
+          <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
         </div>
         <form action="{{ route('admin.jadwal.duplicate') }}" method="POST">
           @csrf
-          <div class="das-modal__body p-4">
+          <div class="modal-body p-4">
             <p class="text-white-50 small mb-3">
               Duplikat seluruh struktur jam pelajaran dan alokasi mapel dari kelas sumber ke kelas tujuan secara instan.
             </p>
             <div class="mb-3">
               <label class="form-label text-white-50 small fw-bold">Kelas Asal (Sumber Data)</label>
-              <select name="kelas_asal_id" class="form-select bg-dark text-white border-white-10" required>
-                <option value="">-- Pilih Kelas Asal --</option>
+              <select name="kelas_asal_id" class="form-select" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: inherit; border-radius: 8px;" required>
+                <option value="" style="background: #1e1e2d; color: #cdd2e0;">-- Pilih Kelas Asal --</option>
                 @foreach ($kelasOptions as $k)
-                  <option value="{{ $k->id }}">{{ $k->nama }}</option>
+                  <option value="{{ $k->id }}" style="background: #1e1e2d; color: #cdd2e0;">{{ $k->nama }}</option>
                 @endforeach
               </select>
             </div>
             <div class="mb-3">
               <label class="form-label text-white-50 small fw-bold">Kelas Tujuan (Target Salinan)</label>
-              <select name="kelas_tujuan_id" class="form-select bg-dark text-white border-white-10" required>
-                <option value="">-- Pilih Kelas Tujuan --</option>
+              <select name="kelas_tujuan_id" class="form-select" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: inherit; border-radius: 8px;" required>
+                <option value="" style="background: #1e1e2d; color: #cdd2e0;">-- Pilih Kelas Tujuan --</option>
                 @foreach ($kelasOptions as $k)
-                  <option value="{{ $k->id }}">{{ $k->nama }}</option>
+                  <option value="{{ $k->id }}" style="background: #1e1e2d; color: #cdd2e0;">{{ $k->nama }}</option>
                 @endforeach
               </select>
             </div>
           </div>
-          <div class="das-modal__foot d-flex justify-content-end gap-2 p-3 border-top border-white-10">
-            <button type="button" class="das-btn das-btn--ghost" data-bs-dismiss="modal"><i class="ti tabler-x"></i> Batal</button>
-            <button type="submit" class="das-btn das-btn--warning"><i class="ti tabler-copy me-1"></i> Ya, Salin Jadwal</button>
+          <div class="modal-footer d-flex justify-content-end gap-2 p-3" style="border-top: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.02);">
+            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal"><i class="ti tabler-x me-1"></i> Batal</button>
+            <button type="submit" class="btn btn-warning fw-semibold px-4 shadow-sm"><i class="ti tabler-copy me-1"></i> Ya, Salin Jadwal</button>
           </div>
         </form>
       </div>
