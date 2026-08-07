@@ -1,46 +1,36 @@
 <div class="table-responsive text-nowrap">
-  <table class="table table-hover align-middle">
+  <table class="table table-hover align-middle mb-0">
     <thead>
-      <tr class="text-white-50">
-        <th style="width: 50px;">#</th>
-        <th>Judul & Kategori</th>
-        <th>Target Penerima</th>
-        <th>Periode Tampil</th>
-        <th>Status & Pin</th>
-        <th>Pembuat</th>
-        <th class="text-end" style="width: 120px;">Aksi</th>
+      <tr class="text-white-50" style="background: rgba(255, 255, 255, 0.03); border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+        <th style="width: 50px;" class="py-3 ps-4">#</th>
+        <th class="py-3">Judul & Kategori</th>
+        <th class="py-3">Target Penerima</th>
+        <th class="py-3">Periode Tampil</th>
+        <th class="py-3">Status</th>
+        <th class="py-3">Pembuat</th>
+        <th class="py-3 text-end pe-4" style="width: 120px;">Aksi</th>
       </tr>
     </thead>
     <tbody class="table-border-bottom-0">
       @forelse ($pengumuman as $index => $item)
-        <tr class="pengumuman-row-hover {{ $item->is_pinned ? 'bg-primary-subtle bg-opacity-10' : '' }}">
-          <td>{{ $pengumuman->firstItem() + $index }}</td>
+        <tr class="pengumuman-row-hover {{ $item->is_pinned ? 'row-pinned' : '' }}">
+          <td class="ps-4 fw-semibold text-white-50">{{ $pengumuman->firstItem() + $index }}</td>
           <td>
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 py-1">
               @if($item->is_pinned)
-                <span class="badge bg-warning text-dark" title="Disematkan di paling atas">
+                <span class="badge bg-warning text-dark p-1" title="Disematkan di paling atas" style="border-radius: 6px;">
                   <i class="ti tabler-pin-filled fs-6"></i>
                 </span>
               @endif
               <div>
-                <a href="{{ route('admin.pengumuman.show', $item->id) }}" class="text-white fw-semibold text-decoration-none btn-detail-pengumuman" data-id="{{ $item->id }}">
-                  {{ \Illuminate\Support\Str::limit($item->judul, 45) }}
+                <a href="{{ route('admin.pengumuman.show', $item->id) }}" class="text-white fw-semibold text-decoration-none btn-detail-pengumuman fs-6" data-id="{{ $item->id }}">
+                  {{ \Illuminate\Support\Str::limit($item->judul, 50) }}
                 </a>
                 <div class="mt-1 d-flex align-items-center gap-2">
-                  @php
-                    $kategoriBadges = [
-                      'informasi' => 'bg-info',
-                      'penting'   => 'bg-warning text-dark',
-                      'kegiatan'  => 'bg-primary',
-                      'mendesak'  => 'bg-danger',
-                      'libur'     => 'bg-success',
-                    ];
-                    $badgeClass = $kategoriBadges[$item->kategori] ?? 'bg-secondary';
-                  @endphp
-                  <span class="badge {{ $badgeClass }} text-uppercase extra-small">{{ $item->kategori }}</span>
+                  <span class="badge-glass --{{ $item->kategori }}">{{ $item->kategori }}</span>
                   @if($item->lampiran)
-                    <a href="{{ asset('storage/' . $item->lampiran) }}" target="_blank" class="text-info extra-small text-decoration-none" title="Unduh Lampiran">
-                      <i class="ti tabler-paperclip me-1"></i> Lampiran
+                    <a href="{{ asset('storage/' . $item->lampiran) }}" target="_blank" class="text-info extra-small text-decoration-none d-inline-flex align-items-center gap-1" title="Unduh Lampiran">
+                      <i class="ti tabler-paperclip"></i> Lampiran
                     </a>
                   @endif
                 </div>
@@ -50,44 +40,44 @@
           <td>
             @php
               $targetLabels = [
-                'semua'     => ['label' => 'Semua Pengguna', 'class' => 'bg-label-primary'],
-                'guru'      => ['label' => 'Khusus Guru', 'class' => 'bg-label-info'],
-                'siswa'     => ['label' => 'Khusus Siswa', 'class' => 'bg-label-warning'],
-                'orang_tua' => ['label' => 'Khusus Wali/Ortu', 'class' => 'bg-label-success'],
-                'staff'     => ['label' => 'Khusus Staff', 'class' => 'bg-label-secondary'],
-                'kelas'     => ['label' => 'Kelas: ' . ($item->targetKelas ? $item->targetKelas->nama : '-'), 'class' => 'bg-label-danger'],
+                'semua'     => 'Semua Pengguna',
+                'guru'      => 'Khusus Guru',
+                'siswa'     => 'Khusus Siswa',
+                'orang_tua' => 'Khusus Wali/Ortu',
+                'staff'     => 'Khusus Staff',
+                'kelas'     => 'Kelas: ' . ($item->targetKelas ? $item->targetKelas->nama : '-'),
               ];
-              $targetInfo = $targetLabels[$item->target] ?? ['label' => ucfirst($item->target), 'class' => 'bg-label-dark'];
+              $targetText = $targetLabels[$item->target] ?? ucfirst($item->target);
             @endphp
-            <span class="badge {{ $targetInfo['class'] }}">
-              <i class="ti tabler-target me-1"></i> {{ $targetInfo['label'] }}
+            <span class="badge-target --{{ $item->target }}">
+              <i class="ti tabler-target"></i> {{ $targetText }}
             </span>
           </td>
           <td>
-            <div class="small">
+            <div class="small text-white-50">
               @if($item->tanggal_mulai || $item->tanggal_selesai)
-                <span class="text-white-50"><i class="ti tabler-calendar me-1"></i></span>
-                {{ $item->tanggal_mulai ? $item->tanggal_mulai->format('d/m/Y H:i') : 'Awal' }}
-                s/d
-                {{ $item->tanggal_selesai ? $item->tanggal_selesai->format('d/m/Y H:i') : 'Selamanya' }}
+                <div><i class="ti tabler-calendar me-1 text-info"></i> {{ $item->tanggal_mulai ? $item->tanggal_mulai->format('d/m/Y H:i') : 'Awal' }}</div>
+                <div><i class="ti tabler-arrow-narrow-right me-1 text-white-50"></i> {{ $item->tanggal_selesai ? $item->tanggal_selesai->format('d/m/Y H:i') : 'Selamanya' }}</div>
               @else
                 <span class="text-white-50"><i class="ti tabler-infinity me-1"></i> Selamanya</span>
               @endif
             </div>
           </td>
           <td>
-            <div class="d-flex flex-column gap-1">
-              @if($item->is_aktif)
-                <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-20 w-fit">Aktif</span>
-              @else
-                <span class="badge bg-secondary bg-opacity-20 text-white-50 border border-secondary border-opacity-20 w-fit">Nonaktif</span>
-              @endif
-            </div>
+            @if($item->is_aktif)
+              <span class="badge-status --aktif">
+                <i class="ti tabler-circle-check fs-6 me-1"></i> Aktif
+              </span>
+            @else
+              <span class="badge-status --nonaktif">
+                <i class="ti tabler-circle-minus fs-6 me-1"></i> Nonaktif
+              </span>
+            @endif
           </td>
           <td>
             <span class="small text-white-50">{{ $item->creator ? $item->creator->name : 'Sistem' }}</span>
           </td>
-          <td class="text-end">
+          <td class="text-end pe-4">
             <div class="d-inline-flex gap-1">
               <button type="button" 
                       class="action-btn btn-toggle-pin {{ $item->is_pinned ? 'text-warning' : 'text-white-50' }}" 

@@ -12,6 +12,120 @@
       background: rgba(255, 255, 255, 0.04) !important;
     }
 
+    .row-pinned {
+      background: rgba(255, 159, 67, 0.06) !important;
+      border-left: 4px solid #ff9f43 !important;
+    }
+
+    .badge-glass {
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      display: inline-flex;
+      align-items: center;
+      text-transform: uppercase;
+    }
+
+    .badge-glass.--informasi {
+      background: rgba(0, 207, 234, 0.15);
+      color: #00cfe8;
+      border: 1px solid rgba(0, 207, 234, 0.35);
+    }
+
+    .badge-glass.--penting {
+      background: rgba(255, 159, 67, 0.15);
+      color: #ff9f43;
+      border: 1px solid rgba(255, 159, 67, 0.35);
+    }
+
+    .badge-glass.--kegiatan {
+      background: rgba(115, 103, 240, 0.15);
+      color: #a5a2f7;
+      border: 1px solid rgba(115, 103, 240, 0.35);
+    }
+
+    .badge-glass.--mendesak {
+      background: rgba(234, 84, 85, 0.15);
+      color: #ea5455;
+      border: 1px solid rgba(234, 84, 85, 0.35);
+    }
+
+    .badge-glass.--libur {
+      background: rgba(40, 199, 111, 0.15);
+      color: #28c76f;
+      border: 1px solid rgba(40, 199, 111, 0.35);
+    }
+
+    .badge-target {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .badge-target.--semua {
+      background: rgba(115, 103, 240, 0.12);
+      color: #a5a2f7;
+      border: 1px solid rgba(115, 103, 240, 0.3);
+    }
+
+    .badge-target.--guru {
+      background: rgba(0, 207, 234, 0.12);
+      color: #00cfe8;
+      border: 1px solid rgba(0, 207, 234, 0.3);
+    }
+
+    .badge-target.--siswa {
+      background: rgba(255, 159, 67, 0.12);
+      color: #ff9f43;
+      border: 1px solid rgba(255, 159, 67, 0.3);
+    }
+
+    .badge-target.--orang_tua {
+      background: rgba(40, 199, 111, 0.12);
+      color: #28c76f;
+      border: 1px solid rgba(40, 199, 111, 0.3);
+    }
+
+    .badge-target.--staff {
+      background: rgba(168, 170, 174, 0.12);
+      color: #d0d2d6;
+      border: 1px solid rgba(168, 170, 174, 0.3);
+    }
+
+    .badge-target.--kelas {
+      background: rgba(234, 84, 85, 0.12);
+      color: #ea5455;
+      border: 1px solid rgba(234, 84, 85, 0.3);
+    }
+
+    .badge-status {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+    }
+
+    .badge-status.--aktif {
+      background: rgba(40, 199, 111, 0.15) !important;
+      color: #28c76f !important;
+      border: 1px solid rgba(40, 199, 111, 0.35) !important;
+    }
+
+    .badge-status.--nonaktif {
+      background: rgba(168, 170, 174, 0.15) !important;
+      color: #a6a8ab !important;
+      border: 1px solid rgba(168, 170, 174, 0.35) !important;
+    }
+
     .action-btn {
       display: inline-flex;
       align-items: center;
