@@ -21,13 +21,13 @@
        aria-hidden="true"
        @if($unreadPopup->force_read) data-bs-backdrop="static" data-bs-keyboard="false" @endif>
     <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content das-modal border-0 shadow-lg" style="box-shadow: 0 0 35px {{ $glow }} !important;">
+      <div class="modal-content das-modal border-0 shadow-lg" style="border-radius: 5px !important; box-shadow: 0 0 35px {{ $glow }} !important;">
         
         {{-- Modal Header --}}
-        <div class="das-modal-head d-flex align-items-center justify-content-between py-3 px-4">
+        <div class="das-modal-head d-flex align-items-center justify-content-between py-3 px-4" style="border-radius: 5px 5px 0 0 !important;">
           <div class="d-flex align-items-center gap-2">
-            <span class="badge-glass --{{ $unreadPopup->kategori }}">
-              {{ $unreadPopup->kategori }}
+            <span class="badge-glass --{{ $unreadPopup->kategori }}" style="border-radius: 4px !important;">
+              {{ strtoupper($unreadPopup->kategori) }}
             </span>
             <span class="text-white-50 extra-small ms-1">
               <i class="ti tabler-speakerphone text-warning me-1"></i> Pengumuman Resmi Sekolah
@@ -50,18 +50,18 @@
             <span><i class="ti tabler-user me-1 text-warning"></i> Oleh: {{ $unreadPopup->creator ? $unreadPopup->creator->name : 'Sistem' }}</span>
           </div>
 
-          {{-- Konten Box Dark Glass High Contrast --}}
-          <div class="p-3 text-white mb-3" style="background: rgba(255, 255, 255, 0.05) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 6px; white-space: pre-line; line-height: 1.65; max-height: 350px; overflow-y: auto; color: #ffffff !important;">
+          {{-- Konten Box Dark Glass High Contrast (Radius Max 5px) --}}
+          <div class="p-3 text-white mb-3" style="background: rgba(255, 255, 255, 0.05) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 4px !important; white-space: pre-line; line-height: 1.65; max-height: 350px; overflow-y: auto; color: #ffffff !important;">
             {{ $unreadPopup->konten }}
           </div>
 
           @if($unreadPopup->lampiran)
-            <div class="d-flex align-items-center justify-content-between p-3 mb-2" style="background: rgba(0, 207, 234, 0.1) !important; border: 1px solid rgba(0, 207, 234, 0.25) !important; border-radius: 4px;">
+            <div class="d-flex align-items-center justify-content-between p-3 mb-2" style="background: rgba(0, 207, 234, 0.1) !important; border: 1px solid rgba(0, 207, 234, 0.25) !important; border-radius: 4px !important;">
               <div class="d-flex align-items-center gap-2">
                 <i class="ti tabler-paperclip fs-5 text-info"></i>
                 <span class="small text-white font-monospace">{{ basename($unreadPopup->lampiran) }}</span>
               </div>
-              <a href="{{ asset('storage/' . $unreadPopup->lampiran) }}" target="_blank" class="btn btn-sm btn-info text-white" style="border-radius: 4px;">
+              <a href="{{ asset('storage/' . $unreadPopup->lampiran) }}" target="_blank" class="btn btn-sm btn-info text-white" style="border-radius: 4px !important;">
                 <i class="ti tabler-download me-1"></i> Unduh Lampiran
               </a>
             </div>
@@ -69,7 +69,7 @@
         </div>
 
         {{-- Modal Footer --}}
-        <div class="modal-footer border-top border-secondary p-3 d-flex align-items-center justify-content-between">
+        <div class="modal-footer border-top border-secondary p-3 d-flex align-items-center justify-content-between" style="border-radius: 0 0 5px 5px !important;">
           <span class="extra-small text-white-50">
             @if($unreadPopup->force_read)
               <i class="ti tabler-info-circle text-warning me-1"></i> Wajib dikonfirmasi sebelum melanjutkan.
@@ -77,7 +77,7 @@
               Klik tombol konfirmasi untuk menutup popup.
             @endif
           </span>
-          <button type="button" class="btn btn-success fw-bold px-4" id="btnMarkAsReadPengumuman" style="border-radius: 4px;">
+          <button type="button" class="btn btn-success fw-bold px-4" id="btnMarkAsReadPengumuman" style="border-radius: 4px !important;">
             <i class="ti tabler-circle-check me-1"></i> Saya Sudah Membaca & Mengerti
           </button>
         </div>

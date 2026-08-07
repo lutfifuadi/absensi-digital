@@ -147,7 +147,7 @@
     .das-modal {
       background: #1a1a2e !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
-      border-radius: 12px !important;
+      border-radius: 5px !important;
       overflow: hidden;
       backdrop-filter: blur(12px) saturate(180%);
     }
