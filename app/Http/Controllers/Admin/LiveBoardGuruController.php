@@ -493,7 +493,14 @@ class LiveBoardGuruController extends Controller
             ? max(0, $totalGuru - $pulangCount)
             : $belumAbsenCount;
 
+        $liveFont        = Pengaturan::where('key', 'live_board_font_family')->value('value') ?? 'Product Sans';
+        $liveCounterFont = Pengaturan::where('key', 'live_board_counter_font_family')->value('value') ?? 'Courier New';
+        $liveCounterColor= Pengaturan::where('key', 'live_board_counter_color')->value('value') ?? '#7367f0';
+
         return [
+            'liveFont'           => $liveFont,
+            'liveCounterFont'    => $liveCounterFont,
+            'liveCounterColor'   => $liveCounterColor,
             'mode'               => $mode,
             'namaSekolah'        => $namaSekolah,
             'logoSekolah'        => $logoSekolah,

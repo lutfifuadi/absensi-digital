@@ -387,10 +387,30 @@
 .set-panel__head {
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--das-border);
-  background: linear-gradient(90deg, rgba(115,103,240,0.06) 0%, transparent 60%);
   border-top-left-radius: inherit;
   border-top-right-radius: inherit;
+  transition: all 0.25s ease-in-out;
 }
+
+/* Dynamic CSS Variable Header Styles */
+[data-das-card-header-style="solid"] .set-panel__head {
+  background: var(--das-surface) !important;
+}
+[data-das-card-header-style="glass"] .set-panel__head {
+  background: rgba(255, 255, 255, 0.03) !important;
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+[data-das-card-header-style="radial"] .set-panel__head {
+  background: radial-gradient(circle at 10% 50%, var(--das-primary-soft) 0%, transparent 65%) !important;
+}
+[data-das-card-header-style="bold_primary"] .set-panel__head {
+  background: linear-gradient(90deg, var(--das-primary) 0%, transparent 100%) !important;
+}
+[data-das-card-header-style="gradient"] .set-panel__head {
+  /* Default state - custom backgrounds per tab */
+}
+
 #tab-lembaga .set-panel__head { background: linear-gradient(90deg, rgba(115, 103, 240, 0.1) 0%, transparent 70%); }
 #tab-waktu .set-panel__head { background: linear-gradient(90deg, rgba(255, 159, 67, 0.1) 0%, transparent 70%); }
 #tab-keamanan .set-panel__head { background: linear-gradient(90deg, rgba(234, 84, 85, 0.1) 0%, transparent 70%); }
@@ -415,8 +435,8 @@
 .set-panel__icon.--danger    { background: var(--das-danger-soft);  color: var(--das-danger);  }
 .set-panel__icon.--success   { background: var(--das-success-soft); color: var(--das-success); }
 .set-panel__icon.--info      { background: var(--das-info-soft);    color: var(--das-info);    }
-.set-panel__title  { font-size: 1rem; font-weight: 700; color: #e2e8f0; margin: 0 0 2px; }
-.set-panel__sub    { font-size: 0.72rem; color: #64748b; margin: 0; }
+.set-panel__title  { font-size: 1rem; font-weight: 700; color: var(--das-card-header-text, #e2e8f0); margin: 0 0 2px; }
+.set-panel__sub    { font-size: 0.72rem; color: var(--das-card-header-subtext, #64748b); margin: 0; }
 .set-panel__body   { padding: 1.5rem; }
 
 /* ═══════════════════════════════════════
@@ -2620,6 +2640,8 @@ select.set-input option {
                   'surface' => ['label' => 'Warna Permukaan Card (Surface)', 'default' => '#ffffff'],
                   'sidebar_bg' => ['label' => 'Background Sidebar Menu (Vertical)', 'default' => '#ffffff'],
                   'border' => ['label' => 'Warna Batas (Border)', 'default' => 'rgba(226, 232, 240, 0.8)'],
+                  'card_header_text' => ['label' => 'Warna Judul Heading Card', 'default' => '#0f172a'],
+                  'card_header_subtext' => ['label' => 'Warna Sub-Judul Heading Card', 'default' => '#64748b'],
                 ];
               @endphp
               @foreach($lightFields as $key => $f)
@@ -2645,6 +2667,17 @@ select.set-input option {
                   <option value="linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%)" {{ ($themeSettings['theme_light_sidebar_gradient'] ?? '') == 'linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%)' ? 'selected' : '' }}>Soft Blue Gradient</option>
                   <option value="linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%)" {{ ($themeSettings['theme_light_sidebar_gradient'] ?? '') == 'linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%)' ? 'selected' : '' }}>Emerald Fresh Gradient</option>
                   <option value="linear-gradient(180deg, #fef3c7 0%, #fde68a 100%)" {{ ($themeSettings['theme_light_sidebar_gradient'] ?? '') == 'linear-gradient(180deg, #fef3c7 0%, #fde68a 100%)' ? 'selected' : '' }}>Warm Gold Gradient</option>
+                </select>
+              </div>
+
+              <div class="set-field col-span-2 mt-2">
+                <label class="set-label">Gaya Visual Background Heading Card (Light Mode)</label>
+                <select class="form-select font-monospace" name="theme_light_card_header_style" id="theme_light_card_header_style" onchange="onCardHeaderStyleChange('light', this.value)">
+                  <option value="gradient" {{ ($themeSettings['theme_light_card_header_style'] ?? 'gradient') == 'gradient' ? 'selected' : '' }}>Soft Linear Accent Gradient (Default - Lembut)</option>
+                  <option value="solid" {{ ($themeSettings['theme_light_card_header_style'] ?? '') == 'solid' ? 'selected' : '' }}>Solid Surface (Bersih Tanpa Gradasi)</option>
+                  <option value="glass" {{ ($themeSettings['theme_light_card_header_style'] ?? '') == 'glass' ? 'selected' : '' }}>Glassmorphism Glossy Accent (Berkilau)</option>
+                  <option value="radial" {{ ($themeSettings['theme_light_card_header_style'] ?? '') == 'radial' ? 'selected' : '' }}>Radial Glow Center (Pendaran Melingkar)</option>
+                  <option value="bold_primary" {{ ($themeSettings['theme_light_card_header_style'] ?? '') == 'bold_primary' ? 'selected' : '' }}>Full Primary Accent Gradient (Bold Tebal)</option>
                 </select>
               </div>
             </div>
@@ -2694,6 +2727,8 @@ select.set-input option {
                   'surface' => ['label' => 'Warna Permukaan Card (Surface)', 'default' => 'rgba(15, 23, 42, 0.45)'],
                   'sidebar_bg' => ['label' => 'Background Sidebar Menu (Vertical)', 'default' => 'rgba(15, 23, 42, 0.75)'],
                   'border' => ['label' => 'Warna Batas (Border)', 'default' => 'rgba(255, 255, 255, 0.07)'],
+                  'card_header_text' => ['label' => 'Warna Judul Heading Card', 'default' => '#e2e8f0'],
+                  'card_header_subtext' => ['label' => 'Warna Sub-Judul Heading Card', 'default' => '#8a99ad'],
                 ];
               @endphp
               @foreach($darkFields as $key => $f)
@@ -2721,6 +2756,53 @@ select.set-input option {
                   <option value="linear-gradient(180deg, #2a0808 0%, #7c2d12 50%, #ea580c 100%)" {{ ($themeSettings['theme_dark_sidebar_gradient'] ?? '') == 'linear-gradient(180deg, #2a0808 0%, #7c2d12 50%, #ea580c 100%)' ? 'selected' : '' }}>Sunset Flare Gradient</option>
                   <option value="linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.75) 100%)" {{ ($themeSettings['theme_dark_sidebar_gradient'] ?? '') == 'linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.75) 100%)' ? 'selected' : '' }}>Glassmorphism Transparan</option>
                 </select>
+              </div>
+
+              <div class="set-field col-span-2 mt-2">
+                <label class="set-label">Gaya Visual Background Heading Card (Dark Mode)</label>
+                <select class="form-select font-monospace" name="theme_dark_card_header_style" id="theme_dark_card_header_style" onchange="onCardHeaderStyleChange('dark', this.value)">
+                  <option value="gradient" {{ ($themeSettings['theme_dark_card_header_style'] ?? 'gradient') == 'gradient' ? 'selected' : '' }}>Soft Linear Accent Gradient (Default - Lembut)</option>
+                  <option value="solid" {{ ($themeSettings['theme_dark_card_header_style'] ?? '') == 'solid' ? 'selected' : '' }}>Solid Surface (Bersih Tanpa Gradasi)</option>
+                  <option value="glass" {{ ($themeSettings['theme_dark_card_header_style'] ?? '') == 'glass' ? 'selected' : '' }}>Glassmorphism Glossy Accent (Berkilau)</option>
+                  <option value="radial" {{ ($themeSettings['theme_dark_card_header_style'] ?? '') == 'radial' ? 'selected' : '' }}>Radial Glow Center (Pendaran Melingkar)</option>
+                  <option value="bold_primary" {{ ($themeSettings['theme_dark_card_header_style'] ?? '') == 'bold_primary' ? 'selected' : '' }}>Full Primary Accent Gradient (Bold Tebal)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {{-- Mockup Preview Widget --}}
+          <div class="mt-4 p-3 rounded" style="background: rgba(0,0,0,0.2); border: 1px solid var(--das-border);">
+            <div class="set-section-label mb-2"><i class="ti tabler-device-desktop me-1"></i> Interactive Live Preview Mockup</div>
+            <div class="d-flex rounded overflow-hidden" id="mockupApp" style="height: 140px; border: 1px solid var(--das-border);">
+              <!-- Mockup Sidebar -->
+              <div id="mockupSidebar" style="width: 50px; background: var(--das-sidebar-bg); border-right: 1px solid var(--das-border); display: flex; flex-direction: column; gap: 8px; padding: 10px 5px; align-items: center;">
+                <div style="width: 24px; height: 24px; border-radius: 4px; background: var(--das-primary); opacity: 0.85;"></div>
+                <div style="width: 30px; height: 6px; border-radius: 2px; background: var(--das-primary); opacity: 0.4;"></div>
+                <div style="width: 30px; height: 6px; border-radius: 2px; background: var(--das-secondary); opacity: 0.2;"></div>
+                <div style="width: 30px; height: 6px; border-radius: 2px; background: var(--das-secondary); opacity: 0.2;"></div>
+              </div>
+              <!-- Mockup Content -->
+              <div class="flex-grow-1 d-flex flex-column" style="background: rgba(15, 23, 42, 0.15); padding: 10px;">
+                <!-- Mockup Header -->
+                <div id="mockupHeader" class="pb-2 mb-2 d-flex align-items-center justify-content-between" style="border-bottom: 1px solid var(--das-border);">
+                  <div style="width: 60px; height: 8px; border-radius: 4px; background: var(--das-secondary); opacity: 0.3;"></div>
+                  <div style="width: 16px; height: 16px; border-radius: 50%; background: var(--das-secondary); opacity: 0.4;"></div>
+                </div>
+                <!-- Mockup Body Content -->
+                <div class="d-flex gap-2 align-items-start">
+                  <!-- Mockup Card -->
+                  <div id="mockupCard" class="flex-grow-1 p-2 rounded" style="background: var(--das-surface); border: 1px solid var(--das-border); min-height: 70px;">
+                    <div id="mockupText" style="font-size: 0.7rem; font-weight: 700; color: var(--das-text-main); margin-bottom: 5px;">Sample Content Card</div>
+                    <div style="width: 80%; height: 5px; border-radius: 2px; background: var(--das-secondary); opacity: 0.2; margin-bottom: 4px;"></div>
+                    <div style="width: 50%; height: 5px; border-radius: 2px; background: var(--das-secondary); opacity: 0.2;"></div>
+                  </div>
+                  <!-- Mockup Sidebar Card / Mini Button -->
+                  <div class="d-flex flex-column gap-2" style="width: 60px;">
+                    <button type="button" id="mockupBtn" class="btn btn-xs py-1" style="font-size: 0.55rem; font-weight: 700; background: var(--das-primary); border-color: var(--das-primary); color: #fff; pointer-events: none;">Action</button>
+                    <div style="width: 100%; height: 12px; border-radius: 3px; background: var(--das-success); opacity: 0.15; border: 1px solid var(--das-success); display: flex; align-items: center; justify-content: center; font-size: 0.5rem; color: var(--das-success); font-weight: bold;">Hadir</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -3863,9 +3945,14 @@ document.addEventListener('DOMContentLoaded', function () {
       if (panelLight) panelLight.classList.add('d-none');
       document.documentElement.setAttribute('data-bs-theme', 'dark');
     }
+
+    // Update mockup preview widget to match the active tab mode colors
+    if (typeof updateMockupPreviewWidget === 'function') {
+      updateMockupPreviewWidget();
+    }
   };
 
-  const themeColors = ['primary', 'success', 'info', 'warning', 'danger', 'secondary', 'text_main', 'surface', 'sidebar_bg', 'border'];
+  const themeColors = ['primary', 'success', 'info', 'warning', 'danger', 'secondary', 'text_main', 'surface', 'sidebar_bg', 'border', 'card_header_text', 'card_header_subtext'];
   const themeModes = ['light', 'dark'];
 
   // Helper colors
@@ -3892,6 +3979,125 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
     return value.startsWith('#') ? value : '#ffffff';
+  }
+
+  // Dynamic CSS Variable Updater
+  window.updateCssVariableDynamic = function(mode, colorKey, value) {
+    const varMap = {
+      'primary': '--das-primary',
+      'success': '--das-success',
+      'info': '--das-info',
+      'warning': '--das-warning',
+      'danger': '--das-danger',
+      'secondary': '--das-secondary',
+      'text_main': '--das-text-main',
+      'surface': '--das-surface',
+      'sidebar_bg': '--das-sidebar-bg',
+      'border': '--das-border',
+      'card_header_text': '--das-card-header-text',
+      'card_header_subtext': '--das-card-header-subtext'
+    };
+
+    const cssVarName = varMap[colorKey];
+    if (cssVarName) {
+      document.documentElement.style.setProperty(cssVarName, value);
+      
+      // Khusus primary: update juga soft & glow
+      if (colorKey === 'primary') {
+        let rgb = hexToRgbComponents(parseRgbaOrHexToHex(value));
+        document.documentElement.style.setProperty('--das-primary-soft', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`);
+      }
+    }
+    
+    // Live update interactive mockup widget (jika ada)
+    updateMockupPreviewWidget();
+  };
+
+  // Preset Palettes Data
+  const presetPalettes = {
+    light: {
+      default: { primary: '#7367f0', success: '#28c76f', info: '#00cfe8', warning: '#ff9f43', danger: '#ea5455', secondary: '#8592a3', text_main: '#0f172a', surface: '#ffffff', sidebar_bg: '#ffffff', border: 'rgba(226, 232, 240, 0.8)' },
+      clean: { primary: '#2563eb', success: '#10b981', info: '#06b6d4', warning: '#f59e0b', danger: '#ef4444', secondary: '#64748b', text_main: '#1e293b', surface: '#f8fafc', sidebar_bg: '#ffffff', border: 'rgba(203, 213, 225, 0.8)' },
+      emerald: { primary: '#059669', success: '#10b981', info: '#06b6d4', warning: '#f59e0b', danger: '#ef4444', secondary: '#64748b', text_main: '#064e3b', surface: '#ecfdf5', sidebar_bg: '#ffffff', border: 'rgba(167, 243, 208, 0.8)' },
+      sunset: { primary: '#ea580c', success: '#16a34a', info: '#0284c7', warning: '#d97706', danger: '#dc2626', secondary: '#78716c', text_main: '#7c2d12', surface: '#fff7ed', sidebar_bg: '#ffffff', border: 'rgba(254, 215, 170, 0.8)' }
+    },
+    dark: {
+      dark: { primary: '#3f51b5', success: '#28c76f', info: '#00cfe8', warning: '#ff9f43', danger: '#ea5455', secondary: '#a8aaae', text_main: '#cbd5e1', surface: 'rgba(15, 23, 42, 0.45)', sidebar_bg: 'rgba(15, 23, 42, 0.75)', border: 'rgba(255, 255, 255, 0.07)' },
+      obsidian: { primary: '#6366f1', success: '#10b981', info: '#38bdf8', warning: '#fbbf24', danger: '#f87171', secondary: '#94a3b8', text_main: '#f1f5f9', surface: 'rgba(5, 5, 10, 0.8)', sidebar_bg: 'rgba(10, 10, 18, 0.9)', border: 'rgba(255, 255, 255, 0.1)' },
+      cyberpunk: { primary: '#d946ef', success: '#22c55e', info: '#06b6d4', warning: '#eab308', danger: '#ff0055', secondary: '#a855f7', text_main: '#f472b6', surface: '#180828', sidebar_bg: '#11041d', border: 'rgba(217, 70, 239, 0.25)' }
+    }
+  };
+
+  // Event handler untuk preset cards
+  document.querySelectorAll('.theme-preset-card').forEach(card => {
+    card.addEventListener('click', function() {
+      const mode = this.getAttribute('data-mode');
+      const presetKey = this.getAttribute('data-preset');
+      const palette = presetPalettes[mode]?.[presetKey];
+
+      if (!palette) return;
+
+      // Update active state
+      document.querySelectorAll(`.theme-preset-card[data-mode="${mode}"]`).forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+
+      // Fill inputs & trigger live update
+      themeColors.forEach(color => {
+        const val = palette[color];
+        if (val) {
+          const picker = document.getElementById(`picker_${mode}_${color}`);
+          const text = document.getElementById(`text_${mode}_${color}`);
+          if (text) text.value = val;
+          if (picker) picker.value = parseRgbaOrHexToHex(val);
+          updateCssVariableDynamic(mode, color, val);
+        }
+      });
+    });
+  });
+
+  // Function to update Mockup Preview Widget
+  function updateMockupPreviewWidget() {
+    const activeMode = document.documentElement.getAttribute('data-bs-theme') || 'dark';
+    const primaryVal = document.getElementById(`text_${activeMode}_primary`)?.value || '#7367f0';
+    const surfaceVal = document.getElementById(`text_${activeMode}_surface`)?.value || 'rgba(15, 23, 42, 0.45)';
+    const textVal    = document.getElementById(`text_${activeMode}_text_main`)?.value || '#e2e8f0';
+    const borderVal  = document.getElementById(`text_${activeMode}_border`)?.value || 'rgba(255, 255, 255, 0.07)';
+
+    const mockHeader = document.getElementById('mockupHeader');
+    const mockCard = document.getElementById('mockupCard');
+    const mockBtn = document.getElementById('mockupBtn');
+    const mockText = document.getElementById('mockupText');
+
+    if (mockHeader) {
+      mockHeader.style.borderColor = borderVal;
+      
+      // Update mockup header background dynamically based on chosen card header style
+      const headerStyle = document.getElementById(`theme_${activeMode}_card_header_style`)?.value || 'gradient';
+      if (headerStyle === 'solid') {
+        mockHeader.style.background = surfaceVal;
+      } else if (headerStyle === 'glass') {
+        mockHeader.style.background = 'rgba(255, 255, 255, 0.03)';
+        mockHeader.style.backdropFilter = 'blur(8px)';
+      } else if (headerStyle === 'radial') {
+        let rgb = hexToRgbComponents(parseRgbaOrHexToHex(primaryVal));
+        mockHeader.style.background = `radial-gradient(circle at 10% 50%, rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15) 0%, transparent 65%)`;
+      } else if (headerStyle === 'bold_primary') {
+        mockHeader.style.background = `linear-gradient(90deg, ${primaryVal} 0%, transparent 100%)`;
+      } else {
+        // default gradient
+        let rgb = hexToRgbComponents(parseRgbaOrHexToHex(primaryVal));
+        mockHeader.style.background = `linear-gradient(90deg, rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.1) 0%, transparent 70%)`;
+      }
+    }
+    if (mockCard) {
+      mockCard.style.background = surfaceVal;
+      mockCard.style.borderColor = borderVal;
+    }
+    if (mockBtn) {
+      mockBtn.style.backgroundColor = primaryVal;
+      mockBtn.style.borderColor = primaryVal;
+    }
+    if (mockText) mockText.style.color = textVal;
   }
 
   // Bind color pickers & text inputs
@@ -3925,6 +4131,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  // Initial call to populate mockup widget preview on first load
+  updateMockupPreviewWidget();
+
   window.onSidebarGradientChange = function(mode, val) {
     let finalVal = val;
     if (val === 'none') {
@@ -3932,6 +4141,15 @@ document.addEventListener('DOMContentLoaded', function () {
       finalVal = textInput ? textInput.value : '#ffffff';
     }
     document.documentElement.style.setProperty('--das-sidebar-bg', finalVal);
+  };
+
+  // Live Card Header Style Dynamic Apply
+  window.onCardHeaderStyleChange = function(mode, style) {
+    const activeMode = document.documentElement.getAttribute('data-bs-theme') || 'dark';
+    if (mode === activeMode) {
+      document.documentElement.setAttribute('data-das-card-header-style', style);
+    }
+    updateMockupPreviewWidget();
   };
 
   // AJAX save
@@ -3954,6 +4172,10 @@ document.addEventListener('DOMContentLoaded', function () {
       const gradInput = document.getElementById(`theme_${mode}_sidebar_gradient`);
       if (gradInput) {
         data[`theme_${mode}_sidebar_gradient`] = gradInput.value;
+      }
+      const headerStyleInput = document.getElementById(`theme_${mode}_card_header_style`);
+      if (headerStyleInput) {
+        data[`theme_${mode}_card_header_style`] = headerStyleInput.value;
       }
     });
     

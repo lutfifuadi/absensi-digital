@@ -37,7 +37,8 @@
   class="{{ $navbarType ?? '' }} {{ $contentLayout ?? '' }} {{ $menuFixed ?? '' }} {{ $menuCollapsed ?? '' }} {{ $footerFixed ?? '' }} {{ $customizerHidden ?? '' }}"
   dir="{{ $configData['textDirection'] }}" data-skin="{{ $skinName }}" data-assets-path="{{ asset('/assets') . '/' }}"
   data-base-url="{{ url('/') }}" data-framework="laravel" data-template="{{ $configData['layout'] }}-menu-template"
-  data-bs-theme="{{ $configData['theme'] }}" @if ($isAdminLayout && $semiDarkEnabled) data-semidark-menu="true" @endif>
+  data-bs-theme="{{ $configData['theme'] }}" @if ($isAdminLayout && $semiDarkEnabled) data-semidark-menu="true" @endif
+  data-das-card-header-style="{{ ($configData['theme'] === 'dark') ? ($themeVars['theme_dark_card_header_style'] ?? 'gradient') : ($themeVars['theme_light_card_header_style'] ?? 'gradient') }}">
 
 <head>
   <meta charset="utf-8" />
@@ -190,6 +191,9 @@
       --das-surface: {{ $themeVars['theme_light_surface'] ?? '#ffffff' }};
       --das-border: {{ $themeVars['theme_light_border'] ?? 'rgba(226, 232, 240, 0.8)' }};
       --das-sidebar-bg: {{ !empty($themeVars['theme_light_sidebar_gradient']) && $themeVars['theme_light_sidebar_gradient'] !== 'none' ? $themeVars['theme_light_sidebar_gradient'] : ($themeVars['theme_light_sidebar_bg'] ?? '#ffffff') }};
+      --das-card-header-style: {{ $themeVars['theme_light_card_header_style'] ?? 'gradient' }};
+      --das-card-header-text: {{ $themeVars['theme_light_card_header_text'] ?? '#0f172a' }};
+      --das-card-header-subtext: {{ $themeVars['theme_light_card_header_subtext'] ?? '#64748b' }};
     }
 
     /* Dark Mode Variables */
@@ -210,6 +214,9 @@
       --das-surface: {{ $themeVars['theme_dark_surface'] ?? $themeVars['theme_surface'] ?? 'rgba(15, 23, 42, 0.45)' }};
       --das-border: {{ $themeVars['theme_dark_border'] ?? $themeVars['theme_border'] ?? 'rgba(255, 255, 255, 0.07)' }};
       --das-sidebar-bg: {{ !empty($themeVars['theme_dark_sidebar_gradient']) && $themeVars['theme_dark_sidebar_gradient'] !== 'none' ? $themeVars['theme_dark_sidebar_gradient'] : ($themeVars['theme_dark_sidebar_bg'] ?? 'rgba(15, 23, 42, 0.75)') }};
+      --das-card-header-style: {{ $themeVars['theme_dark_card_header_style'] ?? 'gradient' }};
+      --das-card-header-text: {{ $themeVars['theme_dark_card_header_text'] ?? '#e2e8f0' }};
+      --das-card-header-subtext: {{ $themeVars['theme_dark_card_header_subtext'] ?? '#8a99ad' }};
     }
 
     #layout-menu.menu-vertical, .menu-vertical {

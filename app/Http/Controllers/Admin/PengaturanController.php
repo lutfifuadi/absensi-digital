@@ -488,6 +488,10 @@ class PengaturanController extends Controller
             }
             if (str_contains($key, 'hero_preset')) {
                 $rules[$key] = 'sometimes|string|in:default,ocean,forest,sunset,twilight,dark,custom';
+            } elseif (str_contains($key, 'card_header_style')) {
+                $rules[$key] = 'sometimes|string|in:gradient,solid,glass,radial,bold_primary';
+            } elseif (str_contains($key, 'sidebar_gradient')) {
+                $rules[$key] = 'sometimes|string';
             } elseif (str_contains($key, 'surface') || str_contains($key, 'border')) {
                 $rules[$key] = ['sometimes', 'string', function ($attribute, $value, $fail) {
                     $isHex = preg_match('/^#[a-fA-F0-9]{3}([a-fA-F0-9]{3})?$/', $value);
