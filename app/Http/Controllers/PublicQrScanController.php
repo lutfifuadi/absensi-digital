@@ -18,6 +18,22 @@ use Illuminate\Support\Facades\Cache;
 class PublicQrScanController extends Controller
 {
     /**
+     * Invalidate semua cache leaderboard live board.
+     * Dipanggil setelah setiap scan berhasil agar leaderboard update segera.
+     * Total 12 keys: 3 mode × 4 role = hapus semua kombinasi.
+     */
+    private function invalidateLeaderboardCache(): void
+    {
+        $modes = ['masuk', 'pulang', 'otomatis'];
+        $roles = ['all', 'siswa', 'guru', 'staff'];
+        foreach ($modes as $mode) {
+            foreach ($roles as $role) {
+                Cache::forget("live_board_lb_{$mode}_{$role}");
+            }
+        }
+    }
+
+    /**
      * Helper: Ambil pengaturan ter-cache untuk efisiensi.
      */
     private function getCachedSettings()
@@ -1075,6 +1091,7 @@ class PublicQrScanController extends Controller
                     return response()->json(['success' => false, 'already' => true, 'message' => $siswa->nama_lengkap . ' sudah tercatat hadir hari ini.']);
                 }
 
+                $this->invalidateLeaderboardCache();
                 return response()->json([
                     'success' => true,
                     'message' => 'Absensi berhasil dicatat!',
@@ -1100,6 +1117,7 @@ class PublicQrScanController extends Controller
                 DB::transaction(function () use ($absensi, $currentTime) {
                     $absensi->update(['jam_pulang' => $currentTime]);
                 });
+                $this->invalidateLeaderboardCache();
                 return response()->json([
                     'success' => true,
                     'message' => 'Hati-hati di jalan! Jam pulang ' . $siswa->nama_lengkap . ' berhasil dicatat.',
@@ -1148,6 +1166,7 @@ class PublicQrScanController extends Controller
                 return response()->json(['success' => false, 'already' => true, 'message' => 'Sudah tercatat hadir.']);
             }
 
+            $this->invalidateLeaderboardCache();
             return response()->json([
                 'success' => true,
                 'message' => 'Absensi berhasil dicatat!',
@@ -1205,6 +1224,7 @@ class PublicQrScanController extends Controller
                     }
                 });
 
+                $this->invalidateLeaderboardCache();
                 return response()->json([
                     'success' => true,
                     'message' => 'Selamat beristirahat! Jam pulang Guru ' . $guru->nama_lengkap . ' berhasil dicatat.',
@@ -1257,6 +1277,7 @@ class PublicQrScanController extends Controller
                     return response()->json(['success' => false, 'already' => true, 'message' => 'Guru ' . $guru->nama_lengkap . ' sudah tercatat hadir hari ini.']);
                 }
 
+                $this->invalidateLeaderboardCache();
                 return response()->json([
                     'success' => true,
                     'message' => 'Absensi Guru berhasil dicatat!',
@@ -1276,6 +1297,7 @@ class PublicQrScanController extends Controller
                 DB::transaction(function () use ($absensi, $currentTime) {
                     $absensi->update(['jam_pulang' => $currentTime]);
                 });
+                $this->invalidateLeaderboardCache();
                 return response()->json([
                     'success' => true,
                     'message' => 'Selamat beristirahat! Jam pulang Guru ' . $guru->nama_lengkap . ' berhasil dicatat.',
@@ -1336,6 +1358,7 @@ class PublicQrScanController extends Controller
                 'tanggal' => $tanggal,
             ]);
 
+            $this->invalidateLeaderboardCache();
             return response()->json([
                 'success' => true,
                 'message' => 'Absensi Guru berhasil dicatat!',
@@ -1511,6 +1534,7 @@ class PublicQrScanController extends Controller
                 ]);
             }
 
+            $this->invalidateLeaderboardCache();
             return response()->json([
                 'success' => true,
                 'message' => 'Absensi Staff berhasil dicatat!',
@@ -1559,7 +1583,7 @@ class PublicQrScanController extends Controller
     private function getLeaderboardData(string $mode = 'otomatis', ?string $roleFilter = null): array
     {
         $cacheKey = 'live_board_lb_' . $mode . '_' . ($roleFilter ?? 'all');
-        return Cache::remember($cacheKey, 5, function () use ($mode, $roleFilter) {
+        return Cache::remember($cacheKey, 10, function () use ($mode, $roleFilter) {
             $today = today()->toDateString();
 
             // Tentukan field jam berdasarkan mode

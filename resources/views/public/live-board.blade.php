@@ -1390,7 +1390,7 @@ const LEADERBOARD_URL= '{{ route("public.live-board.leaderboard") }}';
 const CSRF           = document.querySelector('meta[name="csrf-token"]').content;
 const JAM_MASUK_CFG  = '{{ $jamMasukCfg }}';
 const TOLERANSI_MENIT= {{ $toleransi }};
-const REFRESH_MS     = 5000; // leaderboard auto-refresh — selaras dengan TTL cache 5 detik
+const REFRESH_MS     = 10000; // leaderboard auto-refresh — lebih jarang karena sekarang ada on-scan trigger
 const DISMISS_MS     = 800;  // toast auto-hide
 const DEBOUNCE_MS    = 3000;  // anti-duplicate scan
 const CURRENT_MODE   = '{{ $mode }}';
@@ -1788,6 +1788,8 @@ async function handleScan(qrCode) {
       if (scanCountEl) scanCountEl.textContent = scanCount;
       showToast('success', '✅', data.siswa, data.message);
       beep('success');
+      // Langsung refresh leaderboard tanpa tunggu polling interval
+      refreshLeaderboard();
     } else if (data.already) {
       showToast('warning', '⚠️', data.siswa, data.message);
       beep('error');
