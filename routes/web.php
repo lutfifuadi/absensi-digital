@@ -826,6 +826,22 @@ Route::middleware([
             ->names('admin.pelanggaran-kategori')
             ->middleware('role:super_admin,admin_sekolah');
         
+        Route::patch('pelanggaran-jenis/{id}/update-poin', [\App\Http\Controllers\Admin\JenisPelanggaranController::class, 'updatePoin'])
+            ->name('admin.pelanggaran-jenis.update-poin')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pelanggaran-jenis/apply-preset', [\App\Http\Controllers\Admin\JenisPelanggaranController::class, 'applyPreset'])
+            ->name('admin.pelanggaran-jenis.apply-preset')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::get('pelanggaran-jenis/export', [\App\Http\Controllers\Admin\JenisPelanggaranController::class, 'export'])
+            ->name('admin.pelanggaran-jenis.export')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::get('pelanggaran-jenis/template', [\App\Http\Controllers\Admin\JenisPelanggaranController::class, 'downloadTemplate'])
+            ->name('admin.pelanggaran-jenis.template')
+            ->middleware('role:super_admin,admin_sekolah');
+        Route::post('pelanggaran-jenis/import', [\App\Http\Controllers\Admin\JenisPelanggaranController::class, 'import'])
+            ->name('admin.pelanggaran-jenis.import')
+            ->middleware('role:super_admin,admin_sekolah');
+
         Route::resource('pelanggaran-jenis', \App\Http\Controllers\Admin\JenisPelanggaranController::class)
             ->names('admin.pelanggaran-jenis')
             ->middleware('role:super_admin,admin_sekolah');

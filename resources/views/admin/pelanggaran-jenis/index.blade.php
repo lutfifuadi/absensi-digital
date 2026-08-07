@@ -186,8 +186,17 @@
         </div>
       </div>
 
-      <div class="das-hero__actions">
-        <a href="{{ route('admin.pelanggaran-jenis.create') }}" class="btn das-btn --warning">
+      <div class="das-hero__actions d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-outline-warning text-warning" data-bs-toggle="modal" data-bs-target="#modalPresetTataTertib" style="border-radius: 4px;">
+          <i class="ti tabler-bolt me-1"></i> ⚡ Preset Tata Tertib
+        </button>
+        <button type="button" class="btn btn-outline-info text-info" data-bs-toggle="modal" data-bs-target="#modalImportJenis" style="border-radius: 4px;">
+          <i class="ti tabler-file-upload me-1"></i> 📥 Import Excel
+        </button>
+        <a href="{{ route('admin.pelanggaran-jenis.export') }}" class="btn btn-outline-success text-success" style="border-radius: 4px;">
+          <i class="ti tabler-file-download me-1"></i> 📤 Export Excel
+        </a>
+        <a href="{{ route('admin.pelanggaran-jenis.create') }}" class="btn das-btn --warning" style="border-radius: 4px;">
           <i class="ti tabler-plus me-1"></i> Tambah Jenis Pelanggaran
         </a>
       </div>
@@ -199,6 +208,14 @@
     <div class="alert alert-success alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm" role="alert" style="border-radius:8px;">
       <i class="ti tabler-circle-check fs-5"></i>
       <span>{{ session('success') }}</span>
+      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+  @endif
+
+  @if (session('error'))
+    <div class="alert alert-danger alert-dismissible d-flex align-items-center gap-2 mb-4 border-0 shadow-sm" role="alert" style="border-radius:8px;">
+      <i class="ti tabler-alert-circle fs-5"></i>
+      <span>{{ session('error') }}</span>
       <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
     </div>
   @endif
@@ -221,201 +238,329 @@
             @endforeach
           </select>
         </div>
-        <div class="col-6 col-md-2">
+        <div class="col-6 col-md-3">
           <select id="filterStatus" name="is_aktif" class="form-select border-secondary text-white">
-            <option value="">-- Status --</option>
+            <option value="">-- Semua Status --</option>
             <option value="1" {{ request('is_aktif') === '1' ? 'selected' : '' }}>Aktif</option>
             <option value="0" {{ request('is_aktif') === '0' ? 'selected' : '' }}>Nonaktif</option>
           </select>
         </div>
-        <div class="col-6 col-md-1">
-          <select id="perPageSelect" name="per_page" class="form-select border-secondary text-white">
-            <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
-            <option value="15" {{ request('per_page') == 15 ? 'selected' : '' }}>15</option>
-            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
-            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
-          </select>
-        </div>
-        <div class="col-6 col-md-2 d-flex gap-2">
-          <button type="submit" class="btn btn-primary w-100"><i class="ti tabler-filter me-1"></i> Filter</button>
-          <a href="{{ route('admin.pelanggaran-jenis.index') }}" class="btn btn-secondary" title="Reset Filter"><i class="ti tabler-refresh"></i></a>
+        <div class="col-12 col-md-2 text-end">
+          <button type="button" id="btnResetFilter" class="btn btn-outline-secondary w-100" style="border-radius: 4px;">
+            <i class="ti tabler-rotate me-1"></i> Reset
+          </button>
         </div>
       </form>
     </div>
   </div>
 
-  {{-- DATA PANEL --}}
-  <div class="das-panel" id="tableContainer">
-    @include('admin.pelanggaran-jenis.table')
+  {{-- MAIN DATA TABLE --}}
+  <div class="card bg-dark text-white border-0 shadow-sm" style="border-radius: 10px; background: rgba(15, 23, 42, 0.6) !important; backdrop-filter: blur(10px);">
+    <div class="card-header border-bottom border-secondary d-flex align-items-center justify-content-between py-3 px-4" style="background: rgba(255, 255, 255, 0.02);">
+      <div class="d-flex align-items-center gap-2">
+        <i class="ti tabler-list-check fs-4 text-warning"></i>
+        <h5 class="card-title text-white mb-0 fs-6 fw-bold">Daftar Jenis Pelanggaran & Bobot Poin</h5>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="text-white-50 small">Tampilkan:</span>
+        <select id="perPageSelect" class="form-select form-select-sm border-secondary text-white" style="width: 75px; border-radius: 4px;">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+    </div>
+    <div class="card-body p-0" id="tableContainer">
+      @include('admin.pelanggaran-jenis.table')
+    </div>
+  </div>
+
+  {{-- MODAL PRESET TATA TERTIB --}}
+  <div class="modal fade" id="modalPresetTataTertib" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark text-white border border-secondary" style="border-radius: 10px;">
+        <div class="modal-header border-bottom border-secondary">
+          <h5 class="modal-title text-warning fw-bold d-flex align-items-center gap-2">
+            <i class="ti tabler-bolt fs-4"></i> Terapkan Preset Tata Tertib Sekolah
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="formPresetTataTertib" action="{{ route('admin.pelanggaran-jenis.apply-preset') }}" method="POST">
+          @csrf
+          <div class="modal-body py-4">
+            <p class="text-white-50 small mb-3">
+              Pilih template tata tertib dasar yang sesuai dengan jenjang / tipe sekolah Anda untuk mengisikan otomatis butir-butir jenis pelanggaran & bobot poin standar.
+            </p>
+            <div class="d-flex flex-column gap-3">
+              <label class="p-3 border border-secondary rounded d-flex align-items-center gap-3 cursor-pointer" style="background: rgba(255, 255, 255, 0.03);">
+                <input type="radio" name="preset" value="sma_smk" class="form-check-input mt-0" checked>
+                <div>
+                  <div class="fw-bold text-white mb-1">🏫 SMA / SMK Standard</div>
+                  <div class="text-white-50 extra-small">Skala poin 3 - 100 poin (Kedisiplinan, Kehadiran, Etika, Pelanggaran Berat & Keamanan).</div>
+                </div>
+              </label>
+              <label class="p-3 border border-secondary rounded d-flex align-items-center gap-3 cursor-pointer" style="background: rgba(255, 255, 255, 0.03);">
+                <input type="radio" name="preset" value="madrasah" class="form-check-input mt-0">
+                <div>
+                  <div class="fw-bold text-warning mb-1">🌙 Madrasah / Pesantren (MA / MTs)</div>
+                  <div class="text-white-50 extra-small">Termasuk kelengkapan peci/jilbab, sholat berjamaah, akhlakul karimah, & syariat.</div>
+                </div>
+              </label>
+              <label class="p-3 border border-secondary rounded d-flex align-items-center gap-3 cursor-pointer" style="background: rgba(255, 255, 255, 0.03);">
+                <input type="radio" name="preset" value="smp_mts" class="form-check-input mt-0">
+                <div>
+                  <div class="fw-bold text-info mb-1">🎓 SMP / Sekolah Menengah Pertama</div>
+                  <div class="text-white-50 extra-small">Kedisiplinan dasar, tata krama, presensi harian, & sanksi edukatif.</div>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div class="modal-footer border-top border-secondary">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 4px;">Batal</button>
+            <button type="submit" class="btn btn-warning fw-bold" style="border-radius: 4px;">
+              <i class="ti tabler-check me-1"></i> Terapkan Preset Ini
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {{-- MODAL IMPORT EXCEL --}}
+  <div class="modal fade" id="modalImportJenis" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark text-white border border-secondary" style="border-radius: 10px;">
+        <div class="modal-header border-bottom border-secondary">
+          <h5 class="modal-title text-info fw-bold d-flex align-items-center gap-2">
+            <i class="ti tabler-file-upload fs-4"></i> Import Master Jenis Pelanggaran
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="formImportJenis" action="{{ route('admin.pelanggaran-jenis.import') }}" method="POST" enctype="multipart/form-data">
+          @csrf
+          <div class="modal-body py-4">
+            <div class="alert alert-info border-0 text-white mb-3 p-3" style="background: rgba(0, 207, 232, 0.15); border-radius: 6px;">
+              <div class="fw-bold mb-1"><i class="ti tabler-info-circle me-1"></i> Unduh Template Excel</div>
+              <p class="extra-small mb-2 text-white-50">Gunakan format template yang telah disediakan agar proses impor data berjalan lancar tanpa error.</p>
+              <a href="{{ route('admin.pelanggaran-jenis.template') }}" class="btn btn-sm btn-info fw-bold" style="border-radius: 4px;">
+                <i class="ti tabler-download me-1"></i> Download Template Excel (.xlsx)
+              </a>
+            </div>
+            <div class="mb-3">
+              <label for="inputImportFile" class="form-label text-white fw-semibold">Pilih File Excel / CSV <span class="text-danger">*</span></label>
+              <input type="file" class="form-control" id="inputImportFile" name="import_file" accept=".xlsx,.xls,.csv" required>
+              <div class="form-text text-white-50 extra-small">Format yang didukung: .xlsx, .xls, .csv (Maks 10 MB).</div>
+            </div>
+          </div>
+          <div class="modal-footer border-top border-secondary">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 4px;">Batal</button>
+            <button type="submit" class="btn btn-info fw-bold" style="border-radius: 4px;">
+              <i class="ti tabler-upload me-1"></i> Unggah & Impor
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 @endsection
 
 @section('page-script')
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      const container = document.getElementById('tableContainer');
-      const filterForm = document.getElementById('filterForm');
+      const tableContainer = document.getElementById('tableContainer');
+      const filterSearch = document.getElementById('filterSearch');
       const filterKategori = document.getElementById('filterKategori');
       const filterStatus = document.getElementById('filterStatus');
+      const btnResetFilter = document.getElementById('btnResetFilter');
       const perPageSelect = document.getElementById('perPageSelect');
 
       function loadTable(url) {
-        if (!container) return;
-        container.classList.add('opacity-50');
-
-        let targetUrl = url;
-        if (filterForm) {
-          const formData = new FormData(filterForm);
-          const params = new URLSearchParams(formData);
-          if (!targetUrl.includes('?')) {
-            targetUrl += '?' + params.toString();
-          }
-        }
-
-        fetch(targetUrl, {
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'text/html, application/xhtml+xml, */*'
-          }
+        tableContainer.style.opacity = '0.5';
+        fetch(url, {
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
-        .then(function (res) {
-          if (!res.ok) throw new Error('Network error');
-          return res.text();
+        .then(res => res.text())
+        .then(html => {
+          tableContainer.innerHTML = html;
+          tableContainer.style.opacity = '1';
         })
-        .then(function (html) {
-          container.innerHTML = html;
-          container.classList.remove('opacity-50');
-          const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-          tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-          });
-        })
-        .catch(function (err) {
-          console.error('Load table error:', err);
-          container.classList.remove('opacity-50');
-          Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'Gagal memuat data jenis pelanggaran.',
-            customClass: {
-              popup: 'das-swal-popup',
-              title: 'das-swal-title',
-              htmlContainer: 'das-swal-html'
-            }
-          });
+        .catch(err => {
+          tableContainer.style.opacity = '1';
+          console.error('Error loading table:', err);
         });
       }
 
-      if (filterForm) {
-        filterForm.addEventListener('submit', function (e) {
-          e.preventDefault();
-          loadTable("{{ route('admin.pelanggaran-jenis.index') }}");
-        });
+      function applyFilter() {
+        const search = filterSearch.value;
+        const kat = filterKategori.value;
+        const status = filterStatus.value;
+        const perPage = perPageSelect.value;
+        const url = new URL("{{ route('admin.pelanggaran-jenis.index') }}", window.location.origin);
+        if (search) url.searchParams.set('search', search);
+        if (kat) url.searchParams.set('kategori_id', kat);
+        if (status) url.searchParams.set('is_aktif', status);
+        if (perPage) url.searchParams.set('per_page', perPage);
+
+        loadTable(url.toString());
       }
 
-      if (filterKategori) {
-        filterKategori.addEventListener('change', function () {
-          loadTable("{{ route('admin.pelanggaran-jenis.index') }}");
-        });
-      }
+      let searchTimeout;
+      filterSearch.addEventListener('input', function () {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(applyFilter, 400);
+      });
 
-      if (filterStatus) {
-        filterStatus.addEventListener('change', function () {
-          loadTable("{{ route('admin.pelanggaran-jenis.index') }}");
-        });
-      }
+      filterKategori.addEventListener('change', applyFilter);
+      filterStatus.addEventListener('change', applyFilter);
+      perPageSelect.addEventListener('change', applyFilter);
 
-      if (perPageSelect) {
-        perPageSelect.addEventListener('change', function () {
-          loadTable("{{ route('admin.pelanggaran-jenis.index') }}");
-        });
-      }
+      btnResetFilter.addEventListener('click', function () {
+        filterSearch.value = '';
+        filterKategori.value = '';
+        filterStatus.value = '';
+        applyFilter();
+      });
 
+      // FAST EDIT POIN HANDLER
       document.addEventListener('click', function (e) {
-        const paginationLink = e.target.closest('.pagination a');
-        if (paginationLink) {
+        const btnFastPoin = e.target.closest('.btn-fast-edit-poin');
+        if (btnFastPoin) {
           e.preventDefault();
-          loadTable(paginationLink.getAttribute('href'));
+          const updateUrl = btnFastPoin.dataset.url;
+          const nama = btnFastPoin.dataset.nama || 'jenis pelanggaran ini';
+          const currentPoin = btnFastPoin.dataset.poin || 0;
+
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              title: 'Ubah Bobot Poin',
+              html: 'Masukkan bobot poin baru untuk pelanggaran:<br><b>' + nama + '</b>',
+              input: 'number',
+              inputValue: currentPoin,
+              inputAttributes: {
+                min: 0,
+                max: 255,
+                step: 1
+              },
+              showCancelButton: true,
+              confirmButtonText: 'Simpan Poin',
+              cancelButtonText: 'Batal',
+              customClass: {
+                popup: 'das-swal-popup',
+                title: 'das-swal-title',
+                htmlContainer: 'das-swal-html',
+                confirmButton: 'btn btn-warning das-swal-confirm me-2',
+                cancelButton: 'btn btn-secondary das-swal-cancel'
+              },
+              inputValidator: (value) => {
+                if (!value || isNaN(value) || parseInt(value) < 0) {
+                  return 'Harap masukkan angka bobot poin yang valid (>= 0)!';
+                }
+              }
+            }).then((result) => {
+              if (result.isConfirmed) {
+                const newPoin = parseInt(result.value);
+                fetch(updateUrl, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                  },
+                  body: '_token=' + encodeURIComponent('{{ csrf_token() }}') + '&_method=PATCH&bobot_poin=' + newPoin
+                })
+                .then(res => res.json())
+                .then(response => {
+                  if (response.success) {
+                    Swal.fire({
+                      icon: 'success',
+                      title: 'Berhasil!',
+                      text: response.message,
+                      timer: 1500,
+                      showConfirmButton: false,
+                      customClass: {
+                        popup: 'das-swal-popup',
+                        title: 'das-swal-title',
+                        htmlContainer: 'das-swal-html'
+                      }
+                    });
+                    loadTable(window.location.href);
+                  }
+                })
+                .catch(err => {
+                  console.error('Update poin error:', err);
+                });
+              }
+            });
+          }
           return;
         }
 
+        // DELETE HANDLER
         const btnDelete = e.target.closest('.btn-delete-jenis');
         if (btnDelete) {
           e.preventDefault();
           const deleteUrl = btnDelete.dataset.url;
-          const nama = btnDelete.dataset.nama || 'data ini';
-          const count = parseInt(btnDelete.dataset.count || '0', 10);
+          const nama = btnDelete.dataset.nama || 'jenis pelanggaran ini';
+          const count = parseInt(btnDelete.dataset.count || 0);
 
           let confirmHtml = 'Jenis pelanggaran <b>' + nama + '</b> akan dihapus.';
           if (count > 0) {
             confirmHtml += '<br><span class="text-warning small"><i class="ti tabler-alert-triangle me-1"></i> Data ini sudah tercatat ' + count + ' kali oleh siswa. Sistem hanya akan menonaktifkan/mengarsipkan (soft delete) data ini agar riwayat data siswa tetap aman.</span>';
           }
 
-          Swal.fire({
-            title: 'Hapus Jenis Pelanggaran?',
-            html: confirmHtml,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ea5455',
-            cancelButtonColor: '#82868b',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal',
-            reverseButtons: true,
-            customClass: {
-              popup: 'das-swal-popup',
-              title: 'das-swal-title',
-              htmlContainer: 'das-swal-html',
-              confirmButton: 'btn btn-danger das-swal-confirm me-2',
-              cancelButton: 'btn btn-secondary das-swal-cancel'
-            }
-          }).then((result) => {
-            if (result.isConfirmed) {
-              btnDelete.disabled = true;
-              fetch(deleteUrl, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/x-www-form-urlencoded',
-                  'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                  'X-Requested-With': 'XMLHttpRequest',
-                  'Accept': 'application/json'
-                },
-                body: '_token=' + encodeURIComponent('{{ csrf_token() }}') + '&_method=DELETE'
-              })
-              .then(res => res.json())
-              .then(response => {
-                btnDelete.disabled = false;
-                if (response.success) {
-                  Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: response.message,
-                    timer: 2000,
-                    showConfirmButton: false,
-                    customClass: {
-                      popup: 'das-swal-popup',
-                      title: 'das-swal-title',
-                      htmlContainer: 'das-swal-html'
-                    }
-                  });
-                  loadTable(window.location.href);
-                }
-              })
-              .catch(err => {
-                btnDelete.disabled = false;
-                console.error('Delete error:', err);
-                Swal.fire({
-                  icon: 'error',
-                  title: 'Gagal',
-                  text: 'Terjadi kesalahan saat menghapus data.',
-                  customClass: {
-                    popup: 'das-swal-popup',
-                    title: 'das-swal-title',
-                    htmlContainer: 'das-swal-html'
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              title: 'Hapus Jenis Pelanggaran?',
+              html: confirmHtml,
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#ea5455',
+              cancelButtonColor: '#82868b',
+              confirmButtonText: 'Ya, Hapus!',
+              cancelButtonText: 'Batal',
+              reverseButtons: true,
+              customClass: {
+                popup: 'das-swal-popup',
+                title: 'das-swal-title',
+                htmlContainer: 'das-swal-html',
+                confirmButton: 'btn btn-danger das-swal-confirm me-2',
+                cancelButton: 'btn btn-secondary das-swal-cancel'
+              }
+            }).then((result) => {
+              if (result.isConfirmed) {
+                fetch(deleteUrl, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                  },
+                  body: '_token=' + encodeURIComponent('{{ csrf_token() }}') + '&_method=DELETE'
+                })
+                .then(res => res.json())
+                .then(response => {
+                  if (response.success) {
+                    Swal.fire({
+                      icon: 'success',
+                      title: 'Berhasil!',
+                      text: response.message,
+                      timer: 1500,
+                      showConfirmButton: false,
+                      customClass: {
+                        popup: 'das-swal-popup',
+                        title: 'das-swal-title',
+                        htmlContainer: 'das-swal-html'
+                      }
+                    });
+                    loadTable(window.location.href);
                   }
                 });
-              });
-            }
-          });
+              }
+            });
+          }
         }
       });
     });

@@ -30,7 +30,17 @@
           </td>
           <td class="text-white-50 small text-truncate" style="max-width: 200px;">{{ $item->deskripsi ?? '-' }}</td>
           <td class="text-center">
-            <span class="badge bg-danger text-white fw-bold fs-6" style="color: #ffffff !important;">{{ $item->bobot_poin }}</span>
+            <button type="button" 
+              class="btn btn-sm btn-outline-danger px-2 py-1 btn-fast-edit-poin" 
+              style="border-radius: 4px; font-weight: 700; font-size: 0.85rem; border: 1px dashed rgba(234, 84, 85, 0.5);" 
+              data-id="{{ $item->id }}" 
+              data-nama="{{ $item->nama }}" 
+              data-poin="{{ $item->bobot_poin }}" 
+              data-url="{{ route('admin.pelanggaran-jenis.update-poin', $item->id) }}" 
+              title="Klik untuk ubah poin instan" 
+              data-bs-toggle="tooltip">
+              <i class="ti tabler-bolt text-warning me-1"></i> {{ $item->bobot_poin }} Poin
+            </button>
           </td>
           <td class="text-center">
             @if ($item->is_aktif)
