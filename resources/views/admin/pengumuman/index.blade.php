@@ -411,7 +411,7 @@
 
             <div class="mb-3">
               <label for="inputKonten" class="form-label">Isi Pengumuman <span class="text-danger">*</span></label>
-              <textarea class="form-control" id="inputKonten" name="konten" rows="3" required placeholder="Tuliskan isi detail pengumuman di sini..."></textarea>
+              <textarea class="form-control" id="inputKonten" name="konten" rows="2" required placeholder="Tuliskan isi detail pengumuman di sini..."></textarea>
             </div>
 
             <div class="row mb-3">
