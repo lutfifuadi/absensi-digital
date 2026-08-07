@@ -38,13 +38,50 @@ class AnalitikSiswaController extends Controller
             }
         }
 
-        $kelases = Kelas::orderBy('nama', 'asc')->get();
-        $jurusans = Jurusan::orderBy('nama', 'asc')->get();
+        // Ambil Tahun Akademik yang sedang aktif (dari session atau DB)
+        $activeTaId = session('tahun_akademik_id')
+            ?? session('tahun_ajaran_id')
+            ?? \App\Models\TahunAkademik::where('is_aktif', true)->value('id');
+
+        $kelasesQuery = Kelas::query();
+        if ($activeTaId) {
+            $kelasesQuery->where('tahun_akademik_id', $activeTaId);
+        }
+
+        $kelases = $kelasesQuery->orderBy('tingkat', 'asc')
+            ->orderBy('nama', 'asc')
+            ->get();
+
+        // Fallback jika tidak ada kelas untuk Tahun Akademik aktif tersebut
+        if ($kelases->isEmpty() && $activeTaId) {
+            $kelases = Kelas::orderBy('tingkat', 'asc')
+                ->orderBy('nama', 'asc')
+                ->get();
+        }
+
+        // Deteksi otomatis jurusan yang hanya digunakan oleh kelas aktif
+        $usedJurusanIds = $kelases->pluck('jurusan_id')->filter()->unique()->toArray();
+        $jurusans = Jurusan::whereIn('id', $usedJurusanIds)->orderBy('nama', 'asc')->get();
+        if ($jurusans->isEmpty()) {
+            $jurusans = Jurusan::orderBy('nama', 'asc')->get();
+        }
+
+        // Deteksi otomatis tingkat yang hanya digunakan oleh kelas aktif
+        $dbTingkat = $kelases->pluck('tingkat')->filter()->unique()->toArray();
+        if (empty($dbTingkat)) {
+            $dbTingkat = \App\Helpers\JenjangHelper::getTingkatOptions();
+        } else {
+            usort($dbTingkat, function ($a, $b) {
+                return strnatcasecmp($a, $b);
+            });
+        }
+        $tingkatOptions = array_values(array_unique($dbTingkat));
 
         return view('admin.analitik-siswa.index', [
             'pageTitle'         => 'Grafik & Analitik Kehadiran Siswa',
             'kelases'           => $kelases,
             'jurusans'          => $jurusans,
+            'tingkatOptions'    => $tingkatOptions,
             'assignedClass'     => $assignedClass,
             'isWaliKelasLocked' => $isWaliKelasLocked,
         ]);
@@ -91,8 +128,18 @@ class AnalitikSiswaController extends Controller
         }
 
         if ($tingkat && $tingkat !== 'all') {
-            $baseQuery->whereHas('kelas', function ($q) use ($tingkat) {
-                $q->where('tingkat', $tingkat);
+            $tingkatMap = [
+                '10' => 'X', '11' => 'XI', '12' => 'XII',
+                'X'  => '10', 'XI' => '11', 'XII' => '12',
+                '7'  => 'VII', '8'  => 'VIII', '9'  => 'IX',
+                'VII' => '7', 'VIII' => '8', 'IX' => '9',
+                '1'  => 'I', '2'  => 'II', '3'  => 'III', '4' => 'IV', '5' => 'V', '6' => 'VI',
+                'I'  => '1', 'II' => '2', 'III' => '3', 'IV' => '4', 'V' => '5', 'VI' => '6',
+            ];
+            $tingkatValues = array_unique([$tingkat, $tingkatMap[$tingkat] ?? $tingkat]);
+
+            $baseQuery->whereHas('kelas', function ($q) use ($tingkatValues) {
+                $q->whereIn('tingkat', $tingkatValues);
             });
         }
 

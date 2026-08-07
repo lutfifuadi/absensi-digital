@@ -187,9 +187,15 @@
         <div class="analitik-filter-label">Tingkat</div>
         <select id="filter-tingkat" class="form-select form-select-sm filter-input-custom px-1" @if(!empty($isWaliKelasLocked)) disabled @endif>
           <option value="all">Semua</option>
-          <option value="10">Kelas X</option>
-          <option value="11">Kelas XI</option>
-          <option value="12">Kelas XII</option>
+          @if(isset($tingkatOptions) && count($tingkatOptions) > 0)
+            @foreach($tingkatOptions as $tOption)
+              <option value="{{ $tOption }}">{{ \Illuminate\Support\Str::startsWith(strtolower($tOption), 'kelas') ? $tOption : 'Kelas ' . $tOption }}</option>
+            @endforeach
+          @else
+            <option value="X">Kelas X</option>
+            <option value="XI">Kelas XI</option>
+            <option value="XII">Kelas XII</option>
+          @endif
         </select>
       </div>
 
@@ -203,7 +209,7 @@
           <select id="filter-kelas" class="form-select form-select-sm filter-input-custom">
             <option value="all">Semua Kelas</option>
             @foreach($kelases as $kls)
-              <option value="{{ $kls->id }}">{{ $kls->nama }}</option>
+              <option value="{{ $kls->id }}" data-tingkat="{{ $kls->tingkat }}" data-jurusan="{{ $kls->jurusan_id ?? '' }}">{{ $kls->nama }}</option>
             @endforeach
           </select>
         @endif
@@ -731,7 +737,59 @@
 
     document.getElementById('btn-refresh').addEventListener('click', loadData);
 
+    // ── Cascading Filter Kelas berdasarkan Tingkat & Jurusan ──────────────────
+    function filterKelasOptions() {
+      const selectedTingkat = document.getElementById('filter-tingkat').value;
+      const selectedJurusan = document.getElementById('filter-jurusan').value;
+      const kelasSelect     = document.getElementById('filter-kelas');
+      if (!kelasSelect || kelasSelect.disabled) return;
+
+      const tMap = {
+        '10': 'X', '11': 'XI', '12': 'XII',
+        'X': '10', 'XI': '11', 'XII': '12',
+        '7': 'VII', '8': 'VIII', '9': 'IX',
+        'VII': '7', 'VIII': '8', 'IX': '9',
+      };
+
+      const options = kelasSelect.querySelectorAll('option');
+      let currentStillValid = false;
+
+      options.forEach(opt => {
+        if (opt.value === 'all') {
+          opt.hidden = false;
+          return;
+        }
+        const optTingkat = opt.dataset.tingkat;
+        const optJurusan = opt.dataset.jurusan;
+
+        // Match tingkat
+        let matchTingkat = (selectedTingkat === 'all');
+        if (!matchTingkat) {
+          matchTingkat = (optTingkat === selectedTingkat || optTingkat === (tMap[selectedTingkat] || ''));
+        }
+
+        // Match jurusan
+        let matchJurusan = (selectedJurusan === 'all' || optJurusan === selectedJurusan);
+
+        if (matchTingkat && matchJurusan) {
+          opt.hidden = false;
+          if (opt.selected) currentStillValid = true;
+        } else {
+          opt.hidden = true;
+          if (opt.selected) opt.selected = false;
+        }
+      });
+
+      if (!currentStillValid && kelasSelect.value !== 'all') {
+        kelasSelect.value = 'all';
+      }
+    }
+
+    document.getElementById('filter-tingkat').addEventListener('change', filterKelasOptions);
+    document.getElementById('filter-jurusan').addEventListener('change', filterKelasOptions);
+
     // Init
+    filterKelasOptions();
     initCharts();
     loadData();
   });
