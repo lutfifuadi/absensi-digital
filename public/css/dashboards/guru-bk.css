@@ -346,4 +346,88 @@
   margin-bottom: 0.4rem !important;
 }
 
+/* ═══ UNIFIED INPUT GROUP MERGE SYSTEM ═══ */
+.modal .input-group-merge {
+  border-radius: 6px !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.modal .input-group-merge .input-group-text {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-right: none !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+  border-top-left-radius: 6px !important;
+  border-bottom-left-radius: 6px !important;
+  padding-right: 0.5rem !important;
+}
+
+.modal .input-group-merge .form-control {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-left: none !important;
+  color: #f1f5f9 !important;
+  border-top-right-radius: 6px !important;
+  border-bottom-right-radius: 6px !important;
+  padding-left: 0.5rem !important;
+}
+
+.modal .input-group-merge:focus-within .input-group-text {
+  background: rgba(255, 255, 255, 0.09) !important;
+  border-color: #7367f0 !important;
+  color: #7367f0 !important;
+}
+
+.modal .input-group-merge:focus-within .form-control {
+  background: rgba(255, 255, 255, 0.09) !important;
+  border-color: #7367f0 !important;
+  box-shadow: 0 0 12px rgba(115, 103, 240, 0.25) !important;
+}
+
+/* ═══ PERFECT SCROLLBAR FOR SEARCH RESULTS ═══ */
+.kasus-siswa-search-results,
+.log-siswa-search-results,
+.pemutihan-siswa-search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1090;
+  background: #18182c !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6) !important;
+  max-height: 220px;
+  overflow-y: auto;
+  backdrop-filter: blur(16px);
+  margin-top: 4px;
+}
+
+.kasus-siswa-search-results::-webkit-scrollbar,
+.log-siswa-search-results::-webkit-scrollbar,
+.pemutihan-siswa-search-results::-webkit-scrollbar {
+  width: 6px;
+}
+
+.kasus-siswa-search-results::-webkit-scrollbar-track,
+.log-siswa-search-results::-webkit-scrollbar-track,
+.pemutihan-siswa-search-results::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+}
+
+.kasus-siswa-search-results::-webkit-scrollbar-thumb,
+.log-siswa-search-results::-webkit-scrollbar-thumb,
+.pemutihan-siswa-search-results::-webkit-scrollbar-thumb {
+  background: rgba(115, 103, 240, 0.45);
+  border-radius: 6px;
+}
+
+.kasus-siswa-search-results::-webkit-scrollbar-thumb:hover,
+.log-siswa-search-results::-webkit-scrollbar-thumb:hover,
+.pemutihan-siswa-search-results::-webkit-scrollbar-thumb:hover {
+  background: rgba(115, 103, 240, 0.8);
+}
+
+
 

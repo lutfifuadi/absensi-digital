@@ -261,9 +261,9 @@
                         <div id="selectedLogSiswaChipsContainer" class="d-flex flex-wrap gap-2 mb-2"></div>
 
                         <div id="logSiswaSearchBoxContainer">
-                            <div class="input-group">
-                                <span class="input-group-text bg-dark border-secondary text-white-50"><i class="ti tabler-search"></i></span>
-                                <input type="text" id="searchLogSiswa" class="form-control bg-dark text-white border-secondary" placeholder="Cari nama / NIS / kelas siswa..." autocomplete="off">
+                            <div class="input-group input-group-merge">
+                                <span class="input-group-text"><i class="ti tabler-search"></i></span>
+                                <input type="text" id="searchLogSiswa" class="form-control" placeholder="Cari nama / NIS / kelas siswa..." autocomplete="off">
                             </div>
                             <div id="logSiswaSearchResultsList" class="log-siswa-search-results d-none"></div>
                         </div>

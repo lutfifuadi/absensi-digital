@@ -230,9 +230,9 @@
                         <div id="selectedPemutihanSiswaChipsContainer" class="d-flex flex-wrap gap-2 mb-2"></div>
 
                         <div id="pemutihanSiswaSearchBoxContainer">
-                            <div class="input-group">
-                                <span class="input-group-text bg-dark border-secondary text-white-50"><i class="ti tabler-search"></i></span>
-                                <input type="text" id="searchPemutihanSiswa" class="form-control bg-dark text-white border-secondary" placeholder="Cari nama / NIS / kelas siswa..." autocomplete="off">
+                            <div class="input-group input-group-merge">
+                                <span class="input-group-text"><i class="ti tabler-search"></i></span>
+                                <input type="text" id="searchPemutihanSiswa" class="form-control" placeholder="Cari nama / NIS / kelas siswa..." autocomplete="off">
                             </div>
                             <div id="pemutihanSiswaSearchResultsList" class="pemutihan-siswa-search-results d-none"></div>
                         </div>
