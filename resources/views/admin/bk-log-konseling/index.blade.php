@@ -240,6 +240,10 @@
     @endif
 </div>
 
+@php
+    $currentGuruObj = $gurus->firstWhere('id', $currentUserGuruId) ?? $gurus->first();
+@endphp
+
 {{-- MODAL CATAT KONSELING --}}
 <div class="modal fade" id="modalCatatKonseling" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -269,17 +273,39 @@
                         <div id="selectedLogSiswaChipsContainer" class="d-flex flex-wrap gap-2 mt-2"></div>
                     </div>
 
-                    <div class="col-12 col-md-6">
+                    {{-- Single Choice Live Search Guru Konselor --}}
+                    <div class="col-12 col-md-6 position-relative" id="wrapperLogGuruSearch">
                         <label class="form-label fw-medium text-white">Guru Konselor (BK) <span class="text-danger">*</span></label>
-                        <select name="guru_bk_id" class="form-select bg-dark text-white border-secondary" required>
-                            <option value="">-- Pilih Guru Konselor BK --</option>
-                            @foreach($gurus as $g)
-                                <option value="{{ $g->id }}" {{ (old('guru_bk_id', $currentUserGuruId) == $g->id) ? 'selected' : '' }}>
-                                    {{ $g->nama_lengkap }} {{ $g->is_guru_bk ? '★ (BK)' : '' }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <input type="hidden" name="guru_bk_id" id="inputLogGuruBkId" value="{{ $currentGuruObj?->id ?? '' }}" required>
+                        
+                        <div id="selectedLogGuruChipWrap">
+                            @if($currentGuruObj)
+                                <div class="selected-guru-chip-single">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="avatar avatar-xs rounded-circle d-flex align-items-center justify-content-center bg-label-info" style="width: 28px; height: 28px;">
+                                            <i class="ti tabler-user-check text-info" style="font-size: 0.85rem;"></i>
+                                        </div>
+                                        <div>
+                                            <span class="fw-semibold text-white d-block" style="font-size: 0.85rem;">{{ $currentGuruObj->nama_lengkap }}</span>
+                                            <small class="text-white-50" style="font-size: 0.72rem;">NIP: {{ $currentGuruObj->nip ?: '-' }} • Konselor BK</small>
+                                        </div>
+                                    </div>
+                                    <span class="chip-change-btn" onclick="clearSelectedLogGuru()" title="Ubah Konselor">
+                                        <i class="ti tabler-arrows-exchange"></i> Ubah
+                                    </span>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div id="logGuruSearchBoxContainer" class="{{ $currentGuruObj ? 'd-none' : '' }}">
+                            <div class="input-group input-group-merge">
+                                <span class="input-group-text"><i class="ti tabler-search"></i></span>
+                                <input type="text" id="searchLogGuru" class="form-control" placeholder="Cari nama / NIP guru konselor..." autocomplete="off">
+                            </div>
+                            <div id="logGuruSearchResultsList" class="log-guru-search-results d-none"></div>
+                        </div>
                     </div>
+
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-medium text-white">Tanggal Konseling <span class="text-danger">*</span></label>
                         <input type="date" name="tanggal_konseling" class="form-control bg-dark text-white border-secondary" value="{{ date('Y-m-d') }}" required>
@@ -332,12 +358,23 @@
             'kelas' => $s->kelas?->nama ?? 'Tanpa Kelas'
         ];
     })->values());
+
+    $logGuruMapData = json_encode($gurus->map(function($g) {
+        return [
+            'id' => $g->id,
+            'nama' => $g->nama_lengkap,
+            'nip' => $g->nip ?? '',
+            'is_bk' => (bool)$g->is_guru_bk
+        ];
+    })->values());
 @endphp
 
 <script>
     const _allLogSiswas = {!! $logSiswaMapData !!};
+    const _allLogGurus = {!! $logGuruMapData !!};
     let _selectedLogSiswaMap = new Map();
 
+    // ═══ SISWA SEARCH & CHIPS ═══
     function renderLogSiswaSearchResults(query) {
         const listContainer = document.getElementById('logSiswaSearchResultsList');
         if (!listContainer) return;
@@ -424,20 +461,104 @@
         chipsContainer.innerHTML = chipsHtml;
     }
 
+    // ═══ GURU KONSELOR SINGLE SEARCH & CHIP ═══
+    function renderLogGuruSearchResults(query) {
+        const listContainer = document.getElementById('logGuruSearchResultsList');
+        if (!listContainer) return;
+
+        const q = (query || '').toLowerCase().trim();
+        const filtered = _allLogGurus.filter(g => 
+            g.nama.toLowerCase().includes(q) || (g.nip && g.nip.toLowerCase().includes(q))
+        );
+
+        if (filtered.length === 0) {
+            listContainer.innerHTML = '<div class="p-3 text-center text-white-50 small">Guru konselor tidak ditemukan.</div>';
+        } else {
+            let html = '';
+            filtered.forEach(g => {
+                const safeNama = g.nama.replace(/'/g, "\\'");
+                html += `
+                    <div class="log-guru-item" onclick="selectLogGuru(${g.id}, '${safeNama}', '${g.nip || ''}')">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar avatar-xs rounded-circle d-flex align-items-center justify-content-center bg-label-info" style="width: 28px; height: 28px;">
+                                <i class="ti tabler-user text-info" style="font-size: 0.85rem;"></i>
+                            </div>
+                            <div>
+                                <span class="fw-semibold text-white d-block" style="font-size: 0.85rem;">${g.nama}</span>
+                                <small class="text-white-50" style="font-size: 0.72rem;">NIP: ${g.nip || '-'}</small>
+                            </div>
+                        </div>
+                        <span class="badge" style="background: rgba(0, 207, 234, 0.18); color: #00cfe8; border: 1px solid rgba(0, 207, 234, 0.35); font-size: 0.72rem;">Konselor BK</span>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+        }
+        listContainer.classList.remove('d-none');
+    }
+
+    function selectLogGuru(id, nama, nip) {
+        document.getElementById('inputLogGuruBkId').value = id;
+        document.getElementById('logGuruSearchResultsList').classList.add('d-none');
+        document.getElementById('logGuruSearchBoxContainer').classList.add('d-none');
+
+        const chipWrap = document.getElementById('selectedLogGuruChipWrap');
+        chipWrap.innerHTML = `
+            <div class="selected-guru-chip-single">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="avatar avatar-xs rounded-circle d-flex align-items-center justify-content-center bg-label-info" style="width: 28px; height: 28px;">
+                        <i class="ti tabler-user-check text-info" style="font-size: 0.85rem;"></i>
+                    </div>
+                    <div>
+                        <span class="fw-semibold text-white d-block" style="font-size: 0.85rem;">${nama}</span>
+                        <small class="text-white-50" style="font-size: 0.72rem;">NIP: ${nip || '-'} • Konselor BK</small>
+                    </div>
+                </div>
+                <span class="chip-change-btn" onclick="clearSelectedLogGuru()" title="Ubah Konselor">
+                    <i class="ti tabler-arrows-exchange"></i> Ubah
+                </span>
+            </div>
+        `;
+    }
+
+    function clearSelectedLogGuru() {
+        document.getElementById('inputLogGuruBkId').value = "";
+        document.getElementById('selectedLogGuruChipWrap').innerHTML = "";
+        document.getElementById('logGuruSearchBoxContainer').classList.remove('d-none');
+        const searchInput = document.getElementById('searchLogGuru');
+        searchInput.value = "";
+        searchInput.focus();
+        renderLogGuruSearchResults('');
+    }
+
+    // ═══ EVENT LISTENERS ═══
     document.addEventListener('DOMContentLoaded', function () {
-        const searchInput = document.getElementById('searchLogSiswa');
-        if (searchInput) {
-            searchInput.addEventListener('focus', function () { renderLogSiswaSearchResults(this.value); });
-            searchInput.addEventListener('click', function () { renderLogSiswaSearchResults(this.value); });
-            searchInput.addEventListener('input', function () { renderLogSiswaSearchResults(this.value); });
+        const searchSiswa = document.getElementById('searchLogSiswa');
+        if (searchSiswa) {
+            searchSiswa.addEventListener('focus', function () { renderLogSiswaSearchResults(this.value); });
+            searchSiswa.addEventListener('click', function () { renderLogSiswaSearchResults(this.value); });
+            searchSiswa.addEventListener('input', function () { renderLogSiswaSearchResults(this.value); });
+        }
+
+        const searchGuru = document.getElementById('searchLogGuru');
+        if (searchGuru) {
+            searchGuru.addEventListener('focus', function () { renderLogGuruSearchResults(this.value); });
+            searchGuru.addEventListener('click', function () { renderLogGuruSearchResults(this.value); });
+            searchGuru.addEventListener('input', function () { renderLogGuruSearchResults(this.value); });
         }
     });
 
     document.addEventListener('click', function (e) {
-        const searchBox = document.getElementById('wrapperLogSiswaSearch');
-        if (searchBox && !searchBox.contains(e.target)) {
-            const resultsList = document.getElementById('logSiswaSearchResultsList');
-            if (resultsList) resultsList.classList.add('d-none');
+        const searchSiswaBox = document.getElementById('wrapperLogSiswaSearch');
+        if (searchSiswaBox && !searchSiswaBox.contains(e.target)) {
+            const resultsSiswa = document.getElementById('logSiswaSearchResultsList');
+            if (resultsSiswa) resultsSiswa.classList.add('d-none');
+        }
+
+        const searchGuruBox = document.getElementById('wrapperLogGuruSearch');
+        if (searchGuruBox && !searchGuruBox.contains(e.target)) {
+            const resultsGuru = document.getElementById('logGuruSearchResultsList');
+            if (resultsGuru) resultsGuru.classList.add('d-none');
         }
     });
 </script>

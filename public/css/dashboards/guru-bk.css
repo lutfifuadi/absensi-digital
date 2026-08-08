@@ -428,9 +428,87 @@
 
 .kasus-siswa-search-results::-webkit-scrollbar-thumb:hover,
 .log-siswa-search-results::-webkit-scrollbar-thumb:hover,
-.pemutihan-siswa-search-results::-webkit-scrollbar-thumb:hover {
+.pemutihan-siswa-search-results::-webkit-scrollbar-thumb:hover,
+.log-guru-search-results::-webkit-scrollbar-thumb:hover {
   background: rgba(115, 103, 240, 0.8);
 }
+
+.log-guru-search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1090;
+  background: #18182c !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6) !important;
+  max-height: 220px;
+  overflow-y: auto;
+  backdrop-filter: blur(16px);
+  margin-top: 4px;
+}
+
+.log-guru-search-results::-webkit-scrollbar {
+  width: 6px;
+}
+
+.log-guru-search-results::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+}
+
+.log-guru-search-results::-webkit-scrollbar-thumb {
+  background: rgba(0, 207, 234, 0.45);
+  border-radius: 6px;
+}
+
+.log-guru-item {
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.15s ease;
+}
+
+.log-guru-item:hover {
+  background: rgba(0, 207, 234, 0.18);
+}
+
+.selected-guru-chip-single {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 207, 234, 0.08);
+  border: 1px solid rgba(0, 207, 234, 0.3);
+  border-radius: 6px;
+  padding: 5px 12px;
+  min-height: 38px;
+  transition: all 0.2s ease;
+}
+
+.selected-guru-chip-single .chip-change-btn {
+  color: #00cfe8;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.76rem;
+  padding: 3px 8px;
+  background: rgba(0, 207, 234, 0.15);
+  border: 1px solid rgba(0, 207, 234, 0.25);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.selected-guru-chip-single .chip-change-btn:hover {
+  background: rgba(0, 207, 234, 0.35);
+  color: #fff;
+}
+
 
 
 
