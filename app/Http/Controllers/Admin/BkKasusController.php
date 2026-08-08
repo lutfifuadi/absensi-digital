@@ -53,9 +53,22 @@ class BkKasusController extends Controller
         ];
 
         $siswas = Siswa::with('kelas')->orderBy('nama_lengkap')->get();
-        $gurus = Guru::orderBy('nama_lengkap')->get();
+        
+        $gurus = Guru::where('is_guru_bk', true)
+            ->orWhere('jabatan', 'like', '%BK%')
+            ->orWhere('jabatan', 'like', '%Bimbingan%')
+            ->orWhere('mata_pelajaran', 'like', '%BK%')
+            ->orWhere('mata_pelajaran', 'like', '%Bimbingan%')
+            ->orderBy('nama_lengkap')
+            ->get();
 
-        return view('admin.bk-kasus.index', compact('kasusList', 'stats', 'siswas', 'gurus'));
+        if ($gurus->isEmpty()) {
+            $gurus = Guru::orderBy('nama_lengkap')->get();
+        }
+
+        $currentUserGuruId = auth()->user()?->guru?->id ?? null;
+
+        return view('admin.bk-kasus.index', compact('kasusList', 'stats', 'siswas', 'gurus', 'currentUserGuruId'));
     }
 
     public function store(Request $request)

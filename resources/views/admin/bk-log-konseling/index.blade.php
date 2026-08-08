@@ -270,11 +270,13 @@
                     </div>
 
                     <div class="col-12 col-md-6">
-                        <label class="form-label fw-medium text-white">Guru Konselor <span class="text-danger">*</span></label>
+                        <label class="form-label fw-medium text-white">Guru Konselor (BK) <span class="text-danger">*</span></label>
                         <select name="guru_bk_id" class="form-select bg-dark text-white border-secondary" required>
-                            <option value="">-- Pilih Konselor --</option>
+                            <option value="">-- Pilih Guru Konselor BK --</option>
                             @foreach($gurus as $g)
-                                <option value="{{ $g->id }}">{{ $g->nama_lengkap }}</option>
+                                <option value="{{ $g->id }}" {{ (old('guru_bk_id', $currentUserGuruId) == $g->id) ? 'selected' : '' }}>
+                                    {{ $g->nama_lengkap }} {{ $g->is_guru_bk ? '★ (BK)' : '' }}
+                                </option>
                             @endforeach
                         </select>
                     </div>

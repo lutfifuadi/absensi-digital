@@ -50,10 +50,23 @@ class BkLogKonselingController extends Controller
         ];
 
         $siswas = Siswa::with('kelas')->orderBy('nama_lengkap')->get();
-        $gurus = Guru::orderBy('nama_lengkap')->get();
+        
+        $gurus = Guru::where('is_guru_bk', true)
+            ->orWhere('jabatan', 'like', '%BK%')
+            ->orWhere('jabatan', 'like', '%Bimbingan%')
+            ->orWhere('mata_pelajaran', 'like', '%BK%')
+            ->orWhere('mata_pelajaran', 'like', '%Bimbingan%')
+            ->orderBy('nama_lengkap')
+            ->get();
+
+        if ($gurus->isEmpty()) {
+            $gurus = Guru::orderBy('nama_lengkap')->get();
+        }
+
+        $currentUserGuruId = auth()->user()?->guru?->id ?? null;
         $kasuses = BkKasus::whereIn('status', ['terbuka', 'dalam_proses'])->get();
 
-        return view('admin.bk-log-konseling.index', compact('logs', 'stats', 'siswas', 'gurus', 'kasuses'));
+        return view('admin.bk-log-konseling.index', compact('logs', 'stats', 'siswas', 'gurus', 'kasuses', 'currentUserGuruId'));
     }
 
     public function store(Request $request)
