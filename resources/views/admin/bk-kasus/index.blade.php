@@ -2,6 +2,10 @@
 
 @section('title', 'Manajemen Kasus BK & Eskalasi Komdis')
 
+@section('page-style')
+<link rel="stylesheet" href="{{ asset('css/dashboards/guru-bk.css') }}?v=1.2">
+@endsection
+
 @section('content')
 <div class="das-hero mb-4">
     <div class="das-hero__bg"></div>
