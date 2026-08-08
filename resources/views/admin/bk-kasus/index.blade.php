@@ -31,38 +31,38 @@
       transition: background 0.15s ease;
     }
 
-    .kasus-siswa-item:hover {
+    .kasus-siswa-item:hover, .kasus-siswa-item.selected-item {
       background: rgba(115, 103, 240, 0.18);
     }
 
-    .selected-siswa-chip {
+    .selected-siswa-chip-multi {
       display: inline-flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      width: 100%;
-      background: rgba(115, 103, 240, 0.14);
+      gap: 6px;
+      background: rgba(115, 103, 240, 0.16);
       border: 1px solid rgba(115, 103, 240, 0.35);
-      border-radius: 8px;
-      padding: 8px 14px;
+      border-radius: 6px;
+      padding: 5px 10px;
       color: #fff;
-      font-size: 0.88rem;
+      font-size: 0.82rem;
     }
 
-    .selected-siswa-chip .chip-remove {
+    .selected-siswa-chip-multi .chip-remove-btn {
       color: #ea5455;
       cursor: pointer;
-      font-weight: 600;
-      font-size: 0.78rem;
-      padding: 4px 10px;
+      font-weight: 700;
+      font-size: 0.75rem;
+      padding: 1px 5px;
       background: rgba(234, 84, 85, 0.15);
-      border: 1px solid rgba(234, 84, 85, 0.3);
-      border-radius: 4px;
+      border-radius: 3px;
       transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
     }
 
-    .selected-siswa-chip .chip-remove:hover {
-      background: rgba(234, 84, 85, 0.3);
+    .selected-siswa-chip-multi .chip-remove-btn:hover {
+      background: rgba(234, 84, 85, 0.35);
+      color: #fff;
     }
 </style>
 @endsection
@@ -282,17 +282,20 @@
             <form action="{{ route('admin.bk-kasus.store') }}" method="POST">
                 @csrf
                 <div class="modal-body p-4 row g-3 text-white">
-                    {{-- Live Search Siswa --}}
+                    {{-- Multi-Select Live Search Siswa --}}
                     <div class="col-12 col-md-6 position-relative" id="wrapperKasusSiswaSearch">
-                        <label class="form-label fw-medium text-white">Pilih Siswa <span class="text-danger">*</span></label>
-                        <input type="hidden" name="siswa_id" id="inputKasusSiswaId" required>
+                        <label class="form-label fw-medium text-white">Pilih Siswa <small class="text-white-50">(Bisa pilih beberapa siswa)</small> <span class="text-danger">*</span></label>
                         
-                        <div id="selectedSiswaChipWrap"></div>
+                        <div id="hiddenSiswaInputsContainer">
+                            <input type="hidden" name="siswa_id" value="" required>
+                        </div>
+                        
+                        <div id="selectedSiswaChipsContainer" class="d-flex flex-wrap gap-2 mb-2"></div>
 
                         <div id="siswaSearchBoxContainer">
                             <div class="input-group">
                                 <span class="input-group-text bg-dark border-secondary text-white-50"><i class="ti tabler-search"></i></span>
-                                <input type="text" id="searchKasusSiswa" class="form-control bg-dark text-white border-secondary" placeholder="Cari nama / NIS / kelas siswa..." autocomplete="off">
+                                <input type="text" id="searchKasusSiswa" class="form-control bg-dark text-white border-secondary" placeholder="Ketik nama / NIS / kelas siswa..." autocomplete="off">
                             </div>
                             <div id="siswaSearchResultsList" class="kasus-siswa-search-results d-none"></div>
                         </div>
@@ -350,6 +353,7 @@
 
 <script>
     const _allSiswas = {!! $siswaMapData !!};
+    let _selectedSiswaMap = new Map();
 
     function renderSiswaSearchResults(query) {
         const listContainer = document.getElementById('siswaSearchResultsList');
@@ -365,20 +369,25 @@
         } else {
             let html = '';
             filtered.forEach(s => {
+                const isSelected = _selectedSiswaMap.has(s.id);
                 const safeNama = s.nama.replace(/'/g, "\\'");
                 const safeKelas = s.kelas.replace(/'/g, "\\'");
+                
                 html += `
-                    <div class="kasus-siswa-item" onclick="selectKasusSiswa(${s.id}, '${safeNama}', '${safeKelas}', '${s.nis}')">
+                    <div class="kasus-siswa-item ${isSelected ? 'selected-item' : ''}" onclick="toggleSelectKasusSiswa(${s.id}, '${safeNama}', '${safeKelas}', '${s.nis}')">
                         <div class="d-flex align-items-center gap-2">
-                            <div class="avatar avatar-xs rounded-circle d-flex align-items-center justify-content-center bg-label-warning" style="width: 28px; height: 28px;">
-                                <i class="ti tabler-user text-warning" style="font-size: 0.85rem;"></i>
+                            <div class="avatar avatar-xs rounded-circle d-flex align-items-center justify-content-center ${isSelected ? 'bg-label-success' : 'bg-label-warning'}" style="width: 28px; height: 28px;">
+                                <i class="ti ${isSelected ? 'tabler-check text-success' : 'tabler-user text-warning'}" style="font-size: 0.85rem;"></i>
                             </div>
                             <div>
                                 <span class="fw-semibold text-white d-block" style="font-size: 0.85rem;">${s.nama}</span>
                                 <small class="text-white-50" style="font-size: 0.72rem;">NIS: ${s.nis || '-'}</small>
                             </div>
                         </div>
-                        <span class="badge" style="background: rgba(115, 103, 240, 0.18); color: #a5a2f7; border: 1px solid rgba(115, 103, 240, 0.35); font-size: 0.72rem;">${s.kelas}</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge" style="background: rgba(115, 103, 240, 0.18); color: #a5a2f7; border: 1px solid rgba(115, 103, 240, 0.35); font-size: 0.72rem;">${s.kelas}</span>
+                            ${isSelected ? '<span class="badge bg-success" style="font-size: 0.65rem;">Terpilih</span>' : ''}
+                        </div>
                     </div>
                 `;
             });
@@ -387,34 +396,49 @@
         listContainer.classList.remove('d-none');
     }
 
-    function selectKasusSiswa(id, nama, kelas, nis) {
-        document.getElementById('inputKasusSiswaId').value = id;
-        document.getElementById('siswaSearchResultsList').classList.add('d-none');
-        document.getElementById('siswaSearchBoxContainer').classList.add('d-none');
-
-        const chipWrap = document.getElementById('selectedSiswaChipWrap');
-        chipWrap.innerHTML = `
-            <div class="selected-siswa-chip">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="ti tabler-user-check text-warning fs-5"></i>
-                    <div>
-                        <span class="fw-bold">${nama}</span>
-                        <small class="text-white-50 d-block" style="font-size: 0.75rem;">${kelas} • NIS: ${nis || '-'}</small>
-                    </div>
-                </div>
-                <span class="chip-remove" onclick="clearSelectedKasusSiswa()" title="Ubah Siswa">
-                    <i class="ti tabler-x"></i> Ubah
-                </span>
-            </div>
-        `;
+    function toggleSelectKasusSiswa(id, nama, kelas, nis) {
+        if (_selectedSiswaMap.has(id)) {
+            _selectedSiswaMap.delete(id);
+        } else {
+            _selectedSiswaMap.set(id, { id, nama, kelas, nis });
+        }
+        updateSelectedSiswaUI();
+        renderSiswaSearchResults(document.getElementById('searchKasusSiswa').value);
     }
 
-    function clearSelectedKasusSiswa() {
-        document.getElementById('inputKasusSiswaId').value = "";
-        document.getElementById('selectedSiswaChipWrap').innerHTML = "";
-        document.getElementById('siswaSearchBoxContainer').classList.remove('d-none');
-        document.getElementById('searchKasusSiswa').value = "";
-        renderSiswaSearchResults('');
+    function removeSelectedSiswa(id) {
+        _selectedSiswaMap.delete(id);
+        updateSelectedSiswaUI();
+        renderSiswaSearchResults(document.getElementById('searchKasusSiswa').value);
+    }
+
+    function updateSelectedSiswaUI() {
+        const chipsContainer = document.getElementById('selectedSiswaChipsContainer');
+        const inputsContainer = document.getElementById('hiddenSiswaInputsContainer');
+        
+        let chipsHtml = '';
+        let inputsHtml = '';
+
+        _selectedSiswaMap.forEach((s) => {
+            inputsHtml += `<input type="hidden" name="siswa_id[]" value="${s.id}">`;
+            chipsHtml += `
+                <div class="selected-siswa-chip-multi">
+                    <i class="ti tabler-user text-warning"></i>
+                    <span class="fw-semibold">${s.nama}</span>
+                    <small class="text-white-50">(${s.kelas})</small>
+                    <span class="chip-remove-btn" onclick="event.stopPropagation(); removeSelectedSiswa(${s.id})" title="Hapus Siswa">
+                        <i class="ti tabler-x"></i>
+                    </span>
+                </div>
+            `;
+        });
+
+        if (_selectedSiswaMap.size === 0) {
+            inputsHtml = `<input type="hidden" name="siswa_id" value="" required>`;
+        }
+
+        inputsContainer.innerHTML = inputsHtml;
+        chipsContainer.innerHTML = chipsHtml;
     }
 
     document.addEventListener('DOMContentLoaded', function () {

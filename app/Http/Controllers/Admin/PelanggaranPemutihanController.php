@@ -45,8 +45,14 @@ class PelanggaranPemutihanController extends Controller
 
     public function store(Request $request)
     {
+        $siswaInput = $request->input('siswa_id');
+        $siswaIds = is_array($siswaInput) ? array_filter($siswaInput) : ($siswaInput ? [$siswaInput] : []);
+
+        $request->merge(['siswa_ids' => $siswaIds]);
+
         $validated = $request->validate([
-            'siswa_id' => 'required|exists:siswa,id',
+            'siswa_ids' => 'required|array|min:1',
+            'siswa_ids.*' => 'exists:siswa,id',
             'tanggal_pemutihan' => 'required|date',
             'poin_yang_diputihkan' => 'required|integer|min:1',
             'alasan_pemutihan' => 'required|string',
@@ -54,10 +60,19 @@ class PelanggaranPemutihanController extends Controller
         ]);
 
         try {
-            $this->bkKomdisService->eksekusiPemutihan($validated);
+            foreach ($validated['siswa_ids'] as $sId) {
+                $pemutihanData = [
+                    'siswa_id' => $sId,
+                    'tanggal_pemutihan' => $validated['tanggal_pemutihan'],
+                    'poin_yang_diputihkan' => $validated['poin_yang_diputihkan'],
+                    'alasan_pemutihan' => $validated['alasan_pemutihan'],
+                    'arsipkan_pelanggaran' => $validated['arsipkan_pelanggaran'] ?? false,
+                ];
+                $this->bkKomdisService->eksekusiPemutihan($pemutihanData);
+            }
 
             return redirect()->route('admin.bk-pemutihan.index')
-                ->with('success', 'Eksekusi pemutihan poin berhasil diselesaikan.');
+                ->with('success', 'Eksekusi pemutihan poin berhasil diselesaikan untuk ' . count($validated['siswa_ids']) . ' siswa.');
         } catch (Exception $e) {
             return back()->withInput()->with('error', 'Gagal memproses pemutihan: ' . $e->getMessage());
         }

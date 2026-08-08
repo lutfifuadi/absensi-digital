@@ -58,25 +58,38 @@ class BkLogKonselingController extends Controller
 
     public function store(Request $request)
     {
+        $siswaInput = $request->input('siswa_id');
+        $siswaIds = is_array($siswaInput) ? array_filter($siswaInput) : ($siswaInput ? [$siswaInput] : []);
+
+        $request->merge(['siswa_ids' => $siswaIds]);
+
         $validated = $request->validate([
-            'bk_kasus_id' => 'nullable|exists:bk_kasus,id',
-            'siswa_id' => 'required|exists:siswa,id',
+            'siswa_ids' => 'required|array|min:1',
+            'siswa_ids.*' => 'exists:siswa,id',
             'guru_bk_id' => 'required|exists:guru,id',
             'tanggal_konseling' => 'required|date',
-            'waktu_mulai' => 'nullable',
-            'waktu_selesai' => 'nullable',
             'jenis_konseling' => 'required|in:individu,kelompok,karir,kunjungan_rumah',
-            'ringkasan_masalah' => 'required|string',
-            'hasil_konseling' => 'nullable|string',
-            'rencana_tindak_lanjut' => 'nullable|string',
-            'status_tindak_lanjut' => 'required|in:belum,proses,selesai',
+            'topik' => 'required|string|max:255',
+            'ringkasan_hasil' => 'nullable|string',
+            'is_privat' => 'nullable|boolean',
         ]);
 
         try {
-            $this->bkKomdisService->tambahLogKonseling($validated);
+            foreach ($validated['siswa_ids'] as $sId) {
+                $logData = [
+                    'siswa_id' => $sId,
+                    'guru_bk_id' => $validated['guru_bk_id'],
+                    'tanggal_konseling' => $validated['tanggal_konseling'],
+                    'jenis_konseling' => $validated['jenis_konseling'],
+                    'topik' => $validated['topik'],
+                    'ringkasan_hasil' => $validated['ringkasan_hasil'] ?? null,
+                    'is_privat' => $request->boolean('is_privat'),
+                ];
+                $this->bkKomdisService->tambahLogKonseling($logData);
+            }
 
             return redirect()->route('admin.bk-log-konseling.index')
-                ->with('success', 'Jurnal konseling berhasil ditambahkan.');
+                ->with('success', count($validated['siswa_ids']) . ' Jurnal konseling berhasil ditambahkan.');
         } catch (Exception $e) {
             return back()->withInput()->with('error', 'Gagal menambahkan jurnal konseling: ' . $e->getMessage());
         }

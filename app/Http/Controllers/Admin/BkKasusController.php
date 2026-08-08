@@ -60,26 +60,40 @@ class BkKasusController extends Controller
 
     public function store(Request $request)
     {
+        $siswaInput = $request->input('siswa_id');
+        $siswaIds = is_array($siswaInput) ? array_filter($siswaInput) : ($siswaInput ? [$siswaInput] : []);
+
+        $request->merge(['siswa_ids' => $siswaIds]);
+
         $validated = $request->validate([
-            'siswa_id' => 'required|exists:siswa,id',
+            'siswa_ids' => 'required|array|min:1',
+            'siswa_ids.*' => 'exists:siswa,id',
             'guru_bk_id' => 'nullable|exists:guru,id',
             'judul_kasus' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
-            'kategori' => 'required|in:pribadi,sosial,belajar,karir,disiplin',
-            'tingkat_keparahan' => 'required|in:ringan,sedang,berat,sangat_berat',
-            'status' => 'nullable|in:terbuka,dalam_proses,selesai,dirujuk',
+            'kategori' => 'required|in:pribadi,sosial,belajar,karir,disiplin,akademik',
+            'tingkat_keparahan' => 'required|in:rendah,sedang,tinggi',
             'tanggal_lapor' => 'required|date',
-            'tanggal_selesai' => 'nullable|date|after_or_equal:tanggal_lapor',
         ]);
 
         try {
-            $validated['created_by'] = auth()->id();
-            BkKasus::create($validated);
+            foreach ($validated['siswa_ids'] as $sId) {
+                $kasusData = [
+                    'siswa_id' => $sId,
+                    'guru_bk_id' => $validated['guru_bk_id'] ?? null,
+                    'judul_kasus' => $validated['judul_kasus'],
+                    'deskripsi' => $validated['deskripsi'] ?? null,
+                    'kategori' => $validated['kategori'],
+                    'tingkat_keparahan' => $validated['tingkat_keparahan'],
+                    'tanggal_lapor' => $validated['tanggal_lapor'],
+                ];
+                $this->bkKomdisService->tambahKasusBk($kasusData);
+            }
 
             return redirect()->route('admin.bk-kasus.index')
-                ->with('success', 'Kasus BK berhasil ditambahkan.');
+                ->with('success', count($validated['siswa_ids']) . ' Kasus BK berhasil dicatat.');
         } catch (Exception $e) {
-            return back()->withInput()->with('error', 'Gagal menambahkan kasus BK: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Gagal mencatat kasus: ' . $e->getMessage());
         }
     }
 

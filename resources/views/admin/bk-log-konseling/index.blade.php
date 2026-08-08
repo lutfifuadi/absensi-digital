@@ -31,38 +31,38 @@
       transition: background 0.15s ease;
     }
 
-    .log-siswa-item:hover {
+    .log-siswa-item:hover, .log-siswa-item.selected-item {
       background: rgba(0, 207, 234, 0.18);
     }
 
-    .selected-siswa-chip-info {
+    .selected-siswa-chip-multi-info {
       display: inline-flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      width: 100%;
-      background: rgba(0, 207, 234, 0.14);
+      gap: 6px;
+      background: rgba(0, 207, 234, 0.16);
       border: 1px solid rgba(0, 207, 234, 0.35);
-      border-radius: 8px;
-      padding: 8px 14px;
+      border-radius: 6px;
+      padding: 5px 10px;
       color: #fff;
-      font-size: 0.88rem;
+      font-size: 0.82rem;
     }
 
-    .selected-siswa-chip-info .chip-remove {
+    .selected-siswa-chip-multi-info .chip-remove-btn {
       color: #ea5455;
       cursor: pointer;
-      font-weight: 600;
-      font-size: 0.78rem;
-      padding: 4px 10px;
+      font-weight: 700;
+      font-size: 0.75rem;
+      padding: 1px 5px;
       background: rgba(234, 84, 85, 0.15);
-      border: 1px solid rgba(234, 84, 85, 0.3);
-      border-radius: 4px;
+      border-radius: 3px;
       transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
     }
 
-    .selected-siswa-chip-info .chip-remove:hover {
-      background: rgba(234, 84, 85, 0.3);
+    .selected-siswa-chip-multi-info .chip-remove-btn:hover {
+      background: rgba(234, 84, 85, 0.35);
+      color: #fff;
     }
 </style>
 @endsection
@@ -250,12 +250,15 @@
             <form action="{{ route('admin.bk-log-konseling.store') }}" method="POST">
                 @csrf
                 <div class="modal-body p-4 row g-3 text-white">
-                    {{-- Live Search Siswa --}}
+                    {{-- Multi-Select Live Search Siswa --}}
                     <div class="col-12 col-md-6 position-relative" id="wrapperLogSiswaSearch">
-                        <label class="form-label fw-medium text-white">Pilih Siswa <span class="text-danger">*</span></label>
-                        <input type="hidden" name="siswa_id" id="inputLogSiswaId" required>
+                        <label class="form-label fw-medium text-white">Pilih Siswa <small class="text-white-50">(Bisa pilih beberapa siswa)</small> <span class="text-danger">*</span></label>
                         
-                        <div id="selectedLogSiswaChipWrap"></div>
+                        <div id="hiddenLogSiswaInputsContainer">
+                            <input type="hidden" name="siswa_id" value="" required>
+                        </div>
+                        
+                        <div id="selectedLogSiswaChipsContainer" class="d-flex flex-wrap gap-2 mb-2"></div>
 
                         <div id="logSiswaSearchBoxContainer">
                             <div class="input-group">
@@ -325,6 +328,7 @@
 
 <script>
     const _allLogSiswas = {!! $logSiswaMapData !!};
+    let _selectedLogSiswaMap = new Map();
 
     function renderLogSiswaSearchResults(query) {
         const listContainer = document.getElementById('logSiswaSearchResultsList');
@@ -340,20 +344,25 @@
         } else {
             let html = '';
             filtered.forEach(s => {
+                const isSelected = _selectedLogSiswaMap.has(s.id);
                 const safeNama = s.nama.replace(/'/g, "\\'");
                 const safeKelas = s.kelas.replace(/'/g, "\\'");
+                
                 html += `
-                    <div class="log-siswa-item" onclick="selectLogSiswa(${s.id}, '${safeNama}', '${safeKelas}', '${s.nis}')">
+                    <div class="log-siswa-item ${isSelected ? 'selected-item' : ''}" onclick="toggleSelectLogSiswa(${s.id}, '${safeNama}', '${safeKelas}', '${s.nis}')">
                         <div class="d-flex align-items-center gap-2">
-                            <div class="avatar avatar-xs rounded-circle d-flex align-items-center justify-content-center bg-label-info" style="width: 28px; height: 28px;">
-                                <i class="ti tabler-user text-info" style="font-size: 0.85rem;"></i>
+                            <div class="avatar avatar-xs rounded-circle d-flex align-items-center justify-content-center ${isSelected ? 'bg-label-success' : 'bg-label-info'}" style="width: 28px; height: 28px;">
+                                <i class="ti ${isSelected ? 'tabler-check text-success' : 'tabler-user text-info'}" style="font-size: 0.85rem;"></i>
                             </div>
                             <div>
                                 <span class="fw-semibold text-white d-block" style="font-size: 0.85rem;">${s.nama}</span>
                                 <small class="text-white-50" style="font-size: 0.72rem;">NIS: ${s.nis || '-'}</small>
                             </div>
                         </div>
-                        <span class="badge" style="background: rgba(0, 207, 234, 0.18); color: #00cfe8; border: 1px solid rgba(0, 207, 234, 0.35); font-size: 0.72rem;">${s.kelas}</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge" style="background: rgba(0, 207, 234, 0.18); color: #00cfe8; border: 1px solid rgba(0, 207, 234, 0.35); font-size: 0.72rem;">${s.kelas}</span>
+                            ${isSelected ? '<span class="badge bg-success" style="font-size: 0.65rem;">Terpilih</span>' : ''}
+                        </div>
                     </div>
                 `;
             });
@@ -362,34 +371,49 @@
         listContainer.classList.remove('d-none');
     }
 
-    function selectLogSiswa(id, nama, kelas, nis) {
-        document.getElementById('inputLogSiswaId').value = id;
-        document.getElementById('logSiswaSearchResultsList').classList.add('d-none');
-        document.getElementById('logSiswaSearchBoxContainer').classList.add('d-none');
-
-        const chipWrap = document.getElementById('selectedLogSiswaChipWrap');
-        chipWrap.innerHTML = `
-            <div class="selected-siswa-chip-info">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="ti tabler-user-check text-info fs-5"></i>
-                    <div>
-                        <span class="fw-bold">${nama}</span>
-                        <small class="text-white-50 d-block" style="font-size: 0.75rem;">${kelas} • NIS: ${nis || '-'}</small>
-                    </div>
-                </div>
-                <span class="chip-remove" onclick="clearSelectedLogSiswa()" title="Ubah Siswa">
-                    <i class="ti tabler-x"></i> Ubah
-                </span>
-            </div>
-        `;
+    function toggleSelectLogSiswa(id, nama, kelas, nis) {
+        if (_selectedLogSiswaMap.has(id)) {
+            _selectedLogSiswaMap.delete(id);
+        } else {
+            _selectedLogSiswaMap.set(id, { id, nama, kelas, nis });
+        }
+        updateSelectedLogSiswaUI();
+        renderLogSiswaSearchResults(document.getElementById('searchLogSiswa').value);
     }
 
-    function clearSelectedLogSiswa() {
-        document.getElementById('inputLogSiswaId').value = "";
-        document.getElementById('selectedLogSiswaChipWrap').innerHTML = "";
-        document.getElementById('logSiswaSearchBoxContainer').classList.remove('d-none');
-        document.getElementById('searchLogSiswa').value = "";
-        renderLogSiswaSearchResults('');
+    function removeSelectedLogSiswa(id) {
+        _selectedLogSiswaMap.delete(id);
+        updateSelectedLogSiswaUI();
+        renderLogSiswaSearchResults(document.getElementById('searchLogSiswa').value);
+    }
+
+    function updateSelectedLogSiswaUI() {
+        const chipsContainer = document.getElementById('selectedLogSiswaChipsContainer');
+        const inputsContainer = document.getElementById('hiddenLogSiswaInputsContainer');
+        
+        let chipsHtml = '';
+        let inputsHtml = '';
+
+        _selectedLogSiswaMap.forEach((s) => {
+            inputsHtml += `<input type="hidden" name="siswa_id[]" value="${s.id}">`;
+            chipsHtml += `
+                <div class="selected-siswa-chip-multi-info">
+                    <i class="ti tabler-user text-info"></i>
+                    <span class="fw-semibold">${s.nama}</span>
+                    <small class="text-white-50">(${s.kelas})</small>
+                    <span class="chip-remove-btn" onclick="event.stopPropagation(); removeSelectedLogSiswa(${s.id})" title="Hapus Siswa">
+                        <i class="ti tabler-x"></i>
+                    </span>
+                </div>
+            `;
+        });
+
+        if (_selectedLogSiswaMap.size === 0) {
+            inputsHtml = `<input type="hidden" name="siswa_id" value="" required>`;
+        }
+
+        inputsContainer.innerHTML = inputsHtml;
+        chipsContainer.innerHTML = chipsHtml;
     }
 
     document.addEventListener('DOMContentLoaded', function () {
