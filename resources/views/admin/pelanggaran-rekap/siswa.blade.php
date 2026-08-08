@@ -35,7 +35,7 @@
 @endsection
 
 @section('content')
-<div class="das-hero das-hero--with-stats" style="margin-bottom: 4.5rem;">
+<div class="das-hero mb-4">
   <div class="das-hero__bg"></div>
   <div class="das-hero__glass"></div>
   <div class="das-hero__grid-lines"></div>
@@ -68,30 +68,38 @@
       </a>
     </div>
   </div>
+</div>
 
-  <div class="das-stats-row">
-    <div class="das-stat-card das-stat-card--danger">
+<div class="row g-4 mb-4">
+  <div class="col-xl-3 col-sm-6">
+    <div class="das-stat-card das-stat-card--danger h-100">
       <div class="das-stat-card__icon"><i class="ti tabler-alert-triangle"></i></div>
       <div class="das-stat-card__body">
         <div class="das-stat-card__val">{{ $stats['total_poin'] }}</div>
         <div class="das-stat-card__label">Total Poin</div>
       </div>
     </div>
-    <div class="das-stat-card das-stat-card--warning">
+  </div>
+  <div class="col-xl-3 col-sm-6">
+    <div class="das-stat-card das-stat-card--warning h-100">
       <div class="das-stat-card__icon"><i class="ti tabler-award"></i></div>
       <div class="das-stat-card__body">
         <div class="das-stat-card__val">{{ $stats['level_sp_aktif'] ?: '-' }}</div>
         <div class="das-stat-card__label">SP Aktif</div>
       </div>
     </div>
-    <div class="das-stat-card das-stat-card--info">
+  </div>
+  <div class="col-xl-3 col-sm-6">
+    <div class="das-stat-card das-stat-card--info h-100">
       <div class="das-stat-card__icon"><i class="ti tabler-list-details"></i></div>
       <div class="das-stat-card__body">
         <div class="das-stat-card__val">{{ $stats['jumlah_pelanggaran'] }}</div>
         <div class="das-stat-card__label">Jumlah Pelanggaran</div>
       </div>
     </div>
-    <div class="das-stat-card das-stat-card--primary">
+  </div>
+  <div class="col-xl-3 col-sm-6">
+    <div class="das-stat-card das-stat-card--primary h-100">
       <div class="das-stat-card__icon"><i class="ti tabler-mail-opened"></i></div>
       <div class="das-stat-card__body">
         <div class="das-stat-card__val">{{ $stats['jumlah_sp'] }}</div>
