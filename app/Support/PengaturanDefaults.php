@@ -229,6 +229,17 @@ class PengaturanDefaults
                 'tenant_scoped' => false,
                 'permission'    => 'admin_sekolah',
             ],
+            'fitur_pengaduan' => [
+                'default'       => '1',
+                'type'          => 'boolean',
+                'group'         => 'fitur',
+                'label'         => 'Fitur Pengaduan',
+                'description'   => 'Aktifkan layanan pengaduan data tidak valid untuk siswa dan orang tua.',
+                'icon'          => 'tabler-message-report',
+                'is_toggle'     => true,
+                'tenant_scoped' => false,
+                'permission'    => 'admin_sekolah',
+            ],
 
             // ── EXISTING TOGGLES (Normalized to boolean 1/0) ──
             'auto_alpha_siswa_enabled' => [

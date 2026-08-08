@@ -183,7 +183,7 @@ Route::get('/prestasi', [PublicPagesController::class, 'prestasi'])->name('publi
 
 // ── Layanan Pengaduan Data Tidak Valid (PRD-002) ─────────────────────────────
 // Route utama /pengaduan — harus login, redirect ke halaman sesuai role (siswa/ortu)
-Route::prefix('pengaduan')->name('pengaduan.')->middleware('feature:wa_pengaduan_enabled')->group(function () {
+Route::prefix('pengaduan')->name('pengaduan.')->middleware('feature:fitur_pengaduan')->group(function () {
     Route::get('/', [PengaduanController::class, 'form'])->middleware('auth')->name('form');
     Route::get('/cek', [PengaduanController::class, 'cekForm'])->name('cek');
 });
@@ -296,7 +296,7 @@ Route::middleware([
         Route::get('/assignments', [AssignmentController::class, 'index'])->name('siswa.assignments.index');
         Route::get('/assignments/{assignment}', [AssignmentController::class, 'show'])->name('siswa.assignments.show');
 
-        Route::get('/pengaduan', [PortalSiswaController::class, 'pengaduan'])->name('siswa.pengaduan');
+        Route::get('/pengaduan', [PortalSiswaController::class, 'pengaduan'])->name('siswa.pengaduan')->middleware('feature:fitur_pengaduan');
 
         Route::post('/absensi-mandiri', [AbsensiMandiriController::class, 'store'])->name('siswa.absensi-mandiri.store');
         Route::post('/upload-foto', [PortalSiswaController::class, 'uploadFoto'])->name('siswa.upload-foto');
@@ -425,7 +425,7 @@ Route::middleware([
         Route::delete('/izin-sakit/{id}', [PortalOrangTuaController::class, 'izinSakitDestroy'])->name('ortu.izin-sakit.destroy');
 
         // Layanan Pengaduan Portal Ortu
-        Route::get('/pengaduan', [PortalOrangTuaController::class, 'pengaduan'])->name('ortu.pengaduan');
+        Route::get('/pengaduan', [PortalOrangTuaController::class, 'pengaduan'])->name('ortu.pengaduan')->middleware('feature:fitur_pengaduan');
 
         // Pengaturan Profil & Ganti Password Ortu
         Route::get('/pengaturan', [PortalOrangTuaController::class, 'pengaturan'])->name('ortu.pengaturan');

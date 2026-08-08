@@ -446,10 +446,12 @@
           <span class="siswa-quick-item__label">Pengaturan</span>
         </a>
         {{-- 8. Pengaduan --}}
+        @fitur('fitur_pengaduan')
         <a href="{{ route('siswa.pengaduan') }}" class="siswa-quick-item siswa-quick-item--danger text-decoration-none">
           <span class="siswa-quick-item__icon"><i class="ti tabler-flag"></i></span>
           <span class="siswa-quick-item__label">Pengaduan</span>
         </a>
+        @endfitur
       </div>
     </div>
   </div>

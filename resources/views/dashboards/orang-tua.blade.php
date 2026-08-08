@@ -295,11 +295,13 @@
                   </p>
                 </div>
               </div>
+              @fitur('fitur_pengaduan')
               <div class="d-flex gap-2 flex-wrap">
                 <a href="{{ route('ortu.pengaduan') }}" class="btn btn-danger btn-sm fw-bold shadow-sm">
-                  <i class="ti tabler-send me-1"></i> Kirim Klarifikasi / Permohonan Izin
+                   <i class="ti tabler-send me-1"></i> Kirim Klarifikasi / Permohonan Izin
                 </a>
               </div>
+              @endfitur
             </div>
           </div>
         </div>
@@ -323,11 +325,13 @@
                   </p>
                 </div>
               </div>
+              @fitur('fitur_pengaduan')
               <div class="d-flex gap-2 flex-wrap">
                 <a href="{{ route('ortu.pengaduan') }}" class="btn btn-warning btn-sm fw-bold shadow-sm">
                   <i class="ti tabler-send me-1"></i> Ajukan Izin / Informasi
                 </a>
               </div>
+              @endfitur
             </div>
           </div>
         </div>

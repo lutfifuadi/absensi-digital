@@ -1965,6 +1965,7 @@ select.set-input option {
                   'fitur_live_board_publik'        => ['color' => '#8b5cf6'],
                   'fitur_live_board_guru'          => ['color' => '#a855f7'],
                   'fitur_portal_ortu'              => ['color' => '#10b981'],
+                  'fitur_pengaduan'                => ['color' => '#ef4444'],
                   'fitur_ai_chat'                  => ['color' => '#ec4899'],
                   'aktifkan_ai_chat'               => ['color' => '#ec4899'],
                   'fitur_modul_pelanggaran'        => ['color' => '#f43f5e'],
@@ -2008,7 +2009,7 @@ select.set-input option {
                   'fitur_utama' => [
                     'title' => '📱 Modul Utama & Portal Sekolah',
                     'sub'   => 'Aktivasi modul beranda publik, portal guru, siswa, ortu, dan AI assistant.',
-                    'keys'  => ['tampilkan_beranda', 'fitur_dashboard_guru', 'fitur_live_board_publik', 'fitur_live_board_guru', 'fitur_portal_ortu', 'fitur_ai_chat', 'aktifkan_ai_chat', 'fitur_modul_pelanggaran', 'fitur_rekap_export_laporan', 'fitur_webhook_pmbm']
+                    'keys'  => ['tampilkan_beranda', 'fitur_dashboard_guru', 'fitur_live_board_publik', 'fitur_live_board_guru', 'fitur_portal_ortu', 'fitur_pengaduan', 'fitur_ai_chat', 'aktifkan_ai_chat', 'fitur_modul_pelanggaran', 'fitur_rekap_export_laporan', 'fitur_webhook_pmbm']
                   ],
                   'presensi' => [
                     'title' => '⏰ Absensi & Presensi Sekolah',
