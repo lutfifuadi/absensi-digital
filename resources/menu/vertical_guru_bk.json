@@ -11,6 +11,24 @@
       "icon": "menu-icon ti tabler-user-heart"
     },
     {
+      "name": "Dashboard Kasus",
+      "icon": "menu-icon ti tabler-layout-dashboard",
+      "slug": "bk.kasus.index",
+      "url": "/bk/kasus"
+    },
+    {
+      "name": "Jurnal Konseling",
+      "icon": "menu-icon ti tabler-notebook",
+      "slug": "bk.log-konseling.index",
+      "url": "/bk/log-konseling"
+    },
+    {
+      "name": "Pemutihan Poin",
+      "icon": "menu-icon ti tabler-heart-handshake",
+      "slug": "bk.pemutihan.index",
+      "url": "/bk/pemutihan"
+    },
+    {
       "name": "Input Pelanggaran",
       "icon": "menu-icon ti tabler-alert-circle",
       "slug": "bk.pelanggaran.create",

@@ -497,6 +497,57 @@
       ]
     },
     {
+      "name": "Bimbingan & Konseling",
+      "icon": "menu-icon ti tabler-user-heart",
+      "slug": [
+        "admin.bk-kasus.index",
+        "admin.bk-log-konseling.index",
+        "admin.bk-pemutihan.index"
+      ],
+      "submenu": [
+        {
+          "name": "Dashboard Kasus",
+          "icon": "menu-icon ti tabler-layout-dashboard",
+          "slug": "admin.bk-kasus.index",
+          "url": "/admin/bk-kasus"
+        },
+        {
+          "name": "Jurnal Konseling",
+          "icon": "menu-icon ti tabler-notebook",
+          "slug": "admin.bk-log-konseling.index",
+          "url": "/admin/bk-log-konseling"
+        },
+        {
+          "name": "Log Pemutihan Poin",
+          "icon": "menu-icon ti tabler-heart-handshake",
+          "slug": "admin.bk-pemutihan.index",
+          "url": "/admin/bk-pemutihan"
+        }
+      ]
+    },
+    {
+      "name": "Komisi Disiplin",
+      "icon": "menu-icon ti tabler-gavel",
+      "slug": [
+        "admin.komdis-sidang.index",
+        "admin.komdis-sanksi.index"
+      ],
+      "submenu": [
+        {
+          "name": "Sidang Disiplin",
+          "icon": "menu-icon ti tabler-scale",
+          "slug": "admin.komdis-sidang.index",
+          "url": "/admin/komdis-sidang"
+        },
+        {
+          "name": "Log Sanksi & SP",
+          "icon": "menu-icon ti tabler-file-report",
+          "slug": "admin.komdis-sanksi.index",
+          "url": "/admin/komdis-sanksi"
+        }
+      ]
+    },
+    {
       "menuHeader": "Layanan & Pengaturan"
     },
     {

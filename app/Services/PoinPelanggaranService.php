@@ -26,6 +26,7 @@ class PoinPelanggaranService
         return (int) PelanggaranSiswa::query()
             ->where('siswa_id', $siswaId)
             ->where('tahun_akademik_id', $tahunAkademikId)
+            ->where('is_diarsipkan', false)
             ->sum('poin_saat_itu');
     }
 

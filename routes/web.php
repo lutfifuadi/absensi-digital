@@ -1,5 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\BkKasusController;
+use App\Http\Controllers\Admin\BkLogKonselingController;
+use App\Http\Controllers\Admin\PelanggaranPemutihanController;
+use App\Http\Controllers\Admin\KomdisSidangController;
+use App\Http\Controllers\Admin\KomdisSanksiController;
+use App\Http\Controllers\Bk\BkPortalController;
 use App\Http\Controllers\Admin\GuruBkController;
 use App\Http\Controllers\Admin\GuruPiketController;
 use App\Http\Controllers\GuruBk\BKDashboardController;
@@ -243,22 +249,29 @@ Route::middleware([
     Route::post('/admin/wa-gateway/batch-check-numbers', [\App\Http\Controllers\Admin\WaGatewayController::class, 'batchCheckNumbers'])->name('admin.wa-gateway.batch-check-numbers');
     Route::post('/admin/wa-gateway/check-all-role-numbers', [\App\Http\Controllers\Admin\WaGatewayController::class, 'checkAllRoleNumbers'])->name('admin.wa-gateway.check-all-role-numbers');
 
-    // ── FITUR GURU BK (Bimbingan Konseling) ───────────────────────────────────
-    Route::prefix('bk')->name('bk.')->middleware('feature:fitur_modul_pelanggaran')->group(function () {
-        Route::get('/dashboard', [BKDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/pelanggaran', [BKPelanggaranController::class, 'index'])->name('pelanggaran.index');
-        Route::get('/pelanggaran/create', [BKPelanggaranController::class, 'create'])->name('pelanggaran.create');
-        Route::post('/pelanggaran', [BKPelanggaranController::class, 'store'])->name('pelanggaran.store');
-        Route::get('/pelanggaran/{id}', [BKPelanggaranController::class, 'show'])->name('pelanggaran.show');
+        // ── FITUR GURU BK (Bimbingan Konseling) ───────────────────────────────────
+        Route::prefix('bk')->name('bk.')->middleware(['feature:fitur_modul_pelanggaran', 'role:guru_bk,super_admin,admin_sekolah'])->group(function () {
+            Route::get('/dashboard', [BkPortalController::class, 'dashboard'])->name('dashboard');
+            Route::get('/kasus', [BkPortalController::class, 'kasus'])->name('kasus');
+            Route::post('/kasus', [BkPortalController::class, 'storeKasus'])->name('kasus.store');
+            Route::get('/log-konseling', [BkPortalController::class, 'konseling'])->name('log-konseling');
+            Route::post('/log-konseling', [BkPortalController::class, 'storeKonseling'])->name('log-konseling.store');
+            Route::get('/pemutihan', [BkPortalController::class, 'pemutihan'])->name('pemutihan');
+            Route::post('/pemutihan', [BkPortalController::class, 'storePemutihan'])->name('pemutihan.store');
 
-        Route::get('/sp', [BKSPController::class, 'index'])->name('sp.index');
-        Route::get('/sp/create', [BKSPController::class, 'create'])->name('sp.create');
-        Route::post('/sp', [BKSPController::class, 'store'])->name('sp.store');
+            Route::get('/pelanggaran', [BKPelanggaranController::class, 'index'])->name('pelanggaran.index');
+            Route::get('/pelanggaran/create', [BKPelanggaranController::class, 'create'])->name('pelanggaran.create');
+            Route::post('/pelanggaran', [BKPelanggaranController::class, 'store'])->name('pelanggaran.store');
+            Route::get('/pelanggaran/{id}', [BKPelanggaranController::class, 'show'])->name('pelanggaran.show');
 
-        Route::get('/rekap', [BKRekapController::class, 'index'])->name('rekap.index');
-        Route::get('/rekap/export', [BKRekapController::class, 'export'])->name('rekap.export');
-        Route::get('/rekap/export-pdf', [BKRekapController::class, 'exportPdf'])->name('rekap.pdf');
-    });
+            Route::get('/sp', [BKSPController::class, 'index'])->name('sp.index');
+            Route::get('/sp/create', [BKSPController::class, 'create'])->name('sp.create');
+            Route::post('/sp', [BKSPController::class, 'store'])->name('sp.store');
+
+            Route::get('/rekap', [BKRekapController::class, 'index'])->name('rekap.index');
+            Route::get('/rekap/export', [BKRekapController::class, 'export'])->name('rekap.export');
+            Route::get('/rekap/export-pdf', [BKRekapController::class, 'exportPdf'])->name('rekap.pdf');
+        });
 
     // ── PORTAL SISWA ──────────────────────────────────────────────────────────
     Route::prefix('siswa')->middleware('role:siswa,super_admin,admin_sekolah,operator')->group(function () {
@@ -813,6 +826,40 @@ Route::middleware([
             ->names('admin.mapel')
             ->except(['show'])
             ->middleware('role:super_admin,admin_sekolah,operator');
+
+        // ── MANAJEMEN BK & KOMDIS (BK KASUS, LOG KONSELING, PEMUTIHAN, SIDANG & SANKSI) ──
+        Route::prefix('bk-kasus')->name('admin.bk-kasus.')->middleware('role:super_admin,admin_sekolah,operator,guru_bk')->group(function () {
+            Route::get('/', [BkKasusController::class, 'index'])->name('index');
+            Route::post('/', [BkKasusController::class, 'store'])->name('store');
+            Route::get('/{id}', [BkKasusController::class, 'show'])->name('show');
+            Route::put('/{id}', [BkKasusController::class, 'update'])->name('update');
+            Route::post('/{id}/eskalasi-komdis', [BkKasusController::class, 'eskalasiKomdis'])->name('eskalasi-komdis');
+        });
+
+        Route::prefix('bk-log-konseling')->name('admin.bk-log-konseling.')->middleware('role:super_admin,admin_sekolah,operator,guru_bk')->group(function () {
+            Route::get('/', [BkLogKonselingController::class, 'index'])->name('index');
+            Route::post('/', [BkLogKonselingController::class, 'store'])->name('store');
+            Route::delete('/{id}', [BkLogKonselingController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('bk-pemutihan')->name('admin.bk-pemutihan.')->middleware('role:super_admin,admin_sekolah,operator,guru_bk')->group(function () {
+            Route::get('/', [PelanggaranPemutihanController::class, 'index'])->name('index');
+            Route::post('/', [PelanggaranPemutihanController::class, 'store'])->name('store');
+        });
+
+        Route::prefix('komdis-sidang')->name('admin.komdis-sidang.')->middleware('role:super_admin,admin_sekolah,operator,guru_bk')->group(function () {
+            Route::get('/', [KomdisSidangController::class, 'index'])->name('index');
+            Route::post('/', [KomdisSidangController::class, 'store'])->name('store');
+            Route::get('/{id}', [KomdisSidangController::class, 'show'])->name('show');
+            Route::put('/{id}', [KomdisSidangController::class, 'update'])->name('update');
+            Route::delete('/{id}', [KomdisSidangController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('komdis-sanksi')->name('admin.komdis-sanksi.')->middleware('role:super_admin,admin_sekolah,operator,guru_bk')->group(function () {
+            Route::get('/', [KomdisSanksiController::class, 'index'])->name('index');
+            Route::post('/', [KomdisSanksiController::class, 'store'])->name('store');
+            Route::put('/{id}', [KomdisSanksiController::class, 'update'])->name('update');
+        });
 
         // ── MASTER DATA & KONFIGURASI POINT PELANGGARAN SISWA (PRD-008) ──────
         Route::get('pelanggaran-kategori/export', [\App\Http\Controllers\Admin\KategoriPelanggaranController::class, 'export'])

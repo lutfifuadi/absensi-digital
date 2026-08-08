@@ -145,4 +145,29 @@ class Siswa extends Model
     {
         return $this->hasMany(IzinPulangCepat::class, 'reference_id')->where('kategori', 'siswa');
     }
+
+    public function bkKasus()
+    {
+        return $this->hasMany(BkKasus::class, 'siswa_id');
+    }
+
+    public function bkLogKonseling()
+    {
+        return $this->hasMany(BkLogKonseling::class, 'siswa_id');
+    }
+
+    public function komdisSidang()
+    {
+        return $this->hasMany(KomdisSidang::class, 'siswa_id');
+    }
+
+    public function komdisSanksi()
+    {
+        return $this->hasMany(KomdisSanksi::class, 'siswa_id');
+    }
+
+    public function pelanggaranPemutihanLog()
+    {
+        return $this->hasMany(PelanggaranPemutihanLog::class, 'siswa_id');
+    }
 }

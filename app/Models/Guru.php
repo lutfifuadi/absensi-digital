@@ -77,4 +77,24 @@ class Guru extends Model
     {
         return $this->hasMany(IzinPulangCepat::class, 'reference_id')->where('kategori', 'guru');
     }
+
+    public function bkKasus()
+    {
+        return $this->hasMany(BkKasus::class, 'guru_bk_id');
+    }
+
+    public function bkLogKonseling()
+    {
+        return $this->hasMany(BkLogKonseling::class, 'guru_bk_id');
+    }
+
+    public function komdisSidangPimpinan()
+    {
+        return $this->hasMany(KomdisSidang::class, 'pimpinan_sidang_id');
+    }
+
+    public function komdisSanksiDiberikan()
+    {
+        return $this->hasMany(KomdisSanksi::class, 'diberikan_oleh');
+    }
 }
