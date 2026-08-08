@@ -312,15 +312,19 @@
     </div>
 </div>
 
-<script>
-    const _allLogSiswas = @json($siswas->map(function($s) {
+@php
+    $logSiswaMapData = json_encode($siswas->map(function($s) {
         return [
             'id' => $s->id,
             'nama' => $s->nama_lengkap,
             'nis' => $s->nis ?? '',
             'kelas' => $s->kelas?->nama ?? 'Tanpa Kelas'
         ];
-    }));
+    })->values());
+@endphp
+
+<script>
+    const _allLogSiswas = {!! $logSiswaMapData !!};
 
     function renderLogSiswaSearchResults(query) {
         const listContainer = document.getElementById('logSiswaSearchResultsList');

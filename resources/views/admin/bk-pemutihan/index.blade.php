@@ -257,15 +257,19 @@
     </div>
 </div>
 
-<script>
-    const _allPemutihanSiswas = @json($siswas->map(function($s) {
+@php
+    $pemutihanSiswaMapData = json_encode($siswas->map(function($s) {
         return [
             'id' => $s->id,
             'nama' => $s->nama_lengkap,
             'nis' => $s->nis ?? '',
             'kelas' => $s->kelas?->nama ?? 'Tanpa Kelas'
         ];
-    }));
+    })->values());
+@endphp
+
+<script>
+    const _allPemutihanSiswas = {!! $pemutihanSiswaMapData !!};
 
     function renderPemutihanSiswaSearchResults(query) {
         const listContainer = document.getElementById('pemutihanSiswaSearchResultsList');
