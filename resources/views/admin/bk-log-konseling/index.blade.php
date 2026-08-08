@@ -119,11 +119,11 @@
         <div class="card border-0 shadow-sm bg-body">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <span class="text-white-50 d-block mb-1 fs-6 fw-medium">Log Sifat Privat</span>
-                    <h4 class="mb-0 fw-bold text-danger">{{ number_format($stats['privat'] ?? 0) }} Sesi</h4>
+                    <span class="text-white-50 d-block mb-1 fs-6 fw-medium">Konseling Individu</span>
+                    <h4 class="mb-0 fw-bold text-primary">{{ number_format($stats['individu'] ?? 0) }} Sesi</h4>
                 </div>
-                <div class="avatar avatar-md bg-label-danger rounded d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                    <i class="ti tabler-lock fs-3 text-danger"></i>
+                <div class="avatar avatar-md bg-label-primary rounded d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                    <i class="ti tabler-user fs-3 text-primary"></i>
                 </div>
             </div>
         </div>
@@ -132,11 +132,11 @@
         <div class="card border-0 shadow-sm bg-body">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <span class="text-white-50 d-block mb-1 fs-6 fw-medium">Log Sifat Publik</span>
-                    <h4 class="mb-0 fw-bold text-success">{{ number_format($stats['publik'] ?? 0) }} Sesi</h4>
+                    <span class="text-white-50 d-block mb-1 fs-6 fw-medium">Konseling Kelompok</span>
+                    <h4 class="mb-0 fw-bold text-success">{{ number_format($stats['kelompok'] ?? 0) }} Sesi</h4>
                 </div>
                 <div class="avatar avatar-md bg-label-success rounded d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                    <i class="ti tabler-eye fs-3 text-success"></i>
+                    <i class="ti tabler-users fs-3 text-success"></i>
                 </div>
             </div>
         </div>
@@ -146,10 +146,10 @@
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
                     <span class="text-white-50 d-block mb-1 fs-6 fw-medium">Bulan Ini</span>
-                    <h4 class="mb-0 fw-bold text-primary">{{ number_format($stats['bulan_ini'] ?? 0) }} Sesi</h4>
+                    <h4 class="mb-0 fw-bold text-warning">{{ number_format($stats['bulan_ini'] ?? 0) }} Sesi</h4>
                 </div>
-                <div class="avatar avatar-md bg-label-primary rounded d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                    <i class="ti tabler-calendar-event fs-3 text-primary"></i>
+                <div class="avatar avatar-md bg-label-warning rounded d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                    <i class="ti tabler-calendar-event fs-3 text-warning"></i>
                 </div>
             </div>
         </div>
@@ -171,9 +171,9 @@
                     <th>Tanggal & Waktu</th>
                     <th>Siswa</th>
                     <th>Guru Konselor</th>
-                    <th>Topik / Ringkasan</th>
+                    <th>Ringkasan Masalah</th>
                     <th>Kategori Sesi</th>
-                    <th>Aksesibilitas</th>
+                    <th>Status Tindak Lanjut</th>
                     <th class="text-end">Aksi</th>
                 </tr>
             </thead>
@@ -197,22 +197,23 @@
                                 </div>
                             </div>
                         </td>
-                        <td><span class="text-white">{{ $item->konselor?->nama_lengkap ?? '—' }}</span></td>
+                        <td><span class="text-white">{{ $item->konselor?->nama_lengkap ?? 'Guru BK' }}</span></td>
                         <td>
-                            <span class="fw-medium text-white d-block">{{ $item->topik }}</span>
-                            <small class="text-white-50">{{ \Illuminate\Support\Str::limit($item->ringkasan_hasil ?? '—', 45) }}</small>
+                            <span class="fw-medium text-white d-block">{{ \Illuminate\Support\Str::limit($item->ringkasan_masalah ?? '—', 45) }}</span>
+                            <small class="text-white-50">{{ \Illuminate\Support\Str::limit($item->hasil_konseling ?? '—', 45) }}</small>
                         </td>
-                        <td><span class="badge bg-label-info">{{ ucfirst($item->jenis_konseling) }}</span></td>
+                        <td><span class="badge bg-label-info">{{ ucfirst(str_replace('_', ' ', $item->jenis_konseling)) }}</span></td>
                         <td>
-                            @if($item->is_privat)
-                                <span class="badge bg-label-danger d-inline-flex align-items-center gap-1">
-                                    <i class="ti tabler-lock fs-6"></i> Privat (Hanya BK)
-                                </span>
-                            @else
-                                <span class="badge bg-label-success d-inline-flex align-items-center gap-1">
-                                    <i class="ti tabler-world fs-6"></i> Publik / Tim
-                                </span>
-                            @endif
+                            @php
+                                $statusBadge = match($item->status_tindak_lanjut) {
+                                    'selesai' => 'success',
+                                    'proses' => 'warning',
+                                    default => 'secondary'
+                                };
+                            @endphp
+                            <span class="badge bg-label-{{ $statusBadge }}">
+                                {{ ucfirst($item->status_tindak_lanjut ?? 'belum') }}
+                            </span>
                         </td>
                         <td class="text-end">
                             <span class="text-white-50 small">-</span>
@@ -291,18 +292,24 @@
                         </select>
                     </div>
                     <div class="col-12">
-                        <label class="form-label fw-medium text-white">Topik Pembahasan <span class="text-danger">*</span></label>
-                        <input type="text" name="topik" class="form-control bg-dark text-white border-secondary" placeholder="Ringkasan topik konseling..." required>
+                        <label class="form-label fw-medium text-white">Ringkasan Masalah <span class="text-danger">*</span></label>
+                        <input type="text" name="ringkasan_masalah" class="form-control bg-dark text-white border-secondary" placeholder="Topik atau ringkasan masalah konseling..." required>
                     </div>
                     <div class="col-12">
-                        <label class="form-label fw-medium text-white">Ringkasan Hasil & Evaluasi</label>
-                        <textarea name="ringkasan_hasil" class="form-control bg-dark text-white border-secondary" rows="3" placeholder="Catatan perkembangan atau hasil konseling..."></textarea>
+                        <label class="form-label fw-medium text-white">Hasil & Evaluasi Konseling</label>
+                        <textarea name="hasil_konseling" class="form-control bg-dark text-white border-secondary" rows="3" placeholder="Catatan perkembangan atau hasil konseling..."></textarea>
                     </div>
-                    <div class="col-12">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="is_privat" value="1" id="switchPrivat">
-                            <label class="form-check-input-label text-white" for="switchPrivat">Tandai sebagai Catatan Privat (Hanya Guru BK)</label>
-                        </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-medium text-white">Rencana Tindak Lanjut</label>
+                        <input type="text" name="rencana_tindak_lanjut" class="form-control bg-dark text-white border-secondary" placeholder="Langkah penanganan berikutnya...">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-medium text-white">Status Tindak Lanjut</label>
+                        <select name="status_tindak_lanjut" class="form-select bg-dark text-white border-secondary">
+                            <option value="belum">Belum</option>
+                            <option value="proses">Dalam Proses</option>
+                            <option value="selesai">Selesai</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer border-top p-3">

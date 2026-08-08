@@ -44,8 +44,8 @@ class BkLogKonselingController extends Controller
         
         $stats = [
             'total'     => BkLogKonseling::count(),
-            'privat'    => BkLogKonseling::where('is_privat', true)->count(),
-            'publik'    => BkLogKonseling::where('is_privat', false)->count(),
+            'individu'  => BkLogKonseling::where('jenis_konseling', 'individu')->count(),
+            'kelompok'  => BkLogKonseling::where('jenis_konseling', 'kelompok')->count(),
             'bulan_ini' => BkLogKonseling::whereMonth('tanggal_konseling', now()->month)->count(),
         ];
 
@@ -69,9 +69,10 @@ class BkLogKonselingController extends Controller
             'guru_bk_id' => 'required|exists:guru,id',
             'tanggal_konseling' => 'required|date',
             'jenis_konseling' => 'required|in:individu,kelompok,karir,kunjungan_rumah',
-            'topik' => 'required|string|max:255',
-            'ringkasan_hasil' => 'nullable|string',
-            'is_privat' => 'nullable|boolean',
+            'ringkasan_masalah' => 'required|string',
+            'hasil_konseling' => 'nullable|string',
+            'rencana_tindak_lanjut' => 'nullable|string',
+            'status_tindak_lanjut' => 'nullable|in:belum,proses,selesai',
         ]);
 
         try {
@@ -81,9 +82,10 @@ class BkLogKonselingController extends Controller
                     'guru_bk_id' => $validated['guru_bk_id'],
                     'tanggal_konseling' => $validated['tanggal_konseling'],
                     'jenis_konseling' => $validated['jenis_konseling'],
-                    'topik' => $validated['topik'],
-                    'ringkasan_hasil' => $validated['ringkasan_hasil'] ?? null,
-                    'is_privat' => $request->boolean('is_privat'),
+                    'ringkasan_masalah' => $validated['ringkasan_masalah'],
+                    'hasil_konseling' => $validated['hasil_konseling'] ?? null,
+                    'rencana_tindak_lanjut' => $validated['rencana_tindak_lanjut'] ?? null,
+                    'status_tindak_lanjut' => $validated['status_tindak_lanjut'] ?? 'belum',
                 ];
                 $this->bkKomdisService->tambahLogKonseling($logData);
             }
