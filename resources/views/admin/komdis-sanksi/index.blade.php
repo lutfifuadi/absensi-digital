@@ -11,8 +11,8 @@
     <div class="das-hero__inner">
         <div class="das-hero__identity">
             <div class="das-hero__logo-wrapper">
-                <div class="das-hero__logo-placeholder">
-                    <i class="ti tabler-file-certificate text-danger"></i>
+                <div class="das-hero__logo-placeholder d-flex align-items-center justify-content-center">
+                    <i class="ti tabler-shield-x text-danger" style="font-size: 2rem;"></i>
                 </div>
                 <div class="das-hero__logo-glow"></div>
             </div>
@@ -35,24 +35,11 @@
         <div class="card border-0 shadow-sm bg-body">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <span class="text-muted d-block mb-1">Sanksi Aktif</span>
-                    <h4 class="mb-0 fw-bold text-danger">3 Siswa</h4>
+                    <span class="text-white-50 d-block mb-1 fs-6 fw-medium">Sanksi Aktif</span>
+                    <h4 class="mb-0 fw-bold text-danger">{{ number_format($stats['sanksi_aktif'] ?? 0) }} Sanksi</h4>
                 </div>
-                <div class="avatar avatar-md bg-label-danger rounded">
-                    <i class="ti tabler-circle-x fs-3"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm bg-body">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <span class="text-muted d-block mb-1">Aktif SP 1</span>
-                    <h4 class="mb-0 fw-bold text-warning">5 Siswa</h4>
-                </div>
-                <div class="avatar avatar-md bg-label-warning rounded">
-                    <i class="ti tabler-file-description fs-3"></i>
+                <div class="avatar avatar-md bg-label-danger rounded d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
+                    <i class="ti tabler-alert-circle text-danger" style="font-size: 1.5rem;"></i>
                 </div>
             </div>
         </div>
@@ -61,11 +48,11 @@
         <div class="card border-0 shadow-sm bg-body">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <span class="text-muted d-block mb-1">Aktif SP 2 &amp; 3</span>
-                    <h4 class="mb-0 fw-bold text-danger">1 Siswa</h4>
+                    <span class="text-white-50 d-block mb-1 fs-6 fw-medium">Aktif SP 1</span>
+                    <h4 class="mb-0 fw-bold text-warning">{{ number_format($stats['sp1_aktif'] ?? 0) }} Siswa</h4>
                 </div>
-                <div class="avatar avatar-md bg-label-danger rounded">
-                    <i class="ti tabler-shield-alert fs-3"></i>
+                <div class="avatar avatar-md bg-label-warning rounded d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
+                    <i class="ti tabler-file-text text-warning" style="font-size: 1.5rem;"></i>
                 </div>
             </div>
         </div>
@@ -74,11 +61,24 @@
         <div class="card border-0 shadow-sm bg-body">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <span class="text-muted d-block mb-1">Sanksi Selesai</span>
-                    <h4 class="mb-0 fw-bold text-success">17 Sanksi</h4>
+                    <span class="text-white-50 d-block mb-1 fs-6 fw-medium">Aktif SP 2 &amp; 3</span>
+                    <h4 class="mb-0 fw-bold text-danger">{{ number_format($stats['sp23_aktif'] ?? 0) }} Siswa</h4>
                 </div>
-                <div class="avatar avatar-md bg-label-success rounded">
-                    <i class="ti tabler-circle-check fs-3"></i>
+                <div class="avatar avatar-md bg-label-danger rounded d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
+                    <i class="ti tabler-shield-x text-danger" style="font-size: 1.5rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm bg-body">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-white-50 d-block mb-1 fs-6 fw-medium">Sanksi Selesai</span>
+                    <h4 class="mb-0 fw-bold text-success">{{ number_format($stats['sanksi_selesai'] ?? 0) }} Sanksi</h4>
+                </div>
+                <div class="avatar avatar-md bg-label-success rounded d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
+                    <i class="ti tabler-circle-check text-success" style="font-size: 1.5rem;"></i>
                 </div>
             </div>
         </div>
@@ -89,9 +89,9 @@
 <div class="card border-0 shadow-sm">
     <div class="card-header border-bottom d-flex align-items-center justify-content-between flex-wrap gap-3 py-3">
         <h5 class="card-title mb-0 fw-bold"><i class="ti tabler-list me-2 text-danger"></i>Status Sanksi &amp; Surat Peringatan</h5>
-        <div class="d-flex align-items-center gap-2">
-            <input type="text" class="form-control form-control-sm" placeholder="Cari siswa..." style="width: 200px;">
-        </div>
+        <form method="GET" action="{{ route('admin.komdis-sanksi.index') }}" class="d-flex align-items-center gap-2">
+            <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari siswa..." value="{{ request('search') }}" style="width: 200px;">
+        </form>
     </div>
     <div class="table-responsive text-nowrap">
         <table class="table table-hover align-middle mb-0">
@@ -107,68 +107,83 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <div class="avatar avatar-sm me-2">
-                                <span class="avatar-initial rounded-circle bg-label-danger">MA</span>
+                @forelse($sanksis as $item)
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar avatar-sm me-2 d-flex align-items-center justify-content-center">
+                                    <span class="avatar-initial rounded-circle bg-label-danger">
+                                        {{ strtoupper(substr($item->siswa?->nama_lengkap ?? 'S', 0, 2)) }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 text-truncate text-white">{{ $item->siswa?->nama_lengkap ?? '—' }}</h6>
+                                    <small class="text-white-50">{{ $item->siswa?->kelas?->nama ?? '—' }}</small>
+                                </div>
                             </div>
-                            <div>
-                                <h6 class="mb-0 text-truncate">Muhammad Albar</h6>
-                                <small class="text-muted">XII RPL 1</small>
+                        </td>
+                        <td>
+                            @php
+                                $spBadge = match(true) {
+                                    str_contains($item->nama_sanksi, 'SP 3') => 'danger',
+                                    str_contains($item->nama_sanksi, 'SP 2') => 'danger',
+                                    str_contains($item->nama_sanksi, 'SP 1') => 'warning',
+                                    default => 'secondary'
+                                };
+                            @endphp
+                            <span class="badge bg-{{ $spBadge }}">{{ str_contains($item->nama_sanksi, 'SP') ? \Illuminate\Support\Str::limit($item->nama_sanksi, 12) : 'Sanksi' }}</span>
+                        </td>
+                        <td>
+                            <span class="fw-medium text-white d-block">{{ $item->nama_sanksi }}</span>
+                            <small class="text-white-50">{{ \Illuminate\Support\Str::limit($item->deskripsi_sanksi ?? '—', 50) }}</small>
+                        </td>
+                        <td>
+                            <span class="fw-semibold text-white d-block">
+                                {{ $item->tanggal_mulai ? $item->tanggal_mulai->format('d M Y') : '—' }}
+                                {{ $item->tanggal_selesai ? ' - ' . $item->tanggal_selesai->format('d M Y') : '' }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-label-{{ $item->status === 'aktif' ? 'danger' : ($item->status === 'selesai' ? 'success' : 'secondary') }}">
+                                {{ ucfirst($item->status) }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-white-50">-</span>
+                        </td>
+                        <td class="text-end">
+                            @if($item->status === 'aktif')
+                                <form action="{{ route('admin.komdis-sanksi.update', $item->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="hidden" name="nama_sanksi" value="{{ $item->nama_sanksi }}">
+                                    <input type="hidden" name="tanggal_mulai" value="{{ $item->tanggal_mulai ? $item->tanggal_mulai->format('Y-m-d') : now()->format('Y-m-d') }}">
+                                    <input type="hidden" name="status" value="selesai">
+                                    <button type="submit" class="btn btn-sm btn-label-success" onclick="return confirm('Apakah Anda yakin ingin menandai sanksi ini telah selesai?')">Selesaikan</button>
+                                </form>
+                            @else
+                                <span class="text-white-50 small">-</span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="d-flex flex-column align-items-center">
+                                <i class="ti tabler-shield-off fs-1 text-white-50 mb-2"></i>
+                                <h6 class="text-white mb-1">Belum Ada Data Sanksi</h6>
+                                <p class="text-white-50 small mb-0">Belum terdapat data sanksi kedisiplinan atau SP yang tercatat di sistem.</p>
                             </div>
-                        </div>
-                    </td>
-                    <td><span class="badge bg-danger">SP 1</span></td>
-                    <td>Skorsing Akademik &amp; Wajib Lapor Harian</td>
-                    <td>
-                        <span class="fw-semibold text-body d-block">10 Aug 2026 - 13 Aug 2026</span>
-                        <small class="text-muted">3 Hari Skorsing</small>
-                    </td>
-                    <td><span class="badge bg-label-danger"><span class="pulse-dot bg-danger"></span>Aktif</span></td>
-                    <td>
-                        <a href="javascript:void(0)" class="btn btn-xs btn-label-danger d-inline-flex align-items-center gap-1">
-                            <i class="ti tabler-download fs-6"></i> Unduh SP (PDF)
-                        </a>
-                    </td>
-                    <td class="text-end">
-                        <button type="button" class="btn btn-sm btn-label-success" onclick="confirmSanksiSelesai()">Selesaikan</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <div class="avatar avatar-sm me-2">
-                                <span class="avatar-initial rounded-circle bg-label-primary">SN</span>
-                            </div>
-                            <div>
-                                <h6 class="mb-0 text-truncate">Siti Nurhaliza</h6>
-                                <small class="text-muted">XI TKJ 2</small>
-                            </div>
-                        </div>
-                    </td>
-                    <td><span class="badge bg-secondary">Bukan SP</span></td>
-                    <td>Sanksi Sosial Pembersihan Mushola</td>
-                    <td>
-                        <span class="fw-semibold text-body d-block">03 Aug 2026 - 05 Aug 2026</span>
-                        <small class="text-muted">Telah Terlewati</small>
-                    </td>
-                    <td><span class="badge bg-label-success">Selesai</span></td>
-                    <td><span class="text-muted">-</span></td>
-                    <td class="text-end">
-                        <span class="text-muted small">No Action</span>
-                    </td>
-                </tr>
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
+    @if ($sanksis->hasPages())
+        <div class="card-footer py-3 border-top border-secondary">
+            {{ $sanksis->links() }}
+        </div>
+    @endif
 </div>
-
-<script>
-    function confirmSanksiSelesai() {
-        if (confirm("Apakah Anda yakin ingin menandai sanksi ini telah selesai dan dipatuhi oleh siswa?")) {
-            alert("Status sanksi berhasil diubah menjadi selesai.");
-        }
-    }
-</script>
 @endsection

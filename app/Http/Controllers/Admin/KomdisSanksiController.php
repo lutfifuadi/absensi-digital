@@ -37,11 +37,21 @@ class KomdisSanksiController extends Controller
         }
 
         $sanksis = $query->latest('tanggal_mulai')->paginate(15)->withQueryString();
+
+        $stats = [
+            'sanksi_aktif' => KomdisSanksi::where('status', 'aktif')->count(),
+            'sp1_aktif'    => KomdisSanksi::where('status', 'aktif')->where('nama_sanksi', 'like', '%SP 1%')->count(),
+            'sp23_aktif'   => KomdisSanksi::where('status', 'aktif')->where(function($q) {
+                $q->where('nama_sanksi', 'like', '%SP 2%')->orWhere('nama_sanksi', 'like', '%SP 3%');
+            })->count(),
+            'sanksi_selesai' => KomdisSanksi::where('status', 'selesai')->count(),
+        ];
+
         $siswas = Siswa::with('kelas')->orderBy('nama_lengkap')->get();
         $gurus = Guru::orderBy('nama_lengkap')->get();
         $sidangs = KomdisSidang::where('status', 'selesai')->get();
 
-        return view('admin.komdis-sanksi.index', compact('sanksis', 'siswas', 'gurus', 'sidangs'));
+        return view('admin.komdis-sanksi.index', compact('sanksis', 'stats', 'siswas', 'gurus', 'sidangs'));
     }
 
     public function store(Request $request)

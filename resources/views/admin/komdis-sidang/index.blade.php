@@ -44,8 +44,8 @@
                     <span class="text-muted d-block mb-1">Agenda Sidang</span>
                     <h4 class="mb-0 fw-bold text-danger">2 Sidang</h4>
                 </div>
-                <div class="avatar avatar-md bg-label-danger rounded">
-                    <i class="ti tabler-calendar-time fs-3"></i>
+                <div class="avatar avatar-md bg-label-danger rounded d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                    <i class="ti tabler-calendar-time fs-3 text-danger"></i>
                 </div>
             </div>
         </div>
@@ -54,24 +54,11 @@
         <div class="card border-0 shadow-sm bg-body">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <span class="text-muted d-block mb-1">Menunggu Keputusan</span>
-                    <h4 class="mb-0 fw-bold text-warning">1 Sidang</h4>
+                    <span class="text-white-50 d-block mb-1 fs-6 fw-medium">Menunggu Keputusan</span>
+                    <h4 class="mb-0 fw-bold text-warning">{{ number_format($sidangs->whereIn('status', ['terjadwal', 'berjalan', 'ditunda'])->count()) }} Sidang</h4>
                 </div>
-                <div class="avatar avatar-md bg-label-warning rounded">
-                    <i class="ti tabler-hourglass-high fs-3"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm bg-body">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <span class="text-muted d-block mb-1">Selesai / Putusan</span>
-                    <h4 class="mb-0 fw-bold text-success">8 Sidang</h4>
-                </div>
-                <div class="avatar avatar-md bg-label-success rounded">
-                    <i class="ti tabler-checkbox fs-3"></i>
+                <div class="avatar avatar-md bg-label-warning rounded d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                    <i class="ti tabler-hourglass-high fs-3 text-warning"></i>
                 </div>
             </div>
         </div>
@@ -80,11 +67,24 @@
         <div class="card border-0 shadow-sm bg-body">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <span class="text-muted d-block mb-1">Hadir Orang Tua</span>
-                    <h4 class="mb-0 fw-bold text-primary">100% Rate</h4>
+                    <span class="text-white-50 d-block mb-1 fs-6 fw-medium">Selesai / Putusan</span>
+                    <h4 class="mb-0 fw-bold text-success">{{ number_format($sidangs->where('status', 'selesai')->count()) }} Sidang</h4>
                 </div>
-                <div class="avatar avatar-md bg-label-primary rounded">
-                    <i class="ti tabler-users fs-3"></i>
+                <div class="avatar avatar-md bg-label-success rounded d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                    <i class="ti tabler-checkbox fs-3 text-success"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm bg-body">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-white-50 d-block mb-1 fs-6 fw-medium">Total Sidang</span>
+                    <h4 class="mb-0 fw-bold text-primary">{{ number_format($sidangs->total()) }} Sidang</h4>
+                </div>
+                <div class="avatar avatar-md bg-label-primary rounded d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                    <i class="ti tabler-gavel fs-3 text-primary"></i>
                 </div>
             </div>
         </div>
@@ -95,9 +95,9 @@
 <div class="card border-0 shadow-sm">
     <div class="card-header border-bottom d-flex align-items-center justify-content-between flex-wrap gap-3 py-3">
         <h5 class="card-title mb-0 fw-bold"><i class="ti tabler-list me-2 text-danger"></i>Daftar Sidang Disiplin</h5>
-        <div class="d-flex align-items-center gap-2">
-            <input type="text" class="form-control form-control-sm" placeholder="Cari sidang..." style="width: 200px;">
-        </div>
+        <form method="GET" action="{{ route('admin.komdis-sidang.index') }}" class="d-flex align-items-center gap-2">
+            <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari sidang..." value="{{ request('search') }}" style="width: 200px;">
+        </form>
     </div>
     <div class="table-responsive text-nowrap">
         <table class="table table-hover align-middle mb-0">
@@ -113,67 +113,70 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>
-                        <span class="fw-semibold text-body d-block">10 Aug 2026</span>
-                        <small class="text-muted">10:00 WIB (Ruang Komdis)</small>
-                    </td>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <div class="avatar avatar-sm me-2">
-                                <span class="avatar-initial rounded-circle bg-label-danger">MA</span>
+                @forelse($sidangs as $item)
+                    <tr>
+                        <td>
+                            <span class="fw-semibold text-white d-block">{{ $item->tanggal_sidang ? $item->tanggal_sidang->format('d M Y') : '—' }}</span>
+                            <small class="text-white-50">{{ $item->waktu_sidang ?? '-' }} {{ $item->lokasi_sidang ? '(' . $item->lokasi_sidang . ')' : '' }}</small>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar avatar-sm me-2 d-flex align-items-center justify-content-center">
+                                    <span class="avatar-initial rounded-circle bg-label-danger">
+                                        {{ strtoupper(substr($item->siswa?->nama_lengkap ?? 'S', 0, 2)) }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 text-truncate text-white">{{ $item->siswa?->nama_lengkap ?? '—' }}</h6>
+                                    <small class="text-white-50">{{ $item->siswa?->kelas?->nama ?? '—' }}</small>
+                                </div>
                             </div>
-                            <div>
-                                <h6 class="mb-0 text-truncate">Muhammad Albar</h6>
-                                <small class="text-muted">XII RPL 1</small>
+                        </td>
+                        <td>
+                            <span class="fw-medium text-white d-block">{{ $item->agenda }}</span>
+                            <small class="text-white-50">{{ \Illuminate\Support\Str::limit($item->deskripsi_pelanggaran, 40) }}</small>
+                        </td>
+                        <td><span class="text-white-50">Siswa, Ortu, Komdis</span></td>
+                        <td>
+                            @php
+                                $statusBadge = match($item->status) {
+                                    'terjadwal' => 'danger',
+                                    'berjalan' => 'warning',
+                                    'ditunda' => 'info',
+                                    'selesai' => 'success',
+                                    default => 'secondary'
+                                };
+                            @endphp
+                            <span class="badge bg-label-{{ $statusBadge }}">{{ ucfirst($item->status) }}</span>
+                        </td>
+                        <td>
+                            <span class="text-white-50">{{ \Illuminate\Support\Str::limit($item->keputusan_sidang ?? '- Belum Diputuskan -', 35) }}</span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ route('admin.komdis-sidang.show', $item->id) }}" class="btn btn-sm btn-icon btn-label-info" title="Detail / Putusan Sidang">
+                                <i class="ti tabler-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="d-flex flex-column align-items-center">
+                                <i class="ti tabler-gavel fs-1 text-white-50 mb-2"></i>
+                                <h6 class="text-white mb-1">Belum Ada Agenda Sidang</h6>
+                                <p class="text-white-50 small mb-0">Belum terdapat jadwal sidang komisi disiplin yang tercatat di sistem.</p>
                             </div>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="fw-medium text-body d-block">Perkelahian di Parkir</span>
-                        <small class="text-muted">#BK-2026-089</small>
-                    </td>
-                    <td>Siswa, Ortu, BK, Komdis</td>
-                    <td><span class="badge bg-label-danger animate-pulse">Menunggu Sidang</span></td>
-                    <td><span class="text-muted">- Belum Diputuskan -</span></td>
-                    <td class="text-end">
-                        <button type="button" class="btn btn-sm btn-icon btn-label-danger" data-bs-toggle="modal" data-bs-target="#modalBeritaAcara" title="Input Berita Acara / Putusan">
-                            <i class="ti tabler-file-text"></i>
-                        </button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <span class="fw-semibold text-body d-block">03 Aug 2026</span>
-                        <small class="text-muted">13:00 WIB</small>
-                    </td>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <div class="avatar avatar-sm me-2">
-                                <span class="avatar-initial rounded-circle bg-label-primary">SN</span>
-                            </div>
-                            <div>
-                                <h6 class="mb-0 text-truncate">Siti Nurhaliza</h6>
-                                <small class="text-muted">XI TKJ 2</small>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="fw-medium text-body d-block">Keterlambatan Berulang</span>
-                        <small class="text-muted">#BK-2026-088</small>
-                    </td>
-                    <td>Siswa, Ortu, Wali Kelas</td>
-                    <td><span class="badge bg-label-success">Selesai</span></td>
-                    <td><span class="badge bg-label-warning">SP 1 &amp; Sanksi Sosial</span></td>
-                    <td class="text-end">
-                        <button type="button" class="btn btn-sm btn-icon btn-label-success" data-bs-toggle="modal" data-bs-target="#modalBeritaAcara" title="Lihat Berita Acara">
-                            <i class="ti tabler-eye"></i>
-                        </button>
-                    </td>
-                </tr>
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
+    @if ($sidangs->hasPages())
+        <div class="card-footer py-3 border-top border-secondary">
+            {{ $sidangs->links() }}
+        </div>
+    @endif
 </div>
 
 {{-- MODAL TAMBAH AGENDA SIDANG --}}
