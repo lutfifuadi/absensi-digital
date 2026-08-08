@@ -50,12 +50,17 @@ class PengumumanController extends Controller
                             ->withQueryString();
 
         $kelases = Kelas::orderBy('nama')->get();
+        $tingkats = Kelas::whereNotNull('tingkat')
+            ->where('tingkat', '!=', '')
+            ->distinct()
+            ->orderBy('tingkat')
+            ->pluck('tingkat');
 
         if ($request->ajax()) {
-            return view('admin.pengumuman.table', compact('pengumuman', 'kelases'))->render();
+            return view('admin.pengumuman.table', compact('pengumuman', 'kelases', 'tingkats'))->render();
         }
 
-        return view('admin.pengumuman.index', compact('pengumuman', 'kelases'));
+        return view('admin.pengumuman.index', compact('pengumuman', 'kelases', 'tingkats'));
     }
 
     public function store(StorePengumumanRequest $request)

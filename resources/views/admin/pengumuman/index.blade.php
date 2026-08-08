@@ -479,20 +479,24 @@
               </div>
             </div>
 
-            {{-- TARGET TINGKAT --}}
+            {{-- TARGET TINGKAT (DINAMIS DARI DATABASE KELAS) --}}
             <div class="mb-3 d-none" id="wrapperTargetTingkat">
               <label class="form-label d-block mb-2">Pilih Tingkat Target <span class="text-danger">*</span></label>
               <input type="hidden" name="target_tingkat" id="inputTargetTingkat">
-              <div class="d-flex gap-2">
-                <button type="button" class="btn btn-outline-primary flex-fill btn-tingkat-option py-2" data-tingkat="X">
-                  <i class="ti tabler-school fs-5"></i> Tingkat X
-                </button>
-                <button type="button" class="btn btn-outline-warning flex-fill btn-tingkat-option py-2" data-tingkat="XI">
-                  <i class="ti tabler-school fs-5"></i> Tingkat XI
-                </button>
-                <button type="button" class="btn btn-outline-danger flex-fill btn-tingkat-option py-2" data-tingkat="XII">
-                  <i class="ti tabler-school fs-5"></i> Tingkat XII
-                </button>
+              <div class="d-flex flex-wrap gap-2" id="tingkatButtonContainer">
+                @php
+                  $colorPalette = ['primary', 'warning', 'info', 'success', 'danger'];
+                @endphp
+                @forelse($tingkats ?? [] as $index => $t)
+                  @php
+                    $color = $colorPalette[$index % count($colorPalette)];
+                  @endphp
+                  <button type="button" class="btn btn-outline-{{ $color }} flex-fill btn-tingkat-option py-2 px-3" data-tingkat="{{ $t }}" data-color="{{ $color }}">
+                    <i class="ti tabler-school fs-5 me-1"></i> Tingkat {{ $t }}
+                  </button>
+                @empty
+                  <div class="text-white-50 small p-2">Belum ada data tingkat pada database kelas.</div>
+                @endforelse
               </div>
             </div>
 
@@ -741,27 +745,27 @@
       }
     });
 
-    // Tingkat Button Selection
+    // Tingkat Button Selection (Dinamis dari Database)
     function selectTingkat(tingkatVal) {
-      document.getElementById('inputTargetTingkat').value = tingkatVal;
+      document.getElementById('inputTargetTingkat').value = tingkatVal || "";
       document.querySelectorAll('.btn-tingkat-option').forEach(btn => {
-        if (btn.getAttribute('data-tingkat') === tingkatVal) {
-          btn.classList.add('active', 'btn-primary');
-          btn.classList.remove('btn-outline-primary', 'btn-outline-warning', 'btn-outline-danger');
+        const t = btn.getAttribute('data-tingkat');
+        const color = btn.getAttribute('data-color') || 'primary';
+        if (tingkatVal && t === tingkatVal) {
+          btn.classList.add('active', 'btn-' + color);
+          btn.classList.remove('btn-outline-' + color);
         } else {
-          btn.classList.remove('active', 'btn-primary');
-          const t = btn.getAttribute('data-tingkat');
-          if (t === 'X') btn.classList.add('btn-outline-primary');
-          if (t === 'XI') btn.classList.add('btn-outline-warning');
-          if (t === 'XII') btn.classList.add('btn-outline-danger');
+          btn.classList.remove('active', 'btn-' + color);
+          btn.classList.add('btn-outline-' + color);
         }
       });
     }
 
-    document.querySelectorAll('.btn-tingkat-option').forEach(btn => {
-      btn.addEventListener('click', function () {
-        selectTingkat(this.getAttribute('data-tingkat'));
-      });
+    document.addEventListener('click', function (e) {
+      const btn = e.target.closest('.btn-tingkat-option');
+      if (btn) {
+        selectTingkat(btn.getAttribute('data-tingkat'));
+      }
     });
 
     function openCreateModal() {
