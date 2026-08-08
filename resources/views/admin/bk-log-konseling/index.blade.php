@@ -252,7 +252,7 @@
                 <div class="modal-body p-4 row g-3 text-white">
                     {{-- Multi-Select Live Search Siswa --}}
                     <div class="col-12 col-md-6 position-relative" id="wrapperLogSiswaSearch">
-                        <label class="form-label fw-medium text-white">Pilih Siswa <small class="text-white-50">(Bisa pilih beberapa siswa)</small> <span class="text-danger">*</span></label>
+                        <label class="form-label fw-medium text-white">Pilih Siswa <span class="text-danger">*</span></label>
                         
                         <div id="hiddenLogSiswaInputsContainer">
                             <input type="hidden" name="siswa_id" value="" required>
@@ -263,7 +263,7 @@
                         <div id="logSiswaSearchBoxContainer">
                             <div class="input-group input-group-merge">
                                 <span class="input-group-text"><i class="ti tabler-search"></i></span>
-                                <input type="text" id="searchLogSiswa" class="form-control" placeholder="Cari nama / NIS / kelas siswa..." autocomplete="off">
+                                <input type="text" id="searchLogSiswa" class="form-control" placeholder="Cari & pilih siswa (bisa lebih dari 1)..." autocomplete="off">
                             </div>
                             <div id="logSiswaSearchResultsList" class="log-siswa-search-results d-none"></div>
                         </div>
