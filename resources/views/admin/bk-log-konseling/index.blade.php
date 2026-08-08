@@ -255,7 +255,7 @@
             <form action="{{ route('admin.bk-log-konseling.store') }}" method="POST">
                 @csrf
                 <div class="modal-body p-4 row g-3 text-white">
-                    {{-- Multi-Select Live Search Siswa --}}
+                    {{-- Row 1: Multi-Select Live Search Siswa --}}
                     <div class="col-12 col-md-6 position-relative" id="wrapperLogSiswaSearch">
                         <label class="form-label fw-medium text-white">Pilih Siswa <span class="text-danger">*</span></label>
                         
@@ -273,7 +273,7 @@
                         <div id="selectedLogSiswaChipsContainer" class="d-flex flex-wrap gap-2 mt-2"></div>
                     </div>
 
-                    {{-- Single Choice Live Search Guru Konselor --}}
+                    {{-- Row 1: Single Choice Live Search Guru Konselor --}}
                     <div class="col-12 col-md-6 position-relative" id="wrapperLogGuruSearch">
                         <label class="form-label fw-medium text-white">Guru Konselor (BK) <span class="text-danger">*</span></label>
                         <input type="hidden" name="guru_bk_id" id="inputLogGuruBkId" value="{{ $currentGuruObj?->id ?? '' }}" required>
@@ -306,19 +306,43 @@
                         </div>
                     </div>
 
+                    {{-- Row 2: Tanggal Konseling --}}
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-medium text-white">Tanggal Konseling <span class="text-danger">*</span></label>
                         <input type="date" name="tanggal_konseling" class="form-control bg-dark text-white border-secondary" value="{{ date('Y-m-d') }}" required>
                     </div>
-                    <div class="col-12 col-md-6">
+
+                    {{-- Row 2: Single Choice Live Search Jenis Konseling --}}
+                    <div class="col-12 col-md-6 position-relative" id="wrapperJenisKonselingSearch">
                         <label class="form-label fw-medium text-white">Jenis Konseling <span class="text-danger">*</span></label>
-                        <select name="jenis_konseling" class="form-select bg-dark text-white border-secondary" required>
-                            <option value="individu">Individu</option>
-                            <option value="kelompok">Kelompok</option>
-                            <option value="karir">Bimbingan Karir</option>
-                            <option value="kunjungan_rumah">Kunjungan Rumah (Home Visit)</option>
-                        </select>
+                        <input type="hidden" name="jenis_konseling" id="inputJenisKonseling" value="individu" required>
+
+                        <div id="selectedJenisKonselingChipWrap">
+                            <div class="selected-jenis-chip-single">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar avatar-xs rounded-circle d-flex align-items-center justify-content-center bg-label-primary" style="width: 28px; height: 28px;">
+                                        <i class="ti tabler-user text-primary" style="font-size: 0.85rem;"></i>
+                                    </div>
+                                    <div>
+                                        <span class="fw-semibold text-white d-block" style="font-size: 0.85rem;">Konseling Individu</span>
+                                        <small class="text-white-50" style="font-size: 0.72rem;">Sesi tatap muka empat mata dengan siswa</small>
+                                    </div>
+                                </div>
+                                <span class="chip-change-btn" onclick="clearSelectedJenisKonseling()" title="Ubah Jenis Konseling">
+                                    <i class="ti tabler-arrows-exchange"></i> Ubah
+                                </span>
+                            </div>
+                        </div>
+
+                        <div id="jenisKonselingSearchBoxContainer" class="d-none">
+                            <div class="input-group input-group-merge">
+                                <span class="input-group-text"><i class="ti tabler-search"></i></span>
+                                <input type="text" id="searchJenisKonseling" class="form-control" placeholder="Cari jenis konseling (individu/kelompok/karir/home visit)..." autocomplete="off">
+                            </div>
+                            <div id="jenisKonselingSearchResultsList" class="jenis-konseling-search-results d-none"></div>
+                        </div>
                     </div>
+
                     <div class="col-12">
                         <label class="form-label fw-medium text-white">Ringkasan Masalah <span class="text-danger">*</span></label>
                         <input type="text" name="ringkasan_masalah" class="form-control bg-dark text-white border-secondary" placeholder="Topik atau ringkasan masalah konseling..." required>
@@ -374,7 +398,38 @@
     const _allLogGurus = {!! $logGuruMapData !!};
     let _selectedLogSiswaMap = new Map();
 
-    // ═══ SISWA SEARCH & CHIPS ═══
+    const _allJenisKonseling = [
+        {
+            key: 'individu',
+            nama: 'Konseling Individu',
+            deskripsi: 'Sesi tatap muka empat mata dengan siswa',
+            icon: 'tabler-user',
+            badgeColor: 'primary'
+        },
+        {
+            key: 'kelompok',
+            nama: 'Konseling Kelompok',
+            deskripsi: 'Dinamika kelompok & bimbingan teman sebaya',
+            icon: 'tabler-users',
+            badgeColor: 'success'
+        },
+        {
+            key: 'karir',
+            nama: 'Bimbingan Karir & Studi Lanjut',
+            deskripsi: 'Perencanaan jurusan, profesi & perguruan tinggi',
+            icon: 'tabler-school',
+            badgeColor: 'warning'
+        },
+        {
+            key: 'kunjungan_rumah',
+            nama: 'Kunjungan Rumah (Home Visit)',
+            deskripsi: 'Silaturahmi & koordinasi ke kediaman orang tua/wali',
+            icon: 'tabler-home-heart',
+            badgeColor: 'danger'
+        }
+    ];
+
+    // ═══ 1. SISWA SEARCH & CHIPS (MULTI-SELECT) ═══
     function renderLogSiswaSearchResults(query) {
         const listContainer = document.getElementById('logSiswaSearchResultsList');
         if (!listContainer) return;
@@ -461,7 +516,7 @@
         chipsContainer.innerHTML = chipsHtml;
     }
 
-    // ═══ GURU KONSELOR SINGLE SEARCH & CHIP ═══
+    // ═══ 2. GURU KONSELOR SINGLE SEARCH & CHIP ═══
     function renderLogGuruSearchResults(query) {
         const listContainer = document.getElementById('logGuruSearchResultsList');
         if (!listContainer) return;
@@ -531,6 +586,77 @@
         renderLogGuruSearchResults('');
     }
 
+    // ═══ 3. JENIS KONSELING SINGLE SEARCH & CHIP ═══
+    function renderJenisKonselingSearchResults(query) {
+        const listContainer = document.getElementById('jenisKonselingSearchResultsList');
+        if (!listContainer) return;
+
+        const q = (query || '').toLowerCase().trim();
+        const filtered = _allJenisKonseling.filter(j => 
+            j.nama.toLowerCase().includes(q) || j.deskripsi.toLowerCase().includes(q) || j.key.toLowerCase().includes(q)
+        );
+
+        if (filtered.length === 0) {
+            listContainer.innerHTML = '<div class="p-3 text-center text-white-50 small">Jenis konseling tidak ditemukan.</div>';
+        } else {
+            let html = '';
+            filtered.forEach(j => {
+                const safeNama = j.nama.replace(/'/g, "\\'");
+                const safeDeskripsi = j.deskripsi.replace(/'/g, "\\'");
+                html += `
+                    <div class="jenis-konseling-item" onclick="selectJenisKonseling('${j.key}', '${safeNama}', '${safeDeskripsi}', '${j.icon}', '${j.badgeColor}')">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar avatar-xs rounded-circle d-flex align-items-center justify-content-center bg-label-${j.badgeColor}" style="width: 28px; height: 28px;">
+                                <i class="ti ${j.icon} text-${j.badgeColor}" style="font-size: 0.85rem;"></i>
+                            </div>
+                            <div>
+                                <span class="fw-semibold text-white d-block" style="font-size: 0.85rem;">${j.nama}</span>
+                                <small class="text-white-50" style="font-size: 0.72rem;">${j.deskripsi}</small>
+                            </div>
+                        </div>
+                        <span class="badge bg-label-${j.badgeColor}" style="font-size: 0.72rem;">Pilih</span>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+        }
+        listContainer.classList.remove('d-none');
+    }
+
+    function selectJenisKonseling(key, nama, deskripsi, icon, badgeColor) {
+        document.getElementById('inputJenisKonseling').value = key;
+        document.getElementById('jenisKonselingSearchResultsList').classList.add('d-none');
+        document.getElementById('jenisKonselingSearchBoxContainer').classList.add('d-none');
+
+        const chipWrap = document.getElementById('selectedJenisKonselingChipWrap');
+        chipWrap.innerHTML = `
+            <div class="selected-jenis-chip-single">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="avatar avatar-xs rounded-circle d-flex align-items-center justify-content-center bg-label-${badgeColor}" style="width: 28px; height: 28px;">
+                        <i class="ti ${icon} text-${badgeColor}" style="font-size: 0.85rem;"></i>
+                    </div>
+                    <div>
+                        <span class="fw-semibold text-white d-block" style="font-size: 0.85rem;">${nama}</span>
+                        <small class="text-white-50" style="font-size: 0.72rem;">${deskripsi}</small>
+                    </div>
+                </div>
+                <span class="chip-change-btn" onclick="clearSelectedJenisKonseling()" title="Ubah Jenis Konseling">
+                    <i class="ti tabler-arrows-exchange"></i> Ubah
+                </span>
+            </div>
+        `;
+    }
+
+    function clearSelectedJenisKonseling() {
+        document.getElementById('inputJenisKonseling').value = "";
+        document.getElementById('selectedJenisKonselingChipWrap').innerHTML = "";
+        document.getElementById('jenisKonselingSearchBoxContainer').classList.remove('d-none');
+        const searchInput = document.getElementById('searchJenisKonseling');
+        searchInput.value = "";
+        searchInput.focus();
+        renderJenisKonselingSearchResults('');
+    }
+
     // ═══ EVENT LISTENERS ═══
     document.addEventListener('DOMContentLoaded', function () {
         const searchSiswa = document.getElementById('searchLogSiswa');
@@ -546,6 +672,13 @@
             searchGuru.addEventListener('click', function () { renderLogGuruSearchResults(this.value); });
             searchGuru.addEventListener('input', function () { renderLogGuruSearchResults(this.value); });
         }
+
+        const searchJenis = document.getElementById('searchJenisKonseling');
+        if (searchJenis) {
+            searchJenis.addEventListener('focus', function () { renderJenisKonselingSearchResults(this.value); });
+            searchJenis.addEventListener('click', function () { renderJenisKonselingSearchResults(this.value); });
+            searchJenis.addEventListener('input', function () { renderJenisKonselingSearchResults(this.value); });
+        }
     });
 
     document.addEventListener('click', function (e) {
@@ -559,6 +692,12 @@
         if (searchGuruBox && !searchGuruBox.contains(e.target)) {
             const resultsGuru = document.getElementById('logGuruSearchResultsList');
             if (resultsGuru) resultsGuru.classList.add('d-none');
+        }
+
+        const searchJenisBox = document.getElementById('wrapperJenisKonselingSearch');
+        if (searchJenisBox && !searchJenisBox.contains(e.target)) {
+            const resultsJenis = document.getElementById('jenisKonselingSearchResultsList');
+            if (resultsJenis) resultsJenis.classList.add('d-none');
         }
     });
 </script>

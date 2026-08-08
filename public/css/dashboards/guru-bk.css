@@ -509,6 +509,84 @@
   color: #fff;
 }
 
+/* ═══ JENIS KONSELING LIVE SEARCH & CHIP ═══ */
+.jenis-konseling-search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1090;
+  background: #18182c !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6) !important;
+  max-height: 220px;
+  overflow-y: auto;
+  backdrop-filter: blur(16px);
+  margin-top: 4px;
+}
+
+.jenis-konseling-search-results::-webkit-scrollbar {
+  width: 6px;
+}
+
+.jenis-konseling-search-results::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+}
+
+.jenis-konseling-search-results::-webkit-scrollbar-thumb {
+  background: rgba(115, 103, 240, 0.45);
+  border-radius: 6px;
+}
+
+.jenis-konseling-item {
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.15s ease;
+}
+
+.jenis-konseling-item:hover {
+  background: rgba(115, 103, 240, 0.18);
+}
+
+.selected-jenis-chip-single {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(115, 103, 240, 0.08);
+  border: 1px solid rgba(115, 103, 240, 0.3);
+  border-radius: 6px;
+  padding: 5px 12px;
+  min-height: 38px;
+  transition: all 0.2s ease;
+}
+
+.selected-jenis-chip-single .chip-change-btn {
+  color: #a5a2f7;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.76rem;
+  padding: 3px 8px;
+  background: rgba(115, 103, 240, 0.15);
+  border: 1px solid rgba(115, 103, 240, 0.25);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.selected-jenis-chip-single .chip-change-btn:hover {
+  background: rgba(115, 103, 240, 0.35);
+  color: #fff;
+}
+
+
 
 
 
