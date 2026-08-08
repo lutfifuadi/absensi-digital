@@ -176,7 +176,7 @@
       background: #1a1a2e !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
       border-radius: 5px !important;
-      overflow: hidden;
+      overflow: visible !important;
       backdrop-filter: blur(12px) saturate(180%);
     }
 
@@ -260,6 +260,85 @@
       background: rgba(115, 103, 240, 0.3);
       color: #ffffff;
       box-shadow: 0 0 12px rgba(115, 103, 240, 0.2);
+    }
+
+    .individu-search-results {
+      z-index: 1090 !important;
+      max-height: 230px;
+      overflow-y: auto;
+      background: #18182c !important;
+      border: 1px solid rgba(115, 103, 240, 0.35) !important;
+      border-radius: 8px !important;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75) !important;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .kelas-search-result-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      transition: all 0.2s ease-in-out;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 0.875rem;
+    }
+    .kelas-search-result-item:last-child {
+      border-bottom: none;
+    }
+    .kelas-search-result-item:hover {
+      background: rgba(115, 103, 240, 0.22) !important;
+      color: #ffffff !important;
+      padding-left: 1.2rem;
+    }
+
+    .selected-kelas-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 1.1rem;
+      border-radius: 8px;
+      background: rgba(115, 103, 240, 0.15) !important;
+      border: 1px solid rgba(115, 103, 240, 0.4) !important;
+      color: #ffffff;
+      font-size: 0.875rem;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(115, 103, 240, 0.2);
+    }
+    .selected-kelas-chip .chip-remove {
+      cursor: pointer;
+      opacity: 0.85;
+      transition: all 0.2s ease;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(234, 84, 85, 0.18);
+      color: #ff6b6b;
+      font-size: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .selected-kelas-chip .chip-remove:hover {
+      opacity: 1;
+      background: rgba(234, 84, 85, 0.35);
+      color: #fff;
+    }
+
+    .btn-tingkat-option {
+      padding: 0.65rem 1rem;
+      font-weight: 700;
+      font-size: 0.85rem;
+      border-radius: 8px !important;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .btn-tingkat-option.active {
+      box-shadow: 0 4px 15px rgba(115, 103, 240, 0.4);
     }
   </style>
 @endsection
@@ -394,19 +473,43 @@
                   <option value="siswa">Khusus Siswa</option>
                   <option value="orang_tua">Khusus Orang Tua / Wali</option>
                   <option value="staff">Khusus Staff / Tata Usaha</option>
+                  <option value="tingkat">Spesifik Tingkat (X / XI / XII)</option>
                   <option value="kelas">Spesifik Kelas</option>
                 </select>
               </div>
             </div>
 
+            {{-- TARGET TINGKAT --}}
+            <div class="mb-3 d-none" id="wrapperTargetTingkat">
+              <label class="form-label d-block mb-2">Pilih Tingkat Target <span class="text-danger">*</span></label>
+              <input type="hidden" name="target_tingkat" id="inputTargetTingkat">
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-primary flex-fill btn-tingkat-option py-2" data-tingkat="X">
+                  <i class="ti tabler-school fs-5"></i> Tingkat X
+                </button>
+                <button type="button" class="btn btn-outline-warning flex-fill btn-tingkat-option py-2" data-tingkat="XI">
+                  <i class="ti tabler-school fs-5"></i> Tingkat XI
+                </button>
+                <button type="button" class="btn btn-outline-danger flex-fill btn-tingkat-option py-2" data-tingkat="XII">
+                  <i class="ti tabler-school fs-5"></i> Tingkat XII
+                </button>
+              </div>
+            </div>
+
+            {{-- TARGET KELAS (LIVE SEARCH & CHIP BADGE) --}}
             <div class="mb-3 d-none" id="wrapperTargetKelas">
-              <label for="inputTargetKelas" class="form-label">Pilih Kelas Target <span class="text-danger">*</span></label>
-              <select class="form-select" id="inputTargetKelas" name="target_kelas_id">
-                <option value="">-- Pilih Kelas --</option>
-                @foreach($kelases as $k)
-                  <option value="{{ $k->id }}">{{ $k->nama }} ({{ $k->jurusan }})</option>
-                @endforeach
-              </select>
+              <label for="searchTargetKelas" class="form-label mb-2">Pilih Kelas Target <span class="text-danger">*</span></label>
+              <input type="hidden" name="target_kelas_id" id="inputTargetKelas">
+              
+              <div id="kelasSearchBoxContainer" class="position-relative">
+                <div class="input-group input-group-merge">
+                  <span class="input-group-text bg-transparent border-secondary text-info pe-2"><i class="ti tabler-search fs-5"></i></span>
+                  <input type="text" class="form-control text-white ps-1" id="searchTargetKelas" placeholder="Ketik nama kelas atau jurusan (misal: X-A, TKJ)..." autocomplete="off">
+                </div>
+                <div class="individu-search-results d-none position-absolute w-100 mt-2 shadow-lg" id="kelasSearchResultsList"></div>
+              </div>
+
+              <div class="selected-chip-wrap mt-2" id="selectedKelasChipWrap"></div>
             </div>
 
             <div class="mb-3">
@@ -519,22 +622,147 @@
       };
     }
 
-    function toggleTargetKelasField() {
+    const _kelasesList = [
+      @foreach($kelases as $k)
+        { id: {{ $k->id }}, nama: @json($k->nama), jurusan: @json($k->jurusan?->nama ?? 'Umum') },
+      @endforeach
+    ];
+
+    function toggleTargetFields() {
       const targetVal = document.getElementById('inputTarget').value;
-      const wrapper = document.getElementById('wrapperTargetKelas');
-      const selectKelas = document.getElementById('inputTargetKelas');
+      const wrapperKelas = document.getElementById('wrapperTargetKelas');
+      const wrapperTingkat = document.getElementById('wrapperTargetTingkat');
+      const inputKelas = document.getElementById('inputTargetKelas');
+      const inputTingkat = document.getElementById('inputTargetTingkat');
 
       if (targetVal === 'kelas') {
-        wrapper.classList.remove('d-none');
-        selectKelas.required = true;
+        wrapperKelas.classList.remove('d-none');
+        wrapperTingkat.classList.add('d-none');
+        inputKelas.required = true;
+        inputTingkat.required = false;
+        // Langsung tampilkan hasil pencarian secara otomatis saat target kelas dipilih
+        if (!document.getElementById('inputTargetKelas').value) {
+          renderKelasSearchResults('');
+        }
+      } else if (targetVal === 'tingkat') {
+        wrapperTingkat.classList.remove('d-none');
+        wrapperKelas.classList.add('d-none');
+        inputTingkat.required = true;
+        inputKelas.required = false;
       } else {
-        wrapper.classList.add('d-none');
-        selectKelas.required = false;
-        selectKelas.value = "";
+        wrapperKelas.classList.add('d-none');
+        wrapperTingkat.classList.add('d-none');
+        inputKelas.required = false;
+        inputTingkat.required = false;
       }
     }
 
-    document.getElementById('inputTarget').addEventListener('change', toggleTargetKelasField);
+    document.getElementById('inputTarget').addEventListener('change', toggleTargetFields);
+
+    // Live Search Kelas Functions
+    function renderKelasSearchResults(query) {
+      const resultsContainer = document.getElementById('kelasSearchResultsList');
+      if (!resultsContainer) return;
+      
+      const q = (query || '').toLowerCase().trim();
+      const filtered = _kelasesList.filter(k => 
+        k.nama.toLowerCase().includes(q) || k.jurusan.toLowerCase().includes(q)
+      );
+
+      if (filtered.length === 0) {
+        resultsContainer.innerHTML = '<div class="p-3 text-center text-white-50 small">Kelas tidak ditemukan.</div>';
+      } else {
+        let html = '';
+        filtered.forEach(k => {
+          const safeNama = k.nama.replace(/'/g, "\\'");
+          const safeJurusan = k.jurusan.replace(/'/g, "\\'");
+          html += `
+            <div class="kelas-search-result-item" onclick="selectKelasItem(${k.id}, '${safeNama}', '${safeJurusan}')">
+              <div class="d-flex align-items-center gap-2">
+                <div class="avatar avatar-xs rounded d-flex align-items-center justify-content-center" style="background: rgba(0, 207, 234, 0.15); width: 26px; height: 26px;">
+                  <i class="ti tabler-door text-info" style="font-size: 0.85rem;"></i>
+                </div>
+                <span class="fw-semibold text-white">${k.nama}</span>
+              </div>
+              <span class="badge" style="background: rgba(115, 103, 240, 0.18); color: #a5a2f7; border: 1px solid rgba(115, 103, 240, 0.35); font-size: 0.72rem; padding: 4px 10px; border-radius: 4px;">${k.jurusan}</span>
+            </div>
+          `;
+        });
+        resultsContainer.innerHTML = html;
+      }
+      resultsContainer.classList.remove('d-none');
+    }
+
+    function selectKelasItem(id, nama, jurusan) {
+      document.getElementById('inputTargetKelas').value = id;
+      document.getElementById('kelasSearchResultsList').classList.add('d-none');
+      document.getElementById('kelasSearchBoxContainer').classList.add('d-none');
+      
+      const chipWrap = document.getElementById('selectedKelasChipWrap');
+      chipWrap.innerHTML = `
+        <div class="selected-kelas-chip">
+          <i class="ti tabler-door text-info fs-5"></i>
+          <span>${nama} <small class="text-white-50">(${jurusan})</small></span>
+          <span class="chip-remove ms-2" onclick="clearSelectedKelas()" title="Batal / Ubah Kelas">
+            <i class="ti tabler-x"></i> Hapus
+          </span>
+        </div>
+      `;
+    }
+
+    function clearSelectedKelas() {
+      document.getElementById('inputTargetKelas').value = "";
+      document.getElementById('selectedKelasChipWrap').innerHTML = "";
+      document.getElementById('kelasSearchBoxContainer').classList.remove('d-none');
+      document.getElementById('searchTargetKelas').value = "";
+      renderKelasSearchResults('');
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const searchKelasElem = document.getElementById('searchTargetKelas');
+      if (searchKelasElem) {
+        searchKelasElem.addEventListener('focus', function () {
+          renderKelasSearchResults(this.value);
+        });
+        searchKelasElem.addEventListener('click', function () {
+          renderKelasSearchResults(this.value);
+        });
+        searchKelasElem.addEventListener('input', function () {
+          renderKelasSearchResults(this.value);
+        });
+      }
+    });
+
+    document.addEventListener('click', function (e) {
+      const searchBox = document.getElementById('wrapperTargetKelas');
+      if (searchBox && !searchBox.contains(e.target)) {
+        const resultsList = document.getElementById('kelasSearchResultsList');
+        if (resultsList) resultsList.classList.add('d-none');
+      }
+    });
+
+    // Tingkat Button Selection
+    function selectTingkat(tingkatVal) {
+      document.getElementById('inputTargetTingkat').value = tingkatVal;
+      document.querySelectorAll('.btn-tingkat-option').forEach(btn => {
+        if (btn.getAttribute('data-tingkat') === tingkatVal) {
+          btn.classList.add('active', 'btn-primary');
+          btn.classList.remove('btn-outline-primary', 'btn-outline-warning', 'btn-outline-danger');
+        } else {
+          btn.classList.remove('active', 'btn-primary');
+          const t = btn.getAttribute('data-tingkat');
+          if (t === 'X') btn.classList.add('btn-outline-primary');
+          if (t === 'XI') btn.classList.add('btn-outline-warning');
+          if (t === 'XII') btn.classList.add('btn-outline-danger');
+        }
+      });
+    }
+
+    document.querySelectorAll('.btn-tingkat-option').forEach(btn => {
+      btn.addEventListener('click', function () {
+        selectTingkat(this.getAttribute('data-tingkat'));
+      });
+    });
 
     function openCreateModal() {
       var refs = _getModalRefs();
@@ -545,7 +773,8 @@
       document.getElementById('inputJudul').value = "";
       document.getElementById('inputKategori').value = "informasi";
       document.getElementById('inputTarget').value = "semua";
-      document.getElementById('inputTargetKelas').value = "";
+      clearSelectedKelas();
+      selectTingkat("");
       document.getElementById('inputKonten').value = "";
       document.getElementById('inputTanggalMulai').value = "";
       document.getElementById('inputTanggalSelesai').value = "";
@@ -556,7 +785,7 @@
       document.getElementById('inputIsAktif').checked = true;
       document.getElementById('lampiranInfo').innerText = "Maksimal file 10 MB.";
 
-      toggleTargetKelasField();
+      toggleTargetFields();
       refs.modal.show();
     }
 
@@ -569,7 +798,24 @@
       document.getElementById('inputJudul').value = data.judul;
       document.getElementById('inputKategori').value = data.kategori || "informasi";
       document.getElementById('inputTarget').value = data.target || "semua";
-      document.getElementById('inputTargetKelas').value = data.target_kelas_id || "";
+      
+      if (data.target === 'kelas' && data.target_kelas_id) {
+        const foundKelas = _kelasesList.find(k => k.id == data.target_kelas_id);
+        if (foundKelas) {
+          selectKelasItem(foundKelas.id, foundKelas.nama, foundKelas.jurusan);
+        } else {
+          clearSelectedKelas();
+        }
+      } else {
+        clearSelectedKelas();
+      }
+
+      if (data.target === 'tingkat' && data.target_tingkat) {
+        selectTingkat(data.target_tingkat);
+      } else {
+        selectTingkat("");
+      }
+
       document.getElementById('inputKonten').value = data.konten || "";
       
       document.getElementById('inputTanggalMulai').value = data.tanggal_mulai ? data.tanggal_mulai.replace(' ', 'T').substring(0, 16) : "";
@@ -587,7 +833,7 @@
         document.getElementById('lampiranInfo').innerText = "Maksimal file 10 MB.";
       }
 
-      toggleTargetKelasField();
+      toggleTargetFields();
       refs.modal.show();
     }
 
