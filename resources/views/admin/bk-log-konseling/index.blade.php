@@ -257,8 +257,6 @@
                         <div id="hiddenLogSiswaInputsContainer">
                             <input type="hidden" name="siswa_id" value="" required>
                         </div>
-                        
-                        <div id="selectedLogSiswaChipsContainer" class="d-flex flex-wrap gap-2 mb-2"></div>
 
                         <div id="logSiswaSearchBoxContainer">
                             <div class="input-group input-group-merge">
@@ -267,6 +265,7 @@
                             </div>
                             <div id="logSiswaSearchResultsList" class="log-siswa-search-results d-none"></div>
                         </div>
+                        <div id="selectedLogSiswaChipsContainer" class="d-flex flex-wrap gap-2 mt-2"></div>
                     </div>
 
                     <div class="col-12 col-md-6">
