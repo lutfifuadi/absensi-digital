@@ -4,6 +4,67 @@
 
 @section('page-style')
 <link rel="stylesheet" href="{{ asset('css/dashboards/guru-bk.css') }}?v=1.2">
+<style>
+    .log-siswa-search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 1090;
+      background: #18182c;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      max-height: 230px;
+      overflow-y: auto;
+      backdrop-filter: blur(16px);
+      margin-top: 4px;
+    }
+
+    .log-siswa-item {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: background 0.15s ease;
+    }
+
+    .log-siswa-item:hover {
+      background: rgba(0, 207, 234, 0.18);
+    }
+
+    .selected-siswa-chip-info {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      width: 100%;
+      background: rgba(0, 207, 234, 0.14);
+      border: 1px solid rgba(0, 207, 234, 0.35);
+      border-radius: 8px;
+      padding: 8px 14px;
+      color: #fff;
+      font-size: 0.88rem;
+    }
+
+    .selected-siswa-chip-info .chip-remove {
+      color: #ea5455;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.78rem;
+      padding: 4px 10px;
+      background: rgba(234, 84, 85, 0.15);
+      border: 1px solid rgba(234, 84, 85, 0.3);
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .selected-siswa-chip-info .chip-remove:hover {
+      background: rgba(234, 84, 85, 0.3);
+    }
+</style>
 @endsection
 
 @section('content')
@@ -112,7 +173,7 @@
                     <th>Guru Konselor</th>
                     <th>Topik / Ringkasan</th>
                     <th>Kategori Sesi</th>
-                    <th>Aksesibility</th>
+                    <th>Aksesibilitas</th>
                     <th class="text-end">Aksi</th>
                 </tr>
             </thead>
@@ -189,15 +250,22 @@
             <form action="{{ route('admin.bk-log-konseling.store') }}" method="POST">
                 @csrf
                 <div class="modal-body p-4 row g-3 text-white">
-                    <div class="col-12 col-md-6">
+                    {{-- Live Search Siswa --}}
+                    <div class="col-12 col-md-6 position-relative" id="wrapperLogSiswaSearch">
                         <label class="form-label fw-medium text-white">Pilih Siswa <span class="text-danger">*</span></label>
-                        <select name="siswa_id" class="form-select bg-dark text-white border-secondary" required>
-                            <option value="">-- Pilih Siswa --</option>
-                            @foreach($siswas as $s)
-                                <option value="{{ $s->id }}">{{ $s->nama_lengkap }} ({{ $s->kelas?->nama ?? '-' }})</option>
-                            @endforeach
-                        </select>
+                        <input type="hidden" name="siswa_id" id="inputLogSiswaId" required>
+                        
+                        <div id="selectedLogSiswaChipWrap"></div>
+
+                        <div id="logSiswaSearchBoxContainer">
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-white-50"><i class="ti tabler-search"></i></span>
+                                <input type="text" id="searchLogSiswa" class="form-control bg-dark text-white border-secondary" placeholder="Cari nama / NIS / kelas siswa..." autocomplete="off">
+                            </div>
+                            <div id="logSiswaSearchResultsList" class="log-siswa-search-results d-none"></div>
+                        </div>
                     </div>
+
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-medium text-white">Guru Konselor <span class="text-danger">*</span></label>
                         <select name="guru_bk_id" class="form-select bg-dark text-white border-secondary" required>
@@ -243,4 +311,98 @@
         </div>
     </div>
 </div>
+
+<script>
+    const _allLogSiswas = @json($siswas->map(function($s) {
+        return [
+            'id' => $s->id,
+            'nama' => $s->nama_lengkap,
+            'nis' => $s->nis ?? '',
+            'kelas' => $s->kelas?->nama ?? 'Tanpa Kelas'
+        ];
+    }));
+
+    function renderLogSiswaSearchResults(query) {
+        const listContainer = document.getElementById('logSiswaSearchResultsList');
+        if (!listContainer) return;
+
+        const q = (query || '').toLowerCase().trim();
+        const filtered = _allLogSiswas.filter(s => 
+            s.nama.toLowerCase().includes(q) || s.nis.toLowerCase().includes(q) || s.kelas.toLowerCase().includes(q)
+        );
+
+        if (filtered.length === 0) {
+            listContainer.innerHTML = '<div class="p-3 text-center text-white-50 small">Siswa tidak ditemukan.</div>';
+        } else {
+            let html = '';
+            filtered.forEach(s => {
+                const safeNama = s.nama.replace(/'/g, "\\'");
+                const safeKelas = s.kelas.replace(/'/g, "\\'");
+                html += `
+                    <div class="log-siswa-item" onclick="selectLogSiswa(${s.id}, '${safeNama}', '${safeKelas}', '${s.nis}')">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar avatar-xs rounded-circle d-flex align-items-center justify-content-center bg-label-info" style="width: 28px; height: 28px;">
+                                <i class="ti tabler-user text-info" style="font-size: 0.85rem;"></i>
+                            </div>
+                            <div>
+                                <span class="fw-semibold text-white d-block" style="font-size: 0.85rem;">${s.nama}</span>
+                                <small class="text-white-50" style="font-size: 0.72rem;">NIS: ${s.nis || '-'}</small>
+                            </div>
+                        </div>
+                        <span class="badge" style="background: rgba(0, 207, 234, 0.18); color: #00cfe8; border: 1px solid rgba(0, 207, 234, 0.35); font-size: 0.72rem;">${s.kelas}</span>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+        }
+        listContainer.classList.remove('d-none');
+    }
+
+    function selectLogSiswa(id, nama, kelas, nis) {
+        document.getElementById('inputLogSiswaId').value = id;
+        document.getElementById('logSiswaSearchResultsList').classList.add('d-none');
+        document.getElementById('logSiswaSearchBoxContainer').classList.add('d-none');
+
+        const chipWrap = document.getElementById('selectedLogSiswaChipWrap');
+        chipWrap.innerHTML = `
+            <div class="selected-siswa-chip-info">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="ti tabler-user-check text-info fs-5"></i>
+                    <div>
+                        <span class="fw-bold">${nama}</span>
+                        <small class="text-white-50 d-block" style="font-size: 0.75rem;">${kelas} • NIS: ${nis || '-'}</small>
+                    </div>
+                </div>
+                <span class="chip-remove" onclick="clearSelectedLogSiswa()" title="Ubah Siswa">
+                    <i class="ti tabler-x"></i> Ubah
+                </span>
+            </div>
+        `;
+    }
+
+    function clearSelectedLogSiswa() {
+        document.getElementById('inputLogSiswaId').value = "";
+        document.getElementById('selectedLogSiswaChipWrap').innerHTML = "";
+        document.getElementById('logSiswaSearchBoxContainer').classList.remove('d-none');
+        document.getElementById('searchLogSiswa').value = "";
+        renderLogSiswaSearchResults('');
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('searchLogSiswa');
+        if (searchInput) {
+            searchInput.addEventListener('focus', function () { renderLogSiswaSearchResults(this.value); });
+            searchInput.addEventListener('click', function () { renderLogSiswaSearchResults(this.value); });
+            searchInput.addEventListener('input', function () { renderLogSiswaSearchResults(this.value); });
+        }
+    });
+
+    document.addEventListener('click', function (e) {
+        const searchBox = document.getElementById('wrapperLogSiswaSearch');
+        if (searchBox && !searchBox.contains(e.target)) {
+            const resultsList = document.getElementById('logSiswaSearchResultsList');
+            if (resultsList) resultsList.classList.add('d-none');
+        }
+    });
+</script>
 @endsection

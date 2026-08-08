@@ -4,6 +4,67 @@
 
 @section('page-style')
 <link rel="stylesheet" href="{{ asset('css/dashboards/guru-bk.css') }}?v=1.2">
+<style>
+    .pemutihan-siswa-search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 1090;
+      background: #18182c;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      max-height: 230px;
+      overflow-y: auto;
+      backdrop-filter: blur(16px);
+      margin-top: 4px;
+    }
+
+    .pemutihan-siswa-item {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: background 0.15s ease;
+    }
+
+    .pemutihan-siswa-item:hover {
+      background: rgba(40, 199, 111, 0.18);
+    }
+
+    .selected-siswa-chip-success {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      width: 100%;
+      background: rgba(40, 199, 111, 0.14);
+      border: 1px solid rgba(40, 199, 111, 0.35);
+      border-radius: 8px;
+      padding: 8px 14px;
+      color: #fff;
+      font-size: 0.88rem;
+    }
+
+    .selected-siswa-chip-success .chip-remove {
+      color: #ea5455;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.78rem;
+      padding: 4px 10px;
+      background: rgba(234, 84, 85, 0.15);
+      border: 1px solid rgba(234, 84, 85, 0.3);
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .selected-siswa-chip-success .chip-remove:hover {
+      background: rgba(234, 84, 85, 0.3);
+    }
+</style>
 @endsection
 
 @section('content')
@@ -158,15 +219,22 @@
             <form action="{{ route('admin.bk-pemutihan.store') }}" method="POST">
                 @csrf
                 <div class="modal-body p-4 row g-3 text-white">
-                    <div class="col-12">
+                    {{-- Live Search Siswa --}}
+                    <div class="col-12 position-relative" id="wrapperPemutihanSiswaSearch">
                         <label class="form-label fw-medium text-white">Pilih Siswa <span class="text-danger">*</span></label>
-                        <select name="siswa_id" class="form-select bg-dark text-white border-secondary" required>
-                            <option value="">-- Pilih Siswa --</option>
-                            @foreach($siswas as $s)
-                                <option value="{{ $s->id }}">{{ $s->nama_lengkap }} ({{ $s->kelas?->nama ?? '-' }})</option>
-                            @endforeach
-                        </select>
+                        <input type="hidden" name="siswa_id" id="inputPemutihanSiswaId" required>
+                        
+                        <div id="selectedPemutihanSiswaChipWrap"></div>
+
+                        <div id="pemutihanSiswaSearchBoxContainer">
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-white-50"><i class="ti tabler-search"></i></span>
+                                <input type="text" id="searchPemutihanSiswa" class="form-control bg-dark text-white border-secondary" placeholder="Cari nama / NIS / kelas siswa..." autocomplete="off">
+                            </div>
+                            <div id="pemutihanSiswaSearchResultsList" class="pemutihan-siswa-search-results d-none"></div>
+                        </div>
                     </div>
+
                     <div class="col-12 col-md-6">
                         <label class="form-label fw-medium text-white">Jumlah Pengurangan Poin <span class="text-danger">*</span></label>
                         <input type="number" name="poin_yang_diputihkan" class="form-control bg-dark text-white border-secondary" placeholder="Contoh: 15" min="1" required>
@@ -188,4 +256,98 @@
         </div>
     </div>
 </div>
+
+<script>
+    const _allPemutihanSiswas = @json($siswas->map(function($s) {
+        return [
+            'id' => $s->id,
+            'nama' => $s->nama_lengkap,
+            'nis' => $s->nis ?? '',
+            'kelas' => $s->kelas?->nama ?? 'Tanpa Kelas'
+        ];
+    }));
+
+    function renderPemutihanSiswaSearchResults(query) {
+        const listContainer = document.getElementById('pemutihanSiswaSearchResultsList');
+        if (!listContainer) return;
+
+        const q = (query || '').toLowerCase().trim();
+        const filtered = _allPemutihanSiswas.filter(s => 
+            s.nama.toLowerCase().includes(q) || s.nis.toLowerCase().includes(q) || s.kelas.toLowerCase().includes(q)
+        );
+
+        if (filtered.length === 0) {
+            listContainer.innerHTML = '<div class="p-3 text-center text-white-50 small">Siswa tidak ditemukan.</div>';
+        } else {
+            let html = '';
+            filtered.forEach(s => {
+                const safeNama = s.nama.replace(/'/g, "\\'");
+                const safeKelas = s.kelas.replace(/'/g, "\\'");
+                html += `
+                    <div class="pemutihan-siswa-item" onclick="selectPemutihanSiswa(${s.id}, '${safeNama}', '${safeKelas}', '${s.nis}')">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar avatar-xs rounded-circle d-flex align-items-center justify-content-center bg-label-success" style="width: 28px; height: 28px;">
+                                <i class="ti tabler-user text-success" style="font-size: 0.85rem;"></i>
+                            </div>
+                            <div>
+                                <span class="fw-semibold text-white d-block" style="font-size: 0.85rem;">${s.nama}</span>
+                                <small class="text-white-50" style="font-size: 0.72rem;">NIS: ${s.nis || '-'}</small>
+                            </div>
+                        </div>
+                        <span class="badge" style="background: rgba(40, 199, 111, 0.18); color: #28c76f; border: 1px solid rgba(40, 199, 111, 0.35); font-size: 0.72rem;">${s.kelas}</span>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+        }
+        listContainer.classList.remove('d-none');
+    }
+
+    function selectPemutihanSiswa(id, nama, kelas, nis) {
+        document.getElementById('inputPemutihanSiswaId').value = id;
+        document.getElementById('pemutihanSiswaSearchResultsList').classList.add('d-none');
+        document.getElementById('pemutihanSiswaSearchBoxContainer').classList.add('d-none');
+
+        const chipWrap = document.getElementById('selectedPemutihanSiswaChipWrap');
+        chipWrap.innerHTML = `
+            <div class="selected-siswa-chip-success">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="ti tabler-user-check text-success fs-5"></i>
+                    <div>
+                        <span class="fw-bold">${nama}</span>
+                        <small class="text-white-50 d-block" style="font-size: 0.75rem;">${kelas} • NIS: ${nis || '-'}</small>
+                    </div>
+                </div>
+                <span class="chip-remove" onclick="clearSelectedPemutihanSiswa()" title="Ubah Siswa">
+                    <i class="ti tabler-x"></i> Ubah
+                </span>
+            </div>
+        `;
+    }
+
+    function clearSelectedPemutihanSiswa() {
+        document.getElementById('inputPemutihanSiswaId').value = "";
+        document.getElementById('selectedPemutihanSiswaChipWrap').innerHTML = "";
+        document.getElementById('pemutihanSiswaSearchBoxContainer').classList.remove('d-none');
+        document.getElementById('searchPemutihanSiswa').value = "";
+        renderPemutihanSiswaSearchResults('');
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('searchPemutihanSiswa');
+        if (searchInput) {
+            searchInput.addEventListener('focus', function () { renderPemutihanSiswaSearchResults(this.value); });
+            searchInput.addEventListener('click', function () { renderPemutihanSiswaSearchResults(this.value); });
+            searchInput.addEventListener('input', function () { renderPemutihanSiswaSearchResults(this.value); });
+        }
+    });
+
+    document.addEventListener('click', function (e) {
+        const searchBox = document.getElementById('wrapperPemutihanSiswaSearch');
+        if (searchBox && !searchBox.contains(e.target)) {
+            const resultsList = document.getElementById('siswaSearchResultsList');
+            if (resultsList) resultsList.classList.add('d-none');
+        }
+    });
+</script>
 @endsection
