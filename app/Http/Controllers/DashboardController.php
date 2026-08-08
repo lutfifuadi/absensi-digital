@@ -127,6 +127,7 @@ class DashboardController extends Controller
             User::ROLE_SISWA      => $this->siswaData($user),
             User::ROLE_ORANG_TUA  => $this->orangTuaData($user),
             User::ROLE_PIKET      => $this->piketData(),
+            User::ROLE_OPERATOR   => $this->operatorData(),
             default               => $this->superAdminData(),
         };
 
