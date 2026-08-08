@@ -41,11 +41,19 @@ class BkLogKonselingController extends Controller
         }
 
         $logs = $query->latest('tanggal_konseling')->paginate(15)->withQueryString();
+        
+        $stats = [
+            'total'     => BkLogKonseling::count(),
+            'privat'    => BkLogKonseling::where('is_privat', true)->count(),
+            'publik'    => BkLogKonseling::where('is_privat', false)->count(),
+            'bulan_ini' => BkLogKonseling::whereMonth('tanggal_konseling', now()->month)->count(),
+        ];
+
         $siswas = Siswa::with('kelas')->orderBy('nama_lengkap')->get();
         $gurus = Guru::orderBy('nama_lengkap')->get();
         $kasuses = BkKasus::whereIn('status', ['terbuka', 'dalam_proses'])->get();
 
-        return view('admin.bk-log-konseling.index', compact('logs', 'siswas', 'gurus', 'kasuses'));
+        return view('admin.bk-log-konseling.index', compact('logs', 'stats', 'siswas', 'gurus', 'kasuses'));
     }
 
     public function store(Request $request)

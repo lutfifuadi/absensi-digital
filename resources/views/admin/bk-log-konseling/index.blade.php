@@ -11,8 +11,8 @@
     <div class="das-hero__inner">
         <div class="das-hero__identity">
             <div class="das-hero__logo-wrapper">
-                <div class="das-hero__logo-placeholder">
-                    <i class="ti tabler-notebook text-info"></i>
+                <div class="das-hero__logo-placeholder d-flex align-items-center justify-content-center">
+                    <i class="ti tabler-notebook text-info" style="font-size: 2rem;"></i>
                 </div>
                 <div class="das-hero__logo-glow"></div>
             </div>
@@ -41,24 +41,11 @@
         <div class="card border-0 shadow-sm bg-body">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <span class="text-muted d-block mb-1">Total Sesi Selesai</span>
-                    <h4 class="mb-0 fw-bold text-info">42</h4>
+                    <span class="text-white-50 d-block mb-1 fs-6 fw-medium">Total Sesi Selesai</span>
+                    <h4 class="mb-0 fw-bold text-info">{{ number_format($stats['total'] ?? 0) }} Sesi</h4>
                 </div>
-                <div class="avatar avatar-md bg-label-info rounded">
-                    <i class="ti tabler-messages fs-3"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm bg-body">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <span class="text-muted d-block mb-1">Log Sifat Privat</span>
-                    <h4 class="mb-0 fw-bold text-danger">18</h4>
-                </div>
-                <div class="avatar avatar-md bg-label-danger rounded">
-                    <i class="ti tabler-lock fs-3"></i>
+                <div class="avatar avatar-md bg-label-info rounded d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                    <i class="ti tabler-messages fs-3 text-info"></i>
                 </div>
             </div>
         </div>
@@ -67,11 +54,11 @@
         <div class="card border-0 shadow-sm bg-body">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <span class="text-muted d-block mb-1">Log Sifat Publik / Tim</span>
-                    <h4 class="mb-0 fw-bold text-success">24</h4>
+                    <span class="text-white-50 d-block mb-1 fs-6 fw-medium">Log Sifat Privat</span>
+                    <h4 class="mb-0 fw-bold text-danger">{{ number_format($stats['privat'] ?? 0) }} Sesi</h4>
                 </div>
-                <div class="avatar avatar-md bg-label-success rounded">
-                    <i class="ti tabler-eye fs-3"></i>
+                <div class="avatar avatar-md bg-label-danger rounded d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                    <i class="ti tabler-lock fs-3 text-danger"></i>
                 </div>
             </div>
         </div>
@@ -80,11 +67,24 @@
         <div class="card border-0 shadow-sm bg-body">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <span class="text-muted d-block mb-1">Bulan Ini</span>
-                    <h4 class="mb-0 fw-bold text-primary">12 Sesi</h4>
+                    <span class="text-white-50 d-block mb-1 fs-6 fw-medium">Log Sifat Publik</span>
+                    <h4 class="mb-0 fw-bold text-success">{{ number_format($stats['publik'] ?? 0) }} Sesi</h4>
                 </div>
-                <div class="avatar avatar-md bg-label-primary rounded">
-                    <i class="ti tabler-calendar-event fs-3"></i>
+                <div class="avatar avatar-md bg-label-success rounded d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                    <i class="ti tabler-eye fs-3 text-success"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm bg-body">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-white-50 d-block mb-1 fs-6 fw-medium">Bulan Ini</span>
+                    <h4 class="mb-0 fw-bold text-primary">{{ number_format($stats['bulan_ini'] ?? 0) }} Sesi</h4>
+                </div>
+                <div class="avatar avatar-md bg-label-primary rounded d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                    <i class="ti tabler-calendar-event fs-3 text-primary"></i>
                 </div>
             </div>
         </div>
@@ -95,14 +95,9 @@
 <div class="card border-0 shadow-sm">
     <div class="card-header border-bottom d-flex align-items-center justify-content-between flex-wrap gap-3 py-3">
         <h5 class="card-title mb-0 fw-bold"><i class="ti tabler-list me-2 text-info"></i>Daftar Jurnal Bimbingan</h5>
-        <div class="d-flex align-items-center gap-2">
-            <input type="text" class="form-control form-control-sm" placeholder="Cari siswa atau topik..." style="width: 220px;">
-            <select class="form-select form-select-sm" style="width: 150px;">
-                <option value="">Semua Akses</option>
-                <option value="privat">Privat (BK Only)</option>
-                <option value="publik">Publik / Tim</option>
-            </select>
-        </div>
+        <form method="GET" action="{{ route('admin.bk-log-konseling.index') }}" class="d-flex align-items-center gap-2">
+            <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari siswa atau topik..." value="{{ request('search') }}" style="width: 220px;">
+        </form>
     </div>
     <div class="table-responsive text-nowrap">
         <table class="table table-hover align-middle mb-0">
@@ -113,135 +108,131 @@
                     <th>Guru Konselor</th>
                     <th>Topik / Ringkasan</th>
                     <th>Kategori Sesi</th>
-                    <th>Aksesibilitas</th>
+                    <th>Aksesibility</th>
                     <th class="text-end">Aksi</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>
-                        <span class="fw-semibold text-body d-block">08 Aug 2026</span>
-                        <small class="text-muted">09:30 WIB</small>
-                    </td>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <div class="avatar avatar-sm me-2">
-                                <span class="avatar-initial rounded-circle bg-label-primary">SN</span>
+                @forelse($logs as $item)
+                    <tr>
+                        <td>
+                            <span class="fw-semibold text-white d-block">{{ $item->tanggal_konseling ? $item->tanggal_konseling->format('d M Y') : '—' }}</span>
+                            <small class="text-white-50">{{ $item->waktu_mulai ?? '-' }}</small>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar avatar-sm me-2 d-flex align-items-center justify-content-center">
+                                    <span class="avatar-initial rounded-circle bg-label-info">
+                                        {{ strtoupper(substr($item->siswa?->nama_lengkap ?? 'S', 0, 2)) }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 text-truncate text-white">{{ $item->siswa?->nama_lengkap ?? '—' }}</h6>
+                                    <small class="text-white-50">{{ $item->siswa?->kelas?->nama ?? '—' }}</small>
+                                </div>
                             </div>
-                            <div>
-                                <h6 class="mb-0 text-truncate">Siti Nurhaliza</h6>
-                                <small class="text-muted">XI TKJ 2</small>
+                        </td>
+                        <td><span class="text-white">{{ $item->konselor?->nama_lengkap ?? '—' }}</span></td>
+                        <td>
+                            <span class="fw-medium text-white d-block">{{ $item->topik }}</span>
+                            <small class="text-white-50">{{ \Illuminate\Support\Str::limit($item->ringkasan_hasil ?? '—', 45) }}</small>
+                        </td>
+                        <td><span class="badge bg-label-info">{{ ucfirst($item->jenis_konseling) }}</span></td>
+                        <td>
+                            @if($item->is_privat)
+                                <span class="badge bg-label-danger d-inline-flex align-items-center gap-1">
+                                    <i class="ti tabler-lock fs-6"></i> Privat (Hanya BK)
+                                </span>
+                            @else
+                                <span class="badge bg-label-success d-inline-flex align-items-center gap-1">
+                                    <i class="ti tabler-world fs-6"></i> Publik / Tim
+                                </span>
+                            @endif
+                        </td>
+                        <td class="text-end">
+                            <span class="text-white-50 small">-</span>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="d-flex flex-column align-items-center">
+                                <i class="ti tabler-notebook-off fs-1 text-white-50 mb-2"></i>
+                                <h6 class="text-white mb-1">Belum Ada Jurnal Konseling</h6>
+                                <p class="text-white-50 small mb-0">Belum terdapat catatan sesi bimbingan konseling yang tersimpan.</p>
                             </div>
-                        </div>
-                    </td>
-                    <td>Bu Dra. Rahmawati</td>
-                    <td>
-                        <span class="fw-medium text-body d-block">Konseling Motivasi Belajar</span>
-                        <small class="text-muted">Pembahasan mengenai penurunan keaktifan kelas</small>
-                    </td>
-                    <td><span class="badge bg-label-info">Individu</span></td>
-                    <td>
-                        <span class="badge bg-label-danger d-inline-flex align-items-center gap-1">
-                            <i class="ti tabler-lock fs-6"></i> Privat (Hanya BK)
-                        </span>
-                    </td>
-                    <td class="text-end">
-                        <button type="button" class="btn btn-sm btn-icon btn-label-info" data-bs-toggle="modal" data-bs-target="#modalDetailKonseling" title="Detail Jurnal">
-                            <i class="ti tabler-eye"></i>
-                        </button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <span class="fw-semibold text-body d-block">05 Aug 2026</span>
-                        <small class="text-muted">13:15 WIB</small>
-                    </td>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <div class="avatar avatar-sm me-2">
-                                <span class="avatar-initial rounded-circle bg-label-danger">MA</span>
-                            </div>
-                            <div>
-                                <h6 class="mb-0 text-truncate">Muhammad Albar</h6>
-                                <small class="text-muted">XII RPL 1</small>
-                            </div>
-                        </div>
-                    </td>
-                    <td>Pak Ahmad S.Pd</td>
-                    <td>
-                        <span class="fw-medium text-body d-block">Mediasi & Resolusi Konflik</span>
-                        <small class="text-muted">Sesi mediasi pasca kejadian perkelahian</small>
-                    </td>
-                    <td><span class="badge bg-label-warning">Kelompok / Mediasi</span></td>
-                    <td>
-                        <span class="badge bg-label-success d-inline-flex align-items-center gap-1">
-                            <i class="ti tabler-world fs-6"></i> Publik / Tim Sekolah
-                        </span>
-                    </td>
-                    <td class="text-end">
-                        <button type="button" class="btn btn-sm btn-icon btn-label-info" data-bs-toggle="modal" data-bs-target="#modalDetailKonseling" title="Detail Jurnal">
-                            <i class="ti tabler-eye"></i>
-                        </button>
-                    </td>
-                </tr>
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
+    @if ($logs->hasPages())
+        <div class="card-footer py-3 border-top border-secondary">
+            {{ $logs->links() }}
+        </div>
+    @endif
 </div>
 
 {{-- MODAL CATAT KONSELING --}}
 <div class="modal fade" id="modalCatatKonseling" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-bottom">
-                <h5 class="modal-title fw-bold"><i class="ti tabler-notebook text-info me-2"></i>Catat Sesi Bimbingan Konseling</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content border-0 shadow-lg" style="background: #1a1a2e; border: 1px solid rgba(255,255,255,0.1) !important;">
+            <div class="modal-header border-bottom p-4">
+                <h5 class="modal-title fw-bold text-white"><i class="ti tabler-notebook text-info me-2"></i>Catat Sesi Bimbingan Konseling</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="" method="POST">
+            <form action="{{ route('admin.bk-log-konseling.store') }}" method="POST">
                 @csrf
-                <div class="modal-body row g-3">
+                <div class="modal-body p-4 row g-3 text-white">
                     <div class="col-12 col-md-6">
-                        <label class="form-label fw-medium required">Siswa Konseli</label>
-                        <select name="siswa_id" class="form-select" required>
+                        <label class="form-label fw-medium text-white">Pilih Siswa <span class="text-danger">*</span></label>
+                        <select name="siswa_id" class="form-select bg-dark text-white border-secondary" required>
                             <option value="">-- Pilih Siswa --</option>
-                            <option value="1">Siti Nurhaliza (XI TKJ 2)</option>
-                            <option value="2">Muhammad Albar (XII RPL 1)</option>
+                            @foreach($siswas as $s)
+                                <option value="{{ $s->id }}">{{ $s->nama_lengkap }} ({{ $s->kelas?->nama ?? '-' }})</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="col-12 col-md-6">
-                        <label class="form-label fw-medium required">Jenis Sesi</label>
-                        <select name="jenis_sesi" class="form-select" required>
-                            <option value="Individu">Konseling Individu</option>
-                            <option value="Kelompok">Konseling Kelompok / Mediasi</option>
-                            <option value="Karir">Bimbingan Karir / Studi</option>
+                        <label class="form-label fw-medium text-white">Guru Konselor <span class="text-danger">*</span></label>
+                        <select name="guru_bk_id" class="form-select bg-dark text-white border-secondary" required>
+                            <option value="">-- Pilih Konselor --</option>
+                            @foreach($gurus as $g)
+                                <option value="{{ $g->id }}">{{ $g->nama_lengkap }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="col-12 col-md-6">
-                        <label class="form-label fw-medium required">Tanggal & Waktu Sesi</label>
-                        <input type="datetime-local" name="waktu_sesi" class="form-control" value="{{ date('Y-m-d\TH:i') }}" required>
+                        <label class="form-label fw-medium text-white">Tanggal Konseling <span class="text-danger">*</span></label>
+                        <input type="date" name="tanggal_konseling" class="form-control bg-dark text-white border-secondary" value="{{ date('Y-m-d') }}" required>
                     </div>
                     <div class="col-12 col-md-6">
-                        <label class="form-label fw-medium required">Sifat Catatan (Privasi)</label>
-                        <select name="sifat_privasi" class="form-select" required>
-                            <option value="privat">🔒 Privat (Hanya Guru BK)</option>
-                            <option value="publik">🌐 Publik / Tim (Wali Kelas & Kesiswaan)</option>
+                        <label class="form-label fw-medium text-white">Jenis Konseling <span class="text-danger">*</span></label>
+                        <select name="jenis_konseling" class="form-select bg-dark text-white border-secondary" required>
+                            <option value="individu">Individu</option>
+                            <option value="kelompok">Kelompok</option>
+                            <option value="karir">Bimbingan Karir</option>
+                            <option value="kunjungan_rumah">Kunjungan Rumah (Home Visit)</option>
                         </select>
                     </div>
                     <div class="col-12">
-                        <label class="form-label fw-medium required">Topik Bimbingan</label>
-                        <input type="text" name="topik" class="form-control" placeholder="Garis besar pembahasan..." required>
+                        <label class="form-label fw-medium text-white">Topik Pembahasan <span class="text-danger">*</span></label>
+                        <input type="text" name="topik" class="form-control bg-dark text-white border-secondary" placeholder="Ringkasan topik konseling..." required>
                     </div>
                     <div class="col-12">
-                        <label class="form-label fw-medium required">Hasil & Catatan Konseling</label>
-                        <textarea name="catatan" class="form-control" rows="4" placeholder="Detail evaluasi, temuan psikologis, dan kesepakatan tindak lanjut..." required></textarea>
+                        <label class="form-label fw-medium text-white">Ringkasan Hasil & Evaluasi</label>
+                        <textarea name="ringkasan_hasil" class="form-control bg-dark text-white border-secondary" rows="3" placeholder="Catatan perkembangan atau hasil konseling..."></textarea>
                     </div>
                     <div class="col-12">
-                        <label class="form-label fw-medium">Rencana Tindak Lanjut (RTL)</label>
-                        <input type="text" name="rtl" class="form-control" placeholder="Tindakan selanjutnya (misal: Sesi 2 minggu depan, panggilan orang tua)">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_privat" value="1" id="switchPrivat">
+                            <label class="form-check-input-label text-white" for="switchPrivat">Tandai sebagai Catatan Privat (Hanya Guru BK)</label>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer border-top">
-                    <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Batal</button>
+                <div class="modal-footer border-top p-3">
+                    <button type="button" class="btn btn-outline-secondary text-white" data-bs-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-info"><i class="ti tabler-device-floppy me-1"></i>Simpan Jurnal</button>
                 </div>
             </form>

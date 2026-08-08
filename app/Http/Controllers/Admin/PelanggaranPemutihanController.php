@@ -31,9 +31,16 @@ class PelanggaranPemutihanController extends Controller
         }
 
         $logs = $query->latest('tanggal_pemutihan')->paginate(15)->withQueryString();
+        
+        $stats = [
+            'total_poin'  => PelanggaranPemutihanLog::sum('poin_yang_diputihkan'),
+            'siswa_count' => PelanggaranPemutihanLog::distinct('siswa_id')->count('siswa_id'),
+            'total_log'   => PelanggaranPemutihanLog::count(),
+        ];
+
         $siswas = Siswa::with('kelas')->orderBy('nama_lengkap')->get();
 
-        return view('admin.bk-pemutihan.index', compact('logs', 'siswas'));
+        return view('admin.bk-pemutihan.index', compact('logs', 'stats', 'siswas'));
     }
 
     public function store(Request $request)

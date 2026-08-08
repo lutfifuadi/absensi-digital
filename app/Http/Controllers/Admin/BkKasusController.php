@@ -44,10 +44,18 @@ class BkKasusController extends Controller
         }
 
         $kasusList = $query->latest('tanggal_lapor')->paginate(15)->withQueryString();
+        
+        $stats = [
+            'total'    => BkKasus::count(),
+            'proses'   => BkKasus::where('status', 'dalam_proses')->count(),
+            'eskalasi' => BkKasus::where('status', 'eskalasi_komdis')->count(),
+            'selesai'  => BkKasus::where('status', 'selesai')->count(),
+        ];
+
         $siswas = Siswa::with('kelas')->orderBy('nama_lengkap')->get();
         $gurus = Guru::orderBy('nama_lengkap')->get();
 
-        return view('admin.bk-kasus.index', compact('kasusList', 'siswas', 'gurus'));
+        return view('admin.bk-kasus.index', compact('kasusList', 'stats', 'siswas', 'gurus'));
     }
 
     public function store(Request $request)
