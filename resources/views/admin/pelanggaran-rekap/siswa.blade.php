@@ -2,6 +2,31 @@
 
 @section('title', 'Profil Pelanggaran Siswa — ' . $siswa->nama_lengkap)
 
+@section('page-style')
+<style>
+  .nav-tabs-glass {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  }
+  .nav-tabs-glass .nav-link {
+    color: rgba(255, 255, 255, 0.6) !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    background: transparent !important;
+    font-weight: 600;
+    padding: 0.75rem 1.25rem;
+    transition: all 0.15s ease;
+  }
+  .nav-tabs-glass .nav-link:hover {
+    color: #fff !important;
+  }
+  .nav-tabs-glass .nav-link.active {
+    color: var(--das-primary, #7367f0) !important;
+    border-bottom-color: var(--das-primary, #7367f0) !important;
+    background: transparent !important;
+  }
+</style>
+@endsection
+
 @section('content')
 <div class="das-hero das-hero--with-stats mb-4">
   <div class="das-hero__bg"></div>
@@ -11,9 +36,13 @@
   <div class="das-hero__inner">
     <div class="das-hero__identity">
       <div class="das-hero__logo-wrapper">
-        <span class="avatar-initial rounded-circle bg-label-{{ $siswa->jenis_kelamin === 'L' ? 'info' : 'danger' }}" style="font-size: 2.5rem; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-          {{ strtoupper(substr($siswa->nama_lengkap, 0, 1)) }}{{ strtoupper(substr(strrchr($siswa->nama_lengkap, ' ') ?: $siswa->nama_lengkap, 1, 1)) }}
-        </span>
+        @if($siswa->foto && file_exists(public_path('storage/foto-siswa/' . $siswa->foto)))
+          <img src="{{ asset('storage/foto-siswa/' . $siswa->foto) }}" alt="Avatar" class="rounded-circle" style="object-fit: cover; width:100%; height:100%;">
+        @else
+          <span class="avatar-initial rounded-circle bg-label-{{ $siswa->jenis_kelamin === 'L' ? 'info' : 'danger' }}" style="font-size: 2rem; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+            {{ strtoupper(substr($siswa->nama_lengkap, 0, 1)) }}{{ strtoupper(substr(strrchr($siswa->nama_lengkap, ' ') ?: $siswa->nama_lengkap, 1, 1)) }}
+          </span>
+        @endif
         <div class="das-hero__logo-glow"></div>
       </div>
       <div class="das-hero__meta">
@@ -44,7 +73,7 @@
     <div class="das-stat-card das-stat-card--warning">
       <div class="das-stat-card__icon"><i class="ti tabler-award"></i></div>
       <div class="das-stat-card__body">
-        <div class="das-stat-card__val">{{ $stats['level_sp_aktif'] }}</div>
+        <div class="das-stat-card__val">{{ $stats['level_sp_aktif'] ?: '-' }}</div>
         <div class="das-stat-card__label">SP Aktif</div>
       </div>
     </div>
@@ -77,23 +106,23 @@
       <div class="das-panel__body">
         <ul class="list-unstyled mb-0">
           <li class="d-flex justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-10">
-            <span class="text-muted small">NISN</span>
-            <span class="text-white fw-bold">{{ $siswa->nisn }}</span>
+            <span class="text-white-50 small">NISN</span>
+            <span class="text-white fw-bold">{{ $siswa->nisn ?: '-' }}</span>
           </li>
           <li class="d-flex justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-10">
-            <span class="text-muted small">Jenis Kelamin</span>
+            <span class="text-white-50 small">Jenis Kelamin</span>
             <span class="text-white fw-bold">{{ $siswa->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan' }}</span>
           </li>
           <li class="d-flex justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-10">
-            <span class="text-muted small">Wali Kelas</span>
+            <span class="text-white-50 small">Wali Kelas</span>
             <span class="text-white fw-bold">{{ $siswa->kelas->waliKelas->nama_lengkap ?? '-' }}</span>
           </li>
           <li class="d-flex justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-10">
-            <span class="text-muted small">Kontak Ortu</span>
-            <span class="text-white fw-bold">{{ $siswa->no_hp_ortu }}</span>
+            <span class="text-white-50 small">Kontak Ortu</span>
+            <span class="text-white fw-bold">{{ $siswa->no_hp_ortu ?: '-' }}</span>
           </li>
           <li class="d-flex justify-content-between">
-            <span class="text-muted small">Status</span>
+            <span class="text-white-50 small">Status</span>
             <span class="das-chip --success">Aktif</span>
           </li>
         </ul>
@@ -104,14 +133,14 @@
   <div class="col-xl-8 col-lg-7">
     <div class="das-panel mb-4">
        <div class="nav-align-top">
-          <ul class="nav nav-tabs das-panel__head border-0" role="tablist">
+          <ul class="nav nav-tabs nav-tabs-glass border-0" role="tablist">
             <li class="nav-item">
-              <button type="button" class="nav-link active py-3 bg-transparent border-0 text-white" role="tab" data-bs-toggle="tab" data-bs-target="#tab-pelanggaran">
+              <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#tab-pelanggaran">
                 <i class="ti tabler-alert-circle me-1"></i> Riwayat Pelanggaran
               </button>
             </li>
             <li class="nav-item">
-              <button type="button" class="nav-link py-3 bg-transparent border-0 text-white" role="tab" data-bs-toggle="tab" data-bs-target="#tab-sp">
+              <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#tab-sp">
                 <i class="ti tabler-mail me-1"></i> Riwayat Surat Peringatan (SP)
               </button>
             </li>
@@ -124,7 +153,7 @@
                     <tr>
                       <th>TANGGAL</th>
                       <th>KATEGORI / JENIS</th>
-                      <th>POIN</th>
+                      <th class="text-center">POIN</th>
                       <th>DICATAT OLEH</th>
                       <th>KETERANGAN</th>
                     </tr>
@@ -132,18 +161,20 @@
                   <tbody>
                     @forelse($pelanggaranSiswa as $p)
                        <tr>
-                          <td>{{ \Carbon\Carbon::parse($p->tanggal_kejadian)->translatedFormat('d M Y') }}</td>
+                          <td class="text-white-50 small">{{ \Carbon\Carbon::parse($p->tanggal_kejadian)->translatedFormat('d M Y') }}</td>
                           <td>
-                            <div class="fw-bold">{{ optional($p->jenisPelanggaran)->kategori->nama ?? '-' }}</div>
-                            <div class="small text-muted">{{ optional($p->jenisPelanggaran)->nama ?? '-' }}</div>
+                            <div class="fw-bold text-white">{{ optional($p->jenisPelanggaran)->kategori->nama ?? '-' }}</div>
+                            <div class="small text-white-50">{{ optional($p->jenisPelanggaran)->nama ?? '-' }}</div>
                           </td>
-                          <td class="fw-bold text-danger">{{ $p->poin_saat_itu }}</td>
-                          <td class="small">{{ optional($p->pencatat)->name ?? '-' }}</td>
+                          <td class="text-center">
+                            <span class="badge bg-danger text-white px-2 py-1 fw-bold">+{{ $p->poin_saat_itu }}</span>
+                          </td>
+                          <td class="small text-white-50">{{ optional($p->pencatat)->name ?? '-' }}</td>
                           <td class="small text-white-50">{{ $p->keterangan ?? '-' }}</td>
                        </tr>
                     @empty
                        <tr>
-                         <td colspan="5" class="text-center py-4 text-muted">Belum ada riwayat pelanggaran.</td>
+                         <td colspan="5" class="text-center py-4 text-white-50">Belum ada riwayat pelanggaran.</td>
                        </tr>
                     @endforelse
                   </tbody>
@@ -158,7 +189,7 @@
                     <tr>
                       <th>TANGGAL</th>
                       <th>LEVEL SP</th>
-                      <th>POIN SAAT SP</th>
+                      <th class="text-center">POIN SAAT SP</th>
                       <th>DITERBITKAN OLEH</th>
                       <th>CATATAN</th>
                     </tr>
@@ -166,7 +197,7 @@
                   <tbody>
                     @forelse($pelanggaranSp as $sp)
                        <tr>
-                          <td>{{ \Carbon\Carbon::parse($sp->tanggal_sp)->translatedFormat('d M Y') }}</td>
+                          <td class="text-white-50 small">{{ \Carbon\Carbon::parse($sp->tanggal_sp)->translatedFormat('d M Y') }}</td>
                           <td>
                             @php
                               $spColor = match ($sp->level_sp) {
@@ -178,13 +209,15 @@
                             @endphp
                             <span class="badge bg-label-{{ $spColor }}">{{ $sp->level_sp }}</span>
                           </td>
-                          <td class="fw-bold text-warning">{{ $sp->total_poin_saat_sp }}</td>
-                          <td class="small">{{ optional($sp->penerbit)->name ?? '-' }}</td>
+                          <td class="text-center">
+                            <span class="badge bg-danger text-white px-2 py-1 fw-bold">{{ $sp->total_poin_saat_sp }}</span>
+                          </td>
+                          <td class="small text-white-50">{{ optional($sp->penerbit)->name ?? '-' }}</td>
                           <td class="small text-white-50">{{ $sp->catatan_tambahan ?? '-' }}</td>
                        </tr>
                     @empty
                        <tr>
-                         <td colspan="5" class="text-center py-4 text-muted">Belum ada riwayat Surat Peringatan (SP).</td>
+                         <td colspan="5" class="text-center py-4 text-white-50">Belum ada riwayat Surat Peringatan (SP).</td>
                        </tr>
                     @endforelse
                   </tbody>
